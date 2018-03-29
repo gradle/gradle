@@ -44,10 +44,100 @@ public class DefaultTaskContainerTest extends Specification {
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
 
-    void "creates by Map"() {
-        def options = singletonMap("option", "value")
+    void 'cannot create task with no name'() {
+        when:
+        container.create([:])
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "The task name must be provided."
+    }
+
+    void 'can create task with dependencies'() {
         def task = task("task")
-        taskFactory.createTask(options) >> task
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        def added = container.create([name: 'task', dependsOn: "/path1"])
+
+        then:
+        added == task
+        1 * task.dependsOn("/path1")
+    }
+
+    void 'create fails with unknown arguments'() {
+        when:
+        container.create([name: 'task', dependson: 'anotherTask'])
+
+        then:
+        InvalidUserDataException exception = thrown()
+        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [dependson]"
+
+        when:
+        container.create([name: 'task', Type: NotATask])
+
+        then:
+        exception = thrown()
+        exception.message == "Could not create task 'task': Unknown argument(s) in task definition: [Type]"
+    }
+
+    static class NotATask {
+    }
+
+    void 'can create task with Action'() {
+        Action<Task> action = Mock()
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', action: action])
+
+        then:
+        added == task
+        1 * task.doFirst(action)
+    }
+
+    void 'can create task with Action closure'() {
+        Closure action = Mock()
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', action: action])
+
+        then:
+        added == task
+        1 * task.doFirst(action)
+    }
+
+    void 'can create task with description'() {
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', description: "some task"])
+
+        then:
+        added == task
+        1 * task.setDescription("some task")
+    }
+
+    void 'can create task with group'() {
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
+
+        when:
+        Task added = container.create([name: 'task', group: "some group"])
+
+        then:
+        added == task
+        1 * task.setGroup("some group")
+    }
+
+    void "creates by Map"() {
+        def options = singletonMap("name", "task")
+        def task = task("task")
+        taskFactory.create("task", DefaultTask) >> task
 
         when:
         def added = container.create(options)
@@ -144,7 +234,7 @@ public class DefaultTaskContainerTest extends Specification {
     void "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
-        taskFactory.create("task", DefaultTask) >> { this.task("task") }
+        1 * taskFactory.create("task", DefaultTask) >> { this.task("task") }
 
         when:
         container.create("task")
@@ -422,17 +512,17 @@ public class DefaultTaskContainerTest extends Specification {
     private Task addTask(String name) {
         def task = task(name)
         def options = singletonMap(Task.TASK_NAME, name)
-        taskFactory.createTask(options) >> task
+        1 * taskFactory.create(name, DefaultTask) >> task
         container.create(options)
-        return task;
+        return task
     }
 
     private <U extends Task> U addTask(String name, Class<U> type) {
         def task = task(name, type)
         def options = [name: name, type: type]
-        taskFactory.createTask(options) >> task
+        1 * taskFactory.create(name, type) >> task
         container.create(options)
-        return task;
+        return task
     }
 
     interface CustomTask extends TaskInternal {}

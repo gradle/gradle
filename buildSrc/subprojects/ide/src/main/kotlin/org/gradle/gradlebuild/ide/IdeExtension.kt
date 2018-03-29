@@ -17,7 +17,7 @@ package org.gradle.gradlebuild.ide
 
 import org.gradle.api.Project
 
-import accessors.*
+import accessors.idea
 
 
 open class IdeExtension(private val project: Project) {

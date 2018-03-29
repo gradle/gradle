@@ -23,6 +23,7 @@ import org.gradle.gradlebuild.test.fixtures.TestFixturesPlugin
 import org.gradle.kotlin.dsl.*
 import releasedVersions
 
+
 class CrossVersionTestsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val sourceSet = addSourceSet(TestType.CROSSVERSION)
@@ -36,7 +37,8 @@ class CrossVersionTestsPlugin : Plugin<Project> {
         configureTestFixturesForCrossVersionTests()
     }
 
-    private fun Project.configureTestFixturesForCrossVersionTests() {
+    private
+    fun Project.configureTestFixturesForCrossVersionTests() {
         plugins.withType<TestFixturesPlugin> {
             configure<TestFixturesExtension> {
                 from(":toolingApi")

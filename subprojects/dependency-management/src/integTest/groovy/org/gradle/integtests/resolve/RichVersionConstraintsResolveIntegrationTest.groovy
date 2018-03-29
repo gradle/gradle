@@ -308,6 +308,9 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
             'org:b:1.0' {
                 expectGetMetadata()
             }
+            'org:b:1.1' {
+                expectGetMetadata()
+            }
             'org:c:1.0' {
                 expectGetMetadata()
             }
@@ -362,6 +365,9 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                 expectGetMetadata()
             }
             'org:b:1.0' {
+                expectGetMetadata()
+            }
+            'org:b:1.1' {
                 expectGetMetadata()
             }
             'org:c:1.0' {

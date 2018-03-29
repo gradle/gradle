@@ -38,25 +38,9 @@ dependencies {
         }
 
         // Reject dependencies we do not want completely
-        add("default", "com.google.collections:google-collections") {
-            version { rejectAll() }
-            because("Guava replaces google collections")
-        }
-        add("default", "junit:junit-dep") {
-            version { rejectAll() }
-            because("junit:junit has replaced junit:junit-dep")
-        }
-        add("default", "commons-logging:commons-logging") {
-            version { rejectAll() }
-            because("We do not want non-slf4j logging implementations on the classpath")
-        }
         add("default", "org.sonatype.sisu:sisu-inject-plexus") {
             version { rejectAll() }
             because("We do not wand this dependency injection on the classpath")
-        }
-        add("default", "asm:asm") {
-            version { rejectAll() }
-            because("We use org.ow2.asm:asm")
         }
     }
 }

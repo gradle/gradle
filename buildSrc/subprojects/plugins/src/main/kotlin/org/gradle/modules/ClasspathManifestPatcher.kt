@@ -24,7 +24,8 @@ open class ClasspathManifestPatcher(
     private val project: Project,
     private val temporaryDir: File,
     private val runtime: Configuration,
-    private val moduleNames: Set<String>) {
+    private val moduleNames: Set<String>
+) {
 
     fun writePatchedFilesTo(outputDir: File) =
         resolveExternalModuleJars().forEach {

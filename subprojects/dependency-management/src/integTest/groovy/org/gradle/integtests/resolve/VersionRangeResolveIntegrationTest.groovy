@@ -18,35 +18,17 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.Unroll
-
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
- * // TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
+ * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
+ * TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
  */
 class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    static final FIXED_7 = fixed(7)
-    static final FIXED_9 = fixed(9)
-    static final FIXED_10 = fixed(10)
-    static final FIXED_11 = fixed(11)
-    static final FIXED_12 = fixed(12)
-    static final FIXED_13 = fixed(13)
-    static final RANGE_7_8 = range(7, 8)
-    static final RANGE_10_11 = range(10, 11)
-    static final RANGE_10_12 = range(10, 12)
-    static final RANGE_10_14 = range(10, 14)
-    static final RANGE_10_16 = range(10, 16)
-    static final RANGE_11_12 = range(11, 12)
-    static final RANGE_12_14 = range(12, 14)
-    static final RANGE_13_14 = range(13, 14)
-    static final RANGE_14_16 = range(14, 16)
-
-    static final REJECT_11 = reject(11)
-    static final REJECT_12 = reject(12)
-    static final REJECT_13 = reject(13)
-
     def baseBuild
+    def baseSettings
     def resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
@@ -65,6 +47,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 """
         resolve.prepare()
         baseBuild = buildFile.text
+        baseSettings = settingsFile.text
     }
 
     @Unroll
@@ -160,27 +143,25 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
 
         where:
-        dep1         | dep2         | lenientResult | strictResult | correctLenient | correctStrict
-        "1.0"        | "1.1"        | "1.1"         | "FAIL"       | ''             | ''
-        "[1.0, 1.2]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 1.4]" | "[1.0, 1.6]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 2)"   | "1.1"        | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 2)"   | "[1.0, 1.1]" | "1.1"         | "1.1"        | ''             | ''
-        "[1.0, 2)"   | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 2)"   | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.0, 1.4]" | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.1, )"    | "1.2"         | "1.2"        | ''             | ''
-
-        // Currently incorrect behaviour
-        "1.+"        | "1.1"        | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
-        "1.+"        | "[1.0, 1.1]" | "1.2"         | "FAIL"       | "1.1"          | "1.1"  // #4180
+        dep1         | dep2         | lenientResult | strictResult
+        "1.0"        | "1.1"        | "1.1"         | "FAIL"
+        "[1.0, 1.2]" | "1.1"        | "1.1"         | "1.1"
+        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.1"         | "1.1"
+        "[1.0, 1.4]" | "1.1"        | "1.1"         | "1.1"
+        "[1.0, 1.4]" | "[1.0, 1.1]" | "1.1"         | "1.1"
+        "[1.0, 1.4]" | "[1.0, 1.6]" | "1.2"         | "1.2"
+        "[1.0, )"    | "1.1"        | "1.1"         | "1.1"
+        "[1.0, )"    | "[1.0, 1.1]" | "1.1"         | "1.1"
+        "[1.0, )"    | "[1.0, 1.4]" | "1.2"         | "1.2"
+        "[1.0, )"    | "[1.1, )"    | "1.2"         | "1.2"
+        "[1.0, 2)"   | "1.1"        | "1.1"         | "1.1"
+        "[1.0, 2)"   | "[1.0, 1.1]" | "1.1"         | "1.1"
+        "[1.0, 2)"   | "[1.0, 1.4]" | "1.2"         | "1.2"
+        "[1.0, 2)"   | "[1.1, )"    | "1.2"         | "1.2"
+        "1.+"        | "[1.0, 1.4]" | "1.2"         | "1.2"
+        "1.+"        | "[1.1, )"    | "1.2"         | "1.2"
+        "1.+"        | "1.1"        | "1.1"          | "1.1"
+        "1.+"        | "[1.0, 1.1]" | "1.1"          | "1.1"
     }
 
     private boolean strictable(String version) {
@@ -316,223 +297,155 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         "1.+"        | "1.2"        | "FAIL"        | "FAIL"       | "1.1"          | "1.1"
     }
 
-
     @Unroll
-    def "resolve #one & #two"() {
-        expect:
-        resolve(one, two) == lenientResult
-        resolve(strict(one), two) == strict1Result
-        resolve(one, strict(two)) == strict2Result
-        resolve(strict(one), strict(two)) == strictBothResult
+    def "resolve pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
 
-        resolve(two, one) == lenientResult
-        resolve(two, strict(one)) == strict1Result
-        resolve(strict(two), one) == strict2Result
-        resolve(strict(two), strict(one)) == strictBothResult
+        expect:
+        resolve(candidates) == expected
 
         where:
-        one         | two         | lenientResult | strict1Result | strict2Result | strictBothResult
-        FIXED_7     | FIXED_13    | 13            | -1            | 13            | -1
-        FIXED_12    | FIXED_13    | 13            | -1            | 13            | -1
-        FIXED_12    | RANGE_10_11 | 12            | 12            | -1            | -1
-        FIXED_12    | RANGE_10_14 | 12            | 12            | 12            | 12
-        FIXED_12    | RANGE_13_14 | 13            | -1            | 13            | -1
-        FIXED_12    | RANGE_7_8   | -1            | -1            | -1            | -1
-        FIXED_12    | RANGE_14_16 | -1            | -1            | -1            | -1
-        RANGE_10_11 | FIXED_10    | 10            | 10            | 10            | 10
-        RANGE_10_14 | FIXED_13    | 13            | 13            | 13            | 13
-        RANGE_10_14 | RANGE_10_11 | 11            | 11            | 11            | 11
-        RANGE_10_14 | RANGE_10_16 | 13            | 13            | 13            | 13
+        permutation << VersionRangeResolveTestScenarios.PAIRS
     }
 
     @Unroll
-    def "resolve #one & #two & #three"() {
+    def "resolve reject pair #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        [one, two, three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == rst
-        }
-        [strict(one), two, three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict1Result
-        }
-        [one, strict(two), three].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict2Result
-        }
-        [one, two, strict(three)].permutations().each {
-            assert resolve(it[0], it[1], it[2]) == strict3Result
-        }
+        resolve(candidates) == expected
 
         where:
-        one      | two      | three    | rst | strict1Result | strict2Result | strict3Result
-        FIXED_12 | FIXED_13 | FIXED_10 | 13  | -1            | 13            | -1
-//        FIXED_10    | FIXED_12    | RANGE_10_14 | 12     | -1            | 12            | 12
-//        FIXED_10    | RANGE_10_11 | RANGE_10_14 | 10     | 10            | 10            | 10
-
-//        FIXED_10    | RANGE_11_12 | RANGE_10_14 | 12     | -1            | 12            | 12
-        FIXED_10    | RANGE_10_11 | RANGE_13_14 | 13     | -1            | -1            | 13
-//        RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11     | 11            | 11            | 11
-        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
-        RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13     | -1            | -1            | 13
-
-//         gradle/gradle#4608
-//        FIXED_10    | FIXED_10    | FIXED_12    | 12     | -1            | -1            | 12
-
-//        FIXED_12    | RANGE_12_14 | RANGE_10_11 | 12     | 12            | 12            | -1
-//        FIXED_12    | RANGE_12_14 | FIXED_10    | 12     | 12            | 12            | -1
+        permutation << VersionRangeResolveTestScenarios.PAIRS_WITH_REJECT
     }
 
     @Unroll
-    def "resolve #one & #two & #three & #four"() {
+    def "resolve three #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        [one, two, three, four].permutations().each {
-            assert resolve(it[0], it[1], it[2], it[3]) == resolved
-        }
+        resolve(candidates) == expected
 
         where:
-        one     | two      | three    | four     | resolved
-        FIXED_9 | FIXED_10 | FIXED_11 | FIXED_12 | 12
-//        FIXED_10 | RANGE_10_11 | FIXED_12 | RANGE_12_14 | 12
-        FIXED_10 | RANGE_10_11 | RANGE_10_12 | RANGE_13_14 | 13
-//        FIXED_9  | RANGE_10_11 | RANGE_10_12 | RANGE_10_14 | 11
+        permutation << VersionRangeResolveTestScenarios.THREES
     }
 
     @Unroll
-    def "resolve #dep and #reject"() {
+    def "resolve deps with reject #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        resolve(dep, reject) == resolved
-        resolve(reject, dep) == resolved
-        resolve(strict(dep), reject) == strictResult
-        resolve(reject, strict(dep)) == strictResult
+        resolve(candidates) == expected
 
         where:
-        dep      | reject    | resolved | strictResult
-        FIXED_12 | REJECT_11 | 12       | 12
-        FIXED_12 | REJECT_12 | -1       | -1
-        FIXED_12 | REJECT_13 | 12       | 12
+        permutation << VersionRangeResolveTestScenarios.MULTIPLES_WITH_REJECT
     }
 
     @Unroll
-    def "resolve #deps & reject 11/12/13"() {
+    def "resolve four #permutation"() {
+        given:
+        def candidates = permutation.candidates
+        def expected = permutation.expected
+
         expect:
-        deps.permutations().each {
-            it
-            assert resolve(it + REJECT_11) == reject11
-            assert resolve(it + REJECT_12) == reject12
-            assert resolve(it + REJECT_13) == reject13
-            assert resolve([] + REJECT_11 + it) == reject11
-            assert resolve([] + REJECT_12 + it) == reject12
-            assert resolve([] + REJECT_13 + it) == reject13
-        }
+        resolve(candidates) == expected
 
         where:
-        deps                                              | reject11 | reject12 | reject13
-        [FIXED_10, FIXED_11, FIXED_12]                    | 12       | -1       | 12
-//        [RANGE_10_14, RANGE_10_12, FIXED_12]              | 12       | 13       | 12
-//        [FIXED_10, RANGE_10_11, FIXED_12, RANGE_12_14]    | 12       | 13       | 12
-        [FIXED_10, RANGE_10_11, RANGE_10_12, RANGE_13_14] | 13       | 13       | -1
-//        [FIXED_9, RANGE_10_11, RANGE_10_12, RANGE_10_14]  | 10       | 11       | 11
+        permutation << VersionRangeResolveTestScenarios.FOURS
     }
 
-    private static RenderableVersion fixed(int version) {
-        def vs = new SimpleVersion()
-        vs.version = "${version}"
-        return vs
-    }
-
-    private static RenderableVersion range(int low, int high) {
-        def vs = new SimpleVersion()
-        vs.version = "[${low},${high}]"
-        return vs
-    }
-
-    private static RenderableVersion reject(int version) {
-        def vs = new RejectVersion()
-        vs.version = version
-        vs
-    }
-
-    private static RenderableVersion strict(RenderableVersion input) {
-        def v = new StrictVersion()
-        v.version = input.version
-        v
-    }
-
-    def resolve(RenderableVersion... versions) {
+    def resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
         resolve(versions as List)
     }
 
-    def resolve(List<RenderableVersion> versions) {
-        def deps = versions.collect {
-            "conf " + it.render()
-        }.join("\n")
+    def resolve(List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
+        settingsFile.text = baseSettings
+
+        def singleProjectConfs = []
+        def singleProjectDeps = []
+        versions.eachWithIndex { VersionRangeResolveTestScenarios.RenderableVersion version, int i ->
+            singleProjectConfs << "single${i}"
+            singleProjectDeps << "single${i} " + version.render()
+        }
 
         buildFile.text = baseBuild + """
-            dependencies {
-               $deps
+            allprojects {
+                configurations { conf }
             }
-            task resolve(type: Sync) {
+            
+            configurations {
+                ${singleProjectConfs.join('\n')}
+                single {
+                    extendsFrom(${singleProjectConfs.join(',')})
+                }
+            }
+
+            dependencies {
+                conf 'org:foo'
+                conf project(path: ':p1', configuration: 'conf')
+                ${singleProjectDeps.join('\n')}
+            }
+            
+            task resolveMultiProject(type: Sync) {
                 from configurations.conf
-                into 'libs'
+                into 'libs-multi'
+            }
+            
+            task resolveSingleProject(type: Sync) {
+                from configurations.single
+                into 'libs-single'
             }
 """
+        for (int i = 1; i <= versions.size(); i++) {
+            VersionRangeResolveTestScenarios.RenderableVersion version = versions.get(i - 1);
+            def nextProjectDependency = i < versions.size() ? "conf project(path: ':p${i + 1}', configuration: 'conf')" : ""
+            buildFile << """
+                project('p${i}') {
+                    dependencies {
+                        conf ${version.render()}
+                        ${nextProjectDependency}
+                    }
+                }
+"""
+            settingsFile << """
+                include ':p${i}'
+"""
+        }
 
+        def multiProjectResolve = []
         try {
-            run 'resolve'
+            run 'resolveMultiProject'
+            multiProjectResolve = file('libs-multi').list() as List
         } catch (Exception e) {
+            // Ignore
+        }
+
+        def singleProjectResolve = []
+        try {
+            run 'resolveSingleProject'
+            singleProjectResolve = file('libs-single').list() as List
+        } catch (Exception e) {
+            // Ignore
+        }
+
+        assert multiProjectResolve == singleProjectResolve
+
+        if (multiProjectResolve.size() == 0) {
             return -1
         }
 
-        def files = file('libs').listFiles()
-        assert files.length == 1
-        assert files[0].name.startsWith('foo-')
-        assert files[0].name.endsWith('.jar')
-        return (files[0].name =~ /\d\d/).getAt(0) as int
-    }
-
-    interface RenderableVersion {
-        String getVersion()
-
-        String render()
-    }
-
-    static class SimpleVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            "'org:foo:${version}'"
-        }
-
-        @Override
-        String toString() {
-            return version
-        }
-    }
-
-    static class StrictVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            return "('org:foo') { version { strictly '${version}' } }"
-        }
-
-        @Override
-        String toString() {
-            return "strictly(" + version + ")"
-        }
-    }
-
-    static class RejectVersion implements RenderableVersion {
-        String version
-
-        @Override
-        String render() {
-            "('org:foo') { version { reject '${version}' } }"
-        }
-
-        @Override
-        String toString() {
-            return "reject " + version
-        }
+        assert multiProjectResolve.size() == 1
+        def resolvedFile = multiProjectResolve.get(0)
+        assert resolvedFile.startsWith('foo-')
+        assert resolvedFile.endsWith('.jar')
+        return (resolvedFile =~ /\d\d/).getAt(0) as int
     }
 }

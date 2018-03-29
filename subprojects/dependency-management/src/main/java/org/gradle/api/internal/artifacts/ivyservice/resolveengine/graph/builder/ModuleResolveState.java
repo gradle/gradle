@@ -101,6 +101,7 @@ class ModuleResolveState implements CandidateModule {
         for (ComponentState version : versions.values()) {
             version.evict();
         }
+
         selected.select();
     }
 
@@ -120,16 +121,6 @@ class ModuleResolveState implements CandidateModule {
             select(selected);
             doRestart(selected);
         }
-    }
-
-    public void softSelect(ComponentState selected) {
-        assert this.selected == null;
-        this.selected = selected;
-        for (ComponentState version : versions.values()) {
-            version.makeSelectable();
-        }
-        selected.select();
-        doRestart(selected);
     }
 
     private void doRestart(ComponentState selected) {

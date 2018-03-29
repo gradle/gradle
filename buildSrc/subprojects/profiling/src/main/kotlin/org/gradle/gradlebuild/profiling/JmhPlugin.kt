@@ -21,6 +21,7 @@ import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.*
 
+
 open class JmhPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
@@ -36,5 +37,3 @@ open class JmhPlugin : Plugin<Project> {
         }
     }
 }
-
-

@@ -5,6 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.nio.charset.Charset
 
+
 open class AddVerifyProductionEnvironmentTaskPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         tasks.create("verifyIsProductionBuildEnvironment") {

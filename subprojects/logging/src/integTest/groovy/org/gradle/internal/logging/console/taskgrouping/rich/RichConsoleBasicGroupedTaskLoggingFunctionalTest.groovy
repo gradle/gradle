@@ -49,6 +49,22 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
+        result.groupedOutput.task(':failing').output == 'hello'
+        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+    }
+
+    def "group header is printed red if task failed and there is no output"() {
+        given:
+        buildFile << """
+            task failing { doFirst { 
+                throw new RuntimeException('Failure...')
+            } }
+        """
+
+        when:
+        fails('failing')
+
+        then:
         result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
     }
 

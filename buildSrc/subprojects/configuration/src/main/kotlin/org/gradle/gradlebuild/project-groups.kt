@@ -2,6 +2,7 @@ package org.gradle.gradlebuild
 
 import org.gradle.api.Project
 
+
 object ProjectGroups {
     val excludedFromVulnerabilityCheck = setOf(
         ":buildScanPerformance",
@@ -61,8 +62,8 @@ object ProjectGroups {
         get() = setOf(rootProject.project(":testingJunitPlatform"))
 
     val Project.publicProjects
-       get() = pluginProjects +
-           implementationPluginProjects +
-           publicJavaProjects -
-           setOf(":smokeTest", ":soak").map { rootProject.project(it) }
+        get() = pluginProjects +
+            implementationPluginProjects +
+            publicJavaProjects -
+            setOf(":smokeTest", ":soak").map { rootProject.project(it) }
 }

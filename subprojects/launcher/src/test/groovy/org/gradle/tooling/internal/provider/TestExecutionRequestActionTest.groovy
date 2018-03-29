@@ -15,13 +15,14 @@
  */
 
 package org.gradle.tooling.internal.provider
-import org.gradle.StartParameter
+
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import spock.lang.Specification
 
 class TestExecutionRequestActionTest extends Specification {
 
-    StartParameter startParameter = Mock()
+    StartParameterInternal startParameter = Mock()
     BuildClientSubscriptions buildClientSubscriptions= Mock()
     ProviderInternalTestExecutionRequest executionRequest = Mock()
 

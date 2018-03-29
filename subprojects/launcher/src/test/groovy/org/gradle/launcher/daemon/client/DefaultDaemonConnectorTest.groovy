@@ -23,6 +23,7 @@ import org.gradle.internal.remote.internal.ConnectCompletion
 import org.gradle.internal.remote.internal.ConnectException
 import org.gradle.internal.remote.internal.OutgoingConnector
 import org.gradle.internal.remote.internal.RemoteConnection
+import org.gradle.internal.serialize.Serializer
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
@@ -30,7 +31,8 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
 class DefaultDaemonConnectorTest extends Specification {
 
@@ -61,7 +63,8 @@ class DefaultDaemonConnectorTest extends Specification {
                 Spy(OutgoingConnectorStub),
                 { startBusyDaemon() } as DaemonStarter,
                 Stub(DaemonStartListener),
-                Stub(ProgressLoggerFactory)]
+                Stub(ProgressLoggerFactory),
+                Stub(Serializer)]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector

@@ -534,7 +534,7 @@ Here is an example that uses multiple `from()` specifications, each with a diffe
 </sample>
 ++++
 
-Note that the lazy configuration of `into()` is different from a <<Using child specifications,child specifiction>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
+Note that the lazy configuration of `into()` is different from a <<Using child specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
 
 ==== Filtering files
 

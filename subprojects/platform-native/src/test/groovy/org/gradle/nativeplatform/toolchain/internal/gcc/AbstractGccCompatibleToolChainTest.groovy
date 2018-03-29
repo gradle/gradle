@@ -34,6 +34,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata
+import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult
 import org.gradle.nativeplatform.toolchain.internal.tools.GccCommandLineToolConfigurationInternal
@@ -66,9 +67,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def buildOperationExecutor = Stub(BuildOperationExecutor)
     def compilerOutputFileNamingSchemeFactory = Stub(CompilerOutputFileNamingSchemeFactory)
     def workerLeaseService = Stub(WorkerLeaseService)
+    def systemLibraryDiscovery = Stub(SystemLibraryDiscovery)
 
     def instantiator = DirectInstantiator.INSTANCE
-    def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, instantiator, workerLeaseService)
+    def toolChain = new TestNativeToolChain("test", buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, toolSearchPath, metaDataProvider, systemLibraryDiscovery, instantiator, workerLeaseService)
     def platform = Stub(NativePlatformInternal)
 
     def dummyOs = new DefaultOperatingSystem("currentOS", OperatingSystem.current())
@@ -412,8 +414,8 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     static class TestNativeToolChain extends AbstractGccCompatibleToolChain {
-        TestNativeToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
-            super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, tools, metaDataProvider, null, instantiator, workerLeaseService)
+        TestNativeToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, ToolSearchPath tools, CompilerMetaDataProvider metaDataProvider, SystemLibraryDiscovery systemLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
+            super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, tools, metaDataProvider, systemLibraryDiscovery, instantiator, workerLeaseService)
         }
 
         @Override

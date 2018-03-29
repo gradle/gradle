@@ -23,6 +23,7 @@ import org.gradle.kotlin.dsl.*
 
 import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 
+
 open class DependencyVulnerabilitiesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {

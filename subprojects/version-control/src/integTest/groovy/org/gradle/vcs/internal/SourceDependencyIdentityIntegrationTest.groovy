@@ -98,10 +98,12 @@ Required by:
                 def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 2
                 assert components[0].build.name == ':'
+                assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 // TODO - should be 'buildA'
                 assert components[0].projectName == ':'
                 assert components[1].build.name == 'buildB'
+                assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
                 assert components[1].projectName == 'buildB'
             }

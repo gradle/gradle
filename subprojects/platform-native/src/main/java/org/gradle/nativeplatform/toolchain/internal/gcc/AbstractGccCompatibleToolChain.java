@@ -205,6 +205,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         configureDefaultTools(configurableToolChain);
         targetPlatformConfigurationConfiguration.apply(configurableToolChain);
         configureActions.execute(configurableToolChain);
+        configurableToolChain.compilerProbeArgs(standardLibraryDiscovery.compilerProbeArgs(targetPlatform));
 
         ToolChainAvailability result = new ToolChainAvailability();
         initTools(configurableToolChain, result);

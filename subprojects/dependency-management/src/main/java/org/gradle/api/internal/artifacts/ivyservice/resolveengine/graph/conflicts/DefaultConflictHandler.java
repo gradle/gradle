@@ -21,8 +21,9 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
@@ -43,6 +44,11 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     public DefaultConflictHandler(ModuleConflictResolver conflictResolver, ModuleReplacementsData moduleReplacements) {
         this.moduleReplacements = moduleReplacements;
         this.compositeResolver.addFirst(conflictResolver);
+    }
+
+    @Override
+    public ModuleConflictResolver getResolver() {
+        return compositeResolver;
     }
 
     /**
@@ -68,7 +74,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         assert hasConflicts();
         ConflictContainer<ModuleIdentifier, ComponentResolutionState>.Conflict conflict = conflicts.popConflict();
-        DefaultConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
+        ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails<ComponentResolutionState>(conflict.candidates);
         compositeResolver.select(details);
         if (details.hasFailure()) {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
@@ -86,8 +92,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             if (replacement != null) {
                 String reason = replacement.getReason();
                 if (reason != null) {
-                    ComponentSelectionReasonInternal selectionReason = selected.getSelectionReason();
-                    selectionReason.addCause(ComponentSelectionCause.CONFLICT_RESOLUTION, reason);
+                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION, reason));
                 }
             }
         }

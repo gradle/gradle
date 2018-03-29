@@ -23,10 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -36,6 +32,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -48,7 +45,7 @@ import java.util.Set;
 /**
  * Resolution state for a given component
  */
-public class ComponentState implements ComponentResolutionState, DependencyGraphComponent, ComponentStateWithDependents<ComponentState> {
+public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
@@ -61,12 +58,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private volatile ComponentResolveMetadata metadata;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
-    private ModuleVersionResolveException failure;
-    // The first selector that resolved this component
+    private ModuleVersionResolveException metadataResolveFailure;
     private SelectorState firstSelectedBy;
-    private List<SelectorState> selectedBy;
-    private ResolvedVersionConstraint mergedVersionConstraint;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
+
+    private boolean rejected;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
         this.resultId = resultId;
@@ -103,8 +99,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return id;
     }
 
-    public ModuleVersionResolveException getFailure() {
-        return failure;
+    public ModuleVersionResolveException getMetadataResolveFailure() {
+        return metadataResolveFailure;
     }
 
     public DependencyGraphBuilder.VisitState getVisitState() {
@@ -147,14 +143,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public void selectedBy(SelectorState resolver) {
         if (firstSelectedBy == null) {
             firstSelectedBy = resolver;
-            selectedBy = Lists.newLinkedList();
         }
-        selectedBy.add(resolver);
-        mergedVersionConstraint = null;
-    }
-
-    public List<SelectorState> getSelectedBy() {
-        return selectedBy;
     }
 
     /**
@@ -163,7 +152,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
      * @return true if it has been resolved in a cheap way
      */
     public boolean alreadyResolved() {
-        return metadata != null || failure != null;
+        return metadata != null || metadataResolveFailure != null;
     }
 
     public void resolve() {
@@ -171,53 +160,21 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return;
         }
 
+        // Any metadata overrides (e.g classifier/artifacts/client-module) will be taken from the first dependency that referenced this component
+        ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
+
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
-        resolver.resolve(componentIdentifier, DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata()), result);
+        resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
         if (result.getFailure() != null) {
-            failure = result.getFailure();
+            metadataResolveFailure = result.getFailure();
             return;
         }
         metadata = result.getMetadata();
     }
 
-    public ResolvedVersionConstraint getVersionConstraint() {
-        if (mergedVersionConstraint == null) {
-            mergedVersionConstraint = buildVersionConstraint();
-        }
-        return mergedVersionConstraint;
-    }
-
-    private ResolvedVersionConstraint buildVersionConstraint() {
-        if (selectedBy == null) {
-            return null;
-        }
-        if (selectedBy.size() == 1) {
-            return firstSelectedBy.getVersionConstraint();
-        }
-
-        List<VersionSelector> combinedRejectSelectors = Lists.newArrayListWithCapacity(selectedBy.size());
-        for (SelectorState selectorState : selectedBy) {
-            if (selectorState.getVersionConstraint() != null && selectorState.getVersionConstraint().getRejectedSelector() != null) {
-                combinedRejectSelectors.add(selectorState.getVersionConstraint().getRejectedSelector());
-            }
-        }
-
-        if (combinedRejectSelectors.isEmpty()) {
-            return firstSelectedBy.getVersionConstraint();
-        }
-
-        VersionSelector mergedRejectSelector = combinedRejectSelectors.size() == 1 ? combinedRejectSelectors.get(0) : new UnionVersionSelector(combinedRejectSelectors);
-        return new DefaultResolvedVersionConstraint(firstSelectedBy.getVersionConstraint().getPreferredSelector(), mergedRejectSelector);
-    }
-
-    @Override
-    public boolean isResolved() {
-        return metadata != null;
-    }
-
     public void setMetadata(ComponentResolveMetadata metaData) {
         this.metadata = metaData;
-        this.failure = null;
+        this.metadataResolveFailure = null;
     }
 
     public void addConfiguration(NodeState node) {
@@ -305,15 +262,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return incoming;
     }
 
-    public List<ComponentState> getUnattachedDependencies() {
-        return module.getUnattachedEdgesTo(this);
-    }
-
-    @Override
-    public boolean isFromPendingNode() {
-        return firstSelectedBy != null && firstSelectedBy.getDependencyMetadata().isPending();
-    }
-
     public boolean isSelected() {
         return state == ComponentSelectionState.Selected;
     }
@@ -322,7 +270,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return state.isSelectable();
     }
 
-    boolean isCandidateForConflictResolution() {
+    public boolean isCandidateForConflictResolution() {
         return state.isCandidateForConflictResolution();
     }
 
@@ -336,6 +284,27 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     void makeSelectable() {
         state = ComponentSelectionState.Selectable;
+    }
+
+    @Override
+    public void reject() {
+        this.rejected = true;
+
+    }
+
+    @Override
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    @Override
+    public boolean isRoot() {
+        for (NodeState node : nodes) {
+            if (node.isRoot()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

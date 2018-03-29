@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
@@ -55,12 +54,10 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         }
     }
 
-    private void checkDeprecations(StartParameter startParameter) {
+    private void checkDeprecations(StartParameterInternal startParameter) {
         UnsupportedJavaRuntimeException.javaDeprecationWarning();
 
         // This must be done here because DeprecationLogger needs to be initialized properly
-        if (startParameter instanceof StartParameterInternal) {
-            StartParameterInternal.class.cast(startParameter).checkDeprecation();
-        }
+        startParameter.checkDeprecation();
     }
 }

@@ -29,7 +29,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -53,7 +52,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
-        Task task = project.getServices().get(ITaskFactory.class).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name))
+        Task task = project.getServices().get(ITaskFactory.class).create(name, type)
         assertTrue(type.isAssignableFrom(task.getClass()))
         return type.cast(task)
     }

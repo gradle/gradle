@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.specs.ExplainingSpec
-import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.id.UUIDGenerator
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.protocol.Failure
@@ -29,7 +29,7 @@ import org.gradle.util.ConcurrentSpecification
 class DaemonStopClientTest extends ConcurrentSpecification {
     final DaemonConnector connector = Mock()
     final DaemonClientConnection connection = Mock()
-    final IdGenerator<?> idGenerator = {12} as IdGenerator
+    final def idGenerator = new UUIDGenerator()
     final def client = new DaemonStopClient(connector, idGenerator)
 
     def "requests daemons stop gracefully"() {

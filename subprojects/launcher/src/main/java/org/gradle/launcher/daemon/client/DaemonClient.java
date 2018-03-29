@@ -52,6 +52,7 @@ import org.gradle.launcher.exec.BuildActionParameters;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The client piece of the build daemon.
@@ -96,13 +97,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
     private final InputStream buildStandardInput;
     private final ExecutorFactory executorFactory;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<UUID> idGenerator;
     private final ProcessEnvironment processEnvironment;
 
     //TODO - outputEventListener and buildStandardInput are per-build settings
     //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
     public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec,
-                        InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, ProcessEnvironment processEnvironment) {
+                        InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<UUID> idGenerator, ProcessEnvironment processEnvironment) {
         this.connector = connector;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
@@ -112,7 +113,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         this.processEnvironment = processEnvironment;
     }
 
-    protected IdGenerator<?> getIdGenerator() {
+    protected IdGenerator<UUID> getIdGenerator() {
         return idGenerator;
     }
 
@@ -127,7 +128,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @throws org.gradle.initialization.ReportedException On failure, when the failure has already been logged/reported.
      */
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
-        Object buildId = idGenerator.generateId();
+        UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
 
         LOGGER.debug("Executing build " + buildId + " in daemon client {pid=" + processEnvironment.maybeGetPid() + "}");

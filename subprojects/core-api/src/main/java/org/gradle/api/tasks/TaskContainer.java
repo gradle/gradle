@@ -81,6 +81,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>The description of the task.</td><td>
      * <code>null</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code></td><td>The arguments to pass to the task class constructor.</td><td>
+     * <code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
@@ -92,6 +95,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param options The task creation options.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      */
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
@@ -148,6 +152,25 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     <T extends Task> T create(String name, Class<T> type) throws InvalidUserDataException;
+
+    /**
+     * <p>Creates a {@link Task} with the given name and type, passing the given arguments to the {@code @Inject}-annotated constructor,
+     * and adds it to this container.  All values passed to the task constructor must be non-null; otherwise a
+     * {@code NullPointerException} will be thrown</p>
+     *
+     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
+     * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
+     *
+     * @param name The name of the task to be created.
+     * @param type The type of task to create.
+     * @param constructorArgs The arguments to pass to the task constructor
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
+     * @since 4.7
+     */
+    @Incubating
+    <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and type, configures it with the given action, and adds it to this container.</p>

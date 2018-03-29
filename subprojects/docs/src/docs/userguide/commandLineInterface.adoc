@@ -206,6 +206,7 @@ Running `gradle projects` gives you a list of the sub-projects of the selected p
 
 You also get a project report within build scans. Learn more about https://guides.gradle.org/creating-build-scans/[creating build scans].
 
+[[sec:listing_tasks]]
 ==== Listing tasks
 
 Running `gradle tasks` gives you a list of the main tasks of the selected project. This report shows the default tasks for the project, if any, and a description for each task.
@@ -446,9 +447,9 @@ image::img/rich-cli.png[alt="Gradle Rich Console"]
 
 Features:
 
- * Logs above grouped by task that generated them
  * Progress bar and timer visually describe overall status
  * Parallel work-in-progress lines below describe what is happening now
+ * Colors and fonts are used to highlight important output and errors
 
 [[sec:command_line_execution_options]]
 === Execution options
