@@ -42,11 +42,15 @@ import javax.inject.Inject
 @CacheableTask
 open class Classycle @Inject constructor(
     @get:Internal val classesDirs: FileCollection,
-    @get:Input val excludePatterns: ListProperty<String>,
+    @get:Internal val excludePatterns: ListProperty<String>,
     @get:Input val reportName: String,
     @get:Internal val reportDir: File,
+    @get:Internal val resourcesZip: RegularFileProperty,
     val antBuilder: IsolatedAntBuilder
 ) : DefaultTask() {
+
+    @get:Input
+    val patterns: ListProperty<String> = project.objects.listProperty()
 
     @get:InputFiles
     @get:SkipWhenEmpty
@@ -65,6 +69,11 @@ open class Classycle @Inject constructor(
     private
     val analysisFile: File
         get() = File(reportDir, "${reportName}_analysis.xml")
+
+    init {
+        patterns.set(excludePatterns)
+        reportResourcesZip.set(resourcesZip)
+    }
 
     @TaskAction
     fun generate() = project.run {
@@ -90,7 +99,7 @@ open class Classycle @Inject constructor(
                             check absenceOfPackageCycles > 1 in org.gradle.*
                         """) {
 
-                        withFilesetOf(classesDirs, excludePatterns.get())
+                        withFilesetOf(classesDirs, patterns.get())
                     }
                 } catch (ex: Exception) {
                     try {
@@ -103,7 +112,7 @@ open class Classycle @Inject constructor(
                             "mergeInnerClasses" to true,
                             "title" to "$name $reportName ($path)") {
 
-                            withFilesetOf(classesDirs, excludePatterns.get())
+                            withFilesetOf(classesDirs, patterns.get())
                         }
                     } catch (ex: Exception) {
                         ex.printStackTrace()
@@ -118,10 +127,10 @@ open class Classycle @Inject constructor(
 
 
 private
-fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, excludePatterns: List<String>) =
+fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, patterns: List<String>) =
     classesDirs.forEach { classesDir ->
         "fileset"("dir" to classesDir) {
-            excludePatterns.forEach { excludePattern ->
+            patterns.forEach { excludePattern ->
                 "exclude"("name" to excludePattern)
             }
         }

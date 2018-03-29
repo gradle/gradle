@@ -43,12 +43,12 @@ open class ClassyclePlugin : Plugin<Project> {
                 val sourceSetTask = project.tasks.create<Classycle>(
                     taskName,
                     output.classesDirs,
-                    project.objects.listProperty<String>().apply { set(extension.excludePatterns) },
+                    extension.excludePatterns,
                     name,
-                    reporting.file(classycle.name)
+                    reporting.file(classycle.name),
+                    extension.reportResourcesZip
                 ).apply {
                     dependsOn(output)
-                    reportResourcesZip.set(extension.reportResourcesZip)
                 }
                 classycle.dependsOn(sourceSetTask)
                 "check" { dependsOn(sourceSetTask) }
