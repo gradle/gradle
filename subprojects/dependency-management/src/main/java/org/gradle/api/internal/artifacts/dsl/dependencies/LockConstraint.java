@@ -14,33 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.locking
+package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import spock.lang.Specification
-import spock.lang.Subject
+import org.gradle.api.artifacts.DependencyConstraint;
 
-class NoOpDependencyLockingProviderTest extends Specification {
+import java.util.Set;
 
-    @Subject
-    def provider = NoOpDependencyLockingProvider.instance
+/**
+ * Described the lock state for a given configuration.
+ */
+public interface LockConstraint {
 
-    def 'does not find locked dependencies'() {
-        when:
-        def result = provider.findLockConstraint('conf')
+    /**
+     * Indicates if there is locking in place
+     *
+     * @return {@code true} if locking is in place
+     */
+    boolean isLockDefined();
 
-        then:
-        !result.isLockDefined()
-    }
-
-    def 'does nothing on persist'() {
-        given:
-        def result = Mock(Collection)
-
-
-        when:
-        provider.persistResolvedDependencies('conf', result)
-
-        then:
-        0 * _
-    }
+    /**
+     * Returns the set of locking constraints
+     *
+     * @return a set of constraints
+     */
+    Set<DependencyConstraint> getLockedDependencies();
 }

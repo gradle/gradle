@@ -16,31 +16,30 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
 
-import java.util.Collection;
+import java.util.Set;
 
-public class NoOpDependencyLockingProvider implements DependencyLockingProvider {
+public class EmptyLockConstraint implements LockConstraint {
 
-    private static final NoOpDependencyLockingProvider INSTANCE = new NoOpDependencyLockingProvider();
+    public static final EmptyLockConstraint INSTANCE = new EmptyLockConstraint();
 
-    public static DependencyLockingProvider getInstance() {
+    public static LockConstraint getInstance() {
         return INSTANCE;
     }
 
-    private NoOpDependencyLockingProvider() {
-        // Prevent construction
+    private EmptyLockConstraint() {
+
     }
 
     @Override
-    public LockConstraint findLockConstraint(String configurationName) {
-        return EmptyLockConstraint.getInstance();
+    public boolean isLockDefined() {
+        return false;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolutionResult) {
-        // No-op
+    public Set<DependencyConstraint> getLockedDependencies() {
+        throw new UnsupportedOperationException("Cannot request locked dependencies when none are defined");
     }
 }

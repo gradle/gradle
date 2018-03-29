@@ -14,33 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.locking
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import spock.lang.Specification
-import spock.lang.Subject
+import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 
-class NoOpDependencyLockingProviderTest extends Specification {
-
-    @Subject
-    def provider = NoOpDependencyLockingProvider.instance
-
-    def 'does not find locked dependencies'() {
-        when:
-        def result = provider.findLockConstraint('conf')
-
-        then:
-        !result.isLockDefined()
-    }
-
-    def 'does nothing on persist'() {
-        given:
-        def result = Mock(Collection)
-
-
-        when:
-        provider.persistResolvedDependencies('conf', result)
-
-        then:
-        0 * _
-    }
+public interface RootGraphNode extends DependencyGraphNode {
+    RootConfigurationMetadata getMetadata();
 }

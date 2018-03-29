@@ -166,7 +166,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return conf;
     }
 
-    void addToConfigurations(String name, DefaultLocalConfigurationMetadata conf) {
+    protected void addToConfigurations(String name, DefaultLocalConfigurationMetadata conf) {
         allConfigurations.put(name, conf);
     }
 
@@ -276,16 +276,16 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
         private List<LocalComponentArtifactMetadata> configurationArtifacts;
 
-        DefaultLocalConfigurationMetadata(String name,
-                                                  String description,
-                                                  boolean visible,
-                                                  boolean transitive,
-                                                  Set<String> extendsFrom,
-                                                  Set<String> hierarchy,
-                                                  ImmutableAttributes attributes,
-                                                  boolean canBeConsumed,
-                                                  boolean canBeResolved,
-                                                  ImmutableCapabilities capabilities) {
+        protected DefaultLocalConfigurationMetadata(String name,
+                                                    String description,
+                                                    boolean visible,
+                                                    boolean transitive,
+                                                    Set<String> extendsFrom,
+                                                    Set<String> hierarchy,
+                                                    ImmutableAttributes attributes,
+                                                    boolean canBeConsumed,
+                                                    boolean canBeResolved,
+                                                    ImmutableCapabilities capabilities) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -491,5 +491,6 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 backingConfiguration = null;
             }
         }
+
     }
 }
