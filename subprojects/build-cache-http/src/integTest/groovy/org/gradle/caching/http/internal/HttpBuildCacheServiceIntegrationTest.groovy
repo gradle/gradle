@@ -274,8 +274,8 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executer.withArgument("--info")
         withBuildCache().run "assemble"
         then:
-        !result.output.contains("correct-username")
-        !result.output.contains("correct-password")
+        outputDoesNotContain("correct-username")
+        outputDoesNotContain("correct-password")
     }
 
     def "incorrect credentials cause build to fail"() {

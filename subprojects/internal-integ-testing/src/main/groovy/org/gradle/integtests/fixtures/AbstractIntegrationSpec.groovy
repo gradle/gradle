@@ -373,6 +373,16 @@ class AbstractIntegrationSpec extends Specification {
         result.assertOutputContains(string.trim())
     }
 
+    void postBuildOutputContains(String string) {
+        assertHasResult()
+        result.assertHasPostBuildOutput(string.trim())
+    }
+
+    void outputDoesNotContain(String string) {
+        assertHasResult()
+        result.assertNotOutput(string.trim())
+    }
+
     static String jcenterRepository() {
         RepoScriptBlockUtil.jcenterRepository()
     }
