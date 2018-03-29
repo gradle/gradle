@@ -51,6 +51,14 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
     }
 }
 
+fun getIntegrationTestFixturesRule(): Class<*>? {
+    try {
+        return Class.forName("org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
+    } catch (e: Throwable) {
+        return null
+    }
+}
+
 fun Project.configureCodenarc(codeQualityConfigDir: File) {
     apply {
         plugin("codenarc")
@@ -70,6 +78,12 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
                     }
                 }
             }
+        }
+        val ruleClass = getIntegrationTestFixturesRule()
+        if (ruleClass != null) {
+            "codenarc"(files(ruleClass.protectionDomain!!.codeSource!!.location))
+            "codenarc"(embeddedKotlin("stdlib"))
+            "codenarc"(embeddedKotlin("runtime"))
         }
     }
 
