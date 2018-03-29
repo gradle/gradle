@@ -129,7 +129,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('build/classes/java/main/TestAppHelper.class').exists()
-        result.output.contains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.COMPILE_CLASSPATH_DEPRECATION_MESSAGE)
     }
 
     def "empty processor path overrides processors in the compile classpath, and no deprecation warning is emitted"() {
@@ -233,7 +233,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('build/classes/java/main/TestAppHelper.class').exists()
-        result.output.contains(AnnotationProcessorPathFactory.PROCESSOR_PATH_DEPRECATION_MESSAGE)
+        outputContains(AnnotationProcessorPathFactory.PROCESSOR_PATH_DEPRECATION_MESSAGE)
     }
 
     def "explicit -processor option overrides automatic detection"() {
