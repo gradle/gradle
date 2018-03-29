@@ -245,12 +245,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         handle.releaseAll()
 
-        def result = build.waitForFinish()
+        result = build.waitForFinish()
 
         then:
-        result.assertOutputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
-        result.assertOutputContains("Transforming a.jar to a.jar.txt")
-        result.assertOutputContains("Transforming b.jar to b.jar.txt")
+        outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        outputContains("Transforming a.jar to a.jar.txt")
+        outputContains("Transforming b.jar to b.jar.txt")
     }
 
     def "failures are collected from transformations applied parallel"() {
