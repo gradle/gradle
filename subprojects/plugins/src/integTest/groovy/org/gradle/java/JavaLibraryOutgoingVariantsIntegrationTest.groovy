@@ -73,15 +73,15 @@ project(':consumer') {
 
     def "provides runtime JAR as default variant"() {
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
 
         when:
         buildFile << """
@@ -91,15 +91,15 @@ project(':consumer') {
             }
 """
 
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
     }
 
     @Unroll
@@ -110,15 +110,15 @@ project(':consumer') {
             }
 """
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
-        result.assertOutputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
 
         when:
         buildFile << """
@@ -128,15 +128,15 @@ project(':consumer') {
             }
 """
 
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
-        result.assertOutputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-api-classes}")
 
         where:
         usage                                          | _
@@ -152,15 +152,15 @@ project(':consumer') {
             }
 """
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
 
         when:
         buildFile << """
@@ -170,15 +170,15 @@ project(':consumer') {
             }
 """
 
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
 
         where:
         usage                                           | _
@@ -194,14 +194,14 @@ project(':consumer') {
             }
 """
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
-        result.assertOutputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
     }
 
     def "provides runtime classes variant"() {
@@ -212,15 +212,15 @@ project(':consumer') {
 """
 
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
-        result.assertOutputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
 
         when:
         buildFile << """
@@ -230,15 +230,15 @@ project(':consumer') {
             }
 """
 
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
-        result.assertOutputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.usage=java-runtime-classes}")
     }
 
     def "provides runtime resources variant"() {
@@ -249,15 +249,15 @@ project(':consumer') {
 """
 
         when:
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:processResources", ":java:processResources", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
-        result.assertOutputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
+        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
 
         when:
         buildFile << """
@@ -267,14 +267,14 @@ project(':consumer') {
             }
 """
 
-        run "resolve"
+        succeeds "resolve"
 
         then:
         result.assertTasksExecuted(":other-java:processResources", ":java:processResources", ":consumer:resolve")
-        result.assertOutputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        result.assertOutputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        result.assertOutputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
-        result.assertOutputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
+        outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
+        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.usage=java-runtime-resources}")
     }
 }
