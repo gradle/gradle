@@ -148,7 +148,7 @@ class KotlinBuildScriptCompiler(
 
     private
     fun executeScriptBody() =
-        loadScriptBodyClass().eval {
+        loadScriptBodyClass().eval(scriptSource) {
             scriptTarget.eval(scriptClass)
         }
 
@@ -203,7 +203,7 @@ class KotlinBuildScriptCompiler(
     ) {
 
         val pluginDependenciesSpec = pluginRequestCollector.createSpec(loadedPluginsBlockClass.compiledScript.metadata.lineNumber)
-        loadedPluginsBlockClass.eval {
+        loadedPluginsBlockClass.eval(scriptSource) {
             instantiate(scriptClass, PluginDependenciesSpec::class, pluginDependenciesSpec)
         }
     }
@@ -413,7 +413,7 @@ class BuildscriptBlockEvaluator(
     private
     fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =
         loadBuildscriptBlockClass(scriptBlockForBuildscript(buildscriptRange, scriptTemplate))
-            .eval {
+            .eval(scriptSource) {
                 scriptTarget.eval(scriptClass)
             }
 
@@ -476,14 +476,62 @@ inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () 
 
 
 private
-inline fun <T> LoadedScriptClass<T>.eval(action: LoadedScriptClass<T>.() -> Unit) =
+inline fun <T> LoadedScriptClass<T>.eval(scriptSource: KotlinScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
     withContextClassLoader(scriptClass.classLoader) {
-        try {
-            action()
-        } catch (e: InvocationTargetException) {
-            throw e.targetException
-        }
+        withLocationAwareExceptionHandling(scriptSource, action)
     }
+
+
+private
+inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
+    scriptSource: KotlinScriptSource,
+    action: LoadedScriptClass<T>.() -> Unit
+) =
+    try {
+        action()
+    } catch (e: Throwable) {
+        val targetException = maybeUnwrapInvocationTargetException(e)
+        val locationAware = locationAwareExceptionFor(targetException, scriptSource.source)
+        throw locationAware ?: targetException
+    }
+
+
+private
+fun LoadedScriptClass<*>.locationAwareExceptionFor(
+    original: Throwable,
+    scriptSource: ScriptSource
+): LocationAwareException? {
+
+    val scriptClassName = compiledScript.className
+    val scriptClassNameInnerPrefix = "$scriptClassName$"
+
+    fun scriptStackTraceElement(element: StackTraceElement) =
+        element.className?.run {
+            equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
+        } == true
+
+    tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
+
+        if (exception is LocationAwareException) {
+            return exception
+        }
+
+        exception.stackTrace.find(::scriptStackTraceElement)?.run {
+            return LocationAwareException(original, scriptSource, lineNumber.takeIf { it >= 0 })
+        }
+
+        val cause = exception.cause ?: return null
+        return inferLocationFrom(cause)
+    }
+
+    return inferLocationFrom(original)
+}
+
+
+private
+fun maybeUnwrapInvocationTargetException(e: Throwable) =
+    if (e is InvocationTargetException) e.targetException
+    else e
 
 
 private
