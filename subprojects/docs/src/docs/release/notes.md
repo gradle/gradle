@@ -10,7 +10,12 @@ Gradle log output is now [grouped by task for non-interactive executions](#logs-
 
 Moving on to other areas of user experience: running tests is further improved as [failed tests now run first](#rerun-failed-tests-first). This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
 
-This release improves the Kotlin DSL, with support for `.gradle.kts` scripts in regular Kotlin source sets. It also provides Kotlin 1.2.31, a more consistent API, better IDE support, and further improved parity with the Groovy DSL. See [Kotlin DSL v0.16 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3) for full details.
+This release introduces an incubating new capability for Kotlin DSL users: **low-ceremony plugins**. 
+This is a pre-compiled build script that is part of a conventional Kotlin source set, meant to be consumed like a "binary" plugin.
+For example, `src/main/kotlin/nyan.gradle.kts` could be used as `plugins { id("nyan") }`.
+This must be explicitly enabled and requires some additional configuration. See [details and examples here](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3).
+
+Kotlin DSL v0.16 also includes Kotlin 1.2.31, a more consistent API, better IDE support, and more. [Kotlin DSL v0.16 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3).
 
 Last but not least, the **IDEA Gradle Plugin now automatically marks Java resources directories** as resources in the IDEA module definitions. This behavior can be customized; see an example.
 
