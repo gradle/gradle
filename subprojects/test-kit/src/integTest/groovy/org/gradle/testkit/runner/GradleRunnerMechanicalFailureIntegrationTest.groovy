@@ -25,6 +25,7 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
+@SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "treats invalid argument as build failure and throws if not expected"() {
