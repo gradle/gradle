@@ -44,6 +44,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -59,13 +60,15 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
     private ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
     private ConcurrentHashMap<File, TransformationResult> fileResults;
     private final ArtifactTransformTask requiredTransform;
+    private final WorkerLeaseService workerLeaseService;
     private ResolvedArtifactSet.Completion resolvedArtifacts;
 
     @Inject
-    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, Optional<ArtifactTransformTask> requiredTransform) {
+    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, Optional<ArtifactTransformTask> requiredTransform, WorkerLeaseService workerLeaseService) {
         this.transform = transform;
         this.delegate = delegate;
         this.requiredTransform = requiredTransform.orNull();
+        this.workerLeaseService = workerLeaseService;
         if (requiredTransform.isPresent()) {
             dependsOn(requiredTransform.get());
         } else {
@@ -131,58 +134,63 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
 
     @TaskAction
     public void transformArtifacts() {
-        artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
-        fileResults = new ConcurrentHashMap<File, TransformationResult>();
-        ResolvedArtifactSet.Completion resolvedArtifacts = getResolvedArtifacts();
-        resolvedArtifacts.visit(new ArtifactVisitor() {
+        workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
-            public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                TransformationResult incoming = getIncomingTransformationResult(artifact);
-                artifactResults.put(artifact, transform(incoming));
-            }
-
-            @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-                fileResults.put(file, transform(getIncomingTransformationResult(file)));
-            }
-
-            private TransformationResult transform(File file) {
-                try {
-                    List<File> result = transform.transform(file);
-                    return new TransformationResult(result);
-                } catch (Throwable e) {
-                    return new TransformationResult(e);
-                }
-            }
-
-            private TransformationResult transform(TransformationResult incoming) {
-                if (incoming.isFailed()) {
-                    return incoming;
-                }
-                ImmutableList.Builder<File> builder = ImmutableList.builder();
-                for (File file : incoming.getTransformedFiles()) {
-                    TransformationResult transformationResult = transform(file);
-                    if (transformationResult.isFailed()) {
-                        return transformationResult;
+            public void run() {
+                artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
+                fileResults = new ConcurrentHashMap<File, TransformationResult>();
+                ResolvedArtifactSet.Completion resolvedArtifacts = getResolvedArtifacts();
+                resolvedArtifacts.visit(new ArtifactVisitor() {
+                    @Override
+                    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+                        TransformationResult incoming = getIncomingTransformationResult(artifact);
+                        artifactResults.put(artifact, transform(incoming));
                     }
-                    builder.addAll(transformationResult.getTransformedFiles());
-                }
-                return new TransformationResult(builder.build());
-            }
 
-            @Override
-            public boolean requireArtifactFiles() {
-                return true;
-            }
+                    @Override
+                    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
+                        fileResults.put(file, transform(getIncomingTransformationResult(file)));
+                    }
 
-            @Override
-            public boolean includeFiles() {
-                return true;
-            }
+                    private TransformationResult transform(File file) {
+                        try {
+                            List<File> result = transform.transform(file);
+                            return new TransformationResult(result);
+                        } catch (Throwable e) {
+                            return new TransformationResult(e);
+                        }
+                    }
 
-            @Override
-            public void visitFailure(Throwable failure) {
+                    private TransformationResult transform(TransformationResult incoming) {
+                        if (incoming.isFailed()) {
+                            return incoming;
+                        }
+                        ImmutableList.Builder<File> builder = ImmutableList.builder();
+                        for (File file : incoming.getTransformedFiles()) {
+                            TransformationResult transformationResult = transform(file);
+                            if (transformationResult.isFailed()) {
+                                return transformationResult;
+                            }
+                            builder.addAll(transformationResult.getTransformedFiles());
+                        }
+                        return new TransformationResult(builder.build());
+                    }
 
+                    @Override
+                    public boolean requireArtifactFiles() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean includeFiles() {
+                        return true;
+                    }
+
+                    @Override
+                    public void visitFailure(Throwable failure) {
+
+                    }
+                });
             }
         });
     }
