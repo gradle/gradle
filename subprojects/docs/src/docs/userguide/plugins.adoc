@@ -59,7 +59,7 @@ The most common use case for using a plugin is to both resolve the plugin and ap
 
 
 ++++
-<sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Applying a script plugin">
+<sample id="configureProjectUsingScript" dir="userguide/organizingGradleProjects/configureProjectUsingScript" title="Applying a script plugin">
     <sourcefile file="build.gradle"/>
 </sample>
 ++++

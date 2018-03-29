@@ -218,7 +218,7 @@ Gradle scales in how you can organize your build logic. The first level of organ
         </sample>
 ++++
 
-Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_build_logic>>.
+Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_gradle_projects>>.
 
 [[sec:default_tasks]]
 === Default tasks
@@ -250,6 +250,34 @@ In the following example, execution of the `distribution` and `release` tasks re
 ++++
 
 The important thing is that `whenReady` affects the release task _before_ the release task is executed. This works even when the release task is not the _primary_ task (i.e., the task passed to the `gradle` command).
+
+[[sec:build_script_external_dependencies]]
+=== External dependencies for the build script
+
+If your build script needs to use external libraries, you can add them to the script's classpath in the build script itself. You do this using the `buildscript()` method, passing in a closure which declares the build script classpath.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="declareExternalBuildDependency" dir="userguide/tutorial/externalDependency" title="Declaring external dependencies for the build script">
+    <sourcefile file="build.gradle" snippet="declare-classpath"/>
+</sample>
+++++
+
+The closure passed to the `buildscript()` method configures a api:org.gradle.api.initialization.dsl.ScriptHandler[] instance. You declare the build script classpath by adding dependencies to the `classpath` configuration. This is the same way you declare, for example, the Java compilation classpath. You can use any of the dependency types described in <<dependency_types>>, except project dependencies.
+
+Having declared the build script classpath, you can use the classes in your build script as you would any other classes on the classpath. The following example adds to the previous example, and uses classes from the build script classpath.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="externalBuildDependency" dir="userguide/tutorial/externalDependency" title="A build script with external dependencies">
+    <sourcefile file="build.gradle"/>
+    <output args="-q encode"/>
+</sample>
+++++
+
+For multi-project builds, the dependencies declared with a project's `buildscript()` method are available to the build scripts of all its sub-projects.
+
+Build script dependencies may be Gradle plugins. Please consult <<plugins>> for more information on Gradle plugins.
+
+Every project automatically has a `buildEnvironment` task of type api:org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask[] that can be invoked to report on the resolution of the build script dependencies.
 
 [[sec:tasks_tutorial_where_to_next]]
 === Where to next?
