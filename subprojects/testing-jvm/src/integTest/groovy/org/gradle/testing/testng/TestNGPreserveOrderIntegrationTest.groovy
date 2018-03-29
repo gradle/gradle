@@ -98,16 +98,16 @@ public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationS
             }
         """
 
-        when: run "test"
+        when: succeeds "test"
 
         then:
-        result.output.contains("""
+        outputContains("""
 Test1.beforeClass()
 Test1.test1()
 Test1.test2()
 Test1.afterClass()
 """)
-        result.output.contains("""
+        outputContains("""
 Test2.beforeClass()
 Test2.test1()
 Test2.test2()

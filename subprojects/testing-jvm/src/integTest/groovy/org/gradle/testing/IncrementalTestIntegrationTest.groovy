@@ -105,22 +105,22 @@ public class BarTest {
         """
 
         when:
-        def result = executer.withTasks("test", "-Dtest.single=Foo").run()
+        succeeds("test", "-Dtest.single=Foo")
 
         then:
         //asserting on output because test results are kept in between invocations
-        !result.output.contains("executed Test test(BarTest)")
-        result.output.contains("executed Test test(FooTest)")
+        outputDoesNotContain("executed Test test(BarTest)")
+        outputContains("executed Test test(FooTest)")
 
         when:
-        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+        succeeds("test", "-Dtest.single=Bar")
 
         then:
-        result.output.contains("executed Test test(BarTest)")
-        !result.output.contains("executed Test test(FooTest)")
+        outputContains("executed Test test(BarTest)")
+        outputDoesNotContain("executed Test test(FooTest)")
 
         when:
-        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+        succeeds("test", "-Dtest.single=Bar")
 
         then:
         result.assertTaskSkipped(":test")
