@@ -17,6 +17,8 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class LockFileReaderWriter {
+
+    private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
 
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
@@ -44,6 +48,7 @@ public class LockFileReaderWriter {
             // TODO Investigate if locking and no base dir can happen together
         }
         this.lockFilesRoot = resolve;
+        LOGGER.debug("Lockfiles root: {}", lockFilesRoot);
     }
 
     public void writeLockFile(String configurationName, List<String> resolvedModules) {

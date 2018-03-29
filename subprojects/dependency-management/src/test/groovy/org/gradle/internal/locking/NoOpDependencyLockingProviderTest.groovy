@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking
 
+import org.gradle.api.artifacts.result.ResolutionResult
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -34,11 +35,11 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
     def 'does nothing on persist'() {
         given:
-        def modules = Mock(Set)
+        def result = Mock(ResolutionResult)
 
 
         when:
-        provider.persistResolvedDependencies('conf', modules)
+        provider.persistResolvedDependencies('conf', result)
 
         then:
         0 * _

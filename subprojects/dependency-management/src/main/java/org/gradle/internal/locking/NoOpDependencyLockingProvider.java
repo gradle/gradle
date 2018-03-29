@@ -17,7 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 
 import java.util.Collections;
@@ -41,7 +41,7 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> modules) {
+    public void persistResolvedDependencies(String configurationName, ResolutionResult resolutionResult) {
         // No-op
     }
 }

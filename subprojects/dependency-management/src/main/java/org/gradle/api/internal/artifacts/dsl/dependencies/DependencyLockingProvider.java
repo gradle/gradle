@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 
 import java.util.Set;
 
@@ -25,5 +25,5 @@ public interface DependencyLockingProvider {
 
     Set<DependencyConstraint> findLockedDependencies(String configurationName);
 
-    void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> modules);
+    void persistResolvedDependencies(String configurationName, ResolutionResult resolutionResult);
 }

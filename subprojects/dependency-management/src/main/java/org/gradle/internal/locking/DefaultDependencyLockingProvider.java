@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.file.FileResolver;
@@ -42,6 +43,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter) {
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
         this.writeLocks = startParameter.isWriteDependencyLocks();
+        if (writeLocks) {
+            LOGGER.debug("Write locks is enabled");
+        }
     }
 
     @Override
@@ -59,14 +63,15 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                     }
                 }
             }
+            LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
         }
         return results;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ResolvedComponentResult> resolvedComponents) {
+    public void persistResolvedDependencies(String configurationName, ResolutionResult resolutionResult) {
         if (writeLocks) {
-            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedComponents));
+            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolutionResult.getAllComponents()));
         }
     }
 
@@ -80,7 +85,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         Collections.sort(modules);
-        LOGGER.warn("Found the following modules:\n\t{}", modules);
+        LOGGER.debug("Found the following modules:\n\t{}", modules);
         return modules;
     }
 }

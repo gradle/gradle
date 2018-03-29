@@ -19,6 +19,7 @@ package org.gradle.internal.locking
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
@@ -51,12 +52,14 @@ class DefaultDependencyLockingProviderTest extends Specification {
 
     def 'can persist resolved modules as lockfile'() {
         given:
+        ResolutionResult resolutionResult = Mock()
         startParameter.isWriteDependencyLocks() >> true
         provider = new DefaultDependencyLockingProvider(resolver, startParameter)
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
+        resolutionResult.getAllComponents() >> modules
 
         when:
-        provider.persistResolvedDependencies('conf', modules)
+        provider.persistResolvedDependencies('conf', resolutionResult)
 
         then:
         lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}org:bar:1.3
