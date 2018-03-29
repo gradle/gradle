@@ -59,7 +59,7 @@ public class ArtifactTransformTaskRegistry {
 
     private ArtifactTransformTask createArtifactTransformTask(ArtifactTransformer transform, ResolvedArtifactSet delegate, @Nullable ArtifactTransformTask innerTransformTask) {
         return taskFactory.create(
-            NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName(), System.nanoTime())),
+            NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName())),
             ArtifactTransformTask.class,
             transform,
             delegate,
