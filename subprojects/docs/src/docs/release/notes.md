@@ -48,6 +48,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+- [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
