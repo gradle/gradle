@@ -1,0 +1,69 @@
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[organizing_gradle_projects]]
+== Organizing Gradle Projects
+
+The build logic and source code of every project should be organized in a meaningful way to improve readability and avoid common problems. This page lays out the best practices by example.
+
+[[sec:configuring_using_external_script]]
+=== Configuring the project using an external build script
+
+You can configure the current project using an external build script. All of the Gradle build language is available in the external script. You can even apply other scripts from the external script.
+
+Build scripts can be local files or remotely accessible files downloaded via a URL.
+
+Remote files will be cached and made available when Gradle runs offline. On each build, Gradle will check if the remote file has changed and will only download the build script file again if it has changed. URLs that contain query strings will not be cached.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureProjectUsingScript" dir="userguide/organizingGradleProjects/configureProjectUsingScript" title="Configuring the project using an external build script">
+    <sourcefile file="build.gradle"/>
+    <sourcefile file="other.gradle"/>
+    <output args="-q hello"/>
+</sample>
+++++
+
+[[sec:build_sources]]
+=== Build sources in the `buildSrc` project
+
+When you run Gradle, it checks for the existence of a directory called `buildSrc`. Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. This can be a good place to add your custom tasks and plugins.
+
+For multi-project builds there can be only one `buildSrc` directory, which has to be in the root project directory.
+
+Listed below is the default build script that Gradle applies to the `buildSrc` project:
+
+
+.Default buildSrc build script
+[source,groovy]
+----
+include::../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt[]
+----
+
+This means that you can just put your build source code in this directory and stick to the layout convention for a Java/Groovy project (see <<javalayout>>).
+
+If you need more flexibility, you can provide your own `build.gradle`. Gradle applies the default build script regardless of whether there is one specified. This means you only need to declare the extra things you need. Below is an example. Notice that this example does not need to declare a dependency on the Gradle API, as this is done by the default build script:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customBuildSrcBuild" dir="java/multiproject" title="Custom buildSrc build script">
+    <sourcefile file="buildSrc/build.gradle"/>
+</sample>
+++++
+
+The `buildSrc` project can be a multi-project build, just like any other regular multi-project build. However, all of the projects that should be on the classpath of the actual build must be `runtime` dependencies of the root project in `buildSrc`. You can do this by adding this to the configuration of each project you wish to export:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="multiProjectBuildSrc" dir="multiProjectBuildSrc" includeLocation="true" title="Adding subprojects to the root buildSrc project">
+    <sourcefile file="buildSrc/build.gradle" snippet="addToRootProject"/>
+</sample>
+++++

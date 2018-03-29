@@ -87,7 +87,6 @@
         <xi:include href='../../../build/asciidoc/userguide/customTasks.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/customPlugins.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaGradlePlugin.xml' />
-        <xi:include href='../../../build/asciidoc/userguide/organizingBuildLogic.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/lazyConfiguration.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/initScripts.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/testKit.xml' />
@@ -120,7 +119,7 @@
     <part>
         <title>Best practices</title>
         <xi:include href='../../../build/asciidoc/userguide/authoringMaintainableBuildScripts.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/organizingBuildLogic.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/organizingGradleProjects.xml'/>
     </part>
     <part>
         <title>The Software model</title>
