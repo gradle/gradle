@@ -205,6 +205,7 @@
                                 </ul>
                             </li>
                             <li><p></p></li>
+                            <li><a href="/userguide/base_plugin.html">Base Plugin</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-projects" aria-expanded="false" aria-controls="cpp-projects">C++ Projects</a>
                                 <ul id="cpp-projects">
                                     <li><a href="/userguide/native_software.html">Building Native Software</a></li>

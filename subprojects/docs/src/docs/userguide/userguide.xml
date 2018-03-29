@@ -107,6 +107,7 @@
         <xi:include href='../../../build/asciidoc/userguide/tutorialGroovyProjects.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/basePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/antlrPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/codenarcPlugin.xml'/>
