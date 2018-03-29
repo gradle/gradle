@@ -160,7 +160,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         then:
         executedTasks.contains(':capture')
-        result.output.contains(SingleUseDaemonClient.MESSAGE)
+        outputContains(SingleUseDaemonClient.MESSAGE)
 
         and:
         daemons.daemon.stops()
