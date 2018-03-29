@@ -55,7 +55,7 @@ abstract class NativeCompilerTest extends Specification {
     }
 
     protected abstract Class<? extends NativeCompileSpec> getCompileSpecType()
-    protected abstract List<String> getCompilerSpecificArguments(File includeDir)
+    protected abstract List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir)
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
 
@@ -122,13 +122,15 @@ abstract class NativeCompilerTest extends Specification {
         def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
         def includeDir = testDir.file("includes")
-        def expectedArgs = getCompilerSpecificArguments(includeDir)
+        def systemIncludeDir = testDir.file("system")
+        def expectedArgs = getCompilerSpecificArguments(includeDir, systemIncludeDir)
 
         when:
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getMacros() >> [foo: "bar", empty: null]
             getAllArgs() >> ["-firstArg", "-secondArg"]
             getIncludeRoots() >> [ includeDir ]
+            getSystemIncludeRoots() >> [ systemIncludeDir ]
             getOperationLogger() >> Mock(BuildOperationLogger)
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null
@@ -222,7 +224,8 @@ abstract class NativeCompilerTest extends Specification {
         def compiler = getCompiler(invocationContext, O_EXT, true)
         def testDir = tmpDirProvider.testDirectory
         def includeDir = testDir.file("includes")
-        def commandLineArgs = getCompilerSpecificArguments(includeDir)
+        def systemIncludeDir = testDir.file("system")
+        def commandLineArgs = getCompilerSpecificArguments(includeDir, systemIncludeDir)
 
         when:
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {

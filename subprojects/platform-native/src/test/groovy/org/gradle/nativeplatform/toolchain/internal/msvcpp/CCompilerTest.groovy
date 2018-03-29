@@ -33,7 +33,7 @@ class CCompilerTest extends VisualCppNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [ '/TC' ] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        [ '/TC' ] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 }

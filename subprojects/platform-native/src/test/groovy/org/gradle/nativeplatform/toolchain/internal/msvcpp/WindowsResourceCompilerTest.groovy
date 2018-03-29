@@ -34,9 +34,9 @@ class WindowsResourceCompilerTest extends VisualCppNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
         ['/r', '/nologo', '/Dfoo=bar', '/Dempty', '-firstArg', '-secondArg',
-         '/I' + includeDir.absoluteFile.toString()]
+         '/I' + includeDir.absoluteFile.toString(), '/I' + systemIncludeDir.absoluteFile.toString()]
     }
 
     def "check that position sensitive arguments are in the right order"() {
