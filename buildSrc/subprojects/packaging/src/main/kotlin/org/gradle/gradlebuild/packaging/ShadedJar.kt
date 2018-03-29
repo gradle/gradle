@@ -45,8 +45,8 @@ import javax.inject.Inject
  * @param classTreesConfiguration
  * @param entryPointsConfiguration
  * @param manifests
- * @param buildReceiptFile The build receipt properties file. The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
- * @param jarFile The output Jar file.
+ * @param buildReceipt The build receipt properties file. The file will be included in the shaded jar under {@code /org/gradle/build-receipt.properties}.
+ * @param jar The output Jar file.
  */
 open class ShadedJar @Inject constructor(
     @get:InputFiles val relocatedClassesConfiguration: FileCollection,
