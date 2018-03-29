@@ -34,7 +34,7 @@ public class GroupedOutputFixture {
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "FAILURE:";
+    private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks:";
 
     /**

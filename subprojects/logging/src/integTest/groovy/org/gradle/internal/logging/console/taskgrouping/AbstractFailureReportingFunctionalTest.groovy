@@ -16,9 +16,15 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.executer.LogContent
+import spock.lang.Unroll
+
 
 abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
-    def "reports build failure at the end of the build"() {
+    @Unroll
+    def "reports build failure at the end of the build with log level #level"() {
         buildFile << """
             task broken {
                 doLast {
@@ -28,6 +34,7 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         """
 
         expect:
+        executer.withArguments("-Dorg.gradle.logging.level=${level}")
         fails("broken")
 
         and:
@@ -35,13 +42,25 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         failure.assertHasDescription("Execution failed for task ':broken'")
         failure.assertHasCause("broken")
 
-        // Check that the failure text appears in stdout and not stderr
-        failure.output.contains("Build failed with an exception.")
-        failure.output.contains("""
+        // Check that the failure text appears either stdout or stderr (as per console type)
+        def outputWithFailure = consoleType == ConsoleOutput.Plain ? failure.error : failure.output
+        def outputWithoutFailure = consoleType == ConsoleOutput.Plain ? failure.output : failure.error
+        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeDebugPrefix().withNormalizedEol()
+
+        outputWithFailure.contains("Build failed with an exception.")
+        outputWithFailureAndNoDebugging.contains("""
             * What went wrong:
             Execution failed for task ':broken'.
         """.stripIndent().trim())
 
-        !failure.error.contains("Build failed with an exception.")
+        !outputWithoutFailure.contains("Build failed with an exception.")
+        !outputWithoutFailure.contains("* What went wrong:")
+
+        // Summary always appears on stdout
+        failure.output.contains("BUILD FAILED")
+        !failure.error.contains("BUILD FAILED")
+
+        where:
+        level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]
     }
 }

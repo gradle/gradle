@@ -148,10 +148,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, ConsoleOutput consoleOutput) {
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
         synchronized (lock) {
             if (consoleOutput == ConsoleOutput.Plain) {
-                addPlainConsole(new StreamBackedStandardOutputListener(outputStream));
+                addPlainConsole(new StreamBackedStandardOutputListener(outputStream), new StreamBackedStandardOutputListener(errorStream));
             } else {
                 ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
                 OutputStreamWriter writer = new OutputStreamWriter(outputStream);
@@ -247,14 +247,15 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addPlainConsole() {
-        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut));
+        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr));
     }
 
-    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener) {
-        OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
+    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
+        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
         OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(stdoutChain, new PrettyPrefixedLogHeaderFormatter(), true)
+                new GroupingProgressLogEventGenerator(new PlainConsoleDispatchingListener(stderrChain, stdoutChain), new PrettyPrefixedLogHeaderFormatter(), true)
             ),
             clock
         );
@@ -432,4 +433,5 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             delegate.onOutput(event);
         }
     }
+
 }
