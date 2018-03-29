@@ -17,6 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
@@ -145,5 +147,29 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    def "system headers are not evaluated when compiler warnings are enabled"() {
+        def app = new CppCompilerDetectingTestApp()
+
+        given:
+        app.writeSources(file('src/main'))
+
+        and:
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                cppCompiler.args "-Wall", "-Werror"
+            }
+        }
+    }
+}
+         """
+
+        expect:
+        succeeds "mainExecutable"
+        executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
+    }
 }
 

@@ -93,7 +93,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
             }
         });
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
-        task.includes(fileCollectionFactory.create(new MinimalFileSet() {
+        task.systemIncludes(fileCollectionFactory.create(new MinimalFileSet() {
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
