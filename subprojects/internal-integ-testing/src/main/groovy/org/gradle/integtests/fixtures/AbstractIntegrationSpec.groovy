@@ -47,6 +47,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  * Plan is to bring features over as needed.
  */
 @CleanupTestDirectory
+@SuppressWarnings("IntegrationTestFixtures")
 class AbstractIntegrationSpec extends Specification {
 
     @Rule
