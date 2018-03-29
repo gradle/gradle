@@ -16,8 +16,6 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -35,10 +33,10 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         when:
         args '-q'
-        def result = wrapperExecuter.withTasks("emptyTask").run()
+        result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
-        result.output.contains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+        outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
 
         when:
         args '-q'
@@ -61,13 +59,13 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(malformedDistZip.toURI())
 
         when:
-        ExecutionResult result = wrapperExecuter
+        result = wrapperExecuter
             .withTasks("emptyTask")
             .run()
 
         then:
-        result.assertOutputContains("Could not set executable permissions")
-        result.assertOutputContains("Please do this manually if you want to use the Gradle UI.")
+        outputContains("Could not set executable permissions")
+        outputContains("Please do this manually if you want to use the Gradle UI.")
     }
 
     def "wrapper prints error and fails build if downloaded zip is empty"() {
@@ -77,7 +75,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(malformedDistZip.toURI())
 
         when:
-        ExecutionFailure failure = wrapperExecuter
+        failure = wrapperExecuter
             .withTasks("emptyTask")
             .withStackTraceChecksDisabled()
             .runWithFailure()
