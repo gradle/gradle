@@ -66,7 +66,9 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.artifacts.Configuration.State.*
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
+import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -83,6 +85,7 @@ class DefaultConfigurationSpec extends Specification {
     def immutableAttributesFactory = TestUtil.attributesFactory()
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
+    def artifactTransformTaskRegistry = Mock(ArtifactTransformTaskRegistry)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new ListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
@@ -1642,7 +1645,7 @@ All Artifacts:
 
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder)
+            new TestBuildOperationExecutor(), instantiator, Stub(NotationParser), Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, artifactTransformTaskRegistry)
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -60,11 +60,12 @@ class DefaultConfigurationContainerSpec extends Specification {
         }
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
+    private ArtifactTransformTaskRegistry artifactTransformTaskRegistry = Mock()
     def immutableAttributesFactory = TestUtil.attributesFactory()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter);
+        immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, artifactTransformTaskRegistry)
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
