@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@SuppressWarnings('IntegrationTestFixtures')
 class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
         import javax.inject.Inject
