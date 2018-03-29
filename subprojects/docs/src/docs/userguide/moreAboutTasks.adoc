@@ -772,7 +772,7 @@ You will occasionally want to disable some of this validation, specifically when
 
 Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
 
-You can find out more about this feature in <<continuous_build>>.
+You can find out more about this feature in <<sec:continuous_build>>.
 
 
 [[sec:task_input_output_parallelism]]
