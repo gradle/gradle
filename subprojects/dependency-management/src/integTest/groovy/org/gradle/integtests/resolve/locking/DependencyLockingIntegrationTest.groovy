@@ -59,7 +59,7 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        result.assertOutputContains('org:foo:1.0')
+        outputContains("org:foo:1.0")
     }
 
     def 'succeeds without lock file present and does not create one'() {
