@@ -52,7 +52,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         run 'build'
 
         then:
-        result.output.contains('it works!')
+        outputContains('it works!')
     }
 
     @LeaksFileHandles
@@ -82,7 +82,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         run 'hello'
 
         then:
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         when:
         server.stop()
@@ -90,7 +90,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'hello'
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         cleanup: // wait for all daemons to shutdown so the test dir can be deleted
         executer.cleanup()
@@ -117,10 +117,10 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
 
         when:
-        run 'hello'
+        succeeds 'hello'
 
         then:
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         when:
         server.stop()
@@ -128,7 +128,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'hello'
-        result.output.contains("Hello!")
+        outputContains("Hello!")
 
         cleanup: // wait for all daemons to shutdown so the test dir can be deleted
         executer.cleanup()
@@ -157,9 +157,9 @@ task("dumpKotlinBuildScriptModelClassPath") {
         """
 
         when:
-        run 'dumpKotlinBuildScriptModelClassPath'
+        succeeds 'dumpKotlinBuildScriptModelClassPath'
 
         then:
-        result.output.contains("gradle-kotlin-dsl!")
+        outputContains("gradle-kotlin-dsl!")
     }
 }

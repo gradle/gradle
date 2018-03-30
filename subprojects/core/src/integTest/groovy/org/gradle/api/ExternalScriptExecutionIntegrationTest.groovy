@@ -27,6 +27,7 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 
+@SuppressWarnings("IntegrationTestFixtures")
 class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final HttpServer server = new HttpServer()

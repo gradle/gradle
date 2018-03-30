@@ -119,8 +119,8 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         succeeds appCompileJava
 
         and:
-        result.output.contains "None of the classes needs to be compiled!"
-        result.output.contains "${appCompileJava} UP-TO-DATE"
+        outputContains "None of the classes needs to be compiled!"
+        outputContains "${appCompileJava} UP-TO-DATE"
         executedAndNotSkipped(libraryCompileJava)
     }
 

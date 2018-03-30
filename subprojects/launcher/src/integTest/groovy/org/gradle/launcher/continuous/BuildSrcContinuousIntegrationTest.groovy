@@ -42,7 +42,7 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         then:
         succeeds("a")
-        output.contains "value: original"
+        outputContains "value: original"
 
         when:
         file("buildSrc/src/main/groovy/Thing.groovy").text = """
@@ -53,7 +53,7 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         then:
         succeeds()
-        output.contains "value: changed"
+        outputContains "value: changed"
     }
 
 }

@@ -151,16 +151,16 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
     }
 
     def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
@@ -175,10 +175,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
     }
 
     def "warns about using basic authentication over insecure connection"() {
@@ -187,10 +187,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('Please consider using HTTPS')
+        outputContains('Please consider using HTTPS')
     }
 
     def "does not warn about using basic authentication over secure connection"() {
@@ -207,10 +207,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        !result.output.contains('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
+        outputDoesNotContain('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
     }
 
     def "does not leak basic authentication credentials in output"() {
@@ -256,10 +256,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         when:
-        def result = wrapperExecuter.withTasks('hello').run()
+        result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.output.contains('hello')
+        outputContains('hello')
 
         and:
         proxyServer.requestCount == 1

@@ -65,17 +65,17 @@ task printSystemProp {
 }
 """
         when:
-        def result = run ':printSystemProp'
+        succeeds ':printSystemProp'
 
         then:
-        result.assertOutputContains('mySystemProp=properties file')
+        outputContains('mySystemProp=properties file')
 
         when:
         args '-DmySystemProp=commandline'
-        result = run ':printSystemProp'
+        succeeds ':printSystemProp'
 
         then:
-        result.assertOutputContains('mySystemProp=commandline')
+        outputContains('mySystemProp=commandline')
     }
 
     def "build property set on command line takes precedence over jvm args"() {
@@ -120,17 +120,17 @@ task printSystemProp {
 }
 """
         when:
-        def result = run ':printSystemProp'
+        succeeds ':printSystemProp'
 
         then:
-        result.assertOutputContains('mySystemProp=jvmarg')
+        outputContains('mySystemProp=jvmarg')
 
         when:
         args '-DmySystemProp=commandline'
-        result = run ':printSystemProp'
+        succeeds ':printSystemProp'
 
         then:
-        result.assertOutputContains('mySystemProp=commandline')
+        outputContains('mySystemProp=commandline')
     }
 
     def "can always change buildDir in properties file"() {

@@ -50,17 +50,17 @@ ${readReleaseFeatures()}
         !markerFile.exists()
 
         when:
-        def result = executer.run()
+        succeeds()
 
         then:
-        result.output.contains(welcomeMessage)
+        outputContains(welcomeMessage)
         markerFile.exists()
 
         when:
-        result = executer.run()
+        succeeds()
 
         then:
-        !result.output.contains(welcomeMessage)
+        outputDoesNotContain(welcomeMessage)
         markerFile.exists()
     }
 
