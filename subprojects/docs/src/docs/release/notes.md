@@ -10,7 +10,7 @@ Gradle log output is now [grouped by task for non-interactive executions](#logs-
 
 Moving on to other areas of user experience: running tests is further improved as [failed tests now run first](#rerun-failed-tests-first). This allows use of the [`--fail-fast` option](userguide/java_plugin.html#sec:test_execution) to provide the quickest possible feedback loop.
 
-This release introduces an incubating new capability for Kotlin DSL users: **low-ceremony plugins**. 
+This release introduces an incubating new capability for Kotlin DSL users: **pre-compiled script plugins**.
 This is a pre-compiled build script that is part of a conventional Kotlin source set, meant to be consumed like a "binary" plugin.
 For example, `src/main/kotlin/nyan.gradle.kts` could be used as `plugins { id("nyan") }`.
 This must be explicitly enabled and requires some additional configuration. See [details and examples here](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3).
