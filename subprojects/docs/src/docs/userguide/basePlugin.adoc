@@ -15,22 +15,22 @@
 [[base_plugin]]
 == The Base Plugin
 
-The Base Plugin provides features that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<sec:base_tasks,'lifecycle' tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
+The Base Plugin provides some tasks and conventions that are common to most builds and adds a structure to the build that promotes consistency in how they are run. Its most significant contribution is a set of <<sec:base_tasks,_lifecycle_ tasks>> that act as an umbrella for the more specific tasks provided by other plugins and build authors.
 
 [[sec:base_plugin_usage]]
 === Usage
 
-----
-plugins {
-    id 'base'
-}
-----
+++++
+<sample id="applyingBasePlugin" dir="userguide/basePlugin" title="Applying the Base Plugin">
+    <sourcefile file="build.gradle" snippet="apply-base-plugin"/>
+</sample>
+++++
 
 [[sec:base_tasks]]
 === Tasks
 
 `clean` — type: `Delete`::
-Deletes the build directory and everything in it, i.e. the path specified by the `buildDir` project property.
+Deletes the build directory and everything in it, i.e. the path specified by the api:org.gradle.api.Project#getBuildDir()[] project property.
 
 `check` — _lifecycle task_::
 Plugins and build authors should attach their verification tasks, such as ones that run tests, to this lifecycle task using `check.dependsOn(__task__)`.
@@ -39,15 +39,15 @@ Plugins and build authors should attach their verification tasks, such as ones t
 Plugins and build authors should attach tasks that produce distributions and other consumable artifacts to this lifecycle task. For example, `jar` produces the consumable artifact for Java libraries. Attach tasks to this lifecycle task using `assemble.dependsOn(__task__)`.
 
 `build` — _lifecycle task_::
-(Depends on `assemble` and `check`) Builds everything
+(Depends on `assemble` and `check`) Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
 
-`build__Configuration__` — build rule::
+`build__Configuration__` — task rule::
 Assembles those artifacts attached to the named configuration. For example, `buildArchives` will execute any task that is required to create any artifact attached to the `archives` configuration.
 
-`upload__Configuration__` — build rule::
+`upload__Configuration__` — task rule::
 Does the same as `build__Configuration__`, but also uploads all the artifacts attached to the given configuration.
 
-`clean__Task__` — build rule::
+`clean__Task__` — task rule::
 Removes the <<sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
@@ -70,7 +70,7 @@ Note that the `assemble` task generates all artifacts that are attached to the `
 The Base Plugin only adds conventions related to the creation of archives, such as ZIPs, TARs and JARs. Specifically, it provides the following project properties that you can set:
 
 `archivesBaseName` — default: `$project.name`::
-Provides the default `baseName` for archive tasks.
+Provides the default api:org.gradle.api.tasks.bundling.AbstractArchiveTask#getBaseName()[] for archive tasks.
 
 `distsDirName` — default: _distributions_::
 Default name of the directory in which distribution archives, i.e. non-JARs, are created.
