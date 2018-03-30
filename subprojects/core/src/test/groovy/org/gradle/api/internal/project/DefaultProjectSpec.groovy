@@ -24,6 +24,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
@@ -165,9 +166,12 @@ class DefaultProjectSpec extends Specification {
         def streamHasher = Mock(StreamHasher)
         def fileHasher = Mock(FileHasher)
         def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, TestFiles.execFactory())
+        def projectDir = new File("project")
+        def layout = instantiator.newInstance(DefaultProjectLayout, projectDir, fileResolver, taskResolver)
 
-        return Spy(DefaultProject, constructorArgs: [name, parent, new File("project"), new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
+        return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
+            getLayout() >> layout
         }
     }
 }
