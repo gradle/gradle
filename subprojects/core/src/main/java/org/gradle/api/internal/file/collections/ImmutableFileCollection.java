@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -31,18 +31,12 @@ import java.util.List;
 import java.util.Set;
 
 public class ImmutableFileCollection extends AbstractFileCollection {
-    private static final String DEFAULT_DISPLAY_NAME = "immutable file collection";
-
     private final Set<Object> files;
     private final String displayName;
     private final PathToFileResolver resolver;
 
-    public ImmutableFileCollection(PathToFileResolver fileResolver, Object[] files) {
-        this(DEFAULT_DISPLAY_NAME, fileResolver, Arrays.asList(files));
-    }
-
     public ImmutableFileCollection(PathToFileResolver fileResolver, Collection<?> files) {
-        this(DEFAULT_DISPLAY_NAME, fileResolver, files);
+        this("immutable file collection", fileResolver, files);
     }
 
     public ImmutableFileCollection(File... files) {
@@ -50,7 +44,11 @@ public class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     public ImmutableFileCollection(Collection<File> files) {
-        this(DEFAULT_DISPLAY_NAME, new IdentityFileResolver(), files);
+        this(new IdentityFileResolver(), files);
+    }
+
+    public ImmutableFileCollection(PathToFileResolver fileResolver, Object[] files) {
+        this(fileResolver, Arrays.asList(files));
     }
 
     public ImmutableFileCollection(String displayName, PathToFileResolver fileResolver, Collection<?> files) {
