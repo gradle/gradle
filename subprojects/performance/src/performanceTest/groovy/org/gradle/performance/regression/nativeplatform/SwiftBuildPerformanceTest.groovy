@@ -19,19 +19,16 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = ["4.7-20180320095059+0000"]
+        runner.targetVersions = [NativeBuildPerformanceTest.TARGET_VERSION]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    // TODO: Temporarily disable
-    @Ignore
     @Unroll
     def "clean assemble on #testProject"() {
         given:
