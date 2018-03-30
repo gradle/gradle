@@ -160,7 +160,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms));
 
         results.retainState(new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder));
-        if (!results.hasError() && failures.isEmpty()) {
+        if (configuration.getResolutionStrategy().isDependencyLockingEnabled() && !results.hasError() && failures.isEmpty()) {
             // TODO this needs to be done through a visitor and coupled with post resolve validation
             dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), results.getResolutionResult());
         }

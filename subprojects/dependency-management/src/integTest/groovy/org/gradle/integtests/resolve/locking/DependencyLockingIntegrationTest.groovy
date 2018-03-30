@@ -92,6 +92,32 @@ dependencies {
         lockfileFixture.expectMissing('unlockedConf')
     }
 
+    def 'does not write-locks for unlocked configuration'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    unlockedConf
+}
+
+dependencies {
+    unlockedConf 'org:foo:1.+'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.expectMissing('unlockedConf')
+    }
+
     def 'fails with out-of-date lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
