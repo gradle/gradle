@@ -55,6 +55,7 @@ public interface ComponentWithTargets {
      *
      * TODO: Expand this for architecture and other target attributes.
      */
+    @Incubating
     interface TargetMachine {
         /**
          * Target machine for Windows
