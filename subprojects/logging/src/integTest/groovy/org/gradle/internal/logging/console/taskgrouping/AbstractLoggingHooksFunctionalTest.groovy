@@ -121,28 +121,35 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         def lines = file("output.txt").text.readLines()
 
         then:
-        lines == [
+        lines.containsAll([
                 'info',
                 'lifecycle',
                 'warn',
                 'error',
                 'System.out',
                 'System.err'
-        ]
+        ])
+
+        and:
+        !lines.contains('debug')
 
         when:
         run("log")
         lines = file("output.txt").text.readLines()
 
         then:
-        lines == [
+        lines.containsAll([
                 ':log',
                 'lifecycle',
                 'warn',
                 'error',
                 'System.out',
                 'System.err'
-        ]
+        ])
+
+        and:
+        !lines.contains('debug')
+        !lines.contains('info')
 
         when:
         executer.withArguments("--warn")
@@ -150,12 +157,17 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         lines = file("output.txt").text.readLines()
 
         then:
-        lines == [
+        lines.containsAll([
                 'warn',
                 'error',
                 'System.out',
                 'System.err'
-        ]
+        ])
+
+        and:
+        !lines.contains('debug')
+        !lines.contains('info')
+        !lines.contains('lifecycle')
 
         when:
         executer.withArguments("--quiet")
@@ -163,10 +175,16 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         lines = file("output.txt").text.readLines()
 
         then:
-        lines == [
+        lines.containsAll([
                 'error',
                 'System.out',
                 'System.err'
-        ]
+        ])
+
+        and:
+        !lines.contains('debug')
+        !lines.contains('info')
+        !lines.contains('lifecycle')
+        !lines.contains('warn')
     }
 }
