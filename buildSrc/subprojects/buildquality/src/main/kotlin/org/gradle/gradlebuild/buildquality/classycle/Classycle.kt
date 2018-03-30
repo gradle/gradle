@@ -17,10 +17,11 @@ package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
-import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -42,15 +43,15 @@ import javax.inject.Inject
 @CacheableTask
 open class Classycle @Inject constructor(
     @get:Internal val classesDirs: FileCollection,
-    @get:Internal val excludePatterns: ListProperty<String>,
+    excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
     @get:Internal val reportDir: File,
-    @get:Internal val resourcesZip: RegularFileProperty,
-    val antBuilder: IsolatedAntBuilder
+    reportResourcesZip: Provider<RegularFile>,
+    @get:Internal private val antBuilder: IsolatedAntBuilder
 ) : DefaultTask() {
 
     @get:Input
-    val patterns: ListProperty<String> = project.objects.listProperty()
+    val excludePatterns: Provider<List<String>>
 
     @get:InputFiles
     @get:SkipWhenEmpty
@@ -60,7 +61,7 @@ open class Classycle @Inject constructor(
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
-    val reportResourcesZip: RegularFileProperty = newInputFile()
+    val reportResourcesZip: RegularFileProperty
 
     @get:OutputFile
     val reportFile
@@ -71,8 +72,8 @@ open class Classycle @Inject constructor(
         get() = File(reportDir, "${reportName}_analysis.xml")
 
     init {
-        patterns.set(excludePatterns)
-        reportResourcesZip.set(resourcesZip)
+        this.excludePatterns = project.objects.listProperty<String>().apply { set(excludePatterns) }
+        this.reportResourcesZip = newInputFile().apply { set(reportResourcesZip) }
     }
 
     @TaskAction
@@ -99,7 +100,7 @@ open class Classycle @Inject constructor(
                             check absenceOfPackageCycles > 1 in org.gradle.*
                         """) {
 
-                        withFilesetOf(classesDirs, patterns.get())
+                        withFilesetOf(classesDirs, excludePatterns.get())
                     }
                 } catch (ex: Exception) {
                     try {
@@ -112,7 +113,7 @@ open class Classycle @Inject constructor(
                             "mergeInnerClasses" to true,
                             "title" to "$name $reportName ($path)") {
 
-                            withFilesetOf(classesDirs, patterns.get())
+                            withFilesetOf(classesDirs, excludePatterns.get())
                         }
                     } catch (ex: Exception) {
                         ex.printStackTrace()
@@ -127,10 +128,10 @@ open class Classycle @Inject constructor(
 
 
 private
-fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, patterns: List<String>) =
+fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, excludePatterns: List<String>) =
     classesDirs.forEach { classesDir ->
         "fileset"("dir" to classesDir) {
-            patterns.forEach { excludePattern ->
+            excludePatterns.forEach { excludePattern ->
                 "exclude"("name" to excludePattern)
             }
         }
