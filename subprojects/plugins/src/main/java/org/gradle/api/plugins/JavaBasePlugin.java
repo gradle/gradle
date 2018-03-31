@@ -48,6 +48,7 @@ import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
@@ -163,9 +164,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 defineConfigurationsForSourceSet(sourceSet, configurations);
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
-                createProcessResourcesTaskForBinary(sourceSet, sourceSet.getResources(), project);
-                createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
-                createBinaryLifecycleTask(sourceSet, project);
+                Provider<ProcessResources> resourcesTask = createProcessResourcesTaskForBinary(sourceSet, sourceSet.getResources(), project);
+                JavaCompile compileTask = createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
+                Task classesTask = createBinaryLifecycleTask(sourceSet, project);
 
                 DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
                 ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
@@ -177,14 +178,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
 
-                attachTasksToBinary(binary, sourceSet, project);
+                attachTasksToBinary(binary, compileTask, resourcesTask, classesTask);
                 binaries.add(binary);
             }
         });
         return new BridgedBinaries(binaries);
     }
 
-    private void createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+    private JavaCompile createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
         compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
         compileTask.setSource(sourceDirectorySet);
@@ -196,10 +197,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
         SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compileTask, target);
+        return compileTask;
     }
 
-    private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
-        target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
+    private Provider<ProcessResources> createProcessResourcesTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
+        return target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
             @Override
             public void execute(ProcessResources resourcesTask) {
                 resourcesTask.setDescription("Processes " + resourceSet + ".");
@@ -213,7 +215,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void createBinaryLifecycleTask(final SourceSet sourceSet, Project target) {
+    private Task createBinaryLifecycleTask(final SourceSet sourceSet, Project target) {
         sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
         Task classesTask = target.task(sourceSet.getClassesTaskName());
@@ -222,14 +224,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         classesTask.dependsOn(sourceSet.getOutput().getDirs());
         classesTask.dependsOn(sourceSet.getCompileJavaTaskName());
         classesTask.dependsOn(sourceSet.getProcessResourcesTaskName());
+        return classesTask;
     }
 
-    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, SourceSet sourceSet, Project target) {
-        Task compileTask = target.getTasks().getByPath(sourceSet.getCompileJavaTaskName());
-        Task resourcesTask = target.getTasks().getByPath(sourceSet.getProcessResourcesTaskName());
-        Task classesTask = target.getTasks().getByPath(sourceSet.getClassesTaskName());
+    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, Task compileTask, Provider<? extends Task> resourcesTask, Task classesTask) {
         binary.getTasks().add(compileTask);
-        binary.getTasks().add(resourcesTask);
+        binary.getTasks().add(resourcesTask.get());
         binary.getTasks().add(classesTask);
         binary.setBuildTask(classesTask);
     }

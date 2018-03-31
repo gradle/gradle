@@ -396,10 +396,9 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can define task to create and configure later"() {
         def action = Mock(Action)
-        def task = task("task")
 
         when:
-        container.createLater("task", DefaultTask, action)
+        def provider = container.createLater("task", DefaultTask, action)
 
         then:
         0 * _
@@ -407,9 +406,64 @@ class DefaultTaskContainerTest extends Specification {
         and:
         container.names.contains("task")
         container.size() == 1
+        !container.empty
+        !provider.present
+    }
+
+    void "defined task can be created and configured explicitly by using the returned provider"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        def provider = container.createLater("task", DefaultTask, action)
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+        provider.present
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+
+        when:
+        provider.get()
+
+        then:
+        0 * _
+    }
+
+    void "defined task is created and configured when queried by name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
 
         when:
         def result = container.getByName("task")
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+    }
+
+    void "defined task is created and configured when found by name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def result = container.findByName("task")
 
         then:
         result == task
