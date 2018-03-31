@@ -59,6 +59,21 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     Task getByPath(String path) throws UnknownTaskException;
 
     /**
+     * Locates a task by type and name, without triggering its creation or configuration.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param type The task type
+     * @param name The task name
+     * @param <T> The task type
+     * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
+     * @throws InvalidUserDataException If a task with the given name and type is not defined.
+     * @since 4.8
+     */
+    @Incubating
+    <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
+
+    /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
      * to control how the task is created. The following options are available:</p>
      *
@@ -193,7 +208,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)} or when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)}, as that method will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *

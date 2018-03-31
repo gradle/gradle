@@ -40,6 +40,7 @@ import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -309,7 +310,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
         JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
-        ProcessResources processResources = (ProcessResources) project.getTasks().getByPath(PROCESS_RESOURCES_TASK_NAME);
+        Provider<ProcessResources> processResources = project.getTasks().getByNameLater(ProcessResources.class, PROCESS_RESOURCES_TASK_NAME);
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);
@@ -327,7 +328,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final ProcessResources processResources) {
+    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -349,7 +350,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         resourcesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
-                return processResources.getDestinationDir();
+                return processResources.get().getDestinationDir();
             }
         });
     }
@@ -472,7 +473,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        IntermediateJavaArtifact(String type, Task task) {
+        IntermediateJavaArtifact(String type, Object task) {
             super(task);
             this.type = type;
         }
