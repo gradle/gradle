@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal.autoapply;
+package org.gradle.internal.logging.console.taskgrouping.plain
 
-import org.gradle.plugin.use.PluginId;
-import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.console.taskgrouping.AbstractFailureReportingFunctionalTest
 
-/**
- * Auto-applied build-scan plugin information.
- *
- * Required by the {@code kotlin-dsl} module.
- */
-public interface AutoAppliedBuildScanPlugin {
-    PluginId ID = new DefaultPluginId("com.gradle.build-scan");
-    String GROUP = "com.gradle";
-    String NAME = "build-scan-plugin";
-    String VERSION = "1.13";
+
+class PlainConsoleFailureReportingFunctionalTest extends AbstractFailureReportingFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Plain
 }

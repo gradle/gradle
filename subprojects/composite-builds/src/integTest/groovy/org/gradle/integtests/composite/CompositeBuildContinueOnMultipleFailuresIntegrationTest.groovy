@@ -74,11 +74,11 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
         assertTaskExecuted(':buildD', ':test')
-        assertTaskExecutionFailureMessage(output, 1, ':buildB:test')
-        assertTaskExecutionFailureMessage(output, 2, ':buildC:sub1:test')
-        assertTaskExecutionFailureMessage(output, 3, ':buildC:sub2:test')
-        assertTaskExecutionFailureMessage(output, 4, ':buildC:sub3:test')
-        assertTaskExecutionFailureMessage(output, 5, ':buildD:test')
+        assertTaskExecutionFailureMessage(1, ':buildB:test')
+        assertTaskExecutionFailureMessage(2, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(3, ':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(4, ':buildC:sub3:test')
+        assertTaskExecutionFailureMessage(5, ':buildD:test')
     }
 
     def "can collect build failure in root and included build"() {
@@ -104,10 +104,10 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub1:test')
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
-        assertTaskExecutionFailureMessage(output, 1, ':test')
-        assertTaskExecutionFailureMessage(output, 2, ':buildC:sub1:test')
-        assertTaskExecutionFailureMessage(output, 3, ':buildC:sub2:test')
-        assertTaskExecutionFailureMessage(output, 4, ':buildC:sub3:test')
+        assertTaskExecutionFailureMessage(1, ':test')
+        assertTaskExecutionFailureMessage(2, ':buildC:sub1:test')
+        assertTaskExecutionFailureMessage(3, ':buildC:sub2:test')
+        assertTaskExecutionFailureMessage(4, ':buildC:sub3:test')
     }
 
     private String javaProject() {
@@ -146,10 +146,10 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         """
     }
 
-    static void assertTaskExecutionFailureMessage(String errorOutput, int errorNumber, String taskPath) {
+    void assertTaskExecutionFailureMessage(int errorNumber, String taskPath) {
         //do not assert order in parallel execution
         String errorNumberString = GradleContextualExecuter.parallel? '' : errorNumber
-        assert errorOutput.contains("""$errorNumberString: Task failed with an exception.
+        assert result.error.contains("""$errorNumberString: Task failed with an exception.
 -----------
 * What went wrong:
 Execution failed for task '$taskPath'.""")

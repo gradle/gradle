@@ -17,8 +17,10 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeContainer;
@@ -34,6 +36,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.ProductionSwiftComponent;
@@ -69,7 +72,9 @@ import org.gradle.util.GUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
@@ -108,54 +113,67 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                String operatingSystemSuffix = "";
-                OperatingSystemFamily operatingSystem = objectFactory.named(OperatingSystemFamily.class, DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName());
+                testComponent.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
+                }
+
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                Provider<String> group = project.provider(new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return project.getGroup().toString();
+                BuildType buildType = BuildType.DEBUG;
+                for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                    String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                    String variantName = buildType.getName() + operatingSystemSuffix;
+
+                    Provider<String> group = project.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return project.getGroup().toString();
+                        }
+                    });
+
+                    Provider<String> version = project.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return project.getVersion().toString();
+                        }
+                    });
+
+                    AttributeContainer runtimeAttributes = attributesFactory.mutable();
+                    runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                    runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                    runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+
+                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                        null,
+                        new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+
+                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+
+                        // Create test suite executable
+                        DefaultSwiftXCTestBinary binary;
+                        if (result.getTargetPlatform().getOperatingSystem().isMacOsX()) {
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addBundle("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+                        } else {
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addExecutable("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        }
+                        testComponent.getTestBinary().set(binary);
+
+                        // TODO: Publishing for test executable?
+                        final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
+                        if (mainComponent != null) {
+                            testComponent.getTestedComponent().set(mainComponent);
+
+                            // Test configuration extends main configuration
+                            testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
+                            project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
+                        }
                     }
-                });
-
-                Provider<String> version = project.provider(new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return project.getVersion().toString();
-                    }
-                });
-
-                AttributeContainer attributesDebug = attributesFactory.mutable();
-                attributesDebug.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
-                attributesDebug.attribute(DEBUGGABLE_ATTRIBUTE, true);
-                attributesDebug.attribute(OPTIMIZED_ATTRIBUTE, false);
-
-                NativeVariantIdentity debugVariant = new NativeVariantIdentity("debug" + operatingSystemSuffix, testComponent.getModule(), group, version, true, false, operatingSystem,
-                    null,
-                    new DefaultUsageContext("debug" + operatingSystemSuffix + "-runtime", runtimeUsage, attributesDebug));
-
-                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
-
-                // Create test suite executable
-                DefaultSwiftXCTestBinary binary;
-                if (result.getTargetPlatform().getOperatingSystem().isMacOsX()) {
-                    binary = (DefaultSwiftXCTestBinary) testComponent.addBundle("executable", debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                } else {
-                    binary = (DefaultSwiftXCTestBinary) testComponent.addExecutable("executable", debugVariant, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                 }
-                testComponent.getTestBinary().set(binary);
-                // TODO: Publishing for test executable?
-
-                final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
-                if (mainComponent != null) {
-                    testComponent.getTestedComponent().set(mainComponent);
-
-                    // Test configuration extends main configuration
-                    testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
-                    project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
-                }
-
+                
                 testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
                     @Override
                     public void execute(DefaultSwiftXCTestBinary binary) {
@@ -174,6 +192,17 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 testComponent.getBinaries().realizeNow();
             }
         });
+    }
+
+    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+        if (isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+        return multivalueProperty.size() > 1;
     }
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, final DefaultSwiftXCTestBinary binary) {

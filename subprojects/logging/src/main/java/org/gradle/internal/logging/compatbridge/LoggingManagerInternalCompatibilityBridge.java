@@ -113,7 +113,7 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
 
     @Override
     public void attachAnsiConsole(OutputStream outputStream) {
-        delegate.attachConsole(outputStream, ConsoleOutput.Rich);
+        delegate.attachConsole(outputStream, outputStream, ConsoleOutput.Rich);
     }
 
     @Override

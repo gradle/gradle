@@ -82,9 +82,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.error = error;
 
         // Split out up the output into main content and post build content
-        Pair<LogContent, LogContent> match = this.output.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
+        LogContent filteredOutput = this.output.removeAnsiChars().removeDebugPrefix();
+        Pair<LogContent, LogContent> match = filteredOutput.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
-            this.mainContent = this.output;
+            this.mainContent = filteredOutput;
             this.postBuild = LogContent.empty();
         } else {
             this.mainContent = match.getLeft();
@@ -96,6 +97,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return output.withNormalizedEol();
     }
 
+    /**
+     * The main content with debug prefix and ANSI characters removed.
+     */
     public LogContent getMainContent() {
         return mainContent;
     }
@@ -108,7 +112,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getMainContent().withNormalizedEol());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent().getRawContent().withNormalizedEol());
         }
         return groupedOutputFixture;
     }
@@ -313,7 +317,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> tasks = Lists.newArrayList();
         final List<String> taskStatusLines = Lists.newArrayList();
 
-        getMainContent().removeDebugPrefix().eachLine(new Action<String>() {
+        getMainContent().eachLine(new Action<String>() {
             public void execute(String line) {
                 java.util.regex.Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {

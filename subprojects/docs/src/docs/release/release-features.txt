@@ -1,4 +1,4 @@
-  - Incremental annotation processing
-  - Grouped non-interactive console logs
-  - JDK 10 support
-  - Re-run failed tests run first for quicker feedback
+ - Incremental annotation processing
+ - JDK 10 support
+ - Grouped non-interactive console logs
+ - Failed tests are re-run first for quicker feedback

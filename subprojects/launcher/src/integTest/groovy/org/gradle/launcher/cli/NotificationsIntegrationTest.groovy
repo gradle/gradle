@@ -103,6 +103,6 @@ ${readReleaseFeatures()}
     }
 
     static String getReleaseNotesDetailsMessage(GradleVersion gradleVersion) {
-        "For more details see https://gradle.org/releases/#$gradleVersion.version"
+        "For more details see https://docs.gradle.org/$gradleVersion.version/release-notes.html"
     }
 }

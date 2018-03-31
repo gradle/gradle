@@ -96,7 +96,11 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
             try {
                 reader.beginArray();
                 while (reader.hasNext()) {
-                    installs.add(readInstall(reader));
+                    VisualStudioInstallCandidate candidate = readInstall(reader);
+
+                    if (candidate != null) {
+                        installs.add(candidate);
+                    }
                 }
                 reader.endArray();
             } finally {
@@ -128,12 +132,18 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
         File visualStudioInstallDir = new File(visualStudioInstallPath);
         VisualCppInstallCandidate visualCppMetadata = findVisualCppMetadata(visualStudioInstallDir, visualStudioVersion);
-        return new VisualStudioMetadataBuilder()
-            .installDir(visualStudioInstallDir)
-            .visualCppDir(visualCppMetadata.getVisualCppDir())
-            .version(VersionNumber.parse(visualStudioVersion))
-            .visualCppVersion(visualCppMetadata.getVersion())
-            .build();
+
+        if (visualCppMetadata == null) {
+            LOGGER.debug("Ignoring candidate Visual Studio version " + visualStudioVersion + " at " + visualStudioInstallPath + " because it does not appear to be a valid installation");
+            return null;
+        } else {
+            return new VisualStudioMetadataBuilder()
+                .installDir(visualStudioInstallDir)
+                .visualCppDir(visualCppMetadata.getVisualCppDir())
+                .version(VersionNumber.parse(visualStudioVersion))
+                .visualCppVersion(visualCppMetadata.getVersion())
+                .build();
+        }
     }
 
     private VisualCppInstallCandidate findVisualCppMetadata(File installDir, String version) {

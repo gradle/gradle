@@ -37,7 +37,12 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         buildFile << """
             subprojects {
-                task log { doFirst { logger.quiet "Output from " + project.name } }
+                task log { 
+                    doFirst { 
+                        logger.quiet "Output from " + project.name 
+                        logger.quiet "Done with " + project.name 
+                    } 
+                }
             }
         """
 
@@ -46,9 +51,9 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         then:
         result.groupedOutput.taskCount == 3
-        result.groupedOutput.task(':1:log').output == "Output from 1"
-        result.groupedOutput.task(':2:log').output == "Output from 2"
-        result.groupedOutput.task(':3:log').output == "Output from 3"
+        result.groupedOutput.task(':1:log').output == "Output from 1\nDone with 1"
+        result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
+        result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
     }
 
     def "logs at execution time are grouped"() {
@@ -76,8 +81,10 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             task log {
                 logger.quiet 'Logged during configuration'
                 doFirst {
-                    System.out.println("Standard out")
-                    System.err.println("Standard err")
+                    System.out.println("Standard out 1")
+                    System.err.println("Standard err 1")
+                    System.out.println("Standard out 2")
+                    System.err.println("Standard err 2")
                 }
             }
         """
@@ -86,7 +93,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         succeeds('log')
 
         then:
-        result.groupedOutput.task(':log').output == "Standard out\nStandard err"
+        result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
     }
 
     def "grouped output is displayed for failed tasks"() {
@@ -113,15 +120,14 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
-        buildFile << """import java.util.concurrent.Semaphore
+        server.start()
+
+        buildFile << """
             project(":a") {
-                ext.lock = new Semaphore(0)
                 task log {
                     doLast {
                         logger.quiet 'Before'
-                        sleep($sleepTimeout)
-                        lock.release()
-                        project(':b').lock.acquire()
+                        ${callFromBuild('a-waiting')}
                         logger.quiet 'After'
                         assert false
                     }
@@ -129,23 +135,14 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             }
 
             project(":b") {
-                ext.lock = new Semaphore(0)
-
-                task finalizer {
-                    doLast {
-                        lock.release()
-                    }
-                }
-
                 task log {
-                    finalizedBy finalizer
                     doLast {
-                        project(':a').lock.acquire()
+                        ${callFromBuild('b-waiting')}
                         logger.quiet 'Interrupting output'
+                        ${callFromBuild('b-done')}
                     }
                 }
             }
-
 
             task run {
                 dependsOn project(':a').log, project(':b').log
@@ -153,15 +150,23 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         """
 
         settingsFile << """
-        include 'a', 'b'
+            include 'a', 'b'
         """
 
         when:
-        executer.withArguments("--parallel")
-        fails('run')
+        def waiting = server.expectConcurrentAndBlock("a-waiting", "b-waiting")
+        def done = server.expectAndBlock("b-done")
+        def build = executer.withArguments("--parallel").withTasks("run").start()
+
+        waiting.waitForAllPendingCalls()
+        waiting.release("b-waiting")
+        done.waitForAllPendingCalls()
+        done.releaseAll()
+        waiting.releaseAll()
+        result = build.waitForFailure()
 
         then:
-        result.groupedOutput.task(':a:log').outputs.findAll { !it.isAllWhitespace() } == ['Before', 'After']
+        result.groupedOutput.task(':a:log').output == 'Before\nAfter'
         result.groupedOutput.task(':a:log').outcome == 'FAILED'
         result.groupedOutput.task(':b:log').output == 'Interrupting output'
         result.groupedOutput.task(':b:log').outcome == null
@@ -175,13 +180,14 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             task log {
                 doLast {
                     logger.quiet 'Before'
-                    new URL('${server.uri('running')}').text
+                    ${callFromBuild('running')}
                     logger.quiet 'After'
                 }
             }
         """
-        GradleHandle gradle = executer.withTasks('log').start()
+
         def handle = server.expectAndBlock(server.resource('running'))
+        def gradle = executer.withTasks('log').start()
 
         when:
         handle.waitForAllPendingCalls()
@@ -190,11 +196,14 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         result = gradle.waitForFinish()
 
         then:
-        result.groupedOutput.task(':log').outputs.size() == 1
-        result.groupedOutput.task(':log').outputs[0] =~ /Before\n+After/
+        result.groupedOutput.task(':log').output == 'Before\nAfter'
 
         cleanup:
         gradle?.waitForFinish()
+    }
+
+    String callFromBuild(String name) {
+        return "new URL('${server.uri}/${name}').text"
     }
 
     private static void assertOutputContains(GradleHandle gradle, String str) {

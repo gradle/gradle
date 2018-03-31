@@ -22,8 +22,63 @@ Gradle build scripts combine the qualities of declarative build logic, expressiv
 The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
 ====
 
-[[sec:declare_task_group_and_description]]
-=== Declare the group and description for tasks
+[[sec:avoiding_gradle_internal_apis]]
+=== Avoiding Gradle internal APIs
+
+Use of Gradle internal APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
+
+The following packages are listed in the link:https://github.com/gradle/gradle/blob/180b9d3fa84b91768364c603380e82947437eda1/buildSrc/subprojects/configuration/src/main/kotlin/org/gradle/gradlebuild/public-api.kt[Gradle public API definition], with the exception of any subpackage with `internal` in the name:
+
+----
+org/gradle/*
+org/gradle/api/**
+org/gradle/authentication/**
+org/gradle/buildinit/**
+org/gradle/caching/**
+org/gradle/concurrent/**
+org/gradle/deployment/**
+org/gradle/external/javadoc/**
+org/gradle/ide/**
+org/gradle/includedbuild/**
+org/gradle/ivy/**
+org/gradle/jvm/**
+org/gradle/language/**
+org/gradle/maven/**
+org/gradle/nativeplatform/**
+org/gradle/normalization/**
+org/gradle/platform/**
+org/gradle/play/**
+org/gradle/plugin/devel/**
+org/gradle/plugin/repository/*
+org/gradle/plugin/use/*
+org/gradle/plugin/management/*
+org/gradle/plugins/**
+org/gradle/process/**
+org/gradle/testfixtures/**
+org/gradle/testing/jacoco/**
+org/gradle/tooling/**
+org/gradle/swiftpm/**
+org/gradle/model/**
+org/gradle/testkit/**
+org/gradle/testing/**
+org/gradle/vcs/**
+org/gradle/workers/**
+----
+
+==== Alternatives for oft-used internal APIs
+
+To provide a nested DSL for your custom task, don't use `org.gradle.internal.reflect.Instantiator`; use api:org.gradle.api.model.ObjectFactory[] instead. It may also be helpful to read <<lazy_configuration>>.
+
+Don't use `org.gradle.api.internal.ConventionMapping`. Use api:org.gradle.api.provider.Provider[] and/or api:org.gradle.api.provider.Property[]. You can find an example for capturing user input to configure runtime behavior in the link:https://guides.gradle.org/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
+
+Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
+
+Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.GFileUtils`, and other classes under `org.gradle.util.*`.
+
+Gradle plugin authors may find the Designing Gradle Plugins subsection on link:https://guides.gradle.org/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
+
+[[sec:improving_task_discoverability]]
+=== Improving task discoverability
 
 Even new users to a build should to be able to find crucial information quickly and effortlessly. In Gradle you can declare a api:org.gradle.api.Task#setGroup(java.lang.String)[group] and a api:org.gradle.api.Task#setDescription(java.lang.String)[description] for any task of the build. The <<sec:listing_tasks,tasks report>> uses the assigned values to organize and render the task for easy discoverability. Assigning a group and description is most helpful for any task that you expect build users to invoke.
 
@@ -69,7 +124,7 @@ The code for resolving the dependencies should be moved into the task action to 
 ++++
 
 [[sec:avoid_imperative_logic_in_scripts]]
-=== Avoid imperative logic in scripts
+=== Avoiding imperative logic in scripts
 
 The Gradle runtime does not enforce a specific style for build logic. For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code. Let's talk about some concrete examples.
 
@@ -102,11 +157,9 @@ Now that the build logic has been translated into a plugin, you can apply it in 
 </sample>
 ++++
 
-[[sec:avoid_use_of_passwords_in_plain_text]]
-=== Avoid the use of passwords in plain text
+[[sec:avoiding_passwords_in_plain_text]]
+=== Avoiding passwords in plain text
 
 Most builds need to consume one or many passwords. The reasons for this need may vary. Some builds need a password for publishing artifacts to a secured binary repository, other builds need a password for downloading binary files. Passwords should always kept safe to prevent fraud. Under no circumstance should you add the password to the build script as property in plain text or declare it in a `gradle.properties`. Those files usually live in a version control repository and can be viewed by anyone that has access to it.
 
 Passwords should be stored in encrypted fashion. At the moment Gradle does not provide a built-in mechanism for encrypting, storing and accessing passwords. A good solution for solving this problem is the link:https://github.com/etiennestuder/gradle-credentials-plugin[Gradle Credentials plugin].
-
-

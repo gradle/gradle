@@ -18,10 +18,16 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import org.fusesource.jansi.AnsiOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -30,9 +36,11 @@ public class LogContent {
     private static final Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
+    private final LogContent rawContent;
 
-    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix) {
+    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix, LogContent rawContent) {
         this.lines = lines;
+        this.rawContent = rawContent == null ? this : rawContent;
         this.definitelyNoDebugPrefix = definitelyNoDebugPrefix || lines.isEmpty();
     }
 
@@ -40,6 +48,10 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
+        return new LogContent(toLines(chars), false, null);
+    }
+
+    private static ImmutableList<String> toLines(String chars) {
         List<String> lines = new ArrayList<String>();
         int pos = 0;
         while (pos < chars.length()) {
@@ -61,18 +73,25 @@ public class LogContent {
                 lines.add("");
             }
         }
-        return new LogContent(ImmutableList.copyOf(lines), false);
+        return ImmutableList.copyOf(lines);
     }
 
     /**
      * Creates a new instance from a sequence of lines (without the line separators).
      */
     public static LogContent of(List<String> lines) {
-        return new LogContent(ImmutableList.copyOf(lines), false);
+        return new LogContent(ImmutableList.copyOf(lines), false, null);
     }
 
     public static LogContent empty() {
-        return new LogContent(ImmutableList.<String>of(), true);
+        return new LogContent(ImmutableList.<String>of(), true, null);
+    }
+
+    /**
+     * Returns the original content that this content was built from, after transforms such as {@link #removeDebugPrefix()} or {@link #splitOnFirstMatchingLine(Pattern)}.
+     */
+    public LogContent getRawContent() {
+        return rawContent;
     }
 
     /**
@@ -101,6 +120,13 @@ public class LogContent {
         return lines;
     }
 
+    private LogContent lines(int startLine, int endLine) {
+        if (rawContent != this) {
+            throw new UnsupportedOperationException("not implemented");
+        }
+        return new LogContent(lines.subList(startLine, endLine), definitelyNoDebugPrefix, null);
+    }
+
     /**
      * Visits each line in this content. The line does not include the line separator.
      */
@@ -120,8 +146,8 @@ public class LogContent {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (pattern.matcher(line).matches()) {
-                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix);
-                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix);
+                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, rawContent.lines(0, i));
+                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, rawContent.lines(i, lines.size()));
                 return Pair.of(before, after);
             }
         }
@@ -145,7 +171,7 @@ public class LogContent {
      * Drops the first n lines.
      */
     public LogContent drop(int i) {
-        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix);
+        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, rawContent.lines(i, lines.size()));
     }
 
     /**
@@ -164,6 +190,29 @@ public class LogContent {
                 result.add(line);
             }
         }
-        return new LogContent(ImmutableList.copyOf(result), true);
+        return new LogContent(ImmutableList.copyOf(result), true, rawContent);
+    }
+
+    /**
+     * Returns a copy of this log content with ANSI control characters removed.
+     */
+    public LogContent removeAnsiChars() {
+        if (lines.isEmpty()) {
+            return this;
+        }
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Writer writer = new OutputStreamWriter(new AnsiOutputStream(baos));
+            for (int i = 0; i < lines.size(); i++) {
+                if (i > 0) {
+                    writer.write("\n");
+                }
+                writer.write(lines.get(i));
+            }
+            writer.flush();
+            return new LogContent(toLines(baos.toString()), definitelyNoDebugPrefix, rawContent);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
