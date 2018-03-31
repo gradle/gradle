@@ -34,6 +34,8 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -42,6 +44,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
+    private List<Provider<? extends T>> pending;
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>());
@@ -107,10 +110,20 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Iterator<T> iterator() {
+        flushPending();
         if (constantTimeIsEmpty()) {
             return Iterators.emptyIterator();
         }
         return new IteratorImpl(getStore().iterator());
+    }
+
+    private void flushPending() {
+        if (pending != null) {
+            for (Provider<? extends T> provider : pending) {
+                doAdd(provider.get());
+            }
+            pending.clear();
+        }
     }
 
     public void all(Action<? super T> action) {
@@ -211,7 +224,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void addLater(Provider<? extends T> provider) {
-        add(provider.get());
+        if (pending == null) {
+            pending = new LinkedList<Provider<? extends T>>();
+        }
+        pending.add(provider);
     }
 
     protected void didAdd(T toAdd) {
@@ -249,7 +265,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean isEmpty() {
-        return getStore().isEmpty();
+        return getStore().isEmpty() && (pending == null || pending.isEmpty());
     }
 
     public boolean remove(Object o) {
@@ -299,7 +315,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public int size() {
-        return getStore().size();
+        return getStore().size() + (pending == null ? 0 : pending.size());
     }
 
     @Override
