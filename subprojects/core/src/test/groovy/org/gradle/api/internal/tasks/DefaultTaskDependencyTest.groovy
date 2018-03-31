@@ -177,6 +177,19 @@ public class DefaultTaskDependencyTest extends Specification {
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
+    def "can depend on a Provider whose value is a Task"() {
+        def dep = Mock(ProviderInternal)
+
+        given:
+        1 * dep.get() >> otherTask
+
+        when:
+        dependency.add(dep)
+
+        then:
+        dependency.getDependencies(task) == toSet(otherTask)
+    }
+
     def "fails when a Provider has an unsupported value"() {
         def dep = Mock(ProviderInternal)
 
