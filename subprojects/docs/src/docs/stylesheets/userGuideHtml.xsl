@@ -227,6 +227,7 @@
                                 <ul id="java-projects">
                                     <li><a href="/userguide/tutorial_java_projects.html">Java Quickstart</a></li>
                                     <li><a href="/userguide/java.html">Building Java &amp; JVM Projects</a></li>
+                                    <li><a href="/userguide/java_testing.html">Testing Java &amp; JVM Projects</a></li>
                                     <li><a href="/userguide/java_plugin.html">Java Plugin</a></li>
                                     <li><a href="/userguide/java_library_plugin.html">Java Library Plugin</a></li>
                                     <li><a href="/userguide/java_library_distribution_plugin.html">Java Library Distribution Plugin</a></li>

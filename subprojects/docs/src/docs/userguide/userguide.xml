@@ -96,6 +96,8 @@
         <title>Building JVM projects</title>
         <xi:include href='../../../build/asciidoc/userguide/tutorialJavaProjects.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/java.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaTesting.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/basePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/webProjectTutorial.xml'/>
@@ -107,7 +109,6 @@
         <xi:include href='../../../build/asciidoc/userguide/tutorialGroovyProjects.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/groovyPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/scalaPlugin.xml'/>
-        <xi:include href='../../../build/asciidoc/userguide/basePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/antlrPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/checkstylePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/codenarcPlugin.xml'/>
