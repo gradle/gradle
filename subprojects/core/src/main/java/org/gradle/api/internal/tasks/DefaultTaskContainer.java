@@ -34,7 +34,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
@@ -259,22 +258,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
         addPlaceholderAction(name, type, configurationAction);
-        return new AbstractProvider<T>() {
-            @Override
-            public Class<T> getType() {
-                return type;
-            }
-
-            @Override
-            public boolean isPresent() {
-                return hasWithName(name);
-            }
-
-            @Override
-            public T getOrNull() {
-                return type.cast(getByName(name));
-            }
-        };
+        return new TaskProvider<T>(type, name);
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
@@ -312,7 +296,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
-        return Providers.of(type.cast(getByName(name)));
+        return new TaskProvider<T>(type, name);
     }
 
     public Task resolveTask(String path) {
@@ -455,5 +439,30 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
+    }
+
+    private class TaskProvider<T extends Task> extends AbstractProvider<T> {
+        private final Class<T> type;
+        private final String name;
+
+        public TaskProvider(Class<T> type, String name) {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public Class<T> getType() {
+            return type;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return hasWithName(name);
+        }
+
+        @Override
+        public T getOrNull() {
+            return type.cast(getByName(name));
+        }
     }
 }

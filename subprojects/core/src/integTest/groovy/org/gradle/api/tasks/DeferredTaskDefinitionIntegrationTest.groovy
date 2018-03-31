@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
-class LazyTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
+class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << '''
             class SomeTask extends DefaultTask {
@@ -57,7 +57,7 @@ class LazyTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput(":task1")
     }
 
-    def "task is created and configured when included indirectly in task graph"() {
+    def "task is created and configured when referenced as a task dependency in task graph"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
@@ -66,7 +66,45 @@ class LazyTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 println "Configure ${path}"
                 dependsOn task1
             }
+            tasks.create("other")
         '''
+
+        when:
+        run("other")
+
+        then:
+        result.assertNotOutput("task1")
+        result.assertNotOutput("task2")
+
+        when:
+        run("task2")
+
+        then:
+        outputContains("Create :task1")
+        outputContains("Configure :task1")
+        outputContains("Create :task2")
+        outputContains("Configure :task2")
+    }
+
+    def "task is created and configured when referenced via task provider"() {
+        buildFile << '''
+            def t1 = tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            tasks.create("task2", SomeTask) {
+                println "Configure ${path}"
+                dependsOn t1
+            }
+            tasks.create("other")
+        '''
+
+        when:
+        run("other")
+
+        then:
+        result.assertNotOutput("task1")
+        outputContains("Create :task2")
+        outputContains("Configure :task2")
 
         when:
         run("task2")
