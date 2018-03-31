@@ -187,6 +187,21 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 
     /**
+     * Defines a new task, which will be created and configured when it is required.
+     *
+     * <em>Note: this method will almost certainly be renamed.</em>
+     *
+     * @param name The name of the task.
+     * @param type The task type.
+     * @param configurationAction The action to run to configure the task. This action runs when the task
+     * @param <T> The task type
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.8
+     */
+    @Incubating
+    <T extends Task> void createLater(String name, Class<T> type, Action<? super T> configurationAction);
+
+    /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the
      * same name.</p>
      *
