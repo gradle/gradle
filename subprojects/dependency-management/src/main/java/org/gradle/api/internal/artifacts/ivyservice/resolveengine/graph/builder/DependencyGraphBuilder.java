@@ -241,8 +241,7 @@ public class DependencyGraphBuilder {
         }
 
         // New candidate is a preferred choice over current selection. Reset the module state and reselect.
-        resolveState.getDeselectVersionAction().execute(module.getId());
-        module.restart(selected);
+        module.changeSelection(selected);
     }
 
     private void checkForModuleConflicts(ResolveState resolveState, ModuleResolveState module) {

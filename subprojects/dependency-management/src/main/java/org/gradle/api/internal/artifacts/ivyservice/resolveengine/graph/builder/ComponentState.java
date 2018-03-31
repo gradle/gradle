@@ -136,7 +136,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return componentIdentifier;
     }
 
-    public void restart(ComponentState selected) {
+    /**
+     * Restarts all incoming edges for this component, queuing them up for processing.
+     */
+    public void restartIncomingEdges(ComponentState selected) {
         for (NodeState configuration : nodes) {
             configuration.restart(selected);
         }
@@ -305,6 +308,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    public void removeOutgoingEdges() {
+        for (NodeState configuration : getNodes()) {
+            configuration.deselect();
+        }
     }
 
     /**

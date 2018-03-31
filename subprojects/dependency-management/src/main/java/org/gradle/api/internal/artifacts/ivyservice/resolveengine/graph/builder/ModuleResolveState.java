@@ -95,37 +95,80 @@ class ModuleResolveState implements CandidateModule {
         return selected;
     }
 
+    /**
+     * Selects the target component for this module for the first time.
+     * Any existing versions will be evicted.
+     */
     public void select(ComponentState selected) {
         assert this.selected == null;
         this.selected = selected;
+
+        selectComponentAndEvictOthers(selected);
+    }
+
+    private void selectComponentAndEvictOthers(ComponentState selected) {
         for (ComponentState version : versions.values()) {
             version.evict();
         }
-
         selected.select();
     }
 
-    public ComponentState clearSelection() {
-        ComponentState previousSelection = selected;
-        selected = null;
+    /**
+     * Changes the selected target component for this module.
+     */
+    public void changeSelection(ComponentState newSelection) {
+        assert this.selected != null;
+        assert newSelection != null;
+        assert this.selected != newSelection;
+        assert newSelection.getModule() == this;
+
+        // Remove any outgoing edges for the current selection
+        selected.removeOutgoingEdges();
+
+        this.selected = newSelection;
+
+        doRestart(newSelection);
+    }
+
+    /**
+     * Clears the current selection for the module, to prepare for conflict resolution.
+     * - For the current selection, disconnect and remove any outgoing dependencies.
+     * - Make all 'selected' component versions selectable.
+     */
+    public void clearSelection() {
+        if (selected != null) {
+            selected.removeOutgoingEdges();
+        }
         for (ComponentState version : versions.values()) {
+            // TODO:DAZ Only the current selection should require the `makeSelectable` call.
             if (version.isSelected()) {
                 version.makeSelectable();
             }
         }
-        return previousSelection;
+
+        selected = null;
     }
 
+    /**
+     * Overrides the component selection for this module, when this module has been replaced by another.
+     */
     public void restart(ComponentState selected) {
-        if (this.selected != selected) {
-            select(selected);
-            doRestart(selected);
+        if (this.selected != null) {
+            clearSelection();
         }
+
+        assert this.selected == null;
+        assert selected != null;
+
+        this.selected = selected;
+
+        doRestart(selected);
     }
 
     private void doRestart(ComponentState selected) {
+        selectComponentAndEvictOthers(selected);
         for (ComponentState version : versions.values()) {
-            version.restart(selected);
+            version.restartIncomingEdges(selected);
         }
         for (SelectorState selector : selectors) {
             selector.overrideSelection(selected);
