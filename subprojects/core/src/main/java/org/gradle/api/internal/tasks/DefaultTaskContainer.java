@@ -34,6 +34,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
@@ -307,6 +308,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         projectAccessListener.beforeRequestingTaskByPath(project);
 
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
+    }
+
+    @Override
+    public <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+        return Providers.of(type.cast(getByName(name)));
     }
 
     public Task resolveTask(String path) {
