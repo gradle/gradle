@@ -107,7 +107,6 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(resolveContext, rootModule);
 
         final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, moduleReplacementsData, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator);
-        moduleConflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.getRoot().getComponent()));
 
         traverseGraph(resolveState);
 
