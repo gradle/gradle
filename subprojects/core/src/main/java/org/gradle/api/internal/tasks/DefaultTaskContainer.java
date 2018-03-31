@@ -33,6 +33,8 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
@@ -254,8 +256,24 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> void createLater(String name, Class<T> type, Action<? super T> configurationAction) {
+    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
         addPlaceholderAction(name, type, configurationAction);
+        return new AbstractProvider<T>() {
+            @Override
+            public Class<T> getType() {
+                return type;
+            }
+
+            @Override
+            public boolean isPresent() {
+                return hasWithName(name);
+            }
+
+            @Override
+            public T getOrNull() {
+                return type.cast(getByName(name));
+            }
+        };
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
@@ -266,6 +284,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public int size() {
         return super.size() + placeholders.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return super.isEmpty() && placeholders.isEmpty();
     }
 
     public Task findByPath(String path) {

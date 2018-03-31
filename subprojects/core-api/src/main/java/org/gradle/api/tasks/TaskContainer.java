@@ -16,7 +16,13 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -187,19 +193,22 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created and configured when it is required.
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)} or when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <em>Note: this method will almost certainly be renamed.</em>
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)}, as that method will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     *
+     * <strong>Note: this method currently has an intentionally bad name and will almost certainly be renamed.</strong>
      *
      * @param name The name of the task.
      * @param type The task type.
      * @param configurationAction The action to run to configure the task. This action runs when the task
      * @param <T> The task type
+     * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.8
      */
     @Incubating
-    <T extends Task> void createLater(String name, Class<T> type, Action<? super T> configurationAction);
+    <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the
