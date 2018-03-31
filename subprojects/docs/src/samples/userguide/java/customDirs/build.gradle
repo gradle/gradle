@@ -45,8 +45,8 @@ testResultsDirName = 'my-test-results'
 
 task showDirs {
     doLast {
-        println project.reportsDir
-        println project.testResultsDir
+        logger.quiet project.reportsDir
+        logger.quiet project.testResultsDir
     }
 }
 // END SNIPPET custom-report-dirs
