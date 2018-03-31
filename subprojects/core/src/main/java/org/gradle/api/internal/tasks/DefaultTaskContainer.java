@@ -253,9 +253,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    @Override
+    public <T extends Task> void createLater(String name, Class<T> type, Action<? super T> configurationAction) {
+        addPlaceholderAction(name, type, configurationAction);
+    }
+
     public <T extends Task> T replace(String name, Class<T> type) {
         T task = taskFactory.create(name, type);
         return addTask(task, true);
+    }
+
+    @Override
+    public int size() {
+        return super.size() + placeholders.size();
     }
 
     public Task findByPath(String path) {
@@ -365,7 +375,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
-    public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
+    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
         if (!modelNode.hasLink(placeholderName)) {
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
@@ -390,13 +400,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Collections.singleton(getType());
     }
 
-    private static class TaskCreator<T extends TaskInternal> implements Action<MutableModelNode> {
+    private static class TaskCreator<T extends Task> implements Action<MutableModelNode> {
         private final String placeholderName;
         private final Class<T> taskType;
         private final Action<? super T> configure;
         private final ModelType<T> taskModelType;
 
-        public TaskCreator(String placeholderName, Class<T> taskType, Action<? super T> configure, ModelType<T> taskModelType) {
+        TaskCreator(String placeholderName, Class<T> taskType, Action<? super T> configure, ModelType<T> taskModelType) {
             this.placeholderName = placeholderName;
             this.taskType = taskType;
             this.configure = configure;
