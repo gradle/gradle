@@ -257,6 +257,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean contains(Object o) {
+        flushPending();
         return getStore().contains(o);
     }
 
