@@ -16,14 +16,15 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 
 /**
- * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to modification notifications and live filtered sub collections.</p>
+ * <p>A {@code DomainObjectCollection} is a specialised {@link Collection} that adds the ability to receive modification notifications and use live filtered sub collections.</p>
  *
- * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect 
+ * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect
  * changes made to the source collection that they were created from. This is true for filtered collections made from filtered collections etc.</p>
  * <p>
  * You can also add actions which are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
@@ -32,6 +33,16 @@ import java.util.Collection;
  * @param <T> The type of domain objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
+    /**
+     * Adds an element to this collection, given a {@link Provider} that will provide the element when required.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param provider A {@link Provider} that can provider the element when required.
+     * @since 4.8
+     */
+    @Incubating
+    void addLater(Provider<? extends T> provider);
 
     /**
      * Returns a collection containing the objects in this collection of the given type.  The returned collection is

@@ -108,12 +108,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         index.clear();
     }
 
-
     @Override
     protected void didRemove(T t) {
         index.remove(namer.determineName(t));
     }
-
 
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add an item with the same name as an existing item.</p>
