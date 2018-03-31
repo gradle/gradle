@@ -49,7 +49,6 @@ import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -199,15 +198,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compileTask, target);
     }
 
-    private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, SourceDirectorySet resourceSet, final Project target) {
-        Copy resourcesTask = target.getTasks().create(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
-        resourcesTask.setDescription("Processes " + resourceSet + ".");
-        new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
-            public File call() throws Exception {
-                return sourceSet.getOutput().getResourcesDir();
+    private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
+        target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
+            @Override
+            public void execute(ProcessResources resourcesTask) {
+                resourcesTask.setDescription("Processes " + resourceSet + ".");
+                new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+                    public File call() {
+                        return sourceSet.getOutput().getResourcesDir();
+                    }
+                });
+                resourcesTask.from(resourceSet);
             }
         });
-        resourcesTask.from(resourceSet);
     }
 
     private void createBinaryLifecycleTask(final SourceSet sourceSet, Project target) {
