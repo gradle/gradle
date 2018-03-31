@@ -219,7 +219,7 @@ model {
         executedAndNotSkipped compileTask
         and:
         outputs.recompiledFile sourceFile
-        result.assertOutputContains("NEW directory named header")
+        outputContains("NEW directory named header")
 
     }
 

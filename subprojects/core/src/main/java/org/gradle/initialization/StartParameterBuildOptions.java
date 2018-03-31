@@ -58,6 +58,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
+        options.add(new DependencyLockingOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -306,6 +307,19 @@ public class StartParameterBuildOptions {
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+    }
+
+    public static class DependencyLockingOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "write-locks";
+
+        public DependencyLockingOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setWriteDependencyLocks(true);
         }
     }
 }

@@ -16,36 +16,90 @@
 
 package org.gradle.internal.io
 
-import org.gradle.util.MultithreadedTestRule
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.TextUtil
-import org.junit.Rule
-import org.junit.Test
 
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
-
-class LinePerThreadBufferingOutputStreamTest {
-
-    @Rule
-    public MultithreadedTestRule parallel = new MultithreadedTestRule();
-
-    @Test
-    public void interleavesLinesFromEachThread() {
-        List<String> output = [].asSynchronized()
+class LinePerThreadBufferingOutputStreamTest extends ConcurrentSpec {
+    def interleavesLinesFromEachThread() {
+        def output = [].asSynchronized()
         TextStream action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as TextStream
-        LinePerThreadBufferingOutputStream outstr = new LinePerThreadBufferingOutputStream(action)
-        10.times {
-            parallel.start {
-                100.times {
-                    outstr.write('write '.getBytes())
-                    outstr.print(it)
-                    outstr.println()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        async {
+            10.times {
+                start {
+                    100.times {
+                        outstr.write('write '.getBytes())
+                        outstr.print(it)
+                        outstr.println()
+                    }
                 }
             }
         }
-        parallel.waitForAll()
 
-        assertThat(output.size(), equalTo(1000))
-        assertThat(output.findAll({!it.matches('write \\d+<EOL>')}), equalTo([]))
+        then:
+        output.size() == 1000
+        output.findAll({!it.matches('write \\d+<EOL>')}).empty
+    }
+
+    def flushForwardsBufferedText() {
+        TextStream action = Mock()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        outstr.print("text")
+
+        then:
+        0 * action._
+
+        when:
+        outstr.flush()
+
+        then:
+        1 * action.text("text")
+        0 * action._
+    }
+
+    def flushDoesNothingWhenNothingWritten() {
+        TextStream action = Mock()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        outstr.flush()
+
+        then:
+        0 * action._
+    }
+
+    def closeForwardsBufferedText() {
+        TextStream action = Mock()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        outstr.print("text")
+
+        then:
+        0 * action._
+
+        when:
+        outstr.close()
+
+        then:
+        1 * action.text("text")
+        1 * action.endOfStream(null)
+        0 * action._
+    }
+
+    def closeDoesNothingWhenNothingWritten() {
+        TextStream action = Mock()
+        def outstr = new LinePerThreadBufferingOutputStream(action)
+
+        when:
+        outstr.close()
+
+        then:
+        1 * action.endOfStream(null)
+        0 * action._
     }
 }

@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@SuppressWarnings('IntegrationTestFixtures')
 class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
         import javax.inject.Inject
@@ -260,7 +261,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #2: missing parameter value of type int, or no service of type int")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
         description   | script
@@ -278,7 +279,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #1: missing parameter value of type class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
         description   | script
@@ -297,7 +298,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("constructorArgs must be a List or Object[]")
+        failure.assertHasCause("constructorArgs must be a List or Object[]")
 
         where:
         description | constructorArgs
@@ -317,7 +318,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.IllegalArgumentException: Unable to determine CustomTask_Decorated argument #$argumentNumber: value 123 not assignable to type $outputType, or no service of type $outputType")
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
 
         where:
         description | constructorArgs | argumentNumber | outputType
@@ -335,7 +336,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        result.output.contains("java.lang.NullPointerException: Received null for CustomTask constructor argument #$position")
+        failure.assertHasCause("Received null for CustomTask constructor argument #$position")
 
         where:
         description   | position | script

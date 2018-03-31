@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
@@ -247,6 +248,7 @@ class DefaultProjectTest {
             allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
 
             allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
+            allowing(serviceRegistryMock).get((Type) DependencyLockingHandler); will(returnValue(context.mock(DependencyLockingHandler)))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()

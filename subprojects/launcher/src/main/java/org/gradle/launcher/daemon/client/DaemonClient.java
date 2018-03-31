@@ -209,7 +209,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
             while (true) {
                 Message object = connection.receive();
-                LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+                objectsReceived++;
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
+                }
 
                 if (object == null) {
                     return handleDaemonDisappearance(build, diagnostics);

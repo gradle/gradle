@@ -18,15 +18,14 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore("Ignore to unblock CI for now - SLG 2018/03/07")
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+    public static final String TARGET_VERSION = "4.6-20180228115532+0000"
 
     def setup() {
         runner.minimumVersion = '4.0'
-        runner.targetVersions = ["4.7-20180320095059+0000"]
+        runner.targetVersions = [TARGET_VERSION]
     }
 
     @Unroll

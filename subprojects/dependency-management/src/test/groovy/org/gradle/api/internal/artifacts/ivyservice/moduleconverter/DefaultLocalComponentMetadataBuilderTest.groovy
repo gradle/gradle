@@ -57,9 +57,9 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         converter.addConfigurations(metaData, [config1, config2])
 
         then:
-        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY)
+        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY, false)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config1, configurationMetadataBuilder)
-        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY)
+        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY, false)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config2, configurationMetadataBuilder)
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addVariant("config1", childVariant1)

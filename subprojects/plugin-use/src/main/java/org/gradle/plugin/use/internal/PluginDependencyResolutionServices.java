@@ -18,6 +18,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -62,6 +63,10 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         return getDependencyResolutionServices().getDependencyHandler();
     }
 
+    @Override
+    public DependencyLockingHandler getDependencyLockingHandler() {
+        return getDependencyResolutionServices().getDependencyLockingHandler();
+    }
 
     public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
         return new PluginRepositoryHandlerProvider() {

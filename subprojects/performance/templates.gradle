@@ -330,6 +330,17 @@ task bigSwiftApp(type: BuildBuilderGenerator) {
     projects = 1
     sourceFiles = 500
     description = "Generates a ${projectType} build using build-builder (${projects} projects, ${sourceFiles} files)"
+
+    doLast {
+        def buildFile = generatedDir.file("build.gradle").get().asFile
+        buildFile << """
+            tasks.withType(SwiftCompile) {
+                compilerArgs.addAll provider {
+                    [ "-num-threads", "6", "-j", "6" ]
+                }
+            }
+        """
+    }
 }
 
 // === Android ===

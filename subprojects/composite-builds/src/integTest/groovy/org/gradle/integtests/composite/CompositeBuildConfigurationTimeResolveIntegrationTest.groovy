@@ -76,7 +76,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         then:
         executed ":resolve"
         notExecuted ":buildB:jar"
-        result.assertOutputContains "[$buildBjar]"
+        outputContains "[$buildBjar]"
 
         configured("buildB") == 1
     }
@@ -90,7 +90,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
         then:
         executedInOrder ":buildB:jar", ":resolve"
-        result.assertOutputContains "[$buildBjar]"
+        outputContains "[$buildBjar]"
 
         configured("buildB") == 1
     }
@@ -106,7 +106,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         executedInOrder ":buildB:b1:jar", ":resolve"
         notExecuted ":buildB:jar"
 
-        result.assertOutputContains("[$buildBjar]")
+        outputContains("[$buildBjar]")
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
 
         configured("buildB") == 1
@@ -122,7 +122,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         then:
         executed ":help"
         notExecuted ":buildB:jar"
-        result.assertOutputContains("[$buildBjar]")
+        outputContains("[$buildBjar]")
 
         configured("buildB") == 1
     }
@@ -139,7 +139,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         then:
         executedInOrder ":help"
         notExecuted ":buildB:jar"
-        result.assertOutputContains("[${publishedModuleB.artifactFile}]")
+        outputContains("[${publishedModuleB.artifactFile}]")
 
         configured("buildB") == 1
     }

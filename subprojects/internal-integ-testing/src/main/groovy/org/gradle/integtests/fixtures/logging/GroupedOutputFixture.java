@@ -16,13 +16,8 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.apache.commons.io.IOUtils;
-import org.fusesource.jansi.AnsiOutputStream;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.integtests.fixtures.executer.LogContent;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -39,7 +34,7 @@ public class GroupedOutputFixture {
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "FAILURE:";
+    private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
     private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks:";
 
     /**
@@ -66,7 +61,6 @@ public class GroupedOutputFixture {
         TASK_OUTPUT_PATTERN = Pattern.compile(pattern);
     }
 
-
     private final String originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskFixture> tasks;
@@ -79,7 +73,7 @@ public class GroupedOutputFixture {
     private String parse(String output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
 
-        String strippedOutput = stripAnsiCodes(stripWorkInProgressArea(output));
+        String strippedOutput = LogContent.of(stripWorkInProgressArea(output)).removeAnsiChars().withNormalizedEol();
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
@@ -109,16 +103,6 @@ public class GroupedOutputFixture {
 
     private String workInProgressAreaScrollingPattern(int scroll) {
         return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
-    }
-
-    private String stripAnsiCodes(String output) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            IOUtils.copy(new StringReader(output), new AnsiOutputStream(baos));
-            return baos.toString();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     public int getTaskCount() {

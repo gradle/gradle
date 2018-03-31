@@ -36,9 +36,9 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run "dependentComponents"
 
         then:
-        output.contains simpleCppUtilDependents()
-        output.contains simpleCppLibDependents()
-        output.contains simpleCppMainDependents()
+        outputContains simpleCppUtilDependents()
+        outputContains simpleCppLibDependents()
+        outputContains simpleCppMainDependents()
     }
 
     @Unroll
@@ -491,7 +491,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         succeeds("dependentComponents")
 
         then:
-        result.output.contains """
+        outputContains """
             ------------------------------------------------------------
             Root project
             ------------------------------------------------------------

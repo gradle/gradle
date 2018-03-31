@@ -39,7 +39,7 @@ Gradle determines the subset of the tasks, created and configured during the con
 
 Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is `settings.gradle`. Later in this chapter we explain how Gradle looks for a settings file.
 
-The settings file is executed during the initialization phase. A multiproject build must have a `settings.gradle` file in the root project of the multiproject hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_build_logic>>). Let's first do some introspection with a single project build:
+The settings file is executed during the initialization phase. A multiproject build must have a `settings.gradle` file in the root project of the multiproject hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects>>). Let's first do some introspection with a single project build:
 
 ++++
 <sample id="buildlifecycle" dir="userguide/buildlifecycle/basic" title="Single project build">

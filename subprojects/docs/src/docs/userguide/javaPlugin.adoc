@@ -754,7 +754,7 @@ gradle test --tests '*ParameterizedTest.*[2]'
 ```
 
 
-This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
+This is something you can combine with <<sec:continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
 
 ----
 gradle test --continuous --tests "com.mypackage.foo.*"

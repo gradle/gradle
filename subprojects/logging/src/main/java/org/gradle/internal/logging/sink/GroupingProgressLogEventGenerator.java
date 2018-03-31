@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.sink;
 
 import com.google.common.base.Objects;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -53,10 +54,10 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     private final LogHeaderFormatter headerFormatter;
     private final boolean verbose;
 
-    // Maintain a hierarchy of all build operation ids — heads up: this is a *forest*, not just 1 tree
-    private final Map<Object, Object> buildOpIdHierarchy = new HashMap<Object, Object>();
-    private final Map<Object, OperationGroup> operationsInProgress = new LinkedHashMap<Object, OperationGroup>();
-    private final Map<OperationIdentifier, Object> progressToBuildOpIdMap = new HashMap<OperationIdentifier, Object>();
+    // Maintain a hierarchy of all build operations in progress — heads up: this is a *forest*, not just 1 tree
+    private final Map<OperationIdentifier, OperationState> operationsInProgress = new LinkedHashMap<OperationIdentifier, OperationState>();
+    // Mapping from progress operation id to build operation id
+    private final Map<OperationIdentifier, OperationIdentifier> progressIdToBuildOpIdMap = new HashMap<OperationIdentifier, OperationIdentifier>();
 
     private Object lastRenderedBuildOpId;
     private boolean needHeaderSeparator;
@@ -86,14 +87,15 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private void onStart(ProgressStartEvent startEvent) {
         boolean isGrouped = isGroupedOperation(startEvent.getBuildOperationCategory());
-        Object buildOpId = startEvent.getBuildOperationId();
+        OperationIdentifier buildOpId = startEvent.getBuildOperationId();
         if (startEvent.isBuildOperationStart()) {
-            buildOpIdHierarchy.put(buildOpId, startEvent.getParentBuildOperationId());
-            progressToBuildOpIdMap.put(startEvent.getProgressOperationId(), buildOpId);
+            progressIdToBuildOpIdMap.put(startEvent.getProgressOperationId(), buildOpId);
 
             // Create a new group for tasks or configure project
             if (isGrouped) {
-                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getLoggingHeader(), startEvent.getDescription(), startEvent.getShortDescription(), startEvent.getTimestamp(), startEvent.getBuildOperationId(), startEvent.getBuildOperationCategory()));
+                operationsInProgress.put(buildOpId, new OperationGroup(startEvent.getCategory(), startEvent.getLoggingHeader(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentBuildOperationId(), buildOpId, startEvent.getBuildOperationCategory()));
+            } else {
+                operationsInProgress.put(buildOpId, new OperationState(startEvent.getParentBuildOperationId(), buildOpId));
             }
         }
 
@@ -109,19 +111,19 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void handleOutput(RenderableOutputEvent event) {
-        Object operationId = getOperationId(event.getBuildOperationId());
-        if (operationId != null) {
-            operationsInProgress.get(operationId).bufferOutput(event);
+        OperationGroup group = getGroupFor(event.getBuildOperationId());
+        if (group != null) {
+            group.bufferOutput(event);
         } else {
             onUngroupedOutput(event);
         }
     }
 
     private void onComplete(ProgressCompleteEvent completeEvent) {
-        Object buildOpId = progressToBuildOpIdMap.remove(completeEvent.getProgressOperationId());
-        buildOpIdHierarchy.remove(buildOpId);
-        OperationGroup group = operationsInProgress.remove(buildOpId);
-        if (group != null) {
+        OperationIdentifier buildOpId = progressIdToBuildOpIdMap.remove(completeEvent.getProgressOperationId());
+        OperationState state = operationsInProgress.remove(buildOpId);
+        if (state instanceof OperationGroup) {
+            OperationGroup group = (OperationGroup) state;
             group.setStatus(completeEvent.getStatus(), completeEvent.isFailed());
             group.flushOutput();
             lastRenderedBuildOpId = null;
@@ -129,19 +131,18 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onEnd(EndOutputEvent event) {
-        for (OperationGroup group : operationsInProgress.values()) {
-            group.flushOutput();
+        for (OperationState state : operationsInProgress.values()) {
+            state.flushOutput();
         }
         listener.onOutput(event);
-        buildOpIdHierarchy.clear();
         operationsInProgress.clear();
-        progressToBuildOpIdMap.clear();
+        progressIdToBuildOpIdMap.clear();
     }
 
     private void onUpdateNow(UpdateNowEvent event) {
         currentTimePeriod = event.getTimestamp();
-        for (OperationGroup group : operationsInProgress.values()) {
-            group.maybeFlushOutput(event.getTimestamp());
+        for (OperationState state : operationsInProgress.values()) {
+            state.maybeFlushOutput(event.getTimestamp());
         }
     }
 
@@ -154,29 +155,49 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         listener.onOutput(event);
     }
 
-    // Return the id of the operation/group, checking up the build operation hierarchy
-    private Object getOperationId(@Nullable final Object buildOpId) {
-        Object current = buildOpId;
+    // Return the group to use for the given build operation, searching up the build operation hierarchy for the first group
+    private OperationGroup getGroupFor(@Nullable final OperationIdentifier buildOpId) {
+        OperationIdentifier current = buildOpId;
         while (current != null) {
-            if (operationsInProgress.containsKey(current)) {
-                return current;
+            OperationState state = operationsInProgress.get(current);
+            if (state == null) {
+                // This shouldn't be the case, however, start and complete events are filtered in the prior stage when the logging level is > lifecycle
+                // Should instead move the filtering after this stage
+                break;
             }
-            current = buildOpIdHierarchy.get(current);
+            if (state instanceof OperationGroup) {
+                return (OperationGroup) state;
+            }
+            current = state.parentBuildOp;
         }
         return null;
     }
 
     private static LogEvent spacerLine(long timestamp, String category) {
-        return new LogEvent(timestamp, category, null, "", null);
+        return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
     }
 
-    private class OperationGroup {
+    private static class OperationState {
+        final @Nullable OperationIdentifier parentBuildOp;
+        final OperationIdentifier buildOpIdentifier;
+
+        OperationState(@Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier) {
+            this.parentBuildOp = parentBuildOp;
+            this.buildOpIdentifier = buildOpIdentifier;
+        }
+
+        void flushOutput() {
+        }
+
+        void maybeFlushOutput(long timestamp) {
+        }
+    }
+
+    private class OperationGroup extends OperationState {
         private final String category;
         private final String loggingHeader;
         private long lastUpdateTime;
         private final String description;
-        private final String shortDescription;
-        private final OperationIdentifier buildOpIdentifier;
         private final BuildOperationCategory buildOperationCategory;
 
         private String status = "";
@@ -187,22 +208,21 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        private OperationGroup(String category, @Nullable String loggingHeader, String description, @Nullable String shortDescription, long startTime, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        OperationGroup(String category, @Nullable String loggingHeader, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+            super(parentBuildOp, buildOpIdentifier);
             this.category = category;
             this.loggingHeader = loggingHeader;
             this.lastUpdateTime = startTime;
             this.description = description;
-            this.shortDescription = shortDescription;
             this.lastUpdateTime = startTime;
-            this.buildOpIdentifier = buildOpIdentifier;
             this.buildOperationCategory = buildOperationCategory;
         }
 
         private StyledTextOutputEvent header() {
-            return new StyledTextOutputEvent(lastUpdateTime, category, null, buildOpIdentifier, headerFormatter.format(loggingHeader, description, shortDescription, status, failed));
+            return new StyledTextOutputEvent(lastUpdateTime, category, LogLevel.LIFECYCLE, buildOpIdentifier, headerFormatter.format(loggingHeader, description, status, failed));
         }
 
-        private void bufferOutput(RenderableOutputEvent output) {
+        void bufferOutput(RenderableOutputEvent output) {
             // Forward output immediately when the focus is on this operation group
             if (Objects.equal(buildOpIdentifier, lastRenderedBuildOpId)) {
                 listener.onOutput(output);
@@ -213,7 +233,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             }
         }
 
-        private void flushOutput() {
+        @Override
+        void flushOutput() {
             if (shouldForward()) {
                 boolean hasContent = !bufferedLogs.isEmpty();
                 if (!hasForeground() || statusHasChanged()) {
@@ -237,7 +258,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             }
         }
 
-        private void maybeFlushOutput(long eventTimestamp) {
+        @Override
+        void maybeFlushOutput(long eventTimestamp) {
             if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
             }

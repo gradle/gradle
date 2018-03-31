@@ -142,7 +142,7 @@ gradle test --tests '*ParameterizedTest.*[2]'
 
 Note that the wildcard '*' has no special understanding of the '.' package separator. It's purely text based. So `--tests *.SomeTestClass` will match any package, regardless of its 'depth'.
 
-You can also combine filters defined at the command line with <<continuous_build, continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
+You can also combine filters defined at the command line with <<sec:continuous_build, continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file. The following executes all tests in the 'com.mypackage.foo' package or subpackages whenever a change triggers the tests to run:
 
 ```
 gradle test --continuous --tests "com.mypackage.foo.*"

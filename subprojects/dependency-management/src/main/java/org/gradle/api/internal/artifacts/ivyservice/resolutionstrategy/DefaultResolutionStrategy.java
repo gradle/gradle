@@ -63,6 +63,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final ComponentSelectorConverter componentSelectorConverter;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
+    private boolean dependencyLockingEnabled = false;
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
@@ -103,6 +104,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public void preferProjectModules() {
         conflictResolution = ConflictResolution.preferProjectModules;
+    }
+
+    @Override
+    public ResolutionStrategy activateDependencyLocking() {
+        mutationValidator.validateMutation(STRATEGY);
+        dependencyLockingEnabled = true;
+        return this;
     }
 
     @Override
@@ -210,5 +218,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.getComponentSelection().addRule(ruleAction);
         }
         return out;
+    }
+
+    @Override
+    public boolean isDependencyLockingEnabled() {
+        return dependencyLockingEnabled;
     }
 }

@@ -84,7 +84,7 @@ abstract class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTes
         when:
         succeeds(ideTask)
         then:
-        result.output.contains("Validated Scala Version")
+        outputContains("Validated Scala Version")
 
         parseIml(moduleFile).dependencies.dependencies.any {
             if (it instanceof IdeaModuleFixture.ImlLibrary) {
@@ -121,7 +121,7 @@ abstract class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTes
         when:
         succeeds(ideTask)
         then:
-        result.output.contains("Validated Java Version")
+        outputContains("Validated Java Version")
     }
 
     def "IDEA metadata contains correct dependencies for RUNTIME, COMPILE, TEST"() {

@@ -28,17 +28,19 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     def canRunTheApplicationUsingRunTask() {
         when:
-        def result = executer.inDirectory(sample.dir).withTasks('run').run()
+        executer.inDirectory(sample.dir)
+        succeeds('run')
 
         then:
-        result.output.contains('Greetings from the sample application.')
+        outputContains('Greetings from the sample application.')
     }
 
     @Unroll
     def canBuildAndRunTheInstalledApplication() {
         when:
         appendExecutableDir(executableDir)
-        executer.inDirectory(sample.dir).withTasks('installDist').run()
+        executer.inDirectory(sample.dir)
+        succeeds('installDist')
 
         then:
         def installDir = sample.dir.file('build/install/application')
@@ -54,7 +56,8 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
     def canBuildAndRunTheZippedDistribution() {
         when:
         appendExecutableDir(executableDir)
-        executer.inDirectory(sample.dir).withTasks('distZip').run()
+        executer.inDirectory(sample.dir)
+        succeeds('distZip')
 
         then:
         def distFile = sample.dir.file('build/distributions/application-1.0.2.zip')

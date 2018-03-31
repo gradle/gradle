@@ -174,4 +174,11 @@ public class ${className} implements Plugin<Project> {
         }
 
     }
+
+    void outputContains(String string) {
+        // intentionally override outputContains, because this test may find messages
+        // which are after the build finished message
+        def output = result.output
+        assert output.contains(string.trim())
+    }
 }

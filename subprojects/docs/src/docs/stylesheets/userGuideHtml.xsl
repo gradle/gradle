@@ -147,7 +147,7 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#best-practices" aria-expanded="false" aria-controls="best-practices">Best Practices</a>
                                 <ul id="best-practices">
                                     <li><a href="/userguide/authoring_maintainable_build_scripts.html">Authoring Maintainable Build Scripts</a></li>
-                                    <li><a href="/userguide/organizing_build_logic.html">Organizing Build Logic</a></li>
+                                    <li><a href="/userguide/organizing_gradle_projects.html">Organizing Gradle Projects</a></li>
                                     <li><a href="https://guides.gradle.org/performance/">Optimizing Build Performance</a></li>
                                     <li><a href="https://guides.gradle.org/using-build-cache/">Using the Build Cache</a></li>
                                 </ul>

@@ -24,7 +24,7 @@ import java.util.List;
  * This class is responsible for maintaining the state of pending dependencies. In other words, when such a dependency (e.g. a dependency constraints or a maven optional dependency), is added to the
  * graph, it is "pending" until a hard dependency for the same module is seen. As soon as a hard dependency is found, nodes that referred to the pending dependency are restarted.
  */
-public class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
+class DefaultPendingDependenciesHandler implements PendingDependenciesHandler {
     private final PendingDependenciesState pendingDependencies = new PendingDependenciesState();
 
     @Override

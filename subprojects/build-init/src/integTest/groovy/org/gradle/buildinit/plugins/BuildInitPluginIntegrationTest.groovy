@@ -34,7 +34,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         run 'tasks'
 
         then:
-        result.output.contains "init - Initializes a new Gradle build."
+        outputContains "init - Initializes a new Gradle build."
     }
 
     def "defaults to groovy build scripts"() {
@@ -83,7 +83,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file '${existingDslFixture.buildFileName}' already exists. Skipping build initialization.")
+        outputContains("The build file '${existingDslFixture.buildFileName}' already exists. Skipping build initialization.")
 
         and:
         !targetDslFixture.settingsFile.exists()
@@ -107,7 +107,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The settings file '${existingDslFixture.settingsFileName}' already exists. Skipping build initialization.")
+        outputContains("The settings file '${existingDslFixture.settingsFileName}' already exists. Skipping build initialization.")
 
         and:
         !targetDslFixture.buildFile.exists()
@@ -132,7 +132,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("The build file '${customBuildScript.name}' already exists. Skipping build initialization.")
+        outputContains("The build file '${customBuildScript.name}' already exists. Skipping build initialization.")
 
         and:
         !targetDslFixture.buildFile.exists()
@@ -161,7 +161,7 @@ include("child")
 
         then:
         result.assertTasksExecuted(":init")
-        result.output.contains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
+        outputContains("This Gradle project appears to be part of an existing multi-project Gradle build. Skipping build initialization.")
 
         and:
         !targetDslFixture.buildFile.exists()
@@ -235,7 +235,7 @@ include("child")
         run('help', '--task', 'init')
 
         then:
-        result.output.contains("""Options
+        outputContains("""Options
      --dsl     Set alternative build script DSL to be used.
                Available values are:
                     groovy

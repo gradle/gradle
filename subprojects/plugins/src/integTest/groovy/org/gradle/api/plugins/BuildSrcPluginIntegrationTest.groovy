@@ -136,7 +136,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("myTaskMyPlugin")
         then:
-        result.assertOutputContains("From MyPlugin")
+        outputContains("From MyPlugin")
     }
 
     def "build uses jars from multi-project buildSrc"() {
@@ -167,8 +167,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("myTaskMyPlugin", "myTaskMyPluginSub")
         then:
-        result.assertOutputContains("From MyPlugin")
-        result.assertOutputContains("From MyPluginSub")
+        outputContains("From MyPlugin")
+        outputContains("From MyPluginSub")
     }
 
     private void writeBuildSrcPlugin(String location, String className) {

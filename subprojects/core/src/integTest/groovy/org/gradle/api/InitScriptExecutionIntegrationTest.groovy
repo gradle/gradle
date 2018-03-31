@@ -17,7 +17,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import spock.lang.Timeout
@@ -95,10 +94,10 @@ try {
         buildFile << 'task doStuff'
 
         when:
-        ExecutionResult result = executer.usingInitScript(initScript).withTasks('doStuff').run()
+        result = executer.usingInitScript(initScript).withTasks('doStuff').run()
 
         then:
-        result.assertOutputContains('quiet message')
+        outputContains('quiet message')
         result.assertHasErrorOutput('error message')
     }
 
@@ -157,13 +156,13 @@ try {
         buildFile << 'task doStuff'
 
         when:
-        ExecutionResult result = executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
+        result = executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
 
         then:
         notThrown(Throwable)
 
         and:
-        result.output.contains("BuildClass not found as expected")
+        outputContains("BuildClass not found as expected")
     }
 
     @Requires([KOTLIN_SCRIPT])

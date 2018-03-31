@@ -55,6 +55,8 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
                 // Version not found at this base path
             }
         }
+
+        LOGGER.debug("No Windows registry values found for version " + version);
         return null;
     }
 
