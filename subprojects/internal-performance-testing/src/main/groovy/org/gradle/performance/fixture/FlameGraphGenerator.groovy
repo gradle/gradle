@@ -28,20 +28,30 @@ import groovy.transform.PackageScope
 @PackageScope
 class FlameGraphGenerator {
 
-    private final File flamegraphScript = createFlameGraphScript()
+    private final File flamegraphScript = createScript("flamegraph")
+    private final File diffScript = createScript("difffolded")
 
-    private static File createFlameGraphScript() {
-        URL flamegraphResource = JfrProfiler.getResource("flamegraph.pl")
-        File flamegraphScript = File.createTempFile("flamegraph", ".pl")
-        Resources.asByteSource(flamegraphResource).copyTo(Files.asByteSink(flamegraphScript))
-        flamegraphScript.deleteOnExit()
-        flamegraphScript.setExecutable(true)
-        flamegraphScript
+    private static File createScript(String scriptName) {
+        URL scriptResource = JfrProfiler.getResource(scriptName + ".pl")
+        File script = File.createTempFile(scriptName, ".pl")
+        Resources.asByteSource(scriptResource).copyTo(Files.asByteSink(script))
+        script.deleteOnExit()
+        script.setExecutable(true)
+        script
     }
 
-    void generate(File stacks, File flames, String... args) {
+    void generateFlameGraph(File stacks, File flames, String... args) {
         def process = ([flamegraphScript.absolutePath, stacks.absolutePath] + args.toList()).execute()
         def fos = flames.newOutputStream()
+        process.waitForProcessOutput(fos, System.err)
+        fos.close()
+    }
+
+    void generateDiff(File baseline, File versionUnderTest, File diff) {
+        Files.touch(baseline)
+        Files.touch(versionUnderTest)
+        def process = [diffScript.absolutePath, baseline.absolutePath, versionUnderTest.absolutePath].execute()
+        def fos = diff.newOutputStream()
         process.waitForProcessOutput(fos, System.err)
         fos.close()
     }

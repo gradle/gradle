@@ -21,8 +21,6 @@ import groovy.transform.PackageScope
 
 /**
  * Generates flame graphs based on JFR recordings.
- *
- * TODO create flame graph diffs
  */
 @CompileStatic
 @PackageScope
@@ -45,24 +43,68 @@ class JfrFlameGraphGenerator {
         File stacks = File.createTempFile("stacks", ".txt")
         String[] options = level.stackConversionOptions + ["--event", type.id]
         stacksConverter.convertToStacks(jfrRecording, stacks, options)
-        File sanitizedStacks = new File(jfrRecording.parentFile, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
+        File baseDir = jfrRecording.parentFile
+        File sanitizedStacks = stacksFileName(baseDir, type, level)
         level.sanitizer.sanitize(stacks, sanitizedStacks)
         stacks.delete()
         sanitizedStacks
     }
 
+    void generateDifferentialGraphs(File baseDir) {
+        File[] experiments = baseDir.listFiles()
+        experiments.each { File experiment ->
+            EventType.values().each { EventType type ->
+                DetailLevel.values().each { DetailLevel level ->
+                    experiments.findAll { it != experiment }.each { File baseline ->
+                        def diff = generateDiff(experiment, baseline, type, level, false)
+                        generateDifferentialFlameGraph(diff, type, level, false)
+                        def backwardDiff = generateDiff(experiment, baseline, type, level, true)
+                        generateDifferentialFlameGraph(backwardDiff, type, level, true)
+                    }
+                }
+            }
+        }
+    }
+
+    private File generateDiff(File versionUnderTest, File baseline, EventType type, DetailLevel level, boolean negate) {
+        File underTestStacks = stacksFileName(versionUnderTest, type, level)
+        File baselineStacks = stacksFileName(baseline, type, level)
+        File diff = new File(underTestStacks.parentFile, "diffs/${negate ? "backward-" : ""}diff-vs-${baseline.name}.txt")
+        diff.parentFile.mkdirs()
+        if (negate) {
+            flameGraphGenerator.generateDiff(underTestStacks, baselineStacks, diff)
+        } else {
+            flameGraphGenerator.generateDiff(baselineStacks, underTestStacks, diff)
+        }
+        diff
+    }
+
+    private File stacksFileName(File baseDir, EventType type, DetailLevel level) {
+        new File(baseDir, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
+    }
+
     private void generateFlameGraph(File stacks, EventType type, DetailLevel level) {
         File flames = new File(stacks.parentFile, "flames.svg")
         String[] options = ["--title", type.displayName + " Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
-        flameGraphGenerator.generate(stacks, flames, options)
+        flameGraphGenerator.generateFlameGraph(stacks, flames, options)
         flames
     }
 
     private void generateIcicleGraph(File stacks, EventType type, DetailLevel level) {
         File icicles = new File(stacks.parentFile, "icicles.svg")
         String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "blue"] + level.icicleGraphOptions
-        flameGraphGenerator.generate(stacks, icicles, options)
+        flameGraphGenerator.generateFlameGraph(stacks, icicles, options)
         icicles
+    }
+
+    private void generateDifferentialFlameGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
+        File flames = new File(stacks.parentFile, stacks.name.replace(".txt", ".svg"))
+        List<String> options = ["--title", type.displayName + "${negate ? "Backward " : ""}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
+        if (negate) {
+            options << "--negate"
+        }
+        flameGraphGenerator.generateFlameGraph(stacks, flames, options as String[])
+        flames
     }
 
     private static enum EventType {

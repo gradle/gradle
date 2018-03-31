@@ -20,6 +20,7 @@ import com.google.common.io.Files
 import com.google.common.io.Resources
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.performance.util.JCmd
 
 /**
@@ -30,7 +31,7 @@ import org.gradle.performance.util.JCmd
  */
 @CompileStatic
 @PackageScope
-class JfrProfiler extends Profiler {
+class JfrProfiler extends Profiler implements Stoppable {
 
     private final File logDirectory
     private final File config
@@ -88,6 +89,11 @@ class JfrProfiler extends Profiler {
             jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
         }
         flameGraphGenerator.generateGraphs(jfrFile)
+    }
+
+    @Override
+    void stop() {
+        flameGraphGenerator.generateDifferentialGraphs(logDirectory)
     }
 
     private boolean useDaemon(BuildExperimentSpec spec) {

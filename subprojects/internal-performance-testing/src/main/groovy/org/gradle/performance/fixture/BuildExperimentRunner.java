@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture;
 
 import org.gradle.api.Action;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.util.GFileUtils;
@@ -71,6 +72,7 @@ public class BuildExperimentRunner {
             try {
                 performMeasurements(session, experiment, results, workingDirectory);
             } finally {
+                CompositeStoppable.stoppable(profiler).stop();
                 session.cleanup();
             }
         }
