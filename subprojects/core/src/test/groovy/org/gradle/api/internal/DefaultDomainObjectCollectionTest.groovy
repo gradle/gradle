@@ -70,6 +70,33 @@ class DefaultDomainObjectCollectionTest extends Specification {
         !container.empty
     }
 
+    def canCheckForMembership() {
+        given:
+        container.add("b")
+        container.add("a")
+
+        expect:
+        !container.contains("c")
+        container.contains("a")
+    }
+
+    def providerForElementIsQueriedWhenMembershipChecked() {
+        def provider = Mock(Provider)
+
+        given:
+        container.add("b")
+        container.addLater(provider)
+
+        when:
+        def result = container.contains("c")
+
+        then:
+        !result
+
+        and:
+        1 * provider.get() >> "a"
+    }
+
     def canGetAllDomainObjectsOrderedByOrderAdded() {
         given:
         container.add("b")
