@@ -24,6 +24,7 @@ import org.gradle.api.internal.collections.BroadcastingCollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.ImmutableActionSet;
@@ -206,6 +207,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         } else {
             return false;
         }
+    }
+
+    @Override
+    public void addLater(Provider<? extends T> provider) {
+        add(provider.get());
     }
 
     protected void didAdd(T toAdd) {

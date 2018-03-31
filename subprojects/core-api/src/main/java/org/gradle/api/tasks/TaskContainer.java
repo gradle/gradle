@@ -197,7 +197,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)}, as that method will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *
-     * <strong>Note: this method currently has an intentionally bad name and will almost certainly be renamed.</strong>
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param name The name of the task.
      * @param type The task type.

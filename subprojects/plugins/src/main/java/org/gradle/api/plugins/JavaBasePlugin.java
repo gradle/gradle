@@ -229,7 +229,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, Task compileTask, Provider<? extends Task> resourcesTask, Task classesTask) {
         binary.getTasks().add(compileTask);
-        binary.getTasks().add(resourcesTask.get());
+        binary.getTasks().addLater(resourcesTask);
         binary.getTasks().add(classesTask);
         binary.setBuildTask(classesTask);
     }
