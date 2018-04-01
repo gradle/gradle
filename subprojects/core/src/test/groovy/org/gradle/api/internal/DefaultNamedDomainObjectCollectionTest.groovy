@@ -18,22 +18,23 @@ package org.gradle.api.internal
 
 import org.gradle.api.Namer
 import org.gradle.api.Rule
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 
-class DefaultNamedDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<Bean> {
+class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCollectionSpec<Bean> {
 
     private final Namer<Bean> namer = new Namer<Bean>() {
         String determineName(Bean bean) { return bean.name }
     };
 
-    Instantiator instantiator = Mock(Instantiator)
+    Instantiator instantiator = DirectInstantiator.INSTANCE
     Set<Bean> store
 
-    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<CharSequence>(Bean, new LinkedHashSet<>(), instantiator, namer)
-    final Bean a = new Bean("a")
-    final Bean b = new Bean("b")
-    final Bean c = new Bean("c")
-    final Bean d = new Bean("d")
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new LinkedHashSet<>(), instantiator, namer)
+    final Bean a = new BeanSub1("a")
+    final Bean b = new BeanSub1("b")
+    final Bean c = new BeanSub1("c")
+    final Bean d = new BeanSub2("d")
 
     def setup() {
         container.clear()
@@ -109,16 +110,28 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractDomainObjectCollect
         0 * rule._
     }
 
-    private class Bean {
+    static class Bean {
         public final String name
 
-        public Bean(String name) {
+        Bean(String name) {
             this.name = name
         }
 
         @Override
         String toString() {
             return name
+        }
+    }
+
+    static class BeanSub1 extends Bean {
+        BeanSub1(String name) {
+            super(name)
+        }
+    }
+
+    static class BeanSub2 extends Bean {
+        BeanSub2(String name) {
+            super(name)
         }
     }
 }

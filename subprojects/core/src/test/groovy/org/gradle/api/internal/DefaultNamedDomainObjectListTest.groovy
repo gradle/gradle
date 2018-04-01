@@ -15,19 +15,24 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
-import org.gradle.api.Namer
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 
-class DefaultNamedDomainObjectListTest extends Specification {
+class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollectionSpec<CharSequence> {
     final Namer<Object> toStringNamer = new Namer<Object>() {
         String determineName(Object object) {
             return object.toString()
         }
     }
-    final DefaultNamedDomainObjectList<String> list = new DefaultNamedDomainObjectList<String>(String, DirectInstantiator.INSTANCE, toStringNamer)
+    final DefaultNamedDomainObjectList<CharSequence> list = new DefaultNamedDomainObjectList<CharSequence>(CharSequence, DirectInstantiator.INSTANCE, toStringNamer)
+
+    final DefaultNamedDomainObjectList<String> container = list
+    final String a = "a"
+    final String b = "b"
+    final String c = "c"
+    final StringBuilder d = new StringBuilder("d")
 
     def "can add element at given index"() {
         given:
@@ -66,7 +71,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'a' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a']
     }
 
@@ -142,7 +147,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'a' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'a' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 
@@ -300,7 +305,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'b' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 
@@ -345,7 +350,7 @@ class DefaultNamedDomainObjectListTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Cannot add a String with name 'b' as a String with that name already exists."
+        e.message == "Cannot add a CharSequence with name 'b' as a CharSequence with that name already exists."
         list == ['a', 'b']
     }
 

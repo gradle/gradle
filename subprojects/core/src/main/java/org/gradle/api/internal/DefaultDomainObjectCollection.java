@@ -23,10 +23,13 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.BroadcastingCollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredCollection;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
 
@@ -36,6 +39,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T>, WithEstimatedSize {
 
@@ -44,7 +48,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
-    private List<Provider<? extends T>> pending;
+    private List<ProviderInternal<? extends T>> pending;
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>());
@@ -89,8 +93,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new DefaultDomainObjectCollection<S>(this, filter);
     }
 
-    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter) {
-        return new FilteredCollection<T, S>(this, filter);
+    protected <S extends T> Collection<S> filteredStore(final CollectionFilter<S> filter) {
+        return filteredStore(filter, new FlushingElementSource(filter));
+    }
+
+    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+        return new FilteredCollection<T, S>(elementSource, filter);
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
@@ -111,6 +119,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public Iterator<T> iterator() {
         flushPending();
+        return iteratorNoFlush();
+    }
+
+    protected Iterator<T> iteratorNoFlush() {
         if (constantTimeIsEmpty()) {
             return Iterators.emptyIterator();
         }
@@ -119,10 +131,23 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     protected void flushPending() {
         if (pending != null) {
-            for (Provider<? extends T> provider : pending) {
+            for (ProviderInternal<? extends T> provider : pending) {
                 doAdd(provider.get());
             }
             pending.clear();
+        }
+    }
+
+    private void flushPending(Class<?> type) {
+        if (pending != null) {
+            ListIterator<ProviderInternal<? extends T>> iterator = pending.listIterator();
+            while (iterator.hasNext()) {
+                ProviderInternal<? extends T> provider = iterator.next();
+                if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
+                    doAdd(provider.get());
+                    iterator.remove();
+                }
+            }
         }
     }
 
@@ -225,9 +250,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void addLater(Provider<? extends T> provider) {
         if (pending == null) {
-            pending = new LinkedList<Provider<? extends T>>();
+            pending = new LinkedList<ProviderInternal<? extends T>>();
         }
-        pending.add(provider);
+        ProviderInternal<? extends T> cast = Cast.uncheckedCast(provider);
+        pending.add(cast);
     }
 
     protected void didAdd(T toAdd) {
@@ -371,6 +397,40 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public int estimatedSize() {
             return DefaultDomainObjectCollection.this.estimatedSize();
+        }
+    }
+
+    private class FlushingElementSource implements ElementSource<T> {
+        private final CollectionFilter<?> filter;
+
+        FlushingElementSource(CollectionFilter<?> filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public int estimatedSize() {
+            return DefaultDomainObjectCollection.this.estimatedSize();
+        }
+
+        @Override
+        public boolean contains(Object element) {
+            return DefaultDomainObjectCollection.this.contains(element);
+        }
+
+        @Override
+        public boolean containsAll(Collection<?> elements) {
+            return DefaultDomainObjectCollection.this.containsAll(elements);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return DefaultDomainObjectCollection.this.isEmpty();
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            flushPending(filter.getType());
+            return iteratorNoFlush();
         }
     }
 }

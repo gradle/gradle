@@ -15,21 +15,22 @@
  */
 package org.gradle.api.internal
 
-class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<String> {
-    DefaultDomainObjectSet<String> container = new DefaultDomainObjectSet<String>(String)
+class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
+    DefaultDomainObjectSet<CharSequence> set = new DefaultDomainObjectSet<CharSequence>(String)
+    DefaultDomainObjectSet<CharSequence> container = set
     String a = "a"
     String b = "b"
     String c = "c"
-    String d = "d"
+    StringBuilder d = new StringBuilder("d")
 
     def "findAll() filters elements and retains iteration order"() {
-        container.add("a")
-        container.add("b")
-        container.add("c")
-        container.add("d")
+        set.add("a")
+        set.add("b")
+        set.add("c")
+        set.add("d")
 
         expect:
-        container.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
+        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
     }
 
     def "Set semantics preserved if backing collection is a filtered composite set"() {

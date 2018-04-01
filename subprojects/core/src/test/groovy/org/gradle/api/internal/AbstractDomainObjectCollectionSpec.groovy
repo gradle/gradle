@@ -17,7 +17,7 @@
 package org.gradle.api.internal
 
 import org.gradle.api.DomainObjectCollection
-import org.gradle.api.provider.Provider
+import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toList
@@ -33,6 +33,18 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     abstract T getD()
 
+    Class<T> getType() {
+        return a.class
+    }
+
+    Class<T> getOtherType() {
+        return d.class
+    }
+
+    List<T> iterationOrder(T... elements) {
+        return elements
+    }
+
     def canGetAllDomainObjectsForEmptyCollection() {
         expect:
         container.isEmpty()
@@ -46,7 +58,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def elementAddedUsingProviderIsNotRealizedWhenAdded() {
-        def provider = Mock(Provider)
+        def provider = Mock(ProviderInternal)
 
         when:
         container.addLater(provider)
@@ -60,7 +72,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def providerForElementIsNotQueriedWhenAnotherElementAdded() {
-        def provider = Mock(Provider)
+        def provider = Mock(ProviderInternal)
 
         given:
         container.add(a)
@@ -88,7 +100,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
     }
 
     def providerForElementIsQueriedWhenMembershipChecked() {
-        def provider = Mock(Provider)
+        def provider = Mock(ProviderInternal)
 
         given:
         container.add(b)
@@ -111,7 +123,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.add(c)
 
         expect:
-        toList(container) == [b, a, c]
+        toList(container) == iterationOrder(b, a, c)
     }
 
     def canIterateOverDomainObjectsOrderedByOrderAdded() {
@@ -120,16 +132,18 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.add(c)
 
         expect:
+        def seen = []
         def iterator = container.iterator()
-        iterator.next() == b
-        iterator.next() == a
-        iterator.next() == c
+        seen << iterator.next()
+        seen << iterator.next()
+        seen << iterator.next()
         !iterator.hasNext()
+        seen == iterationOrder(b, a, c)
     }
 
     def providerForElementIsQueriedWhenElementsIteratedButInsertionOrderIsNotRetained() {
-        def provider1 = Mock(Provider)
-        def provider2 = Mock(Provider)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
 
         given:
         container.add(b)
@@ -141,11 +155,81 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(container)
 
         then:
-        result == [b, c, a, d]
+        result == iterationOrder(b, c, a, d)
 
         and:
         1 * provider1.get() >> a
         1 * provider2.get() >> d
         0 * _
+    }
+
+    def canGetFilteredCollectionContainingAllObjectsWhichHaveType() {
+        container.add(c)
+        container.add(a)
+        container.add(d)
+
+        expect:
+        toList(container.withType(type)) == iterationOrder(c, a)
+        toList(container.withType(otherType)) == iterationOrder(d)
+    }
+
+    def providerForElementIsQueriedWhenFilteredCollectionWithMatchingTypeCreated() {
+        def provider = Mock(ProviderInternal)
+
+        container.add(c)
+        container.addLater(provider)
+        container.add(d)
+
+        when:
+        def filtered = container.withType(type)
+
+        then:
+        0 * provider._
+
+        when:
+        def result = toList(filtered)
+
+        then:
+        result == iterationOrder(c, a)
+        _ * provider.type >> type
+        1 * provider.get() >> a
+        0 * provider._
+
+        when:
+        def result2 = toList(container)
+
+        then:
+        result2 == iterationOrder(c, d, a)
+        0 * provider._
+    }
+
+    def providerForElementIsNotQueriedWhenFilteredCollectionWithNonMatchingTypeCreated() {
+        def provider = Mock(ProviderInternal)
+
+        container.add(c)
+        container.addLater(provider)
+        container.add(d)
+
+        when:
+        def filtered = container.withType(otherType)
+
+        then:
+        0 * provider._
+
+        when:
+        def result = toList(filtered)
+
+        then:
+        result == iterationOrder(d)
+        _ * provider.type >> type
+        0 * provider._
+
+        when:
+        def result2 = toList(container)
+
+        then:
+        result2 == iterationOrder(c, d, a)
+        1 * provider.get() >> a
+        0 * provider._
     }
 }
