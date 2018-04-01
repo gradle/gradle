@@ -394,7 +394,7 @@ class DefaultTaskContainerTest extends Specification {
         0 * rule._
     }
 
-    void "can define task to create and configure later"() {
+    void "can define task to create and configure later given name and type"() {
         def action = Mock(Action)
 
         when:
@@ -408,6 +408,28 @@ class DefaultTaskContainerTest extends Specification {
         container.size() == 1
         !container.empty
         !provider.present
+    }
+
+    void "can define task to create and configure later given name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        when:
+        def provider = container.createLater("task", action)
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+
+        when:
+        def result = provider.get()
+
+        then:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        result == task
     }
 
     void "defined task can be created and configured explicitly by using the returned provider"() {
