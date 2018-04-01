@@ -81,7 +81,7 @@ public class RejectedModuleMessageBuilder {
                 sb.append('\'').append(id).append('\'');
                 sb.append(" --> ");
             }
-            ModuleIdentifier moduleId = edge.getTargetComponent().getModule().getId();
+            ModuleIdentifier moduleId = edge.getSelector().getTargetModule().getId();
             sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName()).append('\'');
             result.add(sb.toString());
         }

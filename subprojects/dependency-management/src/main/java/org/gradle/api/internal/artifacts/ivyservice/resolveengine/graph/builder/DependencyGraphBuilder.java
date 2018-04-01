@@ -220,7 +220,7 @@ public class DependencyGraphBuilder {
         try {
             selected = selectorStateResolver.selectBest(module.getId(), module.getSelectors());
         } catch (ModuleVersionResolveException e) {
-            // Ignore: failure will be retained on selector
+            // Ignore: All selectors failed, and will have failures recorded
             return;
         }
 
@@ -263,7 +263,7 @@ public class DependencyGraphBuilder {
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved metadata.
      */
     private void maybeDownloadMetadataInParallel(NodeState node, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache, List<EdgeState> dependencies) {
-        List<EdgeState> requiringDownload = null;
+        List<ComponentState> requiringDownload = null;
         for (EdgeState dependency : dependencies) {
             ComponentState targetComponent = dependency.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
@@ -272,19 +272,19 @@ public class DependencyGraphBuilder {
                     if (requiringDownload == null) {
                         requiringDownload = Lists.newArrayList();
                     }
-                    requiringDownload.add(dependency);
+                    requiringDownload.add(targetComponent);
                 }
             }
         }
         // Only download in parallel if there is more than 1 component to download
         if (requiringDownload != null && requiringDownload.size() > 1) {
-            final ImmutableList<EdgeState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
+            final ImmutableList<ComponentState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
             LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
             buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
                 @Override
                 public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                    for (final EdgeState dependency : toDownloadInParallel) {
-                        buildOperationQueue.add(new DownloadMetadataOperation(dependency.getTargetComponent()));
+                    for (final ComponentState componentState : toDownloadInParallel) {
+                        buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                     }
                 }
             });

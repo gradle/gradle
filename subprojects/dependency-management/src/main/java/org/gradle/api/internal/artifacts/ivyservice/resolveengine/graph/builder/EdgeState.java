@@ -35,6 +35,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -76,6 +77,11 @@ class EdgeState implements DependencyGraphEdge {
         return dependencyMetadata;
     }
 
+    /**
+     * Returns the target component, if the edge has been successfully resolved.
+     * Returns null if the edge failed to resolve, or has not (yet) been successfully resolved to a target component.
+     */
+    @Nullable
     ComponentState getTargetComponent() {
         return targetModuleRevision;
     }

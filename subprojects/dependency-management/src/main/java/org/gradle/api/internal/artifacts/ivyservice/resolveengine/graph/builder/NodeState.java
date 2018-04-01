@@ -300,7 +300,7 @@ class NodeState implements DependencyGraphNode {
         return moduleExclusions.intersect(edgeExclusions, nodeExclusions);
     }
 
-    public void removeOutgoingEdges() {
+    private void removeOutgoingEdges() {
         for (EdgeState outgoingDependency : outgoingEdges) {
             outgoingDependency.removeFromTargetConfigurations();
         }
