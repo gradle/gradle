@@ -163,9 +163,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 defineConfigurationsForSourceSet(sourceSet, configurations);
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project);
 
                 Provider<ProcessResources> resourcesTask = createProcessResourcesTaskForBinary(sourceSet, sourceSet.getResources(), project);
-                JavaCompile compileTask = createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
+                Provider<JavaCompile> compileTask = createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 Provider<Task> classesTask = createBinaryLifecycleTask(sourceSet, project);
 
                 DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
@@ -185,19 +186,27 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         return new BridgedBinaries(binaries);
     }
 
-    private JavaCompile createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
-        compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
-        compileTask.setSource(sourceDirectorySet);
-        ConventionMapping conventionMapping = compileTask.getConventionMapping();
-        conventionMapping.map("classpath", new Callable<Object>() {
-            public Object call() throws Exception {
-                return sourceSet.getCompileClasspath();
+    private Provider<JavaCompile> createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+        return target.getTasks().createLater(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
+            @Override
+            public void execute(JavaCompile compileTask) {
+                compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
+                compileTask.setSource(sourceDirectorySet);
+                ConventionMapping conventionMapping = compileTask.getConventionMapping();
+                conventionMapping.map("classpath", new Callable<Object>() {
+                    public Object call() {
+                        return sourceSet.getCompileClasspath();
+                    }
+                });
+                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
+                compileTask.setDestinationDir(target.provider(new Callable<File>() {
+                    @Override
+                    public File call() {
+                        return sourceDirectorySet.getOutputDir();
+                    }
+                }));
             }
         });
-        SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
-        SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, compileTask, target);
-        return compileTask;
     }
 
     private Provider<ProcessResources> createProcessResourcesTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
@@ -230,8 +239,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         return classesTask;
     }
 
-    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, Task compileTask, Provider<? extends Task> resourcesTask, Provider<Task> classesTask) {
-        binary.getTasks().add(compileTask);
+    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, Provider<? extends Task> compileTask, Provider<? extends Task> resourcesTask, Provider<? extends Task> classesTask) {
+        binary.getTasks().addLater(compileTask);
         binary.getTasks().addLater(resourcesTask);
         binary.getTasks().addLater(classesTask);
         binary.builtBy(classesTask);
