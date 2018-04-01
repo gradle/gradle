@@ -28,9 +28,7 @@ open class DependencyVulnerabilitiesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         configure(projectsIncludedInDistribution()) {
-            apply {
-                plugin("org.owasp.dependencycheck")
-            }
+            apply(plugin = "org.owasp.dependencycheck")
 
             configure<DependencyCheckExtension> {
                 failBuildOnCVSS = 8F // 10 is the maximum

@@ -22,28 +22,28 @@ import org.gradle.kotlin.dsl.*
 
 class JavaProjectsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("gradlebuild.unittest-and-compile")
-            plugin("gradlebuild.test-fixtures")
-            plugin("gradlebuild.distribution-testing")
-            from("$rootDir/gradle/intTestImage.gradle")
 
-            if (file("src/integTest").isDirectory) {
-                plugin("gradlebuild.integration-tests")
-            }
+        apply(plugin = "gradlebuild.unittest-and-compile")
+        apply(plugin = "gradlebuild.test-fixtures")
+        apply(plugin = "gradlebuild.distribution-testing")
+        apply(from = "$rootDir/gradle/intTestImage.gradle")
 
-            if (file("src/crossVersionTest").isDirectory) {
-                plugin("gradlebuild.cross-version-tests")
-            }
-
-            if (file("src/performanceTest").isDirectory) {
-                plugin("gradlebuild.performance-test")
-            }
-
-            if (file("src/jmh").isDirectory) {
-                plugin("gradlebuild.jmh")
-            }
+        if (file("src/integTest").isDirectory) {
+            apply(plugin = "gradlebuild.integration-tests")
         }
+
+        if (file("src/crossVersionTest").isDirectory) {
+            apply(plugin = "gradlebuild.cross-version-tests")
+        }
+
+        if (file("src/performanceTest").isDirectory) {
+            apply(plugin = "gradlebuild.performance-test")
+        }
+
+        if (file("src/jmh").isDirectory) {
+            apply(plugin = "gradlebuild.jmh")
+        }
+
         tasks.getByName("check") {
             dependsOn(":docs:checkstyleApi")
             dependsOn("codeQuality")

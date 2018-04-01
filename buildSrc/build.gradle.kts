@@ -23,14 +23,15 @@ import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
-    `kotlin-dsl`
+    `java`
+    `kotlin-dsl` apply false
     id("org.gradle.kotlin.ktlint-convention") version "0.1.4" apply false
 }
 
 subprojects {
-    apply { plugin("java-library") }
+    apply(plugin = "java-library")
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
-        apply { plugin("groovy") }
+        apply(plugin = "groovy")
         dependencies {
             compile(localGroovy())
             testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
@@ -56,21 +57,17 @@ subprojects {
 
         val compileGroovy: GroovyCompile by tasks
 
-        configurations {
-            "apiElements" {
-                outgoing.variants["classes"].artifact(mapOf(
-                    "file" to compileGroovy.destinationDir,
-                    "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-                    "builtBy" to compileGroovy
-                ))
-            }
+        configurations.apiElements.apply {
+            outgoing.variants["classes"].artifact(mapOf(
+                "file" to compileGroovy.destinationDir,
+                "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+                "builtBy" to compileGroovy
+            ))
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply {
-            plugin("kotlin")
-            plugin("org.gradle.kotlin.ktlint-convention")
-        }
+        apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+        apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
         tasks.withType<KotlinCompile> {
             kotlinOptions {
@@ -78,10 +75,8 @@ subprojects {
             }
         }
     }
-    apply {
-        plugin("idea")
-        plugin("eclipse")
-    }
+    apply(plugin = "idea")
+    apply(plugin = "eclipse")
 
     the<IdeaModel>().apply {
         module.name = "buildSrc-${this@subprojects.name}"
@@ -94,7 +89,7 @@ subprojects {
     afterEvaluate {
         if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
             tasks.create<ValidateTaskProperties>("validateTaskProperties") {
-                outputFile.set(project.the<ReportingExtension>().baseDirectory.file("task-properties/report.txt"))
+                outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
 
                 val mainSourceSet = project.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
                 classes = mainSourceSet.output.classesDirs
@@ -111,21 +106,21 @@ allprojects {
     repositories {
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
-        maven { url = uri("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local/")}
+        maven { url = uri("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local/") }
         gradlePluginPortal()
     }
 }
 
 dependencies {
     subprojects.forEach {
-        "runtime"(project(it.path))
+        runtime(project(it.path))
     }
 }
 
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply { from("../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts") }
+    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 }
 
 if (isCiServer) {
