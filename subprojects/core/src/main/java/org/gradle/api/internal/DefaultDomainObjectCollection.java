@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.util.ConfigureUtil;
@@ -102,7 +103,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> CollectionEventRegister<S> filteredEvents(CollectionFilter<S> filter) {
-        return getEventRegister().filtered(filter);
+        return new FlushingEventRegister<S>(filter, getEventRegister());
     }
 
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
@@ -397,6 +398,37 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public int estimatedSize() {
             return DefaultDomainObjectCollection.this.estimatedSize();
+        }
+    }
+
+    private class FlushingEventRegister<S extends T> implements CollectionEventRegister<S> {
+        private final CollectionFilter<S> filter;
+        private final CollectionEventRegister<S> delegate;
+
+        FlushingEventRegister(CollectionFilter<S> filter, CollectionEventRegister<T> delegate) {
+            this.filter = filter;
+            this.delegate = Cast.uncheckedCast(delegate);
+        }
+
+        @Override
+        public Action<S> getAddAction() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Action<S> getRemoveAction() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Action<? super S> registerAddAction(Action<? super S> addAction) {
+            flushPending(filter.getType());
+            return delegate.registerAddAction(Actions.filter(addAction, filter));
+        }
+
+        @Override
+        public Action<? super S> registerRemoveAction(Action<? super S> removeAction) {
+            return delegate.registerRemoveAction(Actions.filter(removeAction, filter));
         }
     }
 

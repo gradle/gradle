@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
@@ -33,9 +32,9 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -63,7 +62,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
-        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this, instances.values());
+        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -167,7 +166,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             // Important not to add until after it has been applied as there can be
             // plugins.withType() callbacks waiting to build on what the plugin did
             instances.put(pluginClass, pluginInstance);
-            pluginContainer.pluginAddded(pluginInstance);
+            pluginContainer.pluginAdded(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }
@@ -200,7 +199,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
-            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());
+            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class);
             idMappings.put(pluginId, pluginsForId);
             for (PluginImplementation<?> plugin : plugins.values()) {
                 if (plugin.isAlsoKnownAs(pluginId)) {

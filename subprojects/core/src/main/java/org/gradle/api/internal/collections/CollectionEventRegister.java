@@ -25,6 +25,4 @@ public interface CollectionEventRegister<T> {
     Action<? super T> registerAddAction(Action<? super T> addAction);
 
     Action<? super T> registerRemoveAction(Action<? super T> removeAction);
-
-    <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter);
 }

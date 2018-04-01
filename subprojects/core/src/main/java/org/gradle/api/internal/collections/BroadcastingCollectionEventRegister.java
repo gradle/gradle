@@ -16,7 +16,6 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableActionSet;
 
 public class BroadcastingCollectionEventRegister<T> implements CollectionEventRegister<T> {
@@ -39,10 +38,5 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
     public Action<? super T> registerRemoveAction(Action<? super T> removeAction) {
         removeActions.add(removeAction);
         return removeAction;
-    }
-
-    public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        CollectionEventRegister<S> cast = Cast.uncheckedCast(this);
-        return new FilteringCollectionEventRegister<S>(filter, cast);
     }
 }
