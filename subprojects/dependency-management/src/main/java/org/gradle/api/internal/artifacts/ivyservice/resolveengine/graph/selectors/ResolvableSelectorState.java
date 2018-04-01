@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 public interface ResolvableSelectorState {
@@ -26,5 +25,4 @@ public interface ResolvableSelectorState {
 
     boolean isForce();
 
-    void select(ComponentResolutionState component);
 }

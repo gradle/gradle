@@ -94,9 +94,6 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                '1.3' {
-                    expectGetMetadata()
-                }
             }
             'org:bar:1.0' {
                 expectGetMetadata()

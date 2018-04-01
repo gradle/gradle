@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionCons
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -150,11 +149,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
      */
     public void overrideSelection(ComponentState selected) {
-        if (this.selected == null) {
-            // Do not override if this selector hasn't yet been resolved
-            return;
-        }
-
         this.selected = selected;
 
         // Target module can change, if this is called as the result of a module replacement conflict.
@@ -207,8 +201,4 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
     }
 
-    @Override
-    public void select(ComponentResolutionState component) {
-        select((ComponentState) component);
-    }
 }

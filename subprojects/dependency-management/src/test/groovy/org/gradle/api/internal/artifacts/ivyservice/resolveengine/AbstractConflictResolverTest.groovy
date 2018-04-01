@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -80,7 +81,6 @@ abstract class AbstractConflictResolverTest extends Specification {
         final ModuleVersionIdentifier id
         final ComponentIdentifier componentId
         ComponentResolveMetadata metadata
-        boolean root = false
         boolean rejected = false
         private MutableVersionConstraint constraint
 
@@ -121,5 +121,10 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         String toString() { id }
+
+        @Override
+        void selectedBy(ResolvableSelectorState selectorState) {
+
+        }
     }
 }
