@@ -282,6 +282,23 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         seen == [c, a]
     }
 
+    def actionForAllElementsInATypeFilteredCollectionCanAddMoreElements() {
+        def action = Mock(Action)
+
+        container.add(c)
+
+        when:
+        container.withType(type, action)
+
+        then:
+        1 * action.execute(c) >> {
+            container.add(d)
+            container.add(a)
+        }
+        1 * action.execute(a)
+        0 * action._
+    }
+
     def providerForElementIsQueriedAndActionExecutedForFilteredCollectionWithMatchingType() {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
@@ -296,8 +313,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.type >> type
         1 * provider1.get() >> c
-        // TODO - should execute once only
-        2 * action.execute(c)
+        1 * action.execute(c)
         0 * _
 
         when:

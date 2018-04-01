@@ -348,22 +348,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         container.add("a")
     }
 
-    def allCallsActionForEachNewObjectAddedByTheAction() {
-        def action = Mock(Action)
-
-        container.add("a")
-        container.add("b")
-
-        when:
-        container.all(action)
-
-        then:
-        1 * action.execute("a") >> { container.add("c") }
-        1 * action.execute("b")
-        1 * action.execute("c")
-        0 * action._
-    }
-
     def callsVetoActionBeforeObjectIsAdded() {
         def action = Mock(Action)
         container.beforeChange(action)
