@@ -38,22 +38,21 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         this.configurationMetadataBuilder = configurationMetadataBuilder;
     }
 
-    public void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends ConfigurationInternal> configurations) {
-        for (ConfigurationInternal configuration : configurations) {
-            addConfiguration(metaData, configuration);
+    public BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData, ConfigurationInternal configuration) {
+        BuildableLocalConfigurationMetadata configurationMetadata = createConfiguration(metaData, configuration);
 
-            metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
+        metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
 
-            OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
-            metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
-            for (OutgoingVariant variant : outgoingVariant.getChildren()) {
-                metaData.addVariant(configuration.getName(), variant);
-            }
+        OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
+        metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
+        for (OutgoingVariant variant : outgoingVariant.getChildren()) {
+            metaData.addVariant(configuration.getName(), variant);
         }
+        return configurationMetadata;
     }
 
-    private BuildableLocalConfigurationMetadata addConfiguration(BuildableLocalComponentMetadata metaData,
-                                                                 ConfigurationInternal configuration) {
+    private BuildableLocalConfigurationMetadata createConfiguration(BuildableLocalComponentMetadata metaData,
+                                                                    ConfigurationInternal configuration) {
         configuration.preventFromFurtherMutation();
 
         Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
