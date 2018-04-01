@@ -15,18 +15,21 @@
  */
 package org.gradle.api.internal
 
-import spock.lang.Specification
+class DefaultDomainObjectSetTest extends AbstractDomainObjectCollectionSpec<String> {
+    DefaultDomainObjectSet<String> container = new DefaultDomainObjectSet<String>(String)
+    String a = "a"
+    String b = "b"
+    String c = "c"
+    String d = "d"
 
-class DefaultDomainObjectSetTest extends Specification {
     def "findAll() filters elements and retains iteration order"() {
-        def set = new DefaultDomainObjectSet<String>(String)
-        set.add("a")
-        set.add("b")
-        set.add("c")
-        set.add("d")
+        container.add("a")
+        container.add("b")
+        container.add("c")
+        container.add("d")
 
         expect:
-        set.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
+        container.findAll { it != "c" } == ["a", "b", "d"] as LinkedHashSet
     }
 
     def "Set semantics preserved if backing collection is a filtered composite set"() {

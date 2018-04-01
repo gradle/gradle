@@ -117,7 +117,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new IteratorImpl(getStore().iterator());
     }
 
-    private void flushPending() {
+    protected void flushPending() {
         if (pending != null) {
             for (Provider<? extends T> provider : pending) {
                 doAdd(provider.get());

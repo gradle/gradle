@@ -78,6 +78,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
 
     @Override
     public Iterator<T> iterator() {
+        flushPending();
         return new IteratorImpl(SetIterator.of(getStore()));
     }
 

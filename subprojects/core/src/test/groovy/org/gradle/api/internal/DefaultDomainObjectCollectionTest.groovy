@@ -17,130 +17,16 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
-import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toList
 
-class DefaultDomainObjectCollectionTest extends Specification {
-    def container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new LinkedHashSet<CharSequence>())
-
-    def canGetAllDomainObjectsForEmptyCollection() {
-        expect:
-        container.isEmpty()
-        container.size() == 0
-    }
-
-    def canIterateOverEmptyCollection() {
-        expect:
-        def iterator = container.iterator()
-        !iterator.hasNext()
-    }
-
-    def elementAddedUsingProviderIsNotRealizedWhenAdded() {
-        def provider = Mock(Provider)
-
-        when:
-        container.addLater(provider)
-
-        then:
-        0 * provider._
-
-        and:
-        container.size() == 1
-        !container.empty
-    }
-
-    def providerForElementIsQueriedWhenAnotherElementAdded() {
-        def provider = Mock(Provider)
-
-        given:
-        container.add("b")
-        container.addLater(provider)
-
-        when:
-        container.add("c")
-
-        then:
-        0 * provider._
-
-        and:
-        container.size() == 3
-        !container.empty
-    }
-
-    def canCheckForMembership() {
-        given:
-        container.add("b")
-        container.add("a")
-
-        expect:
-        !container.contains("c")
-        container.contains("a")
-    }
-
-    def providerForElementIsQueriedWhenMembershipChecked() {
-        def provider = Mock(Provider)
-
-        given:
-        container.add("b")
-        container.addLater(provider)
-
-        when:
-        def result = container.contains("c")
-
-        then:
-        !result
-
-        and:
-        1 * provider.get() >> "a"
-    }
-
-    def canGetAllDomainObjectsOrderedByOrderAdded() {
-        given:
-        container.add("b")
-        container.add("a")
-        container.add("c")
-
-        expect:
-        toList(container) == ["b", "a", "c"]
-    }
-
-    def canIterateOverDomainObjectsOrderedByOrderAdded() {
-        container.add("b")
-        container.add("a")
-        container.add("c")
-
-        expect:
-        def iterator = container.iterator()
-        iterator.next() == "b"
-        iterator.next() == "a"
-        iterator.next() == "c"
-        !iterator.hasNext()
-    }
-
-    def providerForElementIsQueriedWhenElementsIteratedButInsertionOrderIsNotRetained() {
-        def provider1 = Mock(Provider)
-        def provider2 = Mock(Provider)
-
-        given:
-        container.add("b")
-        container.addLater(provider1)
-        container.addLater(provider2)
-        container.add("c")
-
-        when:
-        def result = toList(container)
-
-        then:
-        result == ["b", "c", "a", "d"]
-
-        and:
-        1 * provider1.get() >> "a"
-        1 * provider2.get() >> "d"
-        0 * _
-    }
+class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
+    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new LinkedHashSet<CharSequence>())
+    String a = "a"
+    String b = "b"
+    String c = "c"
+    String d = "d"
 
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
