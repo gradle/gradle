@@ -19,18 +19,21 @@ package org.gradle.api.internal
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.internal.reflect.Instantiator
-import spock.lang.Specification
 
-class DefaultNamedDomainObjectCollectionTest extends Specification {
+class DefaultNamedDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<Bean> {
 
     private final Namer<Bean> namer = new Namer<Bean>() {
-        public String determineName(Bean bean) { return bean.name; }
+        String determineName(Bean bean) { return bean.name }
     };
 
     Instantiator instantiator = Mock(Instantiator)
-
-    private final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<CharSequence>(Bean, new HashSet<>(), instantiator, namer);
     Set<Bean> store
+
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<CharSequence>(Bean, new LinkedHashSet<>(), instantiator, namer)
+    final Bean a = new Bean("a")
+    final Bean b = new Bean("b")
+    final Bean c = new Bean("c")
+    final Bean d = new Bean("d")
 
     def setup() {
         container.clear()
@@ -107,10 +110,15 @@ class DefaultNamedDomainObjectCollectionTest extends Specification {
     }
 
     private class Bean {
-        public final String name;
+        public final String name
 
         public Bean(String name) {
-            this.name = name;
+            this.name = name
+        }
+
+        @Override
+        String toString() {
+            return name
         }
     }
 }
