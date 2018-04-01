@@ -234,7 +234,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         binary.getTasks().add(compileTask);
         binary.getTasks().addLater(resourcesTask);
         binary.getTasks().addLater(classesTask);
-        binary.setBuildTask(classesTask.get());
+        binary.builtBy(classesTask);
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
