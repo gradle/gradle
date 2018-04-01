@@ -167,6 +167,11 @@ public class DefaultIvyModulePublishMetadata implements IvyModulePublishMetadata
         public void addFiles(LocalFileDependencyMetadata files) {
             // Ignore files
         }
+
+        @Override
+        public void enableLocking() {
+            // Ignore
+        }
     }
 
     private static class IvyVersionTransformer implements Transformer<String, String> {

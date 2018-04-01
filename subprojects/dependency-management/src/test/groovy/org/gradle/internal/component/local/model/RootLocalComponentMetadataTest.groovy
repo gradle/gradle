@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -32,8 +31,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         def constraint = new DefaultDependencyConstraint('org', 'foo', '1.1')
         dependencyLockingHandler.findLockedDependencies("conf") >> ([constraint] as Set)
         dependencyLockingHandler.findLockedDependencies("child") >> Collections.emptySet()
-        addConfiguration('conf')
-        addConfiguration('child', ['conf'])
+        addConfiguration('conf').enableLocking()
+        addConfiguration('child', ['conf']).enableLocking()
 
         when:
         def conf = metadata.getConfiguration('conf')
@@ -44,8 +43,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         child.dependencies.size() == 0
     }
 
-    private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true, ImmutableCapabilities.EMPTY, true)
+    private addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
+        metadata.addConfiguration(name, "", extendsFrom as Set, (extendsFrom + [name]) as Set, true, true, attributes, true, true, ImmutableCapabilities.EMPTY)
     }
 
 }

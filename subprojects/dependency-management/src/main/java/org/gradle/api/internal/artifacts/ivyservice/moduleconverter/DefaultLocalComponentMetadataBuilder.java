@@ -69,7 +69,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.getAttributes().asImmutable(),
             configuration.isCanBeConsumed(),
             configuration.isCanBeResolved(),
-            capabilities, configuration.getResolutionStrategy().isDependencyLockingEnabled());
+            capabilities);
     }
 
     private static ImmutableCapabilities asImmutable(Collection<? extends Capability> descriptors) {

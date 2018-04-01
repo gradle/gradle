@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -62,19 +63,31 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         DefaultLocalComponentMetadata metadata = holder.tryCached(componentIdentifier);
-        if (metadata != null) {
-            return metadata;
+        if (metadata == null) {
+            metadata = buildRootComponentMetadata(module, componentIdentifier);
+            holder.cachedValue = metadata;
         }
+        return metadata;
+    }
+
+    private DefaultLocalComponentMetadata buildRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier) {
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectInternal project = projectFinder.findProject(module.getProjectPath());
         AttributesSchemaInternal schema = project == null ? null : (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         DependencyLockingProvider dependencyLockingHandler = project == null ? NoOpDependencyLockingProvider.getInstance() : project.getServices().get(DependencyLockingProvider.class);
-        metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
+
+        DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
-            localComponentMetadataBuilder.addConfiguration(metadata, configuration);
+            addConfiguration(metadata, configuration);
         }
-        holder.cachedValue = metadata;
         return metadata;
+    }
+
+    private void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration) {
+        BuildableLocalConfigurationMetadata buildableLocalConfigurationMetadata = localComponentMetadataBuilder.addConfiguration(metadata, configuration);
+        if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
+            buildableLocalConfigurationMetadata.enableLocking();
+        }
     }
 
     public RootComponentMetadataBuilder withConfigurationsProvider(ConfigurationsProvider alternateProvider) {
