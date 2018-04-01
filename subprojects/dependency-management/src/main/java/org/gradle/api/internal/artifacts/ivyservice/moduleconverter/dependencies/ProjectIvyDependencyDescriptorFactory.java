@@ -20,9 +20,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -55,10 +53,5 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
 
     public boolean canConvert(ModuleDependency dependency) {
         return dependency instanceof ProjectDependency;
-    }
-
-    private Module getProjectModule(ModuleDependency dependency) {
-        ProjectDependency projectDependency = (ProjectDependency) dependency;
-        return ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
     }
 }
