@@ -256,6 +256,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
+    public Provider<Task> createLater(String name, Action<? super Task> configurationAction) {
+        return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
+    }
+
+    @Override
     public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
         addPlaceholderAction(name, type, configurationAction);
         return new TaskProvider<T>(type, name);
