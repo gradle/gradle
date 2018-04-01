@@ -309,7 +309,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+        Provider<JavaCompile> javaCompile = project.getTasks().getByNameLater(JavaCompile.class, COMPILE_JAVA_TASK_NAME);
         Provider<ProcessResources> processResources = project.getTasks().getByNameLater(ProcessResources.class, PROCESS_RESOURCES_TASK_NAME);
 
         addJar(apiElementConfiguration, jarArtifact);
@@ -328,7 +328,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final JavaCompile javaCompile, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -342,7 +342,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         classesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
-                return javaCompile.getDestinationDir();
+                return javaCompile.get().getDestinationDir();
             }
         });
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
