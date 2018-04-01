@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import spock.lang.Specification
@@ -43,6 +44,13 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     List<T> iterationOrder(T... elements) {
         return elements
+    }
+
+    def setup() {
+        // Verify some assumptions
+        assert !type.isAssignableFrom(otherType) && !otherType.isAssignableFrom(type)
+        assert type.isInstance(a)
+        assert otherType.isInstance(d)
     }
 
     def canGetAllDomainObjectsForEmptyCollection() {
@@ -231,5 +239,99 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result2 == iterationOrder(c, d, a)
         1 * provider.get() >> a
         0 * provider._
+    }
+
+    def canExecuteActionForAllElementsInATypeFilteredCollection() {
+        def action = Mock(Action)
+
+        container.add(c)
+        container.add(d)
+
+        when:
+        container.withType(type, action)
+
+        then:
+        1 * action.execute(c)
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        1 * action.execute(a)
+        0 * action._
+    }
+
+    def canExecuteClosureForAllElementsInATypeFilteredCollection() {
+        def seen = []
+        def closure = { seen << it }
+
+        container.add(c)
+        container.add(d)
+
+        when:
+        container.withType(type, closure)
+
+        then:
+        seen == [c]
+
+        when:
+        container.add(a)
+
+        then:
+        seen == [c, a]
+    }
+
+    def providerForElementIsQueriedAndActionExecutedForFilteredCollectionWithMatchingType() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        container.addLater(provider1)
+        container.add(d)
+
+        when:
+        container.withType(type, action)
+
+        then:
+        _ * provider1.type >> type
+        1 * provider1.get() >> c
+        // TODO - should execute once only
+        2 * action.execute(c)
+        0 * _
+
+        when:
+        container.addLater(provider2)
+
+        then:
+        // TODO - should execute action
+//        _ * provider2.type >> type
+//        1 * provider2.get() >> a
+//        1 * action.execute(a)
+        0 * _
+    }
+
+    def providerForElementIsNotQueriedAndActionExecutedForFilteredCollectionWithNonMatchingType() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        container.addLater(provider1)
+        container.add(d)
+
+        when:
+        container.withType(otherType, action)
+
+        then:
+        _ * provider1.type >> type
+        1 * action.execute(d)
+        0 * _
+
+        when:
+        container.addLater(provider2)
+
+        then:
+        _ * provider2.type >> type
+        0 * _
     }
 }

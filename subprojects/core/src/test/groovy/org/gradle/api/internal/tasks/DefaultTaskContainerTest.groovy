@@ -154,6 +154,7 @@ class DefaultTaskContainerTest extends Specification {
 
         expect:
         container.create("task") == task
+        container.names.contains("task")
     }
 
     void "creates by name and type"() {

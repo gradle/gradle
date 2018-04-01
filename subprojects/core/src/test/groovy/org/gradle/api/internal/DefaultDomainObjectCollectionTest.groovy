@@ -75,47 +75,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         toList(container.matching(testClosure)) == ["a", "c"]
     }
 
-    def canExecuteActionForAllElementsInATypeFilteredCollection() {
-        def action = Mock(Action)
-
-        container.add("c")
-        container.add(new StringBuffer("b"))
-
-        when:
-        container.withType(String.class, action)
-
-        then:
-        1 * action.execute("c")
-        0 * action._
-
-        when:
-        container.add("a")
-
-        then:
-        1 * action.execute("a")
-        0 * action._
-    }
-
-    def canExecuteClosureForAllElementsInATypeFilteredCollection() {
-        def seen = []
-        def closure = { seen << it }
-
-        container.add("c")
-        container.add(new StringBuffer("b"))
-
-        when:
-        container.withType(String.class, closure)
-
-        then:
-        seen == ["c"]
-
-        when:
-        container.add("a")
-
-        then:
-        seen == ["c", "a"]
-    }
-
     def filteredCollectionIsLive() {
         def spec = new Spec<CharSequence>() {
             boolean isSatisfiedBy(CharSequence element) {

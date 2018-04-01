@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
@@ -60,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
@@ -262,23 +264,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
-        addPlaceholderAction(name, type, configurationAction);
-        return new TaskProvider<T>(type, name);
+        TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        addLater(provider);
+        return provider;
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
         T task = taskFactory.create(name, type);
         return addTask(task, true);
-    }
-
-    @Override
-    public int size() {
-        return super.size() + placeholders.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return super.isEmpty() && placeholders.isEmpty();
     }
 
     public Task findByPath(String path) {
@@ -301,7 +294,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
-        return new TaskProvider<T>(type, name);
+        return new TaskLookupProvider<T>(type, name);
     }
 
     public Task resolveTask(String path) {
@@ -344,8 +337,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return getElementsAsDynamicObject();
     }
 
+    @Override
     public SortedSet<String> getNames() {
-        return Sets.newTreeSet(modelNode.getLinkNames());
+        SortedSet<String> names = super.getNames();
+        if (placeholders.isEmpty()) {
+            return names;
+        }
+        TreeSet<String> allNames = new TreeSet<String>(names);
+        allNames.addAll(placeholders);
+        return allNames;
     }
 
     public void realize() {
@@ -446,13 +446,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
     }
 
-    private class TaskProvider<T extends Task> extends AbstractProvider<T> {
-        private final Class<T> type;
-        private final String name;
+    private abstract class TaskProvider<T extends Task> extends AbstractProvider<T> implements Named {
+        final Class<T> type;
+        final String name;
 
-        public TaskProvider(Class<T> type, String name) {
+        TaskProvider(Class<T> type, String name) {
             this.type = type;
             this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
         }
 
         @Override
@@ -463,6 +468,31 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public boolean isPresent() {
             return hasWithName(name);
+        }
+    }
+
+    private class TaskCreatingProvider<T extends Task> extends TaskProvider<T> {
+        Action<? super T> configureAction;
+        T task;
+
+        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
+            super(type, name);
+            this.configureAction = configureAction;
+        }
+
+        @Override
+        public T getOrNull() {
+            if (task == null) {
+                task = create(name, type, configureAction);
+                configureAction = null;
+            }
+            return type.cast(getByName(name));
+        }
+    }
+
+    private class TaskLookupProvider<T extends Task> extends TaskProvider<T> {
+        public TaskLookupProvider(Class<T> type, String name) {
+            super(type, name);
         }
 
         @Override
