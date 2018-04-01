@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.collections;
 
-import java.util.Set;
+package org.gradle.api.internal
 
-public class FilteredSet<T, S extends T> extends FilteredCollection<T, S> implements Set<S> {
-    public FilteredSet(ElementSource<T> collection, CollectionFilter<S> filter) {
-        super(collection, filter);
-    }
+abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
 }

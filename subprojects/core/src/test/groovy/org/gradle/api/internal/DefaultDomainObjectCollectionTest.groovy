@@ -26,7 +26,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     String a = "a"
     String b = "b"
     String c = "c"
-    String d = "d"
+    StringBuilder d = new StringBuilder("d")
 
     def canGetAllMatchingDomainObjectsOrderedByOrderAdded() {
         def spec = new Spec<CharSequence>() {
@@ -73,16 +73,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         expect:
         toList(container.matching(spec)) == ["a", "c"]
         toList(container.matching(testClosure)) == ["a", "c"]
-    }
-
-    def canGetFilteredCollectionContainingAllObjectsWhichHaveType() {
-        container.add("c")
-        container.add("a")
-        container.add(new StringBuffer("b"))
-
-        expect:
-        toList(container.withType(CharSequence.class)) == toList(container)
-        toList(container.withType(String.class)) == ["c", "a"]
     }
 
     def canExecuteActionForAllElementsInATypeFilteredCollection() {

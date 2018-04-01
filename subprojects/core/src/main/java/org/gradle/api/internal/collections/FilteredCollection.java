@@ -22,11 +22,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class FilteredCollection<T, S extends T> implements Collection<S>, WithEstimatedSize {
-
-    protected final Collection<T> collection;
+    protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
-    public FilteredCollection(Collection<T> collection, CollectionFilter<S> filter) {
+    public FilteredCollection(ElementSource<T> collection, CollectionFilter<S> filter) {
         this.collection = collection;
         this.filter = filter;
     }
@@ -64,14 +63,6 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         }
     }
 
-    // boolean equals(Object o) {
-    //
-    // }
-    //
-    // int hashCode() {
-    //
-    // }
-
     public boolean isEmpty() {
         if (collection.isEmpty()) {
             return true;
@@ -87,20 +78,20 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
 
     @Override
     public int estimatedSize() {
-        return Estimates.estimateSizeOf(collection);
+        return collection.estimatedSize();
     }
 
-    protected static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
+    private static class FilteringIterator<T, S extends T> implements Iterator<S>, WithEstimatedSize {
         private final CollectionFilter<S> filter;
         private final Iterator<T> iterator;
         private final int estimatedSize;
 
         private S next;
 
-        public FilteringIterator(Collection<T> collection, CollectionFilter<S> filter) {
+        FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
             this.iterator = collection.iterator();
             this.filter = filter;
-            this.estimatedSize = Estimates.estimateSizeOf(collection);
+            this.estimatedSize = collection.estimatedSize();
             this.next = findNext();
         }
 

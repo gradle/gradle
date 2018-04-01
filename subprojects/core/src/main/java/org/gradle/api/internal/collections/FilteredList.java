@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class FilteredList<T, S extends T> extends FilteredCollection<T, S> implements List<S> {
-    public FilteredList(Collection<T> collection, CollectionFilter<S> filter) {
+    public FilteredList(ElementSource<T> collection, CollectionFilter<S> filter) {
         super(collection, filter);
     }
 

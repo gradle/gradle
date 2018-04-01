@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -52,8 +53,8 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     }
 
     @Override
-    protected <S extends T> Set<S> filteredStore(CollectionFilter<S> filter) {
-        return new FilteredSet<T, S>(this, filter);
+    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+        return new FilteredSet<T, S>(elementSource, filter);
     }
 
     @Override
@@ -77,9 +78,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     }
 
     @Override
-    public Iterator<T> iterator() {
-        flushPending();
+    protected Iterator<T> iteratorNoFlush() {
         return new IteratorImpl(SetIterator.of(getStore()));
     }
-
 }

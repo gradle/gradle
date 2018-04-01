@@ -21,11 +21,13 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -57,8 +59,9 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
         return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer());
     }
 
-    protected <S extends T> Set<S> filteredStore(CollectionFilter<S> filter) {
-        return new FilteredSet<T, S>(this, filter);
+    @Override
+    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+        return new FilteredSet<T, S>(elementSource, filter);
     }
 
     @Override
