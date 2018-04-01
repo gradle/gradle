@@ -334,7 +334,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def binary = binaries.get("custom")
         assert binary instanceof ClassDirectoryBinarySpec
         def classesTask = project.tasks.findByName("customClasses")
-        binary.buildTask == classesTask
+        binary.buildTask == null
         binary.tasks.contains(classesTask)
         binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
         binary.tasks.contains(project.tasks.findByName("processCustomResources"))
