@@ -27,6 +27,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                     println("Create ${path}")
                 }
             }
+            class SomeOtherTask extends DefaultTask {
+                SomeOtherTask() {
+                    println("Create ${path}")
+                }
+            }
         '''
     }
 
@@ -137,5 +142,29 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task1")
         outputContains("Create :task2")
         outputContains("Configure :task2")
+    }
+
+    def "task is created and configured when referenced using withType()"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            tasks.createLater("task2", SomeOtherTask) {
+                println "Configure ${path}"
+            }
+            tasks.create("other")
+            tasks.withType(SomeTask) {
+                println "Matched ${path}"
+            }
+        '''
+
+        when:
+        run("other")
+
+        then:
+        outputContains("Create :task1")
+        outputContains("Configure :task1")
+        outputContains("Matched :task1")
+        result.assertNotOutput("task2")
     }
 }

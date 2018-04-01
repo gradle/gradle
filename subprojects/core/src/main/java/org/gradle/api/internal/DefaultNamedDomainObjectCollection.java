@@ -18,12 +18,14 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -36,23 +38,28 @@ import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
     private final Index<T> index;
+    private Map<String, Provider<? extends T>> pending;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -94,6 +101,18 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         } else {
             handleAttemptToAddItemWithNonUniqueName(o);
             return false;
+        }
+    }
+
+    @Override
+    public void addLater(Provider<? extends T> provider) {
+        super.addLater(provider);
+        if (provider instanceof Named) {
+            if (pending == null) {
+                pending = new LinkedHashMap<String, Provider<? extends T>>();
+            }
+            Named named = (Named) provider;
+            pending.put(named.getName(), provider);
         }
     }
 
@@ -173,7 +192,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public SortedSet<String> getNames() {
-        return index.asMap().navigableKeySet();
+        NavigableSet<String> realizedNames = index.asMap().navigableKeySet();
+        if (pending == null || pending.isEmpty()) {
+            return realizedNames;
+        }
+        TreeSet<String> allNames = new TreeSet<String>(realizedNames);
+        allNames.addAll(pending.keySet());
+        return allNames;
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
@@ -192,6 +217,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         T value = findByNameWithoutRules(name);
         if (value != null) {
             return value;
+        }
+        if (pending != null) {
+            Provider<? extends T> provider = pending.remove(name);
+            if (provider != null) {
+                // TODO - this isn't correct, assumes that a side effect is to add the element
+                return provider.get();
+            }
         }
         if (!applyRules(name)) {
             return null;
@@ -377,6 +409,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected interface Index<T> {
         void put(String name, T value);
 
+        @Nullable
         T get(String name);
 
         void remove(String name);
@@ -428,7 +461,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private final Index<? super T> delegate;
         private final CollectionFilter<T> filter;
 
-        public FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+        FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
             this.delegate = delegate;
             this.filter = filter;
         }
