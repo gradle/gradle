@@ -66,7 +66,6 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
 
     @Override
     public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
-        subscribe(type);
         removeActions.add(removeAction);
     }
 

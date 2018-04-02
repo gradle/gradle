@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.Factory;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelPath;
@@ -55,14 +54,14 @@ public abstract class BridgedCollections {
                     containerNode.setPrivateData(containerType, container);
                 }
             })
-            .action(ModelActionRole.Mutate, new Action<MutableModelNode>() {
+            .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 @Override
                 public void execute(final MutableModelNode containerNode) {
                     C container = containerNode.getPrivateData(containerType);
-                    container.configureEachLater(new Action<I>() {
+                    container.whenElementKnown(new Action<DefaultNamedDomainObjectCollection.ElementInfo<I>>() {
                         @Override
-                        public void execute(I item) {
-                            final String name = namer.determineName(item);
+                        public void execute(DefaultNamedDomainObjectCollection.ElementInfo<I> info) {
+                            final String name = info.getName();
                             if (!containerNode.isMutable()) {
                                 // Ignore tasks created after not closed
                                 return;
@@ -70,7 +69,7 @@ public abstract class BridgedCollections {
                             if (!containerNode.hasLink(name)) {
                                 ModelRegistration itemRegistration = ModelRegistrations
                                     .unmanagedInstanceOf(
-                                        ModelReference.of(containerPath.child(name), new DslObject(item).getDeclaredType()),
+                                        ModelReference.of(containerPath.child(name), (Class)info.getType()),
                                         new ExtractFromParentContainer<I, C>(name, containerType)
                                     )
                                     .descriptor(new SimpleModelRuleDescriptor(new Factory<String>() {
@@ -82,6 +81,12 @@ public abstract class BridgedCollections {
                                     .build();
                                 containerNode.addLink(itemRegistration);
                             }
+                        }
+                    });
+                    container.whenObjectRemoved(new Action<I>() {
+                        public void execute(I item) {
+                            String name = namer.determineName(item);
+                            containerNode.removeLink(name);
                         }
                     });
                 }
