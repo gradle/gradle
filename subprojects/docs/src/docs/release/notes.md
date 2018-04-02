@@ -44,6 +44,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### TaskContainer.remove() now actually removes the task
+
+TBD - previously this was broken, and plugins may accidentally rely on this behaviour.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
