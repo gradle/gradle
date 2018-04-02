@@ -31,27 +31,33 @@ import java.util.List;
 import java.util.Set;
 
 public class ImmutableFileCollection extends AbstractFileCollection {
+    private static final String DEFAULT_DISPLAY_NAME = "immutable file collection";
+    private static final EmptyImmutableFileCollection EMPTY = new EmptyImmutableFileCollection();
+
     private final Set<Object> files;
     private final String displayName;
     private final PathToFileResolver resolver;
 
-    public ImmutableFileCollection(PathToFileResolver fileResolver, Collection<?> files) {
-        this("immutable file collection", fileResolver, files);
+    public static ImmutableFileCollection of(Object... files) {
+        return of(Arrays.asList(files));
     }
 
-    public ImmutableFileCollection(File... files) {
-        this(Arrays.asList(files));
+    public static ImmutableFileCollection of(Collection<?> files) {
+        return usingResolver(new IdentityFileResolver(), files);
     }
 
-    public ImmutableFileCollection(Collection<File> files) {
-        this(new IdentityFileResolver(), files);
+    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Object[] files) {
+        return usingResolver(fileResolver, Arrays.asList(files));
     }
 
-    public ImmutableFileCollection(PathToFileResolver fileResolver, Object[] files) {
-        this(fileResolver, Arrays.asList(files));
+    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Collection<?> files) {
+        if (files.isEmpty()) {
+            return EMPTY;
+        }
+        return new ImmutableFileCollection(DEFAULT_DISPLAY_NAME, fileResolver, files);
     }
 
-    public ImmutableFileCollection(String displayName, PathToFileResolver fileResolver, Collection<?> files) {
+    private ImmutableFileCollection(String displayName, PathToFileResolver fileResolver, Collection<?> files) {
         this.displayName = displayName;
         this.resolver = fileResolver;
         ImmutableSet.Builder<Object> filesBuilder = ImmutableSet.builder();
@@ -89,5 +95,16 @@ public class ImmutableFileCollection extends AbstractFileCollection {
     @Override
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
         throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
+    }
+
+    private static class EmptyImmutableFileCollection extends ImmutableFileCollection {
+        public EmptyImmutableFileCollection() {
+            super(DEFAULT_DISPLAY_NAME, null, null);
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return ImmutableSet.of();
+        }
     }
 }
