@@ -110,7 +110,7 @@ class JfrFlameGraphGenerator {
     private static enum EventType {
         CPU("cpu", "CPU", "samples"),
         ALLOCATION("allocation-tlab", "Allocation in new TLAB", "kB"),
-        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "samples"),
+        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "ms"),
         IO("io", "File and Socket IO", "ms");
 
         private final String id
