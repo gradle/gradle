@@ -25,9 +25,12 @@ import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -43,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +69,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private final Set<String> applyingRulesFor = new HashSet<String>();
+    private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
@@ -95,9 +100,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     /**
      * Subclasses that can guarantee that the backing store enforces name uniqueness should override this to simply call super.add(T) (avoiding an unnecessary lookup)
      */
-    public boolean add(T o) {
-        if (!hasWithName(namer.determineName(o))) {
-            return super.add(o);
+    @Override
+    public boolean add(final T o) {
+        final String name = namer.determineName(o);
+        if (!hasWithName(name)) {
+            boolean added = super.add(o);
+            if (added) {
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
+            }
+            return added;
         } else {
             handleAttemptToAddItemWithNonUniqueName(o);
             return false;
@@ -105,14 +116,41 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public void addLater(Provider<? extends T> provider) {
+    public boolean addAll(Collection<? extends T> c) {
+        boolean changed = super.addAll(c);
+        if (changed) {
+            for (T t : c) {
+                String name = namer.determineName(t);
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, t));
+            }
+        }
+        return changed;
+    }
+
+    @Override
+    public void addLater(final Provider<? extends T> provider) {
         super.addLater(provider);
         if (provider instanceof Named) {
             if (pending == null) {
                 pending = new LinkedHashMap<String, Provider<? extends T>>();
             }
-            Named named = (Named) provider;
+            final Named named = (Named) provider;
             pending.put(named.getName(), provider);
+            whenKnown.execute(new ProviderBackedElementInfo<T>(named.getName(), provider));
+        }
+    }
+
+    public void whenElementKnown(Action<? super ElementInfo<T>> action) {
+        whenKnown = whenKnown.add(action);
+        Iterator<T> iterator = iteratorNoFlush();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
+        }
+        if (pending != null) {
+            for (Map.Entry<String, Provider<? extends T>> entry : pending.entrySet()) {
+                whenKnown.execute(new ProviderBackedElementInfo<T>(entry.getKey(), entry.getValue()));
+            }
         }
     }
 
@@ -507,4 +545,49 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
+    public interface ElementInfo<T> {
+        String getName();
+
+        Class<?> getType();
+    }
+
+    private static class ObjectBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final T o;
+
+        ObjectBackedElementInfo(String name, T o) {
+            this.name = name;
+            this.o = o;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return new DslObject(o).getDeclaredType();
+        }
+    }
+
+    private static class ProviderBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final Provider<? extends T> provider;
+
+        ProviderBackedElementInfo(String name, Provider<? extends T> provider) {
+            this.name = name;
+            this.provider = provider;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return ((ProviderInternal<?>) provider).getType();
+        }
+    }
 }
