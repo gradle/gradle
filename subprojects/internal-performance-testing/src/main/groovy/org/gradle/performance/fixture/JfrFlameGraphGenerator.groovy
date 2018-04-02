@@ -99,7 +99,7 @@ class JfrFlameGraphGenerator {
 
     private void generateDifferentialFlameGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
         File flames = new File(stacks.parentFile, stacks.name.replace(".txt", ".svg"))
-        List<String> options = ["--title", type.displayName + "${negate ? "Backward " : ""}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
+        List<String> options = ["--title", type.displayName + "${negate ? " Backward " : " "}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
         if (negate) {
             options << "--negate"
         }
