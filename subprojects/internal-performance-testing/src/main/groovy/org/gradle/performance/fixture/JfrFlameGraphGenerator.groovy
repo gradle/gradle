@@ -129,17 +129,14 @@ class JfrFlameGraphGenerator {
             [],
             ["--minwidth", "0.5"],
             ["--minwidth", "1"],
-            new FlameGraphSanitizer({ it })
+            new FlameGraphSanitizer(FlameGraphSanitizer.SanitizeFunction.COLLAPSE_BUILD_SCRIPTS)
         ),
         SIMPLIFIED(
             ["--hide-arguments", "--ignore-line-numbers", "--use-simple-names"],
             ["--minwidth", "1"],
             ["--minwidth", "2"],
             new FlameGraphSanitizer(
-                new FlameGraphSanitizer.RegexBasedSanitizeFunction(
-                    (~'build_[a-z0-9]+'): 'build script',
-                    (~'settings_[a-z0-9]+'): 'settings script',
-                ),
+                FlameGraphSanitizer.SanitizeFunction.COLLAPSE_BUILD_SCRIPTS,
                 new FlameGraphSanitizer.ContainmentBasedSanitizeFunction(
                     ['BuildOperation']: 'build operations',
                     ['PluginManager', 'ObjectConfigurationAction', 'PluginTarget', 'PluginAware', 'Script.apply', 'ScriptPlugin', 'ScriptTarget', 'ScriptRunner']: 'plugin management',

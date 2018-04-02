@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.gradle.internal.ErroringAction;
@@ -85,6 +86,13 @@ class FlameGraphSanitizer {
     }
 
     public interface SanitizeFunction {
+        SanitizeFunction COLLAPSE_BUILD_SCRIPTS = new FlameGraphSanitizer.RegexBasedSanitizeFunction(
+            ImmutableMap.of(
+                Pattern.compile("build_[a-z0-9]+"), "build script",
+                Pattern.compile("settings_[a-z0-9]+"), "settings script"
+            )
+        );
+
         String map(String entry);
     }
 
