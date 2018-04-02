@@ -224,4 +224,89 @@ Caused by: org.gradle.api.UncheckedIOException: Unable to create directory 'meta
         failure.exception.cause.cause.message == "Unable to create directory 'metadata-2.1'"
     }
 
+    def "ignores ansi chars, debug prefix, build status bar and work in progress"() {
+        when:
+        def failure = OutputScrapingExecutionFailure.from(output, "")
+
+        then:
+        failure.assertHasFileName("Build file 'build.gradle'")
+        failure.assertHasLineNumber(4)
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasCause("broken")
+
+        and:
+        failure.assertOutputContains("Some sort of output")
+        failure.assertOutputContains "Some more output"
+
+        where:
+        output << [ rawOutput, debugOutput ]
+    }
+
+    def static getRawOutput() {
+        return """
+\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001BSome sort of output\u001B[0K
+Some sort of FAILURE: without status bar or work in progress
+Some more output
+\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B> IDLE\u001B[6D\u001B[1B\u001B[2AFAILURE: \u001B[39m\u001B[31mBuild failed with an exception. \u001B[39m\u001B[0K
+
+* Where:
+Build file 'build.gradle' line: 4
+
+* What went wrong:
+Execution failed for task ':broken'.
+ \u001B[33m> \u001B[39mbroken
+
+* Try:
+Run with  \u001B[1m--info\u001B[m or  \u001B[1m--debug\u001B[m option to get more log output. Run with  \u001B[1m--scan\u001B[m to get full insights.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken'.
+        at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:103)
+        at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:73)
+Caused by: java.lang.RuntimeException: broken
+        at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:95)
+        ... 29 more
+"""
+    }
+
+    def static getDebugOutput() {
+        return """
+09:33:06.962 [DEBUG] [org.gradle.initialization.DefaultGradlePropertiesLoader] Found system project properties: []
+
+
+\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A09:33:07.547 [DEBUG] [org.gradle.initialization.ScriptEvaluatingSettingsProcessor] Some sort of output\u001B[0K
+09:33:08.990 [DEBUG] [org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter] Some sort of FAILURE: without status bar or work in progress
+09:33:08.990 [DEBUG] [org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter] Some more output
+09:33:08.990 [DEBUG] [org.gradle.execution.taskgraph.DefaultTaskPlanExecutor] Task worker [Thread[main,5,main]] finished, busy: 0.0 secs, idle: 0.021 secs
+\u001B[0K
+\u001B[0K
+\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B> IDLE\u001B[6D\u001B[1B\u001B[2A09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] \u001B[31mFAILURE: \u001B[39m\u001B[31mBuild failed with an exception.\u001B[39m
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Where:
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Build file 'build.gradle' line: 4
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * What went wrong:
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Execution failed for task ':broken'.
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] \u001B[33m> \u001B[39mbroken
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Try:
+09:33:09.031 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]  Run with \u001B[1m--scan\u001B[m to get full insights.
+09:33:09.032 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.032 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Exception is:
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':broken'.
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:103)
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:73)
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] Caused by: java.lang.RuntimeException: broken
+33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:95)
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter]   ... 29 more
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] 
+09:33:09.033 [ERROR] [org.gradle.internal.buildevents.BuildExceptionReporter] * Get more help at \u001B[1mhttps://help.gradle.org\u001B[m
+09:33:09.034 [ERROR] [org.gradle.internal.buildevents.BuildResultLogger] 
+09:33:09.034 [ERROR] [org.gradle.internal.buildevents.BuildResultLogger] \u001B[31;1mBUILD FAILED\u001B[0;39m in 3s
+09:33:09.034 [LIFECYCLE] [org.gradle.internal.buildevents.BuildResultLogger] 1 actionable task: 1 executed
+"""
+    }
 }
