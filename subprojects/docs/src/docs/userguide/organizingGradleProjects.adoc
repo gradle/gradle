@@ -15,16 +15,16 @@
 [[organizing_gradle_projects]]
 == Organizing Gradle Projects
 
-The build logic and source code of every project should be organized in a meaningful way to improve readability and avoid common problems. This page lays out the best practices by example.
+Source code and build logic of every software project should be organized in a meaningful way. This page lays out the best practices that lead to readable, maintainable projects. The following sections also touch on common problems and how to avoid them.
 
 [[sec:separate_language_source_files]]
 === Separate language-specific source files
 
-Gradle's language plugins establish conventions for finding and compiling source code. For example, a project applying the <<java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`. The last portion of the directory path usually indicates the expected language used in the source files.
+Gradle's language plugins establish conventions for discovering and compiling source code. For example, a project applying the <<java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`. Other language plugins follow the same pattern. The last portion of the directory path usually indicates the expected language of the source files.
 
-Some compilers are capable of cross-compiling different languages. The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`. It is recommended practice to create source files in the conventional directories if you work on a project that uses multiple languages.
+Some compilers are capable of cross-compiling multiple languages in the same source directory. The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`. It is recommended practice to create source files in the conventional directories if you work on a project that with multiple languages. Separated directories for dedicated language source files help with maintaining complex projects.
 
-The following source tree contains Java and Kotlin source files.
+The following source tree contains Java and Kotlin source files. Java source files live in `src/main/java`, whereas Kotlin source files live in `src/main/kotlin`.
 
 ----
 .
@@ -38,28 +38,40 @@ The following source tree contains Java and Kotlin source files.
             └── Utils.kt
 ----
 
-Separated directories for dedicated language source files helps with maintaining complex projects.
-
 [[sec:use_standard_conventions]]
 === Use standard conventions as much as possible
 
-All Gradle core plugins follow the software engineering paradigm convention over configuration. The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context. Let’s take the <<java_plugin,Java plugin>> as an example.
+All Gradle core plugins follow the software engineering paradigm link:https://en.wikipedia.org/wiki/Convention_over_configuration[convention over configuration]. The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context. Let’s take the <<java_plugin,Java plugin>> as an example.
 
 * It defines the directory `src/main/java` as the default source directory for compilation.
 * The output directory for compiled source code and other artifacts (like the JAR file) is `build`.
 
-By sticking to the default conventions, new developers to the project immediately know where to find their way around. While those conventions can be reconfigured, it makes it harder to build script users and authors to manage the build logic and its outcome. Try to stick to the default conventions as much as possible.
+By sticking to the default conventions, new developers to the project immediately know how to find their way around. While those conventions can be reconfigured, it makes it harder to build script users and authors to manage the build logic and its outcome. Try to stick to the default conventions as much as possible except if you need to adapt to the layout of a legacy project. Refer to the reference page of the relevant plugin to learn about its default conventions.
 
 === Always define a setting file
 
-Gradle tries to locate a `settings.gradle` file upon every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory or if the file is found. Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact. The file can either be empty or define the desired name of the project.
+Gradle tries to locate a `settings.gradle` file upon every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory. The algorithm stops searching as soon as it finds the settings file.
+
+Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact. This recommendation applies to single project builds as well as multi-project builds. The file can either be empty or define the desired name of the project.
+
+A typical Java-based project could look as such:
+
+----
+.
+├── build.gradle
+├── settings.gradle
+└── src
+    └── main
+        └── java
+            └── ...
+----
 
 [[sec:split_build_logic_functional_boundaries]]
 === Split build logic based on functional boundaries
 
-Over time build scripts can grow large in size if you just add on to the existing logic. The middle ground between a `build.gradle` file and a binary plugin is the <<sec:script_plugins,script plugin>>. A script plugin can come in handy if you want to split the build logic along functional boundaries. Typical examples include publishing code, IDE configuration or a dedicated script plugin for declaring dependencies. It is recommended to identify portions of the build code and separate them into a script plugin.
+Over time build scripts can grow large in size if you continue to add logic over time. A good middle ground between a `build.gradle` file and a binary plugin is to extract a <<sec:script_plugins,script plugin>>. A script plugin can come in handy if you want to split the build logic along functional boundaries. Typical examples include publishing code, IDE configuration or a dedicated script plugin for declaring dependencies. It is highly recommended to identify those portions of the build code and separate them into a script plugin.
 
-The following example demonstrates the practice of separation of concerns to the build logic.
+The following example demonstrates the practice of link:https://en.wikipedia.org/wiki/Separation_of_concerns[separation of concerns] for build logic.
 
 ----
 .
@@ -76,7 +88,7 @@ Gradle doesn't take a stance on how to organize script plugins. However, a sensi
 [[sec:build_sources]]
 === Use `buildSrc` project to abstract imperative logic
 
-Complex build logic is usually a good candidate for being encapsulated either as custom task or binary plugins. Custom task and plugin implementations should not live in the build script. It is convenient to use `buildSrc` project as long as the code is does not need to be shared among multiple, independent projects.
+Complex build logic is usually a good candidate for being encapsulated either as custom task or binary plugin. Custom task and plugin implementations should not live in the build script. It is very convenient to use `buildSrc` project for that purpose as long as the code is does not need to be shared among multiple, independent projects.
 
 The directory `buildSrc` is treated as a special project. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script. For multi-project builds there can be only one `buildSrc` directory, which has to be in the root project directory.
 
