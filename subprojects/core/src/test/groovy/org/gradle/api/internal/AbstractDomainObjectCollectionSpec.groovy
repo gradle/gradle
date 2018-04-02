@@ -72,6 +72,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addLater(provider)
 
         then:
+        1 * provider.type >> type
         0 * provider._
 
         and:
@@ -320,10 +321,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addLater(provider2)
 
         then:
-        // TODO - should execute action
-//        _ * provider2.type >> type
-//        1 * provider2.get() >> a
-//        1 * action.execute(a)
+        _ * provider2.type >> type
+        1 * provider2.get() >> a
+        1 * action.execute(a)
         0 * _
     }
 
@@ -348,6 +348,75 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider2.type >> type
+        0 * _
+    }
+
+    def canExecuteActionToConfigureElementWhenElementIsRealized() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        container.addLater(provider1)
+
+        when:
+        container.configureEachLater(action)
+
+        then:
+        0 * _
+
+        when:
+        toList(container)
+
+        then:
+        1 * provider1.get() >> a
+        1 * action.execute(a)
+        0 * _
+
+        when:
+        container.addLater(provider2)
+
+        then:
+        1 * provider2.type >> type
+        0 * _
+
+        when:
+        toList(container)
+
+        then:
+        1 * provider2.get() >> c
+        1 * action.execute(c)
+        0 * _
+    }
+
+    def runsConfigureElementActionImmediatelyWhenElementAlreadyRealized() {
+        def action = Mock(Action)
+        def provider = Mock(ProviderInternal)
+
+        given:
+        _ * provider.get() >> a
+        container.addLater(provider)
+        toList(container)
+
+        when:
+        container.configureEachLater(action)
+
+        then:
+        1 * action.execute(a)
+        0 * _
+    }
+
+    def runsConfigureElementActionImmediatelyWhenElementAddedDirectly() {
+        def action = Mock(Action)
+
+        given:
+        container.configureEachLater(action)
+
+        when:
+        container.add(a)
+
+        then:
+        1 * action.execute(a)
         0 * _
     }
 }

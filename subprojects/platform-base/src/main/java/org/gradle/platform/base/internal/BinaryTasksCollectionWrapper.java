@@ -140,6 +140,11 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
     }
 
     @Override
+    public void configureEachLater(Action<? super Task> action) {
+        delegate.configureEachLater(action);
+    }
+
+    @Override
     public int size() {
         return delegate.size();
     }

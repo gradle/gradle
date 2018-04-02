@@ -144,6 +144,17 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     void all(Closure action);
 
+    /**
+     * Configures each element in this collection using the given action, as each element is required. Actions are run in the order added.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param action A {@link Action} that can configure the element when required.
+     * @since 4.8
+     */
+    @Incubating
+    void configureEachLater(Action<? super T> action);
+
     // note: this is here to override the default Groovy Collection.findAll { } method.
     /**
      * Returns a collection which contains the objects in this collection which meet the given closure specification.

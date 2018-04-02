@@ -17,12 +17,16 @@ package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nullable;
+
 public interface CollectionEventRegister<T> {
+    boolean isSubscribed(@Nullable Class<?> type);
+
     Action<T> getAddAction();
 
     Action<T> getRemoveAction();
 
-    Action<? super T> registerAddAction(Action<? super T> addAction);
+    void registerAddAction(Class<? extends T> type, Action<? super T> addAction);
 
-    Action<? super T> registerRemoveAction(Action<? super T> removeAction);
+    void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction);
 }
