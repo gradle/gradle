@@ -50,7 +50,7 @@ By sticking to the default conventions, new developers to the project immediatel
 
 === Always define a setting file
 
-Gradle tries to locate a `settings.gradle` file upon every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory. The algorithm stops searching as soon as it finds the settings file.
+Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kts` (Kotlin DSL) file with every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory. The algorithm stops searching as soon as it finds the settings file.
 
 Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact. This recommendation applies to single project builds as well as multi-project builds. The file can either be empty or define the desired name of the project.
 
@@ -118,4 +118,19 @@ A typical project including `buildSrc` has the following layout.
 ├── service
 ├── settings.gradle
 └── web
+----
+
+=== Declare properties in `gradle.properties` file
+
+In Gradle, properties can be define in the build script, in a `gradle.properties` file or as parameters on the command line.
+
+It's common to declare properties on the command line for ad-hoc scenarios. For example you may want pass in a specific property value to control runtime behavior just for this one invocation of the build. Properties in a build script can easily become a maintenance headache and convolute the build script logic. The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option. It's a good location for placing <<sec:gradle_configuration_properties,properties that control the build environment>>.
+
+A typical project setup places the `gradle.properties` file in the root directory of the build. Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to builds on your machine.
+
+----
+.
+├── build.gradle
+├── gradle.properties
+└── settings.gradle
 ----
