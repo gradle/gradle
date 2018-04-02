@@ -178,19 +178,22 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             modelNode.removeLink(name);
         }
 
-        Task existing = findByNameWithoutRules(name);
-        if (existing != null) {
-            if (replaceExisting) {
+        if (replaceExisting) {
+            Task existing = findByNameWithoutRules(name);
+            if (existing != null) {
                 remove(existing);
-            } else {
-                throw new InvalidUserDataException(String.format(
-                    "Cannot add %s as a task with that name already exists.", task));
             }
+        } else if (hasWithName(name)) {
+            duplicateTask(name);
         }
 
         add(task);
 
         return task;
+    }
+
+    private <T extends Task> T duplicateTask(String task) {
+        throw new InvalidUserDataException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
     public <U extends Task> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
@@ -264,6 +267,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
+        if (hasWithName(name)) {
+            duplicateTask(name);
+        }
         TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
         addLater(provider);
         return provider;
@@ -467,7 +473,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public boolean isPresent() {
-            return hasWithName(name);
+            return findByNameWithoutRules(name) != null;
         }
     }
 
@@ -483,10 +489,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                task = create(name, type, configureAction);
-                configureAction = null;
+                task = type.cast(findByNameWithoutRules(name));
+                if (task == null) {
+                    task = createTask(name, type, NO_ARGS);
+                    add(task);
+                    configureAction.execute(task);
+                    configureAction = null;
+                }
             }
-            return type.cast(getByName(name));
+            return task;
         }
     }
 

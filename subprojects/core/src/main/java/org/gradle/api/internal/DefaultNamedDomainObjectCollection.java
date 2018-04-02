@@ -103,7 +103,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     @Override
     public boolean add(final T o) {
         final String name = namer.determineName(o);
-        if (!hasWithName(name)) {
+        if (index.get(name) == null) {
             boolean added = super.add(o);
             if (added) {
                 whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
@@ -270,9 +270,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected boolean hasWithName(String name) {
-        return findByNameWithoutRules(name) != null;
+        return index.get(name) != null || (pending != null && pending.containsKey(name));
     }
 
+    @Nullable
     protected T findByNameWithoutRules(String name) {
         return index.get(name);
     }
