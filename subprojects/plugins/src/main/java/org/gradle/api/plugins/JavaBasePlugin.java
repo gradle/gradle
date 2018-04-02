@@ -343,7 +343,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        project.getTasks().withType(AbstractCompile.class, new Action<AbstractCompile>() {
+        project.getTasks().configureEachLater(AbstractCompile.class, new Action<AbstractCompile>() {
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
