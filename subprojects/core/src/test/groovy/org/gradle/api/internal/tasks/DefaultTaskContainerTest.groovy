@@ -242,7 +242,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Cannot add Mock for type 'DefaultTask' named '[task2]' as a task with that name already exists."
+        ex.message == "Cannot add task 'task' as a task with that name already exists."
         container.getByName("task") == task
     }
 
@@ -431,6 +431,36 @@ class DefaultTaskContainerTest extends Specification {
         then:
         1 * taskFactory.create("task", DefaultTask) >> task
         result == task
+    }
+
+    void "define task fails when task with given name already defined"() {
+        given:
+        _ * taskFactory.create("task1", DefaultTask, _) >> task("task1")
+        _ * taskFactory.create("task2", DefaultTask, _) >> task("task2")
+
+        container.create("task1")
+        container.createLater("task2", {})
+
+        when:
+        container.createLater("task1", {})
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Cannot add task 'task1' as a task with that name already exists."
+
+        when:
+        container.createLater("task2", {})
+
+        then:
+        def e2 = thrown(InvalidUserDataException)
+        e2.message == "Cannot add task 'task2' as a task with that name already exists."
+
+        when:
+        container.create("task2")
+
+        then:
+        def e3 = thrown(InvalidUserDataException)
+        e3.message == "Cannot add task 'task2' as a task with that name already exists."
     }
 
     void "defined task can be created and configured explicitly by using the returned provider"() {
