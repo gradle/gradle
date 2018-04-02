@@ -17,12 +17,13 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
+import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
 import org.gradle.api.specs.Spec
 
 import static org.gradle.util.WrapUtil.toList
 
 class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSpec<CharSequence> {
-    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new LinkedHashSet<CharSequence>())
+    DefaultDomainObjectCollection<CharSequence> container = new DefaultDomainObjectCollection<CharSequence>(CharSequence.class, new IterationOrderRetainingSetElementSource<CharSequence>())
     String a = "a"
     String b = "b"
     String c = "c"

@@ -16,9 +16,23 @@
 
 package org.gradle.api.internal.collections;
 
-import java.util.Collection;
+import org.gradle.api.internal.WithEstimatedSize;
 
-public interface ElementSource<T> extends Iterable<T> {
+import java.util.Collection;
+import java.util.Iterator;
+
+public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize {
+    /**
+     * Iterates over and realizes each of the elements of this source.
+     */
+    @Override
+    Iterator<T> iterator();
+
+    /**
+     * Returns false if this source is not empty or it is not fast to determine this.
+     */
+    boolean constantTimeIsEmpty();
+
     int estimatedSize();
 
     boolean contains(Object element);
@@ -26,4 +40,12 @@ public interface ElementSource<T> extends Iterable<T> {
     boolean containsAll(Collection<?> elements);
 
     boolean isEmpty();
+
+    boolean add(T element);
+
+    void clear();
+
+    boolean remove(Object o);
+
+    int size();
 }

@@ -46,8 +46,8 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
         def action2 = Mock(Action)
 
         given:
-        r.registerAddAction(String, action1)
-        r.registerAddAction(String, action2)
+        r.registerEagerAddAction(String, action1)
+        r.registerEagerAddAction(String, action2)
 
         when:
         r.addAction.execute("a")
@@ -62,7 +62,7 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
 
     def "types subscribed when actions registered"() {
         given:
-        r.registerAddAction(String, Stub(Action))
+        r.registerEagerAddAction(String, Stub(Action))
 
         expect:
         r.isSubscribed(null)
@@ -70,14 +70,14 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
         !r.isSubscribed(CharSequence)
         !r.isSubscribed(StringBuilder)
 
-        r.registerAddAction(CharSequence, Stub(Action))
+        r.registerEagerAddAction(CharSequence, Stub(Action))
 
         r.isSubscribed(null)
         r.isSubscribed(String)
         r.isSubscribed(CharSequence)
         r.isSubscribed(StringBuilder)
 
-        r.registerAddAction(StringBuilder, Stub(Action))
+        r.registerEagerAddAction(StringBuilder, Stub(Action))
 
         r.isSubscribed(null)
         r.isSubscribed(String)
