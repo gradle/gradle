@@ -419,4 +419,38 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         1 * action.execute(a)
         0 * _
     }
+
+    def canExecuteActionToConfigureElementOfGivenTypeWhenElementIsRealized() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        container.addLater(provider1)
+        container.addLater(provider2)
+
+        when:
+        container.configureEachLater(type, action)
+
+        then:
+        0 * _
+
+        when:
+        toList(container)
+
+        then:
+        _ * provider1.type >> type
+        1 * provider1.get() >> a
+        1 * action.execute(a)
+        _ * provider2.type >> otherType
+        1 * provider2.get() >> d
+        0 * _
+
+        when:
+        toList(container)
+
+        then:
+        0 * _
+    }
+
 }

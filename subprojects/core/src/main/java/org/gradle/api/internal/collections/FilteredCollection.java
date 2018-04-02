@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class FilteredCollection<T, S extends T> implements Collection<S>, WithEstimatedSize {
+public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
@@ -30,14 +30,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         this.filter = filter;
     }
 
+    @Override
     public boolean add(S o) {
         throw new UnsupportedOperationException(String.format("Cannot add '%s' to '%s' as it is a filtered collection", o, this));
     }
 
-    public boolean addAll(Collection<? extends S> c) {
-        throw new UnsupportedOperationException(String.format("Cannot add all from '%s' to '%s' as it is a filtered collection", c, this));
-    }
-
+    @Override
     public void clear() {
         throw new UnsupportedOperationException(String.format("Cannot clear '%s' as it is a filtered collection", this));
     }
@@ -46,10 +44,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         return filter.filter(o) != null;
     }
 
+    @Override
     public boolean contains(Object o) {
         return collection.contains(o) && accept(o);
     }
 
+    @Override
     public boolean containsAll(Collection<?> c) {
         if (collection.containsAll(c)) {
             for (Object o : c) {
@@ -63,6 +63,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         }
     }
 
+    @Override
+    public boolean constantTimeIsEmpty() {
+        return collection.constantTimeIsEmpty();
+    }
+
+    @Override
     public boolean isEmpty() {
         if (collection.isEmpty()) {
             return true;
@@ -107,10 +113,12 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
             return null;
         }
 
+        @Override
         public boolean hasNext() {
             return next != null;
         }
 
+        @Override
         public S next() {
             if (next != null) {
                 S thisNext = next;
@@ -121,6 +129,7 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
             }
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("This iterator does not support removal");
         }
@@ -131,22 +140,17 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
         }
     }
 
+    @Override
     public Iterator<S> iterator() {
         return new FilteringIterator<T, S>(collection, filter);
     }
 
+    @Override
     public boolean remove(Object o) {
         throw new UnsupportedOperationException(String.format("Cannot remove '%s' from '%s' as it is a filtered collection", o, this));
     }
 
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException(String.format("Cannot remove all of '%s' from '%s' as it is a filtered collection", c, this));
-    }
-
-    public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException(String.format("Cannot retain all of '%s' from '%s' as it is a filtered collection", c, this));
-    }
-
+    @Override
     public int size() {
         int i = 0;
         for (T o : collection) {
@@ -155,21 +159,5 @@ public class FilteredCollection<T, S extends T> implements Collection<S>, WithEs
             }
         }
         return i;
-    }
-
-    public Object[] toArray() {
-        Object[] a = new Object[size()];
-        int i = 0;
-        for (T o : collection) {
-            if (accept(o)) {
-                a[i++] = o;
-            }
-        }
-        return a;
-    }
-
-    // TODO - a proper implementation of this
-    public <T> T[] toArray(T[] a) {
-        return (T[])toArray();
     }
 }

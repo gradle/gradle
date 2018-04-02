@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.Namer
 import org.gradle.api.Rule
+import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 
@@ -30,7 +31,7 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     Instantiator instantiator = DirectInstantiator.INSTANCE
     Set<Bean> store
 
-    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new LinkedHashSet<>(), instantiator, namer)
+    final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer)
     final Bean a = new BeanSub1("a")
     final Bean b = new BeanSub1("b")
     final Bean c = new BeanSub1("c")

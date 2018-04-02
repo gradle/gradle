@@ -20,22 +20,20 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
-import org.gradle.api.internal.collections.FilteredSet;
+import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
     public DefaultDomainObjectSet(Class<? extends T> type) {
-        this(type, new LinkedHashSet<T>());
+        super(type, new IterationOrderRetainingSetElementSource<T>());
     }
 
-    public DefaultDomainObjectSet(Class<? extends T> type, Collection<T> store) {
+    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store) {
         super(type, store);
     }
 
@@ -43,18 +41,13 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
         this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
     }
 
-    protected DefaultDomainObjectSet(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
         super(type, store, eventRegister);
     }
 
     @Override
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return new DefaultDomainObjectSet<S>(this, filter);
-    }
-
-    @Override
-    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
-        return new FilteredSet<T, S>(elementSource, filter);
     }
 
     @Override
@@ -75,10 +68,5 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     @Override
     public Set<T> findAll(Closure cl) {
         return findAll(cl, new LinkedHashSet<T>());
-    }
-
-    @Override
-    protected Iterator<T> iteratorNoFlush() {
-        return new IteratorImpl(SetIterator.of(getStore()));
     }
 }

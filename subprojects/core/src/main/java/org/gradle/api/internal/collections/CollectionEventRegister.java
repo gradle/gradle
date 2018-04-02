@@ -26,7 +26,9 @@ public interface CollectionEventRegister<T> {
 
     Action<T> getRemoveAction();
 
-    void registerAddAction(Class<? extends T> type, Action<? super T> addAction);
+    void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction);
+
+    void registerLazyAddAction(Action<? super T> addAction);
 
     void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction);
 }

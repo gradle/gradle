@@ -38,7 +38,6 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -46,21 +45,18 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
-    private final Collection<T> store;
-    private final boolean hasConstantTimeSizeMethod;
+    private final ElementSource<T> store;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
-    private ImmutableActionSet<T> onAddAction = ImmutableActionSet.empty();
     private List<ProviderInternal<? extends T>> pending;
 
-    public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>(type));
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.hasConstantTimeSizeMethod = Estimates.isKnownToHaveConstantTimeSizeMethod(store);
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
@@ -71,7 +67,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return type;
     }
 
-    protected Collection<T> getStore() {
+    protected ElementSource<T> getStore() {
         return store;
     }
 
@@ -95,11 +91,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return new DefaultDomainObjectCollection<S>(this, filter);
     }
 
-    protected <S extends T> Collection<S> filteredStore(final CollectionFilter<S> filter) {
+    protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {
         return filteredStore(filter, new FlushingElementSource(filter));
     }
 
-    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+    protected <S extends T> ElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
         return new FilteredCollection<T, S>(elementSource, filter);
     }
 
@@ -125,10 +121,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected Iterator<T> iteratorNoFlush() {
-        if (constantTimeIsEmpty()) {
+        if (store.constantTimeIsEmpty()) {
             return Iterators.emptyIterator();
         }
-        return new IteratorImpl(getStore().iterator());
+        return new IteratorImpl(store.iterator());
     }
 
     protected void flushPending() {
@@ -157,7 +153,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
         action = whenObjectAdded(action);
 
-        if (constantTimeIsEmpty()) {
+        if (store.constantTimeIsEmpty()) {
             return;
         }
 
@@ -181,7 +177,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void configureEachLater(Action<? super T> action) {
-        onAddAction = onAddAction.add(action);
+        eventRegister.registerLazyAddAction(action);
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
             T next = iterator.next();
@@ -189,16 +185,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    /**
-     * Returns true if, and only if, the store is empty AND we know that we
-     * can query its size in constant time. Otherwise it returns false, which means
-     * that the collection may contain elements or may be empty (we don't know without
-     * spending too much time).
-     *
-     * @return true if and only if the store is empty and can tell in constant time
-     */
-    private boolean constantTimeIsEmpty() {
-        return hasConstantTimeSizeMethod && store.isEmpty();
+    @Override
+    public <S extends T> void configureEachLater(Class<S> type, Action<? super S> action) {
+        withType(type).configureEachLater(action);
     }
 
     public void all(Closure action) {
@@ -218,7 +207,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        eventRegister.registerAddAction(type, action);
+        eventRegister.registerEagerAddAction(type, action);
         return action;
     }
 
@@ -255,7 +244,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
             eventRegister.getAddAction().execute(toAdd);
-            onAddAction.execute(toAdd);
             return true;
         } else {
             return false;
@@ -270,7 +258,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             return;
         }
         if (pending == null) {
-            pending = new LinkedList<ProviderInternal<? extends T>>();
+            pending = new ArrayList<ProviderInternal<? extends T>>();
         }
         pending.add(providerInternal);
     }
@@ -291,7 +279,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public void clear() {
         assertMutable();
-        if (constantTimeIsEmpty()) {
+        if (store.constantTimeIsEmpty()) {
             return;
         }
         Object[] c = toArray();
@@ -335,7 +323,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     public boolean removeAll(Collection<?> c) {
         assertMutable();
-        if (constantTimeIsEmpty()) {
+        if (store.constantTimeIsEmpty()) {
             return false;
         }
         boolean changed = false;
@@ -361,21 +349,20 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public int size() {
-        return getStore().size() + (pending == null ? 0 : pending.size());
+        return store.size() + (pending == null ? 0 : pending.size());
     }
 
     @Override
     public int estimatedSize() {
-        return Estimates.estimateSizeOf(getStore());
+        return store.estimatedSize() + (pending == null ? 0 : pending.size());
     }
-
 
     public Collection<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }
 
     protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
-        if (constantTimeIsEmpty()) {
+        if (store.constantTimeIsEmpty()) {
             return matches;
         }
         for (T t : filteredStore(createFilter(Specs.<Object>convertClosureToSpec(cl)))) {
@@ -444,10 +431,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
-        public void registerAddAction(Class<? extends S> type, Action<? super S> addAction) {
+        public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
             // Any elements previously added should not be visible to the action
             flushPending(filter.getType());
-            delegate.registerAddAction(filter.getType(), Actions.filter(addAction, filter));
+            delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
+        }
+
+        @Override
+        public void registerLazyAddAction(Action<? super S> addAction) {
+            delegate.registerLazyAddAction(Actions.filter(addAction, filter));
         }
 
         @Override
@@ -469,6 +461,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
+        public int size() {
+            return DefaultDomainObjectCollection.this.size();
+        }
+
+        @Override
         public boolean contains(Object element) {
             return DefaultDomainObjectCollection.this.contains(element);
         }
@@ -484,9 +481,29 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
+        public boolean constantTimeIsEmpty() {
+            return store.constantTimeIsEmpty();
+        }
+
+        @Override
         public Iterator<T> iterator() {
             flushPending(filter.getType());
             return iteratorNoFlush();
+        }
+
+        @Override
+        public boolean add(T element) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
         }
     }
 }

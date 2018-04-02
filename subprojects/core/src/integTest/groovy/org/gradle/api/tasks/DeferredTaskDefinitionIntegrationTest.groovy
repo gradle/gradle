@@ -200,4 +200,36 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Received :task1")
         result.assertNotOutput("task2")
     }
+
+    def "build logic can configure each task of a given type only when required"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            tasks.createLater("task2", SomeOtherTask) {
+                println "Configure ${path}"
+            }
+            tasks.configureEachLater(SomeTask) {
+                println "Received ${path}"
+            }
+            tasks.create("other")
+        '''
+
+        when:
+        run("other")
+
+        then:
+        result.assertNotOutput("Received")
+        result.assertNotOutput("task1")
+        result.assertNotOutput("task2")
+
+        when:
+        run("task1")
+
+        then:
+        outputContains("Create :task1")
+        outputContains("Configure :task1")
+        outputContains("Received :task1")
+        result.assertNotOutput("task2")
+    }
 }
