@@ -17,5 +17,5 @@
 
 [NOTE]
 ====
-This plugin has been removed as of Gradle 4.0. We recommend using the https://github.com/akhikhl/gretty[Gretty plugin] instead.
+This plugin has been removed as of Gradle 4.0. We recommend using the https://github.com/gretty-gradle-plugin/gretty[Gretty plugin] instead.
 ====
