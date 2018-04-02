@@ -85,6 +85,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.execution.ProjectStateAccess;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -318,8 +319,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ProjectDependencyResolver(localComponentRegistry, componentIdentifierFactory);
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectStateAccess projectStateAccess) {
+        return new ProjectDependencyResolver(localComponentRegistry, componentIdentifierFactory, projectStateAccess);
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.execution.ProjectStateAccess
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -33,7 +34,7 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, new ProjectStateAccess())
 
     def "resolves project dependency"() {
         setup:
