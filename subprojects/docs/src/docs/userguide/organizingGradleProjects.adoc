@@ -22,7 +22,7 @@ Source code and build logic of every software project should be organized in a m
 
 Gradle's language plugins establish conventions for discovering and compiling source code. For example, a project applying the <<java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`. Other language plugins follow the same pattern. The last portion of the directory path usually indicates the expected language of the source files.
 
-Some compilers are capable of cross-compiling multiple languages in the same source directory. The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`. It is recommended practice to create source files in the conventional directories if you work on a project that with multiple languages. Separated directories for dedicated language source files help with maintaining complex projects.
+Some compilers are capable of cross-compiling multiple languages in the same source directory. The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`. Gradle recommends that you place sources in directories according to their language, because builds are more performant and both the user and build can make stronger assumptions.
 
 The following source tree contains Java and Kotlin source files. Java source files live in `src/main/java`, whereas Kotlin source files live in `src/main/kotlin`.
 
@@ -48,22 +48,18 @@ All Gradle core plugins follow the software engineering paradigm link:https://en
 
 By sticking to the default conventions, new developers to the project immediately know how to find their way around. While those conventions can be reconfigured, it makes it harder to build script users and authors to manage the build logic and its outcome. Try to stick to the default conventions as much as possible except if you need to adapt to the layout of a legacy project. Refer to the reference page of the relevant plugin to learn about its default conventions.
 
-=== Always define a setting file
+=== Always define a settings file
 
 Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kts` (Kotlin DSL) file with every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory. The algorithm stops searching as soon as it finds the settings file.
 
 Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact. This recommendation applies to single project builds as well as multi-project builds. The file can either be empty or define the desired name of the project.
 
-A typical Java-based project could look as such:
+A typical Gradle project with a settings file look as such:
 
 ----
 .
 ├── build.gradle
-├── settings.gradle
-└── src
-    └── main
-        └── java
-            └── ...
+└── settings.gradle
 ----
 
 [[sec:split_build_logic_functional_boundaries]]
@@ -71,7 +67,7 @@ A typical Java-based project could look as such:
 
 Over time build scripts can grow large in size if you continue to add logic over time. A good middle ground between a `build.gradle` file and a binary plugin is to extract a <<sec:script_plugins,script plugin>>. A script plugin can come in handy if you want to split the build logic along functional boundaries. Typical examples include publishing code, IDE configuration or a dedicated script plugin for declaring dependencies. It is highly recommended to identify those portions of the build code and separate them into a script plugin.
 
-The following example demonstrates the practice of link:https://en.wikipedia.org/wiki/Separation_of_concerns[separation of concerns] for build logic.
+The following example demonstrates the practice of separation of concerns for build logic.
 
 ----
 .
@@ -114,10 +110,7 @@ A typical project including `buildSrc` has the following layout.
 │       └── test
 │           └── java
 │               └── DeploymentPluginTest.java
-├── client
-├── service
-├── settings.gradle
-└── web
+└── settings.gradle
 ----
 
 === Declare properties in `gradle.properties` file
@@ -126,7 +119,7 @@ In Gradle, properties can be define in the build script, in a `gradle.properties
 
 It's common to declare properties on the command line for ad-hoc scenarios. For example you may want pass in a specific property value to control runtime behavior just for this one invocation of the build. Properties in a build script can easily become a maintenance headache and convolute the build script logic. The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option. It's a good location for placing <<sec:gradle_configuration_properties,properties that control the build environment>>.
 
-A typical project setup places the `gradle.properties` file in the root directory of the build. Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to builds on your machine.
+A typical project setup places the `gradle.properties` file in the root directory of the build. Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
 
 ----
 .
