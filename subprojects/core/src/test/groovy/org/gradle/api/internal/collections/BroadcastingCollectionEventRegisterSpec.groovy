@@ -16,7 +16,6 @@
 package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
-import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
 class BroadcastingCollectionEventRegisterSpec extends Specification {
@@ -25,35 +24,65 @@ class BroadcastingCollectionEventRegisterSpec extends Specification {
     def added = []
     def removed = []
 
-    protected CollectionEventRegister register() {
-        new BroadcastingCollectionEventRegister<>()
+    protected CollectionEventRegister<CharSequence> register() {
+        new BroadcastingCollectionEventRegister<>(CharSequence)
     }
 
-    protected CollectionFilter filter(Class type, Closure spec = null) {
-        if (spec) {
-            new CollectionFilter(type, spec as Spec)
-        } else {
-            new CollectionFilter(type)
-        }
+    def "actions do nothing when none registered"() {
+        expect:
+        r.addAction.execute("a")
+        r.removeAction.execute("a")
     }
 
-    protected Action a(Closure impl) {
-        impl as Action
+    def "nothing subscribed when no actions registered"() {
+        expect:
+        !r.isSubscribed(null)
+        !r.isSubscribed(CharSequence)
+        !r.isSubscribed(String)
     }
 
-    def "register actions"() {
+    def "actions are invoked in order registered"() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+
         given:
-        r.registerAddAction a({ added << it })
-        r.registerAddAction a({ added << it + 10 })
-        r.registerRemoveAction a({ removed << it })
-        r.registerRemoveAction a({ removed << it + 10 })
+        r.registerAddAction(String, action1)
+        r.registerAddAction(String, action2)
 
         when:
-        r.addAction.execute 1
-        r.removeAction.execute 2
+        r.addAction.execute("a")
 
         then:
-        added == [1, 11]
-        removed == [2, 12]
+        1 * action1.execute("a")
+
+        then:
+        1 * action2.execute("a")
+        0 * _
     }
+
+    def "types subscribed when actions registered"() {
+        given:
+        r.registerAddAction(String, Stub(Action))
+
+        expect:
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        !r.isSubscribed(CharSequence)
+        !r.isSubscribed(StringBuilder)
+
+        r.registerAddAction(CharSequence, Stub(Action))
+
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        r.isSubscribed(CharSequence)
+        r.isSubscribed(StringBuilder)
+
+        r.registerAddAction(StringBuilder, Stub(Action))
+
+        r.isSubscribed(null)
+        r.isSubscribed(String)
+        r.isSubscribed(CharSequence)
+        r.isSubscribed(StringBuilder)
+    }
+
 }

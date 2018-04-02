@@ -55,6 +55,11 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
         all(ConfigureUtil.configureUsing(action));
     }
 
+    @Override
+    public void configureEachLater(Action<? super T> action) {
+        backingSet.configureEachLater(action);
+    }
+
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         return backingSet.whenObjectAdded(action);
     }

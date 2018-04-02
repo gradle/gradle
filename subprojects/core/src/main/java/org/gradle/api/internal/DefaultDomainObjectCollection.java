@@ -49,10 +49,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Collection<T> store;
     private final boolean hasConstantTimeSizeMethod;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
+    private ImmutableActionSet<T> onAddAction = ImmutableActionSet.empty();
     private List<ProviderInternal<? extends T>> pending;
 
     public DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store) {
-        this(type, store, new BroadcastingCollectionEventRegister<T>());
+        this(type, store, new BroadcastingCollectionEventRegister<T>(type));
     }
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister) {
@@ -178,6 +179,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
+    @Override
+    public void configureEachLater(Action<? super T> action) {
+        onAddAction = onAddAction.add(action);
+        Iterator<T> iterator = iteratorNoFlush();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            action.execute(next);
+        }
+    }
+
     /**
      * Returns true if, and only if, the store is empty AND we know that we
      * can query its size in constant time. Otherwise it returns false, which means
@@ -207,11 +218,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
-        return eventRegister.registerAddAction(action);
+        eventRegister.registerAddAction(type, action);
+        return action;
     }
 
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
-        return eventRegister.registerRemoveAction(action);
+        eventRegister.registerRemoveAction(type, action);
+        return action;
     }
 
     public void whenObjectAdded(Closure action) {
@@ -242,6 +255,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         if (getStore().add(toAdd)) {
             didAdd(toAdd);
             eventRegister.getAddAction().execute(toAdd);
+            onAddAction.execute(toAdd);
             return true;
         } else {
             return false;
@@ -250,11 +264,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void addLater(Provider<? extends T> provider) {
+        ProviderInternal<? extends T> providerInternal = Cast.uncheckedCast(provider);
+        if (eventRegister.isSubscribed(providerInternal.getType())) {
+            doAdd(provider.get());
+            return;
+        }
         if (pending == null) {
             pending = new LinkedList<ProviderInternal<? extends T>>();
         }
-        ProviderInternal<? extends T> cast = Cast.uncheckedCast(provider);
-        pending.add(cast);
+        pending.add(providerInternal);
     }
 
     protected void didAdd(T toAdd) {
@@ -421,14 +439,20 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
 
         @Override
-        public Action<? super S> registerAddAction(Action<? super S> addAction) {
-            flushPending(filter.getType());
-            return delegate.registerAddAction(Actions.filter(addAction, filter));
+        public boolean isSubscribed(Class<?> type) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
-        public Action<? super S> registerRemoveAction(Action<? super S> removeAction) {
-            return delegate.registerRemoveAction(Actions.filter(removeAction, filter));
+        public void registerAddAction(Class<? extends S> type, Action<? super S> addAction) {
+            // Any elements previously added should not be visible to the action
+            flushPending(filter.getType());
+            delegate.registerAddAction(filter.getType(), Actions.filter(addAction, filter));
+        }
+
+        @Override
+        public void registerRemoveAction(Class<? extends S> type, Action<? super S> removeAction) {
+            delegate.registerRemoveAction(filter.getType(), Actions.filter(removeAction, filter));
         }
     }
 

@@ -62,7 +62,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput(":task1")
     }
 
-    def "task is created and configured when referenced as a task dependency in task graph"() {
+    def "task is created and configured when referenced as a task dependency"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
@@ -91,7 +91,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task2")
     }
 
-    def "task is created and configured when referenced via task provider"() {
+    def "task is created and configured when referenced as task dependency via task provider"() {
         buildFile << '''
             def t1 = tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
@@ -144,7 +144,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task2")
     }
 
-    def "task is created and configured when referenced using withType()"() {
+    def "task is created and configured eagerly when referenced using withType(type, action)"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
@@ -165,6 +165,39 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task1")
         outputContains("Configure :task1")
         outputContains("Matched :task1")
+        result.assertNotOutput("task2")
+    }
+
+    def "build logic can configure each task only when required"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            tasks.createLater("task2", SomeOtherTask) {
+                println "Configure ${path}"
+            }
+            tasks.configureEachLater {
+                println "Received ${path}"
+            }
+            tasks.create("other")
+        '''
+
+        when:
+        run("other")
+
+        then:
+        outputContains("Received :other")
+        result.assertNotOutput("task1")
+        result.assertNotOutput("task2")
+
+        when:
+        run("task1")
+
+        then:
+        outputContains("Received :other")
+        outputContains("Create :task1")
+        outputContains("Configure :task1")
+        outputContains("Received :task1")
         result.assertNotOutput("task2")
     }
 }
