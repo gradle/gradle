@@ -194,7 +194,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         file('src/resource/file.txt') << "some text"
 
         buildFile << """
-            def fileCollection = ${String.format(expressionTemplate, testDirectory.toString())}
+            def fileCollection = ${String.format(expressionTemplate, testDirectory.absolutePath)}
             println("size = \${fileCollection.files.size()}")
         """
 
@@ -242,9 +242,9 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task myTask {
                 doLast {
-                    new File('${testDirectory.toString()}', 'build/resource/file.txt').text = "some text"
+                    new File('${testDirectory.absolutePath}', 'build/resource/file.txt').text = "some text"
                 }
-                outputs.file new File('${testDirectory.toString()}', 'build/resource/file.txt')
+                outputs.file new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
             }
 
             def fileCollection = $expression
@@ -257,7 +257,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains('size = 1')
-        outputContains("files = [${testDirectory.toString()}/build/resource/file.txt]")
+        outputContains("files = [${testDirectory.absolutePath}/build/resource/file.txt]")
 
         where:
         collectionType               | dependencyType | expression
@@ -276,7 +276,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                other files("${testDirectory.toString()}/src/resource/file.txt")
+                other files("${testDirectory.absolutePath}/src/resource/file.txt")
             }
 
             def fileCollection = $expression
@@ -289,7 +289,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains('size = 1')
-        outputContains("files = [${testDirectory.toString()}/src/resource/file.txt]")
+        outputContains("files = [${testDirectory.absolutePath}/src/resource/file.txt]")
 
         where:
         collectionType               | expression
