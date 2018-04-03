@@ -15,44 +15,80 @@
 [[organizing_gradle_projects]]
 == Organizing Gradle Projects
 
-The build logic and source code of every project should be organized in a meaningful way to improve readability and avoid common problems. This page lays out the best practices by example.
+Source code and build logic of every software project should be organized in a meaningful way. This page lays out the best practices that lead to readable, maintainable projects. The following sections also touch on common problems and how to avoid them.
 
-[[sec:configuring_using_external_script]]
-=== Configuring the project using an external build script
+[[sec:separate_language_source_files]]
+=== Separate language-specific source files
 
-You can configure the current project using an external build script. All of the Gradle build language is available in the external script. You can even apply other scripts from the external script.
+Gradle's language plugins establish conventions for discovering and compiling source code. For example, a project applying the <<java_plugin,Java plugin>> will automatically compile the code in the directory `src/main/java`. Other language plugins follow the same pattern. The last portion of the directory path usually indicates the expected language of the source files.
 
-Build scripts can be local files or remotely accessible files downloaded via a URL.
+Some compilers are capable of cross-compiling multiple languages in the same source directory. The Groovy compiler can handle the scenario of mixing Java and Groovy source files located in `src/main/groovy`. Gradle recommends that you place sources in directories according to their language, because builds are more performant and both the user and build can make stronger assumptions.
 
-Remote files will be cached and made available when Gradle runs offline. On each build, Gradle will check if the remote file has changed and will only download the build script file again if it has changed. URLs that contain query strings will not be cached.
+The following source tree contains Java and Kotlin source files. Java source files live in `src/main/java`, whereas Kotlin source files live in `src/main/kotlin`.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureProjectUsingScript" dir="userguide/organizingGradleProjects/configureProjectUsingScript" title="Configuring the project using an external build script">
-    <sourcefile file="build.gradle"/>
-    <sourcefile file="other.gradle"/>
-    <output args="-q hello"/>
-</sample>
-++++
+----
+.
+├── build.gradle
+├── settings.gradle
+└── src
+    └── main
+        ├── java
+        │   └── HelloWorld.java
+        └── kotlin
+            └── Utils.kt
+----
+
+[[sec:use_standard_conventions]]
+=== Use standard conventions as much as possible
+
+All Gradle core plugins follow the software engineering paradigm link:https://en.wikipedia.org/wiki/Convention_over_configuration[convention over configuration]. The plugin logic provides users with sensible defaults and standards, the conventions, in a certain context. Let’s take the <<java_plugin,Java plugin>> as an example.
+
+* It defines the directory `src/main/java` as the default source directory for compilation.
+* The output directory for compiled source code and other artifacts (like the JAR file) is `build`.
+
+By sticking to the default conventions, new developers to the project immediately know how to find their way around. While those conventions can be reconfigured, it makes it harder to build script users and authors to manage the build logic and its outcome. Try to stick to the default conventions as much as possible except if you need to adapt to the layout of a legacy project. Refer to the reference page of the relevant plugin to learn about its default conventions.
+
+=== Always define a settings file
+
+Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kts` (Kotlin DSL) file with every invocation of the build. For that purpose, the runtime walks the hierarchy of the directory tree up to the root directory. The algorithm stops searching as soon as it finds the settings file.
+
+Always add a `settings.gradle` to the root directory of your build to avoid the initial performance impact. This recommendation applies to single project builds as well as multi-project builds. The file can either be empty or define the desired name of the project.
+
+A typical Gradle project with a settings file look as such:
+
+----
+.
+├── build.gradle
+└── settings.gradle
+----
+
+[[sec:split_build_logic_functional_boundaries]]
+=== Split build logic based on functional boundaries
+
+Over time build scripts can grow large in size if you continue to add logic over time. A good middle ground between a `build.gradle` file and a binary plugin is to extract a <<sec:script_plugins,script plugin>>. A script plugin can come in handy if you want to split the build logic along functional boundaries. Typical examples include publishing code, IDE configuration or a dedicated script plugin for declaring dependencies. It is highly recommended to identify those portions of the build code and separate them into a script plugin.
+
+The following example demonstrates the practice of separation of concerns for build logic.
+
+----
+.
+├── build.gradle
+├── gradle
+│   ├── build-scan.gradle
+│   ├── ide.gradle
+│   └── publishing.gradle
+└── settings.gradle
+----
+
+We recommend you place script plugins under the `gradle` directory of your root project as most projects have adopted this. Of course, Gradle allows script plugins to be resolved from anywhere, including remotely.
 
 [[sec:build_sources]]
-=== Build sources in the `buildSrc` project
+=== Use `buildSrc` project to abstract imperative logic
 
-When you run Gradle, it checks for the existence of a directory called `buildSrc`. Gradle then automatically compiles and tests this code and puts it in the classpath of your build script. You don't need to provide any further instruction. This can be a good place to add your custom tasks and plugins.
+Complex build logic is usually a good candidate for being encapsulated either as custom task or binary plugin. Custom task and plugin implementations should not live in the build script. It is very convenient to use `buildSrc` project for that purpose as long as the code is does not need to be shared among multiple, independent projects.
 
-For multi-project builds there can be only one `buildSrc` directory, which has to be in the root project directory.
+The directory `buildSrc` is treated as a special project. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script. For multi-project builds there can be only one `buildSrc` directory, which has to be in the root project directory.
 
-Listed below is the default build script that Gradle applies to the `buildSrc` project:
-
-
-.Default buildSrc build script
-[source,groovy]
-----
-include::../../../../../subprojects/core/src/main/resources/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt[]
-----
-
-This means that you can just put your build source code in this directory and stick to the layout convention for a Java/Groovy project (see <<javalayout>>).
-
-If you need more flexibility, you can provide your own `build.gradle`. Gradle applies the default build script regardless of whether there is one specified. This means you only need to declare the extra things you need. Below is an example. Notice that this example does not need to declare a dependency on the Gradle API, as this is done by the default build script:
+`buildSrc` uses the same <<javalayout,source code conventions>> applicable to Java and Groovy projects. It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customBuildSrcBuild" dir="java/multiproject" title="Custom buildSrc build script">
@@ -60,10 +96,34 @@ If you need more flexibility, you can provide your own `build.gradle`. Gradle ap
 </sample>
 ++++
 
-The `buildSrc` project can be a multi-project build, just like any other regular multi-project build. However, all of the projects that should be on the classpath of the actual build must be `runtime` dependencies of the root project in `buildSrc`. You can do this by adding this to the configuration of each project you wish to export:
+A typical project including `buildSrc` has the following layout.
 
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="multiProjectBuildSrc" dir="multiProjectBuildSrc" includeLocation="true" title="Adding subprojects to the root buildSrc project">
-    <sourcefile file="buildSrc/build.gradle" snippet="addToRootProject"/>
-</sample>
-++++
+----
+.
+├── build.gradle
+├── buildSrc
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       ├── Deploy.java
+│       │       └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── DeploymentPluginTest.java
+└── settings.gradle
+----
+
+=== Declare properties in `gradle.properties` file
+
+In Gradle, properties can be define in the build script, in a `gradle.properties` file or as parameters on the command line.
+
+It's common to declare properties on the command line for ad-hoc scenarios. For example you may want pass in a specific property value to control runtime behavior just for this one invocation of the build. Properties in a build script can easily become a maintenance headache and convolute the build script logic. The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option. It's a good location for placing <<sec:gradle_configuration_properties,properties that control the build environment>>.
+
+A typical project setup places the `gradle.properties` file in the root directory of the build. Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
+
+----
+.
+├── build.gradle
+├── gradle.properties
+└── settings.gradle
+----
