@@ -41,15 +41,14 @@ class IntegrationTestFixtureVisitor : AbstractAstVisitor() {
     fun isIntegrationTest(current: ClassNode) = current.name.endsWith("IntegrationTest")
         || current.name.endsWith("IntegrationSpec")
 
-    override fun shouldVisitMethod(node: MethodNode?): Boolean = isIntegrationTest(node!!.declaringClass)
+    override fun shouldVisitMethod(node: MethodNode): Boolean = isIntegrationTest(node.declaringClass)
 
-    override fun visitMethodCallExpression(call: MethodCallExpression?) {
-        val mce = call!!
+    override fun visitMethodCallExpression(mce: MethodCallExpression) {
         if (AstUtil.isMethodNamed(mce, "contains")) {
-            checkOutputContains(call)
+            checkOutputContains(mce)
         } else if (AstUtil.isMethodNamed(mce, "assertOutputContains")) {
             val objectExpr = mce.objectExpression
-            checkIndirectOutputContains(objectExpr, call)
+            checkIndirectOutputContains(objectExpr, mce)
         }
     }
 
@@ -58,14 +57,14 @@ class IntegrationTestFixtureVisitor : AbstractAstVisitor() {
         val receiver = call.receiver!!
         if (receiver is PropertyExpression) {
             if (receiver.propertyAsString == "output") {
-                val objectExpr = receiver.objectExpression
+                val objectExpr = receiver.objectExpression!!
                 checkIndirectOutputContains(objectExpr, call)
             }
         }
     }
 
     private
-    fun checkIndirectOutputContains(objectExpr: Expression?, call: MethodCallExpression) {
+    fun checkIndirectOutputContains(objectExpr: Expression, call: MethodCallExpression) {
         if (objectExpr is VariableExpression
             && objectExpr.name == "result") {
             val arg = AstUtil.getNodeText(call.arguments, sourceCode)
