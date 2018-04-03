@@ -90,25 +90,25 @@ You can now create a task and pass values to its constructor.
 In order to pass values to the constructor, you must annotate the relevant constructor with `@javax.inject.Inject`.
 Given the following `Task` class:
 
-    public class CustomTask extends DefaultTask {
-        private final String message;
-        private final int number;
+    class CustomTask extends DefaultTask {
+        final String message
+        final int number
 
         @Inject
         CustomTask(String message, int number) {
-            this.message = message;
-            this.number = number;
+            this.message = message
+            this.number = number
         }
 
         @TaskAction
-        public void doSomething() {
-            System.out.println(String.format("Hello %s %s", number, message));
+        void doSomething() {
+            println("Hello $number $message")
         }
     }
 
 You can then create a task, passing the constructor arguments at the end of the parameter list.
 
-    project.getTasks().create("myTask", CustomTask.class, "hello", 42)
+    tasks.create('myTask', CustomTask, 'hello', 42)
 
 In a Groovy build script, you can create the task using `constructorArgs`.
 
