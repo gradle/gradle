@@ -214,6 +214,8 @@ public class DynamicVersionResolver {
         private final ModuleDependencyMetadata dependency;
         private final VersionSelector versionSelector;
         private final VersionSelector rejectedVersionSelector;
+        private ModuleComponentIdentifier firstRejected = null;
+
 
         public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector) {
             this.versionedComponentChooser = versionedComponentChooser;
@@ -264,17 +266,31 @@ public class DynamicVersionResolver {
 
         @Override
         public void noMatchFound() {
+            // TODO:DAZ This is a bastardisation
+            if (firstRejected != null) {
+                matches(firstRejected);
+                return;
+            }
+
             resolvedVersionMetadata.missing();
         }
 
         @Override
-        public void notMatched(String candidateVersion) {
-            unmatchedVersions.add(candidateVersion);
+        public void notMatched(ModuleComponentIdentifier id) {
+            unmatchedVersions.add(id.getVersion());
         }
 
         @Override
-        public void rejected(String version) {
-            rejectedVersions.add(version);
+        public void rejectedByRule(ModuleComponentIdentifier id) {
+            rejectedVersions.add(id.getVersion());
+        }
+
+        @Override
+        public void rejectedByConstraint(ModuleComponentIdentifier id) {
+            if (firstRejected == null) {
+                firstRejected = id;
+            }
+            rejectedVersions.add(id.getVersion());
         }
 
         private List<CandidateResult> candidates() {
