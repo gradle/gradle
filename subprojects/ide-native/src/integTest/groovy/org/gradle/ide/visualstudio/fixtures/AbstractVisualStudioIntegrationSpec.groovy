@@ -31,6 +31,39 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
         initScript << IdeCommandLineUtil.generateGradleProbeInitFile('visualStudio', 'msbuild')
+        initScript << """
+            allprojects {
+                project.plugins.withType(VisualStudioPlugin.class) {
+                    visualStudio {
+                        projects.all {
+                            projectFile.withXml { xml ->
+                                redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }
+                            }
+                        }
+                    }
+                }
+            }
+    
+            def redirectOutputForAll(nodes) {
+                nodes.each { node ->
+                    redirectOutput node.NMakeBuildCommandLine[0]
+                    redirectOutput node.NMakeCleanCommandLine[0]
+                    redirectOutput node.NMakeReBuildCommandLine[0]
+                }
+            }
+
+            def redirectOutput(Node node) {
+                String value = node.value()
+                node.value = '''
+For /f "tokens=1-3 delims=/: " %%a in ("%TIME%") do (if %%a LSS 10 (set timestamp=0%%a%%b%%c) else (set timestamp=%%a%%b%%c))
+set timestamp=%timestamp:~0,6%
+set outputDir=output\\\\%timestamp%
+md %outputDir%
+set outputLog=%outputDir%\\\\output.txt
+set errorLog=%outputDir%\\\\error.txt
+''' + value + ' 1>%outputLog% 2>%errorLog%'
+            }
+        """
     }
 
     File getHostGradleWrapperFile() {
