@@ -32,35 +32,44 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
 
         initScript << IdeCommandLineUtil.generateGradleProbeInitFile('visualStudio', 'msbuild')
         initScript << """
-            allprojects {
-                project.plugins.withType(VisualStudioPlugin.class) {
-                    visualStudio {
-                        projects.all {
-                            projectFile.withXml { xml ->
-                                redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }
+            allprojects { p ->
+                p.plugins.withType(VisualStudioPlugin.class) {
+                    p.tasks.withType(GenerateProjectFileTask) {
+                        doFirst {
+                            p.visualStudio {
+                                projects.all {
+                                    def relativeToRoot = org.gradle.util.RelativePathUtil.relativePath(projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
+                                    if (relativeToRoot == "") {
+                                        relativeToRoot = "."
+                                    }
+                                    projectFile.withXml { xml ->
+                                        redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
     
-            def redirectOutputForAll(nodes) {
+            def redirectOutputForAll(nodes, relativeToRoot) {
                 nodes.each { node ->
-                    redirectOutput node.NMakeBuildCommandLine[0]
-                    redirectOutput node.NMakeCleanCommandLine[0]
-                    redirectOutput node.NMakeReBuildCommandLine[0]
+                    redirectOutput node.NMakeBuildCommandLine[0], relativeToRoot
+                    redirectOutput node.NMakeCleanCommandLine[0], relativeToRoot
+                    redirectOutput node.NMakeReBuildCommandLine[0], relativeToRoot
                 }
             }
 
-            def redirectOutput(Node node) {
+            def redirectOutput(Node node, String relativeToRoot) {
                 String value = node.value()
                 node.value = '''
 For /f "tokens=1-3 delims=/: " %%a in ("%TIME%") do (if %%a LSS 10 (set timestamp=0%%a%%b%%c) else (set timestamp=%%a%%b%%c))
 set timestamp=%timestamp:~0,6%
-set outputDir=output\\\\%timestamp%
+''' + "set outputDir=\${relativeToRoot}\\\\output\\\\%timestamp%" + '''
 md %outputDir%
 set outputLog=%outputDir%\\\\output.txt
 set errorLog=%outputDir%\\\\error.txt
+echo %outputLog%
 ''' + value + ' 1>%outputLog% 2>%errorLog%'
             }
         """
