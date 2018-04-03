@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.file.PathToFileResolver;
 
@@ -47,11 +48,11 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         return usingResolver(new IdentityFileResolver(), paths);
     }
 
-    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Object[] paths) {
+    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object[] paths) {
         return usingResolver(fileResolver, Arrays.asList(paths));
     }
 
-    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Iterable<?> paths) {
+    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Iterable<?> paths) {
         if (Iterables.isEmpty(paths)) {
             return EMPTY;
         } else if (allFiles(paths)) {
@@ -107,10 +108,10 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     private static class ResolvingImmutableFileCollection extends ImmutableFileCollection {
-        private final PathToFileResolver resolver;
+        private final FileResolver resolver;
         private final Set<Object> paths;
 
-        public ResolvingImmutableFileCollection(PathToFileResolver fileResolver, Iterable<?> paths) {
+        public ResolvingImmutableFileCollection(FileResolver fileResolver, Iterable<?> paths) {
             super(DEFAULT_DISPLAY_NAME);
             this.resolver = fileResolver;
             ImmutableSet.Builder<Object> pathsBuilder = ImmutableSet.builder();
@@ -122,9 +123,8 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
 
         @Override
         public Set<File> getFiles() {
-            DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
-            FileCollectionResolveContext nested = context.push(resolver);
-            nested.add(paths);
+            DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver);
+            context.add(paths);
 
             List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
             List<Set<File>> fileSets = new ArrayList<Set<File>>(fileCollections.size());

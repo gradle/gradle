@@ -21,8 +21,8 @@ import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Provider
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -50,7 +50,7 @@ class ImmutableFileCollectionTest extends Specification {
     def 'resolves specified files using FileResolver'() {
         File file1 = new File('1')
         File file2 = new File('2')
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, 'abc', 'def')
 
         when:
@@ -78,12 +78,12 @@ class ImmutableFileCollectionTest extends Specification {
         'empty'          | ImmutableFileCollection.of()
         'regular'        | ImmutableFileCollection.of('abc')
         'collection'     | ImmutableFileCollection.of(ImmutableList.of(new File('def')))
-        'using resolver' | ImmutableFileCollection.usingResolver(Mock(PathToFileResolver), 'abc')
+        'using resolver' | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
     }
 
     def 'can use a Closure to specify a single file'() {
         File file = new File('1')
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, [{ 'abc' }] as Object[])
 
         when:
@@ -96,7 +96,7 @@ class ImmutableFileCollectionTest extends Specification {
 
     @Unroll
     def '#description can return null'() {
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
 
         when:
@@ -112,7 +112,7 @@ class ImmutableFileCollectionTest extends Specification {
     }
 
     def 'Provider can throw IllegalStateException'() {
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         Provider provider = Mock()
         def exception = new IllegalStateException()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, provider)
@@ -130,7 +130,7 @@ class ImmutableFileCollectionTest extends Specification {
     def 'can use a #description to specify the contents of the collection'() {
         File file1 = new File('1')
         File file2 = new File('2')
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
 
         when:
@@ -184,7 +184,7 @@ class ImmutableFileCollectionTest extends Specification {
     @Unroll
     def 'can use a #description to specify the single content of the collection'() {
         File file = new File('1')
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
 
         when:
@@ -207,7 +207,7 @@ class ImmutableFileCollectionTest extends Specification {
     @Unroll
     def 'avoids file resolution when FileCollection contains only has Files (#count)'() {
         def input = (0..(count)).collect { new File(it.toString()) }
-        PathToFileResolver fileResolver = Mock()
+        FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
 
         when:
