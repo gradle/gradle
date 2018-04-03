@@ -43,15 +43,12 @@ import javax.inject.Inject
 @CacheableTask
 open class Classycle @Inject constructor(
     @get:Internal val classesDirs: FileCollection,
-    excludePatterns: Provider<List<String>>,
+    @get:Input val excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
     @get:Internal val reportDir: File,
     reportResourcesZip: Provider<RegularFile>,
-    @get:Internal private val antBuilder: IsolatedAntBuilder
+    private val antBuilder: IsolatedAntBuilder
 ) : DefaultTask() {
-
-    @get:Input
-    val excludePatterns: Provider<List<String>>
 
     @get:InputFiles
     @get:SkipWhenEmpty
@@ -72,7 +69,6 @@ open class Classycle @Inject constructor(
         get() = File(reportDir, "${reportName}_analysis.xml")
 
     init {
-        this.excludePatterns = project.objects.listProperty<String>().apply { set(excludePatterns) }
         this.reportResourcesZip = newInputFile().apply { set(reportResourcesZip) }
     }
 
