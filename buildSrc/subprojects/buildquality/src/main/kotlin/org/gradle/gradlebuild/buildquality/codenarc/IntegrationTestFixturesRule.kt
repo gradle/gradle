@@ -38,8 +38,8 @@ class IntegrationTestFixtureVisitor : AbstractAstVisitor() {
      * resolution is not complete when this visitor is executed.
      */
     private
-    fun isIntegrationTest(current: ClassNode) = current.name.endsWith("IntegrationTest")
-        || current.name.endsWith("IntegrationSpec")
+    fun isIntegrationTest(current: ClassNode) = current.name.endsWith("Test")
+        || current.name.endsWith("Spec")
 
     override fun shouldVisitMethod(node: MethodNode): Boolean = isIntegrationTest(node.declaringClass)
 

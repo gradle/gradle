@@ -21,6 +21,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
+@SuppressWarnings("IntegrationTestFixtures")
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 
