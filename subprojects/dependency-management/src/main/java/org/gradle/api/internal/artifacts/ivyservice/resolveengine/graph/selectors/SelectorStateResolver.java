@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -64,7 +67,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            ComponentIdResolveResult resolved = selectorState.resolve();
+            ComponentIdResolveResult resolved = selectorState.resolve(createAllRejects(Collections.singletonList(selectorState)));
             T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
             return Collections.singletonList(selected);
         }
@@ -79,6 +82,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      */
     private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors) {
         SelectorStateResolverResults results = new SelectorStateResolverResults();
+        VersionSelector allRejects = createAllRejects(selectors);
         for (ResolvableSelectorState selector : selectors) {
 
             // For a 'reject-only' selector, don't need to resolve
@@ -93,11 +97,21 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             }
 
             // Need to perform the actual resolve
-            ComponentIdResolveResult resolved = selector.resolve();
+            ComponentIdResolveResult resolved = selector.resolve(allRejects);
 
             results.registerResolution(selector, resolved);
         }
         return results.getResolved(componentFactory);
+    }
+
+    private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
+        List<VersionSelector> rejectSelectors = Lists.newArrayList();
+        for (ResolvableSelectorState selector : selectors) {
+            if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null) {
+                rejectSelectors.add(selector.getVersionConstraint().getRejectedSelector());
+            }
+        }
+        return new UnionVersionSelector(rejectSelectors);
     }
 
     private T resolveConflicts(Collection<T> candidates) {

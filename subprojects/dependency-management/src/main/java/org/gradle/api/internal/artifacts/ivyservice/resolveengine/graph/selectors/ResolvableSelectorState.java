@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 public interface ResolvableSelectorState {
@@ -24,12 +25,12 @@ public interface ResolvableSelectorState {
     /**
      * Resolve the selector to a component identifier.
      */
-    ComponentIdResolveResult resolve();
+    ComponentIdResolveResult resolve(VersionSelector allRejects);
 
     /**
      * Mark the selector as resolved.
      * This is used when another selector resolved to a component identifier that satisfies this selector.
-     * In that case, a call to {@link #resolve()} is not required.
+     * In that case, a call to {@link #resolve(VersionSelector)} is not required.
      */
     void markResolved();
 
