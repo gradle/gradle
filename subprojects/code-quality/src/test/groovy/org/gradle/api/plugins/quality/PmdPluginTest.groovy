@@ -107,6 +107,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
             assert rulePriority == 5
+            assert incrementalAnalysis == false
         }
     }
 
@@ -124,6 +125,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
         task.rulePriority == 5
+        task.incrementalAnalysis == false
     }
 
     def "adds pmd tasks to check lifecycle task"() {

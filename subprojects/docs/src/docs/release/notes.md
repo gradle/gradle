@@ -10,6 +10,12 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Support for PMD incremental analysis
+
+TBD
+
+The default version of PMD is now [PMD 6.2.0](https://pmd.github.io/pmd-6.2.0/pmd_release_notes.html).
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -53,6 +59,7 @@ TBD - previously this was broken, and plugins may accidentally rely on this beha
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Support PMD's analysis cache (gradle/gradle#2223)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
