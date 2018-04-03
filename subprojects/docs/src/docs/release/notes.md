@@ -101,18 +101,20 @@ Given the following `Task` class:
         }
 
         @TaskAction
-        public void doSomething() { }
+        public void doSomething() {
+            System.out.println(String.format("Hello %s %s", number, message));
+        }
     }
 
-You can then create the task using the Groovy DSL syntax and the `constructorArgs` key.
+You can then create a task, passing the constructor arguments at the end of the parameter list.
+
+    project.getTasks().create("myTask", CustomTask.class, "hello", 42)
+
+In a Groovy build script, you can create the task using `constructorArgs`.
 
     task myTask(type: CustomTask, constructorArgs: ['hello', 42])
 
-You can use the alternative syntax for defining tasks, passing the constructor arguments at the end.
-
-    tasks.create('myTask', CustomTask, 'hello', 42)
-
-Using the Kotlin DSL, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
+In a Kotlin build script, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
 
     tasks.create<CustomTask>("myTask", "hello", 42)
 

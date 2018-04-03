@@ -190,15 +190,7 @@ In order to pass values to the `Task` constructor, you must annotate the relevan
         </sample>
 ++++
 
-You can then create the task using the Groovy DSL syntax and the `constructorArgs` key.
-
-++++
-<sample id="taskConstructorArgsMap" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Creating a task with constructor arguments using Map">
-            <sourcefile file="build.gradle" snippet="groovy-map"/>
-        </sample>
-++++
-
-You can also use the alternative syntax for defining tasks, passing the constructor arguments at the end.
+You can then create a task, passing the constructor arguments at the end of the parameter list.
 
 ++++
 <sample id="taskConstructorArgsTaskContainer" dir="userguide/tasks/taskConstructorArgs/groovyTaskContainer" title="Creating a task with constructor arguments using TaskContainer">
@@ -206,7 +198,15 @@ You can also use the alternative syntax for defining tasks, passing the construc
         </sample>
 ++++
 
-Using the Kotlin DSL, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
+In a Groovy build script, you can create the task using `constructorArgs`.
+
+++++
+<sample id="taskConstructorArgsMap" dir="userguide/tasks/taskConstructorArgs/groovyMap" title="Creating a task with constructor arguments using Map">
+            <sourcefile file="build.gradle" snippet="groovy-map"/>
+        </sample>
+++++
+
+In a Kotlin build script, you can pass constructor arguments using the reified extension function on the `tasks` `TaskContainer`.
 
 ++++
 <sample id="taskConstructorArgsKotlinDsl" dir="userguide/tasks/taskConstructorArgs/kotlinDsl" title="Creating a task with constructor arguments using Kotlin DSL">
