@@ -31,6 +31,12 @@ tasks.withType(FindBugs) {
     }
 }
 // END SNIPPET customize-findbugs-report
+
+pmd {
+    ruleSetFiles = fileTree('config/pmd/my-ruleset.xml')
+    ruleSets = []
+}
+
 apply plugin: 'java'
 apply plugin: 'groovy'
 
