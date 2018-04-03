@@ -16,55 +16,61 @@
 
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.file.PathToFileResolver;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class ImmutableFileCollection extends AbstractFileCollection {
+public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static final String DEFAULT_DISPLAY_NAME = "immutable file collection";
     private static final EmptyImmutableFileCollection EMPTY = new EmptyImmutableFileCollection();
 
-    private final Set<Object> files;
     private final String displayName;
-    private final PathToFileResolver resolver;
 
-    public static ImmutableFileCollection of(Object... files) {
-        return of(Arrays.asList(files));
+    public static ImmutableFileCollection of(Object... paths) {
+        return of(Arrays.asList(paths));
     }
 
-    public static ImmutableFileCollection of(Collection<?> files) {
-        return usingResolver(new IdentityFileResolver(), files);
+    public static ImmutableFileCollection of(Iterable<?> paths) {
+        return usingResolver(new IdentityFileResolver(), paths);
     }
 
-    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Object[] files) {
-        return usingResolver(fileResolver, Arrays.asList(files));
+    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Object[] paths) {
+        return usingResolver(fileResolver, Arrays.asList(paths));
     }
 
-    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Collection<?> files) {
-        if (files.isEmpty()) {
+    public static ImmutableFileCollection usingResolver(PathToFileResolver fileResolver, Iterable<?> paths) {
+        if (Iterables.isEmpty(paths)) {
             return EMPTY;
+        } else if (allFiles(paths)) {
+            return new FileOnlyImmutableFileCollection((Iterable<? extends File>) paths);
         }
-        return new ImmutableFileCollection(DEFAULT_DISPLAY_NAME, fileResolver, files);
+        return new ResolvingImmutableFileCollection(fileResolver, paths);
     }
 
-    private ImmutableFileCollection(String displayName, PathToFileResolver fileResolver, Collection<?> files) {
+    private static boolean allFiles(Iterable<?> files) {
+        return Iterables.all(files, new Predicate<Object>() {
+            @Override
+            public boolean apply(@Nullable Object input) {
+                return input instanceof File;
+            }
+        });
+    }
+
+    private ImmutableFileCollection(String displayName) {
         this.displayName = displayName;
-        this.resolver = fileResolver;
-        ImmutableSet.Builder<Object> filesBuilder = ImmutableSet.builder();
-        if (files != null) {
-            filesBuilder.addAll(files);
-        }
-        this.files = filesBuilder.build();
     }
 
     @Override
@@ -72,34 +78,67 @@ public class ImmutableFileCollection extends AbstractFileCollection {
         return displayName;
     }
 
-    @Override
-    public Set<File> getFiles() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
-        FileCollectionResolveContext nested = context.push(resolver);
-        nested.add(files);
-
-        List<Set<File>> fileSets = new LinkedList<Set<File>>();
-        int fileCount = 0;
-        for (FileCollection collection : context.resolveAsFileCollections()) {
-            Set<File> files = collection.getFiles();
-            fileCount += files.size();
-            fileSets.add(files);
-        }
-        Set<File> allFiles = new LinkedHashSet<File>(fileCount);
-        for (Set<File> fileSet : fileSets) {
-            allFiles.addAll(fileSet);
-        }
-        return allFiles;
-    }
-
     private static class EmptyImmutableFileCollection extends ImmutableFileCollection {
         public EmptyImmutableFileCollection() {
-            super(DEFAULT_DISPLAY_NAME, null, null);
+            super(DEFAULT_DISPLAY_NAME);
         }
 
         @Override
         public Set<File> getFiles() {
             return ImmutableSet.of();
+        }
+    }
+
+    private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
+        private final ImmutableSet<File> files;
+
+        public FileOnlyImmutableFileCollection(Iterable<? extends File> files) {
+            super(DEFAULT_DISPLAY_NAME);
+            ImmutableSet.Builder<File> filesBuilder = ImmutableSet.builder();
+            if (files != null) {
+                filesBuilder.addAll(files);
+            }
+            this.files = filesBuilder.build();
+        }
+
+        public Set<File> getFiles() {
+            return files;
+        }
+    }
+
+    private static class ResolvingImmutableFileCollection extends ImmutableFileCollection {
+        private final PathToFileResolver resolver;
+        private final Set<Object> paths;
+
+        public ResolvingImmutableFileCollection(PathToFileResolver fileResolver, Iterable<?> paths) {
+            super(DEFAULT_DISPLAY_NAME);
+            this.resolver = fileResolver;
+            ImmutableSet.Builder<Object> pathsBuilder = ImmutableSet.builder();
+            if (paths != null) {
+                pathsBuilder.addAll(paths);
+            }
+            this.paths = pathsBuilder.build();
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(new IdentityFileResolver());
+            FileCollectionResolveContext nested = context.push(resolver);
+            nested.add(paths);
+
+            List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
+            List<Set<File>> fileSets = new ArrayList<Set<File>>(fileCollections.size());
+            int fileCount = 0;
+            for (FileCollection collection : fileCollections) {
+                Set<File> files = collection.getFiles();
+                fileCount += files.size();
+                fileSets.add(files);
+            }
+            Set<File> allFiles = new LinkedHashSet<File>(fileCount);
+            for (Set<File> fileSet : fileSets) {
+                allFiles.addAll(fileSet);
+            }
+            return allFiles;
         }
     }
 }

@@ -84,7 +84,7 @@ class ImmutableFileCollectionTest extends Specification {
     def 'can use a Closure to specify a single file'() {
         File file = new File('1')
         PathToFileResolver fileResolver = Mock()
-        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, { 'abc' })
+        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, [{ 'abc' }] as Object[])
 
         when:
         Set<File> files = collection.getFiles()
@@ -107,8 +107,8 @@ class ImmutableFileCollectionTest extends Specification {
 
         where:
         description | input
-        'Closure'   | { null }
-        'Callable'  | ({ null } as Callable<Object>)
+        'Closure'   | ({ null } as Object[])
+        'Callable'  | (({ null } as Callable<Object>) as Object[])
     }
 
     def 'Provider can throw IllegalStateException'() {
@@ -143,13 +143,13 @@ class ImmutableFileCollectionTest extends Specification {
 
         where:
         description        | input
-        'closure'          | { [ 'abc', 'def' ] }
+        'closure'          | ({ [ 'abc', 'def' ] } as Object[])
         'collection(list)' | [ 'abc', 'def' ]
         'array'            | ([ 'abc', 'def' ] as Object[])
         'FileCollection'   | new SimpleFileCollection(new File('1'), new File('2'))
-        'Callable'         | ({ [ 'abc', 'def' ] } as Callable<Object>)
+        'Callable'         | (({ [ 'abc', 'def' ] } as Callable<Object>) as Object[])
         'Provider'         | providerReturning(['abc', 'def'])
-        'nested objects'   | {[{['abc', { ['def'] as String[] }]}]}
+        'nested objects'   | ({[{['abc', { ['def'] as String[] }]}]} as Object[])
     }
 
     private Provider<Object> providerReturning(Object result) {
@@ -197,11 +197,27 @@ class ImmutableFileCollectionTest extends Specification {
         where:
         description   | input                | toResolve
         'String'      | 'abc'                | null
-        'File'        | new File('abc')      | null
         'Path'        | Paths.get('abc')     | new File('abc')
         'URI'         | new URI('file:/abc') | null
         'URL'         | new URL('file:/abc') | null
         'Directory'   | Mock(Directory)      | null
         'RegularFile' | Mock(RegularFile)    | null
+    }
+
+    @Unroll
+    def 'avoids file resolution when FileCollection contains only has Files (#count)'() {
+        def input = (0..(count)).collect { new File(it.toString()) }
+        PathToFileResolver fileResolver = Mock()
+        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
+
+        when:
+        Set<File> files = collection.getFiles()
+
+        then:
+        0 * fileResolver.resolve(_)
+        files == input as LinkedHashSet
+
+        where:
+        count << [0, 1, 2, 10]
     }
 }
