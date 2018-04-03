@@ -95,7 +95,7 @@ public interface ProjectLayout {
     Provider<RegularFile> file(Provider<File> file);
 
     /**
-     * Creates a {@link FileCollection} for the given targets. You can pass any of the following
+     * <p>Creates a {@link FileCollection} for the given targets. You can pass any of the following
      * types to this method:</p>
      *
      * <ul> <li>A {@link CharSequence}, including {@link String} or {@link groovy.lang.GString}. Interpreted relative to the project directory, as per {@link Project#file(Object)}. A string that starts with {@code file:} is treated as a file URL.</li>
