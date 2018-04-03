@@ -62,10 +62,10 @@ open class IntTestImagePlugin : Plugin<Project> {
         if (useAllDistribution) {
             val unpackAllDistribution by tasks.creating(Sync::class) {
                 dependsOn(":distributions:allZip")
-                from(Callable { zipTree(project("distributions").tasks.getByName<Zip>("allZip").archivePath) })
+                from(Callable { zipTree(rootProject.project("distributions").tasks.getByName<Zip>("allZip").archivePath) })
                 into("$buildDir/tmp/unpacked-all-distribution")
             }
-            val unpackedPath = "$unpackAllDistribution.destinationDir/gradle-$version"
+            val unpackedPath = "${unpackAllDistribution.destinationDir}/gradle-$version"
             intTestImage.apply {
                 dependsOn(unpackAllDistribution)
                 from(unpackedPath)
