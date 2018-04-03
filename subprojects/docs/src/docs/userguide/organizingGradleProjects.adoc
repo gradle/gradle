@@ -79,7 +79,7 @@ The following example demonstrates the practice of separation of concerns for bu
 └── settings.gradle
 ----
 
-Gradle doesn't take a stance on how to organize script plugins. However, a sensible default is to use the subdirectory `gradle`.
+We recommend you place script plugins under the `gradle` directory of your root project as most projects have adopted this. Of course, Gradle allows script plugins to be resolved from anywhere, including remotely.
 
 [[sec:build_sources]]
 === Use `buildSrc` project to abstract imperative logic
