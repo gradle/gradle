@@ -17,7 +17,6 @@ package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
@@ -46,7 +45,7 @@ open class Classycle @Inject constructor(
     @get:Input val excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
     @get:Internal val reportDir: File,
-    reportResourcesZip: Provider<RegularFile>,
+    @get:InputFile @get:PathSensitive(PathSensitivity.NONE) val reportResourcesZip: RegularFileProperty,
     private val antBuilder: IsolatedAntBuilder
 ) : DefaultTask() {
 
@@ -56,10 +55,6 @@ open class Classycle @Inject constructor(
     val existingClassesDir: FileCollection
         get() = classesDirs.filter(File::exists)
 
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    val reportResourcesZip: RegularFileProperty
-
     @get:OutputFile
     val reportFile
         get() = File(reportDir, "$reportName.txt")
@@ -67,10 +62,6 @@ open class Classycle @Inject constructor(
     private
     val analysisFile: File
         get() = File(reportDir, "${reportName}_analysis.xml")
-
-    init {
-        this.reportResourcesZip = newInputFile().apply { set(reportResourcesZip) }
-    }
 
     @TaskAction
     fun generate() = project.run {
