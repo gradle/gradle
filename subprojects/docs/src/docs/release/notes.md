@@ -111,6 +111,10 @@ As a result, it is easier to track down which input changed:
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.1](http://www.jacoco.org/jacoco/trunk/doc/changes.html) by default.
 
+### Continuing development of Native ecosystem
+
+[The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-47) to improve and evolve the native ecosystem support for Gradle.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
