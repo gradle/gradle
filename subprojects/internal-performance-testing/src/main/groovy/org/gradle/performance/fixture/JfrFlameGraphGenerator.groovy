@@ -94,7 +94,7 @@ class JfrFlameGraphGenerator {
 
     private void generateIcicleGraph(File stacks, EventType type, DetailLevel level) {
         File icicles = new File(stacks.parentFile, "icicles.svg")
-        String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "blue"] + level.icicleGraphOptions
+        String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "aqua"] + level.icicleGraphOptions
         flameGraphGenerator.generateFlameGraph(stacks, icicles, options)
         icicles
     }
