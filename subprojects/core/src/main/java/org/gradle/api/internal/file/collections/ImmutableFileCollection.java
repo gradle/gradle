@@ -92,11 +92,6 @@ public class ImmutableFileCollection extends AbstractFileCollection {
         return allFiles;
     }
 
-    @Override
-    public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException(String.format("%s does not allow modification.", getCapDisplayName()));
-    }
-
     private static class EmptyImmutableFileCollection extends ImmutableFileCollection {
         public EmptyImmutableFileCollection() {
             super(DEFAULT_DISPLAY_NAME, null, null);
