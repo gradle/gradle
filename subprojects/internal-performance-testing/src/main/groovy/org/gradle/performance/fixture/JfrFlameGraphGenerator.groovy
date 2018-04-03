@@ -58,8 +58,10 @@ class JfrFlameGraphGenerator {
                     experiments.findAll { it != experiment }.each { File baseline ->
                         def diff = generateDiff(experiment, baseline, type, level, false)
                         generateDifferentialFlameGraph(diff, type, level, false)
+                        generateDifferentialIcicleGraph(diff, type, level, false)
                         def backwardDiff = generateDiff(experiment, baseline, type, level, true)
                         generateDifferentialFlameGraph(backwardDiff, type, level, true)
+                        generateDifferentialIcicleGraph(backwardDiff, type, level, true)
                     }
                 }
             }
@@ -98,13 +100,23 @@ class JfrFlameGraphGenerator {
     }
 
     private void generateDifferentialFlameGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
-        File flames = new File(stacks.parentFile, stacks.name.replace(".txt", ".svg"))
+        File flames = new File(stacks.parentFile, "flame-" + stacks.name.replace(".txt", ".svg"))
         List<String> options = ["--title", type.displayName + "${negate ? " Backward " : " "}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
         if (negate) {
             options << "--negate"
         }
         flameGraphGenerator.generateFlameGraph(stacks, flames, options as String[])
         flames
+    }
+
+    private void generateDifferentialIcicleGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
+        File icicles = new File(stacks.parentFile, "icicle-" + stacks.name.replace(".txt", ".svg"))
+        List<String> options = ["--title", type.displayName + "${negate ? " Backward " : " "}Differential Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert"] + level.flameGraphOptions
+        if (negate) {
+            options << "--negate"
+        }
+        flameGraphGenerator.generateFlameGraph(stacks, icicles, options as String[])
+        icicles
     }
 
     private static enum EventType {
