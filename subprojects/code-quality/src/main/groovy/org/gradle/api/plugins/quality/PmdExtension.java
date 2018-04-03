@@ -17,9 +17,11 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.resources.TextResource;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,7 +38,7 @@ public class PmdExtension extends CodeQualityExtension {
     private TargetJdk targetJdk;
     private int rulePriority = 5;
     private TextResource ruleSetConfig;
-    private FileCollection ruleSetFiles;
+    private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
 
     public PmdExtension(Project project) {
@@ -131,6 +133,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
+    @Nullable
     public TextResource getRuleSetConfig() {
         return ruleSetConfig;
     }
@@ -145,7 +148,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @since 2.2
      */
     @Incubating
-    public void setRuleSetConfig(TextResource ruleSetConfig) {
+    public void setRuleSetConfig(@Nullable TextResource ruleSetConfig) {
         this.ruleSetConfig = ruleSetConfig;
     }
 
@@ -164,7 +167,7 @@ public class PmdExtension extends CodeQualityExtension {
      * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = ruleSetFiles;
+        this.ruleSetFiles = project.files(ruleSetFiles);
     }
 
     /**
@@ -175,7 +178,7 @@ public class PmdExtension extends CodeQualityExtension {
      * @param ruleSetFiles the rule set files to be added
      */
     public void ruleSetFiles(Object... ruleSetFiles) {
-        this.ruleSetFiles.add(project.files(ruleSetFiles));
+        this.ruleSetFiles.from(ruleSetFiles);
     }
 
     /**

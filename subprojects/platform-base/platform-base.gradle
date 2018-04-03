@@ -1,16 +1,21 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id 'strict-compile'
+    id 'gradlebuild.strict-compile'
 }
 
-sourceCompatibility = 1.6
-
 dependencies {
-    compile libraries.groovy.coordinate
+    compile libraries.groovy.coordinates
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':workers')
-    compile libraries.commons_collections.coordinate
+    compile libraries.commons_collections.coordinates
+    compile libraries.commons_lang.coordinates
     testFixturesCompile project(path: ':modelCore', configuration: 'testFixturesUsageRuntime')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

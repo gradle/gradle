@@ -16,16 +16,37 @@
 
 package org.gradle.plugins.ide.internal;
 
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
+import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface IdeArtifactRegistry {
-    void registerIdeArtifact(PublishArtifact ideArtifact);
+    void registerIdeArtifact(IdeProjectMetadata ideProjectMetadata);
 
-    List<LocalComponentArtifactMetadata> getIdeArtifactMetadata(String type);
+    /**
+     * Finds an IDE metadata artifact with the specified type. Does not execute tasks to build the artifact.
+     */
+    @Nullable
+    <T extends IdeProjectMetadata> T getIdeArtifactMetadata(Class<T> type, ProjectComponentIdentifier project);
 
-    FileCollection getIdeArtifacts(String type);
+    /**
+     * Finds all known IDE metadata artifacts with the specified type, in all builds. Does not execute tasks to build the artifact.
+     */
+    <T extends IdeProjectMetadata> List<Reference<T>> getIdeArtifactMetadata(Class<T> type);
+
+    /**
+     * Returns a {@link FileCollection} containing all metadata artifacts with the specified type, in all builds.
+     */
+    FileCollection getIdeArtifacts(Class<? extends IdeProjectMetadata> type);
+
+    interface Reference<T extends IdeProjectMetadata> {
+        T get();
+
+        TaskDependency getBuildDependencies();
+
+        ProjectComponentIdentifier getOwningProject();
+    }
 }

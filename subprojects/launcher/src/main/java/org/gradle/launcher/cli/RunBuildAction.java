@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestContext;
@@ -23,19 +23,20 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.cli.action.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class RunBuildAction implements Runnable {
     private final BuildActionExecuter<BuildActionParameters> executer;
-    private final StartParameter startParameter;
+    private final StartParameterInternal startParameter;
     private final BuildClientMetaData clientMetaData;
     private final long startTime;
     private final BuildActionParameters buildActionParameters;
     private final ServiceRegistry sharedServices;
     private final Stoppable stoppable;
 
-    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, BuildClientMetaData clientMetaData, long startTime,
+    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameterInternal startParameter, BuildClientMetaData clientMetaData, long startTime,
                           BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
         this.executer = executer;
         this.startParameter = startParameter;

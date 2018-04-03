@@ -1,21 +1,25 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
     This project contains various native operating system integration utilities.
 */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.nativePlatform.coordinate
+    api libraries.nativePlatform.coordinates
 
-    implementation libraries.commons_io.coordinate
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.jansi.coordinate
-    implementation libraries.guava.coordinate
+    implementation libraries.commons_io.coordinates
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.jansi.coordinates
+    implementation libraries.guava.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

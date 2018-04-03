@@ -20,19 +20,27 @@ import org.gradle.api.Namer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
-import spock.lang.Specification
 
-class DefaultNamedDomainObjectSetSpec extends Specification {
+class DefaultNamedDomainObjectSetSpec extends AbstractNamedDomainObjectCollectionSpec<Bean> {
     private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
-    private final Namer<DefaultNamedDomainObjectSetTest.Bean> namer = new Namer<DefaultNamedDomainObjectSetTest.Bean>() {
-        String determineName(DefaultNamedDomainObjectSetTest.Bean bean) {
+    private final Namer<Bean> namer = new Namer<Bean>() {
+        String determineName(Bean bean) {
             return bean.name
         }
     };
-    private final def container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, DefaultNamedDomainObjectSetTest.Bean.class, instantiator, namer)
+    final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer)
+    final Bean a = new BeanSub1("a")
+    final Bean b = new BeanSub1("b")
+    final Bean c = new BeanSub1("c")
+    final Bean d = new BeanSub2("d")
+
+    @Override
+    List<Bean> iterationOrder(Bean... elements) {
+        return elements.sort { it.name }
+    }
 
     def eachObjectIsAvailableAsADynamicProperty() {
-        def bean = new DefaultNamedDomainObjectSetTest.Bean("child");
+        def bean = new Bean("child");
 
         given:
         container.add(bean)
@@ -62,7 +70,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
     }
 
     def dynamicPropertyAccessInvokesRulesForUnknownDomainObject() {
-        def bean = new DefaultNamedDomainObjectSetTest.Bean();
+        def bean = new Bean("bean")
 
         given:
         container.addRule("rule", { s -> if (s == bean.name) { container.add(bean) }})
@@ -73,7 +81,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
     }
 
     def eachObjectIsAvailableAsConfigureMethod() {
-        def bean = new DefaultNamedDomainObjectSetTest.Bean("child");
+        def bean = new Bean("child");
         container.add(bean);
 
         when:
@@ -94,7 +102,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
     }
 
     def cannotInvokeUnknownMethod() {
-        container.add(new DefaultNamedDomainObjectSetTest.Bean("child"));
+        container.add(new Bean("child"));
 
         when:
         container.unknown()
@@ -133,7 +141,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
     }
 
     def canUseDynamicPropertiesAndMethodsInsideConfigureClosures() {
-        def bean = new DefaultNamedDomainObjectSetTest.Bean("child");
+        def bean = new Bean("child");
         container.add(bean);
 
         when:
@@ -148,7 +156,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
         then:
         bean.beanProperty == 'value 2'
 
-        def withType = new DefaultNamedDomainObjectSetTest.Bean("withType");
+        def withType = new Bean("withType");
         container.add(withType);
 
         // Try with an element with the same name as a method
@@ -160,7 +168,7 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
     }
 
     def configureMethodInvokesRuleForUnknownDomainObject() {
-        def b = new DefaultNamedDomainObjectSetTest.Bean()
+        def b = new Bean("bean")
 
         given:
         container.addRule("rule", { s -> if (s == b.name) { container.add(b) }})
@@ -168,6 +176,32 @@ class DefaultNamedDomainObjectSetSpec extends Specification {
         expect:
         container.bean {
             assert it == b
+        }
+    }
+
+    static class Bean {
+        public final String name
+        String beanProperty
+
+        Bean(String name) {
+            this.name = name
+        }
+
+        @Override
+        String toString() {
+            return name
+        }
+    }
+
+    static class BeanSub1 extends Bean {
+        BeanSub1(String name) {
+            super(name)
+        }
+    }
+
+    static class BeanSub2 extends Bean {
+        BeanSub2(String name) {
+            super(name)
         }
     }
 

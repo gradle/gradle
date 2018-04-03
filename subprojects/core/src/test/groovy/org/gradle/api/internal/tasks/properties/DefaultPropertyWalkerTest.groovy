@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties
 
-import org.gradle.api.Action
+import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
+import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
@@ -29,12 +30,12 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
@@ -50,7 +51,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty({ it.propertyName == 'myProperty' && it.value == 'myValue' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFile' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'inputFiles' })
-        1 * visitor.visitInputProperty({ it.propertyName == 'bean.class' && it.value == NestedBean })
+        1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == NestedBean })
         1 * visitor.visitInputProperty({ it.propertyName == 'bean.nestedInput' && it.value == 'nested' })
         1 * visitor.visitInputFileProperty({ it.propertyName == 'bean.inputDir' })
 
@@ -111,15 +112,108 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty({ it.propertyName == 'bean' && it.value == null })
     }
 
-    @Unroll
-    def "correct implementation for #type coerced to Action is tracked"() {
-        expect:
-        DefaultPropertyWalker.getImplementationClass(implementation as Action) == implementation.getClass()
+    def "cycle in nested inputs is detected"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        def cycle = new Tree(value: "cycle", left: new Tree(value: "left"))
+        cycle.right = cycle
+        task.nested = new Tree(value: "first", left: new Tree(value: "left"), right: new Tree(value: "deeper", left: cycle, right: new Tree(value: "no-cycle")))
 
-        where:
-        type      | implementation
-        "Closure" | { it }
-        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
+        when:
+        visitProperties(task)
+
+        then:
+        IllegalStateException e = thrown(IllegalStateException)
+        e.message == "Cycles between nested beans are not allowed. Cycle detected between: 'nested.right.left' and 'nested.right.left.right'."
+    }
+
+    def "cycle in nested input and task itself is detected"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = new Tree(value: "root", left: task, right: new Tree(value: "right"))
+
+        when:
+        visitProperties(task)
+
+        then:
+        IllegalStateException e = thrown(IllegalStateException)
+        e.message == "Cycles between nested beans are not allowed. Cycle detected between: '<root>' and 'nested.left'."
+    }
+
+    def "nested beans can be equal"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = new Tree(value: "root", right: new Tree(value: "right", right: new Tree(value: "right")))
+
+        when:
+        visitProperties(task)
+
+        then:
+        noExceptionThrown()
+        task.nested.right == task.nested.right.right
+    }
+
+    def "nested beans can be re-used"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        def subTree = new Tree(value: "left", left: new Tree(value: "left"), right: new Tree(value: "right"))
+        task.nested = new Tree(value: "head", left: subTree, right: new Tree(value: "deeper", left: subTree, right: new Tree(value: "evenDeeper", left: subTree, right: subTree)))
+
+        when:
+        visitProperties(task)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "nested iterable beans can have the same names"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = [new NamedNestedBean('name', 'value1'), new NamedNestedBean('name', 'value2')]
+
+        when:
+        visitProperties(task)
+
+        then:
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$0'})
+        1 * visitor.visitInputProperty({ it.propertyName == 'nested.name$1'})
+    }
+
+    def "providers are unpacked"() {
+        def task = project.tasks.create("myTask", TaskWithNestedObject)
+        task.nested = project.provider { new NestedBean() }
+
+        when:
+        visitProperties(task)
+
+        then:
+        1 * visitor.visitInputProperty({ it.propertyName == "nested" })
+        1 * visitor.visitInputProperty({ it.propertyName == "nested.nestedInput" })
+        1 * visitor.visitInputFileProperty({ it.propertyName == "nested.inputDir" })
+        1 * visitor.visitOutputFileProperty({ it.propertyName == "nested.outputDir" })
+
+        0 * _
+    }
+
+    static class NamedNestedBean implements Named {
+        @Internal
+        final String name
+        @Input
+        final String value
+
+        NamedNestedBean(String name, String value) {
+            this.value = value
+            this.name = name
+        }
+    }
+
+    static class TaskWithNestedObject extends DefaultTask {
+        @Nested
+        Object nested
+    }
+
+    @EqualsAndHashCode(includes = "value")
+    static class Tree {
+        @Input
+        String value
+
+        @Nested Object left
+        @Nested Object right
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {

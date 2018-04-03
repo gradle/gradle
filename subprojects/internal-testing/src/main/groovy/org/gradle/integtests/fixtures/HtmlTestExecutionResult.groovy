@@ -15,11 +15,14 @@
  */
 package org.gradle.integtests.fixtures
 
+import groovy.transform.EqualsAndHashCode
 import org.gradle.internal.FileUtils
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.junit.Assert
+
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
 class HtmlTestExecutionResult implements TestExecutionResult {
 
@@ -54,6 +57,10 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
     }
 
+    boolean testClassExists(String testClass) {
+        return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+    }
+
     TestClassExecutionResult testClass(String testClass) {
         return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
     }
@@ -67,12 +74,34 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return getExecutedTestClasses().size()
     }
 
+    @EqualsAndHashCode(includes = ['name', 'displayName'])
+    private static class TestCase {
+        String name
+        String displayName
+        List<String> messages
+
+        TestCase(String name) {
+            this(name, name)
+        }
+
+        TestCase(String name, String displayName) {
+            this(name, displayName, [])
+        }
+
+        TestCase(String name, String displayName, List<String> messages) {
+            this.name = removeParentheses(name)
+            this.displayName = removeParentheses(displayName)
+            this.messages = messages
+        }
+    }
+
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
+        private String classDisplayName
         private File htmlFile
-        private List<String> testsExecuted = []
-        private List<String> testsSucceeded = []
-        private Map<String, List<String>> testsFailures = [:]
-        private Set<String> testsSkipped = []
+        private List<TestCase> testsExecuted = []
+        private List<TestCase> testsSucceeded = []
+        private List<TestCase> testsFailures = []
+        private Set<TestCase> testsSkipped = []
         private Document html
 
         public HtmlTestClassExecutionResult(File htmlFile) {
@@ -81,25 +110,27 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             parseTestClassFile()
         }
 
+        private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
+            html.select(cssSelector).each {
+                def testDisplayName = it.textNodes().first().wholeText.trim()
+                def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
+                def failureMessage = getFailureMessages(testName)
+                def testCase = new TestCase(testName, testDisplayName, failureMessage)
+                testsExecuted << testCase
+                target << testCase
+            }
+        }
+
+        private boolean hasMethodNameColumn() {
+            return html.select('tr > th').size() == 4
+        }
+
         private void parseTestClassFile() {
-            html.select("tr > td.success:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
-                testsExecuted << testName
-                testsSucceeded << testName
-
-            }
-            html.select("tr > td.failures:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
-                testsExecuted << testName
-                def failures = getFailureMessages(testName);
-                testsFailures[it.text()] = failures
-            }
-
-            html.select("tr > td.skipped:eq(0)").each {
-                def testName = it.textNodes().first().wholeText.trim()
-                testsSkipped << testName
-                testsExecuted << testName
-            }
+            // " > TestClass" -> "TestClass"
+            classDisplayName = html.select('div.breadcrumbs').first().textNodes().last().wholeText.trim().substring(3)
+            extractTestCaseTo("tr > td.success:eq(0)", testsSucceeded)
+            extractTestCaseTo("tr > td.failures:eq(0)", testsFailures)
+            extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
         }
 
         List<String> getFailureMessages(String testmethod) {
@@ -108,7 +139,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
             def executedAndNotSkipped = testsExecuted - testsSkipped
-            assert executedAndNotSkipped.containsAll(testNames as List)
+            assert executedAndNotSkipped.containsAll(testNames.collect { new TestCase(it) })
             assert executedAndNotSkipped.size() == testNames.size()
             return this
         }
@@ -119,39 +150,88 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this
         }
 
+        int getTestCount() {
+            return testsExecuted.size()
+        }
+
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            assert testsSkipped == testNames as Set
+            assert testsSkipped == testNames.collect { new TestCase(it) } as Set
             return this
         }
 
+        @Override
+        TestClassExecutionResult assertTestPassed(String name, String displayName) {
+            assert testsSucceeded.contains(new TestCase(name, displayName))
+            return this
+        }
+
+        int getTestSkippedCount() {
+            return testsSkipped.size()
+        }
+
         TestClassExecutionResult assertTestPassed(String name) {
-            assert testsSucceeded.contains(name);
+            assert testsSucceeded.contains(new TestCase(name))
+            return this
+        }
+
+        @Override
+        TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+            assert testFailed(name, displayName, messageMatchers)
             return this
         }
 
         TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
-            assert testsFailures.containsKey(name)
-            def messages = testsFailures[name].collect { it.readLines().first() }
-            assert messages.size() == messageMatchers.length
-            for (int i = 0; i < messageMatchers.length; i++) {
-                assert messageMatchers[i].matches(messages[i])
+            assert testFailed(name, messageMatchers)
+            return this
+        }
+
+        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
+            return testFailed(name, name, messageMatchers)
+        }
+
+        boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
+            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
+            if (testCase.isEmpty()) {
+                return false
             }
+            def messages = testCase.first().messages.collect { it.readLines().first() }
+            if (messages.size() != messageMatchers.length) {
+                return false
+            }
+            for (int i = 0; i < messageMatchers.length; i++) {
+                if (!messageMatchers[i].matches(messages[i])) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        @Override
+        TestClassExecutionResult assertTestSkipped(String name, String displayName) {
+            assert testsSkipped.contains(new TestCase(name, displayName))
             return this
         }
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
             String failureMethodName = "execution failure"
-            assert testsFailures.containsKey(failureMethodName)
+            def testCase = testsFailures.find { it.name == failureMethodName }
+            assert testCase
 
             String causeLinePrefix = "Caused by: "
-            def cause = testsFailures[failureMethodName].first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
+            def cause = testCase.messages.first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
 
             Assert.assertThat(cause, causeMatcher)
             this
         }
 
+        @Override
+        TestClassExecutionResult assertDisplayName(String classDisplayName) {
+            assert classDisplayName == classDisplayName
+            this
+        }
+
         TestClassExecutionResult assertTestSkipped(String name) {
-            assert testsSkipped.contains(name);
+            assert testsSkipped.contains(new TestCase(name))
             return this
         }
 

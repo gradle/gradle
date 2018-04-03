@@ -260,7 +260,7 @@ public class ThingTest {
         then:
         ':test' in nonSkippedTasks
         ':jacocoTestReport' in executedTasks
-        errorOutput.contains("Unable to read execution data file ${new File(testDirectory, execFileName)}")
+        failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
     }
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {

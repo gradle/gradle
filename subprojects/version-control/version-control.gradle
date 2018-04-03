@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -15,19 +17,23 @@
  */
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
     api project(':coreApi')
 
     implementation project(':core')
-    implementation libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
+    implementation libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
 
     testFixturesImplementation project(":internalTesting")
     testFixturesImplementation project(":internalIntegTesting")
-    testFixturesCompile libraries.jgit.coordinate, libraries.commons_httpclient.coordinate, libraries.jsch.coordinate
+    testFixturesCompile libraries.jgit.coordinates, libraries.commons_httpclient.coordinates, libraries.jsch.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

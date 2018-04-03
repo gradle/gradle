@@ -161,9 +161,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         failureHasCause("A failure occurred while executing RunnableThatFails")
         failureHasCause("Failure from taskAction2")
 
-        and:
-        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from taskAction2")
-
         where:
         isolationMode << ISOLATION_MODES
     }
@@ -191,9 +188,6 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         and:
         failureHasCause("A failure occurred while executing RunnableThatFails")
         failureHasCause("Failure from workItem2")
-
-        and:
-        errorOutput.contains("Caused by: java.lang.RuntimeException: Failure from workItem2")
 
         where:
         isolationMode << ISOLATION_MODES

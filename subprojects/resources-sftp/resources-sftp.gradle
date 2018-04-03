@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -15,19 +17,23 @@
  */
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
     api project(':resources')
     api project(':core')
 
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.guava.coordinate
-    implementation libraries.jsch.coordinate
-    implementation libraries.jcip.coordinate
-    implementation libraries.commons_io.coordinate
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.jsch.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.commons_io.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {
@@ -37,5 +43,7 @@ testFixtures {
     from(':core')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

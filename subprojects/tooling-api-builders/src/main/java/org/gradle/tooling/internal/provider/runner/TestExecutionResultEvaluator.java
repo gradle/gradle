@@ -17,46 +17,45 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Task;
 import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestExecutionException;
-import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.OperationFinishEvent;
-import org.gradle.internal.progress.OperationProgressEvent;
-import org.gradle.internal.progress.OperationStartEvent;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.OperationFinishEvent;
+import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.OperationProgressEvent;
+import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
-class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperationListener {
+class TestExecutionResultEvaluator implements BuildOperationListener {
     private static final String INDENT = "    ";
 
-    private long resultCount;
-    private Map<Object, String> runningTasks = Maps.newHashMap();
+    private final TestExecutionRequestAction internalTestExecutionRequest;
 
-    private TestExecutionRequestAction internalTestExecutionRequest;
-    private List<FailedTest> failedTests = Lists.newArrayList();
+    private final AtomicLong resultCount = new AtomicLong();
+    private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
+    private final Queue<FailedTest> failedTests = new ConcurrentLinkedQueue<FailedTest>();
 
     public TestExecutionResultEvaluator(TestExecutionRequestAction internalTestExecutionRequest) {
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
     public boolean hasUnmatchedTests() {
-        return resultCount == 0;
+        return resultCount.get() == 0;
     }
 
     public boolean hasFailedTests() {
@@ -99,17 +98,30 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
     }
 
     @Override
-    public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-
+    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
+            Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
+            runningTasks.put(buildOperation.getId(), task.getPath());
+        }
     }
 
     @Override
-    public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        if (testDescriptor.getParent() == null) {
-            resultCount = resultCount + testResult.getTestCount();
-        }
-        if (!testDescriptor.isComposite() && testResult.getFailedTestCount() != 0) {
-            failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor)));
+    public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
+    }
+
+    @Override
+    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails) {
+            runningTasks.remove(buildOperation.getId());
+        } else if (finishEvent.getResult() instanceof ExecuteTestBuildOperationType.Result) {
+            TestDescriptorInternal testDescriptor = (TestDescriptorInternal) ((ExecuteTestBuildOperationType.Details) buildOperation.getDetails()).getTestDescriptor();
+            TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
+            if (testDescriptor.getParent() == null) {
+                resultCount.addAndGet(testResult.getTestCount());
+            }
+            if (!testDescriptor.isComposite() && testResult.getFailedTestCount() != 0) {
+                failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor)));
+            }
         }
     }
 
@@ -123,31 +135,6 @@ class TestExecutionResultEvaluator implements TestListenerInternal, BuildOperati
             throw new IllegalStateException("No parent task for test " + givenDescriptor);
         }
         return taskPath;
-    }
-
-    @Override
-    public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-    }
-
-    @Override
-    public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
-            return;
-        }
-        Task task = ((ExecuteTaskBuildOperationDetails) buildOperation.getDetails()).getTask();
-        runningTasks.put(buildOperation.getId(), task.getPath());
-    }
-
-    @Override
-    public void progress(BuildOperationDescriptor buildOperation, OperationProgressEvent progressEvent) {
-    }
-
-    @Override
-    public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        if (!(buildOperation.getDetails() instanceof ExecuteTaskBuildOperationDetails)) {
-            return;
-        }
-        runningTasks.remove(buildOperation.getId());
     }
 
     private static class FailedTest {

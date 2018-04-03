@@ -164,37 +164,62 @@ You configure the project layout by configuring the appropriate source set. This
 [[sec:java_plugin_and_dependency_management]]
 === Dependency management
 
-The Java plugin adds a number of <<defining_and_using_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
+The Java plugin adds a number of <<managing_dependency_configurations,dependency configurations>> to your project, as shown below. It assigns those configurations to tasks such as `compileJava` and `test`.
 
 [[tab:configurations]]
 ==== Dependency configurations
 
-`compile`::
-_Compile time dependencies._
+[NOTE]
+====
+
+For `api` configuration introduced by `java-library` plugin, please consult <<java_library_separation, Java Library Plugin>> and <<dependency_management_for_java_projects, Dependency Management Tutorial>>.
+
+====
+
+[.line-through]#`compile`#(Deprecated)::
+_Compile time dependencies._ Superseded by `implementation`.
+
+`implementation` extends `compile`::
+_Implementation only dependencies._
 
 `compileOnly`::
 _Compile time only dependencies, not used at runtime._
 
-`compileClasspath` extends `compile, compileOnly`::
+`compileClasspath` extends `compile, compileOnly, implementation`::
 _Compile classpath, used when compiling source._ Used by task `compileJava`.
 
 `annotationProcessor`::
 _Annotation processors used during compilation._
 
-`runtime` extends `compile`::
-_Runtime dependencies._
+[.line-through]#`runtime`#(Deprecated) extends `compile`::
+_Runtime dependencies._ Superseded by `runtimeOnly`.
 
-`testCompile` extends `compile`::
-_Additional dependencies for compiling tests._
+`runtimeOnly`::
+_Runtime only dependencies._
+
+`runtimeClasspath` extends `runtimeOnly, runtime, implementation`::
+_Runtime classpath contains elements of the implementation, as well as runtime only elements._
+
+[.line-through]#`testCompile`#(Deprecated) extends `compile`::
+_Additional dependencies for compiling tests._ Superseded by `testImplementation`.
+
+`testImplementation` extends `testCompile, implementation`::
+_Implementation only dependencies for tests._
 
 `testCompileOnly`::
 _Additional dependencies only for compiling tests, not used at runtime._
 
-`testCompileClasspath` extends `testCompile, testCompileOnly`::
+`testCompileClasspath` extends `testCompile, testCompileOnly, testImplementation`::
 _Test compile classpath, used when compiling test sources._ Used by task `compileTestJava`.
 
-`testRuntime` extends `runtime, testCompile`::
-_Additional dependencies for running tests only._ Used by task `test`.
+[.line-through]#`testRuntime`#(Deprecated) extends `runtime, testCompile`::
+_Additional dependencies for running tests only._ Used by task `test`. Superseded by `testRuntimeOnly`.
+
+`testRuntimeOnly` extends `runtimeOnly`::
+_Runtime only dependencies for running tests._ Used by task `test`.
+
+`testRuntimeClasspath` extends `testRuntimeOnly, testRuntime, testImplementation`::
+_Runtime classpath for running tests._
 
 `archives`::
 Artifacts (e.g. jars) produced by this project. Used by tasks `uploadArchives`.
@@ -216,21 +241,29 @@ For each source set you add to the project, the Java plugins adds the following 
 [[java_source_set_configurations]]
 ==== SourceSet dependency configurations
 
-`__sourceSet__Compile`::
-_Compile time dependencies for the given source set._
+[.line-through]#`__sourceSet__Compile`#(Deprecated)::
+_Compile time dependencies for the given source set._ Superseded by `__sourceSet__Implementation`.
+
+`__sourceSet__Implementation` extends `__sourceSet__Compile`::
+_Compile time dependencies for the given source set._ Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
 
 `__sourceSet__CompileOnly`::
 _Compile time only dependencies for the given source set, not used at runtime._
 
 `__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
-_Compile classpath, used when compiling source._ Used by `__sourceSet__Compile`, `__sourceSet__CompileOnly`.
+_Compile classpath, used when compiling source._ Used by `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`.
 
 `__sourceSet__AnnotationProcessor`::
 _Annotation processors used during compilation of this source set._
 
-`__sourceSet__Runtime`::
-_Runtime dependencies for the given source set._ Used by `__sourceSet__Compile`.
+[.line-through]#`__sourceSet__Runtime`#(Deprecated)::
+_Runtime dependencies for the given source set._ Used by `__sourceSet__Compile`. Superseded by `__sourceSet__RuntimeOnly`.
 
+`__sourceSet__RuntimeOnly`::
+_Runtime only dependencies for the given source set._
+
+`__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Runtime, __sourceSet__Implementation`::
+_Runtime classpath contains elements of the implementation, as well as runtime only elements._
 
 [[sec:java_convention_properties]]
 === Convention properties
@@ -495,7 +528,7 @@ Main goals for incremental compilations are:
 
 The incremental compilation at a high level:
 
-* The detection of the correct set of stale classes is reliable at some expense of speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
+* The stale class detection favors reliability over speed. The algorithm uses bytecode analysis and deals gracefully with compiler optimizations (inlining of non-private constants), transitive class dependencies, etc. Example: When a class with a public constant changes, we eagerly compile classes that use the same constants to avoid problems with constants inlined by the compiler.
 * To make incremental compilation fast, we cache class analysis results and jar snapshots. The initial incremental compilation can be slower due to the cold caches.
 
 [[sec:incremental_compilation_known_issues]]
@@ -505,7 +538,70 @@ The incremental compilation at a high level:
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used in the code. For example, imagine that you have the following code: `List&lt;? extends A&gt; list = Lists.newArrayList();` but that no member of `A` is in practice used in the code, then changes to `A` will not trigger recompilation of the class. In practice, this should very rarely be an issue.
 
+[[sec:incremental_annotation_processing]]
+=== Incremental annotation processing
 
+Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
+Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
+
+==== Making an annotation processor incremental
+
+Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
+As a processor author, please consult the information below to decide which category fits your processor.
+You can then register it for incremental compilation in its META-INF folder.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
+     <sourcefile file="processor/src/main/resources/META-INF/gradle/incremental.annotation.processors" snippet="registering-incremental-annotation-processors"/>
+</sample>
+++++
+
+Processors that don't fit these categories will result in full recompilation.
+This includes processors that use `java.io` instead of the `Filer` API and processors that need to read or write resource files.
+
+===== Isolating annotation processors
+These look at each annotated element in isolation, creating generated files or validation messages for it.
+For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="isolatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An isolated annotation processor">
+     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="isolating-annotation-processor"/>
+</sample>
+++++
+
+
+Isolating processors have the following limitations:
+
+* Can't read resources
+* Can't write resources
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+* Must provide exactly one originating element for each file generated with the `Filer` API
+* Must make all decisions about an element based on information reachable from its AST.
+For instance it can query the super class, method return types etc, but can't look at other, unrelated elements.
+
+Gradle will recompile the generated file whenever the source file is affected.
+If the source file is deleted, the generated file is deleted.
+
+===== Aggregating annotation processors
+These aggregate several source files into one ore more output files or validation messages.
+For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="aggregatingAnnotationProcessor" dir="java/incrementalAnnotationProcessing" title="An aggregating annotation processor">
+     <sourcefile file="processor/src/main/java/ServiceRegistryProcessor.java" snippet="aggregating-annotation-processor"/>
+</sample>
+++++
+
+Aggregating processors have the following limitations:
+
+* Its annotations need to have `CLASS` or `RUNTIME` retention
+* Can't read resources (this may change in the future)
+* Can't write resources (this may change in the future)
+* Can't have any side effects except for using the `Filer` and `Messager` APIs
+
+Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
+Gradle will always recompile any files the processor generates.
 
 [[sec:java_compile_avoidance]]
 === Compile avoidance
@@ -563,6 +659,18 @@ The task has an `ignoreFailures` property to control the behavior when tests fai
 
 The `testLogging` property allows you to configure which test events are going to be logged and at which detail level. By default, a concise message will be logged for every failed test. See api:org.gradle.api.tasks.testing.logging.TestLoggingContainer[] for how to tune test logging to your preferences.
 
+Projects with large test suites can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To short circuit this behavior, the api:org.gradle.api.tasks.testing.Test#getFailFast()[`failFast`] property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. To enable this fail fast behavior in your build file, set the `failFast` property to `true`:
+
+    test {
+        failFast = true
+    }
+
+The `--fail-fast` command line option enables the behavior from the command line. An invocation looks like:
+
+    gradle integTest --fail-fast
+
+The default value for the `failFast` property is false.
+
 [[sec:debugging]]
 ==== Debugging
 
@@ -583,38 +691,70 @@ Starting with Gradle 1.10, it is possible to include only specific tests, based 
 
 Test filtering feature has following characteristic:
 
-* Fully qualified class name or fully qualified method name is supported, e.g. ???org.gradle.SomeTest???, ???org.gradle.SomeTest.someMethod???
-* Wildcard '*' is supported for matching any characters
-* Command line option ???--tests??? is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple ???--tests??? options and tests matching any of those patterns will be included.
+* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`.
+* Simple class name or simple method name is supported if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (Since 4.7).
+* Wildcard '*' is supported for matching any characters.
+* Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
 * Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
 * Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
 
-
-
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
-                    <sourcefile file="build.gradle" snippet="test-filtering"/>
-                </sample>
+     <sourcefile file="build.gradle" snippet="test-filtering"/>
+</sample>
 ++++
 
 For more details and examples please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
 
-Some examples of using the command line option:
+Generally speaking, there're two kinds of pattern:
 
-* `gradle test --tests org.gradle.SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeTest.someSpecificFeature`
-* `gradle test --tests \*SomeSpecificTest`
-* `gradle test --tests \*SomeSpecificTestSuite`
-* `gradle test --tests all.in.specific.package\*`
-* `gradle test --tests \*IntegTest`
-* `gradle test --tests \\*IntegTest\*ui\*`
-* `gradle test --tests "com.example.MyTestSuite"`
-* `gradle test --tests "com.example.ParameterizedTest"`
-* `gradle test --tests "\*ParameterizedTest.foo*"`
-* `gradle test --tests "\*ParameterizedTest.*[2]"`
-* `gradle someTestTask --tests \*UiTest someOtherTestTask --tests \*WebTest\*ui`
+[[simple_name_pattern]]
+===== Simple name pattern
 
-This is something you can combine with <<continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
+Since 4.7, a pattern starting with an upper-case letter matches simple class name:
+
+```
+# can match 'SomeTest' and corresponding method at any package
+gradle test --tests SomeTestClass
+
+gradle test --tests SomeTestClass.someSpecificMethod
+
+gradle test --tests SomeTestClass.*someMethod*
+```
+
+[[full_qualified_name_pattern]]
+===== Full qualified name pattern
+
+Otherwise, the pattern matches full qualified class name.
+
+```
+# specific class
+gradle test --tests org.gradle.SomeTestClass
+
+# specific class and method
+gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
+
+# method name containing spaces
+gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
+
+# all classes at specific package (recursively)
+gradle test --tests 'all.in.specific.package*'
+
+# specific method at specific package (recursively)
+gradle test --tests 'all.in.specific.package*.someSpecificMethod'
+
+gradle test --tests '*IntegTest'
+
+gradle test --tests '*IntegTest*ui*'
+
+gradle test --tests '*ParameterizedTest.foo*'
+
+# the second iteration of a parameterized test
+gradle test --tests '*ParameterizedTest.*[2]'
+```
+
+
+This is something you can combine with <<sec:continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
 
 ----
 gradle test --continuous --tests "com.mypackage.foo.*"
@@ -629,7 +769,7 @@ gradle test --continuous --tests "com.mypackage.foo.*"
 This mechanism has been superseded by 'Test Filtering', described above.
 ====
 
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like ???:sub1:sub2:test??? or just the task name. The __testNamePattern__ will be used to form an include pattern of ???\**/testNamePattern*.class???. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
+Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like `:sub1:sub2:test` or just the task name. The __testNamePattern__ will be used to form an include pattern of `\**/testNamePattern*.class`. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
 
 * `gradle -Dtest.single=ThisUniquelyNamedTest test`
 * `gradle -Dtest.single=a/b/ test`
@@ -654,18 +794,32 @@ When using TestNG, we scan for methods annotated with `@Test`.
 
 Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
 
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are ???`\**/*Tests.class`???, ???`*\*/*Test.class`??? and ???`*\*/Abstract*.class`??? for include and exclude, respectively.
+If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are `\**/*Tests.class`, `*\*/*Test.class` and `*\*/Abstract*.class` for include and exclude, respectively.
+
+[NOTE]
+====
+With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes`/`excludes` is used to filter test classes, `scanForTestClasses` has no effect.
+====
 
 [[test_grouping]]
 ==== Test grouping
 
-JUnit and TestNG allows sophisticated groupings of test methods.
+JUnit/JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
-For grouping JUnit test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
+For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
                 <sourcefile file="build.gradle" snippet="test-categories"/>
+            </sample>
+++++
+
+In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
+You can specify the included/excluded tags as follows:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitplatformtags" dir="testing/junitplatform/tagging" title="JUnit Platform Tags">
+                <sourcefile file="build.gradle" snippet="test-tags"/>
             </sample>
 ++++
 
@@ -677,6 +831,80 @@ The TestNG framework has a quite similar concept. In TestNG you can specify diff
             </sample>
 ++++
 
+[[using_junit5]]
+==== Using JUnit 5
+
+http://junit.org/junit5[JUnit 5] is the latest version of the well-known JUnit test framework.
+Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
+
+    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
+
+The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new http://junit.org/junit5/docs/current/user-guide/#writing-tests[programming model]
+ and http://junit.org/junit5/docs/current/user-guide/#extensions[extension model] for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
+
+The following code enables JUnit Platform support in `build.gradle`:
+
+    test {
+        useJUnitPlatform()
+    }
+
+See api:org.gradle.api.tasks.testing.Test#useJUnitPlatform()[] for more details.
+
+[[compiling_and_executing_junit_jupiter_tests]]
+===== Compiling and executing JUnit Jupiter tests
+
+To enable JUnit Jupiter support, add the following dependencies:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterdependencies" dir="testing/junitplatform/jupiter" title="JUnit Jupiter dependencies">
+    <sourcefile file="build.gradle" snippet="jupiter-dependencies"/>
+</sample>
+++++
+
+Put the following code into `src/test/java`:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterexample" dir="testing/junitplatform/mix" title="Jupiter test example">
+    <sourcefile file="src/test/java/org/gradle/junitplatform/JupiterTest.java" snippet="jupiter-example"/>
+</sample>
+++++
+
+Now you can run `gradle test` to see the results.
+
+A Jupiter sample can be found at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle.
+
+[[executing_legacy_tests_with_junit_vintage]]
+===== Executing legacy tests with JUnit Vintage
+
+If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="vintagedependencies" dir="testing/junitplatform/mix/" title="JUnit Vintage dependencies">
+    <sourcefile file="build.gradle" snippet="vintage-dependencies"/>
+</sample>
+++++
+
+In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
+
+A sample of mixed tests can be found at `samples/testing/junitplatform/mix` in the '-all' distribution of Gradle.
+
+[[filtering_test_engine]]
+===== Filtering test engine
+
+JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
+https://junit.org/junit5/docs/current/api/org/junit/jupiter/engine/package-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org/junit/vintage/engine/package-summary.html[junit-vintage-engine].
+You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
+
+By default, all test engines on the test runtime classpath will be used.
+To control specific test engine implementations explicitly, you can do as follows:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="filterengine" dir="testing/junitplatform/engine/" title="Filter specific engines">
+    <sourcefile file="build.gradle" snippet="filter-engine"/>
+</sample>
+++++
+
+A test engine filtering sample can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.
 
 [[test_execution_order]]
 ==== Test execution order in TestNG
@@ -812,3 +1040,14 @@ The following sample shows how the `build.gradle` needs to be adjusted. In order
                 <sourcefile file="build.gradle" snippet="java-cross-compilation"/>
             </sample>
 ++++
+
+[[sec:properties_files]]
+=== Java properties files
+
+Properties files are used in many places during Java development and so Gradle makes it easy to create them as a normal part of the build. Just use the api:org.gradle.api.tasks.WriteProperties[] task.
+
+The `WriteProperties` task also fixes a well-known problem with `Properties.store()` that can reduce the usefulness of incremental builds (see <<sec:up_to_date_checks>>). The standard Java way to write a properties file produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
+
+* no timestamp comment is added to the output
+* the line separator is system independent, but can be configured explicitly (it defaults to `'\n'`)
+* the properties are sorted alphabetically

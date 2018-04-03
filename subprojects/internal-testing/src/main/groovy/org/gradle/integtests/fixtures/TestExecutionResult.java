@@ -33,4 +33,6 @@ public interface TestExecutionResult {
     TestClassExecutionResult testClassStartsWith(String testClass);
 
     int getTotalNumberOfTestClassesExecuted();
+
+    boolean testClassExists(String testClass);
 }

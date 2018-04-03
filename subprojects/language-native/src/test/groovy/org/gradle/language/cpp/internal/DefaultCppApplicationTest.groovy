@@ -17,6 +17,7 @@
 package org.gradle.language.cpp.internal
 
 import org.gradle.language.cpp.CppPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,6 +31,12 @@ class DefaultCppApplicationTest extends Specification {
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def application = new DefaultCppApplication("main", project.objects, project)
 
+    def "has display name"() {
+        expect:
+        application.displayName.displayName == "C++ application 'main'"
+        application.toString() == "C++ application 'main'"
+    }
+
     def "has implementation dependencies"() {
         expect:
         application.implementationDependencies == project.configurations['implementation']
@@ -42,7 +49,14 @@ class DefaultCppApplicationTest extends Specification {
 
     def "can add an executable"() {
         expect:
-        def exe = application.addExecutable("debug", true, false, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        def exe = application.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'mainDebug'
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return Stub(NativeVariantIdentity) {
+            getName() >> "debug"
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS)
+        }
     }
 }

@@ -111,7 +111,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
             if (artifact.getConfigurations().contains(name)) {
                 ModuleComponentArtifactMetadata artifactMetadata = artifacts.get(artifact);
                 if (artifactMetadata == null) {
-                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact.getArtifactName());
+                    artifactMetadata = new DefaultModuleComponentArtifactMetadata(getId(), artifact.getArtifactName());
                     artifacts.put(artifact, artifactMetadata);
                 }
                 dest.add(artifactMetadata);
@@ -136,14 +136,14 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
         ImmutableList.Builder<ModuleDependencyMetadata> filteredDependencies = ImmutableList.builder();
         for (IvyDependencyDescriptor dependency : dependencies) {
             if (include(dependency, config.getName(), config.getHierarchy())) {
-                filteredDependencies.add(contextualize(config, getComponentId(), dependency));
+                filteredDependencies.add(contextualize(config, getId(), dependency));
             }
         }
         return filteredDependencies.build();
     }
 
     private ModuleDependencyMetadata contextualize(ConfigurationMetadata config, ModuleComponentIdentifier componentId, IvyDependencyDescriptor incoming) {
-        return new ConfigurationDependencyMetadataWrapper(config, componentId, incoming);
+        return new ConfigurationBoundExternalDependencyMetadata(config, componentId, incoming);
     }
 
     private boolean include(IvyDependencyDescriptor dependency, String configName, Collection<String> hierarchy) {

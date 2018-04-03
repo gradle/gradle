@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.progress;
 
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 /**
  * Thread-safe, however the progress logger instances created are not.

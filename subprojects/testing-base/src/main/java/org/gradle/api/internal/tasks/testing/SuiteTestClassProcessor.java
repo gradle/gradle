@@ -66,4 +66,9 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
             resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
+
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
 }

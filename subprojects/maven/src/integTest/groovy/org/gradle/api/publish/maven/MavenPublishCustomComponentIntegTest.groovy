@@ -47,7 +47,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         disableModuleMetadataPublishing()
 
         // Instead enable via property
-        FeaturePreviewsFixture.enableGradleMetadata(propertiesFile)
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         createBuildScripts("""
             publishing {
@@ -162,6 +162,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     Set<PublishArtifact> artifacts = [ publishedArtifact ]
                     Set<ModuleDependency> dependencies = [ publishedDependency ]
                     Set<DependencyConstraint> dependencyConstraints = []
+                    Set<Capability> capabilities = []
                 }
             }
             class MyComponentWithVariants extends MySoftwareComponent implements ComponentWithVariants {

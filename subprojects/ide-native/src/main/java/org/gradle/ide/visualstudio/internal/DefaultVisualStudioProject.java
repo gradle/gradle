@@ -17,15 +17,19 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.visualstudio.XmlConfigFile;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.gradle.util.CollectionUtils.collect;
+
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
@@ -43,29 +49,34 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final DefaultConfigFile projectFile;
     private final DefaultConfigFile filtersFile;
     private final String name;
-    private final String projectPath;
     private final String componentName;
+    private final VersionNumber visualStudioVersion;
+    private final VersionNumber sdkVersion;
     private final List<File> additionalFiles = new ArrayList<File>();
     private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
-    public DefaultVisualStudioProject(String name, String projectPath, String componentName, PathToFileResolver fileResolver, Instantiator instantiator) {
+    public DefaultVisualStudioProject(String name, String componentName, VersionNumber visualStudioVersion, VersionNumber sdkVersion, PathToFileResolver fileResolver, Instantiator instantiator) {
         this.name = name;
-        this.projectPath = projectPath;
         this.componentName = componentName;
+        this.visualStudioVersion = visualStudioVersion;
+        this.sdkVersion = sdkVersion;
         projectFile = instantiator.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
         filtersFile = instantiator.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
     }
 
     @Override
+    @Input
     public String getComponentName() {
         return componentName;
     }
 
+    @Override
     public DefaultConfigFile getProjectFile() {
         return projectFile;
     }
 
+    @Override
     public DefaultConfigFile getFiltersFile() {
         return filtersFile;
     }
@@ -78,6 +89,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return "{" + UUID.nameUUIDFromBytes(projectFile.getAbsolutePath().getBytes()).toString().toUpperCase() + "}";
     }
 
+    @Internal
     public Set<File> getSourceFiles() {
         Set<File> allSources = new LinkedHashSet<File>();
         for (VisualStudioTargetBinary binary : configurations.keySet()) {
@@ -87,6 +99,17 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return allSources;
     }
 
+    @Input
+    public Set<String> getSourceFilePaths() {
+        return collect(getSourceFiles(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        });
+    }
+
+    @Internal
     public Set<File> getResourceFiles() {
         Set<File> allResources = new LinkedHashSet<File>();
         for (VisualStudioTargetBinary binary : configurations.keySet()) {
@@ -95,6 +118,17 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return allResources;
     }
 
+    @Input
+    public Set<String> getResourceFilePaths() {
+        return collect(getResourceFiles(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        });
+    }
+
+    @Internal
     public Set<File> getHeaderFiles() {
         Set<File> allHeaders = new LinkedHashSet<File>();
         for (VisualStudioTargetBinary binary : configurations.keySet()) {
@@ -103,6 +137,17 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return allHeaders;
     }
 
+    @Input
+    public Set<String> getHeaderFilePaths() {
+        return collect(getHeaderFiles(), new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.getAbsolutePath();
+            }
+        });
+    }
+
+    @Nested
     public List<VisualStudioProjectConfiguration> getConfigurations() {
         return CollectionUtils.toList(configurations.values());
     }
@@ -114,6 +159,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         builtBy(nativeBinary.getHeaderFiles());
     }
 
+    @Internal
     public VisualStudioProjectConfiguration getConfiguration(VisualStudioTargetBinary nativeBinary) {
         return configurations.get(nativeBinary);
     }
@@ -133,20 +179,28 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return name;
     }
 
-    @Override
-    public PublishArtifact getPublishArtifact() {
-        return new VisualStudioProjectArtifact();
+    public VersionNumber getVisualStudioVersion() {
+        return visualStudioVersion;
     }
 
-    private class VisualStudioProjectArtifact extends DefaultPublishArtifact {
-        public VisualStudioProjectArtifact() {
-            super(name, "vcxproj", ARTIFACT_TYPE, null, null, null, buildDependencies);
-        }
+    public VersionNumber getSdkVersion() {
+        return sdkVersion;
+    }
 
-        @Override
-        public File getFile() {
-            return projectFile.getLocation();
-        }
+    @Override
+    @Internal
+    public IdeProjectMetadata getPublishArtifact() {
+        return new VisualStudioProjectMetadata(this);
+    }
+
+    @Nested
+    public List<Action<? super XmlProvider>> getProjectFileActions() {
+        return projectFile.getXmlActions();
+    }
+
+    @Nested
+    public List<Action<? super XmlProvider>> getFiltersFileActions() {
+        return filtersFile.getXmlActions();
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {
@@ -171,6 +225,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
             actions.add(action);
         }
 
+        @Nested
         public List<Action<? super XmlProvider>> getXmlActions() {
             return actions;
         }

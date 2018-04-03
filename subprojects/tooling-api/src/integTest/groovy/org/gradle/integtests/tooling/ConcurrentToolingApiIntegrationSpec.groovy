@@ -131,11 +131,11 @@ project.description = text
 
                     assert model.get().description == "hasta la vista $idx"
 
-                    assert operation.getStandardOutput().contains("out=hasta la vista $idx")
-                    assert operation.getStandardOutput().count("out=hasta la vista") == 1
+                    assert operation.standardOutput.contains("out=hasta la vista $idx")
+                    assert operation.standardOutput.count("out=hasta la vista") == 1
 
-                    assert operation.getStandardError().contains("err=hasta la vista $idx")
-                    assert operation.getStandardError().count("err=hasta la vista") == 1
+                    assert operation.standardOutput.contains("err=hasta la vista $idx")
+                    assert operation.standardOutput.count("err=hasta la vista") == 1
                 }
             }
             concurrent.finished()
@@ -315,12 +315,13 @@ logger.lifecycle 'this is lifecycle: $idx'
                     assert operation.standardOutput.contains("this is stdout: $idx")
                     assert operation.standardOutput.count("this is stdout") == 1
 
-                    assert operation.standardError.contains("this is stderr: $idx")
-                    assert operation.standardError.count("this is stderr") == 1
+                    assert operation.standardOutput.contains("this is stderr: $idx")
+                    assert operation.standardOutput.count("this is stderr") == 1
 
                     assert operation.standardOutput.contains("this is lifecycle: $idx")
                     assert operation.standardOutput.count("this is lifecycle") == 1
-                    assert operation.standardError.count("this is lifecycle") == 0
+
+                    assert operation.standardError.empty
                 }
             }
         }
@@ -350,12 +351,13 @@ logger.lifecycle 'this is lifecycle: $idx'
                     assert operation.standardOutput.contains("this is stdout: $idx")
                     assert operation.standardOutput.count("this is stdout") == 1
 
-                    assert operation.standardError.contains("this is stderr: $idx")
-                    assert operation.standardError.count("this is stderr") == 1
+                    assert operation.standardOutput.contains("this is stderr: $idx")
+                    assert operation.standardOutput.count("this is stderr") == 1
 
                     assert operation.standardOutput.contains("this is lifecycle: $idx")
                     assert operation.standardOutput.count("this is lifecycle") == 1
-                    assert operation.standardError.count("this is lifecycle") == 0
+
+                    assert operation.standardError.empty
                 }
             }
         }

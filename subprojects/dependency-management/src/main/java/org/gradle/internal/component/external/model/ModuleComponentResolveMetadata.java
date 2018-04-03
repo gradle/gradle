@@ -33,7 +33,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     /**
      * {@inheritDoc}
      */
-    ModuleComponentIdentifier getComponentId();
+    ModuleComponentIdentifier getId();
 
     /**
      * {@inheritDoc}

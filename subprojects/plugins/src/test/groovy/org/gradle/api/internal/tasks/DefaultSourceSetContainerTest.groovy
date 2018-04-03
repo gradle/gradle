@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.SourceSet
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage
+import org.gradle.internal.featurelifecycle.FeatureUsage
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.NameValidator
@@ -45,13 +45,13 @@ class DefaultSourceSetContainerTest extends Specification {
     def "source sets are not allowed to be named '#name'"() {
         given:
         def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
-        SingleMessageLogger.handler = loggingDeprecatedFeatureHandler
+        SingleMessageLogger.deprecatedFeatureHandler = loggingDeprecatedFeatureHandler
 
         when:
         container.create(name)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.deprecatedFeatureUsed(_  as DeprecatedFeatureUsage) >> { DeprecatedFeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 

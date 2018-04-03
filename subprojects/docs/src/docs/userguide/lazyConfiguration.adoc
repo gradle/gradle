@@ -45,7 +45,7 @@ Gradle represents lazy properties with two interfaces:
 ** The method api:org.gradle.api.provider.Property#set(org.gradle.api.provider.Provider)[] specifies a `Provider` for the value for the property, overwriting whatever value may have been present. This allows you to wire together `Provider` and `Property` instances before the values are configured.
 ** A `Property` can be created by the factory method api:org.gradle.api.model.ObjectFactory#property(java.lang.Class)[].
 
-Neither of these types nor their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
+Neither of these types nor their subtypes are intended to be implemented by a build script or plugin author.  Gradle provides several factory methods to create instances of these types. See the <<sec:lazy_configuration_reference,Quick Reference>> for all of the types and factories available.
 
 Lazy properties are intended to be passed around and only evaluated when required (usually, during the execution phase). For more information about the Gradle build phases, please see <<sec:build_phases>>.
 

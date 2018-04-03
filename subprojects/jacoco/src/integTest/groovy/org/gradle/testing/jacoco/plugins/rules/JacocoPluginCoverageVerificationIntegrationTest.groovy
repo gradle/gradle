@@ -85,7 +85,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
+        failure.assertHasCause("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
     }
 
     def "can define includes for single rule"() {
@@ -107,7 +107,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("Rule violated for class org.gradle.Class1: lines covered ratio is 1.0, but expected maximum is 0.5")
+        failure.assertHasCause("Rule violated for class org.gradle.Class1: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     def "can define excludes for single rule"() {
@@ -176,7 +176,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
+        failure.assertHasCause("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
         limits                                                      | description                                                              | errorMessage
@@ -232,7 +232,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
+        failure.assertHasCause("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
     }
 
     def "can disable rules"() {
@@ -277,7 +277,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+        result.assertHasErrorOutput("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
     @Unroll
@@ -300,7 +300,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(tasksPaths)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+        failure.assertHasCause("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
 
         where:
         tasksPaths << [TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS, INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS]
@@ -326,7 +326,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
 
         then:
         executedAndNotSkipped(tasksPaths)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: $errorMessage")
+        failure.assertHasCause("Rule violated for bundle $testDirectory.name: $errorMessage")
 
         where:
         tasksPaths                                             | reportTaskName                              | limit                                  | errorMessage
@@ -368,6 +368,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         then:
         executed(JACOCO_COVERAGE_VERIFICATION_TASK_PATH)
         skipped(TEST_TASK_PATH)
-        errorOutput.contains("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
+        failure.assertHasCause("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 }

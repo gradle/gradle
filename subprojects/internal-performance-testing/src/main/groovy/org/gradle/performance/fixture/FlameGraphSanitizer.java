@@ -53,23 +53,23 @@ public class FlameGraphSanitizer {
                     if (sanitizeFunction.skipLine(line)) {
                         continue;
                     }
-                    List<String> data = LINE_SPLITTER.splitToList(line);
-                    if (data.size() == 2) {
-                        String stackTraces = data.get(0);
-                        String suffix = data.get(1);
-                        List<String> stackTraceElements = STACKTRACE_SPLITTER.splitToList(stackTraces);
-                        List<String> remapped = new ArrayList<String>(stackTraceElements.size());
+                    int endOfStack = line.lastIndexOf(' ');
+                    if (endOfStack > 0) {
+                        String stackTrace = line.substring(0, endOfStack);
+                        String invocationCount = line.substring(endOfStack + 1);
+                        List<String> stackTraceElements = STACKTRACE_SPLITTER.splitToList(stackTrace);
+                        List<String> sanitizedStackElements = new ArrayList<String>(stackTraceElements.size());
                         for (String stackTraceElement : stackTraceElements) {
                             String mapped = sanitizeFunction.map(stackTraceElement);
                             if (mapped != null) {
-                                remapped.add(mapped);
+                                sanitizedStackElements.add(mapped);
                             }
                         }
-                        if (!remapped.isEmpty()) {
+                        if (!sanitizedStackElements.isEmpty()) {
                             sb.setLength(0);
-                            STACKTRACE_JOINER.appendTo(sb, remapped);
+                            STACKTRACE_JOINER.appendTo(sb, sanitizedStackElements);
                             sb.append(' ');
-                            sb.append(suffix);
+                            sb.append(invocationCount);
                             sb.append("\n");
                             writer.write(sb.toString());
                         }

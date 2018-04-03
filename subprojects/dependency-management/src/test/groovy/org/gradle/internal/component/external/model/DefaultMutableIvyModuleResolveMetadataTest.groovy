@@ -53,7 +53,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         expect:
         def metadata = ivyMetadataFactory.create(id, [], configurations, [a1, a2], [])
-        metadata.componentId == id
+        metadata.id == id
         metadata.branch == null
 
         and:
@@ -65,7 +65,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         and:
         def immutable = metadata.asImmutable()
         immutable != metadata
-        immutable.componentId == id
+        immutable.id == id
         immutable.source == null
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.branch == null
@@ -84,7 +84,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         and:
         def copy = immutable.asMutable()
         copy != metadata
-        copy.componentId == id
+        copy.id == id
         copy.source == null
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.branch == null
@@ -117,7 +117,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         when:
         def metadata = ivyMetadataFactory.create(id, [], [], [], excludes)
-        metadata.componentId = newId
+        metadata.id = newId
         metadata.source = source
         metadata.status = "3"
         metadata.branch = "release"
@@ -127,8 +127,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.contentHash = contentHash
 
         then:
-        metadata.componentId == newId
-        metadata.id == DefaultModuleVersionIdentifier.newId(newId)
+        metadata.id == newId
+        metadata.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
         metadata.source == source
         metadata.changing
         metadata.missing
@@ -140,8 +140,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         def immutable = metadata.asImmutable()
         immutable != metadata
-        immutable.componentId == newId
-        immutable.id == DefaultModuleVersionIdentifier.newId(newId)
+        immutable.id == newId
+        immutable.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
         immutable.source == source
         immutable.status == "3"
         immutable.branch == "release"
@@ -153,8 +153,8 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         def copy = immutable.asMutable()
         copy != metadata
-        copy.componentId == newId
-        copy.id == DefaultModuleVersionIdentifier.newId(newId)
+        copy.id == newId
+        copy.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
         copy.source == source
         copy.status == "3"
         copy.branch == "release"
@@ -174,25 +174,25 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
-        copy.componentId = newId
+        copy.id = newId
         copy.source = source
         copy.statusScheme = ["2", "3"]
         def immutableCopy = copy.asImmutable()
 
         then:
-        metadata.componentId == id
+        metadata.id == id
         metadata.source == null
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
-        immutable.componentId == id
+        immutable.id == id
         immutable.source == null
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
-        copy.componentId == newId
+        copy.id == newId
         copy.source == source
         copy.statusScheme == ["2", "3"]
 
-        immutableCopy.componentId == newId
+        immutableCopy.id == newId
         immutableCopy.source == source
         immutableCopy.statusScheme == ["2", "3"]
     }
@@ -206,22 +206,22 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
 
-        metadata.componentId = newId
+        metadata.id = newId
         metadata.source = source
         metadata.statusScheme = ["1", "2"]
 
         def immutableCopy = metadata.asImmutable()
 
         then:
-        metadata.componentId == newId
+        metadata.id == newId
         metadata.source == source
         metadata.statusScheme == ["1", "2"]
 
-        immutable.componentId == id
+        immutable.id == id
         immutable.source == null
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
-        immutableCopy.componentId == newId
+        immutableCopy.id == newId
         immutableCopy.source == source
         immutableCopy.statusScheme == ["1", "2"]
     }

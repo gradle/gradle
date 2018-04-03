@@ -20,24 +20,18 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
-import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
+import org.gradle.internal.featurelifecycle.FeatureHandler;
+import org.gradle.internal.featurelifecycle.FeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getDeprecationMessage;
 
 @ThreadSafe
 public class SingleMessageLogger {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
-    private static final Set<String> FEATURES = Collections.synchronizedSet(new HashSet<String>());
-
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -47,53 +41,20 @@ public class SingleMessageLogger {
 
     public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
 
-    private static final Lock LOCK = new ReentrantLock();
-    private static LoggingDeprecatedFeatureHandler handler = new LoggingDeprecatedFeatureHandler();
-    private static String deprecationMessage;
+    private static LoggingDeprecatedFeatureHandler deprecatedFeatureHandler = new LoggingDeprecatedFeatureHandler();
+    private static LoggingIncubatingFeatureHandler incubatingFeatureHandler = new LoggingIncubatingFeatureHandler();
 
-    public static String getDeprecationMessage() {
-        LOCK.lock();
-        try {
-            if (deprecationMessage == null) {
-                String messageBase = "has been deprecated and is scheduled to be removed in";
-
-                GradleVersion currentVersion = GradleVersion.current();
-                String when = String.format("Gradle %s", currentVersion.getNextMajor().getVersion());
-
-                deprecationMessage = String.format("%s %s", messageBase, when);
-            }
-            return deprecationMessage;
-        } finally {
-            LOCK.unlock();
-        }
+    public synchronized static void reset() {
+        deprecatedFeatureHandler.reset();
+        incubatingFeatureHandler.reset();
     }
 
-    public static void reset() {
-        FEATURES.clear();
-        LOCK.lock();
-        try {
-            handler.reset();
-        } finally {
-            LOCK.unlock();
-        }
+    public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode) {
+        deprecatedFeatureHandler.init(reporter, warningMode);
     }
 
-    public static void init(UsageLocationReporter reporter, WarningMode warningMode) {
-        LOCK.lock();
-        try {
-            handler.init(reporter, warningMode);
-        } finally {
-            LOCK.unlock();
-        }
-    }
-
-    public static void reportSuppressedDeprecations() {
-        LOCK.lock();
-        try {
-            handler.reportSuppressedDeprecations();
-        } finally {
-            LOCK.unlock();
-        }
+    public synchronized static void reportSuppressedDeprecations() {
+        deprecatedFeatureHandler.reportSuppressedDeprecations();
     }
 
     public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
@@ -193,13 +154,12 @@ public class SingleMessageLogger {
      */
     public static void nagUserWith(String message) {
         if (isEnabled()) {
-            LOCK.lock();
-            try {
-                handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage(message, SingleMessageLogger.class));
-            } finally {
-                LOCK.unlock();
-            }
+            nagUserWith(deprecatedFeatureHandler, new FeatureUsage(message, SingleMessageLogger.class));
         }
+    }
+
+    private synchronized static void nagUserWith(FeatureHandler handler, FeatureUsage usage) {
+        handler.featureUsed(usage);
     }
 
     /**
@@ -257,16 +217,6 @@ public class SingleMessageLogger {
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
-        incubatingFeatureUsed(incubatingFeature, null);
-    }
-
-    public static void incubatingFeatureUsed(String incubatingFeature, String additionalWarning) {
-        if (FEATURES.add(incubatingFeature)) {
-            String message = String.format(INCUBATION_MESSAGE, incubatingFeature);
-            if (additionalWarning != null) {
-                message = message + "\n" + additionalWarning;
-            }
-            LOGGER.warn(message);
-        }
+        nagUserWith(incubatingFeatureHandler, new FeatureUsage(incubatingFeature, SingleMessageLogger.class));
     }
 }

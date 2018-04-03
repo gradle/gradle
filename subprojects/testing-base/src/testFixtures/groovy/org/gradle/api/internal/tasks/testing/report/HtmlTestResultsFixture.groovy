@@ -24,7 +24,6 @@ import org.jsoup.nodes.Element
 class HtmlTestResultsFixture {
     Document content
 
-
     HtmlTestResultsFixture(TestFile file) {
         file.assertIsFile()
         content = Jsoup.parse(file, null)

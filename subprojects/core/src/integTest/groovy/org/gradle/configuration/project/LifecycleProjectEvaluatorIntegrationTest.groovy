@@ -17,7 +17,6 @@
 package org.gradle.configuration.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -25,7 +24,6 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name='root'"
     }
 
-    @Unroll
     def "if two exceptions occur, prints an info about both without stacktrace"() {
         given:
         buildFile << """
@@ -38,10 +36,12 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        errorOutput.contains("Project evaluation failed including an error in afterEvaluate {}. Run with --stacktrace for details of the afterEvaluate {} error.")
-        !errorOutput.contains("java.lang.RuntimeException: after evaluate failure")
-        errorOutput.contains("* What went wrong:\nA problem occurred evaluating root project 'root'.\n> configure failure")
-        !errorOutput.contains("* Exception is:\norg.gradle.api.GradleScriptException: A problem occurred evaluating root project 'root'.")
+        failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}. Run with --stacktrace for details of the afterEvaluate {} error.")
+        failure.assertNotOutput("after evaluate failure")
+        !failure.hasErrorOutput("configure failure")
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("configure failure")
+        failure.assertHasNoCause("after evaluate failure")
     }
 
     def "if two exceptions occur with --stacktrace, prints both with stacktrace"() {
@@ -56,9 +56,11 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        errorOutput.contains("Project evaluation failed including an error in afterEvaluate {}.\njava.lang.RuntimeException: after evaluate failure")
-        errorOutput.contains("* What went wrong:\nA problem occurred evaluating root project 'root'.\n> configure failure")
-        errorOutput.contains("* Exception is:\norg.gradle.api.GradleScriptException: A problem occurred evaluating root project 'root'.")
+        failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}.\njava.lang.RuntimeException: after evaluate failure")
+        !failure.hasErrorOutput("configure failure")
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("configure failure")
+        failure.assertHasNoCause("after evaluate failure")
     }
 
     def "if only one exception occurs in afterEvaluate, prints it as primary"() {
@@ -72,7 +74,8 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        !errorOutput.contains("Project evaluation failed including an error in afterEvaluate {}.")
-        errorOutput.contains("* What went wrong:\nA problem occurred configuring root project 'root'.\n> after evaluate failure")
+        failure.assertNotOutput("Project evaluation failed including an error in afterEvaluate {}.")
+        failure.assertHasDescription("A problem occurred configuring root project 'root'.")
+        failure.assertHasCause("after evaluate failure")
     }
 }

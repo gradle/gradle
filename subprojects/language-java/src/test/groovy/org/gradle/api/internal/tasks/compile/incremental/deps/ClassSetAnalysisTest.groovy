@@ -20,14 +20,14 @@ import it.unimi.dsi.fastutil.ints.IntSet
 import it.unimi.dsi.fastutil.ints.IntSets
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.*
 
 class ClassSetAnalysisTest extends Specification {
 
     ClassSetAnalysis analysis(Map<String, DependentsSet> dependents,
                               Map<String, IntSet> classToConstants = [:],
-                              Map<String, Set<String>> classesToChildren = [:]) {
-        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren))
+                              Map<String, Set<String>> classesToChildren = [:], DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
+        new ClassSetAnalysis(new ClassSetAnalysisData([:], dependents, classToConstants, classesToChildren, aggregatedTypes, dependentsOnAll, fullRebuildCause))
     }
 
     def "returns empty analysis"() {
@@ -158,6 +158,16 @@ class ClassSetAnalysisTest extends Specification {
         deps.dependentClasses == ["E", "B", "C"] as Set
     }
 
+    def "some classes may depend on any change"() {
+        def a = analysis([
+            "A": dependents("B"), "B": empty(), "DependsOnAny" : dependents("C")
+        ], [:], [:], empty(), dependents("DependsOnAny") )
+        def deps = a.getRelevantDependents(["A"], IntSets.EMPTY_SET)
+
+        expect:
+        deps.dependentClasses == ["DependsOnAny", "B", "C"] as Set
+    }
+
     def "knows when any of the input classes is a dependency to all"() {
         def a = analysis([
             "A": dependents("B"), "B": dependents(),
@@ -181,7 +191,16 @@ class ClassSetAnalysisTest extends Specification {
         !a.isDependencyToAll("Unknown")
     }
 
+    def "all classes are dependencies to all if a full rebuild cause is given"() {
+        def a = analysis(
+            [:], [:], [:], empty(), empty(), "Some cause"
+        )
+
+        expect:
+        a.isDependencyToAll("DoesNotMatter")
+    }
+
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> dependentClasses) {
-        dependencyToAll ? DependencyToAll.INSTANCE : new DefaultDependentsSet(dependentClasses as Set)
+        dependencyToAll ? DependentsSet.dependencyToAll() : dependents(dependentClasses as Set)
     }
 }

@@ -36,7 +36,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     ProjectFinder projectFinder = Mock()
     LocalComponentMetadataBuilder configurationComponentMetaDataBuilder = Mock()
-    ConfigurationsProvider configurationsProvider = Mock()
+    def configurationsProvider = Stub(ConfigurationsProvider) {
+        getAll() >> ([] as Set)
+    }
 
     def builder = new DefaultRootComponentMetadataBuilder(
         metaDataProvider,

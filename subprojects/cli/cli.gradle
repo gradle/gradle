@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -22,11 +24,13 @@
 */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies{
     compile project(':distributionsDependencies')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }

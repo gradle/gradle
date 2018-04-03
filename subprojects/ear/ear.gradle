@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -17,7 +19,11 @@
 dependencies {
     compile project(':core')
     compile project(":plugins")
-    compile libraries.inject.coordinate
+    compile libraries.inject.coordinates
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
 }
 
 testFixtures {

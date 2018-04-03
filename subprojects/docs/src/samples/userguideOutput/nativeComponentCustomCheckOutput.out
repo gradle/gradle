@@ -1,6 +1,8 @@
-:myCustomCheck
+
+> Task :myCustomCheck
 Executing my custom check
-:checkHelloSharedLibrary
+
+> Task :checkHelloSharedLibrary
 
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

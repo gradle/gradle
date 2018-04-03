@@ -20,10 +20,12 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -41,11 +43,13 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
-        ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+        final ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
+        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter);
 
         try {
             ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
                 userHomeServices,
+                crossBuildSessionScopeServices,
                 startParameter,
                 requestContext,
                 actionParameters.getInjectedPluginClasspath()
@@ -62,7 +66,12 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
                 CompositeStoppable.stoppable(buildSessionScopeServices).stop();
             }
         } finally {
-            userHomeServiceRegistry.release(userHomeServices);
+            new CompositeStoppable().add(new Stoppable() {
+                @Override
+                public void stop() {
+                    userHomeServiceRegistry.release(userHomeServices);
+                }
+            }, crossBuildSessionScopeServices).stop();
         }
     }
 }

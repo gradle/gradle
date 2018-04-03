@@ -114,7 +114,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                 return true;
             }
 
-            LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getId(), repoName);
+            LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", metaData.getModuleVersionId(), repoName);
             return false;
 
         }

@@ -1,4 +1,5 @@
-:print
+
+> Task :print
 foo.someDirectory = /home/user/gradle/samples/providers/fileAndDirectoryProperty/some-directory
 foo.someFiles contains someDirectory? true
 foo.someFile = /home/user/gradle/samples/providers/fileAndDirectoryProperty/build/some-file

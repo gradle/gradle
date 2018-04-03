@@ -16,16 +16,16 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
+import org.gradle.nativeplatform.toolchain.internal.SystemLibraries;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
-
-import java.io.File;
 
 public interface GccMetadata extends CompilerMetadata {
 
     ArchitectureInternal getDefaultArchitecture();
 
-    ImmutableList<File> getSystemIncludes();
-
+    /**
+     * Returns the system libraries used by the compiler.
+     */
+    SystemLibraries getSystemLibraries();
 }

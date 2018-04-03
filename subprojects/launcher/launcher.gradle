@@ -1,11 +1,9 @@
 import org.gradle.build.GradleStartScriptGenerator
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-// Main entry point requires Java 5
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 configurations {
     startScriptGenerator
@@ -20,18 +18,23 @@ dependencies {
     compile project(':toolingApi')
     compile project(':native')
     compile project(':logging')
+    compile project(':docs')
 
-    compile libraries.asm.coordinate
-    compile libraries.commons_io.coordinate
-    compile libraries.slf4j_api.coordinate
+    compile libraries.asm.coordinates
+    compile libraries.commons_io.coordinates
+    compile libraries.slf4j_api.coordinates
 
     integTestCompile project(':internalIntegTesting')
     // Needed for testing debug command line option (JDWPUtil)
-    integTestCompile files(jvmForCompilation.toolsJar ?: [])
+    integTestCompile files(rootProject.availableJavaInstallations.jdkForCompilation(JavaVersion.VERSION_1_7).toolsJar ?: [])
     integTestRuntime project(':plugins')
     integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
@@ -39,10 +42,11 @@ testFixtures {
     from(':languageJava')
     from(':messaging')
     from(':logging')
+    from(':toolingApi')
 }
 
 integTestTasks.all {
-    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+    maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
 task configureJar {
@@ -62,4 +66,6 @@ task startScripts(type: GradleStartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

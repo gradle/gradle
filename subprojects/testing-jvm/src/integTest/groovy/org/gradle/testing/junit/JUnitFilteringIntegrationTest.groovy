@@ -19,15 +19,23 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
+import org.junit.Assume
 import spock.lang.Issue
+import spock.lang.Unroll
 
-@TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
-public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
+@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
+class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void configureFramework() {
-        framework = "JUnit"
-        dependency = "junit:junit"
+        if (version.toString().startsWith('Vintage')) {
+            framework = "JUnitPlatform"
+            dependency = "org.junit.vintage:junit-vintage-engine"
+        } else {
+            framework = "JUnit"
+            dependency = "junit:junit"
+        }
         imports = "org.junit.*"
     }
 
@@ -175,5 +183,65 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         result.testClass("FooTest").assertTestsExecuted("testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
         result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+    }
+
+    @Unroll
+    def 'filter as many classes as possible before sending to worker process'() {
+        given:
+        // We can know which class is sent to TestClassProcessor via afterSuite() hook method
+        // because JUnitTestClassProcessor will emit a test suite event for each loaded class.
+        // However, JUnitPlatformTestClassProcessor won't emit such event unless the class is executed.
+        // That's why we run test with JUnit 4 only.
+        Assume.assumeFalse(framework == "JUnitPlatform")
+        file('src/test/java/org/gradle/FooTest.java') << """
+            package org.gradle;
+            import $imports;
+            public class FooTest {
+                @Test public void test() {}
+            }
+        """
+        file('src/test/java/com/gradle/FooTest.java') << """
+            package com.gradle;
+            import $imports;
+            public class FooTest {
+                @Test public void test() {}
+            }
+        """
+        file('src/test/java/org/gradle/BarTest.java') << """
+            package org.gradle;
+            import $imports;
+            public class BarTest {
+                @Test public void test() {}
+            }
+        """
+        buildFile << """ 
+            test {
+                filter {
+                    includeTestsMatching "$pattern" 
+                }
+                afterSuite { descriptor, result -> 
+                    println descriptor
+                }
+            }
+        """
+
+        when:
+        if (successful) {
+            succeeds('test')
+        } else {
+            fails('test')
+        }
+
+        then:
+        includedClasses.every { output.contains(it) }
+        excludedClasses.every { !output.contains(it) }
+
+        where:
+        pattern             | includedClasses                                                    | excludedClasses        | successful
+        'FooTest'           | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | true
+        'FooTest.anyMethod' | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | false
+        'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
+        '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest'] | []                     | true
+        'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
     }
 }

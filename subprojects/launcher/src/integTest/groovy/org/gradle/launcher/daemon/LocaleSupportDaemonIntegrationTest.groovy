@@ -85,7 +85,7 @@ class LocaleSupportDaemonIntegrationTest extends DaemonIntegrationSpec {
     }
 
     void ranWithLocale(Locale locale) {
-        assert result.output.contains("defaultLocale: " + locale)
+        outputContains("defaultLocale: " + locale)
     }
 
     void runWithLocale(Locale locale) {

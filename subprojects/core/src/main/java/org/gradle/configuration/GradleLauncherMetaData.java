@@ -19,10 +19,21 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
-import java.io.Serializable;
 
-public class GradleLauncherMetaData implements Serializable, BuildClientMetaData {
-    private final String appName = System.getProperty("org.gradle.appname", "gradle");
+public class GradleLauncherMetaData implements BuildClientMetaData {
+    private final String appName;
+
+    public GradleLauncherMetaData() {
+        this(System.getProperty("org.gradle.appname", "gradle"));
+    }
+
+    public GradleLauncherMetaData(String appName) {
+        this.appName = appName;
+    }
+
+    public String getAppName() {
+        return appName;
+    }
 
     public void describeCommand(Appendable output, String... args) {
         try {

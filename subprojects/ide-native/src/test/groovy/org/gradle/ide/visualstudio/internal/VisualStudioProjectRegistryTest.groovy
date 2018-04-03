@@ -42,20 +42,17 @@ class VisualStudioProjectRegistryTest extends Specification {
 
     def "adds ide artifact when project and projectConfiguration are added"() {
         def executableBinary = targetBinary("vsConfig")
+        def metadata = null
+
         when:
         registry.addProjectConfiguration(executableBinary)
 
         then:
-        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
-            assert args[0].name == "mainExe"
-            assert args[0].type == VisualStudioProjectInternal.ARTIFACT_TYPE
+        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { VisualStudioProjectMetadata m ->
+            metadata = m
         }
-
-        and:
-        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { args ->
-            assert args[0].name == "vsConfig|Win32"
-            assert args[0].type == VisualStudioProjectConfiguration.ARTIFACT_TYPE
-        }
+        metadata.name == "mainExe"
+        metadata.configurations == ["vsConfig|Win32"]
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
@@ -85,9 +82,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def sourceCommon = Mock(File)
-        def source1 = Mock(File)
-        def source2 = Mock(File)
+        def sourceCommon = new File("source")
+        def source1 = new File("source1")
+        def source2 = new File("source2")
         def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
         def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
@@ -107,6 +104,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         targetBinary.getResourceFiles() >> fileCollection()
         targetBinary.projectPath >> ":"
         targetBinary.componentName >> "main"
+        targetBinary.visualStudioProjectName >> "mainExe"
+        targetBinary.visualStudioConfigurationName >> variant
         targetBinary.projectType >> VisualStudioTargetBinary.ProjectType.EXE
         targetBinary.variantDimensions >> [variant]
         return targetBinary

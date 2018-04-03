@@ -17,25 +17,40 @@ package org.gradle.api;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An enumeration of Java versions.
+ * Before 9: http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+ * 9+: http://openjdk.java.net/jeps/223
  */
 public enum JavaVersion {
-    VERSION_1_1(false), VERSION_1_2(false), VERSION_1_3(false), VERSION_1_4(false),
-    // starting from here versions are 1_ but their official name is "Java 6", "Java 7", ...
-    VERSION_1_5(true), VERSION_1_6(true), VERSION_1_7(true), VERSION_1_8(true), VERSION_1_9(true), VERSION_1_10(true);
-    private static JavaVersion currentJavaVersion;
-    private final boolean hasMajorVersion;
-    private final String versionName;
-    private final String majorVersion;
+    VERSION_1_1, VERSION_1_2, VERSION_1_3, VERSION_1_4,
+    VERSION_1_5, VERSION_1_6, VERSION_1_7, VERSION_1_8,
+    VERSION_1_9, VERSION_1_10,
+    /**
+     * Java 11 major version.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    VERSION_11,
 
-    JavaVersion(boolean hasMajorVersion) {
-        this.hasMajorVersion = hasMajorVersion;
-        this.versionName = name().substring("VERSION_".length()).replace('_', '.');
-        this.majorVersion = name().substring(10);
+    /**
+     * Higher version of Java.
+     * @since 4.7
+     */
+    @Incubating
+    VERSION_HIGHER;
+    // Since Java 9, version should be X instead of 1.X
+    // However, to keep backward compatibility, we change from 11
+    private static final int FIRST_MAJOR_VERSION_ORDINAL = 10;
+    private static JavaVersion currentJavaVersion;
+    private final String versionName;
+
+    JavaVersion() {
+        this.versionName = ordinal() >= FIRST_MAJOR_VERSION_ORDINAL ? getMajorVersion() : "1." + getMajorVersion();
     }
 
     /**
@@ -54,22 +69,18 @@ public enum JavaVersion {
         }
 
         String name = value.toString();
-        Matcher matcher = Pattern.compile("(\\d{1,2})(\\D.+)?").matcher(name);
-        if (matcher.matches()) {
-            int index = Integer.parseInt(matcher.group(1)) - 1;
-            if (index > 0 && index < values().length && values()[index].hasMajorVersion) {
-                return values()[index];
-            }
-        }
 
-        matcher = Pattern.compile("1\\.(\\d{1,2})(\\D.+)?").matcher(name);
-        if (matcher.matches()) {
-            int versionIdx = Integer.parseInt(matcher.group(1)) - 1;
-            if (versionIdx >= 0 && versionIdx < values().length) {
-                return values()[versionIdx];
-            }
+        int firstNonVersionCharIndex = findFirstNonVersionCharIndex(name);
+
+        String[] versionStrings = name.substring(0, firstNonVersionCharIndex).split("\\.");
+        List<Integer> versions = convertToNumber(name, versionStrings);
+
+        if (isLegacyVersion(versions)) {
+            assertTrue(name, versions.get(1) > 0);
+            return getVersionForMajor(versions.get(1));
+        } else {
+            return getVersionForMajor(versions.get(0));
         }
-        throw new IllegalArgumentException(String.format("Could not determine java version from '%s'.", name));
     }
 
     /**
@@ -90,11 +101,7 @@ public enum JavaVersion {
     }
 
     public static JavaVersion forClassVersion(int classVersion) {
-        int index = classVersion - 45; //class file versions: 1.1 == 45, 1.2 == 46...
-        if (index >= 0 && index < values().length) {
-            return values()[index];
-        }
-        throw new IllegalArgumentException(String.format("Could not determine java version from '%d'.", classVersion));
+        return getVersionForMajor(classVersion - 44); //class file versions: 1.1 == 45, 1.2 == 46...
     }
 
     public static JavaVersion forClass(byte[] classData) {
@@ -116,16 +123,26 @@ public enum JavaVersion {
         return this == VERSION_1_7;
     }
 
-    private boolean isJava8() {
+    public boolean isJava8() {
         return this == VERSION_1_8;
     }
 
-    private boolean isJava9() {
+    public boolean isJava9() {
         return this == VERSION_1_9;
     }
 
-    private boolean isJava10() {
+    public boolean isJava10() {
         return this == VERSION_1_10;
+    }
+
+    /**
+     * Returns if the version is Java 11.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    public boolean isJava11() {
+        return this == VERSION_11;
     }
 
     public boolean isJava5Compatible() {
@@ -148,21 +165,80 @@ public enum JavaVersion {
         return this.compareTo(VERSION_1_9) >= 0;
     }
 
-    @Incubating
     public boolean isJava10Compatible() {
         return this.compareTo(VERSION_1_10) >= 0;
     }
 
-    @Override
-    public String toString() {
-        return getName();
+    /**
+     * Returns if the version is Java 11 compatible.
+     *
+     * @since 4.7
+     */
+    @Incubating
+    public boolean isJava11Compatible() {
+        return this.compareTo(VERSION_11) >= 0;
     }
 
+    @Override
+    public String toString() {
+        return versionName;
+    }
+
+    // We have to keep this for a while: https://github.com/gradle/gradle/issues/4856
     private String getName() {
         return versionName;
     }
 
     public String getMajorVersion() {
-        return majorVersion;
+        return String.valueOf(ordinal() + 1);
+    }
+
+    private static JavaVersion getVersionForMajor(int major) {
+        return major >= values().length ? JavaVersion.VERSION_HIGHER : values()[major - 1];
+    }
+
+    private static void assertTrue(String value, boolean condition) {
+        if (!condition) {
+            throw new IllegalArgumentException("Could not determine java version from '" + value + "'.");
+        }
+    }
+
+    private static boolean isLegacyVersion(List<Integer> versions) {
+        return 1 == versions.get(0) && versions.size() > 1;
+    }
+
+    private static List<Integer> convertToNumber(String value, String[] versionStrs) {
+        List<Integer> result = new ArrayList<Integer>();
+        for (String s : versionStrs) {
+            assertTrue(value, !isNumberStartingWithZero(s));
+            try {
+                result.add(Integer.parseInt(s));
+            } catch (NumberFormatException e) {
+                assertTrue(value, false);
+            }
+        }
+        assertTrue(value, !result.isEmpty() && result.get(0) > 0);
+        return result;
+    }
+
+    private static boolean isNumberStartingWithZero(String number) {
+        return number.length() > 1 && number.startsWith("0");
+    }
+
+    private static int findFirstNonVersionCharIndex(String s) {
+        assertTrue(s, s.length() != 0);
+
+        for (int i = 0; i < s.length(); ++i) {
+            if (!isDigitOrPeriod(s.charAt(i))) {
+                assertTrue(s, i != 0);
+                return i;
+            }
+        }
+
+        return s.length();
+    }
+
+    private static boolean isDigitOrPeriod(char c) {
+        return (c >= '0' && c <= '9') || c == '.';
     }
 }

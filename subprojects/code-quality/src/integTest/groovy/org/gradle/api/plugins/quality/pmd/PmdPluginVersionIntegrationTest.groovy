@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ToBeImplemented
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -110,7 +109,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 """
         expect:
         fails("check")
-        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {
@@ -122,7 +121,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 """
         expect:
         fails("check")
-        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "can configure reporting"() {
@@ -152,6 +151,28 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pmd {
                 ruleSets = []
                 ruleSetFiles = files("customRuleSet.xml")
+            }
+        """
+
+        expect:
+        fails("pmdMain")
+        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
+    }
+
+    def "add custom rule set files"() {
+        assumeTrue(fileLockingIssuesSolved())
+
+        customCode()
+        customRuleSet()
+
+        buildFile << """
+            pmd {
+                ruleSets = []
+                ruleSetFiles = files()
+                ruleSetFiles "customRuleSet.xml"
             }
         """
 
@@ -200,7 +221,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeImplemented
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()
@@ -222,9 +242,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         succeeds('clean', 'check')
 
         then:
-        // TODO These should match
-        !!! nonSkippedTasks.contains(':pmdMain')
-        !!! output.contains("PMD rule violations were found")
+        nonSkippedTasks.contains(':pmdMain')
+        output.contains("PMD rule violations were found")
     }
 
     private static Matcher<String> containsClass(String className) {
@@ -261,7 +280,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("customRuleSet.xml") << customRuleSetText()
     }
 
-    private customRuleSetText() {
+    private static customRuleSetText() {
         String pathToRuleset = "rulesets/java/braces.xml"
         if (versionNumber < VersionNumber.version(5)) {
             pathToRuleset = "rulesets/braces.xml"

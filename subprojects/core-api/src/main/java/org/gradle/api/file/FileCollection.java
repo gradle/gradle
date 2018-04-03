@@ -115,9 +115,13 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      *
      * @param type The type to convert to.
      * @return The converted value.
-     * @throws UnsupportedOperationException When an unsupported type is specified.
+     * @throws org.codehaus.groovy.runtime.typehandling.GroovyCastException When an unsupported type is specified.
+     *
+     * @deprecated This method will be removed in Gradle 5.0. Type conversions with the Groovy {@code as} keyword will keep working
+     * for the collection types. For other conversions use {@link #getSingleFile()} and {@link #getAsFileTree()}.
      */
-    Object asType(Class<?> type) throws UnsupportedOperationException;
+    @Deprecated
+    Object asType(Class<?> type);
 
     /**
      * <p>Adds another collection to this collection. This is an optional operation.</p>
@@ -125,7 +129,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @param collection The collection to add.
      * @return This
      * @throws UnsupportedOperationException When this collection does not allow modification.
+     *
+     * @deprecated Use {@link ConfigurableFileCollection#from(Object...)} instead. You can create configurable file collections
+     * via {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Deprecated
     FileCollection add(FileCollection collection) throws UnsupportedOperationException;
 
     /**

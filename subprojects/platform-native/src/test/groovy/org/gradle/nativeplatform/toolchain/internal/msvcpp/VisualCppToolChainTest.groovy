@@ -27,6 +27,7 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.VisualCppPlatformToolChain
+import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
@@ -41,21 +42,21 @@ class VisualCppToolChainTest extends Specification {
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)
     final BuildOperationExecutor buildOperationExecutor = Stub(BuildOperationExecutor)
-    final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
-    final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
-	final WindowsKitComponentLocator.SearchResult<Ucrt> ucrtLookup = Stub(WindowsKitComponentLocator.SearchResult)
+    final SearchResult<VisualStudioInstall> visualStudioLookup = Stub(SearchResult)
+    final SearchResult<WindowsSdkInstall> windowsSdkLookup = Stub(SearchResult)
+	final SearchResult<UcrtInstall> ucrtLookup = Stub(SearchResult)
     final WorkerLeaseService workerLeaseService = Stub(WorkerLeaseService)
     final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
-        locateDefaultVisualStudioInstall(_) >> visualStudioLookup
+        locateComponent(_) >> visualStudioLookup
     }
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
-        locateWindowsSdks(_) >> windowsSdkLookup
+        locateComponent(_) >> windowsSdkLookup
     }
     final UcrtLocator ucrtLocator = Stub(UcrtLocator) {
-        locateComponents(_) >> ucrtLookup
+        locateComponent(_) >> ucrtLookup
     }
 	final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
@@ -99,10 +100,10 @@ class VisualCppToolChainTest extends Specification {
     def "is not available when windows SDK cannot be located"() {
         when:
         visualStudioLookup.available >> true
+        visualStudioLookup.component >> Stub(VisualStudioInstall)
 
         windowsSdkLookup.available >> false
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
-		ucrtLookup.available >> false
 
         and:
         def result = toolChain.select(Stub(NativePlatformInternal))
@@ -118,13 +119,16 @@ class VisualCppToolChainTest extends Specification {
         def visualCpp = Stub(VisualCppInstall)
         def platform = Stub(NativePlatformInternal)
         platform.displayName >> '<platform>'
+
         visualStudioLookup.available >> true
+        visualStudioLookup.component >> visualStudio
+
         windowsSdkLookup.available >> true
-		ucrtLookup.available >> false
-        visualStudioLookup.visualStudio >> visualStudio
-        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
+
+        ucrtLookup.available >> false
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> false
+        visualCpp.forPlatform(platform) >> null
 
         and:
         def result = toolChain.select(platform)
@@ -140,12 +144,13 @@ class VisualCppToolChainTest extends Specification {
         def visualCpp = Stub(VisualCppInstall)
         def platform = Stub(NativePlatformInternal)
         visualStudioLookup.available >> true
+        visualStudioLookup.component >> visualStudio
+
         windowsSdkLookup.available >> true
-		ucrtLookup.available >> false
-        visualStudioLookup.visualStudio >> visualStudio
-        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
+
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> true
+        visualCpp.forPlatform(platform) >> Stub(VisualCpp)
 
         and:
         def platformToolChain = toolChain.select(platform)
@@ -163,11 +168,13 @@ class VisualCppToolChainTest extends Specification {
         fileResolver.resolve("install-dir") >> file("vs")
         visualStudioLocator.locateDefaultVisualStudioInstall(file("vs")) >> visualStudioLookup
         visualStudioLookup.available >> true
+        visualStudioLookup.component >> Stub(VisualStudioInstall)
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
         windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
         windowsSdkLookup.available >> true
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
 		ucrtLookup.available >> false
 
         and:
@@ -207,12 +214,13 @@ class VisualCppToolChainTest extends Specification {
         def visualStudio = Stub(VisualStudioInstall)
         def visualCpp = Stub(VisualCppInstall)
         visualStudioLookup.available >> true
+        visualStudioLookup.component >> visualStudio
+
         windowsSdkLookup.available >> true
-		ucrtLookup.available >> false
-        visualStudioLookup.visualStudio >> visualStudio
-        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        windowsSdkLookup.component >> Stub(WindowsSdkInstall)
+
         visualStudio.visualCpp >> visualCpp
-        visualCpp.isSupportedPlatform(platform) >> true
+        visualCpp.forPlatform(platform) >> Stub(VisualCpp)
 
         def action = Mock(Action)
         toolChain.eachPlatform(action)

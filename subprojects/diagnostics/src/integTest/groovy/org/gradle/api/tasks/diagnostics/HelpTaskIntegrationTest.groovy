@@ -33,7 +33,8 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.contains """:help
+        output.contains """
+> Task :help
 
 Welcome to Gradle ${GradleVersion.current().version}.
 
@@ -44,6 +45,8 @@ To see a list of available tasks, run gradle tasks
 To see a list of command-line options, run gradle --help
 
 To see more detail about a task, run gradle help --task <task>
+
+For troubleshooting, visit https://help.gradle.org
 
 BUILD SUCCESSFUL"""
     }

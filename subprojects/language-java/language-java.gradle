@@ -1,19 +1,26 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
-// Compiler daemon
-sourceCompatibility = 1.6
-
 dependencies {
-    compile libraries.groovy.coordinate
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_commons.coordinates
+    implementation libraries.groovy.coordinates
+
     compile project(":core")
     compile project(":platformJvm")
     compile project(":languageJvm")
 
     // TODO - get rid of this cycle
     integTestRuntime project(':plugins')
+}
+
+gradlebuildJava {
+    // Needs to run in the compiler daemon
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {
@@ -29,5 +36,7 @@ classycle {
                        'org/gradle/external/javadoc/**']
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

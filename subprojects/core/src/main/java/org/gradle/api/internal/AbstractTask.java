@@ -234,6 +234,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public boolean hasTaskActions() {
+        return actions != null && !actions.isEmpty();
+    }
+
+    @Override
     public void setActions(final List<Action<? super Task>> replacements) {
         taskMutator.mutate("Task.setActions(List<Action>)", new Runnable() {
             public void run() {
@@ -370,6 +375,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Task deleteAllActions() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.deleteAllActions()");
         taskMutator.mutate("Task.deleteAllActions()",
             new Runnable() {
                 public void run() {

@@ -1,4 +1,5 @@
-:print
+
+> Task :print
 The list contains: []
 The list contains: [element-1, element-2]
 The list contains: [element-3, element-4]

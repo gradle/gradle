@@ -132,10 +132,10 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
     }
 
     @Unroll
-    def "recognises java library for packaging=#packaging and advancedPomSupport=#advancedPomSupport"() {
+    def "recognises java library for packaging=#packaging and improvedPomSupport=#improvedPomSupport"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
-        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), advancedPomSupport)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], TestUtil.attributesFactory(), TestUtil.objectInstantiator(), improvedPomSupport)
         metadata.packaging = packaging
 
         when:
@@ -157,7 +157,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         }
 
         where:
-        packaging      | advancedPomSupport | isJavaLibrary
+        packaging      | improvedPomSupport | isJavaLibrary
         "pom"          | false              | false
         "jar"          | false              | false
         "maven-plugin" | false              | false

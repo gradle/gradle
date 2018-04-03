@@ -18,34 +18,28 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
+    TestFile mainJavaFile
+
     def setup() {
-        file("src", "main", "java").mkdirs()
-
-        file("src", "main", "java", "Driver.java").write """
-            package driver;
-
-            import java.io.*;
-
-            public class Driver {
-                public static void main(String[] args) {
-                    try {
-                        FileWriter out = new FileWriter("out.txt");
-                        out.write(args[0]);
-                        out.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+        mainJavaFile = file('src/main/java/Driver.java')
+        file("src/main/java/Driver.java").text = mainClass("""
+            try {
+                FileWriter out = new FileWriter("out.txt");
+                out.write(args[0]);
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-        """
+        """)
 
 
-        buildFile.write """
+        buildFile.text = """
             apply plugin: "java"
 
             task run(type: JavaExec) {
@@ -56,19 +50,34 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    private static String mainClass(String body) {
+        """
+            package driver;
+
+            import java.io.*;
+            import java.lang.System;
+
+            public class Driver {
+                public static void main(String[] args) {
+                ${body}
+                }
+            }
+        """
+    }
+
     @IgnoreIf({GradleContextualExecuter.parallel})
     def "java exec is not incremental by default"() {
         when:
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
 
         when:
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
@@ -82,13 +91,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
 
         when:
         run "run"
 
         then:
-        ":run" in skippedTasks
+        skipped ":run"
 
         when:
         file("out.txt").delete()
@@ -97,6 +106,74 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         run "run"
 
         then:
-        ":run" in nonSkippedTasks
+        executedAndNotSkipped ":run"
+    }
+
+    def "arguments can be passed by using argument providers"() {
+        given:
+        def inputFile = file("input.txt")
+        def outputFile = file("out.txt")
+        buildFile << """
+            class MyApplicationJvmArguments implements CommandLineArgumentProvider {
+                @InputFile
+                @PathSensitive(PathSensitivity.NONE)
+                File inputFile
+            
+                @Override
+                Iterable<String> asArguments() {
+                    return ["-Dinput.file=\${inputFile.absolutePath}".toString()]
+                }            
+            }
+            
+            class MyApplicationCommandLineArguments implements CommandLineArgumentProvider {
+                @OutputFile
+                File outputFile
+
+                @Override
+                Iterable<String> asArguments() {
+                    return [outputFile.absolutePath]
+                }            
+            }
+            
+            run.jvmArgumentProviders << new MyApplicationJvmArguments(inputFile: new File(project.property('inputFile')))
+            
+            run.argumentProviders << new MyApplicationCommandLineArguments(outputFile: new File(project.property('outputFile')))
+             
+        """
+        inputFile.text = "first"
+        mainJavaFile.text = mainClass("""
+            try {
+                String location = System.getProperty("input.file");
+                BufferedReader reader = new BufferedReader(new FileReader(location));
+                String input = reader.readLine();
+                reader.close();
+                FileWriter out = new FileWriter(args[args.length - 1], false);
+                out.write(input);
+                out.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+        """)
+
+        when:
+        run "run", "-PinputFile=${inputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
+        then:
+        executedAndNotSkipped ":run"
+
+        when:
+        def secondInputFile = file("second-input.txt")
+        secondInputFile.text = inputFile.text
+        run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
+        then:
+        outputFile.text == "first"
+        skipped ":run"
+
+        when:
+        secondInputFile.text = "different"
+        run "run", "-PinputFile=${secondInputFile.absolutePath}", "-PoutputFile=${outputFile.absolutePath}"
+        then:
+        executedAndNotSkipped ":run"
+        outputFile.text == "different"
     }
 }

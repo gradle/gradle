@@ -18,19 +18,14 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
-    private ComponentResolveMetadata metaData;
+    private ComponentResolveMetadata metadata;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
-    private ComponentSelectionDescriptorInternal selectionDescription;
-    private ResolvedVersionConstraint versionConstraint;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -50,19 +45,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return moduleVersionId;
     }
 
-    @Override
-    public void setSelectionDescription(ComponentSelectionDescriptorInternal reason) {
-        this.selectionDescription = reason;
-    }
-
-    @Override
-    public ComponentSelectionDescriptorInternal getSelectionDescription() {
-        return selectionDescription;
-    }
-
-    public ComponentResolveMetadata getMetaData() {
+    public ComponentResolveMetadata getMetadata() {
         assertResolved();
-        return metaData;
+        return metadata;
     }
 
     public void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
@@ -71,9 +56,9 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         this.moduleVersionId = moduleVersionIdentifier;
     }
 
-    public void resolved(ComponentResolveMetadata metaData) {
-        resolved(metaData.getComponentId(), metaData.getId());
-        this.metaData = metaData;
+    public void resolved(ComponentResolveMetadata metadata) {
+        resolved(metadata.getId(), metadata.getModuleVersionId());
+        this.metadata = metadata;
     }
 
     public void failed(ModuleVersionResolveException failure) {
@@ -92,20 +77,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     private void reset() {
         failure = null;
-        metaData = null;
+        metadata = null;
         id = null;
         moduleVersionId = null;
-        selectionDescription = VersionSelectionReasons.REQUESTED;
-        versionConstraint = null;
-    }
-
-    @Override
-    public ResolvedVersionConstraint getResolvedVersionConstraint() {
-        return versionConstraint;
-    }
-
-    @Override
-    public void setResolvedVersionConstraint(ResolvedVersionConstraint versionConstraint) {
-        this.versionConstraint = versionConstraint;
     }
 }

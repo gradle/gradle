@@ -16,17 +16,19 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.AbstractConsoleFunctionalSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RichConsoleStyling
 
 /**
- * A base class for testing task grouping in the console. Executes with a Gradle distribution and {@code "--parallel"} command line option.
+ * A base class for testing the console.
  */
-@IgnoreIf({ GradleContextualExecuter.parallel })
-abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractConsoleFunctionalSpec {
-
+abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     def setup() {
-        executer.withArgument('--parallel')
+        executer.beforeExecute {
+            it.withConsole(consoleType)
+        }
     }
+
+    abstract ConsoleOutput getConsoleType()
 }

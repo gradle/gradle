@@ -38,7 +38,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
     /**
      * Returns the identifier for this component.
      */
-    ComponentIdentifier getComponentId();
+    ComponentIdentifier getId();
 
     /**
      * Returns the module version identifier for this component. Currently this reflects the (group, module, version) that was used to request this component.
@@ -47,7 +47,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
      * module versions to the more general component instances. Currently, the module version and component identifiers are used interchangeably. However, over
      * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
-    ModuleVersionIdentifier getId();
+    ModuleVersionIdentifier getModuleVersionId();
 
     /**
      * Returns the source (eg location) for this component.

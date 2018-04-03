@@ -24,7 +24,8 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet.dependents
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependencyToAll
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependents
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
@@ -33,10 +34,10 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
     def "serializes"() {
         def data = new ClassSetAnalysisData(
             ["A.class": "A", "B.class": "B"],
-            ["A": dependents("B", "C"), "B": new DefaultDependentsSet(["C"] as Set), "C": dependents(), "D": new DependencyToAll(),],
+            ["A": dependents("B", "C"), "B": dependents("C"), "C": dependents(), "D": dependencyToAll(),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,
-            ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]
+            ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set], dependents("Aggregated"), dependents("Aggregate"), "Because"
         )
         def os = new ByteArrayOutputStream()
         def e = new OutputStreamBackedEncoder(os)
@@ -53,9 +54,14 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
             assert read.dependents[it].dependencyToAll == data.dependents[it].dependencyToAll
         }
 
-        read.dependents["D"] instanceof DependencyToAll
+        read.dependents["D"].dependencyToAll
+        read.dependentsOnAll.dependentClasses == ["Aggregate"] as Set
+        !read.dependentsOnAll.dependencyToAll
+        read.aggregatedTypes.dependentClasses == ["Aggregated"] as Set
+        !read.aggregatedTypes.dependencyToAll
         read.filePathToClassName == ["A.class": "A", "B.class": "B"]
         read.classesToConstants == [C: [1,2] as Set, D: [] as Set]
         read.classesToChildren == ['A': ['SA'] as Set, B: ['SB1', 'SB2'] as Set]
+        read.fullRebuildCause == "Because"
     }
 }

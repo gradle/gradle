@@ -297,6 +297,46 @@ class ModuleMetadataParserTest extends Specification {
         0 * _
     }
 
+    def "parses content with capabilities"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.3", 
+        "variants": [
+            {
+                "name": "api",
+                "capabilities": [ 
+                    { "group": "g1", "name": "m1", "version": "1" },
+                    { "group": "g2", "name": "m2", "version": "2" }
+                ],
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "capabilities": [ 
+                    { "group": "g3", "name": "m3", "version": "3" },
+                    { "group": "g4", "name": "m4", "version": "4" }
+                ],
+                "name": "runtime"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addCapability("g1", "m1", "1")
+        1 * variant1.addCapability("g2", "m2", "2")
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addCapability("g3", "m3", "3")
+        1 * variant2.addCapability("g4", "m4", "4")
+        0 * _
+    }
+
     def "parses content with boolean attributes"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant = Mock(MutableComponentVariant)

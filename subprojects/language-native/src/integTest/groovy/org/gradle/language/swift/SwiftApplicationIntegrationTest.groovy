@@ -111,7 +111,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
         file("greeter/src/main/swift/greeter.swift").replace("sayHello", "sayAloha")
         then:
         fails ":app:compileDebugSwift"
-        result.error.contains("value of type 'Greeter' has no member 'sayHello'")
+        failure.assertHasErrorOutput("value of type 'Greeter' has no member 'sayHello'")
 
         when:
         file("app/src/main/swift/main.swift").replace("sayHello", "sayAloha")
@@ -380,7 +380,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest {
             application.binaries.configureEach {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
                 compileTask.get().moduleFile = layout.buildDirectory.file("some-app.swiftmodule")
-                linkTask.get().binaryFile = layout.buildDirectory.file("exe/some-app.exe")
+                linkTask.get().linkedFile = layout.buildDirectory.file("exe/some-app.exe")
                 installTask.get().installDirectory = layout.buildDirectory.dir("some-app")
             }
          """

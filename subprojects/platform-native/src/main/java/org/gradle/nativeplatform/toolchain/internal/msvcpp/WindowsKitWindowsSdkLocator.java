@@ -21,7 +21,7 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
-public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLocator<WindowsKitWindowsSdk> {
+public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLocator<WindowsKitSdkInstall> {
     private static final String COMPONENT_NAME = "um";
     private static final String DISPLAY_NAME = "Windows SDK";
     private static final String RC_EXE = "rc.exe";
@@ -41,9 +41,9 @@ public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLoca
     }
 
     @Override
-    boolean isValidComponentBaseDir(File baseDir) {
+    boolean isValidComponentBinDir(File binDir) {
         for (String platform : PLATFORMS) {
-            if (!new File(baseDir, "bin/" + platform + "/" + RC_EXE).exists()) {
+            if (!new File(binDir, platform + "/" + RC_EXE).exists()) {
                 return false;
             }
         }
@@ -66,7 +66,7 @@ public class WindowsKitWindowsSdkLocator extends AbstractWindowsKitComponentLoca
     }
 
     @Override
-    WindowsKitWindowsSdk newComponent(File baseDir, VersionNumber version, DiscoveryType discoveryType) {
-        return new WindowsKitWindowsSdk(baseDir, version, getVersionedDisplayName(version, discoveryType));
+    WindowsKitSdkInstall newComponent(File baseDir, File binDir, VersionNumber version, DiscoveryType discoveryType) {
+        return new WindowsKitSdkInstall(baseDir, version, binDir, getVersionedDisplayName(version, discoveryType));
     }
 }

@@ -51,25 +51,25 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         then:
         result.assertTasksExecuted(
             ':compileDebugSharedCpp', ':linkDebugShared',
-            ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared', toolChain),
+            ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared'),
             ':compileDebugStaticCpp', ':createDebugStatic',
             ':compileReleaseStaticCpp', ':createReleaseStatic',
-            ":generatePomFileForDebugSharedPublication",
-            ":generateMetadataFileForDebugSharedPublication",
-            ":publishDebugSharedPublicationToMavenRepository",
-            ":generatePomFileForDebugStaticPublication",
-            ":generateMetadataFileForDebugStaticPublication",
-            ":publishDebugStaticPublicationToMavenRepository",
+            ":generatePomFileForMainDebugSharedPublication",
+            ":generateMetadataFileForMainDebugSharedPublication",
+            ":publishMainDebugSharedPublicationToMavenRepository",
+            ":generatePomFileForMainDebugStaticPublication",
+            ":generateMetadataFileForMainDebugStaticPublication",
+            ":publishMainDebugStaticPublicationToMavenRepository",
             ":cppHeaders",
             ":generatePomFileForMainPublication",
             ":generateMetadataFileForMainPublication",
             ":publishMainPublicationToMavenRepository",
-            ":generatePomFileForReleaseSharedPublication",
-            ":generateMetadataFileForReleaseSharedPublication",
-            ":publishReleaseSharedPublicationToMavenRepository",
-            ":generatePomFileForReleaseStaticPublication",
-            ":generateMetadataFileForReleaseStaticPublication",
-            ":publishReleaseStaticPublicationToMavenRepository",
+            ":generatePomFileForMainReleaseSharedPublication",
+            ":generateMetadataFileForMainReleaseSharedPublication",
+            ":publishMainReleaseSharedPublicationToMavenRepository",
+            ":generatePomFileForMainReleaseStaticPublication",
+            ":generateMetadataFileForMainReleaseStaticPublication",
+            ":publishMainReleaseStaticPublicationToMavenRepository",
             ":publish"
         )
 
@@ -92,14 +92,14 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         api.files.size() == 1
         api.files[0].name == 'cpp-api-headers.zip'
         api.files[0].url == 'test-1.2-cpp-api-headers.zip'
-        mainMetadata.variant("debug-shared-link").availableAt.coords == "some.group:test_debug_shared:1.2"
-        mainMetadata.variant("debug-shared-runtime").availableAt.coords == "some.group:test_debug_shared:1.2"
-        mainMetadata.variant("debug-static-link").availableAt.coords == "some.group:test_debug_static:1.2"
-        mainMetadata.variant("debug-static-runtime").availableAt.coords == "some.group:test_debug_static:1.2"
-        mainMetadata.variant("release-shared-link").availableAt.coords == "some.group:test_release_shared:1.2"
-        mainMetadata.variant("release-shared-runtime").availableAt.coords == "some.group:test_release_shared:1.2"
-        mainMetadata.variant("release-static-link").availableAt.coords == "some.group:test_release_static:1.2"
-        mainMetadata.variant("release-static-runtime").availableAt.coords == "some.group:test_release_static:1.2"
+        mainMetadata.variant("debugSharedLink").availableAt.coords == "some.group:test_debug_shared:1.2"
+        mainMetadata.variant("debugSharedRuntime").availableAt.coords == "some.group:test_debug_shared:1.2"
+        mainMetadata.variant("debugStaticLink").availableAt.coords == "some.group:test_debug_static:1.2"
+        mainMetadata.variant("debugStaticRuntime").availableAt.coords == "some.group:test_debug_static:1.2"
+        mainMetadata.variant("releaseSharedLink").availableAt.coords == "some.group:test_release_shared:1.2"
+        mainMetadata.variant("releaseSharedRuntime").availableAt.coords == "some.group:test_release_shared:1.2"
+        mainMetadata.variant("releaseStaticLink").availableAt.coords == "some.group:test_release_static:1.2"
+        mainMetadata.variant("releaseStaticRuntime").availableAt.coords == "some.group:test_release_static:1.2"
 
         def debugShared = repo.module('some.group', 'test_debug_shared', '1.2')
         debugShared.assertPublished()
@@ -111,8 +111,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def debugSharedMetadata = debugShared.parsedModuleMetadata
         debugSharedMetadata.variants.size() == 2
-        debugSharedMetadata.variant('debug-shared-link')
-        debugSharedMetadata.variant('debug-shared-runtime')
+        debugSharedMetadata.variant('debugSharedLink')
+        debugSharedMetadata.variant('debugSharedRuntime')
 
         def debugStatic = repo.module('some.group', 'test_debug_static', '1.2')
         debugStatic.assertPublished()
@@ -123,8 +123,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def debugStaticMetadata = debugStatic.parsedModuleMetadata
         debugStaticMetadata.variants.size() == 2
-        debugStaticMetadata.variant('debug-static-link')
-        debugStaticMetadata.variant('debug-static-runtime')
+        debugStaticMetadata.variant('debugStaticLink')
+        debugStaticMetadata.variant('debugStaticRuntime')
 
         def releaseShared = repo.module('some.group', 'test_release_shared', '1.2')
         releaseShared.assertPublished()
@@ -136,8 +136,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def releaseSharedMetadata = releaseShared.parsedModuleMetadata
         releaseSharedMetadata.variants.size() == 2
-        releaseSharedMetadata.variant('release-shared-link')
-        releaseSharedMetadata.variant('release-shared-runtime')
+        releaseSharedMetadata.variant('releaseSharedLink')
+        releaseSharedMetadata.variant('releaseSharedRuntime')
 
         def releaseStatic = repo.module('some.group', 'test_release_static', '1.2')
         releaseStatic.assertPublished()
@@ -148,8 +148,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def releaseStaticMetadata = releaseStatic.parsedModuleMetadata
         releaseStaticMetadata.variants.size() == 2
-        releaseStaticMetadata.variant('release-static-link')
-        releaseStaticMetadata.variant('release-static-runtime')
+        releaseStaticMetadata.variant('releaseStaticLink')
+        releaseStaticMetadata.variant('releaseStaticRuntime')
     }
 
     def "correct variant of published library is selected when resolving"() {

@@ -46,7 +46,7 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
     }
 
     @Override
-    public VisualCppMetadata getVisualCppFromRegistry(String version) {
+    public VisualCppInstallCandidate getVisualCppFromRegistry(String version) {
         for (String baseKey : REGISTRY_BASEPATHS) {
             try {
                 File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, version));
@@ -55,11 +55,13 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
                 // Version not found at this base path
             }
         }
+
+        LOGGER.debug("No Windows registry values found for version " + version);
         return null;
     }
 
     @Override
-    public VisualCppMetadata getVisualCppFromMetadataFile(File installDir) {
+    public VisualCppInstallCandidate getVisualCppFromMetadataFile(File installDir) {
         File msvcVersionFile = new File(installDir, VS2017_METADATA_FILE_PATH);
         if (!msvcVersionFile.exists() || !msvcVersionFile.isFile()) {
             LOGGER.debug("The MSVC version file at {} either does not exist or is not a file.  Cannot determine the MSVC version for this installation.", msvcVersionFile.getAbsolutePath());
@@ -74,7 +76,7 @@ public class DefaultVisualCppMetadataProvider implements VisualCppMetadataProvid
         }
     }
 
-    private static class DefaultVisualCppMetadata implements VisualCppMetadata {
+    private static class DefaultVisualCppMetadata implements VisualCppInstallCandidate {
         private final File visualCppDir;
         private final VersionNumber version;
 

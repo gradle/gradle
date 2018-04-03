@@ -19,14 +19,26 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+import spock.lang.Timeout
 
+@Timeout(300)
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
         given:
         def buildSrcDir = file("buildSrc").createDir()
-        writeSharedClassFile(buildSrcDir);
+        writeSharedClassFile(buildSrcDir)
+        file('buildSrc/build.gradle').text = '''
+            tasks.all {
+                doFirst {
+                    println "${name} started at ${new Date().time}"
+                }
+                doLast {
+                    println "${name} finished at ${new Date().time}"
+                }
+            }
+        '''
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 
@@ -49,16 +61,44 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         when:
-        def handleRun1 = executer.withTasks("blocking").start()
-        def handleRun2 = executer.withTasks("releasing").start()
+        def runBlockingHandle = executer.withTasks("blocking").start()
+        def runReleaseHandle = executer.withTasks("releasing").start()
         and:
-        def finish2 = handleRun2.waitForFinish()
-        def finish1 = handleRun1.waitForFinish()
+        def releaseResult = runReleaseHandle.waitForFinish()
+        def blockingResult = runBlockingHandle.waitForFinish()
         then:
-        finish1.error.equals("")
-        finish2.error.equals("")
-        finish1.assertTasksExecuted(":blocking")
-        finish2.assertTasksExecuted(":releasing")
+        blockingResult.assertTasksExecuted(":blocking")
+        releaseResult.assertTasksExecuted(":releasing")
+
+        def blockingTaskTimes = finishedTaskTimes(blockingResult.output)
+        def releasingTaskTimes = finishedTaskTimes(releaseResult.output)
+
+        def blockingBuildSrcBuiltFirst = blockingTaskTimes.values().min() < releasingTaskTimes.values().min()
+        def (firstBuildResult, secondBuildResult) = blockingBuildSrcBuiltFirst ? [blockingResult, releaseResult] : [releaseResult, blockingResult]
+
+        def lastTaskTimeFromFirstBuildSrcBuild = finishedTaskTimes(firstBuildResult.output).values().max()
+        def firstTaskTimeFromSecondBuildSrcBuild = startedTaskTimes(secondBuildResult.output).values().min()
+
+        lastTaskTimeFromFirstBuildSrcBuild < firstTaskTimeFromSecondBuildSrcBuild
+    }
+
+    Map<String, Long> startedTaskTimes(String output) {
+        taskTimes(output, 'started')
+    }
+
+    Map<String, Long> finishedTaskTimes(String output) {
+        taskTimes(output, 'finished')
+    }
+
+    Map<String, Long> taskTimes(String output, String state) {
+        output.readLines().collect {
+            it =~ /(.*) ${state} at (\d*)/
+        }.findAll {
+            it.matches()
+        }.collectEntries {
+            def match = it[0]
+            [(match[1]): Long.parseLong(match[2])]
+        }
     }
 
     void writeSharedClassFile(TestFile targetDirectory) {

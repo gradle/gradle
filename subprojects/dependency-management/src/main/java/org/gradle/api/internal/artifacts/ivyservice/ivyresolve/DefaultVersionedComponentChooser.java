@@ -48,7 +48,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             return two == null ? one : two;
         }
 
-        int comparison = versionComparator.compare(new VersionInfo(one.getId().getVersion()), new VersionInfo(two.getId().getVersion()));
+        int comparison = versionComparator.compare(new VersionInfo(one.getModuleVersionId().getVersion()), new VersionInfo(two.getModuleVersionId().getVersion()));
 
         if (comparison == 0) {
             if (isMissingModuleDescriptor(one) && !isMissingModuleDescriptor(two)) {

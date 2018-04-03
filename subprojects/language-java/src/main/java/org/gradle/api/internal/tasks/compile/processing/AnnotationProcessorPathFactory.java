@@ -30,11 +30,13 @@ import org.gradle.util.DeprecationLogger;
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
 public class AnnotationProcessorPathFactory {
-    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "Putting annotation processors on the compile classpath";
+    public static final String COMPILE_CLASSPATH_DEPRECATION_MESSAGE = "The following annotation processors were detected on the compile classpath:";
     public static final String PROCESSOR_PATH_DEPRECATION_MESSAGE = "Specifying the processor path in the CompilerOptions compilerArgs property";
 
     private final FileCollectionFactory fileCollectionFactory;
@@ -55,7 +57,7 @@ public class AnnotationProcessorPathFactory {
      * @return An empty collection when annotation processing should not be performed, non-empty when it should.
      */
     public FileCollection getEffectiveAnnotationProcessorClasspath(final CompileOptions compileOptions, final FileCollection compileClasspath) {
-        if (compileOptions.getCompilerArgs().contains("-proc:none")) {
+        if (compileOptions.getAllCompilerArgs().contains("-proc:none")) {
             return fileCollectionFactory.empty("annotation processor path");
         }
         final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
@@ -74,14 +76,15 @@ public class AnnotationProcessorPathFactory {
 
     private FileCollection getProcessorPathFromCompilerArguments(final CompileOptions compileOptions) {
         final FileCollection annotationProcessorPath = compileOptions.getAnnotationProcessorPath();
-        int pos = compileOptions.getCompilerArgs().indexOf("-processorpath");
+        List<String> compilerArgs = compileOptions.getAllCompilerArgs();
+        int pos = compilerArgs.indexOf("-processorpath");
         if (pos < 0) {
             return null;
         }
-        if (pos == compileOptions.getCompilerArgs().size() - 1) {
-            throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
+        if (pos == compilerArgs.size() - 1) {
+            throw new InvalidUserDataException("No path provided for compiler argument -processorpath in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
         }
-        final String processorpath = compileOptions.getCompilerArgs().get(pos + 1);
+        final String processorpath = compilerArgs.get(pos + 1);
         if (annotationProcessorPath == null) {
             return fileCollectionFactory.fixed("annotation processor path", extractProcessorPath(processorpath));
         }
@@ -140,8 +143,15 @@ public class AnnotationProcessorPathFactory {
                     if (hasExplicitProcessor) {
                         return compileClasspath.getFiles();
                     }
-                    if (!annotationProcessorDetector.detectProcessors(compileClasspath).isEmpty()) {
-                        DeprecationLogger.nagUserOfDeprecated(COMPILE_CLASSPATH_DEPRECATION_MESSAGE, "Please add them to the processor path instead. If these processors were unintentionally leaked on the compile classpath, use the -proc:none compiler option to ignore them.");
+                    Map<String, AnnotationProcessorDeclaration> processors = annotationProcessorDetector.detectProcessors(compileClasspath);
+                    if (!processors.isEmpty()) {
+                        DeprecationLogger.nagUserWith(
+                            COMPILE_CLASSPATH_DEPRECATION_MESSAGE +
+                            " '" + Joiner.on("' and '").join(processors.keySet()) + "'. " +
+                            "Detecting annotation processors on the compile classpath is deprecated and Gradle 5.0 will ignore them. " +
+                            "Please add them to the annotation processor path instead. " +
+                            "If you did not intend to use annotation processors, you can use the '-proc:none' compiler argument to ignore them."
+                        );
                         return compileClasspath.getFiles();
                     }
                     return Collections.emptySet();
@@ -156,10 +166,11 @@ public class AnnotationProcessorPathFactory {
 
     private static boolean checkExplicitProcessorOption(CompileOptions compileOptions) {
         boolean hasExplicitProcessor = false;
-        int pos = compileOptions.getCompilerArgs().indexOf("-processor");
+        List<String> compilerArgs = compileOptions.getAllCompilerArgs();
+        int pos = compilerArgs.indexOf("-processor");
         if (pos >= 0) {
-            if (pos == compileOptions.getCompilerArgs().size() - 1) {
-                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compileOptions.getCompilerArgs()));
+            if (pos == compilerArgs.size() - 1) {
+                throw new InvalidUserDataException("No processor specified for compiler argument -processor in requested compiler args: " + Joiner.on(" ").join(compilerArgs));
             }
             hasExplicitProcessor = true;
         }

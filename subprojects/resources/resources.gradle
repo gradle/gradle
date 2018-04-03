@@ -1,12 +1,12 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * A set of general-purpose resource abstractions.
  */
 plugins {
     id 'java-library'
-    id 'classycle'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
@@ -14,10 +14,14 @@ dependencies {
     api project(':native')
     api project(':modelCore')
 
-    implementation libraries.guava.coordinate
-    implementation libraries.commons_io.coordinate
+    implementation libraries.guava.coordinates
+    implementation libraries.commons_io.coordinates
 
     integTestImplementation project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

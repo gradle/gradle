@@ -15,13 +15,24 @@
  */
 package org.gradle.platform.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.*;
-import org.gradle.platform.base.*;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -56,7 +67,10 @@ public class BinaryBasePlugin implements Plugin<Project> {
 
         @Mutate
         void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
-            for (BinarySpec binary : binaries) {
+            for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                if (binary.isLegacyBinary()) {
+                    continue;
+                }
                 tasks.addAll(binary.getTasks());
                 Task buildTask = binary.getBuildTask();
                 if (buildTask != null) {

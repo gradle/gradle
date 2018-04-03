@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -14,8 +16,8 @@
  * limitations under the License.
  */
 plugins {
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -23,8 +25,13 @@ dependencies {
     compile project(':resourcesHttp')
     compile project(':baseServices')
     compile project(':core')
-    compile libraries.commons_httpclient.coordinate
-    compile libraries.commons_lang.coordinate
+    compile libraries.commons_httpclient.coordinates
+    compile libraries.commons_lang.coordinates
 
     integTestCompile testLibraries.jetty
 }
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+

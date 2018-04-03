@@ -96,8 +96,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean interactive;
-    private boolean advancedPomSupport;
-    private boolean gradleMetadata;
+    private boolean writeDependencyLocks;
 
     /**
      * {@inheritDoc}
@@ -257,6 +256,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.interactive = interactive;
+        p.writeDependencyLocks = writeDependencyLocks;
         return p;
     }
 
@@ -296,9 +296,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     /**
      * Specifies that an empty settings script should be used.
      *
-     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(java.io.File)}, it will not be used.
+     * This means that even if a settings file exists in the conventional location, or has been previously specified by {@link #setSettingsFile(File)}, it will not be used.
      *
-     * If {@link #setSettingsFile(java.io.File)} is called after this, it will supersede calling this method.
+     * If {@link #setSettingsFile(File)} is called after this, it will supersede calling this method.
      *
      * @return this
      */
@@ -319,8 +319,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from
-     * these task parameters are returned.
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -767,6 +766,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", interactive=" + interactive
+            + ", writeDependencyLocks=" + writeDependencyLocks
             + '}';
     }
 
@@ -868,42 +868,22 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true if optional dependencies, compile/runtime scope separation and BOMs are included in dependency resolution.
+     * Specifies whether dependency resolution needs to be persisted for locking
      *
-     * @since 4.6
+     * @since 4.8
      */
     @Incubating
-    public boolean isAdvancedPomSupport() {
-        return advancedPomSupport;
+    public void setWriteDependencyLocks(boolean writeDependencyLocks) {
+        this.writeDependencyLocks = writeDependencyLocks;
     }
 
     /**
-     * Specifies if optional dependencies, compile/runtime scope separation and BOMs are to be included in dependency resolution.
+     * Returns true when dependency resolution is to be persisted for locking
      *
-     * @since 4.6
+     * @since 4.8
      */
     @Incubating
-    public void setAdvancedPomSupport(boolean advancedPomSupport) {
-        this.advancedPomSupport = advancedPomSupport;
-    }
-
-    /**
-     * Returns true if gradle metadata should be use as preferred format for resolving and publishing dependencies.
-     *
-     * @since 4.6
-     */
-    @Incubating
-    public boolean isGradleMetadata() {
-        return gradleMetadata;
-    }
-
-    /**
-     * Specifies if gradle metadata should be use as preferred format for resolving and publishing dependencies.
-     *
-     * @since 4.6
-     */
-    @Incubating
-    public void setGradleMetadata(boolean gradleMetadata) {
-        this.gradleMetadata = gradleMetadata;
+    public boolean isWriteDependencyLocks() {
+        return writeDependencyLocks;
     }
 }

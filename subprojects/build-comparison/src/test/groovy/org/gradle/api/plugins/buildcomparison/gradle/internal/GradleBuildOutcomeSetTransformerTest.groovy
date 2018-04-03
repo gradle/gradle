@@ -17,11 +17,11 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal
 
 import org.gradle.api.Action
-import org.gradle.internal.resource.local.FileStore
 import org.gradle.api.plugins.buildcomparison.fixtures.ProjectOutcomesBuilder
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.GeneratedArchiveBuildOutcome
 import org.gradle.api.plugins.buildcomparison.outcome.internal.unknown.UnknownBuildOutcome
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
+import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,14 +38,6 @@ class GradleBuildOutcomeSetTransformerTest extends Specification {
     def store = new FileStore<String>() {
         LocallyAvailableResource move(String key, File source) {
             new DefaultLocallyAvailableResource(source)
-        }
-
-        LocallyAvailableResource copy(String key, File source) {
-            new DefaultLocallyAvailableResource(source)
-        }
-
-        void moveFilestore(File destination) {
-            throw new UnsupportedOperationException()
         }
 
         LocallyAvailableResource add(String key, Action<File> addAction) {

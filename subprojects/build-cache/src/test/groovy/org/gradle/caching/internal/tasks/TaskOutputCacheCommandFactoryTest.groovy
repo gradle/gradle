@@ -32,7 +32,7 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
-import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener
+import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.caching.internal.tasks.origin.TaskOutputOriginFactory
 import org.gradle.internal.hash.HashCode
@@ -56,7 +56,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     def key = Mock(TaskOutputCachingBuildCacheKey)
     def taskProperties = Mock(TaskProperties)
     def task = Mock(TaskInternal)
-    def taskOutputsGenerationListener = Mock(TaskOutputsGenerationListener)
+    def taskOutputsGenerationListener = Mock(TaskOutputChangesListener)
     def taskArtifactState = Mock(TaskArtifactState)
     def timer = Stub(Timer)
 
@@ -92,7 +92,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         def result = load.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
         1 * originFactory.createReader(task)
 
         then:
@@ -134,7 +134,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         command.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
         1 * originFactory.createReader(task)
 
         then:
@@ -169,7 +169,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
         command.load(input)
 
         then:
-        1 * taskOutputsGenerationListener.beforeTaskOutputsGenerated()
+        1 * taskOutputsGenerationListener.beforeTaskOutputChanged()
         1 * originFactory.createReader(task)
 
         then:

@@ -160,6 +160,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     String TASK_ACTION = "action";
 
     /**
+     * Constructor arguments for the Task
+     *
+     * @since 4.7
+     */
+    @Incubating
+    String TASK_CONSTRUCTOR_ARGS = "constructorArgs";
+
+    /**
      * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
      * @return The name of the task. Never returns null.
@@ -421,7 +429,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Removes all the actions of this task.</p>
      *
      * @return the task object this method is applied to
+     *
+     * @deprecated Don't use this.
      */
+    @Deprecated
     Task deleteAllActions();
 
     /**

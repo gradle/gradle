@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
@@ -247,6 +248,7 @@ class DefaultProjectTest {
             allowing(attributesSchema).attribute(withParam(notNullValue()), withParam(notNullValue()));
 
             allowing(serviceRegistryMock).get((Type) ObjectFactory); will(returnValue(context.mock(ObjectFactory)))
+            allowing(serviceRegistryMock).get((Type) DependencyLockingHandler); will(returnValue(context.mock(DependencyLockingHandler)))
         }
 
         AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
@@ -682,6 +684,15 @@ def scriptMethod(Closure closure) {
         project.ext.someProp = "somePropValue"
         assert project.findProperty('someProp') == "somePropValue"
         assertNull(project.findProperty("someNonExistingProp"))
+    }
+
+    @Test
+    void testSetPropertyNullValue() {
+        project.ext.someProp = "somePropValue"
+        project.setProperty("someProp", null)
+        assert project.hasProperty("someProp")
+        assertNull(project.findProperty("someProp"))
+        assertNull(project.someProp)
     }
 
     @Test(expected = MissingPropertyException)

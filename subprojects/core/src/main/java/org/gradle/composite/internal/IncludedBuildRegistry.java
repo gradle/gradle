@@ -16,26 +16,38 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.Pair;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
+/**
+ * A registry of all the builds present in a build tree.
+ */
 public interface IncludedBuildRegistry {
-    boolean hasIncludedBuilds();
-    Collection<IncludedBuild> getIncludedBuilds();
-    IncludedBuild getBuild(BuildIdentifier name);
-    Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getModuleToProjectMapping(IncludedBuild includedBuild);
+    /**
+     * Returns all children of the root build.
+     */
+    Collection<? extends IncludedBuildInternal> getIncludedBuilds();
+
+    /**
+     * Locates a build by {@link BuildIdentifier}, if present.
+     */
+    @Nullable
+    IncludedBuildInternal getBuild(BuildIdentifier buildIdentifier);
 
     void validateExplicitIncludedBuilds(SettingsInternal settings);
 
-    ConfigurableIncludedBuild addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
-    ConfigurableIncludedBuild addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    /**
+     * Registers an included build.
+     */
+    IncludedBuildInternal addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+
+    /**
+     * Registers a child build that is not an included.
+     */
+    IncludedBuildInternal addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }

@@ -26,7 +26,7 @@ public class VisualStudioMetadataBuilder {
     private File visualCppDir;
     private VersionNumber version = VersionNumber.UNKNOWN;
     private VersionNumber visualCppVersion = VersionNumber.UNKNOWN;
-    private VisualStudioMetadata.Compatibility compatibility;
+    private VisualStudioInstallCandidate.Compatibility compatibility;
 
     public VisualStudioMetadataBuilder installDir(File installDir) {
         this.installDir = FileUtils.canonicalize(installDir);
@@ -48,12 +48,12 @@ public class VisualStudioMetadataBuilder {
         return this;
     }
 
-    public VisualStudioMetadataBuilder compatibility(VisualStudioMetadata.Compatibility compatibility) {
+    public VisualStudioMetadataBuilder compatibility(VisualStudioInstallCandidate.Compatibility compatibility) {
         this.compatibility = compatibility;
         return this;
     }
 
-    public VisualStudioMetadata build() {
+    public VisualStudioInstallCandidate build() {
         return new DefaultVisualStudioMetadata(installDir, visualCppDir, version, visualCppVersion, compatibility);
     }
 }

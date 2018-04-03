@@ -31,6 +31,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.GenericFileNormalizer;
@@ -44,6 +48,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,7 +162,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (previousDiscoveredInputs != null) {
             discoveredInputs = snapshotDiscoveredInputs(task, normalizationStrategy, previousDiscoveredInputs.getElements(), snapshotterRegistry, fileCollectionFactory);
         } else {
-            discoveredInputs = FileCollectionSnapshot.EMPTY;
+            discoveredInputs = EmptyFileCollectionSnapshot.INSTANCE;
         }
 
         OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(outputFiles, previousExecution);
@@ -203,7 +208,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         if (taskInputs != null) {
             discoveredFilesSnapshot = snapshotDiscoveredInputs(task, normalizationStrategy, taskInputs.getDiscoveredInputs(), snapshotterRegistry, fileCollectionFactory);
         } else {
-            discoveredFilesSnapshot = FileCollectionSnapshot.EMPTY;
+            discoveredFilesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
         }
         currentExecution.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
@@ -212,7 +217,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         FileCollectionSnapshotter snapshotter = snapshotterRegistry.getSnapshotter(GenericFileNormalizer.class);
         if (discoveredInputs.isEmpty()) {
             LOGGER.debug("No discovered inputs for {}", task);
-            return FileCollectionSnapshot.EMPTY;
+            return EmptyFileCollectionSnapshot.INSTANCE;
         }
         LOGGER.debug("Snapshotting discovered inputs for {}", task);
         try {
@@ -249,6 +254,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             // Are all files snapshot after execution accounted for as new entries?
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
+            } else if (newEntryCount == 0) {
+                filesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
             } else {
                 filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
             }
@@ -355,7 +362,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 return afterPreviousExecution;
             }
         }
-        return FileCollectionSnapshot.EMPTY;
+        return EmptyFileCollectionSnapshot.INSTANCE;
     }
 
     @Nullable
@@ -377,12 +384,37 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return ImmutableSortedSet.copyOf(outputPropertyNames);
     }
 
-    private static ImmutableSet<String> getDeclaredOutputFilePaths(TaskProperties taskProperties, StringInterner stringInterner) {
-        ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
-        for (File file : taskProperties.getOutputFiles()) {
-            declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
-        }
+    private static ImmutableSet<String> getDeclaredOutputFilePaths(final TaskProperties taskProperties, final StringInterner stringInterner) {
+        final ImmutableSet.Builder<String> declaredOutputFilePaths = ImmutableSortedSet.naturalOrder();
+        FileCollectionInternal outputFiles = (FileCollectionInternal) taskProperties.getOutputFiles();
+        outputFiles.visitRootElements(new FileCollectionVisitor() {
+            @Override
+            public void visitCollection(FileCollectionInternal fileCollection) {
+                addAllPaths(fileCollection, declaredOutputFilePaths, stringInterner);
+            }
+
+            @Override
+            public void visitTree(FileTreeInternal fileTree) {
+                DeprecationLogger.nagUserOfDeprecated("Adding file trees which are not directory trees as output files");
+                addAllPaths(fileTree, declaredOutputFilePaths, stringInterner);
+            }
+
+            @Override
+            public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+                addPath(directoryTree.getDir(), declaredOutputFilePaths, stringInterner);
+            }
+        });
         return declaredOutputFilePaths.build();
+    }
+
+    private static void addAllPaths(Iterable<File> files, ImmutableSet.Builder<String> builder, StringInterner stringInterner) {
+        for (File file : files) {
+            addPath(file, builder, stringInterner);
+        }
+    }
+
+    private static ImmutableSet.Builder<String> addPath(File file, ImmutableSet.Builder<String> builder, StringInterner stringInterner) {
+        return builder.add(stringInterner.intern(file.getAbsolutePath()));
     }
 
 }

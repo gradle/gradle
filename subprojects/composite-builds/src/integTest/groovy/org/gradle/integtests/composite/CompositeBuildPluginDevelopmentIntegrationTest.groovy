@@ -291,7 +291,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginBuild:jar"
         outputContains("taskFromPluginBuild")
 
-
         when:
         includeBuild pluginBuild
         execute(buildA, "tasks")

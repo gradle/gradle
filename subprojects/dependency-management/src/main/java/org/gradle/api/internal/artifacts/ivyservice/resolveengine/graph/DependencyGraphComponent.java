@@ -18,12 +18,20 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
- * A component in the dependency graph.
+ * A {@link ComponentResult} that is used during the resolution of the dependency graph.
+ * Additional fields in this interface are not required to reconstitute the serialized graph.
  */
 public interface DependencyGraphComponent extends ComponentResult {
+    /**
+     * Returns the meta-data for the component. Resolves if not already resolved.
+     *
+     * @return null if the meta-data is not available due to some failure.
+     */
+    @Nullable
     ComponentResolveMetadata getMetadata();
 
     Collection<? extends DependencyGraphComponent> getDependents();

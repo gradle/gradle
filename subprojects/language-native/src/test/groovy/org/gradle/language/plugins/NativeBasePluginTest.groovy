@@ -23,6 +23,7 @@ import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.ComponentWithBinaries
 import org.gradle.language.ComponentWithOutputs
 import org.gradle.language.ProductionComponent
+import org.gradle.api.component.PublishableComponent
 import org.gradle.language.internal.DefaultBinaryCollection
 import org.gradle.language.nativeplatform.internal.ComponentWithNames
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable
@@ -203,10 +205,10 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkSharedLibrary
-        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
 
         and:
-        runtimeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        runtimeFileProp.get().asFile == linkTask.linkedFile.get().asFile
         linkTaskProp.get() == linkTask
     }
 
@@ -238,16 +240,16 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkSharedLibrary
-        linkTask.binaryFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/lib/windows/debug/test_lib.dll")
 
         def stripTask = project.tasks['stripSymbolsWindowsDebug']
         stripTask instanceof StripSymbols
-        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         stripTask.outputFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll")
 
         def extractTask = project.tasks['extractSymbolsWindowsDebug']
         extractTask instanceof ExtractSymbols
-        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         extractTask.symbolFile.get().asFile == projectDir.file("build/lib/windows/debug/stripped/test_lib.dll.pdb")
 
         and:
@@ -285,16 +287,17 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkExecutable
-        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
 
         def installTask = project.tasks['installWindowsDebug']
         installTask instanceof InstallExecutable
-        installTask.sourceFile.get().asFile == linkTask.binaryFile.get().asFile
+        installTask.executableFile.get().asFile == linkTask.linkedFile.get().asFile
         installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
 
         and:
-        exeFileProp.get().asFile == linkTask.binaryFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        exeFileProp.get().asFile == linkTask.linkedFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
+
         linkTaskProp.get() == linkTask
 
         and:
@@ -336,26 +339,27 @@ class NativeBasePluginTest extends Specification {
         expect:
         def linkTask = project.tasks['linkWindowsDebug']
         linkTask instanceof LinkExecutable
-        linkTask.binaryFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
+        linkTask.linkedFile.get().asFile == projectDir.file("build/exe/windows/debug/test_app.exe")
 
         def stripTask = project.tasks['stripSymbolsWindowsDebug']
         stripTask instanceof StripSymbols
-        stripTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        stripTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         stripTask.outputFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe")
 
         def extractTask = project.tasks['extractSymbolsWindowsDebug']
         extractTask instanceof ExtractSymbols
-        extractTask.binaryFile.get().asFile == linkTask.binaryFile.get().asFile
+        extractTask.binaryFile.get().asFile == linkTask.linkedFile.get().asFile
         extractTask.symbolFile.get().asFile == projectDir.file("build/exe/windows/debug/stripped/test_app.exe.pdb")
 
         def installTask = project.tasks['installWindowsDebug']
         installTask instanceof InstallExecutable
-        installTask.sourceFile.get().asFile == stripTask.outputFile.get().asFile
+        installTask.executableFile.get().asFile == stripTask.outputFile.get().asFile
         installTask.installDirectory.get().asFile == projectDir.file("build/install/windows/debug")
 
         and:
         exeFileProp.get().asFile == stripTask.outputFile.get().asFile
-        debugExeFileProp.get().asFile == linkTask.binaryFile.get().asFile
+        debugExeFileProp.get().asFile == installTask.installedExecutable.get().asFile
+
         linkTaskProp.get() == linkTask
 
         and:
@@ -393,22 +397,28 @@ class NativeBasePluginTest extends Specification {
 
     def "adds Maven publications for component with main publication"() {
         def usage1 = Stub(UsageContext)
-        usage1.artifacts >> [Stub(PublishArtifact)]
-
-        def variant1 = Stub(SoftwareComponentInternal)
+        def artifact1 = Stub(PublishArtifact)
+        artifact1.getFile() >> projectDir.file("artifact1")
+        usage1.artifacts >> [artifact1]
+        def variant1 = Stub(PublishableVariant)
         variant1.name >> "debug"
         variant1.usages >> [usage1]
+        variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
         def usage2 = Stub(UsageContext)
-        usage2.artifacts >> [Stub(PublishArtifact)]
-
-        def variant2 = Stub(SoftwareComponentInternal)
+        def artifact2 = Stub(PublishArtifact)
+        artifact2.getFile() >> projectDir.file("artifact1")
+        usage2.artifacts >> [artifact2]
+        def variant2 = Stub(PublishableVariant)
         variant2.name >> "release"
         variant2.usages >> [usage2]
+        variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
+
+        def doNotPublish = Stub(SoftwareComponentInternal)
 
         def mainVariant = Stub(TestVariant)
         mainVariant.name >> "main"
-        mainVariant.variants >> [variant1, variant2]
+        mainVariant.variants >> [variant1, variant2, doNotPublish]
 
         def component = Stub(PublicationAwareComponent)
         component.mainPublication >> mainVariant
@@ -470,5 +480,8 @@ class NativeBasePluginTest extends Specification {
     }
 
     interface TestVariant extends ComponentWithVariants, SoftwareComponentInternal {
+    }
+
+    interface PublishableVariant extends PublishableComponent, SoftwareComponentInternal {
     }
 }

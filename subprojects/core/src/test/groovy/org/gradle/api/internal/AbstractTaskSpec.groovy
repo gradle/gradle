@@ -17,7 +17,6 @@
 package org.gradle.api.internal
 
 import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -25,7 +24,6 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
 import static org.junit.Assert.assertTrue
@@ -42,7 +40,7 @@ class AbstractTaskSpec extends AbstractProjectBuilderSpec {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)
         DefaultServiceRegistry registry = new DefaultServiceRegistry()
         registry.add(Instantiator, DirectInstantiator.INSTANCE)
-        TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask, Task.TASK_NAME, name))
+        TaskInternal task = rootFactory.createChild(project, instantiator).create(name, TestTask)
         assertTrue(TestTask.isAssignableFrom(task.getClass()))
         return task
     }

@@ -51,7 +51,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         @Override
         public String getName(Path element) {
             if (element == Path.ROOT) {
-                return projectRegistry.getProjectComponentIdentifier(Path.ROOT).getBuild().getName();
+                return projectRegistry.getProjectName(element);
             }
             return element.getName();
         }

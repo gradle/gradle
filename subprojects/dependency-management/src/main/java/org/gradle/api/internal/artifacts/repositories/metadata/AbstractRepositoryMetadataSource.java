@@ -80,7 +80,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
     }
 
     void checkMetadataConsistency(ModuleComponentIdentifier expectedId, MutableModuleComponentResolveMetadata metadata) throws MetaDataParseException {
-        checkModuleIdentifier(expectedId, metadata.getId());
+        checkModuleIdentifier(expectedId, metadata.getModuleVersionId());
     }
 
     private void checkModuleIdentifier(ModuleComponentIdentifier expectedId, ModuleVersionIdentifier actualId) {

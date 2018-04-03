@@ -379,4 +379,38 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         metadata.dependencies.size() == 3
         metadata.dependencies.each { assert it.optional }
     }
+
+    def "scopes defined in a bom are ignored"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>bom</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.selector == moduleId('group-b', 'module-b', '1.0')
+        dep.scope == MavenScope.Compile //compile is the 'default' scope
+        hasDefaultDependencyArtifact(dep)
+        dep.optional
+    }
 }

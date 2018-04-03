@@ -1,8 +1,0 @@
-if (project.hasProperty("testWithUnknownOS")) {
-    tasks.withType(Test) {
-        systemProperty "org.gradle.integtest.unknownos", "true"
-        systemProperty "os.arch", "unknown architecture"
-        systemProperty "os.name", "unknown operating system"
-        systemProperty "os.version", "unknown version"
-    }
-}

@@ -17,12 +17,13 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import spock.lang.Timeout
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
+@Timeout(300)
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
         given:
@@ -61,7 +62,7 @@ class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init script with correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'
-        createExternalJar();
+        createExternalJar()
 
         and:
         TestFile initScript = file('init.gradle')
@@ -93,13 +94,11 @@ try {
         buildFile << 'task doStuff'
 
         when:
-        ExecutionResult result = executer.usingInitScript(initScript).withTasks('doStuff').run()
+        result = executer.usingInitScript(initScript).withTasks('doStuff').run()
 
         then:
-        result.output.contains('quiet message')
-        !result.output.contains('error message')
-        result.error.contains('error message')
-        !result.error.contains('quiet message')
+        outputContains('quiet message')
+        result.assertHasErrorOutput('error message')
     }
 
     def "each init script has independent ClassLoader"() {
@@ -157,13 +156,13 @@ try {
         buildFile << 'task doStuff'
 
         when:
-        ExecutionResult result = executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
+        result = executer.usingInitScript(initScript1).usingInitScript(initScript2).withTasks('doStuff').run()
 
         then:
         notThrown(Throwable)
 
         and:
-        result.output.contains("BuildClass not found as expected")
+        outputContains("BuildClass not found as expected")
     }
 
     @Requires([KOTLIN_SCRIPT])
@@ -216,7 +215,7 @@ rootProject {
     def "notices changes to init scripts that do not change the file length"() {
         def initScript = file("init.gradle")
         initScript.text = "println 'counter: __'"
-        int before = initScript.length()
+        long before = initScript.length()
 
         expect:
         (10..40).each {
@@ -230,7 +229,7 @@ rootProject {
     }
 
     private def createExternalJar() {
-        ArtifactBuilder builder = artifactBuilder();
+        ArtifactBuilder builder = artifactBuilder()
         builder.sourceFile('org/gradle/test/BuildClass.java') << '''
             package org.gradle.test;
             public class BuildClass { }

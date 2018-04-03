@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DefaultDependentsSet;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependencyToAll;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
+import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.HashSet;
@@ -43,11 +41,11 @@ public class JarSnapshot {
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
             if (getAnalysis().isDependencyToAll(className)) {
-                return new DependencyToAll();
+                return DependentsSet.dependencyToAll();
             }
             result.add(className);
         }
-        return new DefaultDependentsSet(result);
+        return DependentsSet.dependents(result);
     }
 
     public IntSet getAllConstants(DependentsSet dependents) {
@@ -90,7 +88,7 @@ public class JarSnapshot {
                 affected.addAll(dependents.getDependentClasses());
             }
         }
-        return new DefaultDependentsSet(affected);
+        return DependentsSet.dependents(affected);
     }
 
     private Set<String> addedSince(JarSnapshot other) {

@@ -22,7 +22,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.progress.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationCategory
 import spock.lang.Specification
 
 class BuildOperationSettingsProcessorTest extends Specification {

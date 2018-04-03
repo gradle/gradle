@@ -36,8 +36,8 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.AsyncWorkTracker;
 
@@ -49,13 +49,13 @@ import java.util.List;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
-    private final TaskOutputsGenerationListener outputsGenerationListener;
+    private final TaskOutputChangesListener outputsGenerationListener;
     private final TaskActionListener listener;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildInvocationScopeId buildInvocationScopeId;
 
-    public ExecuteActionsTaskExecuter(TaskOutputsGenerationListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
+    public ExecuteActionsTaskExecuter(TaskOutputChangesListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -65,8 +65,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         listener.beforeActions(task);
-        if (!task.getTaskActions().isEmpty()) {
-            outputsGenerationListener.beforeTaskOutputsGenerated();
+        if (task.hasTaskActions()) {
+            outputsGenerationListener.beforeTaskOutputChanged();
         }
         state.setExecuting(true);
         try {
@@ -118,7 +118,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
             @Override
             public void run(BuildOperationContext context) {
-                BuildOperationState currentOperation = buildOperationExecutor.getCurrentOperation();
+                BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
                 Throwable actionFailure = null;
                 try {
                     action.execute(task);

@@ -16,20 +16,15 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.apache.commons.io.IOUtils;
-import org.fusesource.jansi.AnsiOutputStream;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.integtests.fixtures.executer.LogContent;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Parses rich console output into its pieces for verification in functional tests
+ * Parses console output into its pieces for verification in functional tests
  */
 public class GroupedOutputFixture {
     /**
@@ -39,12 +34,13 @@ public class GroupedOutputFixture {
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
-    private final static String BUILD_FAILED_FOOTER = "FAILURE:";
+    private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
+    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks:";
 
     /**
      * Various patterns to detect the end of the task output
      */
-    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START;
+    private final static String END_OF_TASK_OUTPUT = TASK_HEADER + "|" + BUILD_STATUS_FOOTER + "|" + BUILD_FAILED_FOOTER + "|" + EMBEDDED_BUILD_START + "|" + ACTIONABLE_TASKS + "|\\z";
 
     private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
     private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
@@ -65,7 +61,6 @@ public class GroupedOutputFixture {
         TASK_OUTPUT_PATTERN = Pattern.compile(pattern);
     }
 
-
     private final String originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskFixture> tasks;
@@ -78,7 +73,7 @@ public class GroupedOutputFixture {
     private String parse(String output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
 
-        String strippedOutput = stripAnsiCodes(stripWorkInProgressArea(output));
+        String strippedOutput = LogContent.of(stripWorkInProgressArea(output)).removeAnsiChars().withNormalizedEol();
         Matcher matcher = TASK_OUTPUT_PATTERN.matcher(strippedOutput);
         while (matcher.find()) {
             String taskName = matcher.group(1);
@@ -110,16 +105,6 @@ public class GroupedOutputFixture {
         return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 
-    private String stripAnsiCodes(String output) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            IOUtils.copy(new StringReader(output), new AnsiOutputStream(baos));
-            return baos.toString();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public int getTaskCount() {
         return tasks.size();
     }
@@ -132,7 +117,7 @@ public class GroupedOutputFixture {
         boolean foundTask = hasTask(taskName);
 
         if (!foundTask) {
-            throw new AssertionError(String.format("The grouped output for task '%s' could not be found", taskName));
+            throw new AssertionError(String.format("The grouped output for task '%s' could not be found.%nOutput:%n%s", taskName, originalOutput));
         }
 
         return tasks.get(taskName);

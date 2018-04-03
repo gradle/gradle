@@ -64,12 +64,12 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
         ClientModule clientModule = componentOverrideMetadata.getClientModule();
         if (clientModule != null) {
-            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetaData();
+            ModuleComponentResolveMetadata originalMetadata = (ModuleComponentResolveMetadata) result.getMetadata();
             List<ModuleDependencyMetadata> clientModuleDependencies = createClientModuleDependencies(identifier, clientModule);
             ModuleComponentArtifactMetadata clientModuleArtifact = createClientModuleArtifact(originalMetadata);
             ClientModuleComponentResolveMetadata clientModuleMetaData = new ClientModuleComponentResolveMetadata(originalMetadata, clientModuleArtifact, clientModuleDependencies);
 
-            result.setMetaData(clientModuleMetaData);
+            result.setMetadata(clientModuleMetaData);
         }
     }
 
@@ -111,8 +111,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ModuleComponentIdentifier getComponentId() {
-            return delegate.getComponentId();
+        public ModuleComponentIdentifier getId() {
+            return delegate.getId();
         }
 
         @Override
@@ -121,8 +121,8 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         }
 
         @Override
-        public ModuleVersionIdentifier getId() {
-            return delegate.getId();
+        public ModuleVersionIdentifier getModuleVersionId() {
+            return delegate.getModuleVersionId();
         }
 
         @Override
@@ -143,7 +143,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Override
         @Nullable
         public ConfigurationMetadata getConfiguration(String name) {
-            return new ClientModuleConfigurationMetadata(delegate.getComponentId(), name, clientModuleArtifact, clientModuleDependencies);
+            return new ClientModuleConfigurationMetadata(delegate.getId(), name, clientModuleArtifact, clientModuleDependencies);
         }
 
         @Override

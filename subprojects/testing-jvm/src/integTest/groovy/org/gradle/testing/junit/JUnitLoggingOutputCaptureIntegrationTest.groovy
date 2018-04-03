@@ -18,23 +18,27 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
+import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({JUnitCoverage.LOGGING})
-class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
+// https://github.com/junit-team/junit5/issues/1285
+@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
+class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
             apply plugin: "java"
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:$version' }
+            dependencies {
+                testCompile '$dependencyNotation'
+            }
             test {
                 reports.junitXml.outputPerTestCase = true
-                onOutput { test, event -> print "\$test -> \$event.message" }
+                // JUnit 5's test name contains paretheses
+                onOutput { test, event -> print "\${test.toString().replace('()(', '(')} -> \$event.message" }
             }
         """
     }
@@ -86,10 +90,11 @@ public class OkTest {
     }
 }
 """
-        when: run "test"
+        when:
+        succeeds "test"
 
         then:
-        result.output.contains """Test class OkTest -> class loaded
+        outputContains """Test class OkTest -> class loaded
 Test class OkTest -> before class out
 Test class OkTest -> before class err
 Test class OkTest -> test constructed
@@ -176,12 +181,12 @@ dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api
             }
         """
 
-        when: run("test")
+        when: succeeds("test")
 
         then:
-        result.output.contains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
-        result.output.contains("Test foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
+        outputContains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        outputContains("Test foo(FooTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: jul info")
+        outputContains("Test foo(FooTest) -> ${java.util.logging.Level.WARNING.getLocalizedName()}: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
@@ -222,16 +227,16 @@ public class OkTest {
 """
 
         when:
-        run("test")
+        succeeds("test")
 
         then:
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("OkTest")
 
         5.times { n ->
-            assert result.output.contains("Test ok(OkTest) -> stdout from thread $n")
-            assert result.output.contains("Test ok(OkTest) -> stderr from thread $n")
-            assert result.output.contains("Test ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
+            outputContains("Test ok(OkTest) -> stdout from thread $n")
+            outputContains("Test ok(OkTest) -> stderr from thread $n")
+            outputContains("Test ok(OkTest) -> ${java.util.logging.Level.INFO.getLocalizedName()}: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))

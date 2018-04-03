@@ -287,19 +287,19 @@ org:leaf:2.0 -> 1.0
         then:
         output.contains """
 org:leaf:1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
-   variant "runtime"
+   variant "default"
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -582,20 +582,20 @@ org:foo:1.0 -> 2.0
         then:
         output.contains """
 org:leaf:1.6
-   variant "runtime"
+   variant "default"
 
 org:leaf:1.+ -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,1.9] -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:latest.integration -> 1.6
-   variant "runtime"
+   variant "default"
 \\--- org:top:1.0
      \\--- conf
 """
@@ -722,13 +722,13 @@ org:leaf:2.0 -> 1.5
         then:
         output.contains """
 org:leaf:1.0 (forced)
-   variant "default"
+   variant "default+runtime"
 +--- conf
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "default"
+   variant "default+runtime"
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -891,7 +891,7 @@ org:middle:1.0 -> 2.0 FAILED
 
         then:
         output.contains """
-org:middle:2.0 (conflict resolution) FAILED
+org:middle:2.0 FAILED
 \\--- conf
 
 org:middle:1.0 -> 2.0 FAILED
@@ -1093,7 +1093,7 @@ org:leaf2:1.0
         then:
         output.contains """
 project :
-   variant "compile"
+   variant "compile+runtimeElements"
 \\--- project :impl
      \\--- project : (*)
 """
@@ -1407,16 +1407,15 @@ org:leaf3:1.0
         run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"
 
         then:
-        output.contains """:dependencyInsight
-foo:bar:2.0
+        result.groupedOutput.task(":dependencyInsight").output.contains("""foo:bar:2.0
    variant "default"
 \\--- compile
 
 foo:foo:1.0
    variant "default"
-\\--- compile"""
+\\--- compile
+""")
     }
-
 
     @Unroll
     def "renders dependency constraint differently"() {
@@ -1581,7 +1580,7 @@ org:foo:$displayVersion -> $selected
         bom.dependencyConstraint(leaf)
         bom.publish()
 
-        FeaturePreviewsFixture.enableAdvancedPomSupport(file('gradle.properties'))
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -1625,7 +1624,7 @@ org:leaf -> 1.0
                 .publish()
 
         }
-        FeaturePreviewsFixture.enableGradleMetadata(file("gradle.properties"))
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
 
         file("build.gradle") << """
             apply plugin: 'java-library'
@@ -1652,4 +1651,46 @@ org:leaf -> 1.0
      \\--- compileClasspath"""
     }
 
+    def "mentions web-based dependency insight report available using build scans"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+
+        mavenRepo.module("org", "middle").dependsOnModules("leaf1", "leaf2").publish()
+
+        mavenRepo.module("org", "top").dependsOnModules("middle", "leaf2").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:top:1.0'
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested.module == 'leaf2' }
+                configuration = configurations.conf
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains """
+org:leaf2:1.0
+   variant "runtime"
++--- org:middle:1.0
+|    \\--- org:top:1.0
+|         \\--- conf
+\\--- org:top:1.0 (*)
+
+(*) - dependencies omitted (listed previously)
+
+A web-based, searchable dependency report is available by adding the --scan option.
+"""
+    }
 }

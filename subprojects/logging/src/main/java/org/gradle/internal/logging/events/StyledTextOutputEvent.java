@@ -17,7 +17,10 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -27,14 +30,16 @@ import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin
-public class StyledTextOutputEvent extends RenderableOutputEvent {
+public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails {
+    public static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
+
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, String text) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
         this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable Object buildOperationIdentifier, List<Span> spans) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
         super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
@@ -73,7 +78,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     @UsedByScanPlugin
-    public static class Span implements Serializable {
+    public static class Span implements StyledTextBuildOperationProgressDetails.Span, Serializable {
         private final String text;
         private final StyledTextOutput.Style style;
 
@@ -89,6 +94,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
 
         public StyledTextOutput.Style getStyle() {
             return style;
+        }
+
+        @Override
+        public String getStyleName() {
+            return getStyle().name();
         }
 
         public String getText() {

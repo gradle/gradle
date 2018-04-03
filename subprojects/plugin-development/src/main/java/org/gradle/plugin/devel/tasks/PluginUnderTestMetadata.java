@@ -26,8 +26,6 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.util.PropertiesUtils;
 
 import java.io.File;
@@ -47,7 +45,6 @@ import static org.gradle.util.CollectionUtils.collect;
 public class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
-    public static final String IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY = "implementation-classpath-hash";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
     private FileCollection pluginClasspath;
     private File outputDirectory;
@@ -82,7 +79,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
         if (getPluginClasspath() != null && !getPluginClasspath().isEmpty()) {
             properties.setProperty(IMPLEMENTATION_CLASSPATH_PROP_KEY, implementationClasspath());
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, implementationClasspathHash());
         }
 
         File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
@@ -93,13 +89,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
         StringBuilder implementationClasspath = new StringBuilder();
         Joiner.on(File.pathSeparator).appendTo(implementationClasspath, getPaths());
         return implementationClasspath.toString();
-    }
-
-    private String implementationClasspathHash() {
-        // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
-        // We should be reusing those persistent snapshots to avoid reading into memory again.
-        ClasspathHasher classpathHasher = getServices().get(ClasspathHasher.class);
-        return classpathHasher.hash(new DefaultClassPath(getPluginClasspath())).toString();
     }
 
     private void saveProperties(Properties properties, File outputFile) {

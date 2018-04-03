@@ -15,14 +15,19 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.build.DefaultJavaInstallation
-import org.gradle.cleanup.EmptyDirectoryCheck
-
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.modules.PatchExternalModules
+import org.gradle.gradlebuild.BuildEnvironment
 
 plugins {
     id 'java-base'
-    id 'build-types'
+    id 'gradlebuild.build-types'
+    id 'gradlebuild.ci-reporting'
+    // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
+    // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
+    // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
+    id "com.gradle.build-scan"
 }
 
 defaultTasks 'assemble'
@@ -111,82 +116,6 @@ buildTypes {
     }
 }
 
-ext {
-    gradle_kotlin_dsl_version = '0.15.4'
-    jvm = org.gradle.internal.jvm.Jvm.current()
-    javaVersion = JavaVersion.current()
-    isCiServer = System.getenv().containsKey("CI")
-    isWindows = org.gradle.internal.os.OperatingSystem.current().windows
-
-    if (project.hasProperty("maxParallelForks")) {
-        project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
-    } else {
-        ext.maxParallelForks = 4
-    }
-
-    if (project.hasProperty("useAllDistribution")) {
-        project.useAllDistribution = true
-    } else {
-        ext.useAllDistribution = false
-    }
-
-    agentNum = 1
-    if (System.getenv().containsKey("USERNAME")) {
-        def agentNumEnv = System.getenv("USERNAME") - "tcagent"
-        if (agentNumEnv ==~ /\d+/) {
-            agentNum = agentNumEnv
-        }
-    }
-
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
-    groovyProjects = subprojects
-    publicGroovyProjects = groovyProjects - internalProjects
-    pluginProjects = [
-        'plugins', 'codeQuality', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
-        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
-        'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
-        'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'resourcesGcs', 'compositeBuilds', 'buildCacheHttp'
-    ].collect { project(it) }
-    implementationPluginProjects = [
-        project('toolingApiBuilders')
-    ]
-    publishedProjects = [
-        project(':logging'),
-        project(':core'),
-        project(':modelCore'),
-        project(':toolingApi'),
-        project(':wrapper'),
-        project(':baseServices'),
-        project(':baseServicesGroovy'),
-        project(':workers'),
-        project(':dependencyManagement'),
-        project(':messaging'),
-        project(':processServices'),
-        project(':resources')
-    ]
-}
-
-apply from: "gradle/buildScanUserData.gradle"
-apply from: "gradle/taskCacheBuildScanUserData.gradle"
-apply from: "gradle/versioning.gradle"
-apply from: "gradle/dependencies.gradle"
-apply from: "gradle/dependenciesMetadataRules.gradle"
-apply from: "gradle/minifiedDependencies.gradle"
-apply from: "gradle/testDependencies.gradle"
-apply from: "gradle/wrapper.gradle"
-apply from: "gradle/idea.gradle"
-apply from: "gradle/eclipse.gradle"
-apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
-apply from: "gradle/testSetup.gradle"
-apply from: "gradle/fix-GRADLE-2492.gradle"
-apply from: 'gradle/customM2Check.gradle'
-apply from: "gradle/publicApi.gradle"
-apply from: "gradle/updateReleasedVersions.gradle"
-apply from: "gradle/dependenciesCheck.gradle"
-
 allprojects {
     group = 'org.gradle'
 
@@ -204,29 +133,49 @@ allprojects {
     }
 }
 
+apply plugin: "gradlebuild.cleanup"
+apply plugin: "gradlebuild.available-java-installations"
+apply plugin: "gradlebuild.buildscan"
+apply from: "gradle/versioning.gradle"
+apply from: "gradle/dependencies.gradle"
+apply plugin: "gradlebuild.minify"
+apply from: "gradle/testDependencies.gradle"
+apply plugin: "gradlebuild.wrapper"
+apply plugin: "gradlebuild.ide"
+apply plugin: "gradlebuild.no-resolution-at-configuration"
+apply plugin: "gradlebuild.update-versions"
+apply plugin: "gradlebuild.dependency-vulnerabilities"
+apply plugin: "gradlebuild.add-verify-production-environment-task"
+
+
 subprojects {
     version = rootProject.version
 
-    if (project in groovyProjects) {
-        apply from: "$rootDir/gradle/groovyProject.gradle.kts"
-        apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-        apply from: "$rootDir/gradle/java9plus.gradle"
-        check.dependsOn ":docs:checkstyleApi"
-        check.dependsOn "codeQuality"
+    if (project in ProjectGroups.INSTANCE.getJavaProjects(project)) {
+        apply plugin: "gradlebuild.java-projects"
+        apply plugin: "gradlebuild.dependencies-metadata-rules"
     }
 
-    if (project in publishedProjects) {
-        apply from: "$rootDir/gradle/publish.gradle"
+    if (project in ProjectGroups.INSTANCE.getPublishedProjects(project)) {
+        apply plugin: "gradlebuild.publish-public-libraries"
     }
 
-    apply from: "$rootDir/gradle/codeQuality.gradle"
+    apply from: "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts"
+    apply plugin: "gradlebuild.task-properties-validation"
+    apply plugin: "gradlebuild.test-files-cleanup"
 }
 
 configurations {
     coreRuntime {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     coreRuntimeExtensions {
+        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME)) }
+        canBeResolved = true
+        canBeConsumed = false
         visible = false
     }
     externalModules {
@@ -263,15 +212,15 @@ def patchedExternalModules = files({ -> fileTree(patchedExternalModulesDir).file
 patchedExternalModules.builtBy 'patchExternalModules'
 
 dependencies {
-    externalModules "org.gradle:gradle-kotlin-dsl:${gradle_kotlin_dsl_version}"
-    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${gradle_kotlin_dsl_version}"
+    externalModules "org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}"
+    externalModules "org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}"
     coreRuntime project(':launcher')
     coreRuntime project(':runtimeApiInfo')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
     runtime patchedExternalModules
-    gradlePlugins pluginProjects
-    gradlePlugins implementationPluginProjects
+    gradlePlugins ProjectGroups.INSTANCE.getPluginProjects(project)
+    gradlePlugins ProjectGroups.INSTANCE.getImplementationPluginProjects(project)
     gradlePlugins project(':workers')
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -284,41 +233,11 @@ dependencies {
 
 ext.allCoreRuntimeExtensions = configurations.coreRuntimeExtensions.allDependencies
 
-import org.gradle.modules.PatchExternalModules
-
 task patchExternalModules(type: PatchExternalModules) {
     allModules = configurations.externalModulesRuntime
     coreModules = configurations.coreRuntime
     modulesToPatch = configurations.externalModules
     destination = patchedExternalModulesDir
-}
-
-task verifyIsProductionBuildEnvironment {
-    doLast {
-        assert javaVersion.java8:
-            "Must use a Java 8 compatible JVM to perform this build. Current JVM is ${jvm}"
-
-        def javaHomeProperty = { propertyName -> project.findProperty(propertyName) ?: System.getProperty(propertyName) }
-        def assertJavaHomeVersion = { propertyName, javaVersion ->
-            def javaInstallationPath = javaHomeProperty(propertyName)
-            assert javaInstallationPath:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Currently unset. Set -P$propertyName=/path/to/jvm/$javaVersion"
-            def javaInstallation = new DefaultJavaInstallation()
-            gradle.services.get(JavaInstallationProbe).checkJdk(file(javaInstallationPath)).configure(javaInstallation)
-            assert javaInstallation.javaVersion == javaVersion:
-                "Must set $propertyName to the path of a Java $javaVersion compatible JVM to perform this build. " +
-                    "Is currently ${javaInstallation.displayName} at $javaInstallationPath. Set -P$propertyName=/path/to/jvm/$javaVersion"
-        }
-
-        assertJavaHomeVersion("java7Home", JavaVersion.VERSION_1_7)
-        if (javaHomeProperty("testJavaHome")) {
-            assertJavaHomeVersion("testJavaHome", JavaVersion.VERSION_1_8)
-        }
-
-        def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-        assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
-    }
 }
 
 evaluationDependsOn ":distributions"
@@ -337,27 +256,8 @@ task installAll(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-// Generate a report showing which tests in a subproject are leaving
-// files around.
-//
-// Once a subproject's report is "clean" we should add the following to that
-// subproject's buildscript:
-//
-// verifyTestFilesCleanup.errorWhenNotEmpty = true
-//
-subprojects { prj ->
-    task verifyTestFilesCleanup(type: EmptyDirectoryCheck) {
-        targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
-        report = prj.file("${prj.buildDir}/reports/remains.txt")
-        errorWhenNotEmpty = true
+afterEvaluate {
+    if (gradle.startParameter.isBuildCacheEnabled()) {
+        rootProject.availableJavaInstallations.validateBuildCacheConfiguration(gradle.settings.buildCache)
     }
 }
-
-gradle.buildFinished { result ->
-    def rootProject = result.gradle.rootProject
-    if (rootProject.remoteBuildCacheEnabled && !rootProject.java7HomeSet) {
-        logger.warn("In order to have cache hits from the remote build cache you need to set 'java7Home' in your gradle.properties!")
-    }
-}
-
-apply from: "gradle/ciReporting.gradle"

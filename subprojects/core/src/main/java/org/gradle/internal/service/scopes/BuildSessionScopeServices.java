@@ -60,8 +60,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ContentHasherFactory;
@@ -69,19 +67,9 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.trace.BuildOperationTrace;
-import org.gradle.internal.progress.BuildOperationListener;
-import org.gradle.internal.progress.BuildOperationListenerManager;
-import org.gradle.internal.progress.DefaultBuildOperationExecutor;
-import org.gradle.internal.progress.DefaultBuildOperationListenerManager;
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
@@ -93,8 +81,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.util.GradleVersion;
 
@@ -105,8 +91,9 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath) {
         super(parent);
+        addProvider(crossBuildSessionScopeServices);
         register(new Action<ServiceRegistration>() {
             @Override
             public void execute(ServiceRegistration registration) {
@@ -134,37 +121,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ListenerManager createListenerManager(ListenerManager parent) {
         return parent.createChild();
-    }
-
-    BuildOperationListenerManager createBuildOperationListenerManager(ListenerManager listenerManager) {
-        return new DefaultBuildOperationListenerManager(listenerManager);
-    }
-
-    BuildOperationTrace createBuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationlistenerManager) {
-        return new BuildOperationTrace(startParameter, buildOperationlistenerManager);
-    }
-
-    BuildOperationExecutor createBuildOperationExecutor(
-        ListenerManager listenerManager,
-        Clock clock,
-        ProgressLoggerFactory progressLoggerFactory,
-        WorkerLeaseService workerLeaseService,
-        ExecutorFactory executorFactory,
-        ResourceLockCoordinationService resourceLockCoordinationService,
-        ParallelismConfigurationManager parallelismConfigurationManager,
-        BuildOperationIdFactory buildOperationIdFactory,
-        @SuppressWarnings("unused") BuildOperationTrace buildOperationTrace // required in order to init this
-
-    ) {
-        return new DefaultBuildOperationExecutor(
-            listenerManager.getBroadcaster(BuildOperationListener.class),
-            clock, progressLoggerFactory,
-            new DefaultBuildOperationQueueFactory(workerLeaseService),
-            executorFactory,
-            resourceLockCoordinationService,
-            parallelismConfigurationManager,
-            buildOperationIdFactory
-        );
     }
 
     GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
@@ -227,16 +183,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultImmutableAttributesFactory(isolatableFactory, NamedObjectInstantiator.INSTANCE);
     }
 
-    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
-        return new DefaultResourceLockCoordinationService();
-    }
-
     AsyncWorkTracker createAsyncWorkTracker(ProjectLeaseRegistry projectLeaseRegistry) {
         return new DefaultAsyncWorkTracker(projectLeaseRegistry);
-    }
-
-    WorkerLeaseService createWorkerLeaseService(ResourceLockCoordinationService coordinationService, ParallelismConfigurationManager parallelismConfigurationManager) {
-        return new DefaultWorkerLeaseService(coordinationService, parallelismConfigurationManager);
     }
 
     UserScopeId createUserScopeId(PersistentScopeIdLoader persistentScopeIdLoader) {
@@ -252,8 +200,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
-    FeaturePreviews createExperimentalFeatures(StartParameter startParameter) {
-        return new FeaturePreviews(startParameter);
+    FeaturePreviews createExperimentalFeatures() {
+        return new FeaturePreviews();
     }
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {

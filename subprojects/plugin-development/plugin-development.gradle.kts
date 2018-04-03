@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -13,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.cleanup.EmptyDirectoryCheck
 
 plugins {
-    id("strict-compile")
-    id("classycle")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
 }
 
 dependencies {
@@ -33,9 +34,16 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
 }
 
+
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
 testFixtures {
     from(":core")
     from(":logging")
 }
 
-tasks.getByName<EmptyDirectoryCheck>("verifyTestFilesCleanup").isErrorWhenNotEmpty = false
+testFilesCleanup {
+    isErrorWhenNotEmpty = false
+}

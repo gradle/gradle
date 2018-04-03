@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.events.EndOutputEvent;
-import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -26,8 +26,11 @@ import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-import org.gradle.internal.time.Clock;
+import org.gradle.internal.operations.OperationIdentifier;
 
+/**
+ * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
+ */
 public class BuildStatusRenderer implements OutputEventListener {
     public static final int PROGRESS_BAR_WIDTH = 13;
     public static final String PROGRESS_BAR_PREFIX = "<";
@@ -41,8 +44,8 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
-    private final Clock clock;
     private long currentPhaseProgressOperationId;
+    private long currentTimePeriod;
 
     // What actually shows up on the console
     private ProgressBar progressBar;
@@ -51,22 +54,21 @@ public class BuildStatusRenderer implements OutputEventListener {
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, Clock clock) {
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
-        this.clock = clock;
     }
 
     @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            if (startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
-                buildStarted(startEvent);
-            } else if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
+            if (BUILD_PROGRESS_CATEGORY.equals(startEvent.getCategory())) {
                 phaseStarted(startEvent);
+            } else if (buildStartTimestamp == 0 && startEvent.getBuildOperationId() != null && startEvent.getParentBuildOperationId() == null) {
+                buildStartTimestamp = startEvent.getTimestamp();
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
@@ -82,8 +84,11 @@ public class BuildStatusRenderer implements OutputEventListener {
 
         listener.onOutput(event);
 
-        if (event instanceof UpdateNowEvent || event instanceof EndOutputEvent) {
-            renderNow(clock.getCurrentTime());
+        if (event instanceof UpdateNowEvent) {
+            currentTimePeriod = ((UpdateNowEvent) event).getTimestamp();
+            renderNow(currentTimePeriod);
+        } else if (event instanceof EndOutputEvent || event instanceof FlushOutputEvent) {
+            renderNow(currentTimePeriod);
         }
     }
 
@@ -96,10 +101,6 @@ public class BuildStatusRenderer implements OutputEventListener {
             buildStatusLabel.setText(progressBar.formatProgress(consoleMetaData.getCols(), timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
-    }
-
-    private void buildStarted(ProgressStartEvent startEvent) {
-        buildStartTimestamp = clock.getCurrentTime();
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent) {

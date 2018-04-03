@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import org.gradle.language.nativeplatform.internal.Expression
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
@@ -126,11 +127,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     List<Macro> getMacros() {
-        return parsedSource.macros
+        return Lists.newArrayList(parsedSource.allMacros)
     }
 
     List<MacroFunction> getMacroFunctions() {
-        return parsedSource.macrosFunctions
+        return Lists.newArrayList(parsedSource.allMacroFunctions)
     }
 
     def "parses file with no includes"() {

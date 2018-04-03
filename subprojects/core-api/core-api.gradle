@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -15,10 +17,8 @@
  */
 plugins {
     id 'java-library'
-    // id 'strict-compile'
+    // id 'gradlebuild.strict-compile'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(":baseServices")
@@ -30,16 +30,22 @@ dependencies {
     api project(":processServices")
     api project(":resources")
 
-    implementation libraries.ant.coordinate
-    implementation libraries.commons_io.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.jcip.coordinate
+    implementation libraries.ant.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
 
     testFixturesImplementation project(":internalTesting")
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
     from(':logging')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

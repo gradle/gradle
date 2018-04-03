@@ -522,12 +522,12 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Hello.java') << 'public class Hello {}'
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
+        executer.withFullDeprecationStackTraceDisabled().withStackTraceChecksDisabled()
         run 'compileJava'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on compile classpath'
+        outputContains 'Could not read annotation processor declarations'
 
     }
 
@@ -746,7 +746,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
-        result.output.contains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
+        outputContains("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Removing sourcepath.")
         file("build/classes/java/main/example/module-info.class").exists()
         file("build/classes/java/main/example/io/example/Example.class").exists()
         file("build/classes/java/main/another/module-info.class").exists()
@@ -775,7 +775,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
     def "sourcepath is respected even when exclusively specified from compilerArgs, but deprecation warning is emitted"() {
@@ -797,7 +797,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('build/classes/java/main/Square.class').exists()
         file('build/classes/java/main/Rectangle.class').exists()
         file('build/classes/java/main/Shape.class').exists()
-        result.output.contains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
+        outputContains("Specifying the source path in the CompilerOptions compilerArgs property has been deprecated")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() })
@@ -836,7 +836,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withJavaHome jdk8.javaHome
         executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
-        errorOutput.contains "Main.java:8: error: cannot find symbol"
+        failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
         executer.withJavaHome jdk8.javaHome
         succeeds "-Pjava8", "clean", "compileJava"

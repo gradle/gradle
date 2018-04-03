@@ -1,7 +1,9 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
 
 dependencies {
@@ -9,12 +11,12 @@ dependencies {
     api project(':resources')
 
     implementation project(':resourcesHttp')
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.guava.coordinate
-    implementation libraries.awsS3_core.coordinate, libraries.awsS3_s3.coordinate, libraries.awsS3_kms.coordinate
-    implementation libraries.jackson_core.coordinate, libraries.jackson_annotations.coordinate, libraries.jackson_databind.coordinate
-    implementation libraries.commons_httpclient.coordinate, libraries.joda.coordinate
-    implementation libraries.commons_lang.coordinate
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.awsS3_core.coordinates, libraries.awsS3_s3.coordinates, libraries.awsS3_kms.coordinates
+    implementation libraries.jackson_core.coordinates, libraries.jackson_annotations.coordinates, libraries.jackson_databind.coordinates
+    implementation libraries.commons_httpclient.coordinates, libraries.joda.coordinates
+    implementation libraries.commons_lang.coordinates
 }
 
 testFixtures {
@@ -23,5 +25,11 @@ testFixtures {
     from(':maven')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+gradlebuildJava {
+    moduleType = ModuleType.PLUGIN
+}
+
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}
 

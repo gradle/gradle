@@ -1,6 +1,8 @@
-:producer
+
+> Task :producer
 Wrote 'Hello, World!' to /home/user/gradle/samples/providers/implicitTaskDependency/output/file.txt
-:consumer
+
+> Task :consumer
 Read 'Hello, World!' from /home/user/gradle/samples/providers/implicitTaskDependency/output/file.txt
 
 BUILD SUCCESSFUL in 0s

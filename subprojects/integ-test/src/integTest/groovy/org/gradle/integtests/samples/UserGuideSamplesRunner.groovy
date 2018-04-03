@@ -21,7 +21,6 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
-import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -31,6 +30,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -149,6 +149,7 @@ class UserGuideSamplesRunner extends Runner {
             def m2 = new M2Installation(temporaryFolder)
             m2.execute(executer)
             executer.noExtraLogging()
+                .withStacktraceDisabled()
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
                 .withEnvironmentVars(run.envs)
@@ -170,12 +171,6 @@ class UserGuideSamplesRunner extends Runner {
                 }
                 expectedResult = replaceWithPlatformNewLines(expectedResult)
                 expectedResult = replaceWithRealSamplesDir(expectedResult)
-
-                def matcher = Pattern.compile("BUILD SUCCESSFUL in \\d+s").matcher(result.output)
-                if (matcher.find()) {
-                    String buildSuccessMessage = matcher.group()
-                    expectedResult = expectedResult.replace("BUILD SUCCESSFUL in 0s", buildSuccessMessage)
-                }
 
                 try {
                     result.assertOutputEquals(expectedResult, run.ignoreExtraLines, run.ignoreLineOrder)
@@ -213,11 +208,15 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     private String replaceWithRealSamplesDir(String text) {
+        def url = new ConsoleRenderer().asClickableFileUrl(baseExecutionDir)
+        text = text.replace("file:///home/user/gradle/samples/", url)
+        def uri = baseExecutionDir.toURI().toASCIIString()
+        text = text.replace("file:/home/user/gradle/samples/", uri)
         def normalisedSamplesDir = TextUtil.normaliseFileSeparators(baseExecutionDir.absolutePath)
-        return text.replaceAll(Pattern.quote('/home/user/gradle/samples'), normalisedSamplesDir)
+        return text.replace('/home/user/gradle/samples', normalisedSamplesDir)
     }
 
-    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String,GradleRun> samplesByDir){
+    private configureJava6CrossCompilationForGroovyAndScala(ArrayListMultimap<String, GradleRun> samplesByDir) {
         def java6CrossCompilation = ['groovy', 'scala'].collectMany {
             samplesByDir.get(it + '/crossCompilation')
         }
@@ -342,12 +341,6 @@ class UserGuideSamplesRunner extends Runner {
 
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
         samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
-        samplesById.javaLibraryComponentReport.runs.each { it.outputFormatter = new JvmComponentReportOutputFormatter() }
-
-        if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
-            // Ignore for now
-            samplesById.remove('completeCUnitExample')
-        }
 
         samplesById.each { id, sample ->
             sample.runs = sample.runs.sort { it.index }

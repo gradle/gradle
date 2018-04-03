@@ -181,13 +181,15 @@ public class TestEventSerializer {
         public DefaultTestClassDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
-            return new DefaultTestClassDescriptor(id, name);
+            String displayName = decoder.readString();
+            return new DefaultTestClassDescriptor(id, name, displayName);
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestClassDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
+            encoder.writeString(value.getDisplayName());
         }
     }
 
@@ -198,15 +200,19 @@ public class TestEventSerializer {
         public DefaultTestDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String className = decoder.readString();
+            String classDisplayName = decoder.readString();
             String name = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name);
+            String displayName = decoder.readString();
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getClassName());
+            encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
+            encoder.writeString(value.getDisplayName());
         }
     }
 

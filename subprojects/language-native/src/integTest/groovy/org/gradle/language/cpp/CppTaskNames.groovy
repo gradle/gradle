@@ -16,43 +16,17 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 
-trait CppTaskNames {
+abstract trait CppTaskNames {
 
     private static final String DEBUG = 'Debug'
     private static final String RELEASE = 'Release'
 
-    String[] compileTasksDebug(String project = '') {
-        compileTasks(project, DEBUG)
-    }
-
-    String linkTaskDebug(String project = '') {
-        linkTask(project, DEBUG)
-    }
+    abstract InstalledToolChain getToolchainUnderTest()
 
     String installTaskDebug(String project = '') {
         installTask(project, DEBUG)
-    }
-
-    String assembleTaskDebug(String project = '') {
-        assembleTask(project, DEBUG)
-    }
-
-    String[] compileTasksRelease(String project = '') {
-        compileTasks(project, RELEASE)
-    }
-
-    String linkTaskRelease(String project = '') {
-        linkTask(project, RELEASE)
-    }
-
-    String installTaskRelease(String project = '') {
-        installTask(project, RELEASE)
-    }
-
-    String assembleTaskRelease(String project = '') {
-        assembleTask(project, RELEASE)
     }
 
     String[] compileTasks(String project = '', String buildType) {
@@ -75,10 +49,6 @@ trait CppTaskNames {
         "${project}:install${buildType}"
     }
 
-    String assembleTask(String project = '', String buildType) {
-        "${project}:assemble${buildType}"
-    }
-
     String[] compileAndLinkTasks(List<String> projects = [''], String buildType) {
         projects.collect { project ->
             [*compileTasks(project, buildType), linkTask(project, buildType)]
@@ -91,39 +61,33 @@ trait CppTaskNames {
         }.flatten()
     }
 
-    String[] extractAndStripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
-        return extractAndStripSymbolsTasks(project, RELEASE, toolChain)
+    String[] extractAndStripSymbolsTasksRelease(String project = '') {
+        return extractAndStripSymbolsTasks(project, RELEASE)
     }
 
-    String[] extractAndStripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
-        if (toolChain.visualCpp) {
+    String[] extractAndStripSymbolsTasks(String project = '', String buildType) {
+        if (toolchainUnderTest.visualCpp) {
             return []
         } else {
-            return stripSymbolsTasks(project, buildType, toolChain) + ["${project}:extractSymbols${buildType}"]
+            return stripSymbolsTasks(project, buildType) + ["${project}:extractSymbols${buildType}"]
         }
     }
 
-    String[] extractAndStripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
-        projects.collect { project ->
-            [*extractAndStripSymbolsTasks(project, buildType, toolChain)]
-        }.flatten()
+    String[] stripSymbolsTasksRelease(String project = '') {
+        return stripSymbolsTasks(project, RELEASE)
     }
 
-    String[] stripSymbolsTasksRelease(String project = '', AvailableToolChains.InstalledToolChain toolChain) {
-        return stripSymbolsTasks(project, RELEASE, toolChain)
-    }
-
-    String[] stripSymbolsTasks(String project = '', String buildType, AvailableToolChains.InstalledToolChain toolChain) {
-        if (toolChain.visualCpp) {
+    String[] stripSymbolsTasks(String project = '', String buildType) {
+        if (toolchainUnderTest.visualCpp) {
             return []
         } else {
             return ["${project}:stripSymbols${buildType}"]
         }
     }
 
-    String[] stripSymbolsTasks(List<String> projects, String buildType, AvailableToolChains.InstalledToolChain toolChain) {
+    String[] stripSymbolsTasks(List<String> projects, String buildType) {
         projects.collect { project ->
-            [*stripSymbolsTasks(project, buildType, toolChain)]
+            [*stripSymbolsTasks(project, buildType)]
         }.flatten()
     }
 
@@ -138,4 +102,109 @@ trait CppTaskNames {
     String getDebugShared() {
         return "${DEBUG}Shared"
     }
+
+    /**
+     * Returns the tasks for the project with the given path.
+     */
+    ProjectTasks tasks(String project) {
+        return new ProjectTasks(project, toolchainUnderTest)
+    }
+
+    /**
+     * Returns the tasks for the root project.
+     */
+    ProjectTasks getTasks() {
+        return new ProjectTasks('', toolchainUnderTest)
+    }
+
+    static class ProjectTasks {
+        private final String project
+        private final InstalledToolChain toolChainUnderTest
+
+        ProjectTasks(String project, InstalledToolChain toolChainUnderTest) {
+            this.toolChainUnderTest = toolChainUnderTest
+            this.project = project
+        }
+
+        DebugTasks getDebug() {
+            return new DebugTasks()
+        }
+
+        ReleaseTasks getRelease() {
+            return new ReleaseTasks()
+        }
+
+        private withProject(String t) {
+            project + ":" + t
+        }
+
+        class DebugTasks {
+            String getCompile() {
+                return withProject("compileDebugCpp")
+            }
+
+            String getLink() {
+                return withProject("linkDebug")
+            }
+
+            String getInstall() {
+                return withProject("installDebug")
+            }
+
+            String getAssemble() {
+                return withProject("assembleDebug")
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link]
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
+            }
+        }
+
+        class ReleaseTasks {
+            String getCompile() {
+                return withProject("compileReleaseCpp")
+            }
+
+            String getLink() {
+                return withProject("linkRelease")
+            }
+
+            String getInstall() {
+                return withProject("installRelease")
+            }
+
+            String getAssemble() {
+                return withProject("assembleRelease")
+            }
+
+            List<String> getExtract() {
+                if (toolChainUnderTest.visualCpp) {
+                    return []
+                } else {
+                    return [withProject("extractSymbolsRelease")]
+                }
+            }
+
+            List<String> getStrip() {
+                if (toolChainUnderTest.visualCpp) {
+                    return []
+                } else {
+                    return [withProject("stripSymbolsRelease")]
+                }
+            }
+
+            List<String> getAllToLink() {
+                return [compile, link] + strip
+            }
+
+            List<String> getAllToInstall() {
+                return allToLink + [install]
+            }
+        }
+    }
+
 }

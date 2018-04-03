@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -15,12 +17,9 @@
  */
 plugins {
     // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-    // id 'strict-compile'
-    // id 'classycle'
+    // id 'gradlebuild.strict-compile'
+    // id 'gradlebuild.classycle'
 }
-
-// Test execution
-sourceCompatibility = 1.6
 
 dependencies {
     compile project(':core')
@@ -28,14 +27,21 @@ dependencies {
     compile project(':languageJava')
     compile project(':testingBase')
 
-    compile libraries.junit.coordinate
-    compile libraries.testng.coordinate
-    compile libraries.bsh.coordinate
+    implementation libraries.asm.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.junit.coordinates
+    implementation libraries.testng.coordinates
+    implementation libraries.bsh.coordinates
 
     testCompile ('com.google.inject:guice:2.0') {
         because 'This is for TestNG'
     }
 
+    integTestRuntime project(':testingJunitPlatform')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 test {

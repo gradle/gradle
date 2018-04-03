@@ -60,8 +60,12 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
             return new DefaultVcsMappingFactory(decoratingInstantiator, new VersionControlSpecFactory(decoratingInstantiator, startParameter));
         }
 
-        VcsMappingsStore createVcsMappingsStore() {
-            return new DefaultVcsMappingsStore();
+        VcsMappingsStore createVcsMappingsStore(VcsMappingFactory mappingFactory) {
+            return new DefaultVcsMappingsStore(mappingFactory);
+        }
+
+        VcsResolver createVcsResolver(VcsMappingsStore mappingsStore) {
+            return mappingsStore.asResolver();
         }
     }
 

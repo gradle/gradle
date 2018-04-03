@@ -22,11 +22,11 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.HashFunction
-import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
+import static org.gradle.internal.hash.HashUtil.compactStringFor
 
 class DefaultCacheKeyBuilderTest extends Specification {
 
@@ -64,7 +64,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(stringHash)}"
+        key == "$prefix/${compactStringFor(stringHash)}"
     }
 
     def 'given a File component, it should hash it and append it to the prefix'() {
@@ -81,7 +81,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(fileHash)}"
+        key == "$prefix/${compactStringFor(fileHash)}"
     }
 
     def 'given a ClassPath component, it should snapshot it and append it to the prefix'() {
@@ -98,7 +98,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(classPathHash)}"
+        key == "$prefix/${compactStringFor(classPathHash)}"
     }
 
     def 'given a ClassLoader component, it should hash its hierarchy and append it to the prefix'() {
@@ -115,7 +115,7 @@ class DefaultCacheKeyBuilderTest extends Specification {
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(classLoaderHierarchyHash)}"
+        key == "$prefix/${compactStringFor(classLoaderHierarchyHash)}"
     }
 
     def 'given more than one component, it should combine their hashes together and append the combined hash to the prefix'() {
@@ -135,16 +135,13 @@ class DefaultCacheKeyBuilderTest extends Specification {
         1 * hashFunction.newHasher() >> hasher
         1 * hashFunction.hashString(string) >> stringHash
         1 * fileHasher.hash(file) >> fileHash
-        1 * hasher.putBytes(stringHash.toByteArray())
-        1 * hasher.putBytes(fileHash.toByteArray())
+        1 * hasher.putHash(stringHash)
+        1 * hasher.putHash(fileHash)
         1 * hasher.hash() >> combinedHash
         0 * _
 
         and:
-        key == "$prefix/${toCompactHash(combinedHash)}"
+        key == "$prefix/${compactStringFor(combinedHash)}"
     }
 
-    private static String toCompactHash(HashCode hash) {
-        return new HashValue(hash.toByteArray()).asCompactString()
-    }
 }

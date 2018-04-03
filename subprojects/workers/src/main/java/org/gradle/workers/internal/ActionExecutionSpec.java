@@ -17,7 +17,7 @@
 package org.gradle.workers.internal;
 
 public interface ActionExecutionSpec extends WorkSpec {
-    Class<? extends Runnable> getImplementationClass();
+    Class<?> getImplementationClass();
 
     @Override
     String getDisplayName();

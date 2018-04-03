@@ -24,19 +24,19 @@ import org.junit.experimental.categories.Category
 class GradleFeaturePreviewsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private final static EXCLUDE_RULE_MERGING_TEST_PROJECT = 'excludeRuleMergingBuild'
 
-    def "resolveDependencies on exclude merging project with advanced pom support"() {
+    def "resolveDependencies on exclude merging project with improved pom support"() {
         def memory = '1g'
 
         when:
         runner.testGroup = "feature previews"
         runner.buildSpec {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("advanced-pom-support").invocation {
-                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=true").gradleOpts("-Xms${memory}", "-Xmx${memory}")
+                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=true", '-PimprovedPomSupport=true').gradleOpts("-Xms${memory}", "-Xmx${memory}")
             }
         }
         runner.baseline {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("no-advanced-pom-support").invocation {
-                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=false").gradleOpts("-Xms${memory}", "-Xmx${memory}")
+                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=false", '-PimprovedPomSupport=false').gradleOpts("-Xms${memory}", "-Xmx${memory}")
             }
         }
 
@@ -44,19 +44,19 @@ class GradleFeaturePreviewsPerformanceTest extends AbstractCrossBuildPerformance
         runner.run()
     }
 
-    def "resolveDependencies on large number of dependencies with advanced pom support"() {
+    def "resolveDependencies on large number of dependencies with improved pom support"() {
         def memory = '1g'
 
         when:
         runner.testGroup = "feature previews"
         runner.buildSpec {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("advanced-pom-support").invocation {
-                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=true", '-PnoExcludes').gradleOpts("-Xms${memory}", "-Xmx${memory}")
+                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=true", '-PimprovedPomSupport=true', '-PnoExcludes').gradleOpts("-Xms${memory}", "-Xmx${memory}")
             }
         }
         runner.baseline {
             projectName(EXCLUDE_RULE_MERGING_TEST_PROJECT).displayName("no-advanced-pom-support").invocation {
-                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=false", '-PnoExcludes').gradleOpts("-Xms${memory}", "-Xmx${memory}")
+                tasksToRun("resolveDependencies").args("-Dorg.gradle.advancedpomsupport=false", '-PimprovedPomSupport=false', '-PnoExcludes').gradleOpts("-Xms${memory}", "-Xmx${memory}")
             }
         }
 

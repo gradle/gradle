@@ -1,8 +1,8 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 plugins {
     id 'javascript-base'
 }
-
-sourceCompatibility = 1.6
 
 configurations {
     reports
@@ -13,9 +13,9 @@ repositories {
 }
 
 dependencies {
-    compile libraries.groovy.coordinate
+    compile libraries.groovy.coordinates
     compile project(':core')
-    compile libraries.jatl.coordinate
+    compile libraries.jatl.coordinates
 
     testCompile testLibraries.jsoup
     integTestRuntime project(':codeQuality')
@@ -24,9 +24,15 @@ dependencies {
     reports "jquery:jquery.min:1.11.0@js"
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
 testFixtures {
     from(':core')
 }
+
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 task reportResources(type: Copy) {
     from configurations.reports

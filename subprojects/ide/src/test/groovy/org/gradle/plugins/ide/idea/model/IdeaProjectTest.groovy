@@ -28,6 +28,22 @@ class IdeaProjectTest extends AbstractProjectBuilderSpec {
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     private final ProjectInternal anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
 
+    def "location tracks change to outputFile property"() {
+        when:
+        project.pluginManager.apply(IdeaPlugin)
+        def location = project.idea.project.location
+
+        then:
+        project.idea.project.outputFile == project.file("test.ipr")
+        location.get().asFile == project.idea.project.outputFile
+
+        when:
+        project.idea.project.outputFile = project.file("other.ipr")
+
+        then:
+        location.get().asFile == project.idea.project.outputFile
+    }
+
     def "project bytecode version set to highest module targetCompatibility"() {
         when:
         project.apply plugin: IdeaPlugin

@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
-import org.bouncycastle.util.test.Test;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -28,6 +27,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
+import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
@@ -106,6 +106,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
+    private boolean failFast;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -430,6 +431,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
+        TestExecutionSpec executionSpec = createTestExecutionSpec();
+
         File binaryResultsDir = getBinResultsDir();
         getProject().delete(binaryResultsDir);
         getProject().mkdir(binaryResultsDir);
@@ -448,18 +451,22 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         getTestListenerInternalBroadcaster().add(new TestListenerAdapter(testListenerBroadcaster.getSource(), getTestOutputListenerBroadcaster().getSource()));
 
-        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(Test.class);
+        ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
         parentProgressLogger.setDescription("Test Execution");
         parentProgressLogger.started();
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
 
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(getTestListenerInternalBroadcaster().getSource());
-
         TestExecuter testExecuter = createTestExecuter();
+        TestListenerInternal resultProcessorDelegate = getTestListenerInternalBroadcaster().getSource();
+        if (failFast) {
+            resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
+        }
+
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
         try {
-            testExecuter.execute(createTestExecutionSpec(), resultProcessor);
+            testExecuter.execute(executionSpec, resultProcessor);
         } finally {
             parentProgressLogger.completed();
             testWorkerProgressListener.completeAll();
@@ -542,6 +549,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
+    }
+
+    @Internal
+    boolean getFailFast() {
+        return failFast;
+    }
+
+    void setFailFast(boolean failFast) {
+        this.failFast = failFast;
     }
 
     /**

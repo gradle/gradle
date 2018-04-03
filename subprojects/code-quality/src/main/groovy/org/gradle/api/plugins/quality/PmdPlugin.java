@@ -184,7 +184,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("classpath", new Callable<FileCollection>() {
             @Override
-            public FileCollection call() throws Exception {
+            public FileCollection call() {
                 return sourceSet.getOutput().plus(sourceSet.getCompileClasspath());
             }
         });

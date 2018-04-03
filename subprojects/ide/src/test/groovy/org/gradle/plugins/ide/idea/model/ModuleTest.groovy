@@ -24,7 +24,9 @@ class ModuleTest extends Specification {
     final XmlTransformer xmlTransformer = new XmlTransformer()
     final customSourceFolders = [path('file://$MODULE_DIR$/src'), path('file://$MODULE_DIR$/generated-src')] as LinkedHashSet
     final customTestSourceFolders = [path('file://$MODULE_DIR$/srcTest'), path('file://$MODULE_DIR$/generated-test-src')] as LinkedHashSet
-    final customGeneratedSourceFolders = [path('file://$MODULE_DIR$/generated-src'), path('file://$MODULE_DIR$/generated-test-src')] as LinkedHashSet
+    final customResourceFolders = [path('file://$MODULE_DIR$/resource'), path('file://$MODULE_DIR$/generated-resource')] as LinkedHashSet
+    final customTestResourceFolders = [path('file://$MODULE_DIR$/test-resource'), path('file://$MODULE_DIR$/generated-test-resource')] as LinkedHashSet
+    final customGeneratedSourceFolders = [path('file://$MODULE_DIR$/generated-src'), path('file://$MODULE_DIR$/generated-test-src'), path('file://$MODULE_DIR$/generated-resource'), path('file://$MODULE_DIR$/generated-test-resource')] as LinkedHashSet
     final customExcludeFolders = [path('file://$MODULE_DIR$/target')] as LinkedHashSet
     final customDependencies = [
             new ModuleLibrary([path('file://$MODULE_DIR$/gradle/lib')] as Set,
@@ -44,6 +46,8 @@ class ModuleTest extends Specification {
         module.jdkName == "1.6"
         module.sourceFolders == customSourceFolders
         module.testSourceFolders == customTestSourceFolders
+        module.resourceFolders == customResourceFolders
+        module.testResourceFolders == customTestResourceFolders
         module.generatedSourceFolders == customGeneratedSourceFolders
         module.excludeFolders == customExcludeFolders
         module.outputDir == path('file://$MODULE_DIR$/out')
@@ -54,8 +58,10 @@ class ModuleTest extends Specification {
     def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
         def constructorSourceFolders = [path('a'), path('d')] as Set
         def constructorTestSourceFolders = [path('b'), path('e')] as Set
+        def constructorResourceFolders = [path('r'), path('s')] as Set
+        def constructorTestResourceFolders = [path('t'), path('u')] as Set
         def constructorExcludeFolders = [path('c')] as Set
-        def constructorGeneratedSourceFolders = [path('d'), path('e')] as Set
+        def constructorGeneratedSourceFolders = [path('d'), path('e'), path('s'), path('u')] as Set
         def constructorInheritOutputDirs = false
         def constructorOutputDir = path('someOut')
         def constructorJavaVersion = JavaVersion.VERSION_1_6.toString()
@@ -67,12 +73,14 @@ class ModuleTest extends Specification {
 
         when:
         module.load(customModuleReader)
-        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorGeneratedSourceFolders, constructorExcludeFolders,
+        module.configure(null, constructorSourceFolders, constructorTestSourceFolders, constructorResourceFolders, constructorTestResourceFolders, constructorGeneratedSourceFolders, constructorExcludeFolders,
                 constructorInheritOutputDirs, constructorOutputDir, constructorTestOutputDir, constructorModuleDependencies, constructorJavaVersion, constructorLanguageLevel)
 
         then:
         module.sourceFolders == customSourceFolders + constructorSourceFolders
         module.testSourceFolders == customTestSourceFolders + constructorTestSourceFolders
+        module.resourceFolders == customResourceFolders + constructorResourceFolders
+        module.testResourceFolders == customTestResourceFolders + constructorTestResourceFolders
         module.excludeFolders == customExcludeFolders + constructorExcludeFolders
         module.generatedSourceFolders == customGeneratedSourceFolders + constructorGeneratedSourceFolders
         module.outputDir == constructorOutputDir
@@ -83,7 +91,7 @@ class ModuleTest extends Specification {
 
     def "configures default java version"() {
         when:
-        module.configure(null, [] as Set, [] as Set, [] as Set, [] as Set,
+        module.configure(null, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
                 true, null, null, [] as Set, null, null)
 
         then:
@@ -108,7 +116,8 @@ class ModuleTest extends Specification {
 
         when:
         module.loadDefaults()
-        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, [] as Set, false, constructorOutputDir, constructorTestOutputDir, [] as Set, null, null)
+        module.configure(null, constructorSourceFolders, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
+                false, constructorOutputDir, constructorTestOutputDir, [] as Set, null, null)
         def xml = toXmlReader
         def newModule = new Module(xmlTransformer, pathFactory)
         newModule.load(xml)

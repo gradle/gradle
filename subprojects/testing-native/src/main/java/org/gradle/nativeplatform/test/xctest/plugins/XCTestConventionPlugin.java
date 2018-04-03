@@ -17,17 +17,26 @@
 package org.gradle.nativeplatform.test.xctest.plugins;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.internal.DefaultUsageContext;
+import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
+import org.gradle.language.nativeplatform.internal.BuildType;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.ProductionSwiftComponent;
@@ -39,6 +48,7 @@ import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
@@ -50,20 +60,25 @@ import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestExecutable;
 import org.gradle.nativeplatform.test.xctest.internal.DefaultSwiftXCTestSuite;
-import org.gradle.nativeplatform.test.xctest.internal.MacOSSdkPlatformPathLocator;
 import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
 import org.gradle.util.GUtil;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with XCTest test framework. It also adds conventions on top of it.
@@ -75,12 +90,16 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
     private final ToolChainSelector toolChainSelector;
     private final NativeComponentFactory componentFactory;
+    private final ObjectFactory objectFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
         this.toolChainSelector = toolChainSelector;
         this.componentFactory = componentFactory;
+        this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -89,34 +108,73 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(NativeTestingBasePlugin.class);
 
         // Create test suite component
-        final DefaultSwiftXCTestSuite testSuite = createTestSuite(project);
+        final DefaultSwiftXCTestSuite testComponent = createTestSuite(project);
 
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(final Project project) {
-                ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
-
-                // Create test suite executable
-                DefaultSwiftXCTestBinary binary;
-                if (result.getTargetPlatform().getOperatingSystem().isMacOsX()) {
-                    binary = (DefaultSwiftXCTestBinary) testSuite.addBundle("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-
-                } else {
-                    binary = (DefaultSwiftXCTestBinary) testSuite.addExecutable("executable", result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                }
-                testSuite.getTestBinary().set(binary);
-
-                final ProductionSwiftComponent testedComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
-                if (testedComponent != null) {
-                    // Connect test suite with tested component
-                    testSuite.getTestedComponent().set(testedComponent);
-
-                    // Test configuration extends main configuration
-                    testSuite.getImplementationDependencies().extendsFrom(testedComponent.getImplementationDependencies());
-                    project.getDependencies().add(((DefaultSwiftXCTestBinary) testSuite.getTestBinary().get()).getImportPathConfiguration().getName(), project);
+                testComponent.getOperatingSystems().lockNow();
+                Set<OperatingSystemFamily> operatingSystemFamilies = testComponent.getOperatingSystems().get();
+                if (operatingSystemFamilies.isEmpty()) {
+                    throw new IllegalArgumentException("An operating system needs to be specified for the application.");
                 }
 
-                testSuite.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
+                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
+                BuildType buildType = BuildType.DEBUG;
+                for (OperatingSystemFamily operatingSystem : operatingSystemFamilies) {
+                    String operatingSystemSuffix = createDimensionSuffix(operatingSystem, operatingSystemFamilies);
+                    String variantName = buildType.getName() + operatingSystemSuffix;
+
+                    Provider<String> group = project.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return project.getGroup().toString();
+                        }
+                    });
+
+                    Provider<String> version = project.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return project.getVersion().toString();
+                        }
+                    });
+
+                    AttributeContainer runtimeAttributes = attributesFactory.mutable();
+                    runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                    runtimeAttributes.attribute(DEBUGGABLE_ATTRIBUTE, buildType.isDebuggable());
+                    runtimeAttributes.attribute(OPTIMIZED_ATTRIBUTE, buildType.isOptimized());
+                    runtimeAttributes.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, operatingSystem);
+
+                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, testComponent.getModule(), group, version, buildType.isDebuggable(), buildType.isOptimized(), operatingSystem,
+                        null,
+                        new DefaultUsageContext(variantName + "-runtime", runtimeUsage, runtimeAttributes));
+
+                    if (DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName().equals(operatingSystem.getName())) {
+                        ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class);
+
+                        // Create test suite executable
+                        DefaultSwiftXCTestBinary binary;
+                        if (result.getTargetPlatform().getOperatingSystem().isMacOsX()) {
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addBundle("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+
+                        } else {
+                            binary = (DefaultSwiftXCTestBinary) testComponent.addExecutable("executable", variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
+                        }
+                        testComponent.getTestBinary().set(binary);
+
+                        // TODO: Publishing for test executable?
+                        final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
+                        if (mainComponent != null) {
+                            testComponent.getTestedComponent().set(mainComponent);
+
+                            // Test configuration extends main configuration
+                            testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
+                            project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
+                        }
+                    }
+                }
+                
+                testComponent.getBinaries().whenElementKnown(DefaultSwiftXCTestBinary.class, new Action<DefaultSwiftXCTestBinary>() {
                     @Override
                     public void execute(DefaultSwiftXCTestBinary binary) {
                         // Create test suite test task
@@ -127,13 +185,24 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         configureTestingTask(binary, testingTask);
                         configureTestSuiteBuildingTasks((ProjectInternal) project, binary);
 
-                        configureTestSuiteWithTestedComponentWhenAvailable(project, testSuite, binary);
+                        configureTestSuiteWithTestedComponentWhenAvailable(project, testComponent, binary);
                     }
                 });
 
-                testSuite.getBinaries().realizeNow();
+                testComponent.getBinaries().realizeNow();
             }
         });
+    }
+
+    private String createDimensionSuffix(Named dimensionValue, Collection<? extends Named> multivalueProperty) {
+        if (isDimensionVisible(multivalueProperty)) {
+            return StringUtils.capitalize(dimensionValue.getName().toLowerCase());
+        }
+        return "";
+    }
+
+    private boolean isDimensionVisible(Collection<? extends Named> multivalueProperty) {
+        return multivalueProperty.size() > 1;
     }
 
     private void configureTestSuiteBuildingTasks(ProjectInternal project, final DefaultSwiftXCTestBinary binary) {
@@ -154,7 +223,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public List<String> call() {
                     File frameworkDir = new File(sdkPlatformPathLocator.find(), "Developer/Library/Frameworks");
-                    return Arrays.asList("-parse-as-library", "-g", "-F" + frameworkDir.getAbsolutePath());
+                    return Arrays.asList("-parse-as-library", "-F" + frameworkDir.getAbsolutePath());
                 }
             }));
 
@@ -169,7 +238,7 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
             }));
 
             InstallXCTestBundle install = tasks.create(names.getTaskName("install"), InstallXCTestBundle.class);
-            install.getBundleBinaryFile().set(link.getBinaryFile());
+            install.getBundleBinaryFile().set(link.getLinkedFile());
             install.getInstallDirectory().set(project.getLayout().getBuildDirectory().dir("install/" + names.getDirName()));
             binary.getInstallDirectory().set(install.getInstallDirectory());
 
@@ -182,12 +251,12 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     return toolProvider.getExecutableName("exe/" + names.getDirName() + binary.getBaseName().get());
                 }
             }));
-            link.setOutputFile(exeLocation);
-            link.setTargetPlatform(currentPlatform);
-            link.setToolChain(toolChain);
-            link.setDebuggable(binary.isDebuggable());
+            link.getLinkedFile().set(exeLocation);
+            link.getTargetPlatform().set(currentPlatform);
+            link.getToolChain().set(toolChain);
+            link.getDebuggable().set(binary.isDebuggable());
 
-            binary.getExecutableFile().set(link.getBinaryFile());
+            binary.getExecutableFile().set(link.getLinkedFile());
 
             DefaultSwiftXCTestBundle bundle = (DefaultSwiftXCTestBundle) binary;
             bundle.getLinkTask().set(link);

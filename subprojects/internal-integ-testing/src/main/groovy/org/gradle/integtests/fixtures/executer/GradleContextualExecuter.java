@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
-    private static final String UNKNOWN_OS_SYS_PROP = "org.gradle.integtest.unknownos";
 
     private Executer executerType;
 
@@ -102,10 +101,6 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     private void configureExecuter(GradleExecuter gradleExecuter) {
         copyTo(gradleExecuter);
-
-        if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
-            gradleExecuter.withBuildJvmOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
-        }
     }
 
     private GradleExecuter createExecuter(Executer executerType) {

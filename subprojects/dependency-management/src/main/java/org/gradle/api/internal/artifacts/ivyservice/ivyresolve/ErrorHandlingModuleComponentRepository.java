@@ -143,7 +143,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         @Override
         public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
@@ -151,14 +151,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.resolveArtifactsWithType(component, artifactType, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                result.failed(new ArtifactResolveException(component.getId(), throwable));
             }
         }
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
             if (repositoryBlacklister.isBlacklisted(repositoryId)) {
-                result.failed(new ArtifactResolveException(component.getComponentId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
+                result.failed(new ArtifactResolveException(component.getId(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE));
                 return;
             }
 
@@ -166,7 +166,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                 delegate.resolveArtifacts(component, result);
             } catch (Throwable throwable) {
                 repositoryBlacklister.blacklistRepository(repositoryId, throwable);
-                result.failed(new ArtifactResolveException(component.getComponentId(), throwable));
+                result.failed(new ArtifactResolveException(component.getId(), throwable));
             }
         }
 

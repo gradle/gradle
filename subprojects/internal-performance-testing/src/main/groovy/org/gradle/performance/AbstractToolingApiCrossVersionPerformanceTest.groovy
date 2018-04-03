@@ -69,6 +69,11 @@ import org.slf4j.LoggerFactory
 import spock.lang.Shared
 import spock.lang.Specification
 
+/**
+ * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
+ *
+ * TODO collect profiling data with {@link org.gradle.performance.fixture.JfrProfiler}
+ */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
@@ -245,7 +250,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             experimentSpec.with {
                 def count = iterationCount("runs", invocationCount)
                 count.times { n ->
-                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.MEASUREMENT, n+1, count)
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir, BuildExperimentRunner.Phase.MEASUREMENT, n + 1, count)
                     if (experimentSpec.listener) {
                         experimentSpec.listener.beforeInvocation(info)
                     }
@@ -276,7 +281,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             experimentSpec.with {
                 def count = iterationCount("warmups", warmUpCount)
                 count.times { n ->
-                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir , BuildExperimentRunner.Phase.WARMUP, n+1, count)
+                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir, BuildExperimentRunner.Phase.WARMUP, n + 1, count)
                     if (experimentSpec.listener) {
                         experimentSpec.listener.beforeInvocation(info)
                     }

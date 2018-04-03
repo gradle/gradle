@@ -1,6 +1,8 @@
-:compile
+
+> Task :compile
 compiling source
-:dist
+
+> Task :dist
 building the distribution
 
 BUILD SUCCESSFUL in 0s

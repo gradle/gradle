@@ -658,7 +658,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "can make #thing strict"() {
         given:
         repository {
-            'org.test:moduleB:1.1'()
+            'org.test:moduleB:1.1' {
+                variant 'customVariant', [format: 'custom']
+            }
             'org.test:moduleA:1.0'() {
                 if (defineAsConstraint) {
                     constraint 'org.test:moduleB:1.1'
@@ -716,7 +718,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     def "can add rejections to #thing"() {
         given:
         repository {
-            'org.test:moduleB:1.1'()
+            'org.test:moduleB:1.1' {
+                variant 'customVariant', [format: 'custom']
+            }
             'org.test:moduleA:1.0'() {
                 if (defineAsConstraint) {
                     constraint 'org.test:moduleB:1.1'

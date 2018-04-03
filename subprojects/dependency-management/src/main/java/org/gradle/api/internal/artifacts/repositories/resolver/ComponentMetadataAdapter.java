@@ -30,7 +30,7 @@ public class ComponentMetadataAdapter implements ComponentMetadata {
     }
 
     public ModuleVersionIdentifier getId() {
-        return metadata.getId();
+        return metadata.getModuleVersionId();
     }
 
     public boolean isChanging() {

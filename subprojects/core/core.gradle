@@ -1,3 +1,6 @@
+import org.gradle.gradlebuild.ProjectGroups
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -16,9 +19,6 @@
 plugins {
     id 'java-library'
 }
-apply from: "$rootDir/gradle/taskProperties.gradle"
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 configurations {
     reports
@@ -44,42 +44,47 @@ dependencies {
     api project(":processServices")
     api project(":jvmServices")
     api project(":modelCore")
-    api libraries.groovy.coordinate
-    api libraries.ant.coordinate
-    api libraries.guava.coordinate
-    api libraries.inject.coordinate
+    api libraries.groovy.coordinates
+    api libraries.ant.coordinates
+    api libraries.guava.coordinates
+    api libraries.inject.coordinates
 
     implementation project(":modelGroovy")
-    implementation libraries.asm.coordinate
-    implementation libraries.asm_commons.coordinate
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.commons_collections.coordinate
-    implementation libraries.commons_io.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.jcip.coordinate
-    implementation libraries.nativePlatform.coordinate
-    implementation libraries.commons_compress.coordinate
-    implementation libraries.xmlApis.coordinate
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_commons.coordinates
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.commons_collections.coordinates
+    implementation libraries.commons_io.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.nativePlatform.coordinates
+    implementation libraries.commons_compress.coordinates
+    implementation libraries.xmlApis.coordinates
 
     runtimeOnly project(":docs")
 
     testImplementation testLibraries.jsoup
-    testImplementation libraries.log4j_to_slf4j.coordinate
+    testImplementation libraries.log4j_to_slf4j.coordinates
 
-    testRuntimeOnly libraries.xerces.coordinate
+    testRuntimeOnly libraries.xerces.coordinates
     testRuntimeOnly project(":diagnostics")
     testRuntimeOnly project(":compositeBuilds")
 
     testFixturesImplementation project(":internalTesting")
-    testFixturesImplementation libraries.ivy.coordinate
+    testFixturesImplementation libraries.ivy.coordinates
 
     testFixturesRuntime project(':runtimeApiInfo')
     testFixturesRuntime rootProject.ext.allCoreRuntimeExtensions
+    testFixturesRuntime project(':testingJunitPlatform')
 
     integTestImplementation project(":internalIntegTesting")
 
     integTestRuntimeOnly project(":plugins")
     integTestRuntimeOnly project(':maven')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {
@@ -95,24 +100,28 @@ test {
     forkEvery = 200
 }
 
+def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
+
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 task pluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: pluginsManifest
 
 task implementationPluginsManifest(type: WriteProperties) {
     property("plugins") {
-        project.implementationPluginProjects.collect { it.archivesBaseName }.sort().join(',')
+        ProjectGroups.INSTANCE.getImplementationPluginProjects(project).collect { it.archivesBaseName }.sort().join(',')
     }
-    outputFile = new File(project.generatedResourcesDir, "gradle-implementation-plugins.properties")
+    outputFile = new File(generatedResourcesDir, "gradle-implementation-plugins.properties")
 }
 
 sourceSets.main.output.dir generatedResourcesDir, builtBy: implementationPluginsManifest
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

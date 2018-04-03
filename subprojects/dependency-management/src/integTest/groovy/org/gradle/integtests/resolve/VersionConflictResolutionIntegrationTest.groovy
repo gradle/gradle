@@ -104,7 +104,7 @@ project(':tool') {
         run("tool:dependencies")
     }
 
-    void "resolves to the latest version by default"() {
+    void "resolves module version conflicts to the latest version by default"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -152,10 +152,59 @@ project(':tool') {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     configuration = "runtimeElements"
-                    edge("org:foo:1.3.3", "org:foo:1.4.4")
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
                 }
                 project(":impl", "test:impl:") {
                     configuration = "runtimeElements"
+                    module("org:foo:1.4.4").byConflictResolution()
+                }
+            }
+        }
+    }
+
+    void "resolves transitive module version conflicts to the latest version by default"() {
+        def foo133 = mavenRepo.module("org", "foo", '1.3.3').publish()
+        def foo144 = mavenRepo.module("org", "foo", '1.4.4').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn(foo133).publish()
+        mavenRepo.module("org", "baz", "1.0").dependsOn(foo144).publish()
+
+        settingsFile << """
+rootProject.name = 'test'
+"""
+
+        buildFile << """
+apply plugin: 'java'
+group = 'org'
+version = '1.0'
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile (group: 'org', name: 'bar', version:'1.0')
+    compile (group: 'org', name: 'baz', version:'1.0')
+}
+
+task resolve {
+    doLast {
+        println configurations.compile.files
+    }
+}
+"""
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        run(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", "org:test:1.0") {
+                module("org:bar:1.0") {
+                    edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution()
+                }
+                module("org:baz:1.0") {
                     module("org:foo:1.4.4").byConflictResolution()
                 }
             }
@@ -234,7 +283,7 @@ task checkDeps(dependsOn: configurations.compile) {
     void "resolves dynamic dependency before resolving conflict"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "external", "1.4").publish()
-        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.+").publish()
+        mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "[1.3,)").publish()
 
         def buildFile = file("build.gradle")
         buildFile << """
@@ -718,9 +767,10 @@ task checkDeps(dependsOn: configurations.compile) {
         //only 1.5 published:
         mavenRepo.module("org", "leaf", "1.5").publish()
 
-        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "2.0+").publish()
-        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[1.5,1.9]").publish()
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "(,1.0)").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[1.5,1.9]").publish()
+        mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf", "2.0+").publish()
 
         settingsFile << "rootProject.name = 'broken'"
         buildFile << """
@@ -732,20 +782,55 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
             }
             task resolve {
                 doLast {
                     configurations.conf.files
                 }
             }
+            task checkGraph {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    assert result.allComponents*.toString() as Set == ['project :', 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:leaf:1.5'] as Set
+                    def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
+                    def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
+                    def c = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'c' }
+                    def d = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'd' }
+                    def leaf = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf' }
+
+                    a.dependencies.each {
+                        assert it instanceof UnresolvedDependencyResult
+                        assert it.requested.toString() == 'org:leaf:(,1.0)'
+                        assert it.failure.getMessage().startsWith('Could not find any version that matches org:leaf:(,1.0).')
+                    }
+                    b.dependencies.each {
+                        assert it instanceof ResolvedDependencyResult
+                        assert it.requested.toString() == 'org:leaf:1.0'
+                        assert it.selected == leaf
+                    }
+                    c.dependencies.each {
+                        assert it instanceof ResolvedDependencyResult
+                        assert it.requested.toString() == 'org:leaf:[1.5,1.9]'
+                        assert it.selected == leaf
+                    }
+                    d.dependencies.each {
+                        assert it instanceof UnresolvedDependencyResult
+                        assert it.requested.toString() == 'org:leaf:2.0+'
+                        assert it.failure.getMessage().startsWith('Could not find any version that matches org:leaf:2.0+.')
+                    }
+                }
+            }
         """
 
         when:
+        succeeds "checkGraph"
+
+        and:
         runAndFail "resolve"
 
         then:
-        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:c:1.0")
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:d:1.0")
     }
 
     def "chooses highest version that is included in both ranges"() {
@@ -1101,7 +1186,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    def "range selector should not win over sub-version selector"() {
+    def "merges range selector with sub-version selector"() {
         given:
         (1..10).each {
             mavenRepo.module("org", "leaf", "1.$it").publish()
@@ -1122,7 +1207,7 @@ task checkDeps(dependsOn: configurations.compile) {
             task checkDeps {
                 doLast {
                     def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.10.jar']
+                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.6.jar']
                 }
             }
         """

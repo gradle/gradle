@@ -16,23 +16,27 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-class JUnitIntegrationTest extends AbstractIntegrationSpec {
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -60,6 +64,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def suitesOutputIsVisible() {
         when:
+        ignoreWhenJupiter()
         executer.withTasks('test').run()
 
         then:
@@ -79,6 +84,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def testClassesCanBeSharedByMultipleSuites() {
         when:
+        ignoreWhenJupiter()
         executer.withTasks('test').run()
 
         then:
@@ -90,6 +96,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def canRunTestsUsingJUnit3() {
         when:
+        ignoreWhenJupiter()
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')
         executer.withTasks('check').run()
 
@@ -386,6 +393,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
 
     def canListenForTestResultsWhenJUnit3IsUsed() {
         given:
+        ignoreWhenJupiter()
         testDirectory.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest extends junit.framework.TestCase {",
                 "public void testPass() { }",
@@ -423,7 +431,7 @@ class JUnitIntegrationTest extends AbstractIntegrationSpec {
         assert containsLine(result.getOutput(), "FINISH [Test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]")
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def canHaveMultipleTestTaskInstances() {
         when:
         executer.withTasks('check').run()

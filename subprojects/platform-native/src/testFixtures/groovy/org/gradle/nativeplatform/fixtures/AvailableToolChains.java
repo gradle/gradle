@@ -33,13 +33,13 @@ import org.gradle.nativeplatform.toolchain.VisualCpp;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
-import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadataProvider;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
+import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
@@ -61,6 +61,7 @@ public class AvailableToolChains {
 
     /**
      * Locates the tool chain that would be used as the default for the current machine, if any.
+     *
      * @return null if there is no such tool chain.
      */
     @Nullable
@@ -136,16 +137,13 @@ public class AvailableToolChains {
 
     static private List<ToolChainCandidate> findVisualCpps() {
         // Search in the standard installation locations
-        final List<VisualStudioLocator.SearchResult> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllVisualStudioVersions();
+        final List<? extends VisualStudioInstall> searchResults = VisualStudioLocatorTestFixture.getVisualStudioLocator().locateAllComponents();
 
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
-        for (VisualStudioLocator.SearchResult searchResult : searchResults) {
-            if (searchResult.isAvailable()) {
-                VisualStudioInstall install = searchResult.getVisualStudio();
-                if (isTestableVisualStudioVersion(install.getVersion())) {
-                    toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
-                }
+        for (VisualStudioInstall install : searchResults) {
+            if (isTestableVisualStudioVersion(install.getVersion())) {
+                toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
             }
         }
 
@@ -184,9 +182,9 @@ public class AvailableToolChains {
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
             for (File candidate : gppCandidates) {
-                GccMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+                SearchResult<GccMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
                 if (version.isAvailable()) {
-                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getVersion());
+                    InstalledGcc gcc = new InstalledGcc("gcc" + " " + version.getComponent().getVersion());
                     if (!candidate.equals(firstInPath)) {
                         // Not the first g++ in the path, needs the path variable updated
                         gcc.inPath(candidate.getParentFile());
@@ -218,19 +216,19 @@ public class AvailableToolChains {
 
         for (File swiftInstall : candidates) {
             File swiftc = new File(swiftInstall, "/usr/bin/swiftc");
-            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(swiftc, Collections.<String>emptyList());
             if (version.isAvailable()) {
                 File binDir = swiftc.getParentFile();
-                toolChains.add(new InstalledSwiftc(binDir, version.getVersion()).inPath(binDir, new File("/usr/bin")));
+                toolChains.add(new InstalledSwiftc(binDir, version.getComponent().getVersion()).inPath(binDir, new File("/usr/bin")));
             }
         }
 
         List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
         for (File candidate : swiftcCandidates) {
-            SwiftcMetadata version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
+            SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(candidate, Collections.<String>emptyList());
             if (version.isAvailable()) {
                 File binDir = candidate.getParentFile();
-                InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getVersion());
+                InstalledSwiftc swiftc = new InstalledSwiftc(binDir, version.getComponent().getVersion());
                 swiftc.inPath(binDir, new File("/usr/bin"));
                 toolChains.add(swiftc);
             }
@@ -259,7 +257,7 @@ public class AvailableToolChains {
 
         public abstract void resetEnvironment();
 
-   }
+    }
 
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
@@ -482,6 +480,11 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return super.meets(requirement) || requirement == ToolChainRequirement.WINDOWS_GCC;
+        }
+
+        @Override
         public String getId() {
             return getDisplayName().replaceAll("\\W", "");
         }
@@ -565,7 +568,7 @@ public class AvailableToolChains {
             DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
-            pathEntries.addAll(install.getVisualCpp().getPath(targetPlatform));
+            pathEntries.addAll(install.getVisualCpp().forPlatform(targetPlatform).getPath());
             return this;
         }
 

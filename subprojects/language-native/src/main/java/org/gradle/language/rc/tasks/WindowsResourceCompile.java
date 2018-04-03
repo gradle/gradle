@@ -19,6 +19,9 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -58,8 +61,8 @@ import java.util.concurrent.Callable;
 @Incubating
 public class WindowsResourceCompile extends DefaultTask {
 
-    private NativeToolChainInternal toolChain;
-    private NativePlatformInternal targetPlatform;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
     private File outputDir;
     private ConfigurableFileCollection includes;
     private ConfigurableFileCollection source;
@@ -68,13 +71,18 @@ public class WindowsResourceCompile extends DefaultTask {
     private final IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public WindowsResourceCompile() {
+        ObjectFactory objectFactory = getProject().getObjects();
         includes = getProject().files();
         source = getProject().files();
-        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes);
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
+        incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return NativeToolChainInternal.Identifier.identify(toolChain, targetPlatform);
+                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
+                NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+                return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
             }
         });
     }
@@ -103,7 +111,9 @@ public class WindowsResourceCompile extends DefaultTask {
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
 
-        PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         WorkResult result = doCompile(spec, platformToolProvider);
         setDidWork(result.getDidWork());
     }
@@ -118,26 +128,22 @@ public class WindowsResourceCompile extends DefaultTask {
 
     /**
      * The tool chain used for compilation.
+     *
+     * @since 4.7
      */
     @Internal
-    public NativeToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(NativeToolChain toolChain) {
-        this.toolChain = (NativeToolChainInternal) toolChain;
-    }
-
     /**
-     * The platform being targeted.
+     * The platform being compiled for.
+     *
+     * @since 4.7
      */
     @Nested
-    public NativePlatform getTargetPlatform() {
+    public Property<NativePlatform> getTargetPlatform() {
         return targetPlatform;
-    }
-
-    public void setTargetPlatform(NativePlatform targetPlatform) {
-        this.targetPlatform = (NativePlatformInternal) targetPlatform;
     }
 
     /**

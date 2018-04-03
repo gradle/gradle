@@ -26,11 +26,11 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.GFileUtils
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.Matchers.equalTo
 
@@ -154,10 +154,10 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void containsFilesFromEachSourceDirectory() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
         File srcDir2 = new File(testDir, 'dir2')
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file1.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -216,13 +216,13 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void canUsePatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir/ignored.txt'))
         File srcDir2 = new File(testDir, 'dir2')
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
-        GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
+        touch(new File(srcDir2, 'subdir2/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file2.txt'))
+        touch(new File(srcDir2, 'subdir2/ignored.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -236,13 +236,13 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void canUseFilterPatternsToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir/ignored.txt'))
         File srcDir2 = new File(testDir, 'dir2')
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file2.txt'))
-        GFileUtils.touch(new File(srcDir2, 'subdir2/ignored.txt'))
+        touch(new File(srcDir2, 'subdir2/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file2.txt'))
+        touch(new File(srcDir2, 'subdir2/ignored.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -256,7 +256,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void ignoresSourceDirectoriesWhichDoNotExist() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -268,7 +268,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void failsWhenSourceDirectoryIsNotADirectory() {
         File srcDir = new File(testDir, 'dir1')
-        GFileUtils.touch(srcDir)
+        touch(srcDir)
 
         when:
         set.srcDir 'dir1'
@@ -350,7 +350,7 @@ public class DefaultSourceDirectorySetTest extends Specification {
     public void doesNotThrowStopExceptionWhenSomeSourceDirectoriesAreNotEmpty() {
         when:
         set.srcDir 'dir1'
-        GFileUtils.touch(new File(testDir, 'dir1/file1.txt'))
+        touch(new File(testDir, 'dir1/file1.txt'))
         set.srcDir 'dir2'
         set.stopExecutionIfEmpty()
 
@@ -360,9 +360,9 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void canUseMatchingMethodToFilterCertainFiles() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir2/file1.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -377,11 +377,11 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void canUsePatternsAndFilterPatternsAndMatchingMethodToFilterSourceFiles() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.other'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/ignored.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir2/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file1.other'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir/ignored.txt'))
+        touch(new File(srcDir1, 'subdir2/file1.txt'))
 
         when:
         set.srcDir 'dir1'
@@ -398,10 +398,10 @@ public class DefaultSourceDirectorySetTest extends Specification {
 
     public void filteredSetIsLive() {
         File srcDir1 = new File(testDir, 'dir1')
-        GFileUtils.touch(new File(srcDir1, 'subdir/file1.txt'))
-        GFileUtils.touch(new File(srcDir1, 'subdir/file2.txt'))
+        touch(new File(srcDir1, 'subdir/file1.txt'))
+        touch(new File(srcDir1, 'subdir/file2.txt'))
         File srcDir2 = new File(testDir, 'dir2')
-        GFileUtils.touch(new File(srcDir2, 'subdir2/file1.txt'))
+        touch(new File(srcDir2, 'subdir2/file1.txt'))
 
         when:
         set.srcDir 'dir1'

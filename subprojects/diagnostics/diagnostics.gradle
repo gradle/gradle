@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -17,10 +19,8 @@ plugins {
     id 'java-library'
 }
 
-sourceCompatibility = 1.6
-
 dependencies {
-    api libraries.groovy.coordinate
+    api libraries.groovy.coordinates
 
     api project(':core')
     api project(':reporting')
@@ -28,10 +28,10 @@ dependencies {
 
     implementation project(':dependencyManagement')
     implementation project(':baseServicesGroovy')
-    implementation libraries.guava.coordinate
-    implementation libraries.jatl.coordinate
-    implementation libraries.commons_collections.coordinate
-    implementation libraries.commons_lang.coordinate
+    implementation libraries.guava.coordinates
+    implementation libraries.jatl.coordinates
+    implementation libraries.commons_collections.coordinates
+    implementation libraries.commons_lang.coordinates
 
     integTestRuntimeOnly project(':plugins')
     integTestRuntimeOnly project(':platformNative')
@@ -45,4 +45,11 @@ testFixtures {
     from(':logging')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
+}
+
+
+testFilesCleanup {
+    errorWhenNotEmpty = false
+}

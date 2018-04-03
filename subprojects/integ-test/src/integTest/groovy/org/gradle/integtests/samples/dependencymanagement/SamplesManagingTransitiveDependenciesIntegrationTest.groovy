@@ -49,16 +49,16 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         fails('compileJava')
 
         then:
-        errorOutput.contains("""Could not resolve all files for configuration ':compileClasspath'.
-> Could not find jms.jar (javax.jms:jms:1.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar
-> Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar
-> Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
+        failure.assertHasDescription("Could not resolve all files for configuration ':compileClasspath'.")
+        failure.assertHasCause("""Could not find jms.jar (javax.jms:jms:1.1).
+Searched in the following locations:
+    https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar""")
+        failure.assertHasCause("""Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
+Searched in the following locations:
+    https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar""")
+        failure.assertHasCause("""Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
+Searched in the following locations:
+    https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")

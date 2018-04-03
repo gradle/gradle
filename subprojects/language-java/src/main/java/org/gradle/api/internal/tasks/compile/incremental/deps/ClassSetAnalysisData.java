@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -37,24 +36,18 @@ public class ClassSetAnalysisData {
     final Map<String, DependentsSet> dependents;
     final Map<String, IntSet> classesToConstants;
     final Map<String, Set<String>> classesToChildren;
+    private final DependentsSet aggregatedTypes;
+    final DependentsSet dependentsOnAll;
+    final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Multimap<String, String> classesToChildren) {
-        this(filePathToClassName, dependents, classesToConstants, asMap(classesToChildren));
-    }
-
-    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren) {
+    public ClassSetAnalysisData(Map<String, String> filePathToClassName, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, DependentsSet aggregatedTypes, DependentsSet dependentsOnAll, String fullRebuildCause) {
         this.filePathToClassName = filePathToClassName;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.classesToChildren = classesToChildren;
-    }
-
-    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
-        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
-        for (K key : multimap.keySet()) {
-            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
-        }
-        return builder.build();
+        this.aggregatedTypes = aggregatedTypes;
+        this.dependentsOnAll = dependentsOnAll;
+        this.fullRebuildCause = fullRebuildCause;
     }
 
     public String getClassNameForFile(String filePath) {
@@ -62,7 +55,19 @@ public class ClassSetAnalysisData {
     }
 
     public DependentsSet getDependents(String className) {
-        return dependents.get(className);
+        if (fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(fullRebuildCause);
+        }
+        DependentsSet dependentsSet = dependents.get(className);
+        return dependentsSet == null ? DependentsSet.empty(): dependentsSet;
+    }
+
+    public DependentsSet getDependentsOnAll() {
+        return dependentsOnAll;
+    }
+
+    public DependentsSet getAggregatedTypes() {
+        return aggregatedTypes;
     }
 
     public IntSet getConstants(String className) {
@@ -121,7 +126,13 @@ public class ClassSetAnalysisData {
                 classNameToChildren.put(parent, namesBuilder.build());
             }
 
-            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build());
+            DependentsSet aggregatedTypes = readDependentsSet(decoder, classNameMap);
+
+            DependentsSet dependentsOnAll = readDependentsSet(decoder, classNameMap);
+
+            String fullRebuildCause = decoder.readNullableString();
+
+            return new ClassSetAnalysisData(filePathToClassNameBuilder.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), aggregatedTypes, dependentsOnAll, fullRebuildCause);
         }
 
         @Override
@@ -156,19 +167,25 @@ public class ClassSetAnalysisData {
                     writeClassName(className, classNameMap, encoder);
                 }
             }
+
+            writeDependentSet(value.aggregatedTypes, classNameMap, encoder);
+
+            writeDependentSet(value.dependentsOnAll, classNameMap, encoder);
+
+            encoder.writeNullableString(value.fullRebuildCause);
         }
 
         private DependentsSet readDependentsSet(Decoder decoder, Map<Integer, String> classNameMap) throws IOException {
             byte b = decoder.readByte();
             if (b == 1) {
-                return new DependencyToAll(decoder.readNullableString());
+                return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
             int count = decoder.readSmallInt();
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }
-            return new DefaultDependentsSet(builder.build());
+            return DependentsSet.dependents(builder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {

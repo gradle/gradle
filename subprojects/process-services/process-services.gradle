@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /**
  * Process execution abstractions.
  */
@@ -5,15 +7,18 @@ plugins {
     id 'java-library'
 }
 
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
-
 dependencies {
     api project(':baseServices')
 
     implementation project(':messaging')
     implementation project(':native')
-    implementation libraries.guava.coordinate
-    implementation libraries.slf4j_api.coordinate
+    implementation libraries.guava.coordinates
+    implementation libraries.slf4j_api.coordinates
+}
+
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

@@ -1,4 +1,5 @@
-:greeting
+
+> Task :greeting
 Hi from Gradle
 
 BUILD SUCCESSFUL in 0s

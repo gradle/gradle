@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode.fixtures
 
 import com.google.common.base.Splitter
+import org.gradle.ide.fixtures.IdeCommandLineUtil
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
@@ -96,61 +97,22 @@ rootProject.name = "${rootProjectName}"
         xcodeWorkspace("${rootProjectName}.xcworkspace")
     }
 
-    protected XcodebuildExecuter getXcodebuild() {
+    protected XcodebuildExecutor getXcodebuild() {
         // Gradle needs to be isolated so the xcodebuild does not leave behind daemons
         assert executer.isRequiresGradleDistribution()
         assert !executer.usesSharedDaemons()
-        new XcodebuildExecuter(testDirectory)
+        new XcodebuildExecutor(testDirectory)
     }
 
     void useXcodebuildTool() {
         executer.requireGradleDistribution().requireIsolatedDaemons()
 
-        buildFile << '''
-            gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS_FULL
-            Properties gatherEnvironment() {
-                Properties properties = new Properties()
-                properties.JAVA_HOME = String.valueOf(System.getenv('JAVA_HOME'))
-                properties.GRADLE_USER_HOME = String.valueOf(gradle.gradleUserHomeDir.absolutePath)
-                properties.GRADLE_OPTS = String.valueOf(System.getenv('GRADLE_OPTS'))
-                return properties
-            }
-            
-            void assertEquals(key, expected, actual) {
-                assert expected[key] == actual[key]
-                if (expected[key] != actual[key]) {
-                    throw new GradleException("""
-Environment's $key did not match! 
-Expected: ${expected[key]} 
-Actual: ${actual[key]} 
-""")
-                }
-            }
-            
-            def gradleEnvironment = file("gradle-environment")
-            def xcodeTask = tasks.findByName('xcode')
-            if (xcodeTask) {
-                xcodeTask.doLast {
-                    def writer = gradleEnvironment.newOutputStream()
-                    gatherEnvironment().store(writer, null)
-                    writer.close()
-                }
-            }
-            gradle.buildFinished {
-                if (!gradleEnvironment.exists()) {
-                    throw new GradleException("could not determine if xcodebuild is using the correct environment, did xcode task run?")
-                } else {
-                    def expectedEnvironment = new Properties()
-                    expectedEnvironment.load(gradleEnvironment.newInputStream())
-                    
-                    def actualEnvironment = gatherEnvironment()
-                    
-                    assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
-                    assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
-                    assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
-                }
-            }
-        '''
+        def initScript = file("init.gradle")
+        initScript << IdeCommandLineUtil.generateGradleProbeInitFile('xcode', 'xcodebuild')
+
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
     }
 
     // TODO: Use AbstractInstalledToolChainIntegrationSpec instead once Xcode test are sorted out
@@ -224,14 +186,14 @@ Actual: ${actual[key]}
         target.assertIsTool()
         assert target.productName == expectedProductName
         assert target.name == expectedProductName
-        assert target.productReference.path == exe("build/exe/main/debug/$expectedBinaryName").absolutePath
+        assert target.productReference.path == exe("build/install/main/debug/lib/$expectedBinaryName").absolutePath
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
         assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/debug").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/lib").absolutePath
         assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/exe/main/release").absolutePath
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/lib").absolutePath
     }
 
     void assertUnitTestBuildSettings(Map<String, String> buildSettings) {

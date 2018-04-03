@@ -17,8 +17,8 @@
 package org.gradle.launcher.exec
 
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultGradleLauncher
@@ -43,7 +43,7 @@ class InProcessBuildActionExecuterTest extends Specification {
     final BuildResult buildResult = Mock()
     final GradleInternal gradle = Mock()
     final BuildActionRunner actionRunner = Mock()
-    final StartParameter startParameter = Mock()
+    final StartParameterInternal startParameter = Mock()
     final ListenerManager listenerManager = Mock()
     final BuildOperationExecutor buildOperationExecutor = Mock()
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
@@ -52,7 +52,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         getStartParameter() >> startParameter
     }
     final ServiceRegistry sessionServices = Mock()
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(actionRunner, factory)
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(actionRunner)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
@@ -60,6 +60,7 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * sessionServices.get(ListenerManager) >> listenerManager
         _ * sessionServices.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * sessionServices.get(WorkerLeaseService) >> workerLeaseService
+        _ * sessionServices.get(GradleLauncherFactory) >> factory
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * launcher.getGradle() >> gradle
         _ * gradle.services >> sessionServices

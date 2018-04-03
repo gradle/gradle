@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -13,17 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Test execution
-sourceCompatibility = 1.6
-
 dependencies {
     compile project(':core')
     compile project(':reporting')
     compile project(':platformBase')
 
-    compile libraries.kryo.coordinate
+    implementation libraries.commons_io.coordinates
+    implementation libraries.kryo.coordinates
 
     testFixturesCompile project(':internalIntegTesting')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.WORKER
 }
 
 testFixtures {

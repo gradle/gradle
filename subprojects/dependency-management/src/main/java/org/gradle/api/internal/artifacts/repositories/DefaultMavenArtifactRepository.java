@@ -56,6 +56,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
+
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = new DefaultMavenPomMetadataSource.MavenMetadataValidator() {
         @Override
@@ -258,7 +260,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
         void setDefaults(FeaturePreviews featurePreviews) {
             mavenPom();
-            if (featurePreviews.isGradleMetadataEnabled()) {
+            if (featurePreviews.isFeatureEnabled(GRADLE_METADATA)) {
                 gradleMetadata();
             } else {
                 artifact();

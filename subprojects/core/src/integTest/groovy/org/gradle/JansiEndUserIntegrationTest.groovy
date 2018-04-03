@@ -168,12 +168,12 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
             class FailingClass { < }
         """
 
-        def result = fails 'compileKotlin'
+        fails 'compileKotlin'
 
         then:
         executedAndNotSkipped(':compileKotlin')
-        result.error.contains('> Compilation error. See log for more details')
-        result.error.contains('FailingClass.kt: (2, 34): Expecting member declaration')
+        failure.assertHasCause('Compilation error. See log for more details')
+        failure.assertHasErrorOutput('FailingClass.kt: (2, 34): Expecting member declaration')
     }
 
     static String basicJavaProject() {

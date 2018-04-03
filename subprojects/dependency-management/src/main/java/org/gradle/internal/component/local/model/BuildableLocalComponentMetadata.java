@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.Set;
 
@@ -29,7 +30,7 @@ public interface BuildableLocalComponentMetadata {
     /**
      * Returns the identifier for this component.
      */
-    ComponentIdentifier getComponentId();
+    ComponentIdentifier getId();
 
     /**
      * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.
@@ -46,7 +47,7 @@ public interface BuildableLocalComponentMetadata {
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
      */
-    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved);
+    BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities);
 
     /**
      * Provides a backing configuration instance from which dependencies and excludes will be sourced.

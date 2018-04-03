@@ -23,6 +23,8 @@ import org.hamcrest.Matchers
 import org.junit.Assume
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     abstract void createPassingFailingTest()
     abstract void createEmptyProject()
@@ -139,7 +141,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         fails "check"
 
         then:
-        errorOutput.contains("There were failing tests. See the report at:")
+        failure.assertHasCause("There were failing tests. See the report at:")
     }
 
     def "lack of tests produce an empty report"() {
@@ -169,7 +171,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.$passingTestCaseName"
+        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}"
 
         then:
         testResult.assertTestClassesExecuted('SomeOtherTest')
@@ -209,21 +211,21 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}")
 
         then:
         testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}")
 
         then:
         result.assertTaskSkipped(":$testTaskName") //up-to-date
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName")
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.${removeParentheses(passingTestCaseName)}")
 
         then:
         result.assertTaskNotSkipped(":$testTaskName")
@@ -257,7 +259,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         desiredTestFilters.each { testClass, testCases ->
             testCases.collect { testCase ->
-                command.addAll([ '--tests', testSuite(testClass) + "." + testCase ])
+                command.addAll([ '--tests', testSuite(testClass) + "." + removeParentheses(testCase) ])
             }
         }
         return command.toArray()

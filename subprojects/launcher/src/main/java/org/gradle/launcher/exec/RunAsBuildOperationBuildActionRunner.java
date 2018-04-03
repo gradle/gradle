@@ -22,13 +22,15 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
 public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
     private final BuildActionRunner delegate;
+    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {};
+    private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {};
 
     public RunAsBuildOperationBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
@@ -41,11 +43,12 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
             @Override
             public void run(BuildOperationContext context) {
                 delegate.run(action, buildController);
+                context.setResult(RESULT);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Run build");
+                return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
             }
         });
     }

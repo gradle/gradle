@@ -20,33 +20,19 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
+
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
-    private final boolean spaceBefore;
-
-    public PrettyPrefixedLogHeaderFormatter(boolean spaceBefore) {
-        this.spaceBefore = spaceBefore;
-    }
-
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, @Nullable String status, boolean failed) {
+    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, String status, boolean failed) {
         final String message = header != null ? header : description;
-        if (message != null) {
-            // Visually indicate group by adding surrounding lines, if requested
-            final List<StyledTextOutputEvent.Span> result = Lists.newArrayList(header(message, failed), status(status, failed), eol());
-            if (spaceBefore) {
-                result.add(0, eol());
-            }
-            return result;
+        if (status.isEmpty()) {
+            return Lists.newArrayList(header(message, failed), EOL);
         } else {
-            return Collections.emptyList();
+            return Lists.newArrayList(header(message, failed), status(status, failed), EOL);
         }
-    }
-
-    private StyledTextOutputEvent.Span eol() {
-        return new StyledTextOutputEvent.Span(EOL);
     }
 
     private StyledTextOutputEvent.Span header(String message, boolean failed) {

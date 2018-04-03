@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
@@ -36,7 +35,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,18 +50,14 @@ public class IncludedBuildDependencyMetadataBuilder {
         return registeredProjects;
     }
 
-    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuild build, ProjectInternal project) {
+    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuildInternal build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
-        LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
-        List<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
-        for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
-            artifacts.add(createCompositeCopy(componentIdentifier, artifactMetaData));
-        }
-        registeredProjects.put(componentIdentifier, new RegisteredProject(compositeComponent, artifacts));
+        ProjectComponentIdentifier componentIdentifier = build.idForProjectInThisBuild(project.getPath());
+        LocalComponentMetadata compositeComponent = createCompositeCopy(build.getModel(), componentIdentifier, originalComponent);
+        registeredProjects.put(componentIdentifier, new RegisteredProject(compositeComponent));
     }
 
     private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
@@ -84,11 +78,6 @@ public class IncludedBuildDependencyMetadataBuilder {
                 return originalDependency;
             }
         });
-    }
-
-    private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {
-        File artifactFile = artifactMetaData.getFile();
-        return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
     }
 
     private Set<String> getArtifactTasks(ComponentArtifactMetadata artifactMetaData) {

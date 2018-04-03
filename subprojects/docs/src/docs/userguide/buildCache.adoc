@@ -15,7 +15,7 @@
 [[build_cache]]
 == Build Cache
 
-NOTE: The build cache feature described here is different from the http://tools.android.com/tech-docs/build-cache[Android plugin build cache].
+NOTE: The build cache feature described here is different from the https://developer.android.com/studio/build/build-cache.html[Android plugin build cache].
 
 [[sec:build_cache_intro]]
 === Overview
@@ -104,7 +104,7 @@ The other tasks have not been loaded from the build cache since they are not cac
 and `:jar` being Copy-like tasks which are not cacheable since it is generally faster to execute them.
 
 [[sec:task_output_caching_details]]
-==== Cacheable tasks
+=== Cacheable tasks
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
 That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
@@ -124,7 +124,7 @@ Note that `@api:org.gradle.api.tasks.CacheableTask[]` is not inherited by subcla
 Custom task types are _not_ cacheable by default.
 
 [[sec:task_output_caching_cacheable_tasks]]
-===== Built-in cacheable tasks
+==== Built-in cacheable tasks
 
 Currently, the following built-in Gradle tasks are cacheable:
 
@@ -140,7 +140,8 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.api.tasks.scala.ScalaDoc[]
 * Native toolchain:
     api:org.gradle.language.cpp.tasks.CppCompile[],
-    api:org.gradle.language.c.tasks.CCompile[]
+    api:org.gradle.language.c.tasks.CCompile[],
+    api:org.gradle.language.swift.tasks.SwiftCompile[]
 * Testing:
     api:org.gradle.api.tasks.testing.Test[]
 * Code quality tasks:
@@ -149,20 +150,25 @@ Currently, the following built-in Gradle tasks are cacheable:
     api:org.gradle.api.plugins.quality.FindBugs[],
     api:org.gradle.api.plugins.quality.JDepend[],
     api:org.gradle.api.plugins.quality.Pmd[]
-* Jacoco:
+* JaCoCo:
     api:org.gradle.testing.jacoco.tasks.JacocoMerge[],
     api:org.gradle.testing.jacoco.tasks.JacocoReport[]
 * Other tasks:
-    api:org.gradle.api.plugins.antlr.AntlrTask[]
+    api:org.gradle.api.plugins.antlr.AntlrTask[],
     api:org.gradle.plugin.devel.tasks.ValidateTaskProperties[],
     api:org.gradle.api.tasks.WriteProperties[]
 
-[[sec:task_output_caching_non_cacheable_tasks]]
-===== Non-cacheable tasks
+All other built-in tasks are currently not cacheable.
 
-All other tasks are currently not cacheable, but this may change in the future for other languages (Kotlin) or domains (native, Android, Play).
 Some tasks, like api:org.gradle.api.tasks.Copy[] or api:org.gradle.api.tasks.bundling.Jar[], usually do not make sense to make cacheable because Gradle is only copying files from one location to another.
 It also doesn't make sense to make tasks cacheable that do not produce outputs or have no task actions.
+
+[[sec:task_output_caching_cacheable_3rd_party]]
+==== Third party plugins
+
+There are third party plugins that work well with the build cache.
+The most prominent examples are the https://developer.android.com/studio/releases/gradle-plugin.html[Android plugin 3.1+] and the https://blog.gradle.org/kotlin-build-cache-use[Kotlin plugin 1.2.21+].
+For other third party plugins, check their documentation to find out whether they support the build cache.
 
 [[sec:task_output_caching_inputs]]
 ==== Declaring task inputs and outputs
@@ -184,101 +190,6 @@ In order to ensure that the inputs and outputs are properly declared use integra
 We suggest adding tests to ensure that the task inputs are relocatable, i.e. that the task can be loaded from the cache into a different build directory (see `@api:org.gradle.api.tasks.PathSensitive[]`).
 
 In order to handle volatile inputs for your tasks consider <<sec:configure_input_normalization,configuring input normalization>>.
-
-[[sec:task_output_caching_known_issues]]
-==== Known issues with task output caching
-
-The task output caching feature has known issues that may impact the correctness of your build when using the build cache,
-and there are some caveats to keep in mind which may reduce the number of cache hits you get between machines.
-These issues will be corrected as this feature becomes stable.
-
-Note that task output caching relies on <<sec:up_to_date_checks,incremental build>>.
-Problems that affect incremental builds can also affect task output caching even if the affected tasks are not cacheable.
-Most issues only cause problems if your build cache is populated by non-clean builds or if caching has been enabled for unsupported tasks.
-For a current list of open problems with incremental builds see these
-https://github.com/gradle/gradle/issues?utf8=%E2%9C%93&amp;q=is%3Aopen%20label%3Aa%3Abug%20label%3Ain%3Aincremental-build%20[Github issues].
-
-NOTE: When https://github.com/gradle/gradle/issues/new?labels=in:build-cache[reporting issues with the build cache], please check if your issue is a known issue or related to a known issue.
-
-[[sec:task_output_caching_known_issues_correctness]]
-===== Correctness issues
-
-These issues may affect the correctness of your build when using the build cache. Please consider these issues carefully.
-
-.Correctness issues
-
-|===
-| Description | Impact | Workaround
-
-| Tracking the Java vendor implementation
-| Gradle currently tracks the major version of Java that is used for compilation and test execution. If your build uses several Java implementations (IBM, OpenJDK, Oracle, etc) that are the same major version, Gradle will treat them all as equivalent and re-use outputs from any implementation.
-| Only enable caching for builds that all use the same Java implementation or manually add the Java vendor as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
-
-| Tracking the Java version
-| Gradle currently tracks the major version of Java (6 vs 7 vs 8) that is used for compilation and test execution. If your build expects to use several minor releases (1.8.0_102 vs 1.8.0_25), Gradle will treat all of these as equivalent and re-use outputs from any minor version. In our experience, bytecode produced by each major version is functionally equivalent.
-| Manually add the full Java version as an input to compilation and test execution tasks by using <<sec:task_input_output_runtime_api,the runtime api>> for adding task inputs.
-
-| Environment variables are not tracked as inputs.
-| For tasks that fork processes (like `Test`), Gradle does not track any of the environment variables visible to the process. This can allow undeclared inputs to affect the outputs of the task.
-| Declare environment variables as inputs to the task with api:org.gradle.api.tasks.TaskInputs#property(java.lang.String,java.lang.Object)[].
-
-| Changes in Gradle's file encoding that affect the build script
-| Gradle can produce different task output based on the file encoding used by the JVM. Gradle will use a default file encoding based on the operating system if `file.encoding` is not explicitly set.
-| Set the UTF-8 file encoding on all tasks which allow setting the encoding. Use UTF-8 file encoding everywhere by setting `file.encoding` to `UTF-8` for the Gradle JVM.
-
-| Javadoc ignores custom command-line options
-| Gradle's Javadoc task does not take into account any changes to custom command-line options.
-| You can add your custom options as input properties or disable caching of Javadoc.
-|===
-
-[[sec:task_output_caching_known_issues_caveats]]
-===== Caveats
-
-These issues may affect the number of cache hits you get between machines.
-
-.Caveats
-|===
-| Description | Impact | Workaround
-
-| Overlapping outputs between tasks
-| If two or more tasks share an output directory or files, Gradle will disable caching for these tasks when it detects an overlap.
-| Use separate output directories for each task.
-
-| Using cached C/C++ object files with absolute paths
-| When Gradle compiles C/C++ code, object files tend to have absolute paths embedded inside them. This doesn't affect their correctness, but it can interfere with debuggers that search for source code at those absolute paths.
-| Build the project from the same absolute path on every machine.
-
-| Line endings in build scripts files.
-| Gradle calculates the build cache key based on the MD5 hash of the build script contents. If the line endings are different between developers and the CI servers, Gradle will calculate different build cache keys even when all other inputs to a task are the same.
-| Check if your VCS will change source file line endings and configure it to have a consistent line ending across all platforms.
-
-| Absolute paths in command-line arguments and system properties.
-| Gradle provides ways of specifying the path sensitivity for individual task properties (see `@api:org.gradle.api.tasks.PathSensitive[]`);
-however, it is common to need to pass absolute paths to tools or to tests via system properties or command line arguments.
-These kinds of inputs will cause cache misses because not every developer or CI server uses an identical absolute path to the root of a build.
-Tasks like `Test` include system properties and JVM arguments as inputs to the build cache key.
-| If possible, use relative paths (via api:org.gradle.api.Project#relativePath(java.lang.Object)[]). Further tooling will be provided later.
-
-| Using JaCoCo disables caching of the Test task.
-| The JaCoCo agent relies on appending to a shared output file that may be left over from a different test execution. If Gradle allowed Test tasks to be cacheable with the JaCoCo plugin, it could not guarantee the same results each time.
-| None.
-
-| Adding new actions to cacheable tasks in a build file makes that task sensitive to unrelated changes to the build file.
-| Actions added by a plugin (from buildSrc or externally) do not have this problem because their classloader is restricted to the classpath of the plugin.
-| Avoid adding actions to cacheable tasks in a build file.
-
-| Modifying inputs or outputs during task execution.
-| It's possible to modify a task's inputs or outputs during execution in ways that change the output of a task. This breaks incremental builds and can cause problems with the build cache.
-| Use a configure task to finalize configuration for a given task. A configure task configures another task as part of its execution.
-
-| Order of input files affects outputs.
-| Some tools are sensitive to the order of its inputs and will produce slightly different output. Gradle will usually provide the order of files from the filesystem, which will be different across operating systems.
-| Provide a stable order for tools affected by order.
-
-| ANTLR3 produces output with a timestamp.
-| When generating Java source code with ANTLR3 and the <<antlr_plugin>>, the generated sources contain a timestamp that reduces how often Java compilation will be cached. ANTLR2 and ANTLR4 are not affected.
-| If you cannot upgrade to ANLTR4 use a custom template or remove the timestamp in a `doLast` action.
-|===
 
 [[sec:build_cache_configure]]
 === Configure the Build Cache

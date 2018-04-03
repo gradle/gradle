@@ -108,14 +108,14 @@ public class CreateEmptyDirectory extends DefaultTask {
         then:
         executedAndNotSkipped customTask
         result.output =~ notUpToDateBecause
-        result.output.contains('No history is available')
+        outputContains('No history is available')
 
         when:
         run customTask, '-Pcontent=second', '--info'
         then:
         executedAndNotSkipped(customTask)
         result.output =~ notUpToDateBecause
-        result.output.contains("Value of input property 'content' has changed for task '${customTask}'")
+        outputContains("Value of input property 'content' has changed for task '${customTask}'")
 
         when:
         run customTask, '-Pcontent=second', '--info'

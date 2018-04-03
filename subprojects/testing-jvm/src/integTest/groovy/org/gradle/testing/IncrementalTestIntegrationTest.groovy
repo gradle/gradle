@@ -15,12 +15,17 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-class IncrementalTestIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
+class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Rule public final TestResources resources = new TestResources(temporaryFolder)
 
@@ -100,22 +105,22 @@ public class BarTest {
         """
 
         when:
-        def result = executer.withTasks("test", "-Dtest.single=Foo").run()
+        succeeds("test", "-Dtest.single=Foo")
 
         then:
         //asserting on output because test results are kept in between invocations
-        !result.output.contains("executed Test test(BarTest)")
-        result.output.contains("executed Test test(FooTest)")
+        outputDoesNotContain("executed Test test(BarTest)")
+        outputContains("executed Test test(FooTest)")
 
         when:
-        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+        succeeds("test", "-Dtest.single=Bar")
 
         then:
-        result.output.contains("executed Test test(BarTest)")
-        !result.output.contains("executed Test test(FooTest)")
+        outputContains("executed Test test(BarTest)")
+        outputDoesNotContain("executed Test test(FooTest)")
 
         when:
-        result = executer.withTasks("test", "-Dtest.single=Bar").run()
+        succeeds("test", "-Dtest.single=Bar")
 
         then:
         result.assertTaskSkipped(":test")

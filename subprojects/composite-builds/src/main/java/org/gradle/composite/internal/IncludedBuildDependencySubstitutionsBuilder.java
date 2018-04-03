@@ -40,7 +40,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
         DependencySubstitutionsInternal substitutions = resolveDependencySubstitutions(build);
         if (!substitutions.hasRules()) {
             // Configure the included build to discover available modules
-            LOGGER.info("[composite-build] Configuring build: " + build.getProjectDir());
+            LOGGER.info("[composite-build] Configuring build: " + build.getModel().getProjectDir());
             context.addAvailableModules(build.getAvailableModules());
         } else {
             // Register the defined substitutions for included build
@@ -49,7 +49,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildInternal build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build, moduleIdentifierFactory);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build.getModel(), moduleIdentifierFactory);
         for (Action<? super DependencySubstitutions> action : build.getRegisteredDependencySubstitutions()) {
             action.execute(dependencySubstitutions);
         }

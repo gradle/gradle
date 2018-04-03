@@ -94,6 +94,9 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         return excludes;
     }
 
+    /**
+     * Always use attribute matching to choose a target variant.
+     */
     @Override
     public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, targetComponent, consumerSchema));
@@ -119,4 +122,9 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         return reason;
     }
 
+
+    @Override
+    public String toString() {
+        return "GradleDependencyMetadata: " + selector.toString();
+    }
 }

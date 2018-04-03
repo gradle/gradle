@@ -41,7 +41,7 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
 
         then:
         fails("check")
-        failure.error.contains("Name 'class1' must match pattern")
+        failure.assertHasErrorOutput("Name 'class1' must match pattern")
 
         and:
         succeeds("dependencies", "--configuration", "checkstyle")

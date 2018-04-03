@@ -18,16 +18,23 @@ package org.gradle.launcher.daemon.client
 import org.gradle.api.BuildCancelledException
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
-import org.gradle.launcher.daemon.protocol.*
+import org.gradle.launcher.daemon.protocol.Build
+import org.gradle.launcher.daemon.protocol.BuildStarted
+import org.gradle.launcher.daemon.protocol.Cancel
+import org.gradle.launcher.daemon.protocol.CloseInput
+import org.gradle.launcher.daemon.protocol.DaemonUnavailable
+import org.gradle.launcher.daemon.protocol.Failure
+import org.gradle.launcher.daemon.protocol.Finished
+import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.util.ConcurrentSpecification
 
 class DaemonClientTest extends ConcurrentSpecification {
@@ -35,7 +42,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     final DaemonClientConnection connection = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
-    final IdGenerator<?> idGenerator = {12} as IdGenerator
+    final def idGenerator = new UUIDGenerator()
     final ProcessEnvironment processEnvironment = Mock()
     final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator, processEnvironment)
 

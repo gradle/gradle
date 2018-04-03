@@ -24,7 +24,9 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
+import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -265,6 +267,7 @@ it.exclude group: '*', module: 'badArtifact'
         file("build/libs/util-2.5.jar").exists()
     }
 
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:

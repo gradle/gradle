@@ -27,7 +27,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
@@ -63,10 +63,10 @@ public class DefaultTestReport implements TestReporter {
         final AllTestResults model = new AllTestResults();
         resultsProvider.visitClasses(new Action<TestClassResult>() {
             public void execute(TestClassResult classResult) {
-                model.addTestClass(classResult.getId(), classResult.getClassName());
+                model.addTestClass(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName());
                 List<TestMethodResult> collectedResults = classResult.getResults();
                 for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), collectedResult.getName(), collectedResult.getDuration());
+                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == SKIPPED) {
                         testResult.setIgnored();
                     } else {

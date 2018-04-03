@@ -215,7 +215,7 @@ Output from 2
 
         then:
         def t = thrown(AssertionError)
-        t.message == "The grouped output for task ':doesNotExist' could not be found"
+        t.message.startsWith("The grouped output for task ':doesNotExist' could not be found.")
     }
 
     def "handles output right before end of failed build"() {
@@ -226,34 +226,6 @@ Output from 2
 \u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [0s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[0K
 \u001B[1m> Task :log\u001B[m\u001B[0K
 Output from :log
-
-
-\u001B[31mFAILURE: \u001B[39m\u001B[31mBuild failed with an exception.\u001B[39m
-
-* Where:
-Build file '/Users/daniel/gradle/gradle/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/test/9k46f/build.gradle' line: 58
-
-* What went wrong:
-Execution failed for task ':log'.
-\u001B[33m> \u001B[39mjava.lang.Exception:
-
-* Try:
-Run with \u001B[1m--info\u001B[m or \u001B[1m--debug\u001B[m option to get more log output.
-
-* Exception is:
-org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':log'.
-        at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:100)
-        at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:70)
-        at org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter.execute(SkipUpToDateTaskExecuter.java:61)
-        at org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter.execute(ResolveTaskOutputCachingStateExecuter.java:54)
-        at org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter.execute(ValidatingTaskExecuter.java:58)
-        at org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter.execute(SkipEmptySourceFilesTaskExecuter.java:88)
-        at org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter.execute(ResolveTaskArtifactStateTaskExecuter.java:52)
-        at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:52)
-        at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:54)
-        at org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter.execute(ExecuteAtMostOnceTaskExecuter.java:43)
-        at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:34)
-        ... 42 more
 
 
 \u001B[31;1mBUILD FAILED\u001B[0;39m in 1s

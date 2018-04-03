@@ -19,12 +19,11 @@ package org.gradle.launcher.daemon.diagnostics;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Contains some daemon diagnostics information useful for the client.
  */
-public class DaemonDiagnostics implements Serializable {
+public class DaemonDiagnostics {
 
     private final Long pid;
     private final File daemonLog;

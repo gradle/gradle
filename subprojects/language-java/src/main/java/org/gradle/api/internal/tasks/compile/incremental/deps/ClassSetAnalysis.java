@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
@@ -46,47 +47,52 @@ public class ClassSetAnalysis {
             }
             result.addAll(dependentClasses);
         }
-        return result == null ? DefaultDependentsSet.EMPTY : new DefaultDependentsSet(result);
+        return result == null ? DependentsSet.empty() : DependentsSet.dependents(result);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
         DependentsSet deps = data.getDependents(className);
-        if (deps != null && deps.isDependencyToAll()) {
+        if (deps.isDependencyToAll()) {
             return deps;
         }
-        if (deps == null && constants.isEmpty()) {
-            return DefaultDependentsSet.EMPTY;
-        }
         if (!constants.isEmpty()) {
-            return DependencyToAll.INSTANCE;
+            return DependentsSet.dependencyToAll();
+        }
+        DependentsSet dependentsOnAll = data.getDependentsOnAll();
+        if (deps.getDependentClasses().isEmpty() && dependentsOnAll.getDependentClasses().isEmpty()) {
+            return deps;
         }
         Set<String> result = new HashSet<String>();
-        if (deps != null && !deps.isDependencyToAll()) {
-            recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
-        }
+        recurseDependents(new HashSet<String>(), result, Iterables.concat(deps.getDependentClasses(), dependentsOnAll.getDependentClasses()));
         result.remove(className);
-        return new DefaultDependentsSet(result);
+        return DependentsSet.dependents(result);
+    }
 
+    public DependentsSet getAggregatedTypes() {
+        return data.getAggregatedTypes();
     }
 
     public boolean isDependencyToAll(String className) {
-        DependentsSet deps = data.getDependents(className);
-        return deps != null && deps.isDependencyToAll();
+        return data.getDependents(className).isDependencyToAll();
     }
 
-    private void recurseDependents(Set<String> visited, Set<String> result, Set<String> dependentClasses) {
+    private void recurseDependents(Set<String> visited, Set<String> result, Iterable<String> dependentClasses) {
         for (String d : dependentClasses) {
             if (!visited.add(d)) {
                 continue;
             }
-            if (!d.contains("$")) { //filter out the inner classes
+            if (!isNestedClass(d)) {
                 result.add(d);
             }
             DependentsSet currentDependents = data.getDependents(d);
-            if (currentDependents != null && !currentDependents.isDependencyToAll()) {
+            if (!currentDependents.isDependencyToAll()) {
                 recurseDependents(visited, result, currentDependents.getDependentClasses());
             }
         }
+    }
+
+    private boolean isNestedClass(String d) {
+        return d.contains("$");
     }
 
     public ClassSetAnalysisData getData() {

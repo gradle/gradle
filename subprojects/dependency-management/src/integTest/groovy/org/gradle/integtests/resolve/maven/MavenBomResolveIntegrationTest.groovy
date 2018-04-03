@@ -28,8 +28,8 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
     def setup() {
         resolve.prepare()
-        FeaturePreviewsFixture.enableAdvancedPomSupport(propertiesFile)
         settingsFile << "rootProject.name = 'testproject'"
+        FeaturePreviewsFixture.enableImprovedPomSupport(settingsFile)
         buildFile << """
             repositories { maven { url "${mavenHttpRepo.uri}" } }
             configurations { compile }
@@ -273,6 +273,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         then:
         failure.assertHasCause "Could not find group:moduleA:."
-        !failure.error.contains("Could not parse POM ${mavenHttpRepo.uri}/group/bom/1.0/bom-1.0.pom")
+        failure.assertNotOutput("parse")
     }
 }

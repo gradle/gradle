@@ -55,20 +55,20 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         def metadata = getMetadata()
 
         given:
-        metadata.componentId = newId
+        metadata.id = newId
 
         expect:
-        metadata.componentId == newId
-        metadata.id == DefaultModuleVersionIdentifier.newId(newId)
-        metadata.asImmutable().componentId == newId
-        metadata.asImmutable().asMutable().componentId == newId
+        metadata.id == newId
+        metadata.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
+        metadata.asImmutable().id == newId
+        metadata.asImmutable().asMutable().id == newId
     }
 
     def "can create default metadata"() {
         def metadata = createMetadata(id)
 
         expect:
-        metadata.componentId == id
+        metadata.id == id
         metadata.dependencies.empty
         !metadata.changing
         !metadata.missing
@@ -77,7 +77,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.contentHash == EMPTY_CONTENT
 
         def immutable = metadata.asImmutable()
-        immutable.componentId == id
+        immutable.id == id
         !immutable.changing
         !immutable.missing
         immutable.status == "integration"

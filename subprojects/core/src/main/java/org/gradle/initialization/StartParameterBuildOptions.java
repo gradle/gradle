@@ -58,8 +58,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
-        options.add(new AdvancedPomSupportOption());
-        options.add(new GradleMetadataOption());
+        options.add(new DependencyLockingOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -119,8 +118,10 @@ public class StartParameterBuildOptions {
     }
 
     public static class ContinueOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "continue";
+
         public ContinueOption() {
-            super(null, CommandLineOptionConfiguration.create("continue", "Continue task execution after a task failure."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Continue task execution after a task failure."));
         }
 
         @Override
@@ -309,29 +310,16 @@ public class StartParameterBuildOptions {
         }
     }
 
-    public static class AdvancedPomSupportOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.advancedpomsupport";
+    public static class DependencyLockingOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "write-locks";
 
-        public AdvancedPomSupportOption() {
-            super(GRADLE_PROPERTY);
+        public DependencyLockingOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists").incubating());
         }
 
         @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setAdvancedPomSupport(value);
-        }
-    }
-
-    public static class GradleMetadataOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.gradlemetadata";
-
-        public GradleMetadataOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setGradleMetadata(value);
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setWriteDependencyLocks(true);
         }
     }
 }

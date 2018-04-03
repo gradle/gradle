@@ -221,7 +221,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 4.0
      */
-    @Incubating
     MavenArtifactRepository google();
 
     /**

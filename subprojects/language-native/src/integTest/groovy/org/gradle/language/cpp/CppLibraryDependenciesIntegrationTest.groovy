@@ -81,7 +81,7 @@ class CppLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepende
 
     @Override
     protected List<String> getAssembleReleaseTasks() {
-        return [':compileReleaseCpp', ':linkRelease'] + extractAndStripSymbolsTasksRelease(toolChain)
+        return [':compileReleaseCpp', ':linkRelease'] + extractAndStripSymbolsTasksRelease()
     }
 
     @Override

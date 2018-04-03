@@ -68,7 +68,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
 
         MutableIvyModuleResolveMetadata metadata = parseIvyFile(publication);
-        ModuleVersionIdentifier moduleId = metadata.getId();
+        ModuleVersionIdentifier moduleId = metadata.getModuleVersionId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
         revision.matches(moduleId.getVersion());
@@ -84,7 +84,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile());
+            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }

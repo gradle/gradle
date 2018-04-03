@@ -17,12 +17,16 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 
-class TestListenerBuildOperationAdapterIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.testing.fixture.JUnitCoverage.*
+
+@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
+class TestListenerBuildOperationAdapterIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)

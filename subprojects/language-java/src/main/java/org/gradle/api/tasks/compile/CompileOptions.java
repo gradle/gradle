@@ -36,6 +36,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -78,7 +80,7 @@ public class CompileOptions extends AbstractOptions {
     private String extensionDirs;
 
     private List<String> compilerArgs = Lists.newArrayList();
-    private List<CompilerArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
+    private List<CommandLineArgumentProvider> compilerArgumentProviders = Lists.newArrayList();
 
     private boolean incremental;
 
@@ -172,8 +174,9 @@ public class CompileOptions extends AbstractOptions {
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getEncoding() {
         return encoding;
     }
@@ -182,7 +185,7 @@ public class CompileOptions extends AbstractOptions {
      * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      */
-    public void setEncoding(String encoding) {
+    public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
     }
 
@@ -290,6 +293,7 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
+    @Nullable
     @Optional
     @CompileClasspath
     public FileCollection getBootstrapClasspath() {
@@ -301,15 +305,16 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+    public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
         this.bootstrapClasspath = bootstrapClasspath;
     }
 
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getExtensionDirs() {
         return extensionDirs;
     }
@@ -317,7 +322,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
-    public void setExtensionDirs(String extensionDirs) {
+    public void setExtensionDirs(@Nullable String extensionDirs) {
         this.extensionDirs = extensionDirs;
     }
 
@@ -346,8 +351,8 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public List<String> getAllCompilerArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(getCompilerArgs());
-        for (CompilerArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
+        builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
+        for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
             builder.addAll(compilerArgumentProvider.asArguments());
         }
         return builder.build();
@@ -360,7 +365,7 @@ public class CompileOptions extends AbstractOptions {
      */
     @Nested
     @Incubating
-    public List<CompilerArgumentProvider> getCompilerArgumentProviders() {
+    public List<CommandLineArgumentProvider> getCompilerArgumentProviders() {
         return compilerArgumentProviders;
     }
 
@@ -459,10 +464,11 @@ public class CompileOptions extends AbstractOptions {
      * @return the source path
      * @see #setSourcepath(FileCollection)
      */
+    @Incubating
+    @Optional
+    @Nullable
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @Optional
-    @Incubating
     public FileCollection getSourcepath() {
         return sourcepath;
     }
@@ -473,7 +479,7 @@ public class CompileOptions extends AbstractOptions {
      * @param sourcepath the source path
      */
     @Incubating
-    public void setSourcepath(FileCollection sourcepath) {
+    public void setSourcepath(@Nullable FileCollection sourcepath) {
         this.sourcepath = sourcepath;
     }
 
@@ -483,9 +489,8 @@ public class CompileOptions extends AbstractOptions {
      * @return The annotation processor path, or {@code null} to use the compile classpath.
      * @since 3.4
      */
-    @Optional
-    @Internal // Handled on the compile task
     @Nullable
+    @Internal // Handled on the compile task
     public FileCollection getAnnotationProcessorPath() {
         return annotationProcessorPath;
     }
@@ -505,9 +510,9 @@ public class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      */
-    @Optional
-    @Nullable
     @Incubating
+    @Nullable
+    @Optional
     @OutputDirectory
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         return annotationProcessorGeneratedSourcesDirectory.getOrNull();
@@ -519,7 +524,7 @@ public class CompileOptions extends AbstractOptions {
      * @since 4.3
      */
     @Incubating
-    public void setAnnotationProcessorGeneratedSourcesDirectory(File file) {
+    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
         this.annotationProcessorGeneratedSourcesDirectory.set(file);
     }
 

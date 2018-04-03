@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
@@ -28,6 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.execution.ProjectStateAccess;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -55,13 +58,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final ProjectStateAccess projectStateAccess;
     private final ArtifactResolver self;
     // This should live closer to the project itself
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allProjectArtifacts = new ConcurrentHashMap<ComponentArtifactIdentifier, ResolvableArtifact>();
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectStateAccess projectStateAccess) {
         this.localComponentRegistry = localComponentRegistry;
         this.componentIdentifierFactory = componentIdentifierFactory;
+        this.projectStateAccess = projectStateAccess;
         self = new ErrorHandlingArtifactResolver(this);
     }
 
@@ -86,33 +91,42 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
+    public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
-            ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            ProjectComponentIdentifier project = componentIdentifierFactory.createProjectComponentIdentifier(selector);
-            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
-            if (componentMetaData == null) {
-                result.failed(new ModuleVersionResolveException(selector, project + " not found."));
-            } else {
-                result.resolved(componentMetaData);
-                String reason = dependency.getReason();
-                if (reason != null) {
-                    result.setSelectionDescription(result.getSelectionDescription().withReason(reason));
+            final ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
+            final ProjectComponentIdentifier project = componentIdentifierFactory.createProjectComponentIdentifier(selector);
+            projectStateAccess.withProjectState(project, new Factory<Object>() {
+                @Override
+                public Object create() {
+                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
+                    if (componentMetaData == null) {
+                        result.failed(new ModuleVersionResolveException(selector, project + " not found."));
+                    } else {
+                        result.resolved(componentMetaData);
+                    }
+                    return null;
                 }
-            }
+            });
         }
     }
 
     @Override
-    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
         if (isProjectModule(identifier)) {
-            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
-            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
-            if (componentMetaData == null) {
-                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
-            } else {
-                result.resolved(componentMetaData);
-            }
+            final ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
+            projectStateAccess.withProjectState(projectId, new Factory<Object>() {
+                @Nullable
+                @Override
+                public Object create() {
+                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
+                    if (componentMetaData == null) {
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
+                    } else {
+                        result.resolved(componentMetaData);
+                    }
+                    return null;
+                }
+            });
         }
     }
 
@@ -123,32 +137,45 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
+        if (isProjectModule(component.getId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
         }
     }
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
-        if (isProjectModule(component.getComponentId())) {
-            return DefaultArtifactSet.multipleVariants(component.getComponentId(), component.getId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ModuleExclusion exclusions) {
+        if (isProjectModule(component.getId())) {
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) component.getId();
+            return projectStateAccess.withProjectState(projectId, new Factory<ArtifactSet>() {
+                @Override
+                public ArtifactSet create() {
+                    return DefaultArtifactSet.multipleVariants(component.getId(), component.getModuleVersionId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry);
+                }
+            });
         } else {
             return null;
         }
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
-            LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
-
-            File localArtifactFile = projectArtifact.getFile();
-            if (localArtifactFile != null) {
-                result.resolved(localArtifactFile);
-            } else {
-                result.notFound(projectArtifact.getId());
-            }
+            final LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
+            projectStateAccess.withProjectState(projectId, new Factory<Object>() {
+                @Nullable
+                @Override
+                public Object create() {
+                    File localArtifactFile = projectArtifact.getFile();
+                    if (localArtifactFile != null) {
+                        result.resolved(localArtifactFile);
+                    } else {
+                        result.notFound(projectArtifact.getId());
+                    }
+                    return null;
+                }
+            });
         }
     }
 

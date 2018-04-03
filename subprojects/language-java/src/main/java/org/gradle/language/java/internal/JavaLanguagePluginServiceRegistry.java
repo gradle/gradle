@@ -24,6 +24,9 @@ import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFact
 import org.gradle.api.internal.tasks.compile.incremental.cache.GeneralCompileCaches;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -49,8 +52,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
                 .registerArtifactType(JavadocArtifact.class, ArtifactType.JAVADOC);
         }
 
-        public AnnotationProcessorDetector createAnnotationProcessorDetector(FileContentCacheFactory cacheFactory) {
-            return new AnnotationProcessorDetector(cacheFactory);
+        public AnnotationProcessorDetector createAnnotationProcessorDetector(FileContentCacheFactory cacheFactory, LoggingConfiguration loggingConfiguration) {
+            return new AnnotationProcessorDetector(cacheFactory, Logging.getLogger(AnnotationProcessorDetector.class), loggingConfiguration.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS);
         }
 
         public AnnotationProcessorPathFactory createAnnotationProcessorPathFactory(FileCollectionFactory fileCollectionFactory, AnnotationProcessorDetector annotationProcessorDetector) {

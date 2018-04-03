@@ -32,7 +32,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final IntegrationTestBuildContext buildContext
     final GradleDistribution gradleDistribution
     final BuildExperimentRunner experimentRunner
-    final TestProjectLocator testProjectLocator = new TestProjectLocator()
     final Clock clock = Time.clock()
 
     String testId
@@ -114,8 +113,10 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         specs.each {
             def operations = operations(results, it)
             def invocation = it.invocation
-            if (experimentRunner.honestProfiler && invocation instanceof GradleInvocationSpec) {
-                experimentRunner.honestProfiler.sessionId = "${testId}-${it.projectName}-${invocation.gradleDistribution.version.version}".replaceAll('[^a-zA-Z0-9.-]', '_').replaceAll('[_]+', '_')
+            def profiler = experimentRunner.profiler
+            if (profiler && invocation instanceof GradleInvocationSpec) {
+                profiler.scenarioUnderTest = "${testId}-${it.projectName}"
+                profiler.versionUnderTest = gradleDistribution.version.version
             }
             experimentRunner.run(it, operations)
         }
@@ -123,9 +124,5 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     protected static String determineChannel() {
         ResultsStoreHelper.determineChannel()
-    }
-
-    HonestProfilerCollector getHonestProfiler() {
-        return experimentRunner.honestProfiler
     }
 }

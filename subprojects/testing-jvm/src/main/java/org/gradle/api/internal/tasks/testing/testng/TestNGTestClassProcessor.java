@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -42,6 +41,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.tasks.testing.testng.TestNGOptions.*;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
@@ -91,14 +92,23 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
+    public void stopNow() {
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+    }
+
     private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getDefaultSuiteName());
         testNg.setDefaultTestName(options.getDefaultTestName());
-        testNg.setParallel(options.getParallel());
-        testNg.setThreadCount(options.getThreadCount());
-        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY);
+        if (options.getParallel() != null) {
+            testNg.setParallel(options.getParallel());
+        }
+        if (options.getThreadCount() > 0) {
+            testNg.setThreadCount(options.getThreadCount());
+        }
+        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), DEFAULT_CONFIG_FAILURE_POLICY);
         invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
         invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());

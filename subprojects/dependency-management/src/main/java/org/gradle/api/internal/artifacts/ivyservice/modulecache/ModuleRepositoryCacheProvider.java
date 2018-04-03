@@ -17,12 +17,23 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 public class ModuleRepositoryCacheProvider {
     private final ModuleRepositoryCaches caches;
+    private final ModuleRepositoryCaches inMemoryCaches;
+    private final ResolvedArtifactCaches resolvedArtifactCaches = new ResolvedArtifactCaches();
 
-    public ModuleRepositoryCacheProvider(ModuleRepositoryCaches caches) {
+    public ModuleRepositoryCacheProvider(ModuleRepositoryCaches caches, ModuleRepositoryCaches inMemoryCaches) {
         this.caches = caches;
+        this.inMemoryCaches = inMemoryCaches;
     }
 
     public ModuleRepositoryCaches getCaches() {
         return caches;
+    }
+
+    public ModuleRepositoryCaches getInMemoryCaches() {
+        return inMemoryCaches;
+    }
+
+    public ResolvedArtifactCaches getResolvedArtifactCaches() {
+        return resolvedArtifactCaches;
     }
 }

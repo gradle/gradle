@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -43,12 +44,12 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                RegularFile binaryFile = getBinaryFile().getOrNull();
+                RegularFile binaryFile = getLinkedFile().getOrNull();
                 if (binaryFile == null) {
                     return null;
                 }
-                NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
-                NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+                NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().getOrNull();
+                NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().getOrNull();
                 if (toolChain == null || targetPlatform == null) {
                     return null;
                 }
@@ -71,13 +72,14 @@ public class LinkSharedLibrary extends AbstractLinkTask {
         return importLibrary;
     }
 
-    @Input
+    @Nullable
     @Optional
+    @Input
     public String getInstallName() {
         return installName;
     }
 
-    public void setInstallName(String installName) {
+    public void setInstallName(@Nullable String installName) {
         this.installName = installName;
     }
 

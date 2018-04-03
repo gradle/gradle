@@ -18,7 +18,10 @@ package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.language.cpp.internal.DefaultUsageContext
+import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,6 +37,12 @@ class DefaultSwiftLibraryTest extends Specification {
 
     def setup() {
         library = new DefaultSwiftLibrary("main", project.objects, project, project.configurations)
+    }
+
+    def "has display name"() {
+        expect:
+        library.displayName.displayName == "Swift library 'main'"
+        library.toString() == "Swift library 'main'"
     }
 
     def "has implementation configuration"() {
@@ -52,7 +61,7 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = library.addStaticLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -71,7 +80,7 @@ class DefaultSwiftLibraryTest extends Specification {
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary("debug", true, false, true, targetPlatform, toolChain, platformToolProvider)
+        def binary = library.addSharedLibrary("debug", true, targetPlatform, toolChain, platformToolProvider, identity)
         binary.name == "mainDebug"
         binary.debuggable
         !binary.optimized
@@ -94,6 +103,13 @@ class DefaultSwiftLibraryTest extends Specification {
         then:
         def ex = thrown(IllegalStateException)
         ex.message == "No value has been specified for this provider."
+    }
+
+    private NativeVariantIdentity getIdentity() {
+        return new NativeVariantIdentity("test", null, null, null, true, false, TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS),
+            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable()),
+            new DefaultUsageContext("test", null, TestUtil.attributesFactory().mutable())
+        )
     }
 
     interface TestConfiguration extends Configuration, FileCollectionInternal {

@@ -45,11 +45,27 @@ public class GFileUtils {
         }
     }
 
+    /**
+     * Ensures that the given file (or directory) is marked as modified. If the file
+     * (or directory) does not exist, a new file is created.
+     */
     public static void touch(File file) {
         try {
-            FileUtils.touch(file);
+            if (!file.createNewFile()) {
+                touchExisting(file);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Ensures that the given file (or directory) is marked as modified. The file
+     * (or directory) must exist.
+     */
+    public static void touchExisting(File file) {
+        if (!file.setLastModified(System.currentTimeMillis())) {
+            throw new UncheckedIOException("Could not update time stamp for " + file);
         }
     }
 
@@ -58,6 +74,13 @@ public class GFileUtils {
             FileUtils.moveFile(source, destination);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void moveExistingFile(File source, File destination) {
+        boolean rename = source.renameTo(destination);
+        if (!rename) {
+            moveFile(source, destination);
         }
     }
 
@@ -82,6 +105,13 @@ public class GFileUtils {
             FileUtils.moveDirectory(source, destination);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    public static void moveExistingDirectory(File source, File destination) {
+        boolean rename = source.renameTo(destination);
+        if (!rename) {
+            moveDirectory(source, destination);
         }
     }
 
@@ -162,6 +192,14 @@ public class GFileUtils {
 
     public static boolean deleteQuietly(@Nullable File file) {
         return FileUtils.deleteQuietly(file);
+    }
+
+    public static boolean deleteFileQuietly(@Nullable File file) {
+        if (file != null) {
+            return file.delete();
+        } else {
+            return false;
+        }
     }
 
     public static class TailReadingException extends RuntimeException {

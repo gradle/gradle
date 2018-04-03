@@ -24,9 +24,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -35,6 +37,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -47,7 +50,7 @@ import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
-public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
+public class DefaultIncludedBuild implements IncludedBuildInternal, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildDefinition buildDefinition;
@@ -58,6 +61,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     private boolean resolvedDependencySubstitutions;
 
     private GradleLauncher gradleLauncher;
+    private boolean discardLauncher;
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
@@ -67,6 +71,12 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         this.parentLease = parentLease;
     }
 
+    @Override
+    public ConfigurableIncludedBuild getModel() {
+        return this;
+    }
+
+    @Override
     public File getProjectDir() {
         return buildDefinition.getBuildRootDir();
     }
@@ -102,7 +112,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
     @Override
     public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
         // TODO: Synchronization
-        if (availableModules==null) {
+        if (availableModules == null) {
             Gradle gradle = getConfiguredBuild();
             availableModules = Sets.newLinkedHashSet();
             for (Project project : gradle.getRootProject().getAllprojects()) {
@@ -116,10 +126,15 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = newProjectId(this, project.getPath());
-        ModuleVersionIdentifier moduleId = originalComponent.getId();
+        ProjectComponentIdentifier componentIdentifier = idForProjectInThisBuild(project.getPath());
+        ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         availableModules.add(Pair.of(moduleId, componentIdentifier));
+    }
+
+    public ProjectComponentIdentifier idForProjectInThisBuild(String projectPath) {
+        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild work in the root build
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getName()), projectPath);
     }
 
     @Override
@@ -134,11 +149,10 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public void finishBuild() {
-        // If the gradleLauncher is null, then we've already finished building.
-        if (gradleLauncher == null) {
+        if (gradleLauncher == null || discardLauncher) {
             return;
         }
-        getGradleLauncher().finishBuild();
+        gradleLauncher.finishBuild();
     }
 
     public synchronized void addTasks(Iterable<String> taskPaths) {
@@ -154,6 +168,8 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
+        cleanupLauncherIfRequired();
+
         final GradleLauncher launcher = getGradleLauncher();
         launcher.addListener(listener);
         launcher.scheduleTasks(tasks);
@@ -170,9 +186,21 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
         }
     }
 
+    private void cleanupLauncherIfRequired() {
+        if (gradleLauncher != null && discardLauncher) {
+            // Have already used the launcher to run tasks, need to replace it
+            try {
+                gradleLauncher.stop();
+            } finally {
+                gradleLauncher = null;
+                discardLauncher = false;
+            }
+        }
+    }
+
     private void markAsNotReusable() {
-        gradleLauncher.stop();
-        gradleLauncher = null;
+        // Hang on to the launcher, as other builds in progress may still have references to this build, for example through dependency resolution, even though the tasks of this build have completed
+        discardLauncher = true;
     }
 
     @Override
@@ -182,8 +210,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal, Stoppable {
 
     @Override
     public void stop() {
-        if (gradleLauncher!=null) {
-            gradleLauncher.stop();
+        try {
+            if (gradleLauncher != null) {
+                gradleLauncher.stop();
+            }
+        } finally {
+            gradleLauncher = null;
+            discardLauncher = false;
         }
     }
 }

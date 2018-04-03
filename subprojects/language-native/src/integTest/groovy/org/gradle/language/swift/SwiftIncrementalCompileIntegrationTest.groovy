@@ -106,7 +106,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         expect:
         fails("compileDebugSwift")
-        result.error.contains("error: invalid redeclaration of 'sum(a:b:)'")
+        failure.assertHasErrorOutput("error: invalid redeclaration of 'sum(a:b:)'")
     }
 
     def 'removing a file rebuilds everything'() {
@@ -143,6 +143,29 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         buildFile << """
             tasks.withType(SwiftCompile) {
                 compilerArgs.add('-Onone')
+            }
+        """
+
+        expect:
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
+    }
+
+    def 'changing macros rebuilds everything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+
+        buildFile << """
+            tasks.withType(SwiftCompile) {
+                macros.add('NEWMACRO')
             }
         """
 

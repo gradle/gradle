@@ -30,7 +30,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     List<File> includedBuilds = []
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-
     def setup() {
         buildTestFixture.withBuildInSubDir()
         buildA = singleProjectBuild("buildA") {
@@ -99,15 +98,9 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     protected void executed(String... tasks) {
-        def executedTasks = result.executedTasks
         for (String task : tasks) {
-            containsOnce(executedTasks, task)
+            result.assertTaskExecuted(task)
         }
-    }
-
-    protected static void containsOnce(List<String> tasks, String task) {
-        assert tasks.contains(task)
-        assert tasks.findAll({ it == task }).size() == 1
     }
 
     void assertTaskExecuted(String build, String taskPath) {
@@ -180,5 +173,12 @@ public class ${className} implements Plugin<Project> {
 """
         }
 
+    }
+
+    void outputContains(String string) {
+        // intentionally override outputContains, because this test may find messages
+        // which are after the build finished message
+        def output = result.output
+        assert output.contains(string.trim())
     }
 }

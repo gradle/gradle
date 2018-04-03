@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
@@ -87,4 +88,6 @@ public interface ConfigurationMetadata extends HasAttributes {
      * (For external module components, we just instantiate a new artifact metadata).
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
+
+    CapabilitiesMetadata getCapabilities();
 }

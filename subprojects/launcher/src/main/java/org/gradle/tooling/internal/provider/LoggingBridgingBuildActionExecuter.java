@@ -15,17 +15,21 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+
+import java.io.OutputStream;
 
 /**
  * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build
@@ -42,14 +46,9 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
         if (Boolean.TRUE.equals(actionParameters.isColorOutput(null)) && actionParameters.getStandardOutput() != null) {
-            loggingManager.attachAnsiConsole(actionParameters.getStandardOutput());
-        } else {
-            if (actionParameters.getStandardOutput() != null) {
-                loggingManager.addStandardOutputListener(actionParameters.getStandardOutput());
-            }
-            if (actionParameters.getStandardError() != null) {
-                loggingManager.addStandardErrorListener(actionParameters.getStandardError());
-            }
+            loggingManager.attachConsole(actionParameters.getStandardOutput(), notNull(actionParameters.getStandardError()), ConsoleOutput.Rich);
+        } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null) {
+            loggingManager.attachConsole(notNull(actionParameters.getStandardOutput()), notNull(actionParameters.getStandardError()), ConsoleOutput.Plain);
         }
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
@@ -61,6 +60,13 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         } finally {
             loggingManager.stop();
         }
+    }
+
+    private OutputStream notNull(OutputStream outputStream) {
+        if (outputStream == null) {
+            return NullOutputStream.INSTANCE;
+        }
+        return outputStream;
     }
 
     private static class OutputEventListenerAdapter implements OutputEventListener {

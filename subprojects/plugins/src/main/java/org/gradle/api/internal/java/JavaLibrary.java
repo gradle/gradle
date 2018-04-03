@@ -18,6 +18,9 @@ package org.gradle.api.internal.java;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencySet;
@@ -25,6 +28,8 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -41,6 +46,7 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -106,7 +112,6 @@ public class JavaLibrary implements SoftwareComponentInternal {
     private abstract class AbstractUsageContext implements UsageContext {
         private final Usage usage;
         private final ImmutableAttributes attributes;
-
         AbstractUsageContext(String usageName) {
             this.usage = objectFactory.named(Usage.class, usageName);
             this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, usage);
@@ -128,7 +133,9 @@ public class JavaLibrary implements SoftwareComponentInternal {
     }
 
     private class RuntimeUsageContext extends AbstractUsageContext {
-        private DependencySet dependencies;
+        private DomainObjectSet<ModuleDependency> dependencies;
+        private DomainObjectSet<DependencyConstraint> dependencyConstraints;
+        private Set<? extends Capability> capabilities;
 
         RuntimeUsageContext(String usageName) {
             super(usageName);
@@ -141,24 +148,35 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<ModuleDependency> getDependencies() {
-            return getRuntimeDependencies().withType(ModuleDependency.class);
+            if (dependencies == null) {
+                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
+            }
+            return dependencies;
         }
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return getRuntimeDependencies().withType(DependencyConstraint.class);
+            if (dependencyConstraints == null) {
+                dependencyConstraints = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
+            }
+            return dependencyConstraints;
         }
 
-        private DependencySet getRuntimeDependencies() {
-            if (dependencies == null) {
-                dependencies = configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
+        @Override
+        public Set<? extends Capability> getCapabilities() {
+            if (capabilities == null) {
+                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME),
+                    Sets.<Capability>newHashSet(),
+                    Sets.<Configuration>newHashSet()));
             }
-            return dependencies;
+            return capabilities;
         }
     }
 
     private class CompileUsageContext extends AbstractUsageContext {
-        private DependencySet dependencies;
+        private DomainObjectSet<ModuleDependency> dependencies;
+        private DomainObjectSet<DependencyConstraint> dependencyConstraints;
+        private Set<? extends Capability> capabilities;
 
         CompileUsageContext(String usageName) {
             super(usageName);
@@ -171,19 +189,28 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<ModuleDependency> getDependencies() {
-            return getApiDependencies().withType(ModuleDependency.class);
+            if (dependencies == null) {
+                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies().withType(ModuleDependency.class);
+            }
+            return dependencies;
         }
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return getApiDependencies().withType(DependencyConstraint.class);
+            if (dependencyConstraints == null) {
+                dependencyConstraints = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencyConstraints();
+            }
+            return dependencyConstraints;
         }
 
-        private DependencySet getApiDependencies() {
-            if (dependencies == null) {
-                dependencies = configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME).getIncoming().getDependencies();
+        @Override
+        public Set<? extends Capability> getCapabilities() {
+            if (capabilities == null) {
+                this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
+                    Sets.<Capability>newHashSet(),
+                    Sets.<Configuration>newHashSet()));
             }
-            return dependencies;
+            return capabilities;
         }
     }
 
@@ -207,7 +234,12 @@ public class JavaLibrary implements SoftwareComponentInternal {
 
         @Override
         public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return runtimeDependencies.withType(DependencyConstraint.class);
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<? extends Capability> getCapabilities() {
+            return Collections.emptySet();
         }
     }
 

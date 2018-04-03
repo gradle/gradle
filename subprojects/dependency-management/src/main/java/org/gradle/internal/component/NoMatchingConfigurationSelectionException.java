@@ -41,7 +41,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to find a matching configuration of " + targetComponent.getComponentId().getDisplayName());
+        formatter.node("Unable to find a matching configuration of " + targetComponent.getId().getDisplayName());
         formatter.startChildren();
         if (configurations.isEmpty()) {
             formatter.node("None of the consumable configurations have attributes.");

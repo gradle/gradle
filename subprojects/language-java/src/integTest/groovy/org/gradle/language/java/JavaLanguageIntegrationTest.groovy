@@ -48,7 +48,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         badApp.compilerErrors.each {
-            assert errorOutput.contains(it)
+            assert failure.assertHasErrorOutput(it)
         }
     }
 

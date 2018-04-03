@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -47,6 +48,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     private final VariantMetadataRules componentMetadataRules;
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
+    private final ImmutableCapabilities capabilities;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
@@ -54,6 +56,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
 
     // Could be precomputed, but we avoid doing so if attributes are never requested
     private ImmutableAttributes computedAttributes;
+    private CapabilitiesMetadata computedCapabilities;
 
     protected DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                            ImmutableList<String> hierarchy, ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
@@ -78,6 +81,7 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
         this.excludes = excludes;
         this.attributes = attributes;
         this.configDependencies = configDependencies;
+        this.capabilities = ImmutableCapabilities.EMPTY;
     }
 
     @Override
@@ -147,8 +151,16 @@ public class DefaultConfigurationMetadata implements ConfigurationMetadata, Vari
     }
 
     @Override
+    public CapabilitiesMetadata getCapabilities() {
+        if (computedCapabilities == null) {
+            computedCapabilities = componentMetadataRules.applyCapabilitiesRules(this, capabilities);
+        }
+        return computedCapabilities;
+    }
+
+    @Override
     public Set<? extends VariantResolveMetadata> getVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts()));
+        return ImmutableSet.of(new DefaultVariantMetadata(asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

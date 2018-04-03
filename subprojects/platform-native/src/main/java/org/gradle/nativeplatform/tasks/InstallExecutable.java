@@ -21,11 +21,14 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -40,9 +43,10 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
-import org.gradle.platform.base.ToolChain;
+import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -51,10 +55,11 @@ import java.io.File;
  */
 @Incubating
 public class InstallExecutable extends DefaultTask {
-    private ToolChain toolChain;
-    private NativePlatform platform;
-    private final DirectoryProperty destinationDir;
+    private final Property<NativePlatform> targetPlatform;
+    private final Property<NativeToolChain> toolChain;
+    private final DirectoryProperty installDirectory;
     private final RegularFileProperty executable;
+    private final RegularFileProperty installedExecutable;
     private final ConfigurableFileCollection libs;
     private final WorkerLeaseService workerLeaseService;
 
@@ -65,34 +70,40 @@ public class InstallExecutable extends DefaultTask {
      */
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
+        ObjectFactory objectFactory = getProject().getObjects();
         this.workerLeaseService = workerLeaseService;
         this.libs = getProject().files();
-        destinationDir = newOutputDirectory();
-        executable = newInputFile();
+        this.installDirectory = newOutputDirectory();
+        this.installedExecutable = newOutputFile();
+        this.installedExecutable.set(getLibDirectory().map(new Transformer<RegularFile, Directory>() {
+            @Override
+            public RegularFile transform(Directory directory) {
+                return directory.file(executable.getAsFile().get().getName());
+            }
+        }));
+        this.executable = newInputFile();
+        this.targetPlatform = objectFactory.property(NativePlatform.class);
+        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
      * The tool chain used for linking.
+     *
+     * @since 4.7
      */
     @Internal
-    public ToolChain getToolChain() {
+    public Property<NativeToolChain> getToolChain() {
         return toolChain;
     }
 
-    public void setToolChain(ToolChain toolChain) {
-        this.toolChain = toolChain;
-    }
-
     /**
-     * The platform describing the install target.
+     * The platform being linked for.
+     *
+     * @since 4.7
      */
     @Nested
-    public NativePlatform getPlatform() {
-        return platform;
-    }
-
-    public void setPlatform(NativePlatform platform) {
-        this.platform = platform;
+    public Property<NativePlatform> getTargetPlatform() {
+        return targetPlatform;
     }
 
     /**
@@ -102,59 +113,28 @@ public class InstallExecutable extends DefaultTask {
      */
     @OutputDirectory
     public DirectoryProperty getInstallDirectory() {
-        return destinationDir;
-    }
-
-    /**
-     * Returns the path to install into.
-     *
-     * @deprecated Use {@link #getInstallDirectory()}.
-     */
-    @Deprecated
-    @Internal
-    public File getDestinationDir() {
-        return destinationDir.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the path to install into.
-     *
-     * @deprecated Use {@link #getInstallDirectory()}.
-     */
-    @Deprecated
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir.set(destinationDir);
+        return installDirectory;
     }
 
     /**
      * The executable file to install.
      *
-     * @since 4.1
+     * @since 4.7
+     *
      */
     @Internal("Covered by inputFileIfExists")
-    public RegularFileProperty getSourceFile() {
+    public RegularFileProperty getExecutableFile() {
         return executable;
     }
 
     /**
-     * Returns the executable to be installed.
+     * The location of the installed executable file.
      *
-     * @deprecated Use {@link #getSourceFile()}.
+     * @since 4.7
      */
-    @Deprecated
-    @Internal("Covered by inputFileIfExists")
-    public File getExecutable() {
-        return executable.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the executable to be installed.
-     *
-     * @deprecated Use {@link #getSourceFile()}.
-     */
-    @Deprecated
-    public void setExecutable(File executable) {
-        this.executable.set(executable);
+    @Internal
+    public RegularFileProperty getInstalledExecutable() {
+        return installedExecutable;
     }
 
     /**
@@ -163,10 +143,11 @@ public class InstallExecutable extends DefaultTask {
      * @since 4.3
      */
     @SkipWhenEmpty
+    @Nullable
     @Optional
     @InputFile
     protected File getInputFileIfExists() {
-        RegularFileProperty sourceFile = getSourceFile();
+        RegularFileProperty sourceFile = getExecutableFile();
         if (sourceFile.isPresent() && sourceFile.get().getAsFile().exists()) {
             return sourceFile.get().getAsFile();
         } else {
@@ -195,23 +176,15 @@ public class InstallExecutable extends DefaultTask {
 
     /**
      * Returns the script file that can be used to run the install image.
-     */
-    @Internal("covered by getInstallDirectory")
-    public File getRunScript() {
-        return getRunScriptFile().get().getAsFile();
-    }
-
-    /**
-     * Returns the script file that can be used to run the install image.
      *
      * @since 4.4
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return destinationDir.file(executable.map(new Transformer<CharSequence, RegularFile>() {
+        return installDirectory.file(executable.map(new Transformer<CharSequence, RegularFile>() {
             @Override
             public CharSequence transform(RegularFile regularFile) {
-                OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
+                OperatingSystem operatingSystem = OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName());
                 return operatingSystem.getScriptName(regularFile.getAsFile().getName());
             }
         }));
@@ -233,7 +206,7 @@ public class InstallExecutable extends DefaultTask {
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
-                if (platform.getOperatingSystem().isWindows()) {
+                if (targetPlatform.get().getOperatingSystem().isWindows()) {
                     installWindows();
                 } else {
                     installUnix();
@@ -242,13 +215,18 @@ public class InstallExecutable extends DefaultTask {
         });
     }
 
-    private void installWindows() {
-        final File destination = getInstallDirectory().get().getAsFile();
-        final File executable = getSourceFile().get().getAsFile();
+    private Provider<Directory> getLibDirectory() {
+        return getInstallDirectory().dir("lib");
+    }
 
-        installToDir(new File(destination, "lib"));
+    private void installWindows() {
+        final File executable = getExecutableFile().get().getAsFile();
+
+        installToDir(getLibDirectory().get().getAsFile());
 
         StringBuilder toolChainPath = new StringBuilder();
+
+        NativeToolChain toolChain = getToolChain().get();
         if (toolChain instanceof Gcc) {
             // Gcc on windows requires the path to be set
             toolChainPath.append("SET PATH=");
@@ -267,12 +245,12 @@ public class InstallExecutable extends DefaultTask {
             + "\nEXIT /B %ERRORLEVEL%"
             + "\nENDLOCAL"
             + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScript());
+        GFileUtils.writeFile(runScriptText, getRunScriptFile().get().getAsFile());
     }
 
     private void installUnix() {
         final File destination = getInstallDirectory().get().getAsFile();
-        final File executable = getSourceFile().get().getAsFile();
+        final File executable = getExecutableFile().get().getAsFile();
 
         installToDir(new File(destination, "lib"));
 
@@ -285,16 +263,17 @@ public class InstallExecutable extends DefaultTask {
             + "\nexport LD_LIBRARY_PATH"
             + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
             + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScript());
+        File runScript = getRunScriptFile().get().getAsFile();
+        GFileUtils.writeFile(runScriptText, runScript);
 
-        getFileSystem().chmod(getRunScript(), 0755);
+        getFileSystem().chmod(runScript, 0755);
     }
 
     private void installToDir(final File binaryDir) {
         getFileOperations().sync(new Action<CopySpec>() {
             public void execute(CopySpec copySpec) {
                 copySpec.into(binaryDir);
-                copySpec.from(getSourceFile());
+                copySpec.from(getExecutableFile());
                 copySpec.from(getLibs());
             }
 

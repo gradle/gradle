@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -33,6 +34,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.TextUtil;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Decorates a non-incremental Java compiler (like javac) so that it can be invoked incrementally.
@@ -69,7 +71,8 @@ public class IncrementalCompilerDecorator {
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
         Compiler<JavaCompileSpec> compiler = getCompiler(inputs, sourceDirs);
-        return new IncrementalCompilationFinalizer(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater);
+        IncrementalResultStoringDecorator compilationFinalizer = new IncrementalResultStoringDecorator(compiler, jarClasspathSnapshotMaker, classSetAnalysisUpdater, compileCaches.getAnnotationProcessorPathStore());
+        return new IncrementalAnnotationProcessingCompiler(compilationFinalizer, annotationProcessorDetector);
     }
 
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
@@ -91,21 +94,28 @@ public class IncrementalCompilerDecorator {
             LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
             return cleaningCompiler;
         }
-        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache());
+        PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getAnnotationProcessorPathStore());
         return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 
     private List<AnnotationProcessorDeclaration> getNonIncrementalProcessors() {
-        return annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+        Map<String, AnnotationProcessorDeclaration> allProcessors = annotationProcessorDetector.detectProcessors(annotationProcessorPath);
+        List<AnnotationProcessorDeclaration> nonIncrementalProcessors = Lists.newArrayListWithCapacity(allProcessors.size());
+        for (AnnotationProcessorDeclaration processor : allProcessors.values()) {
+            if (!processor.getType().isIncremental()) {
+                nonIncrementalProcessors.add(processor);
+            }
+        }
+        return nonIncrementalProcessors;
     }
 
     private void warnAboutNonIncrementalProcessors(List<AnnotationProcessorDeclaration> nonIncrementalProcessors) {
         if (LOG.isInfoEnabled()) {
             StringBuilder processorListing = new StringBuilder();
             for (AnnotationProcessorDeclaration processor : nonIncrementalProcessors) {
-                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor.getClassName());
+                processorListing.append(TextUtil.getPlatformLineSeparator()).append('\t').append(processor);
             }
-            LOG.info("{} - is not incremental. The following annotation processors were detected:{}", displayName, processorListing);
+            LOG.info("{} - is not incremental. The following annotation processors don't support incremental compilation:{}", displayName, processorListing);
         }
     }
 }

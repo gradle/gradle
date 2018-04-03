@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.internal.progress.BuildOperationState;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -48,8 +48,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     GradleInternal getRoot();
 
     @Nullable
-    BuildOperationState getBuildOperation();
-    void setBuildOperation(BuildOperationState operation);
+    BuildOperationRef getBuildOperation();
+    void setBuildOperation(BuildOperationRef operation);
 
     /**
      * {@inheritDoc}
@@ -110,7 +110,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ClassLoaderScope getClassLoaderScope();
 
-    void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
+    void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds);
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.

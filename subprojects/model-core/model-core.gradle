@@ -1,3 +1,5 @@
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -19,29 +21,31 @@
  */
 plugins {
     id 'java-library'
-    id 'strict-compile'
-    id 'classycle'
+    id 'gradlebuild.strict-compile'
+    id 'gradlebuild.classycle'
 }
-
-sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     api project(':baseServices')
-    api libraries.groovy.coordinate
+    api libraries.groovy.coordinates
 
     implementation project(':baseServicesGroovy')
-    implementation libraries.slf4j_api.coordinate
-    implementation libraries.guava.coordinate
-    implementation libraries.commons_lang.coordinate
-    implementation libraries.jcip.coordinate
-    implementation libraries.asm.coordinate
-    implementation libraries.asm_tree.coordinate
+    implementation libraries.slf4j_api.coordinates
+    implementation libraries.guava.coordinates
+    implementation libraries.commons_lang.coordinates
+    implementation libraries.jcip.coordinates
+    implementation libraries.asm.coordinates
+    implementation libraries.asm_tree.coordinates
 
     integTestImplementation project(':core')
     integTestRuntimeOnly project(':plugins')
 
     testFixturesImplementation project(':internalTesting')
     testFixturesImplementation project(':core')
+}
+
+gradlebuildJava {
+    moduleType = ModuleType.ENTRY_POINT
 }
 
 testFixtures {

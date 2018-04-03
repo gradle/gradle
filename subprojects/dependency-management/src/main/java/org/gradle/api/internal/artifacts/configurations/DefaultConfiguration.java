@@ -29,6 +29,8 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -45,11 +47,13 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
@@ -57,6 +61,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
@@ -93,7 +98,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -119,18 +124,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
     private final DefaultDependencySet dependencies;
-    private final CompositeDomainObjectSet<Dependency> inheritedDependencies;
-    private final DefaultDependencySet allDependencies;
+    private final DefaultDependencyConstraintSet dependencyConstraints;
+    private final DefaultDomainObjectSet<Dependency> ownDependencies;
+    private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
+    private CompositeDomainObjectSet<Dependency> inheritedDependencies;
+    private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
+    private DefaultDependencySet allDependencies;
+    private DefaultDependencyConstraintSet allDependencyConstraints;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
-    private final CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
-    private final DefaultPublishArtifactSet allArtifacts;
+    private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
+    private CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
+    private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -192,6 +204,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 BuildOperationExecutor buildOperationExecutor,
                                 Instantiator instantiator,
                                 NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+                                NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder
 
@@ -210,6 +223,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.buildOperationExecutor = buildOperationExecutor;
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
+        this.capabilityNotationParser = capabilityNotationParser;
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
@@ -218,21 +232,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
 
-        DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
-        ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
+        this.ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
+        this.ownDependencyConstraints = new DefaultDomainObjectSet<DependencyConstraint>(DependencyConstraint.class);
+        this.ownDependencyConstraints.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
-        this.inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        this.allDependencies = new DefaultDependencySet(Describables.of(displayName, "all dependencies"), this, inheritedDependencies);
+        this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), ownDependencyConstraints);
 
-        DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
-        ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
+        this.ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
+        this.ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
-        this.inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        this.allArtifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "all artifacts"), inheritedArtifacts, fileCollectionFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, allArtifacts, configurationAttributes, instantiator, artifactNotationParser, fileCollectionFactory, attributesFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         path = domainObjectContext.projectPath(name);
     }
@@ -289,8 +302,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation(MutationType.DEPENDENCIES);
         for (Configuration configuration : this.extendsFrom) {
-            inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
-            inheritedDependencies.removeCollection(configuration.getAllDependencies());
+            if (inheritedArtifacts != null) {
+                inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
+            }
+            if (inheritedDependencies != null) {
+                inheritedDependencies.removeCollection(configuration.getAllDependencies());
+            }
+            if (inheritedDependencyConstraints != null) {
+                inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
+            }
             ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
         }
         this.extendsFrom = new LinkedHashSet<Configuration>();
@@ -309,8 +329,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     configuration, configuration.getHierarchy()));
             }
             if (this.extendsFrom.add(configuration)) {
-                inheritedArtifacts.addCollection(configuration.getAllArtifacts());
-                inheritedDependencies.addCollection(configuration.getAllDependencies());
+                if (inheritedArtifacts != null) {
+                    inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+                }
+                if (inheritedDependencies != null) {
+                    inheritedDependencies.addCollection(configuration.getAllDependencies());
+                }
+                if (inheritedDependencyConstraints != null) {
+                    inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
+                }
                 ((ConfigurationInternal) configuration).addMutationValidator(parentMutationValidator);
             }
         }
@@ -518,11 +545,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            if (projectResult.getId().getBuild().isCurrentBuild()) {
-                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-                targetConfig.markAsObserved(requestedState);
-            }
+            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+            targetConfig.markAsObserved(requestedState);
         }
     }
 
@@ -558,7 +583,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public DependencySet getAllDependencies() {
+        if (allDependencies == null) {
+            initAllDependencies();
+        }
         return allDependencies;
+    }
+
+    private synchronized void initAllDependencies() {
+        if (allDependencies != null) {
+            return;
+        }
+        inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
+        for (Configuration configuration : this.extendsFrom) {
+            inheritedDependencies.addCollection(configuration.getAllDependencies());
+        }
+        allDependencies = new DefaultDependencySet(Describables.of(displayName, "all dependencies"), this, inheritedDependencies);
+    }
+
+    @Override
+    public DependencyConstraintSet getDependencyConstraints() {
+        return dependencyConstraints;
+    }
+
+    @Override
+    public DependencyConstraintSet getAllDependencyConstraints() {
+        if (allDependencyConstraints == null) {
+            initAllDependencyConstraints();
+        }
+        return allDependencyConstraints;
+    }
+
+    private synchronized void initAllDependencyConstraints() {
+        if (allDependencyConstraints != null) {
+            return;
+        }
+        inheritedDependencyConstraints = CompositeDomainObjectSet.create(DependencyConstraint.class, ownDependencyConstraints);
+        for (Configuration configuration : this.extendsFrom) {
+            inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
+        }
+        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), inheritedDependencyConstraints);
     }
 
     public PublishArtifactSet getArtifacts() {
@@ -566,7 +629,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public PublishArtifactSet getAllArtifacts() {
+        initAllArtifacts();
         return allArtifacts;
+    }
+
+    private synchronized void initAllArtifacts() {
+        if (allArtifacts != null) {
+            return;
+        }
+        this.inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
+        for (Configuration configuration : this.extendsFrom) {
+            inheritedArtifacts.addCollection(configuration.getAllArtifacts());
+        }
+        this.allArtifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "all artifacts"), inheritedArtifacts, fileCollectionFactory);
     }
 
     public Set<ExcludeRule> getExcludeRules() {
@@ -623,28 +698,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ConfigurationInternal copy() {
-        return createCopy(getDependencies(), false);
+        return createCopy(getDependencies(), getDependencyConstraints(), false);
     }
 
     public Configuration copyRecursive() {
-        return createCopy(getAllDependencies(), true);
+        return createCopy(getAllDependencies(), getAllDependencyConstraints(), true);
     }
 
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
-        return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), false);
+        return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints(), false);
     }
 
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
-        return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), true);
+        return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints(), true);
     }
 
-    private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
+    private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
         String newName = name + "Copy";
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, attributesFactory,
+            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
             rootComponentMetadataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -687,6 +762,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DomainObjectSet<Dependency> copiedDependencies = copiedConfiguration.getDependencies();
         for (Dependency dependency : dependencies) {
             copiedDependencies.add(dependency.copy());
+        }
+        DomainObjectSet<DependencyConstraint> copiedDependencyConstraints = copiedConfiguration.getDependencyConstraints();
+        for (DependencyConstraint dependencyConstraint : dependencyConstraints) {
+            copiedDependencyConstraints.add(((DefaultDependencyConstraint)dependencyConstraint).copy());
         }
         return copiedConfiguration;
     }
@@ -925,7 +1004,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (Dependency dependency : allDependencies) {
+        for (Dependency dependency : getAllDependencies()) {
             if (dependency instanceof FileCollectionDependency) {
                 FileCollection files = ((FileCollectionDependency) dependency).getFiles();
                 ((FileCollectionInternal) files).registerWatchPoints(builder);
@@ -1039,6 +1118,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public DependencySet getDependencies() {
             runDependencyActions();
             return getAllDependencies();
+        }
+
+        public DependencyConstraintSet getDependencyConstraints() {
+            runDependencyActions();
+            return getAllDependencyConstraints();
         }
 
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
@@ -1349,4 +1433,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private class AllArtifactsProvider implements PublishArtifactSetProvider {
+
+        @Override
+        public PublishArtifactSet getPublishArtifactSet() {
+            return getAllArtifacts();
+        }
+    }
 }

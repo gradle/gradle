@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.launcher.cli.ExecuteBuildAction;
+import org.gradle.launcher.cli.action.ExecuteBuildAction;
 
 public class ExecuteBuildActionRunner implements BuildActionRunner {
     @Override

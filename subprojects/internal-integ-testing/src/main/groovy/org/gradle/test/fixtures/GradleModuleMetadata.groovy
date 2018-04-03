@@ -18,6 +18,7 @@ package org.gradle.test.fixtures
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
+import groovy.transform.Canonical
 import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -135,6 +136,8 @@ class GradleModuleMetadata {
         final Set<Dependency> checkedDependencies = []
         List<DependencyConstraint> dependencyConstraints
         final Set<DependencyConstraint> checkedDependencyConstraints = []
+        List<Capability> capabilities
+        final Set<Capability> checkedCapabilities = []
 
         Variant(String name, Map<String, Object> values) {
             this.name = name
@@ -202,6 +205,28 @@ class GradleModuleMetadata {
         DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyConstraintView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
             def (String group, String module, String version) = notation.split(':') as List
             constraint(group, module, version, action)
+        }
+
+        List<Capability> getCapabilities() {
+            if (capabilities == null) {
+                capabilities = (values.capabilities ?: []).collect {
+                    new Capability(it.group, it.name, it.version)
+                }
+            }
+            capabilities
+        }
+
+        Variant capability(String group, String name, String version) {
+            def cap = getCapabilities().find { it.group == group && it.name == name && it.version == version}
+            assert cap : "capability ${group}:${name}:${version} not found in ${getCapabilities()}"
+            checkedCapabilities << cap
+            this
+        }
+
+        Variant noMoreCapabilities() {
+            Set<Capability> uncheckedCapabilities = getCapabilities() - checkedCapabilities
+            assert uncheckedCapabilities.empty
+            this
         }
 
         class DependencyView {
@@ -371,6 +396,19 @@ class GradleModuleMetadata {
 
         String toString() {
             "name($name) URL($url) size($size) sha1($sha1) md5($md5)"
+        }
+    }
+
+    @Canonical
+    static class Capability {
+        String group
+        String name
+        String version
+
+        Capability(String group, String name, String version) {
+            this.group = group
+            this.name = name
+            this.version = version
         }
     }
 }

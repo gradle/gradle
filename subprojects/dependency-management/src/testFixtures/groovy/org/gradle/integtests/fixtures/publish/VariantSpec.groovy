@@ -25,6 +25,7 @@ class VariantSpec {
     List<Object> constraints = []
     Map<String, String> attributes = [:]
     List<ArtifactSpec> artifacts = []
+    List<CapabilitySpec> capabilities = []
 
     void dependsOn(coord) {
         dependsOn << coord
@@ -46,9 +47,23 @@ class VariantSpec {
         artifacts << new ArtifactSpec(name: name, url: url)
     }
 
+    void capability(String group, String name, String version = '1.0') {
+        capabilities << new CapabilitySpec(group:group, name:name, version:version)
+    }
+
+    void capability(String name) {
+        capabilities << new CapabilitySpec(group: 'org.test', name: name, version: '1.0')
+    }
+
     static class ArtifactSpec {
         String name
         String url
         String ext = 'jar'
+    }
+
+    static class CapabilitySpec {
+        String group
+        String name
+        String version
     }
 }

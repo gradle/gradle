@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -96,7 +95,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=3.5 <4.0")
-    @LeaksFileHandles
     def "generates events for downloading artifacts"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -174,14 +172,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifactA.children.isEmpty()
         resolveArtifactB.children == [downloadBArtifact]
         resolveArtifactC.children == [downloadCArtifact]
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     @Issue("gradle/gradle#1641")
     @TargetGradleVersion(">=3.5 <4.0")
-    @LeaksFileHandles
     def "generates download events during maven publish"() {
         given:
         toolingApi.requireIsolatedUserHome()
@@ -238,9 +232,6 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             "Download ${module.rootMetaData.uri}",
             "Download ${module.rootMetaData.sha1.uri}"
         ]
-
-        cleanup:
-        toolingApi.daemons.killAll()
     }
 
     def "generate events for task actions"() {

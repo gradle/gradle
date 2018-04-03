@@ -51,7 +51,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def scriptSource = Mock(ScriptSource)
     def standardOutputCapture = Mock(StandardOutputCapture)
     def publicListener = Mock(TaskActionListener)
-    def internalListener = Mock(TaskOutputsGenerationListener)
+    def internalListener = Mock(TaskOutputChangesListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     final buildInvocationId = UniqueId.generate()
@@ -84,6 +84,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def doesNothingWhenTaskHasNoActions() {
         given:
         task.getTaskActions() >> emptyList()
+        task.hasTaskActions() >> false
 
         when:
         executer.execute(task, state, executionContext)
@@ -107,6 +108,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def executesEachActionInOrder() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
@@ -114,7 +116,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -163,6 +165,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         interaction {
             task.getActions() >> [action1]
             task.getTaskActions() >> [action1]
+            task.hasTaskActions() >> true
         }
 
         when:
@@ -171,7 +174,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
 
@@ -199,6 +202,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def stopsAtFirstActionWhichThrowsException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         def failure = new RuntimeException("failure")
         action1.execute(task) >> {
             throw failure
@@ -210,7 +214,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -243,6 +247,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def stopsAtFirstActionWhichThrowsStopExecutionException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
@@ -250,7 +255,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -281,6 +286,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def skipsActionWhichThrowsStopActionException() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
@@ -288,7 +294,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -336,6 +342,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "captures exceptions from async work"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
 
         when:
         executer.execute(task, state, executionContext)
@@ -343,7 +350,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -380,6 +387,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "captures exceptions from both task action and async work"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         action1.execute(task) >> {
             throw new RuntimeException("failure from task action")
         }
@@ -390,7 +398,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:
@@ -428,6 +436,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     def "a single exception from async work is not wrapped in a multicause exception"() {
         given:
         task.getTaskActions() >> [action1, action2]
+        task.hasTaskActions() >> true
         def failure = new RuntimeException("failure 1")
 
         when:
@@ -436,7 +445,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
         then:
         1 * publicListener.beforeActions(task)
         then:
-        1 * internalListener.beforeTaskOutputsGenerated()
+        1 * internalListener.beforeTaskOutputChanged()
         then:
         1 * standardOutputCapture.start()
         then:

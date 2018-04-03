@@ -15,18 +15,23 @@
  */
 package org.gradle.internal.scripts;
 
+import org.gradle.scripts.ScriptingLanguage;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
+    private static final String[] EXTENSIONS = scriptingLanguageExtensions();
+
     @Override
     public File resolveScriptFile(File dir, String basename) {
-        for (String extension : ScriptingLanguages.EXTENSIONS) {
+        for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (candidate.isFile()) {
                 return candidate;
@@ -51,11 +56,20 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     private boolean hasScriptExtension(File file) {
-        for (String extension : ScriptingLanguages.EXTENSIONS) {
+        for (String extension : EXTENSIONS) {
             if (hasExtension(file, extension)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static String[] scriptingLanguageExtensions() {
+        List<ScriptingLanguage> scriptingLanguages = ScriptingLanguages.all();
+        String[] extensions = new String[scriptingLanguages.size()];
+        for (int i = 0; i < extensions.length; i++) {
+            extensions[i] = scriptingLanguages.get(i).getExtension();
+        }
+        return extensions;
     }
 }

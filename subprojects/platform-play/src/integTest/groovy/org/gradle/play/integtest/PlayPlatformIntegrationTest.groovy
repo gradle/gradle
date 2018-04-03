@@ -27,6 +27,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest.isPlay22
+
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new BasicPlayApp()
 
@@ -56,6 +58,9 @@ model {
     }
 }
 """
+        if (isPlay22(playVersion)) {
+            executer.expectDeprecationWarning()
+        }
 
         succeeds("stage")
 
@@ -124,6 +129,9 @@ model {
 }
 """
         then:
+        if (isPlay22(playVersion)) {
+            executer.expectDeprecationWarning()
+        }
         fails "assemble"
 
         and:

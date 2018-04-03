@@ -18,17 +18,15 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 
 public interface IncrementalCompilerBuilder {
-    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs);
+    IncrementalCompiler newCompiler(TaskInternal task, FileCollection sourceFiles, FileCollection includeDirs, Provider<Boolean> importAware);
 
     interface IncrementalCompiler {
         <T extends NativeCompileSpec> Compiler<T> createCompiler(Compiler<T> compiler);
-
-        void setToolChain(NativeToolChainInternal toolChain);
 
         /**
          * Returns a file collection that contains the header files required by the source files.

@@ -19,9 +19,11 @@ package org.gradle.api.internal.project.taskfactory
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.execution.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.tasks.TaskPropertyTestUtils
@@ -29,11 +31,11 @@ import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GFileUtils
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
+import static org.apache.commons.io.FileUtils.touch
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.*
 
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
@@ -41,8 +43,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private ITaskFactory delegate
     private TaskClassInfoStore taskClassInfoStore
     def propertyWalker = new DefaultPropertyWalker(new DefaultPropertyMetadataStore([]))
-
-    private Map args = new HashMap()
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -200,7 +200,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "validation succeeds when optional #property is omitted on #type.simpleName"() {
         given:
-        def task = expectTaskCreated(type)
+        def task = expectTaskCreated(type, arguments as Object[])
 
         expect:
         execute(task)
@@ -214,6 +214,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalOutputDirs                | 'output-dirs'
         TaskWithOptionalNestedBean                | 'bean'
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
+        arguments = type == TaskWithOptionalNestedBean ? [null] : []
     }
 
     def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
@@ -313,7 +314,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
-        GFileUtils.touch(task.outputFile.getParentFile())
+        touch(task.outputFile.getParentFile())
 
         when:
         execute(task)
@@ -326,7 +327,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
-        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
+        touch(task.outputFiles.get(0).getParentFile())
 
         when:
         execute(task)
@@ -363,7 +364,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
-        GFileUtils.touch(task.outputDir.getParentFile())
+        touch(task.outputDir.getParentFile())
 
         when:
         execute(task)
@@ -376,7 +377,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
-        GFileUtils.touch(task.outputDirs.get(0).getParentFile())
+        touch(task.outputDirs.get(0).getParentFile())
 
         when:
         execute(task)
@@ -401,7 +402,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionFailsWhenInputDirectoryIsAFile() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
-        GFileUtils.touch(task.inputDir)
+        touch(task.inputDir)
 
         when:
         execute(task)
@@ -556,20 +557,108 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "registers input property for #prop on #type.simpleName"() {
         given:
-        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value)
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         expect:
         inputProperties(task)[prop] == expected
 
         where:
-        type                                      | prop              | value                    | expected
-        TaskWithNestedBean                        | "bean.class"      | [null] as Object[]       | Bean.class
-        TaskWithNestedIterable                    | "beans.\$0.class" | [null] as Object[]       | Bean.class
-        TaskWithNestedBeanWithPrivateClass        | "bean.class"      | [null, null] as Object[] | Bean2.class
-        TaskWithOptionalNestedBean                | "bean.class"      | null                     | null
-        TaskWithOptionalNestedBeanWithPrivateType | "bean.class"      | null                     | null
-        TaskWithInput                             | "inputValue"      | "value"                  | "value"
-        TaskWithBooleanInput                      | "inputValue"      | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+        type                                      | prop                 | value                            | expected
+        TaskWithNestedBean                        | 'bean'               | [null]                           | Bean.class
+        TaskWithNestedObject                      | 'bean.key'           | [['key': new Bean()]]            | Bean.class
+        TaskWithNestedIterable                    | 'beans.$0'           | [new Bean()]                     | Bean.class
+        TaskWithNestedIterable                    | 'beans.name$0.value' | [new NamedBean("name", "value")] | "value"
+        TaskWithNestedBeanWithPrivateClass        | 'bean'               | [null, null]                     | Bean2.class
+        TaskWithOptionalNestedBean                | 'bean'               | [null]                           | null
+        TaskWithOptionalNestedBeanWithPrivateType | 'bean'               | null                             | null
+        TaskWithInput                             | 'inputValue'         | ["value"]                        | "value"
+        TaskWithBooleanInput                      | 'inputValue'         | [true]                           | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    def "iterable nested properties are named by index"() {
+        given:
+        def task = expectTaskCreated(TaskWithNestedObject, [[new Bean(), new NamedBean('name', 'value'), new Bean()]] as Object[])
+
+        expect:
+        inputProperties(task).keySet() == ['bean.$0', 'bean.name$1', 'bean.name$1.value', 'bean.$2'] as Set
+    }
+
+    @Unroll
+    def "registers properties #allTaskProperties on #type.simpleName"() {
+        given:
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.inputPropertyValues.create().keySet() == inputs as Set
+        taskProperties.inputFileProperties*.propertyName as Set == inputFiles as Set
+        taskProperties.outputFileProperties*.propertyName as Set == outputFiles as Set
+        taskProperties.destroyableFiles.empty
+        taskProperties.localStateFiles.empty
+
+        where:
+        type                                      | value                          | inputs                                          | inputFiles              | outputFiles
+        TaskWithInput                             | ["value"]                      | ["inputValue"]                                  | []                      | []
+        TaskWithBooleanInput                      | [true]                         | ["inputValue"]                                  | []                      | []
+        TaskWithInputFile                         | [new File("some")]             | []                                              | ["inputFile"]           | []
+        TaskWithInputFiles                        | [[new File("some")]]           | []                                              | ["input"]               | []
+        BrokenTaskWithInputFiles                  | [[new File("some")]]           | []                                              | ["input"]               | []
+        TaskWithInputDir                          | [new File("some")]             | []                                              | ["inputDir"]            | []
+        BrokenTaskWithInputDir                    | [new File("some")]             | []                                              | ["inputDir"]            | []
+        TaskWithOptionalInputFile                 | null                           | []                                              | ["inputFile"]           | []
+        TaskWithOutputFile                        | [new File("some")]             | []                                              | []                      | ["outputFile"]
+        TaskWithOutputFiles                       | [[new File("some")]]           | []                                              | []                      | ["outputFiles\$1"]
+        TaskWithOutputDir                         | [new File("some")]             | []                                              | []                      | ["outputDir"]
+        TaskWithOutputDirs                        | [[new File("some")]]           | []                                              | []                      | ["outputDirs\$1"]
+        TaskWithOptionalOutputFile                | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputFiles               | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDir                 | null                           | []                                              | []                      | []
+        TaskWithOptionalOutputDirs                | null                           | []                                              | []                      | []
+        TaskWithNestedBean                        | [null]                         | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithNestedIterable                    | [new Bean()]                   | ["beans.\$0"]                                   | ["beans.\$0.inputFile"] | []
+        TaskWithNestedBeanWithPrivateClass        | [null, null]                   | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBean                | [null]                         | []                                              | []                      | []
+        TaskWithOptionalNestedBean                | [new Bean()]                   | ["bean"]                                        | ["bean.inputFile"]      | []
+        TaskWithOptionalNestedBeanWithPrivateType | null                           | []                                              | []                      | []
+        TaskWithMultipleProperties                | [new File("some")]             | ["bean"]                                        | ["bean.inputFile"]      | ["outputFile"]
+        TaskWithBridgeMethod                      | null                           | ["nestedProperty"]                              | []                      | ["nestedProperty.someOutputFile"]
+        TaskWithJavaBeanCornerCaseProperties      | ["c", "C", "d", "U", "a", "b"] | ["cCompiler", "CFlags", "dns", "URL", "a", "b"] | []                      | []
+
+        allTaskProperties = inputs + inputFiles + outputFiles
+    }
+
+    def "registers local state"() {
+        def localState = new File(temporaryFolder.file('localState').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithLocalState, localState)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.localStateFiles.files as List == [localState]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.destroyableFiles.empty
+    }
+
+    def "registers destroyables"() {
+        def destroyable = new File(temporaryFolder.file('destroyable').createFile().absolutePath)
+        given:
+        def task = expectTaskCreated(TaskWithDestroyable, destroyable)
+
+        when:
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+
+        then:
+        taskProperties.destroyableFiles.files as List == [destroyable]
+        taskProperties.inputPropertyValues.create().isEmpty()
+        taskProperties.inputFileProperties.empty
+        taskProperties.outputFileProperties.empty
+        taskProperties.localStateFiles.empty
     }
 
     @Unroll
@@ -653,7 +742,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
-        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<TaskInternal>() {
+        final String name = "task"
+        TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, name, type, new Callable<TaskInternal>() {
             TaskInternal call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.constructors[0].newInstance(params))
@@ -662,13 +752,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
                 }
             }
         })
-        return expectTaskCreated(task)
+        return expectTaskCreated(name, type, task)
     }
 
-    private TaskInternal expectTaskCreated(final TaskInternal task) {
+    private TaskInternal expectTaskCreated(final String name, final Class<? extends Task> type, final TaskInternal task) {
         // We cannot just stub here as we want to return a different task each time.
-        1 * delegate.createTask(args) >> task
-        assert factory.createTask(args).is(task)
+        1 * delegate.create(name, type) >> task
+        assert factory.create(name, type).is(task)
         return task
     }
 

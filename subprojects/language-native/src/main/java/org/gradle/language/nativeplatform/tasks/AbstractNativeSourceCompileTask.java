@@ -74,12 +74,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
     /**
      * Returns the pre-compiled header to be used during compilation
      */
-    @Nested @Optional
+    @Nullable @Optional @Nested
     public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;
     }
 
-    public void setPreCompiledHeader(PreCompiledHeader preCompiledHeader) {
+    public void setPreCompiledHeader(@Nullable PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
     }
 
@@ -88,12 +88,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      *
      * @since 4.4
      */
-    @Nested
-    @Optional
     @Nullable
+    @Optional
+    @Nested
     protected CompilerVersion getCompilerVersion() {
-        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain();
-        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform();
+        NativeToolChainInternal toolChain = (NativeToolChainInternal) getToolChain().get();
+        NativePlatformInternal targetPlatform = (NativePlatformInternal) getTargetPlatform().get();
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         Compiler<? extends NativeCompileSpec> compiler = toolProvider.newCompiler(createCompileSpec().getClass());
         if (!(compiler instanceof VersionAwareCompiler)) {

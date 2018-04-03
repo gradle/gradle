@@ -26,7 +26,6 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
@@ -59,8 +58,8 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final CountDownLatch stopped = new CountDownLatch(1);
 
-    public DefaultIncludedBuildController(IncludedBuild includedBuild) {
-        this.includedBuild = (IncludedBuildInternal) includedBuild;
+    public DefaultIncludedBuildController(IncludedBuildInternal includedBuild) {
+        this.includedBuild = includedBuild;
     }
 
     @Override

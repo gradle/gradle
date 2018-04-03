@@ -63,8 +63,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private ImmutableList<? extends ConfigurationMetadata> graphVariants;
 
     AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
-        this.componentIdentifier = metadata.getComponentId();
-        this.moduleVersionIdentifier = metadata.getId();
+        this.componentIdentifier = metadata.getId();
+        this.moduleVersionIdentifier = metadata.getModuleVersionId();
         changing = metadata.isChanging();
         missing = metadata.isMissing();
         statusScheme = metadata.getStatusScheme();
@@ -86,8 +86,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
      * Creates a copy of the given metadata
      */
     AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
-        this.componentIdentifier = metadata.getComponentId();
-        this.moduleVersionIdentifier = metadata.getId();
+        this.componentIdentifier = metadata.getId();
+        this.moduleVersionIdentifier = metadata.getModuleVersionId();
         changing = metadata.changing;
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
@@ -165,7 +165,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
         List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
         for (ComponentVariant variant : variants) {
-            configurations.add(new VariantBackedConfigurationMetadata(getComponentId(), variant, attributes, attributesFactory, variantMetadataRules));
+            configurations.add(new VariantBackedConfigurationMetadata(getId(), variant, attributes, attributesFactory, variantMetadataRules));
         }
         return ImmutableList.copyOf(configurations);
     }
@@ -207,12 +207,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ModuleComponentIdentifier getComponentId() {
+    public ModuleComponentIdentifier getId() {
         return componentIdentifier;
     }
 
     @Override
-    public ModuleVersionIdentifier getId() {
+    public ModuleVersionIdentifier getModuleVersionId() {
         return moduleVersionIdentifier;
     }
 
@@ -241,8 +241,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
-        return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
     }
 
     @Override

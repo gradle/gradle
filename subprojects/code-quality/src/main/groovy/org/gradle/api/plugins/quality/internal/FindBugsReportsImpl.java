@@ -52,10 +52,4 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
     public SingleFileReport getEmacs() {
         return getByName("emacs");
     }
-
-    @Override
-    public Boolean getWithMessagesFlag() {
-        FindBugsXmlReport report = (FindBugsXmlReport)getEnabled().findByName("xml");
-        return report != null ? report.isWithMessages() : Boolean.FALSE;
-    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -315,5 +316,56 @@ task retrieve(type: Sync) {
         then:
         file("libs").assertHasDescendants("test-1.45.jar")
         file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
+    }
+
+    def "removes redundant configurations from resolution result"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+
+        def resolve = new ResolveTestFixture(buildFile)
+        buildFile << """
+    group 'org.test'
+    version '1.0'
+    configurations {
+        compile
+    }
+    repositories {
+        ivy { url "${ivyRepo.uri}" }
+    }
+    dependencies {
+        compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'
+    }
+    task retrieve(type: Sync) {
+      from configurations.compile
+      into 'libs'
+    }
+    """
+        resolve.prepare()
+
+        ivyRepo.module('ivy.configuration', 'projectA', '1.2')
+            .configuration("a")
+            .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: "a->parent,a,b,c")
+            .publish()
+
+        ivyRepo.module('ivy.configuration', 'projectB', '1.5')
+            .configuration("parent")
+            .configuration('a', extendsFrom: ["parent"])
+            .configuration('b', extendsFrom: ["parent"])
+            .configuration('c', extendsFrom: ["b"])
+            .publish()
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.0") {
+                module("ivy.configuration:projectA:1.2:a") {
+                    module("ivy.configuration:projectB:1.5") {
+                        variant('a+c') // b, parent are redundant
+                    }
+                }
+            }
+        }
     }
 }

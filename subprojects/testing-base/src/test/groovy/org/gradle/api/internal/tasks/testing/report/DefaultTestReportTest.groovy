@@ -24,8 +24,8 @@ import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory
-import org.gradle.internal.progress.BuildOperationListener
-import org.gradle.internal.progress.DefaultBuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.time.Clock

@@ -27,7 +27,6 @@ import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -53,7 +52,6 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -108,7 +106,6 @@ import java.util.Map;
  */
 @Incubating
 @CacheableTask
-@NonNullApi
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends ConventionTask implements VerificationTask {
     private FileCollection classes;
@@ -153,7 +150,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                 }
                 ClassReader reader;
                 try {
-                    reader = new PatchedClassReader(Files.asByteSource(fileDetails.getFile()).read());
+                    reader = new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

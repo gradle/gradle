@@ -16,15 +16,19 @@
 
 package org.gradle.api.internal.tasks.properties
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.DefaultTask
+import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import spock.lang.Specification
 
@@ -46,13 +50,8 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     def "warns about @Input being used on File and FileCollection properties"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(TaskWithFileInput, problems)
-
-        then:
-        problems.keySet() == validationProblems(TaskWithFileInput, [
+        expect:
+        assertHasValidationProblems(TaskWithFileInput, [
             "property 'file' has @Input annotation used on property of type $File.name",
             "property 'fileCollection' has @Input annotation used on property of type $FileCollection.name",
             "property 'filePath' has @Input annotation used on property of type $Path.name",
@@ -73,27 +72,22 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     def "warns about missing @PathSensitive annotation for @CacheableTask"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(CacheableTaskWithoutPathSensitivity, problems)
-
-        then:
-        problems.keySet() == validationProblems(CacheableTaskWithoutPathSensitivity, [
+        expect:
+        assertHasValidationProblems(CacheableTaskWithoutPathSensitivity, [
             "property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE",
             "property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE"
         ])
     }
 
-    static class TaskWithIterableNested extends DefaultTask {
+    static class TaskWithNestedIterable extends DefaultTask {
         @Nested
-        Iterable<NestedBean> beans
+        Iterable<NestedBeanWithNonAnnotatedProperty> beans
 
         @Nested
-        List<NestedBean> beanList
+        List<NestedBeanWithNonAnnotatedProperty> beanList
     }
 
-    static class NestedBean {
+    static class NestedBeanWithNonAnnotatedProperty {
         @Input
         String input
 
@@ -101,36 +95,91 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     def "analyzes type arguments of Iterables"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(TaskWithIterableNested, problems)
-
-        then:
-        problems.keySet() == validationProblems(TaskWithIterableNested, [
+        expect:
+        assertHasValidationProblems(TaskWithNestedIterable, [
                 "property 'beans*.nonAnnotated' is not annotated with an input or output annotation",
                 "property 'beanList*.nonAnnotated' is not annotated with an input or output annotation"
         ])
     }
 
-    static class TaskWithIterableInIterable extends DefaultTask {
+    static class TaskWithNestedIterableOfNamed extends DefaultTask {
         @Nested
-        List<Set<NestedBean>> beans
+        Iterable<NamedBean> namedBeans
     }
 
-    def "for Iterables of Iterables the right type is selected"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(TaskWithIterableInIterable, problems)
+    static class NamedBean implements Named {
+        @Input
+        input
 
-        then:
-        problems.keySet() == validationProblems(TaskWithIterableInIterable, [
-                "property 'beans**.nonAnnotated' is not annotated with an input or output annotation",
+        String nonAnnotated
+
+        @Override
+        @Internal
+        String getName() {
+            return null
+        }
+    }
+
+    def "analyzes type arguments of Iterables of Named"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedIterableOfNamed, [
+                "property 'namedBeans.<name>.nonAnnotated' is not annotated with an input or output annotation",
         ])
     }
 
-    static class AnnotatedIterable extends ArrayList<NestedBean> {
+    static class TaskWithNestedMap extends DefaultTask {
+        @Nested
+        Map<String, NestedBeanWithNonAnnotatedProperty> beans
+
+        @Nested
+        ImmutableMap<Object, NestedBeanWithNonAnnotatedProperty> beanMap
+    }
+
+    def "analyzes type arguments of Maps"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedMap, [
+                "property 'beans.<key>.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'beanMap.<key>.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class TaskWithNestedProvider extends DefaultTask {
+        @Nested
+        Provider<NestedBeanWithNonAnnotatedProperty> nested
+    }
+
+    def "analyzes type arguments of Providers"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedProvider, [
+                "property 'nested.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    private static void assertHasValidationProblems(Class<?> taskType, List<String> expectedProblems) {
+        def propertyValidationAccess = new PropertyValidationAccess()
+        def problems = new HashMap<String, Boolean>()
+        propertyValidationAccess.collectTaskValidationProblems(taskType, problems)
+
+        assert problems.keySet() == validationProblems(taskType, expectedProblems)
+    }
+
+    static class TaskWithIterableInIterable extends DefaultTask {
+        @Nested
+        List<Set<NestedBeanWithNonAnnotatedProperty>> beans
+
+        @Nested
+        List<Map<String, List<NestedBeanWithNonAnnotatedProperty>>> nestedBeans
+    }
+
+    def "for Iterables of Iterables the right type is selected"() {
+        expect:
+        assertHasValidationProblems(TaskWithIterableInIterable, [
+                "property 'beans**.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'nestedBeans*.<key>*.nonAnnotated' is not annotated with an input or output annotation",
+        ])
+    }
+
+    static class AnnotatedIterable extends ArrayList<NestedBeanWithNonAnnotatedProperty> {
         @Input
         String someProperty = "annotated"
 
@@ -147,13 +196,8 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     def "does not look at the type parameter of annotated iterable subclasses"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(TaskWithNestedAnnotatedIterable, problems)
-
-        then:
-        problems.keySet().empty
+        expect:
+        assertHasValidationProblems(TaskWithNestedAnnotatedIterable, [])
 
     }
 
@@ -162,15 +206,40 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     def "warns about non-annotated property"() {
-        def propertyValidationAccess = new PropertyValidationAccess()
-        def problems = new HashMap<String, Boolean>()
-        when:
-        propertyValidationAccess.collectTaskValidationProblems(TaskWithNonAnnotatedProperty, problems)
-
-        then:
-        problems.keySet() == validationProblems(TaskWithNonAnnotatedProperty, [
+        expect:
+        assertHasValidationProblems(TaskWithNonAnnotatedProperty, [
             "property 'inputFiles' is not annotated with an input or output annotation"
         ])
+    }
+
+    def "supports recursive types"() {
+        expect:
+        assertHasValidationProblems(TaskWithNestedTree, [
+                "property 'tree.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'bean.nonAnnotated' is not annotated with an input or output annotation",
+                "property 'nestedBean.bean.nonAnnotated' is not annotated with an input or output annotation"
+        ])
+    }
+
+    static class Tree {
+        @Optional @Nested
+        Tree left
+
+        @Optional @Nested
+        Tree right
+
+        String nonAnnotated
+    }
+
+    static class BeanWithNonAnnotatedType {
+        @Nested
+        NestedBeanWithNonAnnotatedProperty bean
+    }
+
+    static class TaskWithNestedTree extends DefaultTask {
+        @Nested Tree tree
+        @Nested NestedBeanWithNonAnnotatedProperty bean
+        @Nested BeanWithNonAnnotatedType nestedBean
     }
 
     private static Set<String> validationProblems(Class<?> task, List messages) {

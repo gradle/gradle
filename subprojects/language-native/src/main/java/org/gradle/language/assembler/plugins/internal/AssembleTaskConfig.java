@@ -15,7 +15,6 @@
  */
 package org.gradle.language.assembler.plugins.internal;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -33,7 +32,6 @@ import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
-import org.gradle.nativeplatform.toolchain.internal.SystemIncludesAwarePlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 
@@ -60,8 +58,8 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
     private void configureAssembleTask(Assemble task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
         task.setDescription("Assembles the " + sourceSet + " of " + binary);
 
-        task.setToolChain(binary.getToolChain());
-        task.setTargetPlatform(binary.getTargetPlatform());
+        task.getToolChain().set(binary.getToolChain());
+        task.getTargetPlatform().set(binary.getTargetPlatform());
 
         task.source(sourceSet.getSource());
 
@@ -70,10 +68,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
             @Override
             public Set<File> getFiles() {
                 PlatformToolProvider platformToolProvider = ((NativeToolChainInternal) binary.getToolChain()).select((NativePlatformInternal) binary.getTargetPlatform());
-                if (platformToolProvider instanceof SystemIncludesAwarePlatformToolProvider) {
-                    return new LinkedHashSet<File>(((SystemIncludesAwarePlatformToolProvider) platformToolProvider).getSystemIncludes(ToolType.ASSEMBLER));
-                }
-                return ImmutableSet.of();
+                return new LinkedHashSet<File>(platformToolProvider.getSystemLibraries(ToolType.ASSEMBLER).getIncludeDirs());
             }
 
             @Override

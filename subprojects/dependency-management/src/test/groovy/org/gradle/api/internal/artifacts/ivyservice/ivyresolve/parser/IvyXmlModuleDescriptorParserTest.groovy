@@ -68,7 +68,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
@@ -94,7 +94,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
@@ -122,7 +122,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         metadata.dependencies.empty
@@ -301,7 +301,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file}"
-        e.cause.message.contains('unknown tag not-an-ivy-file')
+        e.cause.message.contains('Not a valid Ivy file')
     }
 
     def "fails when descriptor does not declare module version id"() {
@@ -330,7 +330,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.status == "status"
 
         metadata.extraAttributes.size() == 1
@@ -397,7 +397,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
@@ -683,7 +683,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.componentId == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev")
         metadata.extraAttributes.size() == 2
         metadata.extraAttributes[new NamespaceId("namespace-b", "a")] == "info 1"
         metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"

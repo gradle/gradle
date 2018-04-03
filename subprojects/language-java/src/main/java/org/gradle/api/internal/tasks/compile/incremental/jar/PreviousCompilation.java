@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
+import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,12 +33,14 @@ public class PreviousCompilation {
     private ClassSetAnalysis analysis;
     private LocalJarClasspathSnapshotStore classpathSnapshotStore;
     private final JarSnapshotCache jarSnapshotCache;
+    private final AnnotationProcessorPathStore annotationProcessorPathStore;
     private Map<File, JarSnapshot> jarSnapshots;
 
-    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache) {
+    public PreviousCompilation(ClassSetAnalysis analysis, LocalJarClasspathSnapshotStore classpathSnapshotStore, JarSnapshotCache jarSnapshotCache, AnnotationProcessorPathStore annotationProcessorPathStore) {
         this.analysis = analysis;
         this.classpathSnapshotStore = classpathSnapshotStore;
         this.jarSnapshotCache = jarSnapshotCache;
+        this.annotationProcessorPathStore = annotationProcessorPathStore;
     }
 
     public DependentsSet getDependents(Set<String> allClasses, IntSet constants) {
@@ -61,11 +65,19 @@ public class PreviousCompilation {
         return analysis.getRelevantDependents(className, constants);
     }
 
+    public DependentsSet getAggregatedTypes() {
+        return analysis.getAggregatedTypes();
+    }
+
     public Map<File, JarSnapshot> getJarSnapshots() {
         if (jarSnapshots == null) {
             JarClasspathSnapshotData data = classpathSnapshotStore.get();
             jarSnapshots = jarSnapshotCache.getJarSnapshots(data.getJarHashes());
         }
         return Collections.unmodifiableMap(jarSnapshots);
+    }
+
+    public List<File> getAnnotationProcessorPath() {
+        return annotationProcessorPathStore.get();
     }
 }

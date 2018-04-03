@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
@@ -53,27 +52,28 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
         Timer clock = Time.startTimer();
-        JarClasspathSnapshot jarClasspathSnapshot = jarClasspathSnapshotProvider.getJarClasspathSnapshot(spec.getCompileClasspath());
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(inputs, previousCompilation, jarClasspathSnapshot);
+        CurrentCompilation currentCompilation = new CurrentCompilation(inputs, spec, jarClasspathSnapshotProvider);
+
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
             return cleaningCompiler.execute(spec);
         }
 
-        Collection<String> classNames = recompilationSpec.getClassNames();
-        incrementalCompilationInitilizer.initializeCompilation(spec, classNames);
-        if (spec.getSource().isEmpty()) {
+        incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec);
+
+        if (spec.getSource().isEmpty() && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
         }
 
         try {
-            //use the original compiler to avoid cleaning up all the files
             return cleaningCompiler.getCompiler().execute(spec);
         } finally {
-            LOG.info("Incremental compilation of {} classes completed in {}.", classNames.size(), clock.getElapsed());
-            LOG.debug("Recompiled classes {}", classNames);
+            Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
+            LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
+            LOG.debug("Recompiled classes {}", classesToCompile);
         }
     }
 }

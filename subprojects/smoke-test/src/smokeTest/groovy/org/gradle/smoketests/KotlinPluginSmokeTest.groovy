@@ -23,7 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
     // https://blog.jetbrains.com/kotlin/
-    private kotlinVersion = '1.2.21'
+    private kotlinVersion = '1.2.30'
     private androidBuildToolsVersion = AndroidPluginsSmokeTest.ANDROID_BUILD_TOOLS_VERSION
 
     def 'kotlin plugin'() {
@@ -48,7 +48,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
             androidBuildToolsVersion: androidBuildToolsVersion)
 
         when:
-        def build = runner('clean', 'testDebugUnitTestCoverage').build()
+        def build = runner('clean', 'testDebugUnitTestCoverage').forwardOutput().build()
 
         then:
         build.task(':testDebugUnitTestCoverage').outcome == SUCCESS
