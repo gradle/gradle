@@ -16,7 +16,7 @@ For example, `src/main/kotlin/nyan.gradle.kts` could be used as `plugins { id("n
 
 Kotlin DSL v0.16 also includes Kotlin 1.2.31, a more consistent API, better IDE support, and more. See details and examples in the [Kotlin DSL v0.16 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.16.3).
 
-Last but not least, the **IDEA Gradle Plugin now automatically marks Java resources directories** as resources in the IDEA module definitions. This behavior can be customized; see an example.
+Last but not least, the **IDEA Gradle Plugin now automatically marks Java resources directories** as resources in the IDEA module definitions. This behavior can be customized; [see the DSL](dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html).
 
 We hope you will build happiness with Gradle 4.7, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
 
