@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -258,6 +259,7 @@ public interface DependencyHandler {
      * The dependency notation, in one of the notations described above.
      * @return The dependency.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation);
 
     /**
