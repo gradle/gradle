@@ -1,6 +1,10 @@
 package model
 
-import configurations.*
+import configurations.BuildDistributions
+import configurations.DependenciesCheck
+import configurations.Gradleception
+import configurations.SanityCheck
+import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
 
 data class CIBuildModel (
@@ -197,10 +201,10 @@ enum class JvmVersion {
     java7, java8, java9, java10
 }
 
-enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false) {
-    quick(true, true, false), platform(true, true, false),
+enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
+    quick(true, true, false, 60), platform(true, true, false),
     quickFeedbackCrossVersion(false, false, true), allVersionsCrossVersion(false, false, true),
-    parallel(false, true, false), noDaemon(false, true, false),
+    parallel(false, true, false), noDaemon(false, true, false, 210),
     soak(false, false, false)
 }
 
