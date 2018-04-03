@@ -37,7 +37,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @return The dependency.
      * @see [DependencyHandler.add]
      */
-    operator fun String.invoke(dependencyNotation: Any): Dependency =
+    operator fun String.invoke(dependencyNotation: Any): Dependency? =
         dependencies.add(this, dependencyNotation)
 
     /**
@@ -119,7 +119,7 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
      * @return The dependency.
      * @see [DependencyHandler.add]
      */
-    operator fun Configuration.invoke(dependencyNotation: Any): Dependency =
+    operator fun Configuration.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
 
     /**

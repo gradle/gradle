@@ -204,4 +204,42 @@ class DependencyHandlerExtensionsTest {
         verify(antModule).addDependency(antLauncherDependency)
         verify(antModule).addDependency(antJUnitDependency)
     }
+
+    @Test
+    fun `dependency on configuration using string notation doesn't cause IllegalStateException`() {
+
+        val dependencyHandler = mock<DependencyHandler> {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val baseConfig = mock<Configuration>()
+
+        val dependencies = DependencyHandlerScope(dependencyHandler)
+        dependencies {
+            "configuration"(baseConfig)
+        }
+
+        verify(dependencyHandler).add("configuration", baseConfig)
+    }
+
+    @Test
+    fun `dependency on configuration doesn't cause IllegalStateException`() {
+
+        val dependencyHandler = mock<DependencyHandler> {
+            on { add(any(), any()) }.thenReturn(null)
+        }
+
+        val configuration = mock<Configuration>() {
+            on { name } doReturn "configuration"
+        }
+
+        val baseConfig = mock<Configuration>()
+
+        val dependencies = DependencyHandlerScope(dependencyHandler)
+        dependencies {
+            configuration(baseConfig)
+        }
+
+        verify(dependencyHandler).add("configuration", baseConfig)
+    }
 }
