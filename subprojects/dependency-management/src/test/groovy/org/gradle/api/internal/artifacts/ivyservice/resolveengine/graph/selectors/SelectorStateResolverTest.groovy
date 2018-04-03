@@ -238,10 +238,17 @@ class SelectorStateResolverTest extends Specification {
         }
 
         private Integer findDynamicVersion(VersionSelector prefer, VersionSelector reject) {
-            (13..9).find {
+            def resolved = (13..9).find {
                 String candidateVersion = it as String
                 prefer.accept(candidateVersion) && !rejected(reject, candidateVersion)
             }
+            if (!resolved) {
+                resolved = (13..9).find {
+                    String candidateVersion = it as String
+                    prefer.accept(candidateVersion)
+                }
+            }
+            resolved
         }
 
         private boolean rejected(VersionSelector reject, String version) {
