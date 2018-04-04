@@ -58,7 +58,6 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
     private final ArtifactTransformer transform;
     private final ResolvedArtifactSet delegate;
     private ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
-    private ConcurrentHashMap<File, TransformationResult> fileResults;
     private final ArtifactTransformTask requiredTransform;
     private final WorkerLeaseService workerLeaseService;
     private ResolvedArtifactSet.Completion resolvedArtifacts;
@@ -94,7 +93,7 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
     @Internal
     @Override
     public ResolvedArtifactSet.Completion getResult(AttributeContainerInternal attributes) {
-        return new TransformingResult(getResolvedArtifacts(), artifactResults, fileResults, attributes);
+        return new TransformingResult(getResolvedArtifacts(), artifactResults, attributes);
     }
 
     @Internal
@@ -125,20 +124,12 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
         return new TransformationResult(ImmutableList.of(artifact.getFile()));
     }
 
-    private TransformationResult getIncomingTransformationResult(File file) {
-        if (requiredTransform != null) {
-            return requiredTransform.fileResults.get(file);
-        }
-        return new TransformationResult(ImmutableList.of(file));
-    }
-
     @TaskAction
     public void transformArtifacts() {
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
                 artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
-                fileResults = new ConcurrentHashMap<File, TransformationResult>();
                 ResolvedArtifactSet.Completion resolvedArtifacts = getResolvedArtifacts();
                 resolvedArtifacts.visit(new ArtifactVisitor() {
                     @Override
@@ -149,7 +140,7 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
 
                     @Override
                     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-                        fileResults.put(file, transform(getIncomingTransformationResult(file)));
+                        throw new UnsupportedOperationException("This artifact transform task does not support transforming files - File: " + file);
                     }
 
                     private TransformationResult transform(File file) {
@@ -222,19 +213,17 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
     public static class TransformingResult implements ResolvedArtifactSet.Completion {
         private final ResolvedArtifactSet.Completion result;
         private final Map<ResolvableArtifact, TransformationResult> artifactResults;
-        private final Map<File, TransformationResult> fileResults;
         private final AttributeContainerInternal attributes;
 
-        public TransformingResult(ResolvedArtifactSet.Completion result, Map<ResolvableArtifact, TransformationResult> artifactResults, Map<File, TransformationResult> fileResults, AttributeContainerInternal attributes) {
+        public TransformingResult(ResolvedArtifactSet.Completion result, Map<ResolvableArtifact, TransformationResult> artifactResults, AttributeContainerInternal attributes) {
             this.result = result;
             this.artifactResults = artifactResults;
-            this.fileResults = fileResults;
             this.attributes = attributes;
         }
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            result.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults, fileResults));
+            result.visit(new ArtifactTransformingVisitor(visitor, attributes, artifactResults));
         }
     }
 
@@ -290,13 +279,11 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
         private final Map<ResolvableArtifact, TransformationResult> artifactResults;
-        private final Map<File, TransformationResult> fileResults;
 
-        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformationResult> artifactResults, Map<File, TransformationResult> fileResults) {
+        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformationResult> artifactResults) {
             this.visitor = visitor;
             this.target = target;
             this.artifactResults = artifactResults;
-            this.fileResults = fileResults;
         }
 
         @Override
@@ -336,16 +323,7 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
 
         @Override
         public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-            TransformationResult result = fileResults.get(file);
-            if (result.isFailed()) {
-                visitor.visitFailure(result.getFailure());
-                return;
-            }
-
-            List<File> transformedFiles = result.getTransformedFiles();
-            for (File outputFile : transformedFiles) {
-                visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
-            }
+            throw new UnsupportedOperationException("This artifact transform task does not support transforming files - File: " + file);
         }
     }
 }
