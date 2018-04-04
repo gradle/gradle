@@ -836,8 +836,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @return The test framework options.
      */
     @Nested
-    // TestFrameworkOptions currently don't have any annotated properties. We use this nested input to distinguish between testing frameworks.
-    // This works since the actual option class changes when we change the testing framework.
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
