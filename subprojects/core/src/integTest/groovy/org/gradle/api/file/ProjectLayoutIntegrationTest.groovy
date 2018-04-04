@@ -268,6 +268,43 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    def 'runs Task when #collectionType with #dependencyType dependency is an input'() {
+        buildFile << """
+            task taskForOutput {
+                doLast {
+                    new File('${testDirectory.absolutePath}', 'build/resource/file.txt').text = "some text"
+                }
+                outputs.file new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
+            }
+
+            def fileCollection = $expression
+
+            task withFileCollectionInput {
+                doLast {
+                    println("size = \${fileCollection.files.size()}")
+                    println("files = \${fileCollection.files}")
+                }
+                inputs.files fileCollection
+            }
+        """
+
+        when:
+        run('withFileCollectionInput')
+
+        then:
+        executed(':taskForOutput', ':withFileCollectionInput')
+        outputContains('size = 1')
+        outputContains("files = [${testDirectory.absolutePath}/build/resource/file.txt]")
+
+        where:
+        collectionType               | dependencyType | expression
+        'FileCollection'             | 'Task'         | 'project.layout.filesFor(project.tasks.taskForOutput)'
+        'FileCollection'             | 'TaskOutputs'  | 'project.layout.filesFor(project.tasks.taskForOutput.outputs)'
+        'ConfigurableFileCollection' | 'Task'         | 'project.layout.mutableFilesFor(project.tasks.taskForOutput)'
+        'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.mutableFilesFor(project.tasks.taskForOutput.outputs)'
+    }
+
+    @Unroll
     def 'can create #collectionType with Configuration dependency'() {
         file('src/resource/file.txt') << "some text"
         buildFile << """

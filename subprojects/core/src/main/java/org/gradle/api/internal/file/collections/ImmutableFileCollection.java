@@ -24,6 +24,9 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -122,6 +125,18 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
                 builder.addAll(collection.getFiles());
             }
             return builder.build();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return new AbstractTaskDependency() {
+
+                @Override
+                public void visitDependencies(TaskDependencyResolveContext context) {
+                    BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
+                    fileContext.add(paths);
+                }
+            };
         }
     }
 }
