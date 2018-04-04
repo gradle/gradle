@@ -63,9 +63,9 @@ open class Classycle @Inject constructor(
         get() = File(reportDir, "${reportName}_analysis.xml")
 
     @get:Inject
-        protected
-        open val antBuilder: IsolatedAntBuilder
-            get() = throw UnsupportedOperationException()
+    protected
+    open val antBuilder: IsolatedAntBuilder
+        get() = throw UnsupportedOperationException()
 
     @TaskAction
     fun generate() = project.run {
