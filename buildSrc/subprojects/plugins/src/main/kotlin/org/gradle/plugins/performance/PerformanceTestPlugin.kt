@@ -420,7 +420,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 systemProperty(PropertyNames.baselines, baselines)
             }
 
-            jvmArgs("-Xmx1g", "-XX:+HeapDumpOnOutOfMemoryError")
+            jvmArgs("-Xmx2g", "-XX:+HeapDumpOnOutOfMemoryError")
 
             dependsOn(prepareSamplesTask)
             finalizedBy(performanceReportTask)
