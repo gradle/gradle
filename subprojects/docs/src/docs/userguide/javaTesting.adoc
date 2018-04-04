@@ -56,7 +56,7 @@ gradle test worker process can continue to function.
 ====
 
 [[sec:debugging_java_tests]]
-=== Debugging
+=== Debugging when running tests
 
 On the few occasions that you want to debug your code while the tests are running, it can be helpful if you can attach a debugger at that point. You can either set the api:org.gradle.api.tasks.testing.Test#getDebug()[] property to `true` or use the `--debug-jvm` command line option.
 
