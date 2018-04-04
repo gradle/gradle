@@ -158,7 +158,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency =
+            fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
                 add("$stringLiteral", dependencyNotation)
 
             /**
