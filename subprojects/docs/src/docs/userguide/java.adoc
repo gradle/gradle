@@ -460,7 +460,7 @@ That support comes via the <<war_plugin,War Plugin>>, which automatically applie
 
 This is done by the `war` task, which effectively replaces the `jar` task — although that task remains — and is attached to the `assemble` lifecycle task. See the plugin's chapter for more details and configuration options.
 
-There is no core support for running your web application directly from the build, but we do recommend that you try the https://plugins.gradle.org/plugin/org.akhikhl.gretty[Gretty] community plugin, which provides an embedded Servlet container.
+There is no core support for running your web application directly from the build, but we do recommend that you try the https://plugins.gradle.org/plugin/org.gretty[Gretty] community plugin, which provides an embedded Servlet container.
 
 [[sec:building_java_enterprise_apps]]
 === Building Java enterprise applications
