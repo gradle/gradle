@@ -38,7 +38,7 @@ By applying the Java Plugin, you get a whole host of features:
  * A `jar` task that packages the `main` compiled classes and resources from _src/main/resources_ into a single JAR named _<project>-<version>.jar_
  * A `javadoc` task that generates Javadoc for the `main` classes
 
-This isn't sufficient to build any non-trivial Java project — at the very least, you'll probably have some file dependencies. But it means that your build script only needs the information that is specific to _your project_.
+This isn't sufficient to build any non-trivial Java project — at the very least, you'll probably have some file dependencies. But it means that your build script only needs the information that is specific to _your_ project.
 
 NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
 
@@ -387,7 +387,7 @@ Speaking of `writeTo()`, you can use that to easily write a manifest to disk at 
 [[sec:generating_javadocs]]
 === Generating API documentation
 
-The Java Plugin provides a `javadoc` task of type api:org.gradle.api.tasks.javadoc.Javadoc[], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#options[Javadoc reference documentation]. See api:org.gradle.external.javadoc.CoreJavadocOptions[] and api:org.gradle.external.javadoc.StandardJavadocDocletOptions[] for a complete list of those options.TODO:Not sure if the user can rely on `options` being of type `StandardJavadocDocletOptions` rather than `MinimalJavadocOptions`
+The Java Plugin provides a `javadoc` task of type api:org.gradle.api.tasks.javadoc.Javadoc[], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html#options[Javadoc reference documentation]. See api:org.gradle.external.javadoc.CoreJavadocOptions[] and api:org.gradle.external.javadoc.StandardJavadocDocletOptions[] for a complete list of those options.
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
