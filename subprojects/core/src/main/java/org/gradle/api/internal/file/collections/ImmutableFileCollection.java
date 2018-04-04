@@ -27,17 +27,21 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public abstract class ImmutableFileCollection extends AbstractFileCollection {
-    private static final String DEFAULT_DISPLAY_NAME = "immutable file collection";
-    private static final EmptyImmutableFileCollection EMPTY = new EmptyImmutableFileCollection();
+    private static final ImmutableFileCollection EMPTY = new ImmutableFileCollection() {
+        @Override
+        public Set<File> getFiles() {
+            return ImmutableSet.of();
+        }
+    };
 
-    private final String displayName;
+    public static ImmutableFileCollection of(File... files) {
+        return new FileOnlyImmutableFileCollection(files);
+    }
 
     public static ImmutableFileCollection of(Object... paths) {
         return of(Arrays.asList(paths));
@@ -69,38 +73,30 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         });
     }
 
-    private ImmutableFileCollection(String displayName) {
-        this.displayName = displayName;
+    private ImmutableFileCollection() {
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
-    }
-
-    private static class EmptyImmutableFileCollection extends ImmutableFileCollection {
-        public EmptyImmutableFileCollection() {
-            super(DEFAULT_DISPLAY_NAME);
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            return ImmutableSet.of();
-        }
+        return "immutable file collection";
     }
 
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
         private final ImmutableSet<File> files;
 
-        public FileOnlyImmutableFileCollection(Iterable<? extends File> files) {
-            super(DEFAULT_DISPLAY_NAME);
-            ImmutableSet.Builder<File> filesBuilder = ImmutableSet.builder();
-            if (files != null) {
-                filesBuilder.addAll(files);
-            }
-            this.files = filesBuilder.build();
+        FileOnlyImmutableFileCollection(File... files) {
+            this(ImmutableSet.copyOf(files));
         }
 
+        FileOnlyImmutableFileCollection(Iterable<? extends File> files) {
+            this(ImmutableSet.copyOf(files));
+        }
+
+        private FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
+            this.files = files;
+        }
+
+        @Override
         public Set<File> getFiles() {
             return files;
         }
@@ -110,14 +106,9 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         private final FileResolver resolver;
         private final Set<Object> paths;
 
-        public ResolvingImmutableFileCollection(FileResolver fileResolver, Iterable<?> paths) {
-            super(DEFAULT_DISPLAY_NAME);
+        ResolvingImmutableFileCollection(FileResolver fileResolver, Iterable<?> paths) {
             this.resolver = fileResolver;
-            ImmutableSet.Builder<Object> pathsBuilder = ImmutableSet.builder();
-            if (paths != null) {
-                pathsBuilder.addAll(paths);
-            }
-            this.paths = pathsBuilder.build();
+            this.paths = ImmutableSet.copyOf(paths);
         }
 
         @Override
@@ -125,19 +116,12 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
             DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver);
             context.add(paths);
 
+            ImmutableSet.Builder<File> builder = ImmutableSet.builder();
             List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
-            List<Set<File>> fileSets = new ArrayList<Set<File>>(fileCollections.size());
-            int fileCount = 0;
             for (FileCollection collection : fileCollections) {
-                Set<File> files = collection.getFiles();
-                fileCount += files.size();
-                fileSets.add(files);
+                builder.addAll(collection.getFiles());
             }
-            Set<File> allFiles = new LinkedHashSet<File>(fileCount);
-            for (Set<File> fileSet : fileSets) {
-                allFiles.addAll(fileSet);
-            }
-            return allFiles;
+            return builder.build();
         }
     }
 }

@@ -205,10 +205,10 @@ class ImmutableFileCollectionTest extends Specification {
     }
 
     @Unroll
-    def 'avoids file resolution when FileCollection contains only has Files (#count)'() {
+    def 'avoids file resolution when FileCollection from #method contains only has Files (#count)'() {
         def input = (0..(count)).collect { new File(it.toString()) }
         FileResolver fileResolver = Mock()
-        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
+        ImmutableFileCollection collection = create(input, fileResolver)
 
         when:
         Set<File> files = collection.getFiles()
@@ -218,6 +218,18 @@ class ImmutableFileCollectionTest extends Specification {
         files == input as LinkedHashSet
 
         where:
-        count << [0, 1, 2, 10]
+        method           | count | create
+        'of(File...)'    | 0     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
+        'of(File...)'    | 1     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
+        'of(File...)'    | 2     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
+        'of(File...)'    | 10    | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
+        'of(Iterable<>)' | 0     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
+        'of(Iterable<>)' | 1     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
+        'of(Iterable<>)' | 2     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
+        'of(Iterable<>)' | 10    | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
+        'usingResolver'  | 0     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
+        'usingResolver'  | 1     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
+        'usingResolver'  | 2     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
+        'usingResolver'  | 10    | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
     }
 }

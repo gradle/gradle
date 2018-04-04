@@ -310,7 +310,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | expression
-        'FileCollection'             | 'project.layout.filesFor(null)'
+        'FileCollection (Object...)' | 'project.layout.filesFor((Object) null)'
+        'FileCollection (File...)'   | 'project.layout.filesFor((File) null)'
         'ConfigurableFileCollection' | 'project.layout.mutableFilesFor(null)'
     }
 }

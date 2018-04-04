@@ -143,6 +143,17 @@ public interface ProjectLayout {
     FileCollection filesFor(Object... paths);
 
     /**
+     * Create a {@link FileCollection} for the given {@code File}s
+     *
+     * <p>This method can also be used to create an empty collection, but the collection may not be mutated later.</p>
+     *
+     * @param files The files to include in the {@code FileCollection}. May be empty
+     * @return The file collection. Never returns null.
+     * @since 4.8
+     */
+    FileCollection filesFor(File... files);
+
+    /**
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
