@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
