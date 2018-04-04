@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 public class LogContent {
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
-    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
+    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT|WAIT)ING( \\[((\\d+h )? \\d+m )?\\d+s\\])?";
     private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
     private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
     private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
@@ -221,7 +221,7 @@ public class LogContent {
         }
     }
 
-    private static String stripWorkInProgressArea(String output) {
+    public static String stripWorkInProgressArea(String output) {
         String result = output;
         for (int i = 1; i <= 10; ++i) {
             result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
