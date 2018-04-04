@@ -17,7 +17,7 @@ package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.provider.Provider
@@ -45,8 +45,7 @@ open class Classycle @Inject constructor(
     @get:Input val excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
     @get:Internal val reportDir: File,
-    @get:InputFile @get:PathSensitive(PathSensitivity.NONE) val reportResourcesZip: RegularFileProperty,
-    private val antBuilder: IsolatedAntBuilder
+    @get:InputFile @get:PathSensitive(PathSensitivity.NONE) val reportResourcesZip: Provider<RegularFile>
 ) : DefaultTask() {
 
     @get:InputFiles
@@ -62,6 +61,11 @@ open class Classycle @Inject constructor(
     private
     val analysisFile: File
         get() = File(reportDir, "${reportName}_analysis.xml")
+
+    @get:Inject
+        protected
+        open val antBuilder: IsolatedAntBuilder
+            get() = throw UnsupportedOperationException()
 
     @TaskAction
     fun generate() = project.run {
@@ -92,7 +96,7 @@ open class Classycle @Inject constructor(
                 } catch (ex: Exception) {
                     try {
                         "unzip"(
-                            "src" to reportResourcesZip.asFile.get(),
+                            "src" to reportResourcesZip.get().asFile,
                             "dest" to reportDir)
                         "classycleReport"(
                             "reportFile" to analysisFile,
