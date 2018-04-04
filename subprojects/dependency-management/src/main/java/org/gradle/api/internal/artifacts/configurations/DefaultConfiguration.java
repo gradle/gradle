@@ -69,16 +69,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVi
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependency;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformResult;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformTask;
-import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
-import org.gradle.api.internal.artifacts.transform.ChainedTransformer;
-import org.gradle.api.internal.artifacts.transform.CompositeArtifactTransformResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -117,12 +109,10 @@ import org.gradle.util.WrapUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -1395,38 +1385,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                     @Override
                     public void visitDependency(Object dep) {
-                        if (dep instanceof ArtifactTransformDependency) {
-                            ArtifactTransformDependency transformDependency = (ArtifactTransformDependency) dep;
-                            ResolvedArtifactSet resolvedArtifactSet = ((ArtifactTransformDependency) dep).getDelegate();
-                            List<ArtifactTransformResult> results = new ArrayList<ArtifactTransformResult>();
-                            ArtifactTransformer transform = transformDependency.getTransform();
-                            if (resolvedArtifactSet instanceof CompositeResolvedArtifactSet) {
-                                for (ResolvedArtifactSet artifactSet : ((CompositeResolvedArtifactSet) resolvedArtifactSet).getSets()) {
-                                    results.add(createTransformTasks(artifactSet, transform));
-                                }
-                            } else {
-                                results.add(createTransformTasks(resolvedArtifactSet, transform));
-                            }
-                            artifactTransformTaskRegistry.register(resolvedArtifactSet, transform, CompositeArtifactTransformResult.create(results));
-                        } else {
-                            context.add(dep);
-                        }
-                    }
-
-                    private ArtifactTransformResult createTransformTasks(ResolvedArtifactSet resolvedArtifactSet, ArtifactTransformer transform) {
-                        ArtifactTransformResult transformTask = createAndUnpackTransformTask(transform, resolvedArtifactSet, null);
-                        artifactTransformTaskRegistry.register(resolvedArtifactSet, transform, transformTask);
-                        context.add(transformTask);
-                        return transformTask;
-                    }
-
-                    private ArtifactTransformTask createAndUnpackTransformTask(ArtifactTransformer transform, ResolvedArtifactSet delegate, @Nullable ArtifactTransformTask innerTransformTask) {
-                        if (transform instanceof ChainedTransformer) {
-                            ChainedTransformer transformer = (ChainedTransformer) transform;
-                            ArtifactTransformTask inner = createAndUnpackTransformTask(transformer.getFirst(), delegate, innerTransformTask);
-                            return createAndUnpackTransformTask(transformer.getSecond(), delegate, inner);
-                        }
-                        return artifactTransformTaskRegistry.getOrCreate(delegate, transform, innerTransformTask);
+                        context.add(dep);
                     }
                 });
                 if (!lenient) {
