@@ -170,7 +170,13 @@ Using the `as` operator to cast `FileCollection` to `Object[]`, `Collection`, `S
 
 ### Gradle console output changes
 
-The plain console mode now formats output consistently with the rich console, which means that the output format has changed. This may break tools that scrape details from the console output.
+The plain console mode now formats output consistently with the rich console, which means that the output format has changed. For example: 
+
+- Output produced by a task is now grouped together, even when tasks execute in parallel.
+- Task execution headers are printed with a `> Task ` prefix.
+- All output produced during build execution is written to the standard output file handle (including messages written to `System.err`).
+
+This may break tools that scrape details from the console output.
 
 ### Changes to native compilation, linking and installation tasks
 
