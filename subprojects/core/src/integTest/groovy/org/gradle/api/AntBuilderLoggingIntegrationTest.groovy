@@ -40,13 +40,13 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("antTest")
 
         then:
-        result.assertOutputContains("[ant:echo] WARN message")
+        outputContains("[ant:echo] WARN message")
         result.assertHasErrorOutput("[ant:echo] ERROR message")
 
         and:
-        result.assertNotOutput("INFO message")
-        result.assertNotOutput("DEBUG message")
-        result.assertNotOutput("VERBOSE message")
+        outputDoesNotContain("INFO message")
+        outputDoesNotContain("DEBUG message")
+        outputDoesNotContain("VERBOSE message")
     }
 
     def "can increase verbosity of Ant logging" () {
@@ -58,13 +58,13 @@ class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("antTest")
 
         then:
-        result.assertOutputContains("[ant:echo] INFO message")
-        result.assertOutputContains("[ant:echo] WARN message")
+        outputContains("[ant:echo] INFO message")
+        outputContains("[ant:echo] WARN message")
         result.assertHasErrorOutput("[ant:echo] ERROR message")
 
         and:
-        result.assertNotOutput("DEBUG message")
-        result.assertNotOutput("VERBOSE message")
+        outputDoesNotContain("DEBUG message")
+        outputDoesNotContain("VERBOSE message")
     }
 
     def "can decrease verbosity of Ant logging" () {

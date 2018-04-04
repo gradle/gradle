@@ -149,14 +149,15 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        result = runWithMostRecentFinalRelease("myTask")
+        runWithMostRecentFinalRelease("myTask")
+
         then:
-        result.assertOutputContains("From plugin")
+        outputContains("From plugin")
 
         when:
         succeeds "myTask"
         then:
-        result.assertOutputContains("From plugin")
+        outputContains("From plugin")
     }
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
@@ -624,7 +625,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private ExecutionResult runWithMostRecentFinalRelease(String... tasks) {
-        mostRecentReleaseExecuter.withTasks(tasks).run()
+        result = mostRecentReleaseExecuter.withTasks(tasks).run()
+        result
     }
 
     static String createProjectName(int projectNo) {

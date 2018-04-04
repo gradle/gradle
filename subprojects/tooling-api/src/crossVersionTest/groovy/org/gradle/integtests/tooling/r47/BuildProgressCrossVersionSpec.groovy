@@ -25,11 +25,9 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.5")
 @TargetGradleVersion(">=4.7")
-@Ignore
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
     @Rule

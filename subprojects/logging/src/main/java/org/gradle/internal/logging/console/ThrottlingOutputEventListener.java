@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
  * Queue output events to be forwarded and schedule flush when time passed or if end of build is signalled.
  */
 public class ThrottlingOutputEventListener implements OutputEventListener {
-    private final static long UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS = 100L;
     private final OutputEventListener listener;
 
     private final ScheduledExecutorService executor;
@@ -41,11 +40,12 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     private final int throttleMs;
     private final Object lock = new Object();
 
+    private long currentTimePeriod;
     private long lastUpdate;
     private final List<OutputEvent> queue = new ArrayList<OutputEvent>();
 
     public ThrottlingOutputEventListener(OutputEventListener listener, Clock clock) {
-        this(listener, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), clock);
+        this(listener, Integer.getInteger("org.gradle.internal.console.throttle", 100), Executors.newSingleThreadScheduledExecutor(), clock);
     }
 
     ThrottlingOutputEventListener(OutputEventListener listener, int throttleMs, ScheduledExecutorService executor, Clock clock) {
@@ -62,59 +62,40 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
             public void run() {
                 onOutput(new UpdateNowEvent(clock.getCurrentTime()));
             }
-        }, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, UPDATE_NOW_FLUSH_INITIAL_DELAY_AND_PERIOD_MS, TimeUnit.MILLISECONDS);
+        }, throttleMs, throttleMs, TimeUnit.MILLISECONDS);
     }
 
     public void onOutput(OutputEvent newEvent) {
         synchronized (lock) {
             queue.add(newEvent);
 
+            if (newEvent instanceof UpdateNowEvent) {
+                // Flush any buffered events and update the clock
+                currentTimePeriod = ((UpdateNowEvent) newEvent).getTimestamp();
+                renderNow();
+                return;
+            }
+
             if (newEvent instanceof FlushOutputEvent) {
-                renderNow(clock.getCurrentTime());
+                renderNow();
                 return;
             }
 
             if (newEvent instanceof EndOutputEvent) {
                 // Flush and clean up
-                renderNow(clock.getCurrentTime());
+                renderNow();
                 executor.shutdown();
-                return;
             }
 
-            if (queue.size() > 1) {
-                // Currently queuing events, a thread is scheduled to flush the queue later
-                return;
-            }
-
-            long now = clock.getCurrentTime();
-            if (now - lastUpdate >= throttleMs) {
-                // Has been long enough since last update - flush now
-                renderNow(now);
-                return;
-            }
-
-            // This is the first queued event - schedule a thread to flush later
-            executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (lock) {
-                        renderNow(clock.getCurrentTime());
-                    }
-                }
-            }, throttleMs, TimeUnit.MILLISECONDS);
+            // Else, wait for the next update event
         }
     }
 
-    private void renderNow(long now) {
-        if (queue.isEmpty()) {
-            // Already rendered - don't update anything
-            return;
-        }
-
+    private void renderNow() {
         for (OutputEvent event : queue) {
             listener.onOutput(event);
         }
         queue.clear();
-        lastUpdate = now;
+        lastUpdate = currentTimePeriod;
     }
 }

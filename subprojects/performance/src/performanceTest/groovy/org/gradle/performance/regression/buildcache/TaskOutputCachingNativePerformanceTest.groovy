@@ -17,13 +17,14 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
+import org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest
 import spock.lang.Unroll
 
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
         runner.minimumVersion = "4.3"
-        runner.targetVersions = ["4.7-20180320095059+0000"]
+        runner.targetVersions = [NativeBuildPerformanceTest.TARGET_VERSION]
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

@@ -36,7 +36,7 @@ class DependencyInjectingServiceLoaderTest extends Specification {
 
         def dependency = Mock(ServiceDependency)
         def serviceRegistry = Mock(ServiceRegistry)
-        1 * serviceRegistry.get(ServiceDependency) >> dependency
+        1 * serviceRegistry.find(ServiceDependency) >> dependency
         1 * serviceRegistry.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
 
         def subject = new DependencyInjectingServiceLoader(serviceRegistry)

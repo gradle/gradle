@@ -24,13 +24,13 @@ Root project
     + assemble
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':assemble'
-          | Creator: 	tasks.addPlaceholderAction(assemble)
+          | Creator: 	Project.<init>.tasks.assemble()
           | Rules:
              ⤷ copyToTaskContainer
     + build
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':build'
-          | Creator: 	tasks.addPlaceholderAction(build)
+          | Creator: 	Project.<init>.tasks.build()
           | Rules:
              ⤷ copyToTaskContainer
     + buildEnvironment
@@ -42,13 +42,13 @@ Root project
     + check
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':check'
-          | Creator: 	tasks.addPlaceholderAction(check)
+          | Creator: 	Project.<init>.tasks.check()
           | Rules:
              ⤷ copyToTaskContainer
     + clean
           | Type:   	org.gradle.api.tasks.Delete
           | Value:  	task ':clean'
-          | Creator: 	tasks.addPlaceholderAction(clean)
+          | Creator: 	Project.<init>.tasks.clean()
           | Rules:
              ⤷ copyToTaskContainer
     + components

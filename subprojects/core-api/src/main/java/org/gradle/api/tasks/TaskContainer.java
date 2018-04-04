@@ -16,7 +16,13 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -53,6 +59,21 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     Task getByPath(String path) throws UnknownTaskException;
 
     /**
+     * Locates a task by type and name, without triggering its creation or configuration.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param type The task type
+     * @param name The task name
+     * @param <T> The task type
+     * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
+     * @throws InvalidUserDataException If a task with the given name and type is not defined.
+     * @since 4.8
+     */
+    @Incubating
+    <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
+
+    /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
      * to control how the task is created. The following options are available:</p>
      *
@@ -81,6 +102,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>The description of the task.</td><td>
      * <code>null</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code></td><td>The arguments to pass to the task class constructor.</td><td>
+     * <code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
@@ -92,6 +116,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param options The task creation options.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @throws NullPointerException If any of the values in <code>{@value org.gradle.api.Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
      */
     Task create(Map<String, ?> options) throws InvalidUserDataException;
 
@@ -151,7 +176,8 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
 
     /**
      * <p>Creates a {@link Task} with the given name and type, passing the given arguments to the {@code @Inject}-annotated constructor,
-     * and adds it to this container.</p>
+     * and adds it to this container.  All values passed to the task constructor must be non-null; otherwise a
+     * {@code NullPointerException} will be thrown</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
      * by name in your build file. See <a href="../Project.html#properties">here</a> for more details.</p>
@@ -161,6 +187,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param constructorArgs The arguments to pass to the task constructor
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @since 4.7
      */
     @Incubating
@@ -179,6 +206,40 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
     <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException;
+
+    /**
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Action)} or {@link #create(String)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param name The name of the task.
+     * @param configurationAction The action to run to configure the task. This action runs when the task is required.
+     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.8
+     */
+    @Incubating
+    Provider<Task> createLater(String name, Action<? super Task> configurationAction);
+
+    /**
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param name The name of the task.
+     * @param type The task type.
+     * @param configurationAction The action to run to configure the task. This action runs when the task is required.
+     * @param <T> The task type
+     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.8
+     */
+    @Incubating
+    <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the

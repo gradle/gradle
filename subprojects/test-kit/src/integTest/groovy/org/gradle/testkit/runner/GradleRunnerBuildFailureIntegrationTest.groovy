@@ -25,6 +25,7 @@ import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+@SuppressWarnings('IntegrationTestFixtures')
 class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     /*

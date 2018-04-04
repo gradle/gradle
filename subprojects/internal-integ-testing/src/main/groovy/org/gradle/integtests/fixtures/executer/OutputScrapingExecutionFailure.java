@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern FAILURE_PATTERN = Pattern.compile("FAILURE: .+");
+    private static final Pattern FAILURE_PATTERN = Pattern.compile("(<.*> \\d{1,3}% \\w+ \\[\\d+s])*(> .*)?FAILURE: .+");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
@@ -66,13 +66,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     protected OutputScrapingExecutionFailure(String output, String error) {
         super(LogContent.of(output), LogContent.of(error));
 
-        LogContent withoutDebug = LogContent.of(output).removeDebugPrefix();
+        LogContent withoutDebug = LogContent.of(output).removeAnsiChars().removeDebugPrefix();
 
         // Find failure section
         Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
         if (match == null) {
             // Not present in output, check error output. Currently, some early failures are still written to stderr. This fixture is also used to scrape the output of older Gradle versions (but shouldn't be)
-            match = LogContent.of(error).removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
+            match = LogContent.of(error).removeAnsiChars().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
             if (match != null) {
                 match = Pair.of(withoutDebug, match.getRight());
             } else {

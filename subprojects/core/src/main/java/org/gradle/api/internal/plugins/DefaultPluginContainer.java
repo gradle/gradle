@@ -39,15 +39,14 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, Collection<Plugin> values) {
-        super(Plugin.class, values);
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager) {
+        super(Plugin.class);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
     }
 
-    void pluginAddded(Plugin plugin) {
-        didAdd(plugin);
-        getEventRegister().getAddAction().execute(plugin);
+    void pluginAdded(Plugin plugin) {
+        super.add(plugin);
     }
 
     @Override

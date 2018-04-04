@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
 
 /**
- * A base class for testing task grouping in the console. Executes with a Gradle distribution and {@code "--parallel"} command line option.
+ * A base class for testing the console.
  */
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     def setup() {

@@ -1,12 +1,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.file.ContentFilterable
 import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskContainer
-
-import java.io.FilterReader
 
 
 // This file contains members intended to be pulled upstream into the next Gradle Kotlin DSL release
@@ -59,22 +55,3 @@ fun <reified T : Any> TaskContainer.getByName(name: String) =
 inline
 fun <reified T : Any> TaskContainer.getByName(name: String, configure: T.() -> Unit) =
     getByName<T>(name).also(configure)
-
-
-/**
- * Enables function invocation syntax on [Spec] instances.
- *
- * @see Spec.isSatisfiedBy
- */
-operator fun <T> Spec<T>.invoke(arg: T): Boolean =
-    isSatisfiedBy(arg)
-
-
-inline
-fun <reified T : FilterReader> ContentFilterable.filter(vararg properties: Pair<String, Any?>) =
-    filter(mapOf(*properties), T::class.java)
-
-
-inline
-fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<String, Any?>) =
-    filter(properties, T::class.java)

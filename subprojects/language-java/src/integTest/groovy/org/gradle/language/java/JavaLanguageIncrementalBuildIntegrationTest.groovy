@@ -93,7 +93,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         succeeds mainCompileTaskName
 
         then:
-        result.output.contains "None of the classes needs to be compiled!"
-        result.output.contains "${mainCompileTaskName} UP-TO-DATE"
+        outputContains "None of the classes needs to be compiled!"
+        outputContains "${mainCompileTaskName} UP-TO-DATE"
     }
 }

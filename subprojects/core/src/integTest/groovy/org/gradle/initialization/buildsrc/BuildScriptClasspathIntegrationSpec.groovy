@@ -67,7 +67,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("hello")
-        result.assertOutputContains("hello world")
+        outputContains("hello world")
 
         when:
         builder = artifactBuilder()
@@ -81,7 +81,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("hello")
-        result.assertOutputContains("hello again")
+        outputContains("hello again")
 
         where:
         deleteIfExists << [false, true] * 3
@@ -189,7 +189,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("hello")
-        result.assertOutputContains("hello world")
+        outputContains("hello world")
 
         when:
         builder = artifactBuilder()
@@ -200,7 +200,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds("hello")
-        result.assertOutputContains("hello again")
+        outputContains("hello again")
     }
 
     void notInJarCache(String filename) {

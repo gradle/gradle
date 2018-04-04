@@ -20,12 +20,19 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredList;
+import org.gradle.api.internal.collections.IndexedElementSource;
+import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
 
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
@@ -33,11 +40,11 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, CollectionEventRegister<T> collectionEventRegister, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ArrayList<T>(), collectionEventRegister, new UnfilteredIndex<T>(), instantiator, namer);
+        super(type, new ListElementSource<T>(), collectionEventRegister, new UnfilteredIndex<T>(), instantiator, namer);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ArrayList<T>(), instantiator, namer);
+        super(type, new ListElementSource<T>(), instantiator, namer);
     }
 
     public void add(int index, T element) {
@@ -65,8 +72,8 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     @Override
-    protected List<T> getStore() {
-        return (List<T>) super.getStore();
+    protected IndexedElementSource<T> getStore() {
+        return (IndexedElementSource<T>) super.getStore();
     }
 
     public T get(int index) {
@@ -117,8 +124,8 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     @Override
-    protected <S extends T> Collection<S> filteredStore(CollectionFilter<S> filter) {
-        return new FilteredList<T, S>(this, filter);
+    protected <S extends T> IndexedElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
+        return new FilteredList<T, S>(elementSource, filter);
     }
 
     @Override

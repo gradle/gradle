@@ -26,6 +26,7 @@ import java.util.Set;
 class RootNode extends NodeState {
     RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, ConfigurationMetadata configuration) {
         super(resultId, id, moduleRevision, resolveState, configuration);
+        moduleRevision.setRoot();
     }
 
     @Override

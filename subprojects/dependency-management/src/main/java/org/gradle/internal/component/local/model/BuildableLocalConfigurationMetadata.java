@@ -41,4 +41,9 @@ public interface BuildableLocalConfigurationMetadata {
      * These files should be treated as regular dependencies, however they are currently treated separately as a migration step.
      */
     void addFiles(LocalFileDependencyMetadata files);
+
+    /**
+     * Enables dependency locking for this configuration.
+     */
+    void enableLocking();
 }

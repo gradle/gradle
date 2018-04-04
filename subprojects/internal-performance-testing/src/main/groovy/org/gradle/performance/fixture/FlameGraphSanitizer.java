@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@ package org.gradle.performance.fixture;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
@@ -31,15 +35,17 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FlameGraphSanitizer {
-    private static final Splitter LINE_SPLITTER = Splitter.on(" ").omitEmptyStrings();
+/**
+ * Simplifies stacks to make flame graphs more readable.
+ */
+class FlameGraphSanitizer {
     private static final Splitter STACKTRACE_SPLITTER = Splitter.on(";").omitEmptyStrings();
     private static final Joiner STACKTRACE_JOINER = Joiner.on(";");
 
     private final SanitizeFunction sanitizeFunction;
 
-    public FlameGraphSanitizer(SanitizeFunction sanitizeFunction) {
-        this.sanitizeFunction = sanitizeFunction;
+    public FlameGraphSanitizer(SanitizeFunction... sanitizeFunctions) {
+        this.sanitizeFunction = new CompositeSanitizeFunction(sanitizeFunctions);
     }
 
     public void sanitize(final File in, File out) {
@@ -50,9 +56,6 @@ public class FlameGraphSanitizer {
                 String line;
                 StringBuilder sb = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
-                    if (sanitizeFunction.skipLine(line)) {
-                        continue;
-                    }
                     int endOfStack = line.lastIndexOf(' ');
                     if (endOfStack > 0) {
                         String stackTrace = line.substring(0, endOfStack);
@@ -60,9 +63,12 @@ public class FlameGraphSanitizer {
                         List<String> stackTraceElements = STACKTRACE_SPLITTER.splitToList(stackTrace);
                         List<String> sanitizedStackElements = new ArrayList<String>(stackTraceElements.size());
                         for (String stackTraceElement : stackTraceElements) {
-                            String mapped = sanitizeFunction.map(stackTraceElement);
-                            if (mapped != null) {
-                                sanitizedStackElements.add(mapped);
+                            String sanitizedStackElement = sanitizeFunction.map(stackTraceElement);
+                            if (sanitizedStackElement != null) {
+                                String previousStackElement = Iterables.getLast(sanitizedStackElements, null);
+                                if (!sanitizedStackElement.equals(previousStackElement)) {
+                                    sanitizedStackElements.add(sanitizedStackElement);
+                                }
                             }
                         }
                         if (!sanitizedStackElements.isEmpty()) {
@@ -80,21 +86,62 @@ public class FlameGraphSanitizer {
     }
 
     public interface SanitizeFunction {
-        boolean skipLine(String line);
+        SanitizeFunction COLLAPSE_BUILD_SCRIPTS = new FlameGraphSanitizer.RegexBasedSanitizeFunction(
+            ImmutableMap.of(
+                Pattern.compile("build_[a-z0-9]+"), "build script",
+                Pattern.compile("settings_[a-z0-9]+"), "settings script"
+            )
+        );
 
         String map(String entry);
     }
 
-    public static class RegexBasedSanitizerFunction implements SanitizeFunction {
-        private final Map<Pattern, String> replacements;
+    private static class CompositeSanitizeFunction implements SanitizeFunction {
 
-        public RegexBasedSanitizerFunction(Map<Pattern, String> replacements) {
-            this.replacements = replacements;
+        private final List<SanitizeFunction> sanitizeFunctions;
+
+        private CompositeSanitizeFunction(SanitizeFunction... sanitizeFunctions) {
+            this.sanitizeFunctions = ImmutableList.copyOf(sanitizeFunctions);
         }
 
         @Override
-        public boolean skipLine(String line) {
-            return false;
+        public String map(String entry) {
+            String result = entry;
+            for (SanitizeFunction sanitizeFunction : sanitizeFunctions) {
+                result = sanitizeFunction.map(result);
+            }
+            return result;
+        }
+    }
+
+    public static class ContainmentBasedSanitizeFunction implements SanitizeFunction {
+        private final Map<String, String> replacements;
+
+        public ContainmentBasedSanitizeFunction(Map<List<String>, String> replacements) {
+            this.replacements = Maps.newHashMap();
+            for (Map.Entry<List<String>, String> entry : replacements.entrySet()) {
+                for (String key : entry.getKey()) {
+                    this.replacements.put(key, entry.getValue());
+                }
+            }
+        }
+
+        @Override
+        public String map(String entry) {
+            for (Map.Entry<String, String> replacement : replacements.entrySet()) {
+                if (entry.contains(replacement.getKey())) {
+                    return replacement.getValue();
+                }
+            }
+            return entry;
+        }
+    }
+
+    public static class RegexBasedSanitizeFunction implements SanitizeFunction {
+        private final Map<Pattern, String> replacements;
+
+        public RegexBasedSanitizeFunction(Map<Pattern, String> replacements) {
+            this.replacements = replacements;
         }
 
         @Override

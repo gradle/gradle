@@ -277,7 +277,7 @@ Joe!""")
         writeSourceFile()
         expect:
         succeeds("javadoc", "--info")
-        result.assertOutputContains("-J-Dpublic.api=com.sample.tools.VisibilityPublic")
+        outputContains("-J-Dpublic.api=com.sample.tools.VisibilityPublic")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2235")

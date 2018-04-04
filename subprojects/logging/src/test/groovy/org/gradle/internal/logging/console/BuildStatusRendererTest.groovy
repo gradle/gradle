@@ -18,19 +18,19 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
-import org.gradle.internal.time.Clock
 
 class BuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
     def console = new ConsoleStub()
     def consoleMetaData = Mock(ConsoleMetaData)
-    def timeProvider = Mock(Clock)
     long currentTimeMs
-    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, timeProvider)
+    def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData)
 
-    def setup() {
-        timeProvider.getCurrentTime() >> { currentTimeMs }
+    @Override
+    UpdateNowEvent updateNow() {
+        return new UpdateNowEvent(currentTimeMs)
     }
 
     def "forwards event list to` listener"() {

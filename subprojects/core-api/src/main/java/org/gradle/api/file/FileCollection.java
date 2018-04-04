@@ -129,7 +129,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @param collection The collection to add.
      * @return This
      * @throws UnsupportedOperationException When this collection does not allow modification.
+     *
+     * @deprecated Use {@link ConfigurableFileCollection#from(Object...)} instead. You can create configurable file collections
+     * via {@link org.gradle.api.Project#files(Object...)}.
      */
+    @Deprecated
     FileCollection add(FileCollection collection) throws UnsupportedOperationException;
 
     /**
@@ -145,7 +149,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      *
      * @return this
      * @throws StopExecutionException When this collection is empty.
+     *
+     * @deprecated You can use {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} on a {@code FileCollection} property,
+     * or throw a {@code StopExecutionException} in your code manually instead.
      */
+    @Deprecated
     FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**

@@ -256,7 +256,7 @@ class SourceDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
-        result.output.contains("Hello from root build's plugin")
+        outputContains("Hello from root build's plugin")
     }
 
     def "prefers a source mapping defined in the root build to one defined in a nested build when the nested build requests plugins"() {

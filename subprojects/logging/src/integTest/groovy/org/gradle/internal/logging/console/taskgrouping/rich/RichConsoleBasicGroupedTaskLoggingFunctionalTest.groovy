@@ -21,6 +21,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
+@SuppressWarnings("IntegrationTestFixtures")
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 
@@ -41,6 +42,22 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         buildFile << """
             task failing { doFirst { 
                 logger.quiet 'hello'
+                throw new RuntimeException('Failure...')
+            } }
+        """
+
+        when:
+        fails('failing')
+
+        then:
+        result.groupedOutput.task(':failing').output == 'hello'
+        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+    }
+
+    def "group header is printed red if task failed and there is no output"() {
+        given:
+        buildFile << """
+            task failing { doFirst { 
                 throw new RuntimeException('Failure...')
             } }
         """

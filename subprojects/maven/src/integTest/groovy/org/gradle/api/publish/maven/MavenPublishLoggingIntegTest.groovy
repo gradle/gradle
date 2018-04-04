@@ -69,16 +69,16 @@ class MavenPublishLoggingIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish', "-i"
 
         then:
-        def outputs = result.groupedOutput.task(":publishMavenPublicationToMavenRepository").outputs
+        def output = result.groupedOutput.task(":publishMavenPublicationToMavenRepository").output
 
         // Logging from LoggingMavenTransferListener
-        outputs.find { it.contains("Deploying to") }
-        outputs.find { it.contains("Uploading: group/root/1.0/root-1.0.jar") }
-        outputs.find { it.contains("Uploading: group/root/1.0/root-1.0.pom") }
-        outputs.find { it.contains("group/root/1.0/root-1.0.module") }
-        outputs.find { it.contains("Downloading: group/root/maven-metadata.xml from repository") }
-        outputs.find { it.contains("Could not find metadata") }
-        outputs.find { it.contains("Uploading: group/root/maven-metadata.xml to repository") }
+        output.contains("Deploying to")
+        output.contains("Uploading: group/root/1.0/root-1.0.jar")
+        output.contains("Uploading: group/root/1.0/root-1.0.pom")
+        output.contains("group/root/1.0/root-1.0.module")
+        output.contains("Downloading: group/root/maven-metadata.xml from repository")
+        output.contains("Could not find metadata")
+        output.contains("Uploading: group/root/maven-metadata.xml to repository")
     }
 
 }

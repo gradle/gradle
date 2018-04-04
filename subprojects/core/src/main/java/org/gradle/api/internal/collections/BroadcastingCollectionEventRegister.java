@@ -16,12 +16,39 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableActionSet;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class BroadcastingCollectionEventRegister<T> implements CollectionEventRegister<T> {
     private final MutableActionSet<T> addActions = new MutableActionSet<T>();
     private final MutableActionSet<T> removeActions = new MutableActionSet<T>();
+    private final Class<? extends T> baseType;
+    private boolean baseTypeSubscribed;
+    private Set<Class<?>> subscribedTypes;
+
+    public BroadcastingCollectionEventRegister(Class<? extends T> baseType) {
+        this.baseType = baseType;
+    }
+
+    @Override
+    public boolean isSubscribed(Class<?> type) {
+        if (baseTypeSubscribed) {
+            return true;
+        }
+        if (subscribedTypes != null) {
+            if (type == null) {
+                return true;
+            }
+            for (Class<?> subscribedType : subscribedTypes) {
+                if (subscribedType.isAssignableFrom(type)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     public Action<T> getAddAction() {
         return addActions;
@@ -31,18 +58,34 @@ public class BroadcastingCollectionEventRegister<T> implements CollectionEventRe
         return removeActions;
     }
 
-    public Action<? super T> registerAddAction(Action<? super T> addAction) {
+    @Override
+    public void registerEagerAddAction(Class<? extends T> type, Action<? super T> addAction) {
+        subscribe(type);
         addActions.add(addAction);
-        return addAction;
     }
 
-    public Action<? super T> registerRemoveAction(Action<? super T> removeAction) {
+    @Override
+    public void registerLazyAddAction(Action<? super T> addAction) {
+        addActions.add(addAction);
+    }
+
+    @Override
+    public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
         removeActions.add(removeAction);
-        return removeAction;
     }
 
-    public <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter) {
-        CollectionEventRegister<S> cast = Cast.uncheckedCast(this);
-        return new FilteringCollectionEventRegister<S>(filter, cast);
+    private void subscribe(Class<? extends T> type) {
+        if (baseTypeSubscribed) {
+            return;
+        }
+        if (type.equals(baseType)) {
+            baseTypeSubscribed = true;
+            subscribedTypes = null;
+        } else {
+            if (subscribedTypes == null) {
+                subscribedTypes = new HashSet<Class<?>>();
+            }
+            subscribedTypes.add(type);
+        }
     }
 }

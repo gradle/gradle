@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -75,12 +78,15 @@ abstract class AbstractConflictResolverTest extends Specification {
 
     private static class TestComponent implements ComponentResolutionState {
 
-        private final ModuleVersionIdentifier id
+        final ModuleVersionIdentifier id
+        final ComponentIdentifier componentId
+        ComponentResolveMetadata metadata
+        boolean rejected = false
         private MutableVersionConstraint constraint
-        private ComponentResolveMetadata metaData
 
         TestComponent(ModuleVersionIdentifier id) {
             this.id = id
+            this.componentId = DefaultModuleComponentIdentifier.newId(id)
             this.constraint = new DefaultMutableVersionConstraint(id.version)
         }
 
@@ -95,18 +101,8 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         TestComponent release() {
-            metaData = ['getStatus': {'release'}] as ComponentResolveMetadata
+            metadata = ['getStatus': {'release'}] as ComponentResolveMetadata
             this
-        }
-
-        @Override
-        ModuleVersionIdentifier getId() {
-            id
-        }
-
-        @Override
-        ComponentResolveMetadata getMetadata() {
-            metaData
         }
 
         @Override
@@ -120,15 +116,15 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        boolean isRejected() {
-            return false
-        }
-
-        @Override
         String getVersion() {
             id.version
         }
 
         String toString() { id }
+
+        @Override
+        void selectedBy(ResolvableSelectorState selectorState) {
+
+        }
     }
 }

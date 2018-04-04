@@ -18,22 +18,11 @@ package org.gradle.internal.io;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Locale;
 
 public class LinePerThreadBufferingOutputStream extends PrintStream {
     private final TextStream handler;
-    private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>(){
-        @Override
-        protected PrintStream initialValue() {
-            return AccessController.doPrivileged(new PrivilegedAction<PrintStream>() {
-                public PrintStream run() {
-                    return new PrintStream(new LineBufferingOutputStream(handler));
-                }
-            });
-        }
-    };
+    private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>();
 
     public LinePerThreadBufferingOutputStream(TextStream handler) {
         super(NullOutputStream.INSTANCE, true);
@@ -41,6 +30,15 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     private PrintStream getStream() {
+        PrintStream printStream = stream.get();
+        if (printStream == null) {
+            printStream = new PrintStream(new LineBufferingOutputStream(handler));
+            stream.set(printStream);
+        }
+        return printStream;
+    }
+
+    private PrintStream maybeGetStream() {
         return stream.get();
     }
 
@@ -69,12 +67,20 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
 
     @Override
     public void close() {
-        getStream().close();
+        PrintStream stream = maybeGetStream();
+        if (stream != null) {
+            stream.close();
+        } else {
+            handler.endOfStream(null);
+        }
     }
 
     @Override
     public void flush() {
-        getStream().flush();
+        PrintStream stream = maybeGetStream();
+        if (stream != null) {
+            stream.flush();
+        }
     }
 
     @Override

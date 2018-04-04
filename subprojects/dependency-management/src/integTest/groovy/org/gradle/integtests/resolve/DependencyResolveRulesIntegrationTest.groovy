@@ -449,7 +449,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     def a = modules.find { it.id.module == 'a' }
                     assert a.id.version == '1.3'
                     assert a.selectionReason.conflictResolution
-                    assert !a.selectionReason.selectedByRule
+                    assert a.selectionReason.selectedByRule
                     assert !a.selectionReason.forced
                 }
             }

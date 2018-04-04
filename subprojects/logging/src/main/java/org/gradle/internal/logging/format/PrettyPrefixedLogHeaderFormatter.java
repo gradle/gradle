@@ -26,7 +26,7 @@ import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
 
 public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
-    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, @Nullable String shortDescription, String status, boolean failed) {
+    public List<StyledTextOutputEvent.Span> format(@Nullable String header, String description, String status, boolean failed) {
         final String message = header != null ? header : description;
         if (status.isEmpty()) {
             return Lists.newArrayList(header(message, failed), EOL);

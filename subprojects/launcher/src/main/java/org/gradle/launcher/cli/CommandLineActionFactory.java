@@ -146,7 +146,7 @@ public class CommandLineActionFactory {
 
                     if (!currentVersion.isSnapshot()) {
                         out.println();
-                        out.print("For more details see https://gradle.org/releases/#" + currentVersion.getVersion());
+                        out.print("For more details see https://docs.gradle.org/" + currentVersion.getVersion() + "/release-notes.html");
                         out.println();
                     }
 

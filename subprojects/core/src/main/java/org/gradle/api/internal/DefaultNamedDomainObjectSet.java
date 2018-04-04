@@ -19,32 +19,23 @@ import groovy.lang.Closure;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Namer;
-import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
-import org.gradle.api.internal.collections.FilteredSet;
+import org.gradle.api.internal.collections.SortedSetElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new TreeSet(new Namer.Comparator(namer)), instantiator, namer);
+        super(type, new SortedSetElementSource<T>(new Namer.Comparator<T>(namer)), instantiator, namer);
     }
 
     public DefaultNamedDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type));
-    }
-
-    /**
-     * Subclasses using this constructor must ensure that the {@code store} uses a name based equality strategy as per the contract on NamedDomainObjectContainer.
-     */
-    protected DefaultNamedDomainObjectSet(Class<? extends T> type, Set<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store, eventRegister, new UnfilteredIndex<T>(), instantiator, namer);
     }
 
     // should be protected, but use of the class generator forces it to be public
@@ -55,10 +46,6 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Override
     protected <S extends T> DefaultNamedDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
         return getInstantiator().newInstance(DefaultNamedDomainObjectSet.class, this, filter, getInstantiator(), getNamer());
-    }
-
-    protected <S extends T> Set<S> filteredStore(CollectionFilter<S> filter) {
-        return new FilteredSet<T, S>(this, filter);
     }
 
     @Override

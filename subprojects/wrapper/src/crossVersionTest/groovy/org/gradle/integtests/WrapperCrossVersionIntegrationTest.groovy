@@ -26,6 +26,7 @@ import org.gradle.util.Requires
 import org.junit.Assume
 import spock.lang.Unroll
 
+@SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
         requireOwnGradleUserHomeDir()

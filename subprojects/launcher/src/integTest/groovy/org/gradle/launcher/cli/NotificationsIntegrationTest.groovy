@@ -50,17 +50,17 @@ ${readReleaseFeatures()}
         !markerFile.exists()
 
         when:
-        def result = executer.run()
+        succeeds()
 
         then:
-        result.output.contains(welcomeMessage)
+        outputContains(welcomeMessage)
         markerFile.exists()
 
         when:
-        result = executer.run()
+        succeeds()
 
         then:
-        !result.output.contains(welcomeMessage)
+        outputDoesNotContain(welcomeMessage)
         markerFile.exists()
     }
 
@@ -103,6 +103,6 @@ ${readReleaseFeatures()}
     }
 
     static String getReleaseNotesDetailsMessage(GradleVersion gradleVersion) {
-        "For more details see https://gradle.org/releases/#$gradleVersion.version"
+        "For more details see https://docs.gradle.org/$gradleVersion.version/release-notes.html"
     }
 }

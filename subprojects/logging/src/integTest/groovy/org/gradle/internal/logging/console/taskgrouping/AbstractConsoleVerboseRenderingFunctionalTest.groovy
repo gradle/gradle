@@ -89,7 +89,7 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
 
         then:
         12.times { i ->
-            assert result.groupedOutput.task(":project${i}:slowTask${i}").outputs.size() == 1
+            assert result.groupedOutput.task(":project${i}:slowTask${i}").output == ''
         }
     }
 }

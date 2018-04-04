@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
+@SuppressWarnings("IntegrationTestFixtures")
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void executesSettingsScriptWithCorrectEnvironment() {

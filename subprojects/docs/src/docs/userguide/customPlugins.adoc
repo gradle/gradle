@@ -31,7 +31,7 @@ You can include the source for the plugin directly in the build script. This has
 `buildSrc` project::
 You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory. Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
-See <<organizing_build_logic>> for more details about the `buildSrc` project.
+See <<organizing_gradle_projects>> for more details about the `buildSrc` project.
 
 Standalone project::
 You can create a separate project for your plugin. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some plugins, or bundle several related task classes into a single library. Or some combination of the two.
@@ -45,7 +45,7 @@ In our examples, we will start with the plugin in the build script, to keep thin
 To create a Gradle plugin, you need to write a class that implements the api:org.gradle.api.Plugin[] interface. When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's api:org.gradle.api.Plugin#apply[] method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to. The following sample contains a greeting plugin, which adds a `hello` task to the project.
 
 ++++
-<sample id="customPlugin" dir="userguide/organizeBuildLogic/customPlugin" title="A custom plugin">
+<sample id="customPlugin" dir="userguide/customPlugins/customPlugin" title="A custom plugin">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -61,7 +61,7 @@ Most plugins need to obtain some configuration from the build script. One method
 Let's add a simple extension object to the project. Here we add a `greeting` extension object to the project, which allows you to configure the greeting.
 
 ++++
-<sample id="customPluginWithConvention" dir="userguide/organizeBuildLogic/customPluginWithConvention" title="A custom plugin extension">
+<sample id="customPluginWithConvention" dir="userguide/customPlugins/customPluginWithConvention" title="A custom plugin extension">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -72,7 +72,7 @@ In this example, `GreetingPluginExtension` is a plain old Groovy object with a p
 Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration closure block for each extension object, so you can group settings together. The following example shows you how this works.
 
 ++++
-<sample id="customPluginWithAdvancedConvention" dir="userguide/organizeBuildLogic/customPluginWithAdvancedConvention" title="A custom plugin with configuration closure">
+<sample id="customPluginWithAdvancedConvention" dir="userguide/customPlugins/customPluginWithAdvancedConvention" title="A custom plugin with configuration closure">
             <sourcefile file="build.gradle"/>
             <output args="-q hello"/>
         </sample>
@@ -219,7 +219,7 @@ Gradle provides several conveniences to help create a well-behaved DSL for your 
 When Gradle creates a task or extension object, Gradle _decorates_ the implementation class to mix in DSL support. To create a nested DSL element you can use the api:org.gradle.api.model.ObjectFactory[] type to create objects that are similarly decorated. These decorated objects can then be made visible to the DSL through properties and methods of the plugin's extension:
 
 ++++
-<sample id="nestedDslElement" dir="userguide/organizeBuildLogic/customPluginWithNestedDsl" title="Nested DSL elements">
+<sample id="nestedDslElement" dir="userguide/customPlugins/customPluginWithNestedDsl" title="Nested DSL elements">
                 <sourcefile file="build.gradle"/>
                 <output args="-q hello"/>
             </sample>
@@ -233,7 +233,7 @@ In this example, the plugin passes the project's `ObjectFactory` to the extensio
 Gradle provides some utility classes for maintaining collections of objects, intended to work well with the Gradle DSL.
 
 ++++
-<sample id="domainObjectContainer" dir="userguide/organizeBuildLogic/customPluginWithDomainObjectContainer" title="Managing a collection of objects">
+<sample id="domainObjectContainer" dir="userguide/customPlugins/customPluginWithDomainObjectContainer" title="Managing a collection of objects">
                 <sourcefile file="build.gradle"/>
                 <output args="-q books"/>
             </sample>

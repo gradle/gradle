@@ -162,6 +162,28 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    def "add custom rule set files"() {
+        assumeTrue(fileLockingIssuesSolved())
+
+        customCode()
+        customRuleSet()
+
+        buildFile << """
+            pmd {
+                ruleSets = []
+                ruleSetFiles = files()
+                ruleSetFiles "customRuleSet.xml"
+            }
+        """
+
+        expect:
+        fails("pmdMain")
+        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
+    }
+
     def "use custom rule set"() {
         customCode()
 

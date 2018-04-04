@@ -16,14 +16,20 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
 
 public interface ComponentResolutionState extends StringVersioned {
+    ComponentIdentifier getComponentId();
+
     ModuleVersionIdentifier getId();
+
+    void selectedBy(ResolvableSelectorState selectorState);
 
     /**
      * Returns the meta-data for the component. Resolves if not already resolved.
@@ -38,5 +44,4 @@ public interface ComponentResolutionState extends StringVersioned {
     void reject();
 
     boolean isRejected();
-
 }

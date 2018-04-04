@@ -140,7 +140,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         expect:
         succeeds("help", "--build-cache", "--offline", "--info")
-        result.output.contains("Remote build cache is disabled when running with --offline.")
+        outputContains("Remote build cache is disabled when running with --offline.")
     }
 
     def "unregistered build cache type is reported even when disabled"() {
@@ -163,7 +163,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("tasks", "--info")
         then:
-        result.assertOutputContains("Using local directory build cache")
+        outputContains("Using local directory build cache")
     }
 
     def "command-line --no-build-cache wins over system property"() {
@@ -174,7 +174,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks", "--info")
         then:
-        !result.output.contains("Using local directory build cache")
+        outputDoesNotContain("Using local directory build cache")
     }
 
     def "command-line --build-cache wins over system property"() {
@@ -185,7 +185,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks", "--info")
         then:
-        result.assertOutputContains("Using local directory build cache")
+        outputContains("Using local directory build cache")
     }
 
     def "does not use the build cache when it is not enabled"() {
@@ -204,7 +204,8 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        result.assertOutputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+        outputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+
         and:
         localBuildCache.empty
     }
@@ -224,8 +225,10 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.withBuildCacheEnabled()
         succeeds("customTask", "--info")
+
         then:
-        result.assertOutputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
+        outputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
+
         and:
         localBuildCache.empty
     }

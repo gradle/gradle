@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
@@ -33,6 +34,8 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
@@ -52,16 +55,18 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
+    private static final Object[] NO_ARGS = new Object[0];
+
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
     );
@@ -99,12 +104,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
         Object[] constructorArgs = getConstructorArgs(actualArgs);
-        TaskInternal task;
-        if (constructorArgs != null) {
-            task = createTask(name, type, constructorArgs);
-        } else {
-            task = createTask(name, type);
-        }
+        TaskInternal task = createTask(name, type, constructorArgs);
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -130,7 +130,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return addTask(task, replace);
     }
 
-    @Nullable
     private static Object[] getConstructorArgs(Map<String, ?> args) {
         Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
         if (constructorArgs instanceof List) {
@@ -143,7 +142,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (constructorArgs != null) {
             throw new IllegalArgumentException(String.format("%s must be a List or Object[].  Received %s", Task.TASK_CONSTRUCTOR_ARGS, constructorArgs.getClass()));
         }
-        return null;
+        return NO_ARGS;
     }
 
     private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
@@ -179,19 +178,22 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             modelNode.removeLink(name);
         }
 
-        Task existing = findByNameWithoutRules(name);
-        if (existing != null) {
-            if (replaceExisting) {
+        if (replaceExisting) {
+            Task existing = findByNameWithoutRules(name);
+            if (existing != null) {
                 remove(existing);
-            } else {
-                throw new InvalidUserDataException(String.format(
-                    "Cannot add %s as a task with that name already exists.", task));
             }
+        } else if (hasWithName(name)) {
+            duplicateTask(name);
         }
 
         add(task);
 
         return task;
+    }
+
+    private <T extends Task> T duplicateTask(String task) {
+        throw new InvalidUserDataException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
     public <U extends Task> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
@@ -208,16 +210,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
-        return create(name, type, new Object[0]);
+        return create(name, type, NO_ARGS);
     }
 
     @Override
-    public <T extends Task> T create(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         T task = createTask(name, type, constructorArgs);
         return addTask(task, false);
     }
 
-    private <T extends Task> T createTask(String name, Class<T> type, @Nullable Object... constructorArgs) throws InvalidUserDataException {
+    private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
+        for (int i = 0; i < constructorArgs.length; i++) {
+            if (constructorArgs[i] == null) {
+                throw new NullPointerException(String.format("Received null for %s constructor argument #%s", type.getName(), i + 1));
+            }
+        }
         return taskFactory.create(name, type, constructorArgs);
     }
 
@@ -253,6 +260,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    @Override
+    public Provider<Task> createLater(String name, Action<? super Task> configurationAction) {
+        return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
+    }
+
+    @Override
+    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
+        if (hasWithName(name)) {
+            duplicateTask(name);
+        }
+        TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        addLater(provider);
+        return provider;
+    }
+
     public <T extends Task> T replace(String name, Class<T> type) {
         T task = taskFactory.create(name, type);
         return addTask(task, true);
@@ -274,6 +296,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         projectAccessListener.beforeRequestingTaskByPath(project);
 
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
+    }
+
+    @Override
+    public <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+        return new TaskLookupProvider<T>(type, name);
     }
 
     public Task resolveTask(String path) {
@@ -316,8 +343,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return getElementsAsDynamicObject();
     }
 
+    @Override
     public SortedSet<String> getNames() {
-        return Sets.newTreeSet(modelNode.getLinkNames());
+        SortedSet<String> names = super.getNames();
+        if (placeholders.isEmpty()) {
+            return names;
+        }
+        TreeSet<String> allNames = new TreeSet<String>(names);
+        allNames.addAll(placeholders);
+        return allNames;
     }
 
     public void realize() {
@@ -365,7 +399,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
-    public <T extends TaskInternal> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
+    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
         if (!modelNode.hasLink(placeholderName)) {
             final ModelType<T> taskModelType = ModelType.of(taskType);
             ModelPath path = MODEL_PATH.child(placeholderName);
@@ -390,13 +424,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Collections.singleton(getType());
     }
 
-    private static class TaskCreator<T extends TaskInternal> implements Action<MutableModelNode> {
+    private static class TaskCreator<T extends Task> implements Action<MutableModelNode> {
         private final String placeholderName;
         private final Class<T> taskType;
         private final Action<? super T> configure;
         private final ModelType<T> taskModelType;
 
-        public TaskCreator(String placeholderName, Class<T> taskType, Action<? super T> configure, ModelType<T> taskModelType) {
+        TaskCreator(String placeholderName, Class<T> taskType, Action<? super T> configure, ModelType<T> taskModelType) {
             this.placeholderName = placeholderName;
             this.taskType = taskType;
             this.configure = configure;
@@ -416,5 +450,65 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
         return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
+    }
+
+    private abstract class TaskProvider<T extends Task> extends AbstractProvider<T> implements Named {
+        final Class<T> type;
+        final String name;
+
+        TaskProvider(Class<T> type, String name) {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<T> getType() {
+            return type;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findByNameWithoutRules(name) != null;
+        }
+    }
+
+    private class TaskCreatingProvider<T extends Task> extends TaskProvider<T> {
+        Action<? super T> configureAction;
+        T task;
+
+        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
+            super(type, name);
+            this.configureAction = configureAction;
+        }
+
+        @Override
+        public T getOrNull() {
+            if (task == null) {
+                task = type.cast(findByNameWithoutRules(name));
+                if (task == null) {
+                    task = createTask(name, type, NO_ARGS);
+                    add(task);
+                    configureAction.execute(task);
+                    configureAction = null;
+                }
+            }
+            return task;
+        }
+    }
+
+    private class TaskLookupProvider<T extends Task> extends TaskProvider<T> {
+        public TaskLookupProvider(Class<T> type, String name) {
+            super(type, name);
+        }
+
+        @Override
+        public T getOrNull() {
+            return type.cast(getByName(name));
+        }
     }
 }

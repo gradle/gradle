@@ -112,25 +112,25 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         '''.stripIndent()
 
         when:
-        def result = succeeds 'test'
+        succeeds 'test'
 
         then:
-        result.output.contains "START [Gradle Test Run :test] [Gradle Test Run :test]\n"
-        result.output.contains "FINISH [Gradle Test Run :test] [Gradle Test Run :test]\n"
+        outputContains "START [Gradle Test Run :test] [Gradle Test Run :test]\n"
+        outputContains "FINISH [Gradle Test Run :test] [Gradle Test Run :test]\n"
         result.output.readLines().find { it.matches "START \\[Gradle Test Executor \\d+] \\[Gradle Test Executor \\d+]" }
         result.output.readLines().find { it.matches "FINISH \\[Gradle Test Executor \\d+] \\[Gradle Test Executor \\d+]" }
-        result.output.contains "START [Test suite 'Gradle suite'] [Gradle suite]\n"
-        result.output.contains "FINISH [Test suite 'Gradle suite'] [Gradle suite]\n"
-        result.output.contains "START [Test suite 'Gradle test'] [Gradle test]\n"
-        result.output.contains "FINISH [Test suite 'Gradle test'] [Gradle test]\n"
-        result.output.contains "START [Test method pass(SomeTest)] [pass]\n"
-        result.output.contains "FINISH [Test method pass(SomeTest)] [pass] [null]\n"
-        result.output.contains "START [Test method fail(SomeTest)] [fail]\n"
-        result.output.contains "FINISH [Test method fail(SomeTest)] [fail] [java.lang.AssertionError]\n"
-        result.output.contains "START [Test method knownError(SomeTest)] [knownError]\n"
-        result.output.contains "FINISH [Test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]\n"
-        result.output.contains "START [Test method unknownError(SomeTest)] [unknownError]\n"
-        result.output.contains "FINISH [Test method unknownError(SomeTest)] [unknownError] [AppException]\n"
+        outputContains "START [Test suite 'Gradle suite'] [Gradle suite]\n"
+        outputContains "FINISH [Test suite 'Gradle suite'] [Gradle suite]\n"
+        outputContains "START [Test suite 'Gradle test'] [Gradle test]\n"
+        outputContains "FINISH [Test suite 'Gradle test'] [Gradle test]\n"
+        outputContains "START [Test method pass(SomeTest)] [pass]\n"
+        outputContains "FINISH [Test method pass(SomeTest)] [pass] [null]\n"
+        outputContains "START [Test method fail(SomeTest)] [fail]\n"
+        outputContains "FINISH [Test method fail(SomeTest)] [fail] [java.lang.AssertionError]\n"
+        outputContains "START [Test method knownError(SomeTest)] [knownError]\n"
+        outputContains "FINISH [Test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]\n"
+        outputContains "START [Test method unknownError(SomeTest)] [unknownError]\n"
+        outputContains "FINISH [Test method unknownError(SomeTest)] [unknownError] [AppException]\n"
     }
 
     @Issue("GRADLE-1532")

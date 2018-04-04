@@ -16,36 +16,40 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
-import java.util.List;
-
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONSTRAINT;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED;
 
 /**
  * Resolution state for a given module version selector.
+ *
+ * There are 3 possible states:
+ * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #resolved} will be `false`.
+ * 2. The selector failed to resolve. In this case {@link #failure} will be `!= null`.
+ * 3. The selector was part of resolution to a particular module version.
+ *    In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
-class SelectorState implements DependencyGraphSelector {
+class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
     // TODO:DAZ Should inject this
     private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
     private final Long id;
@@ -56,9 +60,8 @@ class SelectorState implements DependencyGraphSelector {
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
-    private ComponentSelectionReasonInternal failureSelectionReason;
     private ModuleResolveState targetModule;
-    ComponentState selected;
+    private boolean resolved;
 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
@@ -100,14 +103,7 @@ class SelectorState implements DependencyGraphSelector {
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
     ModuleVersionResolveException getFailure() {
-        return failure != null ? failure : selected.getFailure();
-    }
-
-    /**
-     * The component that was actually chosen for this component selector.
-     */
-    public ComponentState getSelected() {
-        return targetModule.getSelected();
+        return failure;
     }
 
     /**
@@ -127,71 +123,52 @@ class SelectorState implements DependencyGraphSelector {
 
         if (idResolveResult.getFailure() != null) {
             failure = idResolveResult.getFailure();
-            failureSelectionReason = getReasonForSelector();
         }
 
         this.idResolveResult = idResolveResult;
+        this.resolved = true;
         return idResolveResult;
     }
 
-    public void select(ComponentState selected) {
-        selected.selectedBy(this);
-        ComponentSelectionDescriptorInternal selectionDescriptor = selectionDescriptionForDependency(dependencyMetadata);
-        selected.addCause(selectionDescriptor);
-        if (dependencyState.getRuleDescriptor() != null) {
-            selected.addCause(dependencyState.getRuleDescriptor());
-        }
-
-        // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
-        // TODO Ditch the JVM Software Model plugins and re-add this assertion
-//        assert selected.getModule() == targetModule;
-
-        this.selected = selected;
+    @Override
+    public void markResolved() {
+        this.resolved = true;
     }
 
-    private ComponentSelectionDescriptorInternal selectionDescriptionForDependency(DependencyMetadata dependencyMetadata) {
-        ComponentSelectionDescriptorInternal selectionDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
-        if (dependencyMetadata.getReason() != null) {
-            selectionDescriptor = selectionDescriptor.withReason(dependencyMetadata.getReason());
-        }
-        return selectionDescriptor;
-    }
-
-    public ComponentSelectionReason getSelectionReason() {
-        if (selected != null) {
-            // For successful selection, the selected component provides the reason.
-            return selected.getSelectionReason();
-        }
-        // Create a reason in case of selection failure.
-        assert failure != null;
-        assert failureSelectionReason != null;
-        return failureSelectionReason;
-    }
-
-    public ComponentSelectionReasonInternal getReasonForSelector() {
-        List<ComponentSelectionDescriptorInternal> descriptors = Lists.newArrayListWithCapacity(2);
-        descriptors.add(selectionDescriptionForDependency(dependencyMetadata));
-        if (dependencyState.getRuleDescriptor() != null) {
-            descriptors.add(dependencyState.getRuleDescriptor());
-        }
-        return VersionSelectionReasons.of(descriptors);
+    public boolean isResolved() {
+        return resolved;
     }
 
     /**
      * Overrides the component that is the chosen for this selector.
-     * This happens when the `ModuleResolveState` is restarted, during conflict resolution or 'softSelect' with version range merging.
+     * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
      */
-    public void overrideSelection(ComponentState selectedComponent) {
-        if (this.selected == null) {
-            // Do not override if this selector hasn't yet been resolved
-            return;
-        }
-
-        this.selected = selectedComponent;
+    public void overrideSelection(ComponentState selected) {
+        this.resolved = true;
 
         // Target module can change, if this is called as the result of a module replacement conflict.
-        // TODO:DAZ We are not updating the set of selectors for the updated module (or for the module that the selectors were removed from)
-        this.targetModule = selectedComponent.getModule();
+        this.targetModule = selected.getModule();
+
+        // TODO:DAZ It's not clear that we're setting up the correct state here:
+        // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
+    }
+
+    public ComponentSelectionReasonInternal getSelectionReason() {
+        // Create a component selection reason specific to this selector.
+        return addReasonsForSelector(VersionSelectionReasons.empty());
+    }
+
+    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
+        ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
+        if (dependencyMetadata.getReason() != null) {
+            dependencyDescriptor = dependencyDescriptor.withReason(dependencyMetadata.getReason());
+        }
+        selectionReason.addCause(dependencyDescriptor);
+
+        if (dependencyState.getRuleDescriptor() != null) {
+            selectionReason.addCause(dependencyState.getRuleDescriptor());
+        }
+        return selectionReason;
     }
 
     public DependencyMetadata getDependencyMetadata() {
@@ -201,4 +178,11 @@ class SelectorState implements DependencyGraphSelector {
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }
+
+    @Override
+    public boolean isForce() {
+        return dependencyMetadata instanceof LocalOriginDependencyMetadata
+            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
+    }
+
 }

@@ -18,14 +18,20 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
+import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -36,30 +42,37 @@ import org.gradle.internal.metaobject.PropertyMixIn;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
     private final Index<T> index;
+    private Map<String, Provider<? extends T>> pending;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private final Set<String> applyingRulesFor = new HashSet<String>();
+    private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
-    public DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, Instantiator instantiator, Namer<? super T> namer) {
+    public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -73,7 +86,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.namer = namer;
@@ -88,12 +101,57 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     /**
      * Subclasses that can guarantee that the backing store enforces name uniqueness should override this to simply call super.add(T) (avoiding an unnecessary lookup)
      */
-    public boolean add(T o) {
-        if (!hasWithName(namer.determineName(o))) {
-            return super.add(o);
+    @Override
+    public boolean add(final T o) {
+        final String name = namer.determineName(o);
+        if (index.get(name) == null) {
+            boolean added = super.add(o);
+            if (added) {
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, o));
+            }
+            return added;
         } else {
             handleAttemptToAddItemWithNonUniqueName(o);
             return false;
+        }
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        boolean changed = super.addAll(c);
+        if (changed) {
+            for (T t : c) {
+                String name = namer.determineName(t);
+                whenKnown.execute(new ObjectBackedElementInfo<T>(name, t));
+            }
+        }
+        return changed;
+    }
+
+    @Override
+    public void addLater(final Provider<? extends T> provider) {
+        super.addLater(provider);
+        if (provider instanceof Named) {
+            if (pending == null) {
+                pending = new LinkedHashMap<String, Provider<? extends T>>();
+            }
+            final Named named = (Named) provider;
+            pending.put(named.getName(), provider);
+            whenKnown.execute(new ProviderBackedElementInfo<T>(named.getName(), provider));
+        }
+    }
+
+    public void whenElementKnown(Action<? super ElementInfo<T>> action) {
+        whenKnown = whenKnown.add(action);
+        Iterator<T> iterator = iteratorNoFlush();
+        while (iterator.hasNext()) {
+            T next = iterator.next();
+            whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
+        }
+        if (pending != null) {
+            for (Map.Entry<String, Provider<? extends T>> entry : pending.entrySet()) {
+                whenKnown.execute(new ProviderBackedElementInfo<T>(entry.getKey(), entry.getValue()));
+            }
         }
     }
 
@@ -108,12 +166,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         index.clear();
     }
 
-
     @Override
     protected void didRemove(T t) {
         index.remove(namer.determineName(t));
     }
-
 
     /**
      * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add an item with the same name as an existing item.</p>
@@ -175,7 +231,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public SortedSet<String> getNames() {
-        return index.asMap().navigableKeySet();
+        NavigableSet<String> realizedNames = index.asMap().navigableKeySet();
+        if (pending == null || pending.isEmpty()) {
+            return realizedNames;
+        }
+        TreeSet<String> allNames = new TreeSet<String>(realizedNames);
+        allNames.addAll(pending.keySet());
+        return allNames;
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
@@ -195,6 +257,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (value != null) {
             return value;
         }
+        if (pending != null) {
+            Provider<? extends T> provider = pending.remove(name);
+            if (provider != null) {
+                // TODO - this isn't correct, assumes that a side effect is to add the element
+                return provider.get();
+            }
+        }
         if (!applyRules(name)) {
             return null;
         }
@@ -202,9 +271,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected boolean hasWithName(String name) {
-        return findByNameWithoutRules(name) != null;
+        return index.get(name) != null || (pending != null && pending.containsKey(name));
     }
 
+    @Nullable
     protected T findByNameWithoutRules(String name) {
         return index.get(name);
     }
@@ -379,6 +449,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     protected interface Index<T> {
         void put(String name, T value);
 
+        @Nullable
         T get(String name);
 
         void remove(String name);
@@ -430,7 +501,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         private final Index<? super T> delegate;
         private final CollectionFilter<T> filter;
 
-        public FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+        FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
             this.delegate = delegate;
             this.filter = filter;
         }
@@ -476,4 +547,49 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
+    public interface ElementInfo<T> {
+        String getName();
+
+        Class<?> getType();
+    }
+
+    private static class ObjectBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final T o;
+
+        ObjectBackedElementInfo(String name, T o) {
+            this.name = name;
+            this.o = o;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return new DslObject(o).getDeclaredType();
+        }
+    }
+
+    private static class ProviderBackedElementInfo<T> implements ElementInfo<T> {
+        private final String name;
+        private final Provider<? extends T> provider;
+
+        ProviderBackedElementInfo(String name, Provider<? extends T> provider) {
+            this.name = name;
+            this.provider = provider;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<?> getType() {
+            return ((ProviderInternal<?>) provider).getType();
+        }
+    }
 }

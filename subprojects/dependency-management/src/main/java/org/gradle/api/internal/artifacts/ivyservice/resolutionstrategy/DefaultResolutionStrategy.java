@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -64,6 +63,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private final ComponentSelectorConverter componentSelectorConverter;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
+    private boolean dependencyLockingEnabled = false;
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
@@ -107,6 +107,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public ResolutionStrategy activateDependencyLocking() {
+        mutationValidator.validateMutation(STRATEGY);
+        dependencyLockingEnabled = true;
+        return this;
+    }
+
+    @Override
     public void sortArtifacts(SortOrder sortOrder) {
         this.sortOrder = sortOrder;
     }
@@ -118,10 +125,6 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
-    }
-
-    public ResolutionRules getResolutionRules() {
-        return cachePolicy;
     }
 
     public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
@@ -215,5 +218,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.getComponentSelection().addRule(ruleAction);
         }
         return out;
+    }
+
+    @Override
+    public boolean isDependencyLockingEnabled() {
+        return dependencyLockingEnabled;
     }
 }

@@ -22,8 +22,9 @@ import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
-import org.gradle.internal.logging.events.FlushOutputEvent
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
@@ -64,19 +65,7 @@ class OutputEventRendererTest extends OutputSpecification {
         outputs.stdErr.readLines() == ['message']
     }
 
-    def rendersLogEventsWhenLogLevelIsDebug() {
-        def listener = new TestListener()
-
-        when:
-        renderer.configure(LogLevel.DEBUG)
-        renderer.addStandardOutputListener(listener)
-        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
-
-        then:
-        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
-    }
-
-    def rendersLogEventsToStdOutandStdErrWhenLogLevelIsDebug() {
+    def rendersLogEventsToStdOutAndStdErrWhenLogLevelIsDebug() {
         when:
         renderer.configure(LogLevel.DEBUG)
         renderer.attachSystemOutAndErr()
@@ -92,6 +81,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -104,6 +94,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.removeStandardOutputListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
@@ -118,6 +109,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
         when:
         renderer.configure(LogLevel.DEBUG)
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
@@ -129,6 +121,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
@@ -141,6 +134,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         when:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.removeStandardErrorListener(listener)
         renderer.onOutput(event('info', LogLevel.INFO))
@@ -155,11 +149,26 @@ class OutputEventRendererTest extends OutputSpecification {
 
         when:
         renderer.configure(LogLevel.DEBUG)
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardErrorListener(listener)
         renderer.onOutput(event(tenAm, 'message', LogLevel.ERROR))
 
         then:
         listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
+    }
+
+    def cannotAddStdOutListenerWhenNotEnabled() {
+        when:
+        renderer.addStandardOutputListener(Stub(StandardOutputListener))
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        renderer.addStandardErrorListener(Stub(StandardOutputListener))
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def forwardsOutputEventsToListener() {
@@ -174,6 +183,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO })
         1 * listener.onOutput(event)
         0 * listener._
     }
@@ -193,6 +203,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete)
 
         then:
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == logLevel})
         1 * listener.onOutput(start)
         1 * listener.onOutput(progress)
         1 * listener.onOutput(complete)
@@ -213,7 +224,8 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        1 * listener.onOutput(_ as FlushOutputEvent)
+        1 * listener.onOutput({ it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO })
+        1 * listener.onOutput({ it instanceof EndOutputEvent })
         0 * listener._
     }
 
@@ -221,6 +233,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def listener = new TestListener()
 
         given:
+        renderer.enableUserStandardOutputListeners()
         renderer.addStandardOutputListener(listener)
         renderer.configure(LogLevel.INFO)
         def snapshot = renderer.snapshot()
@@ -235,14 +248,27 @@ class OutputEventRendererTest extends OutputSpecification {
         listener.value.readLines() == ['info']
     }
 
-    def rendersProgressEvents() {
+    def rendersProgressEventsToStdOutListeners() {
+        def listener = new TestListener()
+
+        when:
+        renderer.enableUserStandardOutputListeners()
+        renderer.addStandardOutputListener(listener)
+        renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(complete('status'))
+
+        then:
+        listener.value.readLines() == ['description status']
+    }
+
+    def doesNotRenderProgressEventsToStdoutAndStderr() {
         when:
         renderer.attachSystemOutAndErr()
         renderer.onOutput(start(loggingHeader: 'description', buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(complete('status'))
 
         then:
-        outputs.stdOut.readLines() == ['description status']
+        outputs.stdOut == ''
         outputs.stdErr == ''
     }
 
@@ -365,7 +391,8 @@ class OutputEventRendererTest extends OutputSpecification {
     def "renders log events when plain console is attached"() {
         def snapshot = renderer.snapshot()
         def output = new ByteArrayOutputStream()
-        renderer.attachConsole(output, ConsoleOutput.Plain)
+        def error = new ByteArrayOutputStream()
+        renderer.attachConsole(output, error, ConsoleOutput.Plain)
 
         when:
         renderer.onOutput(start(loggingHeader: 'description', buildOperationStart: true, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -377,13 +404,15 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         output.toString().readLines() == ['un-grouped error', '', '> description status', 'info', 'error']
+        error.toString().empty
     }
 
     def "renders log events in plain console when log level is debug"() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
         def output = new ByteArrayOutputStream()
-        renderer.attachConsole(output, ConsoleOutput.Plain)
+        def error = new ByteArrayOutputStream()
+        renderer.attachConsole(output, error, ConsoleOutput.Plain)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -392,20 +421,23 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         output.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '10:00:00.000 [ERROR] [category] error']
+        error.toString().empty
     }
 
     def "attaches plain console when stdout and stderr are attached"() {
         when:
         def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.attachConsole(output, ConsoleOutput.Plain)
+        renderer.attachConsole(output, error, ConsoleOutput.Plain)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
 
         then:
         output.toString().readLines() == ['info', 'error']
+        error.toString().empty
         outputs.stdOut == ''
         outputs.stdErr == ''
     }

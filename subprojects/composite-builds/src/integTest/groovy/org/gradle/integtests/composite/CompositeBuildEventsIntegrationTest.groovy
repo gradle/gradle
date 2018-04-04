@@ -160,8 +160,8 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         // buildStarted events should _not_ be logged, since the listeners are added too late
         // If they are logged, it's due to duplicate events fired.
-        assert !result.output.contains('gradle.buildStarted')
-        assert !result.output.contains('buildListener.buildStarted')
+        outputDoesNotContain('gradle.buildStarted')
+        outputDoesNotContain('buildListener.buildStarted')
     }
 
     void loggedOncePerBuild(message, def builds = [':', ':buildB', ':buildC']) {
@@ -175,16 +175,17 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     void logged(String message, int count = 1) {
-        assert result.output.contains(message)
+        outputContains(message)
         assert result.output.count(message) == count
     }
 
     void loggedAtLeast(String message, int count = 1) {
-        assert result.output.contains(message)
+        outputContains(message)
         assert result.output.count(message) >= count
     }
 
     protected void execute() {
         super.execute(buildA, ":resolveArtifacts", ["-I../gradle-user-home/init.gradle"])
     }
+
 }

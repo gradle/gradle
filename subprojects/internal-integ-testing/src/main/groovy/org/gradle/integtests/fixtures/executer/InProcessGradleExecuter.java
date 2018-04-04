@@ -28,7 +28,6 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -48,8 +47,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.io.LineBufferingOutputStream;
-import org.gradle.internal.io.TextStream;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -70,10 +67,10 @@ import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
-import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -138,16 +135,17 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return createGradleHandle().waitForFinish();
         }
 
-        StandardOutputListener outputListener = new OutputListenerImpl();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
-        BuildResult result = doRun(outputListener, buildListener);
+        BuildResult result = doRun(outputStream, errorStream, buildListener);
         try {
             result.rethrowFailure();
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
-            OutputScrapingExecutionResult.from(outputListener.toString(), "")));
+            OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
 
     @Override
@@ -156,14 +154,15 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             return createGradleHandle().waitForFailure();
         }
 
-        StandardOutputListener outputListener = new OutputListenerImpl();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
-            doRun(outputListener, buildListener).rethrowFailure();
+            doRun(outputStream, errorStream, buildListener).rethrowFailure();
             throw new AssertionError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return assertResult(new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
-                OutputScrapingExecutionFailure.from(outputListener.toString(), ""), e));
+                OutputScrapingExecutionFailure.from(outputStream.toString(), errorStream.toString()), e));
         }
     }
 
@@ -225,7 +224,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return result;
     }
 
-    private BuildResult doRun(StandardOutputListener outputListener, BuildListenerImpl listener) {
+    private BuildResult doRun(OutputStream outputStream, OutputStream errorStream, BuildListenerImpl listener) {
         // Capture the current state of things that we will change during execution
         InputStream originalStdIn = System.in;
         Properties originalSysProperties = new Properties();
@@ -237,7 +236,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         Set<String> changedEnvVars = new HashSet<String>(invocation.environmentVars.keySet());
 
         try {
-            return executeBuild(invocation, outputListener, listener);
+            return executeBuild(invocation, outputStream, errorStream, listener);
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
@@ -260,7 +259,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         SetSystemProperties.resetTempDirLocation();
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, final StandardOutputListener outputListener) {
+    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.captureSystemSources();
 
@@ -270,21 +269,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, new LineBufferingOutputStream(new TextStream() {
-            @Override
-            public void text(String text) {
-                outputListener.onOutput(text);
-            }
-
-            @Override
-            public void endOfStream(@Nullable Throwable failure) {
-            }
-        })), consoleOutput);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput);
 
         return loggingManager;
     }
 
-    private BuildResult executeBuild(GradleInvocation invocation, final StandardOutputListener outputListener, BuildListenerImpl listener) {
+    private BuildResult executeBuild(GradleInvocation invocation, OutputStream outputStream, OutputStream errorStream, BuildListenerImpl listener) {
         // Augment the environment for the execution
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
@@ -318,7 +308,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
 
-            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputListener);
+            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputStream, errorStream);
             loggingManager.start();
 
             try {
@@ -388,19 +378,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
             graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
-        }
-    }
-
-    private static class OutputListenerImpl implements StandardOutputListener {
-        private StringWriter writer = new StringWriter();
-
-        @Override
-        public String toString() {
-            return writer.toString();
-        }
-
-        public void onOutput(CharSequence output) {
-            writer.append(output);
         }
     }
 

@@ -44,12 +44,10 @@ public class ProgressLogEventGenerator implements OutputEventListener {
     private static final String EOL = SystemProperties.getInstance().getLineSeparator();
 
     private final OutputEventListener listener;
-    private final boolean deferHeader;
     private final Map<OperationIdentifier, Operation> operations = new LinkedHashMap<OperationIdentifier, Operation>();
 
-    public ProgressLogEventGenerator(OutputEventListener listener, boolean deferHeader) {
+    public ProgressLogEventGenerator(OutputEventListener listener) {
         this.listener = listener;
-        this.deferHeader = deferHeader;
     }
 
     public void onOutput(OutputEvent event) {
@@ -100,7 +98,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         Operation operation = new Operation(progressStartEvent.getCategory(), progressStartEvent.getLoggingHeader(), progressStartEvent.getTimestamp(), progressStartEvent.getBuildOperationId());
         operations.put(progressStartEvent.getProgressOperationId(), operation);
 
-        if (!deferHeader || !(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
+        if (!(progressStartEvent.getLoggingHeader() != null && progressStartEvent.getLoggingHeader().equals(progressStartEvent.getShortDescription()))) {
             operation.startHeader();
         }
     }

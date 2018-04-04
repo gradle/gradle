@@ -20,10 +20,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +43,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
         //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection());
+        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>());
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
@@ -57,8 +59,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
         public boolean isSatisfiedBy(T element) {
             int matches = 0;
-            for (Object collection : getStore().store) {
-                if (((Collection) collection).contains(element)) {
+            for (DomainObjectCollection<? extends T> collection : getStore().store) {
+                if (collection.contains(element)) {
                     if (++matches > 1) {
                         return false;
                     }
@@ -76,7 +78,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     }
 
     @SuppressWarnings("unchecked")
-    protected DomainObjectCompositeCollection getStore() {
+    protected DomainObjectCompositeCollection<T> getStore() {
         return (DomainObjectCompositeCollection) this.backingSet.getStore();
     }
 
@@ -107,12 +109,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     @SuppressWarnings({"NullableProblems", "unchecked"})
     @Override
     public Iterator<T> iterator() {
-        DomainObjectCompositeCollection store = getStore();
-        if (store.isEmpty()) {
-            return Iterators.emptyIterator();
-        }
-        return SetIterator.of(store);
-
+        return getStore().iterator();
     }
 
     @SuppressWarnings("unchecked")
@@ -121,13 +118,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
      * estimate, call {@link #estimatedSize()} instead.
      */
     public int size() {
-        DomainObjectCompositeCollection store = getStore();
-        if (store.isEmpty()) {
-            return 0;
-        }
-        Set<T> tmp = Sets.newHashSetWithExpectedSize(estimatedSize());
-        tmp.addAll(store);
-        return tmp.size();
+        return getStore().size();
     }
 
     @Override
@@ -144,7 +135,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
     }
 
-    private final static class DomainObjectCompositeCollection<T> implements Collection<T>, WithEstimatedSize {
+    private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
         private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
 
@@ -157,13 +148,20 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
             return false;
         }
 
+        Set<T> collect() {
+            if (store.isEmpty()) {
+                return Collections.emptySet();
+            }
+            Set<T> tmp = Sets.newLinkedHashSetWithExpectedSize(estimatedSize());
+            for (DomainObjectCollection<? extends T> collection : store) {
+                tmp.addAll(collection);
+            }
+            return tmp;
+        }
+
         @Override
         public int size() {
-            int size = 0;
-            for (DomainObjectCollection<? extends T> ts : store) {
-                size += ts.size();
-            }
-            return size;
+            return collect().size();
         }
 
         @Override
@@ -195,22 +193,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
             if (store.size() == 1) {
                 return (Iterator<T>) store.get(0).iterator();
             }
-            Iterator[] iterators = new Iterator[store.size()];
-            int i=0;
-            for (DomainObjectCollection<? extends T> ts : store) {
-                iterators[i++] = ts.iterator();
-            }
-            return Iterators.<T>concat(iterators);
-        }
-
-        @Override
-        public Object[] toArray() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <V> V[] toArray(V[] a) {
-            throw new UnsupportedOperationException();
+            return collect().iterator();
         }
 
         @Override
@@ -225,21 +208,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
 
         @Override
         public boolean containsAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean addAll(Collection<? extends T> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
             throw new UnsupportedOperationException();
         }
 
@@ -261,6 +229,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
                     break;
                 }
             }
+        }
+
+        @Override
+        public boolean constantTimeIsEmpty() {
+            return store.isEmpty();
         }
 
         @Override

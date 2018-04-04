@@ -279,14 +279,20 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         return serviceType.cast(get((Type) serviceType));
     }
 
+    @Override
     public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-        assertValidServiceType(unwrap(serviceType));
-        Service provider = getService(serviceType);
-        Object instance = provider == null ? null : provider.get();
+        Object instance = find(serviceType);
         if (instance == null) {
             throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), getDisplayName()));
         }
         return instance;
+    }
+
+    @Override
+    public Object find(Type serviceType) throws ServiceLookupException {
+        assertValidServiceType(unwrap(serviceType));
+        Service provider = getService(serviceType);
+        return provider == null ? null : provider.get();
     }
 
     private Service getService(Type serviceType) {
@@ -294,6 +300,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         return find(serviceType, allServices);
     }
 
+    @Override
     public <T> Factory<T> getFactory(Class<T> type) {
         assertValidServiceType(type);
         Service provider = getFactoryService(type);
@@ -309,6 +316,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         return allServices.getFactory(serviceType);
     }
 
+    @Override
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
         List<T> services = new ArrayList<T>();

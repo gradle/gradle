@@ -46,15 +46,17 @@ class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(producerDir).withTasks('uploadArchives').run()
 
         when:
-        def result = executer.inDirectory(consumerDir).withTasks('greeting').run()
+        executer.inDirectory(consumerDir)
+        succeeds('greeting')
 
         then:
-        result.output.contains('howdy!')
+        outputContains('howdy!')
 
         when:
-        result = executer.inDirectory(consumerDir).withTasks('hello').run()
+        executer.inDirectory(consumerDir)
+        succeeds('hello')
 
         then:
-        result.output.contains('hello from GreetingTask')
+        outputContains('hello from GreetingTask')
     }
 }
