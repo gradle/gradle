@@ -33,7 +33,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class LogContent {
-    private static final Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
+    private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+] ");
+    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT)ING \\[((\\d+h )? \\d+m )?\\d+s\\]";
+    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
+    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
+    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
+
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
     private final LogContent rawContent;
@@ -48,7 +53,7 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        return new LogContent(toLines(chars), false, null);
+        return new LogContent(toLines(stripWorkInProgressArea(chars)), false, null);
     }
 
     private static ImmutableList<String> toLines(String chars) {
@@ -214,5 +219,17 @@ public class LogContent {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private static String stripWorkInProgressArea(String output) {
+        String result = output;
+        for (int i = 1; i <= 10; ++i) {
+            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
+        }
+        return result.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
+    }
+
+    private static String workInProgressAreaScrollingPattern(int scroll) {
+        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 }
