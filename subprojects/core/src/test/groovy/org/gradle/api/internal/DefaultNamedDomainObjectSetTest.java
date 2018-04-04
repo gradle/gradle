@@ -663,6 +663,11 @@ public class DefaultNamedDomainObjectSetTest {
             this.name = name;
         }
 
+        @Override
+        public String toString() {
+            return name;
+        }
+
         public String getBeanProperty() {
             return beanProperty;
         }

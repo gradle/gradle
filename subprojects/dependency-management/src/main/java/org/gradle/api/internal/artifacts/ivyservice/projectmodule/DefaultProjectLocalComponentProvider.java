@@ -33,13 +33,13 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final LocalComponentMetadataBuilder metaDataBuilder;
+    private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
 
-    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
+    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metadataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.projectRegistry = projectRegistry;
-        this.metaDataBuilder = metaDataBuilder;
+        this.metadataBuilder = metadataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.thisBuild = thisBuild;
     }
@@ -64,7 +64,9 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
-        metaDataBuilder.addConfigurations(metaData, project.getConfigurations().withType(ConfigurationInternal.class));
+        for (ConfigurationInternal configuration : project.getConfigurations().withType(ConfigurationInternal.class)) {
+            metadataBuilder.addConfiguration(metaData, configuration);
+        }
         return metaData;
     }
 

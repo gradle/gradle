@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
 
-public class DefaultTaskContainerTest extends Specification {
+class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = new DefaultModelRegistry(null, null)
@@ -154,6 +154,7 @@ public class DefaultTaskContainerTest extends Specification {
 
         expect:
         container.create("task") == task
+        container.names.contains("task")
     }
 
     void "creates by name and type"() {
@@ -241,7 +242,7 @@ public class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Cannot add Mock for type 'DefaultTask' named '[task2]' as a task with that name already exists."
+        ex.message == "Cannot add task 'task' as a task with that name already exists."
         container.getByName("task") == task
     }
 
@@ -357,7 +358,7 @@ public class DefaultTaskContainerTest extends Specification {
         container.resolveTask(":task") == task
     }
 
-    void "actualizes task graph"() {
+    void "realizes task graph"() {
         given:
         def aTask = addTask("a")
         def bTask = addTask("b")
@@ -365,18 +366,16 @@ public class DefaultTaskContainerTest extends Specification {
 
         addPlaceholderTask("c")
         def cTask = this.task("c", DefaultTask)
-        1 * taskFactory.create("c", DefaultTask) >> { cTask }
-
-        assert container.size() == 2
 
         when:
         container.realize()
 
         then:
+        1 * taskFactory.create("c", DefaultTask) >> { cTask }
         0 * aTask.getTaskDependencies()
         0 * bTask.getTaskDependencies()
         0 * cTask.getTaskDependencies()
-        container.size() == 3
+        container.getByName("c") == cTask
     }
 
     void "invokes rule at most once when locating a task"() {
@@ -394,6 +393,181 @@ public class DefaultTaskContainerTest extends Specification {
         and:
         1 * rule.apply("task")
         0 * rule._
+    }
+
+    void "can define task to create and configure later given name and type"() {
+        def action = Mock(Action)
+
+        when:
+        def provider = container.createLater("task", DefaultTask, action)
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+        !container.empty
+        !provider.present
+    }
+
+    void "can define task to create and configure later given name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        when:
+        def provider = container.createLater("task", action)
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+
+        when:
+        def result = provider.get()
+
+        then:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        result == task
+    }
+
+    void "define task fails when task with given name already defined"() {
+        given:
+        _ * taskFactory.create("task1", DefaultTask, _) >> task("task1")
+        _ * taskFactory.create("task2", DefaultTask, _) >> task("task2")
+
+        container.create("task1")
+        container.createLater("task2", {})
+
+        when:
+        container.createLater("task1", {})
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "Cannot add task 'task1' as a task with that name already exists."
+
+        when:
+        container.createLater("task2", {})
+
+        then:
+        def e2 = thrown(InvalidUserDataException)
+        e2.message == "Cannot add task 'task2' as a task with that name already exists."
+
+        when:
+        container.create("task2")
+
+        then:
+        def e3 = thrown(InvalidUserDataException)
+        e3.message == "Cannot add task 'task2' as a task with that name already exists."
+    }
+
+    void "defined task can be created and configured explicitly by using the returned provider"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        def provider = container.createLater("task", DefaultTask, action)
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+        provider.present
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+
+        when:
+        provider.get()
+
+        then:
+        0 * _
+    }
+
+    void "defined task is created and configured when queried by name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def result = container.getByName("task")
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+    }
+
+    void "defined task is created and configured when found by name"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def result = container.findByName("task")
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+    }
+
+    void "can locate defined task by type and name without triggering creation or configuration"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def provider = container.getByNameLater(Task, "task")
+
+        then:
+        !provider.present
+
+        and:
+        0 * _
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(task)
+        0 * action._
+    }
+
+    void "can locate task that already exists by type and name without triggering creation or configuration"() {
+        def task = task("task")
+
+        given:
+        _ * taskFactory.create("task", DefaultTask, []) >> task
+        container.create("task")
+
+        when:
+        def provider = container.getByNameLater(Task, "task")
+
+        then:
+        provider.present
+        provider.get() == task
     }
 
     void "can add task via placeholder action"() {

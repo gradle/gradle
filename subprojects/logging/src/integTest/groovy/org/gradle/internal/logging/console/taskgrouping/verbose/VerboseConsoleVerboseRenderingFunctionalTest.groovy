@@ -25,6 +25,7 @@ import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 class VerboseConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseRenderingFunctionalTest {
     ConsoleOutput consoleType = Verbose
 
+    @SuppressWarnings("IntegrationTestFixtures")
     def 'verbose task header has no blank line above it'() {
         given:
         buildFile << '''

@@ -47,6 +47,11 @@ public class TestComponentResolutionState implements ComponentResolutionState {
         return id;
     }
 
+    @Override
+    public void selectedBy(ResolvableSelectorState selectorState) {
+
+    }
+
     @Nullable
     @Override
     public ComponentResolveMetadata getMetadata() {
@@ -55,7 +60,6 @@ public class TestComponentResolutionState implements ComponentResolutionState {
 
     @Override
     public void addCause(ComponentSelectionDescriptorInternal componentSelectionDescription) {
-
     }
 
     @Override
@@ -66,10 +70,5 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     @Override
     public boolean isRejected() {
         return rejected;
-    }
-
-    @Override
-    public boolean isRoot() {
-        return false;
     }
 }

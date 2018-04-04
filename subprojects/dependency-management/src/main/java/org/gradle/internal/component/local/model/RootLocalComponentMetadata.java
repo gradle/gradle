@@ -43,15 +43,15 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities, boolean canBeLocked) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities, canBeLocked);
+        RootLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         addToConfigurations(name, conf);
         return conf;
     }
 
     class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata {
-        private final boolean canBeLocked;
+        private boolean canBeLocked;
 
         RootLocalConfigurationMetadata(String name,
                                        String description,
@@ -62,10 +62,12 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        ImmutableAttributes attributes,
                                        boolean canBeConsumed,
                                        boolean canBeResolved,
-                                       ImmutableCapabilities capabilities,
-                                       boolean canBeLocked) {
+                                       ImmutableCapabilities capabilities) {
             super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
-            this.canBeLocked = canBeLocked;
+        }
+
+        public void enableLocking() {
+            this.canBeLocked = true;
         }
 
         @Override

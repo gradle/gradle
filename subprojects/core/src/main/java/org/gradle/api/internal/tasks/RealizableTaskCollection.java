@@ -17,14 +17,25 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.Namer;
+import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RealizableTaskCollection<T extends Task> implements TaskCollection<T> {
@@ -113,6 +124,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
+    public void addLater(Provider<? extends T> provider) {
+        delegate.addLater(provider);
+    }
+
+    @Override
     public boolean addAll(Collection<? extends T> c) {
         return delegate.addAll(c);
     }
@@ -195,6 +211,16 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public void all(Closure action) {
         delegate.all(action);
+    }
+
+    @Override
+    public void configureEachLater(Action<? super T> action) {
+        delegate.configureEachLater(action);
+    }
+
+    @Override
+    public <S extends T> void configureEachLater(Class<S> type, Action<? super S> action) {
+        delegate.configureEachLater(type, action);
     }
 
     @Override

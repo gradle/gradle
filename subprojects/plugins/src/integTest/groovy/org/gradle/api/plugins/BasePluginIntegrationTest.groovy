@@ -48,16 +48,9 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: 'base'
 
-            task build {
-                dependsOn 'check'
+            task $taskName {
                 doLast {
-                    println "CUSTOM BUILD"
-                }
-            }
-
-            task check {
-                doLast {
-                    println "CUSTOM CHECK"
+                    println "CUSTOM"
                 }
             }
 """
@@ -65,9 +58,10 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         fails "build"
 
         then:
-        failure.assertHasCause "Declaring custom 'build' task when using the standard Gradle lifecycle plugins is not allowed"
+        failure.assertHasCause "Cannot add task '$taskName' as a task with that name already exists."
+        where:
+        taskName << ['build', 'check']
     }
-
 
     def "can define 'default' and 'archives' configurations prior to applying plugin"() {
         buildFile << """

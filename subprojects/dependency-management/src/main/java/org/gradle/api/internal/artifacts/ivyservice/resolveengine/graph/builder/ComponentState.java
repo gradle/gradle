@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -53,7 +54,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final List<NodeState> nodes = Lists.newLinkedList();
     private final Long resultId;
     private final ModuleResolveState module;
-    private final ComponentSelectionReasonInternal selectionReason = VersionSelectionReasons.empty();
+    private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
     private volatile ComponentResolveMetadata metadata;
 
@@ -63,6 +64,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     private boolean rejected;
+    private boolean root;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver, VariantNameBuilder variantNameBuilder) {
         this.resultId = resultId;
@@ -134,15 +136,19 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return componentIdentifier;
     }
 
-    public void restart(ComponentState selected) {
+    /**
+     * Restarts all incoming edges for this component, queuing them up for processing.
+     */
+    public void restartIncomingEdges(ComponentState selected) {
         for (NodeState configuration : nodes) {
             configuration.restart(selected);
         }
     }
 
-    public void selectedBy(SelectorState resolver) {
+    @Override
+    public void selectedBy(ResolvableSelectorState selectorState) {
         if (firstSelectedBy == null) {
-            firstSelectedBy = resolver;
+            firstSelectedBy = (SelectorState) selectorState;
         }
     }
 
@@ -183,17 +189,28 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public ComponentSelectionReasonInternal getSelectionReason() {
-        return selectionReason;
+        if (root) {
+            return (ComponentSelectionReasonInternal) VersionSelectionReasons.root();
+        }
+        ComponentSelectionReasonInternal reason = VersionSelectionReasons.empty();
+        for (SelectorState selectorState : module.getSelectors()) {
+            if (selectorState.getFailure() == null) {
+                selectorState.addReasonsForSelector(reason);
+            }
+        }
+        for (ComponentSelectionDescriptorInternal selectionCause : selectionCauses) {
+            reason.addCause(selectionCause);
+        }
+        return reason;
     }
 
     @Override
     public void addCause(ComponentSelectionDescriptorInternal reason) {
-        selectionReason.addCause(reason);
+        selectionCauses.add(reason);
     }
 
-
     public void setRoot() {
-        selectionReason.setCause(VersionSelectionReasons.ROOT);
+        this.root = true;
     }
 
     @Override
@@ -266,10 +283,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return state == ComponentSelectionState.Selected;
     }
 
-    boolean isSelectable() {
-        return state.isSelectable();
-    }
-
     public boolean isCandidateForConflictResolution() {
         return state.isCandidateForConflictResolution();
     }
@@ -297,14 +310,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return rejected;
     }
 
-    @Override
-    public boolean isRoot() {
-        for (NodeState node : nodes) {
-            if (node.isRoot()) {
-                return true;
-            }
+    public void removeOutgoingEdges() {
+        for (NodeState configuration : getNodes()) {
+            configuration.deselect();
         }
-        return false;
     }
 
     /**
@@ -315,35 +324,29 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
          * A selectable component is either new to the graph, or has been visited before,
          * but wasn't selected because another compatible version was used.
          */
-        Selectable(true, true),
+        Selectable(true),
 
         /**
          * A selected component has been chosen, at some point, as the version to use.
          * This is not for a lifetime: a component can later be evicted through conflict resolution,
          * or another compatible component can be chosen instead if more constraints arise.
          */
-        Selected(true, false),
+        Selected(true),
 
         /**
          * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
          * Either because it has been excluded, or because conflict resolution selected a different version.
          */
-        Evicted(false, false);
+        Evicted(false);
 
         private final boolean candidateForConflictResolution;
-        private final boolean canSelect;
 
-        ComponentSelectionState(boolean candidateForConflictResolution, boolean canSelect) {
+        ComponentSelectionState(boolean candidateForConflictResolution) {
             this.candidateForConflictResolution = candidateForConflictResolution;
-            this.canSelect = canSelect;
         }
 
         boolean isCandidateForConflictResolution() {
             return candidateForConflictResolution;
-        }
-
-        public boolean isSelectable() {
-            return canSelect;
         }
     }
 

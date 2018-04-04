@@ -81,7 +81,7 @@ public class RejectedModuleMessageBuilder {
                 sb.append('\'').append(id).append('\'');
                 sb.append(" --> ");
             }
-            ModuleIdentifier moduleId = edge.getTargetComponent().getModule().getId();
+            ModuleIdentifier moduleId = edge.getSelector().getTargetModule().getId();
             sb.append('\'').append(moduleId.getGroup()).append(':').append(moduleId.getName()).append('\'');
             result.add(sb.toString());
         }
@@ -89,7 +89,7 @@ public class RejectedModuleMessageBuilder {
     }
 
     private static void renderReason(StringBuilder sb, SelectorState selector) {
-        ComponentSelectionReasonInternal selectionReason = selector.getReasonForSelector();
+        ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
             List<String> reasons = Lists.newArrayListWithExpectedSize(1);

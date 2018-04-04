@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.Unroll
+
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
@@ -304,10 +306,10 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(candidates) == expected
+        resolve(expected, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.PAIRS
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
     }
 
     @Unroll
@@ -317,10 +319,10 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(candidates) == expected
+        resolve(expected, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.PAIRS_WITH_REJECT
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
     @Unroll
@@ -330,10 +332,10 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(candidates) == expected
+        resolve(expected, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.THREES
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
     }
 
     @Unroll
@@ -343,10 +345,10 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(candidates) == expected
+        resolve(expected, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.MULTIPLES_WITH_REJECT
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
     }
 
     @Unroll
@@ -356,17 +358,17 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(candidates) == expected
+        resolve(expected, candidates)
 
         where:
-        permutation << VersionRangeResolveTestScenarios.FOURS
+        permutation << VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
     }
 
-    def resolve(VersionRangeResolveTestScenarios.RenderableVersion... versions) {
-        resolve(versions as List)
+    void resolve(String expected, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
+        resolve(expected, versions as List)
     }
 
-    def resolve(List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
+    void resolve(String expected, List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
         settingsFile.text = baseSettings
 
         def singleProjectConfs = []
@@ -420,32 +422,42 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 """
         }
 
-        def multiProjectResolve = []
-        try {
-            run 'resolveMultiProject'
-            multiProjectResolve = file('libs-multi').list() as List
-        } catch (Exception e) {
-            // Ignore
+        boolean expectFailure = expected == VersionRangeResolveTestScenarios.REJECTED || expected == VersionRangeResolveTestScenarios.FAILED
+        if (expectFailure) {
+            fails 'resolveMultiProject'
+            def multiFailure = parseFailureType(failure)
+
+            fails 'resolveSingleProject'
+            def singleFailure = parseFailureType(failure)
+
+            assert multiFailure == singleFailure
+            assert multiFailure == expected
+            return
         }
 
-        def singleProjectResolve = []
-        try {
-            run 'resolveSingleProject'
-            singleProjectResolve = file('libs-single').list() as List
-        } catch (Exception e) {
-            // Ignore
-        }
+        run 'resolveMultiProject'
+        def multiProjectResolve = file('libs-multi').list() as List
+
+        run 'resolveSingleProject'
+        def singleProjectResolve = file('libs-single').list() as List
 
         assert multiProjectResolve == singleProjectResolve
+        assert parseResolvedVersion(multiProjectResolve) == expected
+    }
 
-        if (multiProjectResolve.size() == 0) {
-            return -1
-        }
-
-        assert multiProjectResolve.size() == 1
-        def resolvedFile = multiProjectResolve.get(0)
+    def parseResolvedVersion(resolvedFiles) {
+        assert resolvedFiles.size() == 1
+        def resolvedFile = resolvedFiles.get(0)
         assert resolvedFile.startsWith('foo-')
         assert resolvedFile.endsWith('.jar')
-        return (resolvedFile =~ /\d\d/).getAt(0) as int
+        def resolvedVersion = (resolvedFile =~ /\d\d/).getAt(0)
+        resolvedVersion
+    }
+
+    def parseFailureType(ExecutionFailure failure) {
+        if (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")) {
+            return VersionRangeResolveTestScenarios.REJECTED
+        }
+        return VersionRangeResolveTestScenarios.FAILED
     }
 }

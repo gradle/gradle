@@ -891,7 +891,7 @@ org:middle:1.0 -> 2.0 FAILED
 
         then:
         output.contains """
-org:middle:2.0 (conflict resolution) FAILED
+org:middle:2.0 FAILED
 \\--- conf
 
 org:middle:1.0 -> 2.0 FAILED

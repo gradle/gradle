@@ -26,7 +26,7 @@ class JavaProjectsPlugin : Plugin<Project> {
             plugin("gradlebuild.unittest-and-compile")
             plugin("gradlebuild.test-fixtures")
             plugin("gradlebuild.distribution-testing")
-            from("$rootDir/gradle/intTestImage.gradle")
+            plugin("gradlebuild.int-test-image")
 
             if (file("src/integTest").isDirectory) {
                 plugin("gradlebuild.integration-tests")
