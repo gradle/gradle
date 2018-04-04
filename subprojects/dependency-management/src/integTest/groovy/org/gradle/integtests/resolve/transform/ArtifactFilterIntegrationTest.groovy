@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Ignore
 
 class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -220,6 +221,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         output.contains("filter applied to internalLocalLibExclude.jar")
     }
 
+    @Ignore("FIXME wolfs")
     def "transforms are not triggered for artifacts that are not accessed" () {
         given:
         buildFile << """
