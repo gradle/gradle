@@ -47,9 +47,7 @@ open class ClassyclePlugin : Plugin<Project> {
                     name,
                     reporting.file(classycle.name),
                     extension.reportResourcesZip
-                ).apply {
-                    dependsOn(output)
-                }
+                )
                 classycle.dependsOn(sourceSetTask)
                 "check" { dependsOn(sourceSetTask) }
                 "codeQuality" { dependsOn(sourceSetTask) }
