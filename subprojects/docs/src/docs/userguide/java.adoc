@@ -21,7 +21,7 @@ We will look at Java projects in detail in this chapter, but most of the topics 
 
 === Introduction
 
-The simplest build script for a Java project is this:
+The simplest build script for a Java project applies the <<java_plugin,Java Plugin>> and optionally sets the project version and Java compatibility versions:
 
 ++++
 <sample id="applyJavaPlugin" dir="userguide/java/basic" title="Applying the Java Plugin">
@@ -29,7 +29,6 @@ The simplest build script for a Java project is this:
 </sample>
 ++++
 
-The properties are optional, but we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project, as well as being used in archive names.
 
 By applying the Java Plugin, you get a whole host of features:
 
@@ -40,6 +39,8 @@ By applying the Java Plugin, you get a whole host of features:
  * A `javadoc` task that generates Javadoc for the `main` classes
 
 This isn't sufficient to build any non-trivial Java project — at the very least, you'll probably have some file dependencies. But it means that your build script only needs the information that is specific to _your project_.
+
+NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
 
 The Java Plugin also integrates the above tasks into the standard <<sec:base_tasks,Base Plugin lifecycle tasks>>:
 
@@ -69,7 +70,7 @@ The shaded boxes represent properties of the source set itself, i.e. the locatio
 [NOTE]
 .The `main` source set
 ====
-Most language plugins, Java included, automatically create a source set called `main`, which is used for the project's production code. This source set is special in that its name is not included in the names of the configurations and tasks, hence why you have just a `compileJava` task and `compileOnly` and `implementation` configurations.
+Most language plugins, Java included, automatically create a source set called `main`, which is used for the project's production code. This source set is special in that its name is not included in the names of the configurations and tasks, hence why you have just a `compileJava` task and `compileOnly` and `implementation` configurations rather than `compileMainJava`, `mainCompileOnly` and `mainImplementation` respectively.
 ====
 
 Java projects typically include resources other than source files, such as properties files, that may need processing — for example by replacing tokens within the files — and packaging within the final JAR. The Java Plugin handles this by automatically creating a dedicated task for each defined source set called `process__SourceSet__Resources` (or `processResources` for the `main` source set). The following diagram shows how the source set fits in with this task:
@@ -114,7 +115,7 @@ The Gradle terminology for the three elements is as follows:
 
  * _Repository_ (ex: `mavenCentral()`) — where to look for the modules you declare as dependencies
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or running a module — a more flexible form of Maven scopes
- * _Dependency coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
+ * _Module coordinate_ (ex: `org.hibernate:hibernate-core-3.6.7.Final`) — the ID of the dependency, usually in the form '__<group>__:__<module>__:__<version>__' (or '__<groupId>__:__<artifactId>__:__<version>__' in Maven terminology)
 
 You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology,here>>.
 
@@ -134,7 +135,7 @@ Be aware that the <<java_library_plugin,Java Library Plugin>> creates an additio
 [NOTE]
 .Why no `compile` configuration?
 ====
-The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in _<<sec:building_java_libraries,Building Java libraries>>_.
+The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in _<<sec:building_java_libraries,Building Java libraries>>_.
 ====
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
@@ -287,7 +288,7 @@ The task's name follows the convention of `process__SourceSet__Resources` — o
 Since `processResources` is an instance of the `Copy` task, you can perform any of the processing described in the _<<sec:copying_files,Working With Files>>_ chapter.
 
 [[sec:properties_files]]
-==== Java properties files
+==== Java properties files and reproducible builds
 
 You can easily create Java properties files via the api:org.gradle.api.tasks.WriteProperties[] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<sec:up_to_date_checks,incremental builds>>.
 
@@ -296,6 +297,10 @@ The standard Java API for writing properties files produces a unique file every 
 * no timestamp comment is added to the output
 * the line separator is system independent, but can be configured explicitly (it defaults to `'\n'`)
 * the properties are sorted alphabetically
+
+Sometimes it can be desirable to recreate archives in a byte for byte way on different machines. You want to be sure that building an artifact from source code produces the same result, byte for byte, no matter when and where it is built. This is necessary for projects like reproducible-builds.org.
+
+These tweaks not only lead to better incremental build integration, but they also help with https://reproducible-builds.org[reproducible builds]. In essence, reproducible builds guarantee that you will see the same results from a build execution — including test results and production binaries — no matter when or on what system you run it.
 
 [[sec:running_java_tests]]
 === Running tests
@@ -412,11 +417,13 @@ The Java Plugin adds a `clean` task to your project by virtue of applying the <<
 [[sec:building_java_libraries]]
 === Building Java libraries
 
-The unique aspect of library projects is that they are used (or "consumed") by other Java projects. That means the dependency information published in the metadata with the JAR file is crucial. In particular, consumers of your library should be able to distinguish between its dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
+The unique aspect of library projects is that they are used (or "consumed") by other Java projects. That means the dependency metadata published with the JAR file — usually in the form of a Maven POM —  is crucial. In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
 Gradle manages this distinction via the <<java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-You can learn more about these configurations and other aspects of building Java libraries in the plugin's chapter. Note that the Java Library Plugin automatically applies the standard Java Plugin as well.
+NOTE:  that the Java Library Plugin automatically applies the standard Java Plugin as well.
+
+You can learn more about these configurations and other aspects of building Java libraries in the plugin's chapter. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
 
 [[sec:building_java_applications]]
 === Building Java applications
@@ -431,6 +438,9 @@ See the plugin's chapter for more details, but here's a quick summary of what yo
 
 Note that you will need to explicitly apply the Java Plugin in your build script.
 
+You can see a basic example of building a Java application in the corresponding https://guides.gradle.org/building-java-applications/[_guide_].
+
+
 [[sec:building_java_webapps]]
 === Building Java web applications
 
@@ -444,7 +454,6 @@ That support comes via the <<war_plugin,War Plugin>>, which automatically applie
 
 This is done by the `war` task, which effectively replaces the `jar` task — although that task remains — and is attached to the `assemble` lifecycle task. See the plugin's chapter for more details and configuration options.
 
-TODO:Check that we do in fact recommend the following. I noticed that the Web Quickstart does so.
 There is no core support for running your web application directly from the build, but we do recommend that you try the https://plugins.gradle.org/plugin/org.akhikhl.gretty[Gretty] community plugin, which provides an embedded Servlet container.
 
 [[sec:building_java_enterprise_apps]]
