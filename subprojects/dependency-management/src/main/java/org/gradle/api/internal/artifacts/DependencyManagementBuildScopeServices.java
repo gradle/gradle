@@ -131,7 +131,8 @@ class DependencyManagementBuildScopeServices {
             ClassPathRegistry classPathRegistry,
             CurrentGradleInstallation currentGradleInstallation,
             FileLookup fileLookup,
-            RuntimeShadedJarFactory runtimeShadedJarFactory
+            RuntimeShadedJarFactory runtimeShadedJarFactory,
+            ImmutableAttributesFactory attributesFactory
     ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
@@ -142,7 +143,8 @@ class DependencyManagementBuildScopeServices {
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation),
             DependencyConstraintNotationParser.parser(instantiator),
             new ClientModuleNotationParserFactory(instantiator).create(),
-            projectDependencyFactory);
+            projectDependencyFactory,
+            attributesFactory);
     }
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor buildOperationExecutor) {

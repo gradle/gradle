@@ -341,6 +341,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public DependencyLockingHandler getDependencyLockingHandler() {
             return services.get(DependencyLockingHandler.class);
         }
+
+        @Override
+        public ImmutableAttributesFactory getAttributesFactory() {
+            return services.get(ImmutableAttributesFactory.class);
+        }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {

@@ -1,5 +1,12 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.api.artifacts.ModuleDependency",
+            "member": "Class org.gradle.api.artifacts.ModuleDependency",
+            "acceptation": "Module dependencies now support attributes",
+            "changes": [
+                "org.gradle.api.attributes.HasConfigurableAttributes"
+            ]
+        }
     ]
 }
