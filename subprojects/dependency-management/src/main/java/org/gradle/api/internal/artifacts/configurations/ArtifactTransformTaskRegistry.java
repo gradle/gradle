@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformResult;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformTask;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformer;
+import org.gradle.api.internal.artifacts.transform.InitialArtifactTransformTask;
+import org.gradle.api.internal.artifacts.transform.IntermediateArtifactTransformTask;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.util.NameValidator;
 
@@ -58,12 +59,19 @@ public class ArtifactTransformTaskRegistry {
     }
 
     private ArtifactTransformTask createArtifactTransformTask(ArtifactTransformer transform, ResolvedArtifactSet delegate, @Nullable ArtifactTransformTask innerTransformTask) {
+        if (innerTransformTask == null) {
+            return taskFactory.create(
+                NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName())),
+                InitialArtifactTransformTask.class,
+                transform,
+                delegate
+            );
+        }
         return taskFactory.create(
             NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName())),
-            ArtifactTransformTask.class,
+            IntermediateArtifactTransformTask.class,
             transform,
-            delegate,
-            Optional.fromNullable(innerTransformTask)
+            innerTransformTask
         );
     }
 

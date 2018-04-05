@@ -16,25 +16,19 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskDependency;
@@ -42,8 +36,6 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.inject.Inject;
@@ -53,76 +45,27 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
-public class ArtifactTransformTask extends DefaultTask implements ArtifactTransformResult {
+public abstract class ArtifactTransformTask extends DefaultTask implements ArtifactTransformResult {
 
     private final ArtifactTransformer transform;
-    private final ResolvedArtifactSet delegate;
-    private ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
-    private final ArtifactTransformTask requiredTransform;
+    protected ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
     private final WorkerLeaseService workerLeaseService;
-    private ResolvedArtifactSet.Completion resolvedArtifacts;
 
     @Inject
-    public ArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, Optional<ArtifactTransformTask> requiredTransform, WorkerLeaseService workerLeaseService) {
+    public ArtifactTransformTask(UserCodeBackedTransformer transform, WorkerLeaseService workerLeaseService) {
         this.transform = transform;
-        this.delegate = delegate;
-        this.requiredTransform = requiredTransform.orNull();
         this.workerLeaseService = workerLeaseService;
-        if (requiredTransform.isPresent()) {
-            dependsOn(requiredTransform.get());
-        } else {
-            dependsOn(new TaskDependencyContainer() {
-                @Override
-                public void visitDependencies(final TaskDependencyResolveContext context) {
-                    ArtifactTransformTask.this.delegate.collectBuildDependencies(new BuildDependenciesVisitor() {
-                        @Override
-                        public void visitDependency(Object dep) {
-                            context.add(dep);
-                        }
-
-                        @Override
-                        public void visitFailure(Throwable failure) {
-                            throw new GradleException("Broken!");
-                        }
-                    });
-                }
-            });
-        }
     }
 
     @Internal
     @Override
     public ResolvedArtifactSet.Completion getResult(AttributeContainerInternal attributes) {
-        return new TransformingResult(getResolvedArtifacts(), artifactResults, attributes);
+        return new TransformingResult(resolveArtifacts(), artifactResults, attributes);
     }
 
-    @Internal
-    public ResolvedArtifactSet.Completion getResolvedArtifacts() {
-        if (resolvedArtifacts == null) {
-            if (doGetResolvedArtifacts()) {
-                return requiredTransform.getResolvedArtifacts();
-            }
-        }
-        return resolvedArtifacts;
-    }
+    public abstract ResolvedArtifactSet.Completion resolveArtifacts();
 
-    private boolean doGetResolvedArtifacts() {
-        if (requiredTransform != null) {
-            return true;
-        }
-        ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
-        getBuildOperationExecuter().runAll(resolveArtifacts);
-
-        resolvedArtifacts = resolveArtifacts.getResult();
-        return false;
-    }
-
-    private TransformationResult getIncomingTransformationResult(ResolvableArtifact artifact) {
-        if (requiredTransform != null) {
-            return requiredTransform.artifactResults.get(artifact);
-        }
-        return new TransformationResult(ImmutableList.of(artifact.getFile()));
-    }
+    public abstract TransformationResult incomingTransformationResult(ResolvableArtifact artifact);
 
     @TaskAction
     public void transformArtifacts() {
@@ -130,11 +73,11 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
             @Override
             public void run() {
                 artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
-                ResolvedArtifactSet.Completion resolvedArtifacts = getResolvedArtifacts();
+                ResolvedArtifactSet.Completion resolvedArtifacts = resolveArtifacts();
                 resolvedArtifacts.visit(new ArtifactVisitor() {
                     @Override
                     public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                        TransformationResult incoming = getIncomingTransformationResult(artifact);
+                        TransformationResult incoming = incomingTransformationResult(artifact);
                         artifactResults.put(artifact, transform(incoming));
                     }
 
@@ -186,25 +129,6 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
         });
     }
 
-    private static class ResolveArtifacts implements Action<BuildOperationQueue<RunnableBuildOperation>> {
-
-        private final ResolvedArtifactSet delegate;
-        private ResolvedArtifactSet.Completion result;
-
-        public ResolveArtifacts(ResolvedArtifactSet delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void execute(BuildOperationQueue<RunnableBuildOperation> actions) {
-            result = delegate.startVisit(actions, new NoOpAsyncArtifactListener());
-        }
-
-        public ResolvedArtifactSet.Completion getResult() {
-            return result;
-        }
-    }
-
     @Inject
     public BuildOperationExecutor getBuildOperationExecuter() {
         throw new UnsupportedOperationException();
@@ -227,27 +151,7 @@ public class ArtifactTransformTask extends DefaultTask implements ArtifactTransf
         }
     }
 
-    private static class NoOpAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
-        @Override
-        public void artifactAvailable(ResolvableArtifact artifact) {
-        }
-
-        @Override
-        public boolean requireArtifactFiles() {
-            return true;
-        }
-
-        @Override
-        public boolean includeFileDependencies() {
-            return true;
-        }
-
-        @Override
-        public void fileAvailable(File file) {
-        }
-    }
-
-    private static class TransformationResult {
+    public static class TransformationResult {
         private final List<File> transformedFiles;
         private Throwable failure;
 
