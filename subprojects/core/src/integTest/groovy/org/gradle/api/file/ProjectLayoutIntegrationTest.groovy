@@ -248,7 +248,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def fileCollection = $expression
-            println("size = \${fileCollection.files.size()}")
             println("files = \${fileCollection.files}")
         """
 
@@ -256,7 +255,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run('myTask')
 
         then:
-        outputContains('size = 1')
         outputContains("files = [${testDirectory.absolutePath}/build/resource/file.txt]")
 
         where:
@@ -268,40 +266,34 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def 'runs Task when #collectionType with #dependencyType dependency is an input'() {
+    def '#methodName enforces build dependencies when given Task as input'() {
         buildFile << """
-            task taskForOutput {
+            task producer {
+                def outputFile = new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
+                outputs.file outputFile
                 doLast {
-                    new File('${testDirectory.absolutePath}', 'build/resource/file.txt').text = "some text"
+                    outputFile.text = "some text"
                 }
-                outputs.file new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
             }
 
-            def fileCollection = $expression
-
-            task withFileCollectionInput {
+            task consumer {
+                def fileCollection = project.layout.$methodName(project.tasks.producer)
+                inputs.files fileCollection
                 doLast {
-                    println("size = \${fileCollection.files.size()}")
                     println("files = \${fileCollection.files}")
                 }
-                inputs.files fileCollection
             }
         """
 
         when:
-        run('withFileCollectionInput')
+        run('consumer')
 
         then:
-        executed(':taskForOutput', ':withFileCollectionInput')
-        outputContains('size = 1')
+        executed(':producer', ':consumer')
         outputContains("files = [${testDirectory.absolutePath}/build/resource/file.txt]")
 
         where:
-        collectionType               | dependencyType | expression
-        'FileCollection'             | 'Task'         | 'project.layout.filesFor(project.tasks.taskForOutput)'
-        'FileCollection'             | 'TaskOutputs'  | 'project.layout.filesFor(project.tasks.taskForOutput.outputs)'
-        'ConfigurableFileCollection' | 'Task'         | 'project.layout.mutableFilesFor(project.tasks.taskForOutput)'
-        'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.mutableFilesFor(project.tasks.taskForOutput.outputs)'
+        methodName << ['filesFor', 'mutableFilesFor']
     }
 
     @Unroll
@@ -317,7 +309,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             def fileCollection = $expression
-            println("size = \${fileCollection.files.size()}")
             println("files = \${fileCollection.files}")
         """
 
@@ -325,7 +316,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        outputContains('size = 1')
         outputContains("files = [${testDirectory.absolutePath}/src/resource/file.txt]")
 
         where:
