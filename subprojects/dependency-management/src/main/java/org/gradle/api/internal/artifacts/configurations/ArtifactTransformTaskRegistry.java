@@ -70,16 +70,17 @@ public class ArtifactTransformTaskRegistry {
     }
 
     private ArtifactTransformTask createArtifactTransformTask(ArtifactTransformer transform, ResolvedArtifactSet delegate, @Nullable ArtifactTransformTask innerTransformTask) {
+        String taskName = NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName(), System.nanoTime()));
         if (innerTransformTask == null) {
             return taskFactory.create(
-                NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName(), System.nanoTime())),
+                taskName,
                 InitialArtifactTransformTask.class,
                 transform,
                 delegate
             );
         }
         return taskFactory.create(
-            NameValidator.asReallyValidName(Joiner.on("-").join(transform.getDisplayName(), ((ArtifactBackedResolvedVariant.SingleArtifactSet) delegate).getArtifact().getId().getDisplayName())),
+            taskName,
             IntermediateArtifactTransformTask.class,
             transform,
             innerTransformTask
