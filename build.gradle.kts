@@ -41,7 +41,9 @@ base.archivesBaseName = "gradle"
 
 buildTypes {
     create("sanityCheck") {
-        tasks("classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
+        tasks(
+            "classes", "doc:checkstyleApi", "codeQuality",
+            "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
@@ -111,12 +113,16 @@ buildTypes {
 
     // Used to build production distros and smoke test them
     create("packageBuild") {
-        tasks("verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest")
+        tasks(
+            "verifyIsProductionBuildEnvironment", "clean", "buildDists",
+            "distributions:integTest")
     }
 
     // Used to build production distros and smoke test them
     create("promotionBuild") {
-        tasks("verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives")
+        tasks(
+            "verifyIsProductionBuildEnvironment", "clean", "docs:check",
+            "buildDists", "distributions:integTest", "uploadArchives")
     }
 
     create("soakTest") {
@@ -243,7 +249,7 @@ dependencies {
 
 extra["allCoreRuntimeExtensions"] = configurations["coreRuntimeExtensions"].allDependencies
 
-tasks.create<PatchExternalModules>("patchExternalModules") {
+task<PatchExternalModules>("patchExternalModules") {
     allModules = configurations["externalModulesRuntime"]
     coreModules = configurations["coreRuntime"]
     modulesToPatch = configurations["externalModules"]
@@ -272,10 +278,15 @@ fun distributionImage(named: String) =
     project(":distributions").property(named) as CopySpec
 
 afterEvaluate {
-    if (gradle.startParameter.isBuildCacheEnabled()) {
-        rootProject.availableJavaInstallations.validateBuildCacheConfiguration((gradle as GradleInternal).settings.buildCache)
+    if (gradle.startParameter.isBuildCacheEnabled) {
+        rootProject
+            .availableJavaInstallations
+            .validateBuildCacheConfiguration(buildCacheConfiguration())
     }
 }
+
+fun Project.buildCacheConfiguration() =
+    (gradle as GradleInternal).settings.buildCache
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
