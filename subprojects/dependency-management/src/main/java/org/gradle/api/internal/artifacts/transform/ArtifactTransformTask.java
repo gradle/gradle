@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class ArtifactTransformTask extends DefaultTask implements ArtifactTransformResult {
 
     private final ArtifactTransformer transform;
-    protected ConcurrentHashMap<ResolvableArtifact, TransformationResult> artifactResults;
+    protected ConcurrentHashMap<ComponentArtifactIdentifier, TransformationResult> artifactResults;
     private final WorkerLeaseService workerLeaseService;
 
     @Inject
@@ -72,13 +72,13 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
-                artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformationResult>();
+                artifactResults = new ConcurrentHashMap<ComponentArtifactIdentifier, TransformationResult>();
                 ResolvedArtifactSet.Completion resolvedArtifacts = resolveArtifacts();
                 resolvedArtifacts.visit(new ArtifactVisitor() {
                     @Override
                     public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                         TransformationResult incoming = incomingTransformationResult(artifact);
-                        artifactResults.put(artifact, transform(incoming));
+                        artifactResults.put(artifact.getId(), transform(incoming));
                     }
 
                     @Override
@@ -136,10 +136,10 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
 
     public static class TransformingResult implements ResolvedArtifactSet.Completion {
         private final ResolvedArtifactSet.Completion result;
-        private final Map<ResolvableArtifact, TransformationResult> artifactResults;
+        private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
         private final AttributeContainerInternal attributes;
 
-        public TransformingResult(ResolvedArtifactSet.Completion result, Map<ResolvableArtifact, TransformationResult> artifactResults, AttributeContainerInternal attributes) {
+        public TransformingResult(ResolvedArtifactSet.Completion result, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults, AttributeContainerInternal attributes) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.attributes = attributes;
@@ -182,9 +182,9 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
     private static class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
-        private final Map<ResolvableArtifact, TransformationResult> artifactResults;
+        private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
 
-        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformationResult> artifactResults) {
+        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
             this.visitor = visitor;
             this.target = target;
             this.artifactResults = artifactResults;
@@ -192,7 +192,7 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
 
         @Override
         public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-            TransformationResult result = artifactResults.get(artifact);
+            TransformationResult result = artifactResults.get(artifact.getId());
             if (result.isFailed()) {
                 visitor.visitFailure(result.getFailure());
                 return;

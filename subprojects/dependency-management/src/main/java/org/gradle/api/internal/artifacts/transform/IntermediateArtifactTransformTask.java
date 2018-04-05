@@ -41,6 +41,6 @@ public class IntermediateArtifactTransformTask extends ArtifactTransformTask {
 
     @Override
     public TransformationResult incomingTransformationResult(ResolvableArtifact artifact) {
-        return delegateTransform.artifactResults.get(artifact);
+        return delegateTransform.artifactResults.get(artifact.getId());
     }
 }
