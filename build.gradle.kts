@@ -170,15 +170,16 @@ subprojects {
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
+
 configurations {
     "coreRuntime" {
-        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME)) }
+        usage(Usage.JAVA_RUNTIME)
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
     }
     "coreRuntimeExtensions" {
-        attributes { attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, Usage.JAVA_RUNTIME)) }
+        usage(Usage.JAVA_RUNTIME)
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false
@@ -206,7 +207,7 @@ configurations {
     }
 
     all {
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+        usage(Usage.JAVA_RUNTIME)
     }
 }
 
@@ -266,3 +267,6 @@ afterEvaluate {
         rootProject.availableJavaInstallations.validateBuildCacheConfiguration((gradle as GradleInternal).settings.buildCache)
     }
 }
+
+fun Configuration.usage(named: String) =
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
