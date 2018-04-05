@@ -23,7 +23,6 @@ import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
-import java.util.concurrent.Callable
 
 plugins {
     `java-base`
@@ -224,7 +223,7 @@ configurations {
 extra["allTestRuntimeDependencies"] = configurations["testRuntime"].allDependencies
 
 val patchedExternalModulesDir = File(buildDir, "external/files")
-val patchedExternalModules = files(Callable { fileTree(patchedExternalModulesDir).files.sorted() })
+val patchedExternalModules = files(provider { fileTree(patchedExternalModulesDir).files.sorted() })
 patchedExternalModules.builtBy("patchExternalModules")
 
 dependencies {
