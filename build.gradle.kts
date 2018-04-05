@@ -215,7 +215,7 @@ configurations {
     }
 }
 
-extra.set("allTestRuntimeDependencies", configurations["testRuntime"].allDependencies)
+extra["allTestRuntimeDependencies"] = configurations["testRuntime"].allDependencies
 
 val patchedExternalModulesDir = File(buildDir, "external/files")
 val patchedExternalModules = files(Callable { fileTree(patchedExternalModulesDir).files.sorted() })
@@ -241,7 +241,7 @@ dependencies {
     "coreRuntimeExtensions"(patchedExternalModules)
 }
 
-extra.set("allCoreRuntimeExtensions", configurations["coreRuntimeExtensions"].allDependencies)
+extra["allCoreRuntimeExtensions"] = configurations["coreRuntimeExtensions"].allDependencies
 
 tasks.create<PatchExternalModules>("patchExternalModules") {
     allModules = configurations["externalModulesRuntime"]
