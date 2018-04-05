@@ -17,9 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCollectingVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -34,11 +38,11 @@ import java.io.File;
 
 @NonNullApi
 public class InitialArtifactTransformTask extends ArtifactTransformTask {
-    private final ResolvedArtifactSet delegate;
+    private final ArtifactBackedResolvedVariant.SingleArtifactSet delegate;
     private ResolvedArtifactSet.Completion resolvedArtifacts;
 
     @Inject
-    public InitialArtifactTransformTask(UserCodeBackedTransformer transform, ResolvedArtifactSet delegate, WorkerLeaseService workerLeaseService) {
+    public InitialArtifactTransformTask(UserCodeBackedTransformer transform, ArtifactBackedResolvedVariant.SingleArtifactSet delegate, WorkerLeaseService workerLeaseService) {
         super(transform, workerLeaseService);
         this.delegate = delegate;
         dependsOn(new TaskDependencyContainer() {
@@ -65,13 +69,16 @@ public class InitialArtifactTransformTask extends ArtifactTransformTask {
             ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
             getBuildOperationExecuter().runAll(resolveArtifacts);
 
-            resolvedArtifacts = resolveArtifacts.getResult();
+            this.resolvedArtifacts = resolveArtifacts.getResult();
         }
         return resolvedArtifacts;
     }
 
     @Override
-    public TransformationResult incomingTransformationResult(ResolvableArtifact artifact) {
+    public TransformationResult incomingTransformationResult() {
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        resolveArtifacts().visit(visitor);
+        ResolvedArtifact artifact = Iterables.getOnlyElement(visitor.getArtifacts());
         return new TransformationResult(ImmutableList.of(artifact.getFile()));
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -40,7 +39,7 @@ public class IntermediateArtifactTransformTask extends ArtifactTransformTask {
     }
 
     @Override
-    public TransformationResult incomingTransformationResult(ResolvableArtifact artifact) {
-        return delegateTransform.artifactResults.get(artifact.getId());
+    public TransformationResult incomingTransformationResult() {
+        return delegateTransform.transformationResult;
     }
 }

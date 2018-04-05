@@ -41,14 +41,12 @@ import org.gradle.internal.work.WorkerLeaseService;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @NonNullApi
 public abstract class ArtifactTransformTask extends DefaultTask implements ArtifactTransformResult {
 
     private final ArtifactTransformer transform;
-    protected ConcurrentHashMap<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    protected TransformationResult transformationResult;
     private final WorkerLeaseService workerLeaseService;
 
     @Inject
@@ -60,73 +58,46 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
     @Internal
     @Override
     public ResolvedArtifactSet.Completion getResult(AttributeContainerInternal attributes) {
-        return new TransformingResult(resolveArtifacts(), artifactResults, attributes);
+        return new TransformingResult(resolveArtifacts(), transformationResult, attributes);
     }
 
     public abstract ResolvedArtifactSet.Completion resolveArtifacts();
 
-    public abstract TransformationResult incomingTransformationResult(ResolvableArtifact artifact);
+    public abstract TransformationResult incomingTransformationResult();
 
     @TaskAction
     public void transformArtifacts() {
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
-                artifactResults = new ConcurrentHashMap<ComponentArtifactIdentifier, TransformationResult>();
-                ResolvedArtifactSet.Completion resolvedArtifacts = resolveArtifacts();
-                resolvedArtifacts.visit(new ArtifactVisitor() {
-                    @Override
-                    public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-                        TransformationResult incoming = incomingTransformationResult(artifact);
-                        artifactResults.put(artifact.getId(), transform(incoming));
-                    }
-
-                    @Override
-                    public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
-                        throw new UnsupportedOperationException("This artifact transform task does not support transforming files - File: " + file);
-                    }
-
-                    private TransformationResult transform(File file) {
-                        try {
-                            List<File> result = transform.transform(file);
-                            return new TransformationResult(result);
-                        } catch (Throwable e) {
-                            return new TransformationResult(e);
-                        }
-                    }
-
-                    private TransformationResult transform(TransformationResult incoming) {
-                        if (incoming.isFailed()) {
-                            return incoming;
-                        }
-                        ImmutableList.Builder<File> builder = ImmutableList.builder();
-                        for (File file : incoming.getTransformedFiles()) {
-                            TransformationResult transformationResult = transform(file);
-                            if (transformationResult.isFailed()) {
-                                return transformationResult;
-                            }
-                            builder.addAll(transformationResult.getTransformedFiles());
-                        }
-                        return new TransformationResult(builder.build());
-                    }
-
-                    @Override
-                    public boolean requireArtifactFiles() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean includeFiles() {
-                        return true;
-                    }
-
-                    @Override
-                    public void visitFailure(Throwable failure) {
-
-                    }
-                });
+                TransformationResult incoming = incomingTransformationResult();
+                transformationResult = transform(incoming);
             }
         });
+    }
+
+    private TransformationResult transform(File file) {
+        try {
+            List<File> result = transform.transform(file);
+            return new TransformationResult(result);
+        } catch (Throwable e) {
+            return new TransformationResult(e);
+        }
+    }
+
+    private TransformationResult transform(TransformationResult incoming) {
+        if (incoming.isFailed()) {
+            return incoming;
+        }
+        ImmutableList.Builder<File> builder = ImmutableList.builder();
+        for (File file : incoming.getTransformedFiles()) {
+            TransformationResult transformationResult = transform(file);
+            if (transformationResult.isFailed()) {
+                return transformationResult;
+            }
+            builder.addAll(transformationResult.getTransformedFiles());
+        }
+        return new TransformationResult(builder.build());
     }
 
     @Inject
@@ -136,10 +107,10 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
 
     public static class TransformingResult implements ResolvedArtifactSet.Completion {
         private final ResolvedArtifactSet.Completion result;
-        private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+        private final TransformationResult artifactResults;
         private final AttributeContainerInternal attributes;
 
-        public TransformingResult(ResolvedArtifactSet.Completion result, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults, AttributeContainerInternal attributes) {
+        public TransformingResult(ResolvedArtifactSet.Completion result, TransformationResult artifactResults, AttributeContainerInternal attributes) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.attributes = attributes;
@@ -182,9 +153,9 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
     private static class ArtifactTransformingVisitor implements ArtifactVisitor {
         private final ArtifactVisitor visitor;
         private final AttributeContainerInternal target;
-        private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+        private final TransformationResult artifactResults;
 
-        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults) {
+        ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, TransformationResult artifactResults) {
             this.visitor = visitor;
             this.target = target;
             this.artifactResults = artifactResults;
@@ -192,14 +163,13 @@ public abstract class ArtifactTransformTask extends DefaultTask implements Artif
 
         @Override
         public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-            TransformationResult result = artifactResults.get(artifact.getId());
-            if (result.isFailed()) {
-                visitor.visitFailure(result.getFailure());
+            if (artifactResults.isFailed()) {
+                visitor.visitFailure(artifactResults.getFailure());
                 return;
             }
 
             ResolvedArtifact sourceArtifact = artifact.toPublicView();
-            List<File> transformedFiles = result.getTransformedFiles();
+            List<File> transformedFiles = artifactResults.getTransformedFiles();
             TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
             for (File output : transformedFiles) {
