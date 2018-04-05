@@ -17,6 +17,8 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasConfigurableAttributes;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +28,7 @@ import javax.annotation.Nullable;
  * @since 4.5
  */
 @Incubating
-public interface DependencyConstraint extends ModuleVersionSelector {
+public interface DependencyConstraint extends ModuleVersionSelector, HasConfigurableAttributes<DependencyConstraint> {
 
     /**
      * Configures the version constraint for this dependency constraint.
@@ -51,4 +53,26 @@ public interface DependencyConstraint extends ModuleVersionSelector {
      * @since 4.6
      */
     void because(@Nullable String reason);
+
+    /**
+     * Returns the attributes for this constraint. Mutation of the attributes of a constraint must be done through
+     * the {@link #attributes(Action)} method.
+     *
+     * @return the attributes container for this dependency
+     *
+     * @since 4.8
+     */
+    @Incubating
+    AttributeContainer getAttributes();
+
+    /**
+     * Mutates the attributes of this constraint. Attributes are used during dependency resolution to select the appropriate
+     * target variant, in particular when a single component provides different variants.
+     *
+     * @param configureAction the attributes mutation action
+     *
+     * @since 4.8
+     */
+    @Incubating
+    DependencyConstraint attributes(Action<? super AttributeContainer> configureAction);
 }
