@@ -26,7 +26,7 @@ dependencies {
     compile(library("slf4j_api"))
 
     // minimal dependencies to make our code compile
-    // we don"t ship these dependencies because findbugs plugin will download them (and more) at runtime
+    // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
     compileOnly("com.google.code.findbugs:findbugs:2.0.1")
     testRuntime("com.google.code.findbugs:bcel:2.0.1")
     testRuntime("jaxen:jaxen:1.1")
