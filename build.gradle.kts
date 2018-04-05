@@ -222,7 +222,7 @@ configurations {
 
 extra["allTestRuntimeDependencies"] = configurations["testRuntime"].allDependencies
 
-val patchedExternalModulesDir = File(buildDir, "external/files")
+val patchedExternalModulesDir = buildDir / "external/files"
 val patchedExternalModules = files(provider { fileTree(patchedExternalModulesDir).files.sorted() })
 patchedExternalModules.builtBy("patchExternalModules")
 
