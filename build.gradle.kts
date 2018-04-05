@@ -36,12 +36,13 @@ plugins {
 }
 
 defaultTasks("assemble")
+
 base.archivesBaseName = "gradle"
 
 buildTypes {
     create("sanityCheck") {
         tasks("classes", "doc:checkstyleApi", "codeQuality", "docs:check", "distribution:checkBinaryCompatibility", "javadocAll")
-        projectProperties(mapOf("ignoreIncomingBuildReceipt" to true))
+        projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
@@ -52,19 +53,22 @@ buildTypes {
     // Used for builds to run all tests, but not necessarily on all platforms
     create("fullTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties(mapOf("testAllVersions" to true))
+        projectProperties("testAllVersions" to true)
     }
 
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties(mapOf("testAllVersions" to true, "testAllPlatforms" to true))
+        projectProperties(
+            "testAllVersions" to true,
+            "testAllPlatforms" to true
+        )
     }
 
     // Tests not using the daemon mode
     create("noDaemonTest") {
         tasks("noDaemonIntegTest")
-        projectProperties(mapOf("useAllDistribution" to true))
+        projectProperties("useAllDistribution" to true)
     }
 
     // Run the integration tests using the parallel executer
@@ -117,7 +121,7 @@ buildTypes {
 
     create("soakTest") {
         tasks("soak:soakTest")
-        projectProperties(mapOf("testAllVersions" to true))
+        projectProperties("testAllVersions" to true)
     }
 }
 
