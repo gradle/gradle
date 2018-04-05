@@ -126,6 +126,17 @@ class ImmutableFileCollectionTest extends Specification {
         exception == thrown
     }
 
+    def 'can create with a FileCollection without reading its contents'() {
+        FileResolver fileResolver = Mock()
+        FileCollection fileCollection = Mock()
+
+        when:
+        ImmutableFileCollection.usingResolver(fileResolver, fileCollection)
+
+        then:
+        0 * fileCollection.iterator()
+    }
+
     @Unroll
     def 'can use a #description to specify the contents of the collection'() {
         File file1 = new File('1')
@@ -205,10 +216,10 @@ class ImmutableFileCollectionTest extends Specification {
     }
 
     @Unroll
-    def 'avoids file resolution when FileCollection from #method contains only has Files (#count)'() {
+    def 'avoids file resolution when FileCollection contains only has Files (#count)'() {
         def input = (0..(count)).collect { new File(it.toString()) }
         FileResolver fileResolver = Mock()
-        ImmutableFileCollection collection = create(input, fileResolver)
+        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
 
         when:
         Set<File> files = collection.getFiles()
@@ -218,18 +229,6 @@ class ImmutableFileCollectionTest extends Specification {
         files == input as LinkedHashSet
 
         where:
-        method           | count | create
-        'of(File...)'    | 0     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
-        'of(File...)'    | 1     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
-        'of(File...)'    | 2     | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
-        'of(File...)'    | 10    | { arg, resolver -> ImmutableFileCollection.of(arg as File[]) }
-        'of(Iterable<>)' | 0     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
-        'of(Iterable<>)' | 1     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
-        'of(Iterable<>)' | 2     | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
-        'of(Iterable<>)' | 10    | { arg, resolver -> ImmutableFileCollection.of(arg as Iterable<Object>) }
-        'usingResolver'  | 0     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
-        'usingResolver'  | 1     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
-        'usingResolver'  | 2     | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
-        'usingResolver'  | 10    | { arg, resolver -> ImmutableFileCollection.usingResolver(resolver, arg) }
+        count << [0, 1, 2, 10]
     }
 }

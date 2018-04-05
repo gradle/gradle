@@ -60,7 +60,9 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Iterable<?> paths) {
-        if (Iterables.isEmpty(paths)) {
+        if (paths instanceof FileCollection) {
+            return new ResolvingImmutableFileCollection(fileResolver, ImmutableSet.of(paths));
+        } else if (Iterables.isEmpty(paths)) {
             return EMPTY;
         } else if (allFiles(paths)) {
             return new FileOnlyImmutableFileCollection((Iterable<? extends File>) paths);
