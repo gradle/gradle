@@ -131,7 +131,7 @@ class GradleBuildPerformanceTest extends Specification {
         then:
         def speedStats = baselineResults.getSpeedStatsAgainst(currentResults.name, currentResults)
         println(speedStats)
-        if (baselineResults.fasterThan(currentResults)) {
+        if (baselineResults.significantlyFasterThan(currentResults)) {
             throw new AssertionError(speedStats)
         }
     }

@@ -39,10 +39,10 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
-        runner.warmUpRuns = 5
-        runner.runs = 13
+        runner.warmUpRuns = 11
+        runner.runs = 21
         runner.minimumVersion = "3.5"
-        runner.targetVersions = ["4.7-20180330212523+0000"]
+        runner.targetVersions = ["4.8-20180405000006+0000"]
     }
 
     def "clean #tasks on #testProject with remote http cache"() {
