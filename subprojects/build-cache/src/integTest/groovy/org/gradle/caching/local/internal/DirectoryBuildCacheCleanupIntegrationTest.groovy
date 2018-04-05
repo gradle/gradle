@@ -109,20 +109,20 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         days << [-1, 0]
     }
 
-    def "build cache cleanup is triggered after max number of days expires"() {
+    def "build cache cleanup is triggered after max number of hours expires"() {
         run()
         def originalCheckTime = gcFile().lastModified()
 
-        // One day isn't enough to trigger
+        // One hour isn't enough to trigger
         when:
-        // Set the time back 1 day
+        // Set the time back 1 hour
         gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(1))
         def lastCleanupCheck = gcFile().lastModified()
         run()
         then:
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
-        // checkInterval-1 days is not enough to trigger
+        // checkInterval-1 hours is not enough to trigger
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS - 1))
         lastCleanupCheck = gcFile().lastModified()
@@ -130,14 +130,14 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         then:
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
-        // checkInterval days is enough to trigger
+        // checkInterval hours is enough to trigger
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS))
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
-        // More than checkInterval days is enough to trigger
+        // More than checkInterval hours is enough to trigger
         when:
         gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS * 10))
         run()
