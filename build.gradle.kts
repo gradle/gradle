@@ -26,7 +26,7 @@ import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 import java.util.concurrent.Callable
 
 plugins {
-    id("java-base")
+    `java-base`
     id("gradlebuild.build-types")
     id("gradlebuild.ci-reporting")
     // TODO Apply this plugin in the BuildScanConfigurationPlugin once binary plugins can apply plugins via the new plugin DSL
