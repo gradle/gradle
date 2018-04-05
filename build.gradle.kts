@@ -179,79 +179,92 @@ subprojects {
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
+val coreRuntime by configurations.creating {
+    usage(Usage.JAVA_RUNTIME)
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isVisible = false
+}
+
+val coreRuntimeExtensions by configurations.creating {
+    usage(Usage.JAVA_RUNTIME)
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isVisible = false
+}
+
+val externalModules by configurations.creating {
+    isVisible = false
+}
+
+/**
+ * Configuration used to resolve external modules before patching them with versions from core runtime
+ */
+val externalModulesRuntime by configurations.creating {
+    isVisible = false
+    extendsFrom(coreRuntime)
+    extendsFrom(externalModules)
+}
+
+/**
+ * Combines the 'coreRuntime' with the patched external module jars
+ */
+val runtime by configurations.creating {
+    isVisible = false
+    extendsFrom(coreRuntime)
+}
+
+val gradlePlugins by configurations.creating {
+    isVisible = false
+}
+
+val testRuntime by configurations.creating {
+    extendsFrom(runtime)
+    extendsFrom(gradlePlugins)
+}
 
 configurations {
-    "coreRuntime" {
-        usage(Usage.JAVA_RUNTIME)
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-    }
-    "coreRuntimeExtensions" {
-        usage(Usage.JAVA_RUNTIME)
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        isVisible = false
-    }
-    "externalModules" {
-        isVisible = false
-    }
-    // Configuration used to resolve external modules before patching them with versions from core runtime
-    "externalModulesRuntime" {
-        isVisible = false
-        extendsFrom(configurations["coreRuntime"])
-        extendsFrom(configurations["externalModules"])
-    }
-    // Combines the 'coreRuntime' with the patched external module jars
-    "runtime" {
-        isVisible = false
-        extendsFrom(configurations["coreRuntime"])
-    }
-    "gradlePlugins" {
-        isVisible = false
-    }
-    "testRuntime" {
-        extendsFrom(configurations["runtime"])
-        extendsFrom(configurations["gradlePlugins"])
-    }
-
     all {
         usage(Usage.JAVA_RUNTIME)
     }
 }
 
-extra["allTestRuntimeDependencies"] = configurations["testRuntime"].allDependencies
+extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
 
 val patchedExternalModulesDir = buildDir / "external/files"
 val patchedExternalModules = files(provider { fileTree(patchedExternalModulesDir).files.sorted() })
 patchedExternalModules.builtBy("patchExternalModules")
 
 dependencies {
-    "externalModules"("org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}")
-    "externalModules"("org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}")
-    "coreRuntime"(project(":launcher"))
-    "coreRuntime"(project(":runtimeApiInfo"))
-    "runtime"(project(":wrapper"))
-    "runtime"(project(":installationBeacon"))
-    "runtime"(patchedExternalModules)
-    pluginProjects.forEach { "gradlePlugins"(it) }
-    implementationPluginProjects.forEach { "gradlePlugins"(it) }
-    "gradlePlugins"(project(":workers"))
-    "gradlePlugins"(project(":dependencyManagement"))
-    "gradlePlugins"(project(":testKit"))
 
-    "coreRuntimeExtensions"(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
-    "coreRuntimeExtensions"(project(":pluginUse"))
-    "coreRuntimeExtensions"(project(":workers"))
-    "coreRuntimeExtensions"(patchedExternalModules)
+    externalModules("org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}")
+    externalModules("org.gradle:gradle-kotlin-dsl-tooling-builders:${BuildEnvironment.gradleKotlinDslVersion}")
+
+    coreRuntime(project(":launcher"))
+    coreRuntime(project(":runtimeApiInfo"))
+
+    runtime(project(":wrapper"))
+    runtime(project(":installationBeacon"))
+    runtime(patchedExternalModules)
+
+    pluginProjects.forEach { gradlePlugins(it) }
+    implementationPluginProjects.forEach { gradlePlugins(it) }
+    gradlePlugins(project(":workers"))
+    gradlePlugins(project(":dependencyManagement"))
+    gradlePlugins(project(":testKit"))
+
+    coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
+    coreRuntimeExtensions(project(":pluginUse"))
+    coreRuntimeExtensions(project(":workers"))
+    coreRuntimeExtensions(patchedExternalModules)
 }
 
-extra["allCoreRuntimeExtensions"] = configurations["coreRuntimeExtensions"].allDependencies
+extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
 
 task<PatchExternalModules>("patchExternalModules") {
-    allModules = configurations["externalModulesRuntime"]
-    coreModules = configurations["coreRuntime"]
-    modulesToPatch = configurations["externalModules"]
+    allModules = externalModulesRuntime
+    coreModules = coreRuntime
+    modulesToPatch = this@Build_gradle.externalModules
     destination = patchedExternalModulesDir
 }
 
