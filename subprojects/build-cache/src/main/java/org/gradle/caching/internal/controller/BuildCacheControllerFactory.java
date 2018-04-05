@@ -30,9 +30,9 @@ import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -64,6 +64,7 @@ public final class BuildCacheControllerFactory {
         final BuildCacheMode buildCacheState,
         final RemoteAccessMode remoteAccessMode,
         final boolean logStackTraces,
+        final boolean emitDebugLogging,
         final Instantiator instantiator
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
@@ -114,7 +115,8 @@ public final class BuildCacheControllerFactory {
                         config,
                         buildOperationExecutor,
                         gradleUserHomeDir,
-                        logStackTraces
+                        logStackTraces,
+                        emitDebugLogging
                     );
                 }
             }
