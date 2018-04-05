@@ -60,9 +60,11 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
             }
             VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
+            VersionSelector rejectSelector = resolvedVersionConstraint.getRejectedSelector();
             if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, resolvedVersionConstraint.getRejectedSelector(), result);
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, result);
             } else {
+                // TODO:DAZ Check reject selector even for non-dynamic versions...
                 String version = resolvedVersionConstraint.getPreferredVersion();
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
                 ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);

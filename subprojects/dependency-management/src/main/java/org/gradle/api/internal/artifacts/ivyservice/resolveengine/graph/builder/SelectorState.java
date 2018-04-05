@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
@@ -109,16 +110,23 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Does the work of actually resolving a component selector to a component identifier.
      */
-    public ComponentIdResolveResult resolve() {
+    public ComponentIdResolveResult resolve(VersionSelector allRejects) {
         if (idResolveResult != null) {
-            return idResolveResult;
+            if (idResolveResult.getFailure() != null) {
+                return idResolveResult;
+            }
+            // If the previous result is now rejected, need to re-resolve.
+            if (!allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+                return idResolveResult;
+            }
         }
 
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            resolver.resolve(dependencyMetadata, versionConstraint, idResolveResult);
+            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : new DefaultResolvedVersionConstraint(versionConstraint.getPreferredSelector(), allRejects);
+            resolver.resolve(dependencyMetadata, mergedConstraint, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {

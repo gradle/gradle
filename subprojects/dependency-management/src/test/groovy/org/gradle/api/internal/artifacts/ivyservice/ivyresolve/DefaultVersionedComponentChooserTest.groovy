@@ -192,6 +192,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         1 * c.getComponentMetadataSupplier()
         1 * b.getComponentMetadataSupplier()
         1 * b.resolve() >> resolvedWithStatus("milestone")
+        1 * b.getId() >> DefaultModuleComponentIdentifier.newId("group", "name", "1.3")
         1 * a.getComponentMetadataSupplier()
         1 * a.resolve() >> resolvedWithStatus("milestone")
         _ * componentSelectionRules.rules >> []

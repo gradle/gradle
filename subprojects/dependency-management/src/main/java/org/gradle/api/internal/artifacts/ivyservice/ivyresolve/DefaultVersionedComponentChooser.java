@@ -67,6 +67,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher, VersionSelector rejectedVersionSelector) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
+        ModuleComponentIdentifier firstRejected = null;
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
@@ -82,12 +83,19 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 continue;
             }
 
+            ModuleComponentIdentifier candidateIdentifier = candidate.getId();
+
             if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
+                // Keep the first rejected version and return it instead of failing
+                // TODO:DAZ Determine how to handle the interaction between reject constraints and component selection rules
+                if (firstRejected == null) {
+                    firstRejected = candidateIdentifier;
+                }
+
                 // Mark this version as rejected and continue
                 result.rejected(version);
                 continue;
             } else {
-                ModuleComponentIdentifier candidateIdentifier = candidate.getId();
                 if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
                     result.matches(candidateIdentifier);
                     return;
@@ -100,6 +108,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                 break;
             }
+        }
+
+        if (firstRejected != null) {
+            result.matches(firstRejected);
+            return;
         }
         // if we reach this point, no match was found, either because there are no versions matching the selector
         // or all of them were rejected
