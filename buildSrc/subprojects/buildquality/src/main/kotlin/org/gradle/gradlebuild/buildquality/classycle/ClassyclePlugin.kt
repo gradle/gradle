@@ -40,14 +40,14 @@ open class ClassyclePlugin : Plugin<Project> {
             val classycle by creating
             java.sourceSets.all {
                 val taskName = getTaskName(classycle.name, null)
-                val sourceSetTask = createTask(taskName, Classycle::class) {
-                    classesDirs = output.classesDirs
-                    excludePatterns.set(extension.excludePatterns)
-                    reportName = name
-                    reportDir = reporting.file(classycle.name)
-                    reportResourcesZip.set(extension.reportResourcesZip)
-                    dependsOn(output)
-                }
+                val sourceSetTask = project.tasks.create<Classycle>(
+                    taskName,
+                    output.classesDirs,
+                    extension.excludePatterns,
+                    name,
+                    reporting.file(classycle.name),
+                    extension.reportResourcesZip
+                )
                 classycle.dependsOn(sourceSetTask)
                 "check" { dependsOn(sourceSetTask) }
                 "codeQuality" { dependsOn(sourceSetTask) }

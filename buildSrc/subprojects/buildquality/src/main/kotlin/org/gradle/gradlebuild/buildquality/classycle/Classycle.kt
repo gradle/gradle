@@ -17,10 +17,10 @@ package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
-import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -40,29 +40,19 @@ import javax.inject.Inject
 
 
 @CacheableTask
-open class Classycle : DefaultTask() {
-
-    @get:Internal
-    lateinit var classesDirs: FileCollection
+open class Classycle @Inject constructor(
+    @get:Internal val classesDirs: FileCollection,
+    @get:Input val excludePatterns: Provider<List<String>>,
+    @get:Input val reportName: String,
+    @get:Internal val reportDir: File,
+    @get:InputFile @get:PathSensitive(PathSensitivity.NONE) val reportResourcesZip: Provider<RegularFile>
+) : DefaultTask() {
 
     @get:InputFiles
     @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val existingClassesDir: FileCollection
         get() = classesDirs.filter(File::exists)
-
-    @get:Input
-    val excludePatterns: ListProperty<String> = project.objects.listProperty()
-
-    @get:Input
-    lateinit var reportName: String
-
-    @get:Internal
-    lateinit var reportDir: File
-
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.NONE)
-    val reportResourcesZip: RegularFileProperty = newInputFile()
 
     @get:OutputFile
     val reportFile
@@ -72,12 +62,10 @@ open class Classycle : DefaultTask() {
     val analysisFile: File
         get() = File(reportDir, "${reportName}_analysis.xml")
 
-
     @get:Inject
     protected
     open val antBuilder: IsolatedAntBuilder
         get() = throw UnsupportedOperationException()
-
 
     @TaskAction
     fun generate() = project.run {
@@ -108,7 +96,7 @@ open class Classycle : DefaultTask() {
                 } catch (ex: Exception) {
                     try {
                         "unzip"(
-                            "src" to reportResourcesZip.asFile.get(),
+                            "src" to reportResourcesZip.get().asFile,
                             "dest" to reportDir)
                         "classycleReport"(
                             "reportFile" to analysisFile,
