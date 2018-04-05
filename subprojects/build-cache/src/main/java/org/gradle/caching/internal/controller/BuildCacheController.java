@@ -28,6 +28,10 @@ import java.io.Closeable;
  */
 public interface BuildCacheController extends Closeable {
 
+    boolean isEnabled();
+
+    boolean isEmitDebugLogging();
+
     @Nullable
     <T> T load(BuildCacheLoadCommand<T> command);
 

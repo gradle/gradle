@@ -118,6 +118,7 @@ public class BuildCacheTaskServices {
         BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? ENABLED : DISABLED;
         RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? OFFLINE : ONLINE;
         boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+        boolean emitDebugLogging = startParameter.isBuildCacheDebugLogging();
 
         return BuildCacheControllerFactory.create(
             buildOperationExecutor,
@@ -127,6 +128,7 @@ public class BuildCacheTaskServices {
             buildCacheMode,
             remoteAccessMode,
             logStackTraces,
+            emitDebugLogging,
             instantiatorFactory.inject(serviceRegistry)
         );
     }

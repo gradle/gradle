@@ -44,9 +44,9 @@ import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -69,6 +69,7 @@ public class DefaultBuildCacheController implements BuildCacheController {
 
     private final BuildCacheTempFileStore tmp;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean emitDebugLogging;
 
     private boolean closed;
 
@@ -76,9 +77,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
         BuildCacheServicesConfiguration config,
         BuildOperationExecutor buildOperationExecutor,
         File gradleUserHomeDir,
-        boolean logStackTraces
+        boolean logStackTraces,
+        boolean emitDebugLogging
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.emitDebugLogging = emitDebugLogging;
 
         if (config.local instanceof LocalBuildCacheService) {
             LocalBuildCacheService castLocal = (LocalBuildCacheService) config.local;
@@ -92,6 +95,16 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
 
         this.remote = toHandle(config.remote, config.remotePush, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public boolean isEmitDebugLogging() {
+        return emitDebugLogging;
     }
 
     @Nullable
