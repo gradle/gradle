@@ -92,7 +92,7 @@ class AbstractFileCollectionTest extends Specification {
             collection.getSingleFile();
             fail();
         } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains 2 files."));
+            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains more than one file."));
         }
     }
 
@@ -446,7 +446,7 @@ class AbstractFileCollectionTest extends Specification {
         assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)));
     }
 
-    private class TestFileCollection extends AbstractFileCollection {
+    static class TestFileCollection extends AbstractFileCollection {
         Set<File> files = new LinkedHashSet<File>();
 
         TestFileCollection(File... files) {

@@ -52,7 +52,7 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
                 super.visitContents(nested);
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
-                    files.addAll(fileCollection.getFiles());
+                    files.addAll(fileCollection);
                 }
                 this.cachedValue = files.build();
             }

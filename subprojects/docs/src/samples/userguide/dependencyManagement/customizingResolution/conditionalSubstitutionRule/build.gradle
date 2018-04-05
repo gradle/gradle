@@ -42,6 +42,6 @@ dependencies {
 
 task showJarFiles {
     doLast {
-        configurations.compile.files.each { println it.path - rootDir.path }
+        configurations.compile.each { println it.path - rootDir.path }
     }
 }

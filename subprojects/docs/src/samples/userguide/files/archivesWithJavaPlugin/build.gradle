@@ -17,7 +17,7 @@ task uberJar(type: Jar) {
     appendix = "uber"
 
     from sourceSets.main.output
-    from configurations.runtimeClasspath.files.
+    from configurations.runtimeClasspath.
                                          findAll { it.name.endsWith('jar') }.
                                          collect { zipTree(it) }
 }

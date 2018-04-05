@@ -65,7 +65,7 @@ class AddCopyrights extends SourceTask {
     @TaskAction
     void generateAssets() {
         String copyright = copyrightFile.text
-        getSource().files.each { File file ->
+        getSource().each { File file ->
             File outputFile = new File(destinationDir, file.name)
             outputFile.text = "${copyright}\n${file.text}"
         }
