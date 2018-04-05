@@ -42,6 +42,12 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 
 /**
  * Resolution state for a given module version selector.
+ *
+ * There are 3 possible states:
+ * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #resolved} will be `false`.
+ * 2. The selector failed to resolve. In this case {@link #failure} will be `!= null`.
+ * 3. The selector was part of resolution to a particular module version.
+ *    In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
     // TODO:DAZ Should inject this
@@ -55,7 +61,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
-    ComponentState selected;
+    private boolean resolved;
 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
@@ -120,15 +126,17 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
 
         this.idResolveResult = idResolveResult;
+        this.resolved = true;
         return idResolveResult;
     }
 
-    public void select(ComponentState selected) {
-        // We should never select a component for a different module, but the JVM software model dependency resolution is doing this.
-        // TODO Ditch the JVM Software Model plugins and re-add this assertion
-//        assert selected.getModule() == targetModule;
+    @Override
+    public void markResolved() {
+        this.resolved = true;
+    }
 
-        this.selected = selected;
+    public boolean isResolved() {
+        return resolved;
     }
 
     /**
@@ -136,13 +144,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
      */
     public void overrideSelection(ComponentState selected) {
-        this.selected = selected;
+        this.resolved = true;
 
         // Target module can change, if this is called as the result of a module replacement conflict.
         this.targetModule = selected.getModule();
 
         // TODO:DAZ It's not clear that we're setting up the correct state here:
-        // - We are not updating the selection reasons for the selected component
         // - If the target module changed, we are not updating the set of selectors on the target modules (both current and new)
     }
 

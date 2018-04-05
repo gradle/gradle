@@ -95,7 +95,6 @@ public class TaskExecutionServices {
     TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository,
                                     TaskOutputCacheCommandFactory taskOutputCacheCommandFactory,
                                     BuildCacheController buildCacheController,
-                                    StartParameter startParameter,
                                     ListenerManager listenerManager,
                                     TaskInputsListener inputsListener,
                                     BuildOperationExecutor buildOperationExecutor,
@@ -109,7 +108,7 @@ public class TaskExecutionServices {
                                     BuildInvocationScopeId buildInvocationScopeId
     ) {
 
-        boolean taskOutputCacheEnabled = startParameter.isBuildCacheEnabled();
+        boolean buildCacheEnabled = buildCacheController.isEnabled();
         boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
         TaskOutputChangesListener taskOutputChangesListener = listenerManager.getBroadcaster(TaskOutputChangesListener.class);
 
@@ -121,7 +120,7 @@ public class TaskExecutionServices {
             buildInvocationScopeId
         );
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
-        if (taskOutputCacheEnabled) {
+        if (buildCacheEnabled) {
             executer = new SkipCachedTaskExecuter(
                 buildCacheController,
                 taskOutputChangesListener,
@@ -130,9 +129,9 @@ public class TaskExecutionServices {
             );
         }
         executer = new SkipUpToDateTaskExecuter(executer);
-        executer = new ResolveTaskOutputCachingStateExecuter(taskOutputCacheEnabled, executer);
-        if (taskOutputCacheEnabled || scanPluginApplied) {
-            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, startParameter.isBuildCacheDebugLogging());
+        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, executer);
+        if (buildCacheEnabled || scanPluginApplied) {
+            executer = new ResolveBuildCacheKeyExecuter(executer, buildOperationExecutor, buildCacheController.isEmitDebugLogging());
         }
         executer = new ValidatingTaskExecuter(executer);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, cleanupRegistry, taskOutputChangesListener, executer, buildInvocationScopeId);

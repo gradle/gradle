@@ -72,7 +72,7 @@ import spock.lang.Specification
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
  *
- * TODO collect profiling data with {@link org.gradle.performance.fixture.JfrProfiler}
+ * TODO collect profiling data with {@link org.gradle.performance.fixture.Profiler}
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
@@ -109,7 +109,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 20, 30, null, null)
+        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 20, 40, null, null)
         performanceTestIdProvider.testSpec = experimentSpec
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST

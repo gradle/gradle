@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture;
+package org.gradle.performance.util
 
-import org.gradle.performance.measure.MeasuredOperation;
+import groovy.transform.CompileStatic
+import org.gradle.internal.jvm.Jvm
 
-import java.io.File;
-import java.util.List;
+@CompileStatic
+class JCmd {
 
-public interface DataCollector {
-    List<String> getAdditionalJvmOpts(File workingDir);
-    List<String> getAdditionalArgs(File workingDir);
-    void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation);
+    private File jcmd = Jvm.current().getExecutable("jcmd")
+
+    void execute(String... args) {
+        def processArguments = [jcmd.absolutePath] + args.toList()
+        def process = processArguments.execute()
+        process.waitForProcessOutput(System.out as Appendable, System.err as Appendable)
+    }
 }

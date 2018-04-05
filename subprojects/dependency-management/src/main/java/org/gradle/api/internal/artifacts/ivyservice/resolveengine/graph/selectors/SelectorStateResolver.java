@@ -77,9 +77,9 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> dependencies) {
+    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors) {
         SelectorStateResolverResults results = new SelectorStateResolverResults();
-        for (ResolvableSelectorState dep : dependencies) {
+        for (ResolvableSelectorState selector : selectors) {
 
             // For a 'reject-only' selector, don't need to resolve
 //            if (isRejectOnly(dep)) {
@@ -87,14 +87,15 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 //            }
 
             // Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
-            if (results.alreadyHaveResolution(dep)) {
+            if (results.alreadyHaveResolution(selector)) {
+                selector.markResolved();
                 continue;
             }
 
             // Need to perform the actual resolve
-            ComponentIdResolveResult resolved = dep.resolve();
+            ComponentIdResolveResult resolved = selector.resolve();
 
-            results.registerResolution(dep, resolved);
+            results.registerResolution(selector, resolved);
         }
         return results.getResolved(componentFactory);
     }

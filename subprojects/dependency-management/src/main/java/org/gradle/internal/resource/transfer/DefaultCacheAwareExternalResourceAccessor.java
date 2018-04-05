@@ -23,7 +23,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
@@ -174,7 +173,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             });
             return result == null ? null : result.getResult();
         } catch (Exception e) {
-            throw new ResourceException(location.getUri(), String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            LOGGER.debug(String.format("Failed to download SHA1 for resource '%s'.", location), e);
+            return null;
         }
     }
 

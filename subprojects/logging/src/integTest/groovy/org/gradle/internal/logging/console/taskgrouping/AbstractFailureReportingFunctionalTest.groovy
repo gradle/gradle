@@ -45,7 +45,7 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         // Check that the failure text appears either stdout or stderr (as per console type)
         def outputWithFailure = consoleType == ConsoleOutput.Plain ? failure.error : failure.output
         def outputWithoutFailure = consoleType == ConsoleOutput.Plain ? failure.output : failure.error
-        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeDebugPrefix().withNormalizedEol()
+        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeAnsiChars().removeDebugPrefix().withNormalizedEol()
 
         outputWithFailure.contains("Build failed with an exception.")
         outputWithFailureAndNoDebugging.contains("""

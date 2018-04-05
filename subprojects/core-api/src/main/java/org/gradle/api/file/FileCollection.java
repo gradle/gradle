@@ -149,7 +149,11 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      *
      * @return this
      * @throws StopExecutionException When this collection is empty.
+     *
+     * @deprecated You can use {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} on a {@code FileCollection} property,
+     * or throw a {@code StopExecutionException} in your code manually instead.
      */
+    @Deprecated
     FileCollection stopExecutionIfEmpty() throws StopExecutionException;
 
     /**

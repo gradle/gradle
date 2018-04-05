@@ -24,6 +24,16 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public boolean isEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isEmitDebugLogging() {
+        return false;
+    }
+
+    @Override
     public <T> T load(BuildCacheLoadCommand<T> command) {
         return null;
     }

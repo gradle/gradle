@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * Tests build cache configuration within composite builds and buildSrc.
@@ -30,12 +31,22 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def setup() {
-        executer.beforeExecute {
-            withBuildCacheEnabled()
-        }
     }
 
-    def "can configure with settings.gradle"() {
+    enum EnabledBy {
+        INVOCATION_SWITCH,
+        PROGRAMMATIC
+    }
+
+    @Unroll
+    def "can configure with settings.gradle - enabled by #by"() {
+        def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
+        if (by == EnabledBy.INVOCATION_SWITCH) {
+            executer.beforeExecute {
+                withBuildCacheEnabled()
+            }
+        }
+
         def mainCache = new TestBuildCache(file("main-cache"))
         def buildSrcCache = new TestBuildCache(file("buildSrc-cache"))
         def i1Cache = new TestBuildCache(file("i1-cache"))
@@ -43,15 +54,15 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         def i2Cache = new TestBuildCache(file("i2-cache"))
         def i3Cache = new TestBuildCache(file("i3-cache"))
 
-        settingsFile << mainCache.localCacheConfiguration() << """
+        settingsFile << mainCache.localCacheConfiguration() << enablingCode << """
             includeBuild "i1"
             includeBuild "i2"
         """
 
-        file("buildSrc/settings.gradle") << buildSrcCache.localCacheConfiguration()
-        file("i1/settings.gradle") << i1Cache.localCacheConfiguration()
-        file("i1/buildSrc/settings.gradle") << i1BuildSrcCache.localCacheConfiguration()
-        file("i2/settings.gradle") << i2Cache.localCacheConfiguration()
+        file("buildSrc/settings.gradle") << buildSrcCache.localCacheConfiguration() << enablingCode
+        file("i1/settings.gradle") << i1Cache.localCacheConfiguration() << enablingCode
+        file("i1/buildSrc/settings.gradle") << i1BuildSrcCache.localCacheConfiguration() << enablingCode
+        file("i2/settings.gradle") << i2Cache.localCacheConfiguration() << enablingCode
 
         buildFile << customTaskCode("root")
         file("buildSrc/build.gradle") << customTaskCode("buildSrc") << """
@@ -70,7 +81,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             
             customTask.dependsOn gradleBuild
         """
-        file("i3/settings.gradle") << i3Cache.localCacheConfiguration()
+        file("i3/settings.gradle") << i3Cache.localCacheConfiguration() << enablingCode
         file("i3/build.gradle") << customTaskCode("i3")
 
         buildFile << """
@@ -109,6 +120,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
             ":buildSrc": buildSrcCache.cacheDir,
             ":i2:i3": i3Cache.cacheDir
         ]
+
+        where:
+        by << EnabledBy.values()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4216")

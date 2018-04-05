@@ -19,6 +19,7 @@ package org.gradle.api.internal.buildevents
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+@SuppressWarnings("IntegrationTestFixtures")
 abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractIntegrationSpec {
     def setup() {
         executer.withStackTraceChecksDisabled()

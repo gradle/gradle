@@ -190,29 +190,25 @@ public class DependencyGraphBuilder {
 
     private void performSelectionSerially(List<EdgeState> dependencies, ResolveState resolveState) {
         for (EdgeState dependency : dependencies) {
-            assert dependency.getTargetComponent() == null;
             SelectorState selector = dependency.getSelector();
+            ModuleResolveState module = selector.getTargetModule();
 
-            performSelection(resolveState, dependency, selector);
+            if (!selector.isResolved()) {
+                // Have an unprocessed/new selector for this module. Need to re-select the target version.
+                performSelection(resolveState, module);
+            }
 
-            selector.getTargetModule().addUnattachedDependency(dependency);
+            module.addUnattachedDependency(dependency);
         }
     }
 
     /**
      * Attempts to resolve a target `ComponentState` for the given dependency.
-     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link SelectorState#selected},
+     * On successful resolve, a `ComponentState` is constructed for the identifier, recorded as {@link ModuleResolveState#selected},
      * and added to the graph.
      * On resolve failure, the failure is recorded and no `ComponentState` is selected.
      */
-    private void performSelection(ResolveState resolveState, EdgeState dependency, SelectorState selector) {
-        // Selector already resolved: just attach the edge.
-        if (selector.selected != null) {
-            dependency.start(selector.selected);
-            return;
-        }
-
-        ModuleResolveState module = selector.getTargetModule();
+    private void performSelection(ResolveState resolveState, ModuleResolveState module) {
         ComponentState currentSelection = module.getSelected();
 
         SelectorStateResolver<ComponentState> selectorStateResolver = new SelectorStateResolver<ComponentState>(moduleConflictHandler.getResolver(), resolveState, resolveState.getRoot().getComponent());
@@ -223,9 +219,6 @@ public class DependencyGraphBuilder {
             // Ignore: All selectors failed, and will have failures recorded
             return;
         }
-
-        dependency.start(selected);
-        selector.select(selected);
 
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
@@ -304,9 +297,7 @@ public class DependencyGraphBuilder {
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState dependency : dependencies) {
-            if (dependency.getTargetComponent() != null) {
-                dependency.attachToTargetConfigurations();
-            }
+            dependency.attachToTargetConfigurations();
         }
     }
 

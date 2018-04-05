@@ -73,17 +73,21 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
 
         and:
         outputs.stdOut.contains("BEFORE OUT")
-        normaliseLineSeparators(outputs.stdOut).contains(result1.output)
-        normaliseLineSeparators(outputs.stdOut).contains(result2.output)
+        stripped(outputs.stdOut).contains(result1.output)
+        stripped(outputs.stdOut).contains(result2.output)
         outputs.stdOut.contains("AFTER OUT")
 
         and:
         outputs.stdErr.contains("BEFORE ERR")
-        normaliseLineSeparators(outputs.stdOut).contains(result1.error)
-        normaliseLineSeparators(outputs.stdOut).contains(result2.error)
+        stripped(outputs.stdOut).contains(result1.error)
+        stripped(outputs.stdOut).contains(result2.error)
         outputs.stdErr.contains("AFTER ERR")
 
         where:
         console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
+    }
+
+    def stripped(String output) {
+        return normaliseLineSeparators(LogContent.stripWorkInProgressArea(output))
     }
 }

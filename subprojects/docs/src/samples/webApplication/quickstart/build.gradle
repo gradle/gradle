@@ -1,13 +1,15 @@
 // START SNIPPET use-gretty-plugin
 buildscript {
     repositories {
-        jcenter()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
-        classpath 'org.akhikhl.gretty:gretty:2.0.0'
+        classpath 'gradle.plugin.org.gretty:gretty:2.1.0'
     }
 }
-apply plugin: 'org.akhikhl.gretty'
+apply plugin: 'org.gretty'
 // END SNIPPET use-gretty-plugin
 
 // START SNIPPET use-war-plugin
