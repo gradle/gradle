@@ -252,19 +252,24 @@ tasks.create<PatchExternalModules>("patchExternalModules") {
 
 evaluationDependsOn(":distributions")
 
-tasks.create<Install>("install") {
-    description = "Installs the minimal distribution into directory ${project.property("gradle_installPath")}"
+val gradle_installPath: Any? by project
+
+task<Install>("install") {
+    description = "Installs the minimal distribution into directory $gradle_installPath"
     group = "build"
-    with(project(":distributions").property("binDistImage") as CopySpec)
-    installDirPropertyName = "gradle_installPath"
+    with(distributionImage("binDistImage"))
+    installDirPropertyName = ::gradle_installPath.name
 }
 
-tasks.create<Install>("installAll") {
-    description = "Installs the full distribution into directory ${project.property("gradle_installPath")}"
+task<Install>("installAll") {
+    description = "Installs the full distribution into directory $gradle_installPath"
     group = "build"
-    with(project(":distributions").property("allDistImage") as CopySpec)
-    installDirPropertyName = "gradle_installPath"
+    with(distributionImage("allDistImage"))
+    installDirPropertyName = ::gradle_installPath.name
 }
+
+fun distributionImage(named: String) =
+    project(":distributions").property(named) as CopySpec
 
 afterEvaluate {
     if (gradle.startParameter.isBuildCacheEnabled()) {
