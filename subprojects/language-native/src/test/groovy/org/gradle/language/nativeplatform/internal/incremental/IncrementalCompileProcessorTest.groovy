@@ -35,9 +35,11 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = Mock(SourceIncludesResolver)
+    def processorCache = Mock(IncrementalCompileSourceProcessorCache)
+    def searchPath = Mock(SourceIncludesSearchPath)
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter, processorCache, searchPath), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -63,6 +65,8 @@ class IncrementalCompileProcessorTest extends Specification {
         graph[dep2] = []
         graph[dep3] = []
         graph[dep4] = []
+
+        processorCache.get(_) >> []
     }
 
     def initialFiles() {
@@ -420,7 +424,7 @@ class IncrementalCompileProcessorTest extends Specification {
         SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
         _ * includes.complete >> true
         _ * includes.files >> deps.collect {
-            def include = Stub(SourceIncludesResolver.IncludeFile)
+            def include = Stub(IncludeFile)
             _ * include.file >> it
             _ * include.snapshot >> fileSystemSnapshotter.snapshotSelf(it)
             include
