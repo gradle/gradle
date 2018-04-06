@@ -71,8 +71,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
             tasks = "createBuildReceipt"
             gradleParams = "-PtimestampedVersion -Djava7Home=%linux.jdk.for.gradle.compile% --daemon"
             useGradleWrapper = true
-            // Let Gradle decide the correct build file
-            buildFile = " "
         }
         script {
             name = "CHECK_CLEAN_M2"
