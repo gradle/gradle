@@ -242,10 +242,11 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def 'can create #collectionType with #dependencyType dependency'() {
         buildFile << """
             task myTask {
+                def outputFile = new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
                 doLast {
-                    new File('${testDirectory.absolutePath}', 'build/resource/file.txt').text = "some text"
+                    outputFile.text = "some text"
                 }
-                outputs.file new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
+                outputs.file outputFile
             }
 
             def fileCollection = $expression
@@ -306,7 +307,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                other files("${testDirectory.absolutePath}/src/resource/file.txt")
+                other files("${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}/src/resource/file.txt")
             }
 
             def fileCollection = $expression
