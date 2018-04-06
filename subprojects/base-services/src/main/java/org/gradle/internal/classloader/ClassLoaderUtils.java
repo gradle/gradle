@@ -15,51 +15,41 @@
  */
 package org.gradle.internal.classloader;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.net.URL;
 import java.net.URLConnection;
 
+import static org.gradle.internal.reflect.JavaReflectionUtil.method;
+import static org.gradle.internal.reflect.JavaReflectionUtil.staticMethod;
+
 public abstract class ClassLoaderUtils {
-
-    private static final Unsafe UNSAFE;
-
-    static {
-        try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            UNSAFE = (Unsafe) theUnsafe.get(null);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    private static final ClassInjector CLASS_INJECTOR;
     private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD;
     private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD;
 
     static {
+        CLASS_INJECTOR = JavaVersion.current().isJava9Compatible() ? new LookupClassInjector() : new ReflectionClassInjector();
         GET_PACKAGES_METHOD = getMethodWithFallback(Package[].class, new Class[0], "getDefinedPackages", "getPackages");
-        GET_PACKAGE_METHOD = getMethodWithFallback(Package.class, new Class[] {String.class}, "getDefinedPackage", "getPackage");
+        GET_PACKAGE_METHOD = getMethodWithFallback(Package.class, new Class[]{String.class}, "getDefinedPackage", "getPackage");
     }
 
     private static <T> JavaMethod<ClassLoader, T> getMethodWithFallback(Class<T> clazz, Class<?>[] params, String firstChoice, String fallback) {
         JavaMethod<ClassLoader, T> method;
         try {
-            method = JavaReflectionUtil.method(ClassLoader.class, clazz, firstChoice, params);
+            method = method(ClassLoader.class, clazz, firstChoice, params);
         } catch (Throwable e) {
             // We must not be on Java 9 where the getDefinedPackages() method exists. Fall back to getPackages()
-            method = JavaReflectionUtil.method(ClassLoader.class, clazz, fallback, params);
+            method = method(ClassLoader.class, clazz, fallback, params);
         }
         return method;
     }
@@ -85,8 +75,6 @@ public abstract class ClassLoaderUtils {
             URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
             URLConnection urlConnection = url.openConnection();
             urlConnection.setDefaultUseCaches(false);
-        } catch (MalformedURLException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -101,6 +89,63 @@ public abstract class ClassLoaderUtils {
     }
 
     public static <T> Class<T> define(ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
-        return Cast.uncheckedCast(UNSAFE.defineClass(className, clazzBytes, 0, clazzBytes.length, targetClassLoader, null));
+        return CLASS_INJECTOR.injectClass(targetClassLoader, className, clazzBytes);
+    }
+
+    private interface ClassInjector {
+        <T> Class<T> injectClass(ClassLoader classLoader, String className, byte[] classBytes);
+    }
+
+    private static class ReflectionClassInjector implements ClassInjector {
+        private final JavaMethod<ClassLoader, Class> defineClassMethod;
+
+        private ReflectionClassInjector() {
+            defineClassMethod = method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
+        }
+
+        @Override
+        public <T> Class<T> injectClass(ClassLoader classLoader, String className, byte[] classBytes) {
+            return Cast.uncheckedCast(defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length));
+        }
+    }
+
+    private static class LookupClassInjector implements ClassInjector {
+        private final Class methodHandlesLookupClass;
+        private final JavaMethod methodHandlesLookup;
+        private final JavaMethod methodHandlesPrivateLookupIn;
+        private final JavaMethod lookupFindVirtual;
+        private final MethodType defineClassMethodType;
+
+        private LookupClassInjector() {
+            try {
+                methodHandlesLookupClass = Class.forName("java.lang.invoke.MethodHandles$Lookup");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            methodHandlesLookup = staticMethod(MethodHandles.class, methodHandlesLookupClass, "lookup");
+            methodHandlesPrivateLookupIn = staticMethod(MethodHandles.class, methodHandlesLookupClass, "privateLookupIn", Class.class, methodHandlesLookupClass);
+            lookupFindVirtual = method(methodHandlesLookupClass, MethodHandle.class, "findVirtual", Class.class, String.class, MethodType.class);
+            defineClassMethodType = MethodType.methodType(Class.class, new Class[]{String.class, byte[].class, int.class, int.class});
+        }
+
+        /*
+            This method is equivalent to the following code but use reflection to compile on Java 7:
+
+            MethodHandles.Lookup baseLookup = MethodHandles.lookup();
+            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(ClassLoader.class, baseLookup);
+            MethodHandle defineClassMethodHandle = lookup.findVirtual(ClassLoader.class, "defineClass", defineClassMethodType);
+            handle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length));
+         */
+        @Override
+        public <T> Class<T> injectClass(ClassLoader classLoader, String className, byte[] classBytes) {
+            Object baseLookup = methodHandlesLookup.invoke(null);
+            Object lookup = methodHandlesPrivateLookupIn.invoke(null, ClassLoader.class, baseLookup);
+            MethodHandle defineClassMethodHandle = (MethodHandle) lookupFindVirtual.invoke(lookup, ClassLoader.class, "defineClass", defineClassMethodType);
+            try {
+                return Cast.uncheckedCast(defineClassMethodHandle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length));
+            } catch (Throwable throwable) {
+                throw new RuntimeException(throwable);
+            }
+        }
     }
 }
