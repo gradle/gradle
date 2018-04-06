@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.Task
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -42,7 +43,7 @@ class LazilyInitializedFileCollectionTest extends Specification {
         @Override
         FileCollectionInternal createDelegate() {
             createCount++
-            new SimpleFileCollection([new File("foo")])
+            ImmutableFileCollection.of(new File("foo"))
         }
     }
 

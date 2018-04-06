@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.javadoc
 
 import org.apache.commons.io.FileUtils
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
@@ -33,7 +33,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     def toolChain = Mock(JavaToolChainInternal)
     def toolProvider = Mock(ToolProvider)
     def generator = Mock(Compiler)
-    def configurationMock = new SimpleFileCollection(classpath)
+    def configurationMock = ImmutableFileCollection.of(classpath)
     def executable = "somepath"
     Javadoc task
 

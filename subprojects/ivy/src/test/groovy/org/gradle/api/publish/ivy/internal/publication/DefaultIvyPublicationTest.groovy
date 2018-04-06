@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
@@ -285,7 +285,7 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorFile(new SimpleFileCollection(ivyDescriptorFile))
+        publication.setIvyDescriptorFile(ImmutableFileCollection.of(ivyDescriptorFile))
 
         when:
         publication.publishableFiles.files
@@ -305,8 +305,8 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorFile(new SimpleFileCollection(ivyDescriptorFile))
-        publication.setGradleModuleDescriptorFile(new SimpleFileCollection(moduleDescriptorFile))
+        publication.setIvyDescriptorFile(ImmutableFileCollection.of(ivyDescriptorFile))
+        publication.setGradleModuleDescriptorFile(ImmutableFileCollection.of(moduleDescriptorFile))
         return publication
     }
 

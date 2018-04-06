@@ -52,22 +52,30 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     }
 
     public static ImmutableFileCollection of(Iterable<?> paths) {
-        return usingResolver(new IdentityFileResolver(), paths);
+        return usingNullableResolver(null, paths);
     }
 
     public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object[] paths) {
-        return usingResolver(fileResolver, Arrays.asList(paths));
+        return usingNullableResolver(fileResolver, Arrays.asList(paths));
     }
 
     public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Iterable<?> paths) {
+        return usingNullableResolver(fileResolver, paths);
+    }
+
+    private static ImmutableFileCollection usingNullableResolver(@Nullable FileResolver fileResolver, Iterable<?> paths) {
         if (paths instanceof FileCollection) {
-            return new ResolvingImmutableFileCollection(fileResolver, ImmutableSet.of(paths));
+            return new ResolvingImmutableFileCollection(ensureNonNull(fileResolver), ImmutableSet.of(paths));
         } else if (Iterables.isEmpty(paths)) {
             return EMPTY;
         } else if (allFiles(paths)) {
             return new FileOnlyImmutableFileCollection((Iterable<? extends File>) paths);
         }
-        return new ResolvingImmutableFileCollection(fileResolver, paths);
+        return new ResolvingImmutableFileCollection(ensureNonNull(fileResolver), paths);
+    }
+
+    private static FileResolver ensureNonNull(@Nullable FileResolver fileResolver) {
+        return fileResolver != null ? fileResolver : new IdentityFileResolver();
     }
 
     private static boolean allFiles(Iterable<?> files) {

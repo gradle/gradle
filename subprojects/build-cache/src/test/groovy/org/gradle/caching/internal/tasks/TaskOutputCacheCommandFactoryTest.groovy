@@ -28,7 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileHashSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemMirror
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata
 import org.gradle.api.internal.tasks.OutputType
 import org.gradle.api.internal.tasks.ResolvedTaskOutputFilePropertySpec
@@ -65,7 +65,7 @@ class TaskOutputCacheCommandFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def localStateFile = temporaryFolder.file("local-state.txt").createFile()
-    def localStateFiles = new SimpleFileCollection(localStateFile)
+    def localStateFiles = ImmutableFileCollection.of(localStateFile)
 
     def "load invokes unpacker and snapshots outputs"() {
         def outputFile = temporaryFolder.file("output.txt")

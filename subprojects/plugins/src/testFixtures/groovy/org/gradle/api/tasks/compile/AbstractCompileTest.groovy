@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.util.WrapUtil
 
-public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
+abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_1 = "pattern1"
     public static final String TEST_PATTERN_2 = "pattern2"
     public static final String TEST_PATTERN_3 = "pattern3"
@@ -87,6 +87,6 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.setTargetCompatibility("1.5")
         compile.setDestinationDir(destDir)
 
-        compile.setClasspath(new SimpleFileCollection(TEST_DEPENDENCY_MANAGER_CLASSPATH))
+        compile.setClasspath(ImmutableFileCollection.of(TEST_DEPENDENCY_MANAGER_CLASSPATH))
     }
 }
