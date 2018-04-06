@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -54,7 +55,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ArtifactTypeRegistry artifactTypeRegistry, ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentResolveMetadata unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
@@ -64,7 +65,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
             sourceRepository.getRemoteAccess().resolveArtifacts(unpackedComponent, result);
         }
         if (result.hasResult()) {
-            return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions);
+            return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes);
         }
         return null;
     }

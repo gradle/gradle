@@ -55,6 +55,7 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = Lists.newLinkedList();
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
+    private ImmutableAttributes edgeAttributes;
 
     EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -129,6 +130,10 @@ class EdgeState implements DependencyGraphEdge {
         attachToTargetConfigurations();
     }
 
+    public ImmutableAttributes getAttributes() {
+        return dependencyMetadata.getAttributes();
+    }
+
     private void calculateTargetConfigurations(ComponentState targetComponent) {
         targetNodes.clear();
         targetNodeSelectionFailure = null;
@@ -138,12 +143,14 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
         List<ConfigurationMetadata> targetConfigurations;
         try {
-            ImmutableAttributes dependencyAttributes = dependencyMetadata.getAttributes();
-            ImmutableAttributes allAttributes = resolveState.getAttributesFactory().concat(attributes, dependencyAttributes);
-            targetConfigurations = dependencyMetadata.selectConfigurations(allAttributes, targetModuleVersion, resolveState.getAttributesSchema());
+            if (edgeAttributes == null) {
+                ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
+                ImmutableAttributes dependencyAttributes = dependencyMetadata.getAttributes();
+                edgeAttributes = resolveState.getAttributesFactory().concat(attributes, dependencyAttributes);
+            }
+            targetConfigurations = dependencyMetadata.selectConfigurations(edgeAttributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
