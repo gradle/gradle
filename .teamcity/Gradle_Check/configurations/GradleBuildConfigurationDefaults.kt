@@ -140,6 +140,8 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
             useGradleWrapper = true
+            // Let Gradle decide the correct build file
+            buildFile = ""
         }
         if (os == OS.windows) {
             gradle {
@@ -148,6 +150,8 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                 tasks = "killExistingProcessesStartedByGradle"
                 gradleParams = gradleParameterString
                 useGradleWrapper = true
+                // Let Gradle decide the correct build file
+                buildFile = ""
             }
         }
         if (model.tagBuilds) {
