@@ -181,6 +181,11 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return copyWithReason(reason);
     }
 
+    @Override
+    public ImmutableAttributes getAttributes() {
+        return ImmutableAttributes.EMPTY;
+    }
+
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }

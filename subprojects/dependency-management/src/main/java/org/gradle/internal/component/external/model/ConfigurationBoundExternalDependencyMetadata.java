@@ -126,6 +126,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
     }
 
+    @Override
+    public ImmutableAttributes getAttributes() {
+        return ImmutableAttributes.EMPTY;
+    }
+
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate);

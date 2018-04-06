@@ -102,6 +102,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
             if (!current.contains(attribute)) {
