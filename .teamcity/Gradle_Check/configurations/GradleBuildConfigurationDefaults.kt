@@ -123,6 +123,8 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                             model.buildScanTags.map { """"-Dscan.tag.$it"""" }
                     ).joinToString(separator = " ")
             useGradleWrapper = true
+            // Let Gradle decide the correct build file
+            buildFile = null
         }
     }
 
