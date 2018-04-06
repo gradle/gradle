@@ -59,16 +59,8 @@ open class ShadedJar : DefaultTask() {
 
     @TaskAction
     fun shade() {
-        val entryPoints = entryPointsConfiguration.files.flatMap { readJson<List<String>>(it) }
-        val classTrees = classTreesConfiguration.files.flatMap { readJson<Map<String, List<String>>>(it).entries }
-            .groupingBy { it.key }
-            .aggregate<Map.Entry<String, List<String>>, String, Set<String>> { _, accumulator: Set<String>?, element: Map.Entry<String, List<String>>, first ->
-                if (first) {
-                    element.value.toSet()
-                } else {
-                    accumulator!!.union(element.value)
-                }
-            }
+        val entryPoints = readEntryPoints()
+        val classTrees = buildClassTrees(readClassTrees())
 
         val classesToInclude = mutableSetOf<String>()
 
@@ -100,6 +92,12 @@ open class ShadedJar : DefaultTask() {
     }
 
     private
+    fun readEntryPoints() = entryPointsConfiguration.files.flatMap { readJson<List<String>>(it) }
+
+    private
+    fun readClassTrees() = classTreesConfiguration.files.map { readJson<Map<String, List<String>>>(it) }
+
+    private
     fun Path.relativePath(other: File) = relativize(other.toPath()).toString().replace(File.separatorChar, '/')
 
     private
@@ -108,3 +106,16 @@ open class ShadedJar : DefaultTask() {
             Gson().fromJson<T>(reader, object : TypeToken<T>() {}.type)
         }
 }
+
+
+internal
+fun buildClassTrees(individualClassTrees: List<Map<String, List<String>>>): Map<String, Set<String>> =
+    individualClassTrees.flatMap { it.entries }
+        .groupingBy { it.key }
+        .aggregate<Map.Entry<String, List<String>>, String, Set<String>> { _, accumulator: Set<String>?, element: Map.Entry<String, List<String>>, first ->
+            if (first) {
+                element.value.toSet()
+            } else {
+                accumulator!!.union(element.value)
+            }
+        }
