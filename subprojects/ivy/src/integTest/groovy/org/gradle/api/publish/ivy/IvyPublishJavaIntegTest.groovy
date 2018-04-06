@@ -25,11 +25,11 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     String getDependencies() {
         """dependencies {
-                api "commons-collections:commons-collections:3.2.2"
-                compileOnly "javax.servlet:servlet-api:2.5"
-                runtimeOnly "commons-io:commons-io:1.4"
-                testImplementation "junit:junit:4.12"
-            }
+               api "commons-collections:commons-collections:3.2.2"
+               compileOnly "javax.servlet:servlet-api:2.5"
+               runtimeOnly "commons-io:commons-io:1.4"
+               testImplementation "junit:junit:4.12"
+           }
 """
     }
 
@@ -352,6 +352,39 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 "publishTest-1.9.jar",
                 "spring-core-2.5.6.jar"
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4356")
+    void "generated ivy descriptor includes configuration exclusions"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+            configurations.apiElements {
+                exclude group: "foo", module: "bar"
+            }
+
+            configurations.runtimeElements {
+                exclude group: "baz", module: "qux"
+            }
+
+            $dependencies
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile", "baz:qux@runtime"]
     }
 
     void "defaultDependencies are included in published ivy descriptor"() {

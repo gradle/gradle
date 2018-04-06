@@ -32,6 +32,10 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
         sign publishing.publications
     }
 
+### Published Ivy descriptors now contain configuration-wide dependency exclusions
+
+The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

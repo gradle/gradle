@@ -21,6 +21,7 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
@@ -43,6 +44,8 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     FileCollection getPublishableFiles();
 
     Set<IvyDependencyInternal> getDependencies();
+
+    Set<IvyExcludeRule> getGlobalExcludes();
 
     IvyNormalizedPublication asNormalisedPublication();
 

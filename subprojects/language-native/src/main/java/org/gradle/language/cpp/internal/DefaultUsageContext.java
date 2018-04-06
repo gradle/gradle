@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
@@ -37,6 +38,7 @@ public class DefaultUsageContext implements UsageContext, Named {
     private final Set<? extends PublishArtifact> artifacts;
     private final Set<? extends ModuleDependency> dependencies;
     private final Set<? extends DependencyConstraint> dependencyConstraints;
+    private final Set<ExcludeRule> globalExcludes;
 
     DefaultUsageContext(String name, Usage usage, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         this(name, usage, configuration.getAttributes(), artifacts, configuration);
@@ -55,12 +57,14 @@ public class DefaultUsageContext implements UsageContext, Named {
         this.usage = usage;
         this.attributes = attributes;
         this.artifacts = artifacts;
-        if (configuration!=null) {
+        if (configuration != null) {
             this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
             this.dependencyConstraints = configuration.getAllDependencyConstraints();
+            this.globalExcludes = configuration.getExcludeRules();
         } else {
             this.dependencies = null;
             this.dependencyConstraints = null;
+            this.globalExcludes = Collections.emptySet();
         }
     }
 
@@ -100,5 +104,10 @@ public class DefaultUsageContext implements UsageContext, Named {
     @Override
     public Set<? extends Capability> getCapabilities() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public Set<ExcludeRule> getGlobalExcludes() {
+        return globalExcludes;
     }
 }
