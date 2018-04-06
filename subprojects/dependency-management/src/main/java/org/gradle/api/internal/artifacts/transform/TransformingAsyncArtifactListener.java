@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -25,13 +26,13 @@ import java.io.File;
 import java.util.Map;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
-    private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
+    private final Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults;
     private final Map<File, TransformFileOperation> fileResults;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final ArtifactTransformer transform;
 
-    TransformingAsyncArtifactListener(ArtifactTransformer transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    TransformingAsyncArtifactListener(ArtifactTransformer transform, ResolvedArtifactSet.AsyncArtifactListener delegate, BuildOperationQueue<RunnableBuildOperation> actions, Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults, Map<File, TransformFileOperation> fileResults) {
         this.artifactResults = artifactResults;
         this.actions = actions;
         this.transform = transform;
@@ -42,7 +43,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         TransformArtifactOperation operation = new TransformArtifactOperation(artifact, transform);
-        artifactResults.put(artifact, operation);
+        artifactResults.put(artifact.getId(), operation);
         if (transform.hasCachedResult(artifact.getFile())) {
             operation.run(null);
         } else {

@@ -39,7 +39,6 @@ import java.io.File;
 @NonNullApi
 public class InitialArtifactTransformTask extends ArtifactTransformTask {
     private final ArtifactBackedResolvedVariant.SingleArtifactSet delegate;
-    private ResolvedArtifactSet.Completion resolvedArtifacts;
 
     @Inject
     public InitialArtifactTransformTask(UserCodeBackedTransformer transform, ArtifactBackedResolvedVariant.SingleArtifactSet delegate, WorkerLeaseService workerLeaseService) {
@@ -63,15 +62,10 @@ public class InitialArtifactTransformTask extends ArtifactTransformTask {
         });
     }
 
-    @Override
-    public synchronized ResolvedArtifactSet.Completion resolveArtifacts() {
-        if (resolvedArtifacts == null) {
-            ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
-            getBuildOperationExecuter().runAll(resolveArtifacts);
-
-            this.resolvedArtifacts = resolveArtifacts.getResult();
-        }
-        return resolvedArtifacts;
+    private ResolvedArtifactSet.Completion resolveArtifacts() {
+        ResolveArtifacts resolveArtifacts = new ResolveArtifacts(delegate);
+        getBuildOperationExecuter().runAll(resolveArtifacts);
+        return resolveArtifacts.getResult();
     }
 
     @Override

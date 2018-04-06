@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.List;
 
-class TransformArtifactOperation implements RunnableBuildOperation {
+class TransformArtifactOperation implements RunnableBuildOperation, ArtifactTransformationResult {
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
     private Throwable failure;
@@ -49,10 +49,12 @@ class TransformArtifactOperation implements RunnableBuildOperation {
         return BuildOperationDescriptor.displayName("Apply " + transform.getDisplayName() + " to " + artifact);
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public List<File> getResult() {
         return result;
     }

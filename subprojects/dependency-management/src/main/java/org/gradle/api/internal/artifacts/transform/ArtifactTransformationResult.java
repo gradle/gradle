@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import java.io.File;
+import java.util.List;
 
-public interface ArtifactTransformResult {
-    ResolvedArtifactSet.Completion getResult(AttributeContainerInternal attributes);
+public interface ArtifactTransformationResult {
+    Throwable getFailure();
+
+    List<File> getResult();
 }
