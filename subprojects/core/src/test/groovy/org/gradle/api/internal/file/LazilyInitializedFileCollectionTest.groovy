@@ -18,7 +18,6 @@ package org.gradle.api.internal.file
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
