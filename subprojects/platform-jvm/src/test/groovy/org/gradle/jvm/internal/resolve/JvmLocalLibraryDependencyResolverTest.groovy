@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
@@ -209,7 +210,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone(), ImmutableAttributes.EMPTY)
 
         then:
         artifacts != null
@@ -229,7 +230,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         !result.hasResult()
 
         when:
-        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone())
+        def artifacts = resolver.resolveArtifacts(component, configuration, Stub(ArtifactTypeRegistry), ModuleExclusions.excludeNone(), ImmutableAttributes.EMPTY)
 
         then:
         artifacts == null

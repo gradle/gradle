@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Describable;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
@@ -30,4 +31,13 @@ public interface ResolvedVariantSet {
     AttributesSchemaInternal getSchema();
 
     Set<ResolvedVariant> getVariants();
+
+    /**
+     * The provider may have been selected thanks to a different attribute set than the one from
+     * the consuming configuration. This can happen whenever a dependency has additional attributes,
+     * in which case it may override attributes from the configuration itself.
+     *
+     * @return attributes which will override the consumer attributes
+     */
+    ImmutableAttributes getOverridenAttributes();
 }

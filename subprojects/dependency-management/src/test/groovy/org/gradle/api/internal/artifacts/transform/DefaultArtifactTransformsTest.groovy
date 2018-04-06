@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultMutableAttributeContainer
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.Describables
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
@@ -45,13 +46,13 @@ class DefaultArtifactTransformsTest extends Specification {
     def producerSchema = Mock(AttributesSchemaInternal)
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema)
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, TestUtil.attributesFactory())
 
     def "selects producer variant with requested attributes"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
-        def set = Stub(ResolvedVariantSet)
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
         given:
@@ -72,7 +73,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def "fails when multiple producer variants match"() {
         def variant1 = Stub(ResolvedVariant)
         def variant2 = Stub(ResolvedVariant)
-        def set = Stub(ResolvedVariantSet)
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
         given:
@@ -98,9 +99,19 @@ class DefaultArtifactTransformsTest extends Specification {
   - <variant2>: Required artifactType 'classes' and found incompatible value 'jar'.""")
     }
 
+    private ResolvedVariant resolvedVariant() {
+        Stub(ResolvedVariant)
+    }
+
+    private ResolvedVariantSet resolvedVariantSet() {
+        Stub(ResolvedVariantSet) {
+            getOverridenAttributes() >> ImmutableAttributes.EMPTY
+        }
+    }
+
     def "selects variant with attributes that can be transformed to requested format"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
         def variant1Artifacts = Stub(ResolvedArtifactSet)
         def id = Stub(ComponentIdentifier)
         def sourceArtifact = Stub(TestArtifact)
@@ -110,7 +121,7 @@ class DefaultArtifactTransformsTest extends Specification {
         def outFile2 = new File("out2.classes")
         def outFile3 = new File("out3.classes")
         def outFile4 = new File("out4.classes")
-        def set = Stub(ResolvedVariantSet)
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
         def transformer = Mock(ArtifactTransformer)
         def listener = Mock(ResolvedArtifactSet.AsyncArtifactListener)
@@ -162,9 +173,9 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     def "fails when multiple transforms match"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def set = Stub(ResolvedVariantSet)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
         given:
@@ -198,9 +209,9 @@ Found the following transforms:
     }
 
     def "returns empty variant when no variants match and ignore no matching enabled"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def set = Stub(ResolvedVariantSet)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
         given:
@@ -221,9 +232,9 @@ Found the following transforms:
     }
 
     def "fails when no variants match and ignore no matching disabled"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
-        def set = Stub(ResolvedVariantSet)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
+        def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
         given:
