@@ -123,7 +123,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                     ).joinToString(separator = " ")
             useGradleWrapper = true
             // Let Gradle decide the correct build file
-            buildFile = ""
+            buildFile = " "
         }
     }
 
@@ -141,7 +141,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             gradleParams = gradleParameterString
             useGradleWrapper = true
             // Let Gradle decide the correct build file
-            buildFile = ""
+            buildFile = " "
         }
         if (os == OS.windows) {
             gradle {
@@ -151,7 +151,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                 gradleParams = gradleParameterString
                 useGradleWrapper = true
                 // Let Gradle decide the correct build file
-                buildFile = ""
+                buildFile = " "
             }
         }
         if (model.tagBuilds) {

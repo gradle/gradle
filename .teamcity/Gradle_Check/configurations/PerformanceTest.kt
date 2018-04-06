@@ -41,7 +41,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
                     ).joinToString(separator = " ")
             useGradleWrapper = true
             // Let Gradle decide the correct build file
-            buildFile = ""
+            buildFile = " "
         }
         script {
             name = "CHECK_CLEAN_M2"
