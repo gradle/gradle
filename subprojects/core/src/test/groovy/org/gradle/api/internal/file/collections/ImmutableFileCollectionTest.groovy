@@ -216,7 +216,7 @@ class ImmutableFileCollectionTest extends Specification {
     }
 
     @Unroll
-    def 'avoids file resolution when FileCollection contains only has Files (#count)'() {
+    def 'avoids file resolution when FileCollection contains only Files (#count)'() {
         def input = (0..(count)).collect { new File(it.toString()) }
         FileResolver fileResolver = Mock()
         ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
