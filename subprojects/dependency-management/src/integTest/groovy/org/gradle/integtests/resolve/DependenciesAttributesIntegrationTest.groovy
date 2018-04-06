@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -255,7 +254,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue")
-    @Ignore("variant selection works, but then artifact selection fails, because the artifact set which is created ignores the dependency attributes")
     def "dependency attribute value overrides configuration attribute"() {
         given:
         repository {
