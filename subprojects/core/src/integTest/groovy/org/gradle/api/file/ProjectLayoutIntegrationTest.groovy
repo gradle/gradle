@@ -257,7 +257,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run('myTask')
 
         then:
-        outputContains("files = [${TextUtil.toPlatformLineSeparators(testDirectory.absolutePath + '/build/resource/file.txt')}]")
+        outputContains("files = [${new File(testDirectory.absolutePath , '/build/resource/file.txt').absolutePath}]")
 
         where:
         collectionType               | dependencyType | expression
@@ -292,7 +292,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executed(':producer', ':consumer')
-        outputContains("files = [${TextUtil.toPlatformLineSeparators(testDirectory.absolutePath + '/build/resource/file.txt')}]")
+        outputContains("files = [${new File(testDirectory.absolutePath, '/build/resource/file.txt').absolutePath}]")
 
         where:
         methodName << ['filesFor', 'mutableFilesFor']
@@ -318,7 +318,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        outputContains("files = [${TextUtil.toPlatformLineSeparators(testDirectory.absolutePath + '/src/resource/file.txt')}]")
+        outputContains("files = [${testDirectory.absolutePath + '/src/resource/file.txt'}]")
+        outputContains("files = [${new File(testDirectory.absolutePath, '/src/resource/file.txt').absolutePath}]")
 
         where:
         collectionType               | expression
