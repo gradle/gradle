@@ -123,7 +123,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                     ).joinToString(separator = " ")
             useGradleWrapper = true
             // Let Gradle decide the correct build file
-            buildFile = null
+            buildFile = ""
         }
     }
 
