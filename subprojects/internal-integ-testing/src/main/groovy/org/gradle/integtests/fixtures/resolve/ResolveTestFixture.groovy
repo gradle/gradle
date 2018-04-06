@@ -689,7 +689,7 @@ allprojects {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, String> attributes = [:]) {
+        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
             checkVariant = true
             variantName = name
             variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')

@@ -83,4 +83,6 @@ public interface DependencyMetadata {
      * Returns a copy of this dependency with the given selection reason.
      */
     DependencyMetadata withReason(String reason);
+
+    ImmutableAttributes getAttributes();
 }

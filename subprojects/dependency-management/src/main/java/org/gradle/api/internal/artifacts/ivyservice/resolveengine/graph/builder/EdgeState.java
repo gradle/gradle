@@ -141,7 +141,9 @@ class EdgeState implements DependencyGraphEdge {
         ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
         List<ConfigurationMetadata> targetConfigurations;
         try {
-            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
+            ImmutableAttributes dependencyAttributes = dependencyMetadata.getAttributes();
+            ImmutableAttributes allAttributes = resolveState.getAttributesFactory().concat(attributes, dependencyAttributes);
+            targetConfigurations = dependencyMetadata.selectConfigurations(allAttributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
