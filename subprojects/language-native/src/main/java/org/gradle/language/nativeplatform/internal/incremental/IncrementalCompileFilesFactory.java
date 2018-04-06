@@ -97,7 +97,7 @@ public class IncrementalCompileFilesFactory {
 
             SourceFileState previousState = previous.getState(sourceFile);
             CollectingMacroLookup visibleMacros = new CollectingMacroLookup();
-            FileVisitResult result = visitFile(sourceFile, fileSnapshot, visibleMacros, new HashSet<File>(), true);
+            FileVisitResult result = visitFile(sourceFile, fileSnapshot, visibleMacros, new HashSet<HashCode>(), true);
             ArrayList<IncludeFileState> includedFiles = new ArrayList<IncludeFileState>();
             result.collectFilesInto(++traversalCount, includedFiles);
             SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), ImmutableSet.copyOf(includedFiles));
@@ -110,7 +110,7 @@ public class IncrementalCompileFilesFactory {
             return previousState == null || result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes || newState.hasChanged(previousState);
         }
 
-        private FileVisitResult visitFile(File file, FileSnapshot fileSnapshot, CollectingMacroLookup visibleMacros, Set<File> visited, boolean isSourceFile) {
+        private FileVisitResult visitFile(File file, FileSnapshot fileSnapshot, CollectingMacroLookup visibleMacros, Set<HashCode> visited, boolean isSourceFile) {
             FileDetails fileDetails = visitedFiles.get(file);
             if (fileDetails != null && fileDetails.results != null) {
                 // A file that we can safely reuse the result for
@@ -118,13 +118,13 @@ public class IncrementalCompileFilesFactory {
                 return fileDetails.results;
             }
 
-            if (!visited.add(file)) {
+            HashCode newHash = fileSnapshot.getContent().getContentMd5();
+            if (!visited.add(newHash)) {
                 // A cycle, treat as resolved here
                 return new FileVisitResult(file);
             }
 
             if (fileDetails == null) {
-                HashCode newHash = fileSnapshot.getContent().getContentMd5();
                 IncludeDirectives includeDirectives = sourceIncludesParser.parseIncludes(file);
                 fileDetails = new FileDetails(new IncludeFileState(newHash, file), includeDirectives);
                 visitedFiles.put(file, fileDetails);

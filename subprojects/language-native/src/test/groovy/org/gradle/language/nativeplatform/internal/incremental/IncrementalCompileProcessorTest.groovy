@@ -413,7 +413,7 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def sourceFile(def name) {
-        tmpDir.createFile(name) << "initial text"
+        tmpDir.createFile(name) << name
     }
 
     SourceIncludesResolver.IncludeResolutionResult resolveDeps(Collection<File> deps) {
