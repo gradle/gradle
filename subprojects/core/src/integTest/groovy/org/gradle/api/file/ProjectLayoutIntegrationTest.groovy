@@ -318,7 +318,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        outputContains("files = [${testDirectory.absolutePath + '/src/resource/file.txt'}]")
         outputContains("files = [${new File(testDirectory.absolutePath, '/src/resource/file.txt').absolutePath}]")
 
         where:
