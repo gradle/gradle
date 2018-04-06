@@ -48,8 +48,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.util.NameValidator.asValidName;
-
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
@@ -82,7 +80,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         this.startParameter = startParameter;
         this.settingsClassLoaderScope = settingsClassLoaderScope;
         services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, asValidName(settingsDir.getName()), settingsDir);
+        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
     }
 
     @Override
