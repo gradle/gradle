@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -47,7 +48,9 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
+import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.Describables;
@@ -60,6 +63,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -94,6 +98,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private FileCollection gradleModuleDescriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
+    private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
 
     public DefaultIvyPublication(
         String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
@@ -189,6 +194,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                         addExternalDependency((ExternalDependency) dependency, confMapping);
                     }
                 }
+            }
+
+            for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
+                globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
         }
     }
@@ -371,5 +380,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return publishedUrl;
             }
         };
+    }
+
+    @Override
+    public Set<IvyExcludeRule> getGlobalExcludes() {
+        return globalExcludes;
     }
 }

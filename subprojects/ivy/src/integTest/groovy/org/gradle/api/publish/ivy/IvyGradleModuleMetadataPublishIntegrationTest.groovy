@@ -33,6 +33,7 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
     Set dependencyConstraints = []
     Set artifacts = []
     Set capabilities = []
+    Set globalExcludes = []
     AttributeContainer attributes
 }
 
