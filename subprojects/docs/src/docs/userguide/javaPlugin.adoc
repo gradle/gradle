@@ -543,13 +543,17 @@ The incremental compilation at a high level:
 
 Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
 Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
+
+
 As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
+Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.
 
 ==== Making an annotation processor incremental
 
 Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
 As a processor author, please consult the information below to decide which category fits your processor.
 You can then register it for incremental compilation in its META-INF folder.
+The format is one line per processor, with the qualified name of the processor and its category separated by a comma.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
@@ -576,6 +580,7 @@ Isolating processors have the following limitations:
 * Can't read resources
 * Can't write resources
 * Can't have any side effects except for using the `Filer` and `Messager` APIs
+* Can't depend on compiler-specific APIs like `com.sun.source.util.Trees`
 * Must provide exactly one originating element for each file generated with the `Filer` API
 * Must make all decisions about an element based on information reachable from its AST.
 For instance it can query the super class, method return types etc, but can't look at other, unrelated elements.
@@ -595,12 +600,16 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 
 Aggregating processors have the following limitations:
 
+
 * Its annotations need to have `CLASS` or `RUNTIME` retention
 * Can't read resources (this may change in the future)
 * Can't write resources (this may change in the future)
 * Can't have any side effects except for using the `Filer` and `Messager` APIs
+* Can't depend on compiler-specific APIs like `com.sun.source.util.Trees`
+* Can't depend on information only available from source files (See comment on parameter names below)
 
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
+If your aggregating processor requires access to parameter names, you need to instruct users to add the `-parameters` compiler argument.
 Gradle will always recompile any files the processor generates.
 
 [[sec:java_compile_avoidance]]
