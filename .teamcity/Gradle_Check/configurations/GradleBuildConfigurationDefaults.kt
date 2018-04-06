@@ -8,7 +8,6 @@ import model.CIBuildModel
 import model.GradleSubproject
 import model.OS
 import model.TestCoverage
-import java.util.Arrays.asList
 
 private val java7Homes = mapOf(
         OS.windows to """"-Djava7Home=%windows.java7.oracle.64bit%"""",
@@ -23,7 +22,7 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-val gradleParameters: List<String> = asList(
+val gradleParameters = listOf(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
         "--daemon",
