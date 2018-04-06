@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
@@ -194,7 +195,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         file('src/resource/file.txt') << "some text"
 
         buildFile << """
-            def fileCollection = ${String.format(expressionTemplate, testDirectory.absolutePath)}
+            def fileCollection = ${TextUtil.normaliseFileSeparators(String.format(expressionTemplate, testDirectory.absolutePath))}
             println("size = \${fileCollection.files.size()}")
         """
 
@@ -244,7 +245,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     new File('${testDirectory.absolutePath}', 'build/resource/file.txt').text = "some text"
                 }
-                outputs.file new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
+                outputs.file new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
             }
 
             def fileCollection = $expression
@@ -269,7 +270,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def '#methodName enforces build dependencies when given Task as input'() {
         buildFile << """
             task producer {
-                def outputFile = new File('${testDirectory.absolutePath}', 'build/resource/file.txt')
+                def outputFile = new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
                 outputs.file outputFile
                 doLast {
                     outputFile.text = "some text"
