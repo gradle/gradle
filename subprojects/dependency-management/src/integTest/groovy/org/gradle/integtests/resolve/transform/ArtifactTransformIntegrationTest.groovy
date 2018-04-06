@@ -207,6 +207,86 @@ class FileSizer extends ArtifactTransform {
         output.count("Transforming") == 0
     }
 
+    def "applies transforms to artifacts from local projects, files and external dependencies"() {
+        def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
+        dependency.artifactFile.text = "dependency"
+        def binaryDependency = mavenRepo.module("test", "test", "1.3").dependsOn(dependency).publish()
+        binaryDependency.artifactFile.text = "1234"
+
+        settingsFile << """
+            include 'common'
+        """
+
+        given:
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(':common') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'common.jar'
+                }
+                artifacts {
+                    compile jar
+                    compile file("common-file.jar")
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib2.jar'
+                }
+
+                dependencies {
+                    compile "${binaryDependency.groupId}:${binaryDependency.artifactId}:${binaryDependency.version}"
+                    compile project(":common")
+                    compile files("file1.jar")
+                }
+
+                artifacts {
+                    compile jar1, jar2
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+        file("lib/file1.jar").text = "first"
+        file("common/common-file.jar").text = "first"
+
+        when:
+        run "resolve"
+
+        then:
+        executed(":common:jar", ":lib:jar1", ":lib:jar2", ":app:resolve")
+
+        and:
+        outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}]")
+        // transformed outputs should belong to same component as original
+        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
+        outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
+        file("app/build/libs").assertHasDescendants("common.jar.txt", "common-file.jar.txt", "file1.jar.txt", "lib1.jar.txt", "lib2.jar.txt", "test-1.3.jar.txt", "test-dependency-1.3.jar.txt")
+        file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
+
+        and:
+        output.count("Transforming") == 7
+    }
+
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
         given:
         buildFile << """
