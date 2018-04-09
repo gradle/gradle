@@ -229,7 +229,7 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     }
 
     FileCollection files(String... paths) {
-        ImmutableFileCollection.of(paths.collect { tmpDir.file(it).createFile() })
+        ImmutableFileCollection.of(paths.collect { tmpDir.file(it).createFile() } as File[])
     }
 
     FileCollection files(File... files) {

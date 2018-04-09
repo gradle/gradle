@@ -53,7 +53,7 @@ class DefaultTaskOutputsTest extends Specification {
     def resolver = [
         resolve: { new File(it) },
         resolveFiles: { it ->
-            ImmutableFileCollection.of(it*.call().flatten().collect { new File((String) it) })
+            ImmutableFileCollection.of(it*.call().flatten().collect { new File((String) it) } as File[])
         }
     ]   as FileResolver
     def project = Stub(ProjectInternal) {

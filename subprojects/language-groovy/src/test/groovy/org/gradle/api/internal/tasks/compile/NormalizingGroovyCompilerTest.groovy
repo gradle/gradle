@@ -91,6 +91,6 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        ImmutableFileCollection.of(paths.collect { new File(it) })
+        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
     }
 }

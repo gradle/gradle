@@ -29,11 +29,10 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     def testDir = temporaryFolder.getTestDirectory()
     def destDir = new File(testDir, "dest")
     def srcDir = new File(testDir, "srcdir")
-    def classpath = WrapUtil.toSet(new File("classpath"))
     def toolChain = Mock(JavaToolChainInternal)
     def toolProvider = Mock(ToolProvider)
     def generator = Mock(Compiler)
-    def configurationMock = ImmutableFileCollection.of(classpath)
+    def configurationMock = ImmutableFileCollection.of(new File("classpath"))
     def executable = "somepath"
     Javadoc task
 
