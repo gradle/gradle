@@ -78,7 +78,7 @@ class DefaultSwiftApplicationTest extends Specification {
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
             isDebuggable() >> true
-            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MAC_OS)
+            getOperatingSystemFamily() >> TestUtil.objectFactory().named(OperatingSystemFamily, OperatingSystemFamily.MACOS)
         }
     }
 }
