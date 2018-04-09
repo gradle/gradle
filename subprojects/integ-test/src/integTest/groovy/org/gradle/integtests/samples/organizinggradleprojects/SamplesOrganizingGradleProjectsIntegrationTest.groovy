@@ -45,6 +45,6 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractIntegration
         succeeds('build')
 
         then:
-        nonSkippedTasks.contains('test', 'integTest')
+        nonSkippedTasks.containsAll([':test', ':integTest'])
     }
 }
