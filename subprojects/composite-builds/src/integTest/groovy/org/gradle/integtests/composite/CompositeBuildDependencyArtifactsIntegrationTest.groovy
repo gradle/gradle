@@ -676,6 +676,42 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         // assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
+    def "new substitutions can be discovered while building the task graph for the first level included builds"() {
+        given:
+        def firstLevel = (1..2).collect{ "firstLevel$it" }
+
+        buildA.buildFile << """
+            dependencies {
+                implementation ${firstLevel.collect { "'org.test:${it}:1.0'" }.join(", ") }
+            }
+        """
+
+        firstLevel.each { buildName ->
+            def build = singleProjectBuild(buildName) {
+                buildFile << """
+                    apply plugin: 'java'
+                    dependencies {
+                        //compileOnly ensures that this is not already found in the dependency graph of the root build
+                        compileOnly 'org.test:secondLevel:1.0'
+                    }
+                """
+            }
+            includeBuild build
+        }
+        def secondLevel = singleProjectBuild("secondLevel") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        includeBuild secondLevel
+
+        when:
+        execute(buildA, "jar")
+
+        then:
+        executedTasks.contains(":secondLevel:jar")
+    }
+
     private void resolveArtifacts() {
         execute(buildA, ":resolve", arguments)
     }
