@@ -28,6 +28,10 @@ sourceSets {
     }
 }
 
+configurations {
+    intTestImplementation.extendsFrom implementation
+}
+
 dependencies {
     intTestImplementation 'junit:junit:4.12'
 }

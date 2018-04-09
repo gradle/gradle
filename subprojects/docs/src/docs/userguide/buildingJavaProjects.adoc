@@ -54,7 +54,13 @@ The rest of the chapter explains the different avenues for customizing the build
 
 Gradle's Java support was the first to introduce a new concept for building source-based projects: _source sets_. The main idea is that source files and resources are often logically grouped by type, such as application code, unit tests and integration tests. Each logical group typically has its own sets of file dependencies, classpaths, and more. Significantly, the files that form a source set _don't have to be located in the same directory_!
 
-Source sets are a powerful concept that tie together several aspects of compilation, as shown in this diagram:
+Source sets are a powerful concept that tie together several aspects of compilation:
+
+ * the source files and where they're located
+ * the compilation classpath, including any required dependencies
+ * where the compiled class files are placed
+ 
+You can see how these relate to one another in this diagram:
 
 ++++
 <figure>
@@ -65,7 +71,7 @@ Source sets are a powerful concept that tie together several aspects of compilat
 </figure>
 ++++
 
-The shaded boxes represent properties of the source set itself, i.e. the locations of the source files, the classpath used for compilation and where the compiled classes go. On top of that, the Java Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<tab:configurations,dependency configurations>>.
+The shaded boxes represent properties of the source set itself. On top of that, the Java Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_source_set_configurations,dependency configurations>>.
 
 [NOTE]
 .The `main` source set
@@ -86,11 +92,16 @@ Java projects typically include resources other than source files, such as prope
 
 As before, the shaded boxes represent properties of the source set, which in this case comprises the locations of the resource files and where they are copied to.
 
-In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests using https://junit.org/[JUnit] or http://testng.org/[TestNG].
+In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing,Java testing>> chapter.
 
-Projects typically use this source set for unit tests, but you can use it for integration, acceptance and other types of test if you wish. That said, most projects <<sec:custom_java_source_sets,define new source sets>> for those other test types because they require special setup or classpaths.
+Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. That said, most projects <<sec:custom_java_source_sets,define new source sets>> for those other test types because they require special setup or classpaths.
 
-You'll learn more about source sets and the features they provide in other sections of the chapter as many facets of building a Java project make use of them.
+You'll learn more about source sets and the features they provide in:
+
+ * _<<sec:custom_java_source_set_paths,Customizing file and directory locations>>_
+ * _<<sec:configuring_java_integration_tests,Configuring Java integration tests>>_
+
+We also discuss when and how to <<sec:custom_java_source_sets,create your own custom source sets>>.
 
 [[sec:java_dependency_management_overview]]
 === Managing your dependencies 
@@ -163,6 +174,7 @@ Compiling both your production and test code can be trivially easy if you follow
 
 Other JVM language plugins, such as the one for <<groovy_plugin,Groovy>>, follow the same pattern of conventions. We recommend that you follow these conventions wherever possible, but you don't have to. There are several options for customization, as you'll see next.
 
+[[sec:custom_java_source_set_paths]]
 ==== Customizing file and directory locations
 
 Imagine you have a legacy project that uses an _src_ directory for the production code and _test_ for the test code. The conventional directory structure won't work, so you need to tell Gradle where to find the source files. You do that via source set configuration.
@@ -239,44 +251,24 @@ The following sample shows how the `build.gradle` needs to be adjusted. In order
 [[sec:custom_java_source_sets]]
 ==== Compiling independent sources separately
 
-Most projects have at least two independent sets of sources: the production code and the test code. Gradle already makes this scenario part of its Java convention, but what if you have other sets of sources? For example, you might have integration or functional tests that have different classpath requirements from the unit tests, or you may need to compile some bootstrap code that's required before you can compile the rest of your production code.
+Most projects have at least two independent sets of sources: the production code and the test code. Gradle already makes this scenario part of its Java convention, but what if you have other sets of sources? One of the most common scenarios is when you have separate integration tests of some form or other. In that case, a custom source set may be just what you need.
 
-In these cases, you can create a new source set. It looks a lot like configuring an existing one, as you can see from this integration test example:
+You can see a complete example for setting up integration tests in the <<sec:configuring_java_integration_tests,Java testing chapter>>. You can set up other source sets that fulfil different roles in the same way. The question then becomes: when should you define a custom source set?
 
-++++
-<sample id="customSourceSet" dir="userguide/java/customDirs" title="Declaring a custom source set">
-    <sourcefile file="build.gradle" snippet="custom-source-set"/>
-</sample>
-++++
+To answer that question, consider whether the sources:
 
-This simple declaration will automatically create a corresponding `compileIntTestJava` task and `intTestCompileOnly` and `intTestImplementation` configurations. Any Java source files in the directory _src/intTest/java_ will then be compiled.
+ 1. Need to be compiled with a unique classpath
+ 2. Generate classes that are handled differently from the `main` and `test` ones
+ 3. Form a natural part of the project
 
-The above is rarely sufficient, though. You will often need to adjust the compilation classpath, for example to include the production classes. And you will typically need to set up some dependencies. Here's a slightly more useful example that does both:
+If your answer to both 3 and either one of the others is yes, then a custom source set is probably the right approach. For example, integration tests are typically part of the project because they test the code in `main`. In addition, they often have either their own dependencies independent of the `test` source set or they need to be run with a custom `Test` task.
 
-++++
-<sample id="practicalIntegTest" dir="userguide/java/basic" title="Setting up working integration tests">
-    <sourcefile file="build.gradle" snippet="practical-integ-test-source-set"/>
-</sample>
-++++
+Other common scenarios are less clear cut and may have better solutions. For example:
 
-There are several important points to understand in the above example:
+ * Separate API and implementation JARs — it may make sense to have these as separate projects, particularly if you already have a multi-project build
+ * Generated sources — if the resulting sources should be compiled with the production code, add their path(s) to the `main` source set and make sure that the `compileJava` task depends on the task that generates the sources
 
- * `sourceSets.main.output` is a <<sec:file_collections,file collection>> of all the directories containing compiled production classes and resources
- * `+=` allows you to append paths and collections of paths to `compileClasspath` and `runtimeClasspath`
- * if you want to use the convention-based configurations, you _must_ declare the dependencies _after_ the new source set
-
-One thing to bear in mind is that source sets are geared around compilation and the processing of other resources. What this means for the integration test example is that we would still need to create a task to _run_ the tests. Here is an example for completeness sake:
-
-++++
-<sample id="integTestTask" dir="userguide/java/basic" title="Defining a working integration test task">
-    <sourcefile file="build.gradle" snippet="integ-test-task"/>
-</sample>
-++++
-
-Again, we're accessing a source set — `intTest` this time — to get the relevant information, i.e. where the compiled test cases are and what the classpath is for running those tests.
-
-The <<sec:some_source_set_examples,Java Plugin reference>> has some more examples of using source sets for things like creating JARs and generating Javadocs.
-
+If you're unsure whether to create a custom source set or not, then go ahead and do so. It should be straightforward and if it's not, then it's probably not the right tool for the job.
 
 [[sec:java_resources]]
 === Managing resources

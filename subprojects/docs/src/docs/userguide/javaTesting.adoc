@@ -350,3 +350,51 @@ TestNG supports http://testng.org/doc/documentation-main.html#parameters[paramet
 
 Given a parameterized test method named `aTestMethod` that takes two parameters, it will be reported with the name `aTestMethod(toStringValueOfParam1, toStringValueOfParam2)`. This makes it easy to identify the parameter values for a particular iteration.
 
+
+[[sec:configuring_java_integration_tests]]
+=== Configuring integration tests
+
+A common requirement for projects is to incorporate integration tests in one form or another. Their aim is to verify that the various parts of the project are working together properly. This often means that they require special execution setup and dependencies compared to unit tests.
+
+The simplest way to add integration tests to your build is by taking these steps:
+
+ 1. Create a new source set for them
+ 2. Add the required dependencies to the appropriate configurations for that source set
+ 3. Configure the compilation and runtime classpaths for that source set
+
+You may also need to perform some additional configuration depending on what form the integration tests take. We will discuss those as we go.
+
+Here's a practical example that implements the above steps in a build script:
+
+++++
+<sample id="practicalIntegTest" dir="userguide/java/basic" title="Setting up working integration tests">
+    <sourcefile file="build.gradle" snippet="practical-integ-test-source-set"/>
+</sample>
+++++
+
+This will set up a new source set called `intTest` that automatically creates:
+
+ * `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <<java_source_set_configurations, a few others>> that are less commonly needed)
+ * A `compileIntTestJava` task that will compile all the source files under _src/intTest/java_
+
+The example also does the following:
+
+ * Adds the production classes from the `main` source set to the compilation and runtime classpaths of the integration tests — `sourceSets.main.output` is a <<sec:file_collections,file collection>> of all the directories containing compiled production classes and resources
+ * Makes the `intTestImplementation` configuration extend from `implementation`, which means that all the declared dependencies of the production code also become dependencies of the integration tests
+
+Another common step is to attach all the unit test dependencies to the integration tests as well — via `intTestImplementation.extendsFrom testImplementation` — but that only makes sense if the integration tests require all the dependencies that the unit tests have.
+
+There are a couple of other facets of the example you should take note of:
+
+ * `+=` allows you to append paths and collections of pAths to `compileClasspath` and `runtimeClasspath` instead of overwriting them
+ * If you want to use the convention-based configurations, such as `intTestImplementation`, you _must_ declare the dependencies _after_ the new source set
+
+Creating and configuring a source set automatically sets up the compilation stage, but it does nothing with respect to running the integration tests. So the last piece of the puzzle is a custom test task that uses the information from the new source set to configure its runtime classpath and the test classes:
+
+++++
+<sample id="integTestTask" dir="userguide/java/basic" title="Defining a working integration test task">
+    <sourcefile file="build.gradle" snippet="integ-test-task"/>
+</sample>
+++++
+
+Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDir` property — and what needs to be on the classpath when running them — `classpath`.
