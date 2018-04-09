@@ -1,8 +1,13 @@
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+
 plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
+apply {
+    plugin("org.gradle.kotlin.kotlin-dsl")
+    plugin<PrecompiledScriptPlugins>()
+}
 
 dependencies {
     implementation(project(":binaryCompatibility"))
@@ -38,10 +43,6 @@ gradlePlugin {
         "publishPublicLibraries" {
             id = "gradlebuild.publish-public-libraries"
             implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
-        }
-       "resumeBuild" {
-            id = "gradlebuild.resume-build"
-            implementationClass = "org.gradle.gradlebuild.tools.ResumeBuildPlugin"
         }
         "strictCompile" {
             id = "gradlebuild.strict-compile"
