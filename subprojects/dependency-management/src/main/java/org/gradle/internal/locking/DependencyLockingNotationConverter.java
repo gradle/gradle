@@ -29,8 +29,8 @@ class DependencyLockingNotationConverter {
             throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + module + "'");
         }
         DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
-                                                                                            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
-                                                                                            module.substring(nameVersionSeparatorIndex + 1));
+            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+            module.substring(nameVersionSeparatorIndex + 1));
 
         constraint.because("dependency was locked to version " + constraint.getVersion());
 

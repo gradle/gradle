@@ -44,6 +44,7 @@ dependencies {
     compile(library("jgit"))
     compile(library("commons_httpclient"))
     compile(library("jsch"))
+    compile(library("commons_math"))
 
     flamegraph("com.github.oehme:jfr-flame-graph:v0.0.10:all")
 

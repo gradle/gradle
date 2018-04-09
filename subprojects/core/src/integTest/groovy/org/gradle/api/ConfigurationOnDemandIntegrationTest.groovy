@@ -348,7 +348,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 
@@ -366,7 +366,7 @@ project(':api') {
         file("b/build.gradle") << """
             apply plugin: 'java'
             project(':b') {
-                dependencies { compile project(':a') }
+                dependencies { implementation project(':a') }
             }
         """
 

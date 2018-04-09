@@ -92,7 +92,7 @@ class DefaultBuildCacheControllerTest extends Specification {
             ),
             operations,
             tmpDir.file("dir"),
-            false
+            false, false
         )
     }
 

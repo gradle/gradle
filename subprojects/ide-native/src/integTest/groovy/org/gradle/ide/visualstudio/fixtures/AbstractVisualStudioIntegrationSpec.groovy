@@ -36,16 +36,12 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
                 p.plugins.withType(VisualStudioPlugin.class) {
                     p.tasks.withType(GenerateProjectFileTask) {
                         doFirst {
-                            p.visualStudio {
-                                projects.all {
-                                    def relativeToRoot = org.gradle.util.RelativePathUtil.relativePath(projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
-                                    if (relativeToRoot == "") {
-                                        relativeToRoot = "."
-                                    }
-                                    projectFile.withXml { xml ->
-                                        redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot
-                                    }
-                                }
+                            def relativeToRoot = org.gradle.util.RelativePathUtil.relativePath(visualStudioProject.projectFile.location.parentFile, rootProject.projectDir).replaceAll('/', '\\\\\\\\')
+                            if (relativeToRoot == "") {
+                                relativeToRoot = "."
+                            }
+                            visualStudioProject.projectFile.withXml { xml ->
+                                redirectOutputForAll xml.asNode().PropertyGroup.findAll { it.'@Label' == 'NMakeConfiguration' }, relativeToRoot
                             }
                         }
                     }

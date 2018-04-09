@@ -275,6 +275,49 @@ model {
         skipped compileTask
     }
 
+    def "source is recompiled when headers form a cycle and one is changed"() {
+        given:
+        def headerFile1 = file("src/main/headers/bar.h")
+        def headerFile2 = file("src/main/headers/foo.h")
+        headerFile1 << """
+            #ifndef FOO
+            #include "./${headerFile2.name}"
+            #endif
+        """
+        headerFile2 << """
+            #define FOO
+            
+            #include "./${headerFile1.name}"
+        """
+
+        sourceFile << """
+            #include "${headerFile1.name}"
+        """
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        headerFile1 << """
+            // Some extra content
+        """
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFile sourceFile
+
+        and:
+        succeeds "mainExecutable"
+
+        and:
+        skipped compileTask
+    }
+
     def "source is not recompiled when preprocessor removed header is changed"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")

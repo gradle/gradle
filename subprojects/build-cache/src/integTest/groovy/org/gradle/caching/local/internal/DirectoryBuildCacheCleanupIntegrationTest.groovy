@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.cache.internal.DefaultPersistentDirectoryCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -26,7 +27,7 @@ import spock.lang.Unroll
 import java.util.concurrent.TimeUnit
 
 class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
-    private final static int MAX_CACHE_AGE = 7
+    private final static int MAX_CACHE_AGE_IN_DAYS = 7
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
@@ -61,7 +62,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         """
             buildCache {
                 local {
-                    removeUnusedEntriesAfterDays = ${MAX_CACHE_AGE}
+                    removeUnusedEntriesAfterDays = ${MAX_CACHE_AGE_IN_DAYS}
                 }
             }
         """
@@ -75,7 +76,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         when:
         def newTrashFile = cacheDir.file("0" * 32).createFile()
         def oldTrashFile = cacheDir.file("1" * 32).createFile()
-        oldTrashFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE) * 2
+        oldTrashFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS) * 2
         run()
         then:
         newTrashFile.assertIsFile()
@@ -108,37 +109,37 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         days << [-1, 0]
     }
 
-    def "build cache cleanup is triggered after max number of days expires"() {
+    def "build cache cleanup is triggered after max number of hours expires"() {
         run()
         def originalCheckTime = gcFile().lastModified()
 
-        // One day isn't enough to trigger
+        // One hour isn't enough to trigger
         when:
-        // Set the time back 1 day
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(1))
+        // Set the time back 1 hour
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(1))
         def lastCleanupCheck = gcFile().lastModified()
         run()
         then:
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
-        // checkInterval-1 days is not enough to trigger
+        // checkInterval-1 hours is not enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE - 1))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS - 1))
         lastCleanupCheck = gcFile().lastModified()
         run()
         then:
         assertCacheWasNotCleanedUpSince(lastCleanupCheck)
 
-        // checkInterval days is enough to trigger
+        // checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS))
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
 
-        // More than checkInterval days is enough to trigger
+        // More than checkInterval hours is enough to trigger
         when:
-        gcFile().setLastModified(originalCheckTime - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE * 10))
+        gcFile().setLastModified(originalCheckTime - TimeUnit.HOURS.toMillis(DefaultPersistentDirectoryCache.CLEANUP_INTERVAL_IN_HOURS * 10))
         run()
         then:
         assertCacheWasCleanedUpSince(lastCleanupCheck)
@@ -193,7 +194,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
 
     long markCacheForCleanup() {
         gcFile().touch()
-        gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE) * 2
+        gcFile().lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS) * 2
         return gcFile().lastModified()
     }
 

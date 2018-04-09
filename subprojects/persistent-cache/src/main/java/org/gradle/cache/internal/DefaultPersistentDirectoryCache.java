@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.CleanupAction;
@@ -37,7 +38,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
-    public static final int CLEANUP_INTERVAL = 7;
+    public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
@@ -97,7 +98,11 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         }
 
         public void initialize(FileLock fileLock) {
-            for (File file : getBaseDir().listFiles()) {
+            File[] files = getBaseDir().listFiles();
+            if (files == null) {
+                throw new UncheckedIOException("Cannot list files in " + getBaseDir());
+            }
+            for (File file : files) {
                 if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
                     continue;
                 }
@@ -120,9 +125,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     GFileUtils.touch(gcFile);
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
-                    long timeInDays = TimeUnit.MILLISECONDS.toDays(duration);
-                    LOGGER.debug("{} has last been cleaned up {} days ago", DefaultPersistentDirectoryCache.this, timeInDays);
-                    return timeInDays >= CLEANUP_INTERVAL;
+                    long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
+                    LOGGER.debug("{} has last been cleaned up {} hours ago", DefaultPersistentDirectoryCache.this, timeInHours);
+                    return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
                 }
             }
             return false;

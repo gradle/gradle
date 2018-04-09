@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing.junitplatform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
 import java.util.Arrays;
@@ -79,12 +80,12 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
         return this;
     }
 
-    @Incubating
+    @Input
     public Set<String> getIncludeEngines() {
         return includeEngines;
     }
 
-    @Incubating
+    @Input
     public Set<String> getIncludeTags() {
         return includeTags;
     }
@@ -93,6 +94,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
         this.includeEngines = includeEngines;
     }
 
+    @Input
     public Set<String> getExcludeEngines() {
         return excludeEngines;
     }
@@ -105,6 +107,7 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
         this.includeTags = includeTags;
     }
 
+    @Input
     public Set<String> getExcludeTags() {
         return excludeTags;
     }
