@@ -36,4 +36,15 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractIntegration
         then:
         sample.dir.file('build/distributions/mycompany-gradle-4.6-bin.zip').isFile()
     }
+
+    @UsesSample("userguide/organizingGradleProjects/separatedTestTypes")
+    def "can execute different types of tests"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds('build')
+
+        then:
+        nonSkippedTasks.contains('test', 'integTest')
+    }
 }

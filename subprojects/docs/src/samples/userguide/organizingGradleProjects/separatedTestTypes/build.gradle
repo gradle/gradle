@@ -1,0 +1,10 @@
+apply plugin: 'java'
+apply from: 'gradle/integration-test.gradle'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
