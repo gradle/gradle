@@ -57,7 +57,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def spec = new DefaultJavaCompileSpec()
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
-        spec.source = ImmutableFileCollection.of(sources)
+        spec.source = ImmutableFileCollection.of(sources as File[])
         spec.compileClasspath = classpath
         spec.tempDir = tempDir.testDirectory
         spec
