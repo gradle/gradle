@@ -31,7 +31,7 @@ public interface SwiftPlatform extends NativePlatform {
     /**
      * The operating system family being targeted.
      *
-     * @since 4.7
+     * @since 4.8
      */
     @Nested
     OperatingSystemFamily getOperatingSystemFamily();

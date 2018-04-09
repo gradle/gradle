@@ -32,6 +32,12 @@ public abstract class OperatingSystemFamily implements Named {
     public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 
     /**
+     * @since 4.8
+     */
+    public OperatingSystemFamily() {
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Input
@@ -47,6 +53,8 @@ public abstract class OperatingSystemFamily implements Named {
 
     /**
      * Is this the Windows operating system family?
+     *
+     * @since 4.8
      */
     public boolean isWindows() {
         return is(WINDOWS);
@@ -61,6 +69,8 @@ public abstract class OperatingSystemFamily implements Named {
 
     /**
      * Is this the Linux operating system family?
+     *
+     * @since 4.8
      */
     public boolean isLinux() {
         return is(LINUX);
@@ -69,12 +79,14 @@ public abstract class OperatingSystemFamily implements Named {
     /**
      * The macOS operating system family.
      *
-     * @since 4.7
+     * @since 4.8
      */
     public static final String MACOS = "macos";
 
     /**
      * Is this the macOS operating system family?
+     *
+     * @since 4.8
      */
     public boolean isMacOs() {
         return is(MACOS);
