@@ -66,13 +66,18 @@ import java.util.TreeSet;
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private static final Object[] NO_ARGS = new Object[0];
-
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
     );
     private static final Set<String> MANDATORY_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_NAME, Task.TASK_TYPE
     );
+    private static final Action<? super Task> EMPTY_ACTION = new Action<Task>() {
+        @Override
+        public void execute(Task o) {
+            // do nothing
+        }
+    };
 
     private final MutableModelNode modelNode;
     private final ITaskFactory taskFactory;
@@ -267,10 +272,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
+        return createLater(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> Provider<T> createLater(String name, Class<T> type, Object... constructorArgs) {
+        return createLater(name, type, EMPTY_ACTION, constructorArgs);
+    }
+
+    private <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction, Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction, constructorArgs);
         addLater(provider);
         return provider;
     }
@@ -480,10 +494,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private class TaskCreatingProvider<T extends Task> extends TaskProvider<T> {
         Action<? super T> configureAction;
         T task;
+        Object[] constructorArgs;
 
-        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
+        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction, Object... constructorArgs) {
             super(type, name);
             this.configureAction = configureAction;
+            this.constructorArgs = constructorArgs;
         }
 
         @Override
@@ -491,7 +507,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (task == null) {
                 task = type.cast(findByNameWithoutRules(name));
                 if (task == null) {
-                    task = createTask(name, type, NO_ARGS);
+                    task = createTask(name, type, constructorArgs);
                     add(task);
                     configureAction.execute(task);
                     configureAction = null;

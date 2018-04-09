@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << '''
+            import javax.inject.Inject
             class SomeTask extends DefaultTask {
                 SomeTask() {
                     println("Create ${path}")
@@ -30,6 +31,18 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             class SomeOtherTask extends DefaultTask {
                 SomeOtherTask() {
                     println("Create ${path}")
+                }
+            }
+            class SomeInjectedTask extends DefaultTask {
+                @Inject
+                SomeInjectedTask(String value) {
+                    println("Create ${path} - ${value}")
+                }
+            }
+            class SomeOtherInjectedTask extends DefaultTask {
+                @Inject
+                SomeOtherInjectedTask(int value) {
+                    println("Create ${path} - ${value}")
                 }
             }
         '''
@@ -59,6 +72,27 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Create :task2")
         outputContains("Configure :task2")
+        result.assertNotOutput(":task1")
+    }
+
+    def "task is created with arguments when included directly in task graph"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeInjectedTask, 'abc')
+            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+        '''
+
+        when:
+        run("task1")
+
+        then:
+        outputContains("Create :task1 - abc")
+        result.assertNotOutput(":task2")
+
+        when:
+        run("task2")
+
+        then:
+        outputContains("Create :task2 - 123")
         result.assertNotOutput(":task1")
     }
 
@@ -168,6 +202,25 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("task2")
     }
 
+    def "task is created with arguments eagerly when referenced using withType(type, action)"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeInjectedTask, 'abc')
+            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.create("other")
+            tasks.withType(SomeInjectedTask) {
+                println "Matched ${path}"
+            }
+        '''
+
+        when:
+        run("other")
+
+        then:
+        outputContains("Create :task1 - abc")
+        outputContains("Matched :task1")
+        result.assertNotOutput("task2")
+    }
+
     def "build logic can configure each task only when required"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
@@ -201,6 +254,34 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("task2")
     }
 
+    def "build logic can configure each task with arguments only when required"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeInjectedTask, 'abc')
+            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.configureEachLater {
+                println "Received ${path}"
+            }
+            tasks.create("other")
+        '''
+
+        when:
+        run("other")
+
+        then:
+        outputContains("Received :other")
+        result.assertNotOutput("task1")
+        result.assertNotOutput("task2")
+
+        when:
+        run("task1")
+
+        then:
+        outputContains("Received :other")
+        outputContains("Create :task1 - abc")
+        outputContains("Received :task1")
+        result.assertNotOutput("task2")
+    }
+
     def "build logic can configure each task of a given type only when required"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
@@ -229,6 +310,33 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Create :task1")
         outputContains("Configure :task1")
+        outputContains("Received :task1")
+        result.assertNotOutput("task2")
+    }
+
+    def "build logic can configure each task with arguments of a given type only when required"() {
+        buildFile << '''
+            tasks.createLater("task1", SomeInjectedTask, 'abc')
+            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.configureEachLater(SomeInjectedTask) {
+                println "Received ${path}"
+            }
+            tasks.create("other")
+        '''
+
+        when:
+        run("other")
+
+        then:
+        result.assertNotOutput("Received")
+        result.assertNotOutput("task1")
+        result.assertNotOutput("task2")
+
+        when:
+        run("task1")
+
+        then:
+        outputContains("Create :task1 - abc")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
     }

@@ -242,6 +242,24 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
 
     /**
+     * Defines a new task, which will be created with the given constructor arguments when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Object...)}, as those methods will eagerly create the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param name The name of the task.
+     * @param type The task type.
+     * @param constructorArgs The arguments to pass to the task constructor
+     * @param <T> The task type
+     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.8
+     */
+    @Incubating
+    <T extends Task> Provider<T> createLater(String name, Class<T> type, Object... constructorArgs);
+
+    /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the
      * same name.</p>
      *
