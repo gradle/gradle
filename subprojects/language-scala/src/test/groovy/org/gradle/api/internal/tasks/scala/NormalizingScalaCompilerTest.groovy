@@ -22,9 +22,11 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@UsesNativeServices
 class NormalizingScalaCompilerTest extends Specification {
     Compiler<ScalaJavaJointCompileSpec> target = Mock()
     DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec()

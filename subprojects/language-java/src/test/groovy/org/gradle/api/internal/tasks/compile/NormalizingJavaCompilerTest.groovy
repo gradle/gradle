@@ -19,8 +19,10 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class NormalizingJavaCompilerTest extends Specification {
     org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
     DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
