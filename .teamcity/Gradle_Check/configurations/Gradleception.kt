@@ -1,6 +1,7 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 
 class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
@@ -14,21 +15,23 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
     }
 
     applyDefaults(model, this, ":install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first", extraSteps = {
-        gradle {
+        localGradle {
             name = "BUILD_WITH_BUILT_GRADLE"
             tasks = "clean :install"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
             gradleParams = "-Pgradle_installPath=dogfood-second " + gradleParameters.joinToString(separator = " ")
-            param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
-            buildFile = ""
         }
-        gradle {
+        localGradle {
             name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
             tasks = "clean sanityCheck test"
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
             gradleParams = gradleParameters.joinToString(separator = " ")
-            param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
-            buildFile = ""
         }
     })
 })
+
+fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
+    customGradle(init) {
+        param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
+        buildFile = ""
+    }

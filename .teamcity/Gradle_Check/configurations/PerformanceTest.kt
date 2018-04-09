@@ -31,7 +31,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
     }
 
     steps {
-        gradle {
+        gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
@@ -39,8 +39,6 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
                             + gradleParameters
                             + model.parentBuildCache.gradleParameters()
                     ).joinToString(separator = " ")
-            useGradleWrapper = true
-            buildFile = ""
         }
         script {
             name = "CHECK_CLEAN_M2"
@@ -48,13 +46,12 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
             scriptContent = m2CleanScriptUnixLike
         }
         if (model.tagBuilds) {
-            gradle {
+            gradleWrapper {
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                buildFile = "gradle/buildTagging.gradle"
                 gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% -Djava7Home=%linux.jdk.for.gradle.compile%"
-                useGradleWrapper = true
+                buildFile = "gradle/buildTagging.gradle"
             }
         }
     }

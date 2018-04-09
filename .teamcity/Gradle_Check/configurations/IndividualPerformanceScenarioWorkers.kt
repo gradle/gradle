@@ -35,7 +35,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
     }
 
     steps {
-        gradle {
+        gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
@@ -43,8 +43,6 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
                             + gradleParameters.map { if (it == "--daemon") "--no-daemon" else it }
                             + model.parentBuildCache.gradleParameters()
                     ).joinToString(separator = " ")
-            useGradleWrapper = true
-            buildFile = ""
         }
         script {
             name = "CHECK_CLEAN_M2"

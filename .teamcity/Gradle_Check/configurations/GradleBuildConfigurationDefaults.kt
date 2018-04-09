@@ -2,7 +2,7 @@ package configurations
 
 import jetbrains.buildServer.configs.kotlin.v2017_2.*
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
@@ -103,16 +103,15 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             .replace(java7Homes[OS.linux]!!, java7HomeParameter)
 
     buildType.steps {
-        gradle {
+        gradleWrapper {
             name = "CLEAN_BUILD_SRC"
             tasks = "clean"
             gradleParams = gradleParameterString
-            useGradleWrapper = true
             workingDir = "buildSrc"
-            buildFile = "build.gradle.kts"
             gradleWrapperPath = ".."
+            buildFile = "build.gradle.kts"
         }
-        gradle {
+        gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
@@ -121,8 +120,6 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                             listOf(extraParameters) +
                             model.buildScanTags.map { """"-Dscan.tag.$it"""" }
                     ).joinToString(separator = " ")
-            useGradleWrapper = true
-            buildFile = ""
         }
     }
 
@@ -134,31 +131,26 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = if (os == OS.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
         }
-        gradle {
+        gradleWrapper {
             name = "VERIFY_TEST_FILES_CLEANUP"
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
-            useGradleWrapper = true
-            buildFile = ""
         }
         if (os == OS.windows) {
-            gradle {
+            gradleWrapper {
                 name = "KILL_PROCESSES_STARTED_BY_GRADLE"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "killExistingProcessesStartedByGradle"
                 gradleParams = gradleParameterString
-                useGradleWrapper = true
-                buildFile = ""
             }
         }
         if (model.tagBuilds) {
-            gradle {
+            gradleWrapper {
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                buildFile = "gradle/buildTagging.gradle"
                 gradleParams = "$gradleParameterString -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
-                useGradleWrapper = true
+                buildFile = "gradle/buildTagging.gradle"
             }
         }
     }
@@ -199,3 +191,22 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         }
     }
 }
+
+/**
+ * Adds a [Gradle build step](https://confluence.jetbrains.com/display/TCDL/Gradle)
+ * that runs with the Gradle wrapper.
+ *
+ * @see GradleBuildStep
+ */
+fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep =
+        customGradle(init) {
+            useGradleWrapper = true
+            if (buildFile == null) {
+                buildFile = "" // Let Gradle detect the build script
+            }
+        }
+
+fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
+        GradleBuildStep(init)
+                .apply(custom)
+                .also { step(it) }
