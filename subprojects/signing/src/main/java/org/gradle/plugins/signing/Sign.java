@@ -32,6 +32,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -178,6 +180,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
         addSignature(new Signature(publishArtifact, this, this));
     }
 
+    private void signArtifact(PublicationArtifact publicationArtifact) {
+        dependsOn(publicationArtifact);
+        addSignature(new Signature(publicationArtifact, this, this));
+    }
+
     /**
      * Configures the task to sign each of the given files
      */
@@ -228,6 +235,32 @@ public class Sign extends DefaultTask implements SignatureSpec {
             });
         }
 
+    }
+
+    /**
+     * Configures the task to sign every artifact of the given publications
+     */
+    public void sign(Publication... publications) {
+        for (Publication publication : publications) {
+            publication.getPublicationArtifacts().all(
+                new Action<PublicationArtifact>() {
+                    @Override
+                    public void execute(PublicationArtifact artifact) {
+                        signArtifact(artifact);
+                    }
+                });
+            publication.getPublicationArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
+                @Override
+                public void execute(final PublicationArtifact artifact) {
+                    signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
+                        @Override
+                        public boolean apply(Signature input) {
+                            return input.getToSignPublicationArtifact().equals(artifact);
+                        }
+                    }));
+                }
+            });
+        }
     }
 
     private boolean addSignature(Signature signature) {

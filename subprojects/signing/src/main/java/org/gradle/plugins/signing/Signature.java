@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
@@ -45,7 +46,12 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * The artifact that this signature is for, which may be {@code null} if this signature is not for an artifact.
      */
-    private PublishArtifact toSignArtifact;
+    private PublishArtifact toSignPublishArtifact;
+
+    /**
+     * The artifact that this signature is for, which may be {@code null} if this signature is not for an artifact.
+     */
+    private PublicationArtifact toSignPublicationArtifact;
 
     /**
      * The name of the signature artifact.
@@ -114,7 +120,21 @@ public class Signature extends AbstractPublishArtifact {
                 return toSign.getClassifier();
             }
         }, signatureSpec);
-        this.toSignArtifact = toSign;
+        this.toSignPublishArtifact = toSign;
+    }
+
+    public Signature(final PublicationArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
+        super(tasks);
+        init(new Callable<File>() {
+            public File call() {
+                return toSign.getFile();
+            }
+        }, new Callable<String>() {
+            public String call() {
+                return toSign.getClassifier();
+            }
+        }, signatureSpec);
+        this.toSignPublicationArtifact = toSign;
     }
 
     /**
@@ -209,7 +229,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Nullable
     private String defaultName() {
-        return toSignArtifact != null ? toSignArtifact.getName() : fileName();
+        return toSignPublishArtifact != null ? toSignPublishArtifact.getName() : fileName();
     }
 
     @Nullable
@@ -360,7 +380,11 @@ public class Signature extends AbstractPublishArtifact {
     }
 
     public final PublishArtifact getToSignArtifact() {
-        return toSignArtifact;
+        return toSignPublishArtifact;
+    }
+
+    public final PublicationArtifact getToSignPublicationArtifact() {
+        return toSignPublicationArtifact;
     }
 
     /**

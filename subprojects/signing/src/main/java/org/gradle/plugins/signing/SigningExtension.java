@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publish.Publication;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -301,6 +302,21 @@ public class SigningExtension {
                     }
                 })
             );
+        }
+        return result;
+    }
+
+    public List<Sign> sign(Publication... publications) {
+        List<Sign> result = new ArrayList<Sign>(publications.length);
+        for (final Publication publicationToSign : publications) {
+            CharSequence suffix = publicationToSign.getName() + "Publication";
+            Sign signTask = project.getTasks().create("sign" + capitalize(suffix), Sign.class, new Action<Sign>() {
+                public void execute(Sign task) {
+                    task.sign(publicationToSign);
+                }
+            });
+            // TODO #4943 Add signTask.getSignatures() to Publication
+            result.add(signTask);
         }
         return result;
     }

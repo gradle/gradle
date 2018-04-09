@@ -15,11 +15,15 @@
  */
 
 package org.gradle.api.publish.internal
+
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.ThreadGlobalInstantiator
 import org.gradle.api.publish.Publication
+import org.gradle.api.publish.PublicationArtifact
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
@@ -94,6 +98,11 @@ class DefaultPublicationContainerTest extends Specification {
 
         TestPublication(name) {
             this.name = name
+        }
+
+        @Override
+        DomainObjectSet<? extends PublicationArtifact> getPublicationArtifacts() {
+            new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact)
         }
     }
 }

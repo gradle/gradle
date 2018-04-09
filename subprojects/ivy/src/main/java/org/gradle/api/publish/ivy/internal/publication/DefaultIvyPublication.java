@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -31,6 +32,8 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -41,6 +44,8 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.SimplePublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
@@ -90,8 +95,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final FeaturePreviews featurePreviews;
-    private FileCollection ivyDescriptorFile;
-    private FileCollection gradleModuleDescriptorFile;
+    private final DomainObjectSet<PublicationArtifact> publicationArtifacts;
+    private final DomainObjectSet<PublicationArtifact> metadataArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
+    private SimplePublicationArtifact ivyDescriptorFile;
+    private SimplePublicationArtifact gradleModuleDescriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
 
@@ -108,6 +115,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
+        publicationArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, ivyArtifacts, metadataArtifacts);
     }
 
     public String getName() {
@@ -134,12 +142,22 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return descriptor;
     }
 
-    public void setIvyDescriptorFile(FileCollection descriptorFile) {
-        this.ivyDescriptorFile = descriptorFile;
+    @Override
+    public void setIvyDescriptorArtifact(SimplePublicationArtifact artifact) {
+        if (this.ivyDescriptorFile != null) {
+            metadataArtifacts.remove(this.ivyDescriptorFile);
+        }
+        this.ivyDescriptorFile = artifact;
+        metadataArtifacts.add(artifact);
     }
 
-    public void setGradleModuleDescriptorFile(FileCollection descriptorFile) {
-        this.gradleModuleDescriptorFile = descriptorFile;
+    @Override
+    public void setGradleModuleDescriptorArtifact(SimplePublicationArtifact artifact) {
+        if (this.gradleModuleDescriptorFile != null) {
+            metadataArtifacts.remove(this.gradleModuleDescriptorFile);
+        }
+        this.gradleModuleDescriptorFile = artifact;
+        metadataArtifacts.add(artifact);
     }
 
     public void descriptor(Action<? super IvyModuleDescriptorSpec> configure) {
@@ -273,9 +291,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public FileCollection getPublishableFiles() {
         if (gradleModuleDescriptorFile == null) {
             // possible if the gradle metadata feature is disabled
-            return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile);
+            return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile.getFiles());
         }
-        return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile, gradleModuleDescriptorFile);
+        return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile.getFiles(), gradleModuleDescriptorFile.getFiles());
     }
 
     public IvyPublicationIdentity getIdentity() {
@@ -287,7 +305,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(name, getIdentity(), assertDescriptorFile(ivyDescriptorFile), maybeGradleDescriptorFile(), ivyArtifacts);
+        return new IvyNormalizedPublication(name, getIdentity(), assertDescriptorFile(ivyDescriptorFile.getFiles()), maybeGradleDescriptorFile(), ivyArtifacts);
     }
 
     private File maybeGradleDescriptorFile() {
@@ -295,7 +313,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             // possible if the gradle metadata feature is disable
             return null;
         }
-        return gradleModuleDescriptorFile.getSingleFile();
+        return gradleModuleDescriptorFile.getFile();
     }
 
     @Override
@@ -371,5 +389,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return publishedUrl;
             }
         };
+    }
+
+    @Override
+    public DomainObjectSet<PublicationArtifact> getPublicationArtifacts() {
+        return publicationArtifacts;
     }
 }

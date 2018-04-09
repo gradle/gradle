@@ -17,6 +17,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -25,7 +26,7 @@ import java.io.File;
  * An artifact published as part of a {@link MavenPublication}.
  */
 @Incubating
-public interface MavenArtifact extends Buildable {
+public interface MavenArtifact extends PublicationArtifact {
     /**
      * The extension used to publish the artifact file, never <code>null</code>.
      * For an artifact without an extension, this value will be an empty String.
@@ -37,29 +38,4 @@ public interface MavenArtifact extends Buildable {
      * @param extension The extension.
      */
     void setExtension(String extension);
-
-    /**
-     * The classifier used to publish the artifact file.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
-     */
-    @Nullable
-    String getClassifier();
-
-    /**
-     * Sets the classifier used to publish the artifact file.
-     * @param classifier The classifier.
-     */
-    void setClassifier(@Nullable String classifier);
-
-    /**
-     * The actual file contents to publish.
-     */
-    File getFile();
-
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

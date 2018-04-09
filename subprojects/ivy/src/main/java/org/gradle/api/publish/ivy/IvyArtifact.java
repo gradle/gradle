@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
+import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -26,7 +27,7 @@ import java.io.File;
  * An artifact published as part of a {@link IvyPublication}.
  */
 @Incubating
-public interface IvyArtifact extends Buildable {
+public interface IvyArtifact extends PublicationArtifact {
     /**
      * The name used to publish the artifact file, never <code>null</code>.
      * Defaults to the name of the module that this artifact belongs to.
@@ -63,19 +64,6 @@ public interface IvyArtifact extends Buildable {
     void setExtension(String extension);
 
     /**
-     * The classifier used to publish the artifact file.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
-     */
-    @Nullable
-    String getClassifier();
-
-    /**
-     * Sets the classifier used to publish the artifact file.
-     * @param classifier The classifier.
-     */
-    void setClassifier(@Nullable String classifier);
-
-    /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
      * A <code>null</code> value (the default) indicates that this artifact will be published without a conf attribute.
@@ -90,16 +78,4 @@ public interface IvyArtifact extends Buildable {
      * @param conf The value of 'conf' for this artifact.
      */
     void setConf(@Nullable String conf);
-
-    /**
-     * The actual file contents to publish.
-     */
-    File getFile();
-
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

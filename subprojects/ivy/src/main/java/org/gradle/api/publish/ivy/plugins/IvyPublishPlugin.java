@@ -35,6 +35,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.api.publish.internal.SimplePublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
@@ -148,7 +149,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            publication.setIvyDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            Task task = tasks.get(descriptorTaskName);
+            SimplePublicationArtifact descriptorArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
+            descriptorArtifact.builtBy(task);
+            publication.setIvyDescriptorArtifact(descriptorArtifact);
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -168,7 +172,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            publication.setGradleModuleDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            Task task = tasks.get(descriptorTaskName);
+            SimplePublicationArtifact gradleModuleMetadataArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
+            gradleModuleMetadataArtifact.builtBy(task);
+            publication.setGradleModuleDescriptorArtifact(gradleModuleMetadataArtifact);
         }
     }
 

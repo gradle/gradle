@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
@@ -26,5 +27,5 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Publication extends Named {
-
+    DomainObjectSet<? extends PublicationArtifact> getPublicationArtifacts();
 }
