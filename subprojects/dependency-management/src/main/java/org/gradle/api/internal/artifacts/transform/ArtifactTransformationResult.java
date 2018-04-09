@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.NonNullApi;
+
 import java.io.File;
 import java.util.List;
 
+@NonNullApi
 public interface ArtifactTransformationResult {
     Throwable getFailure();
-
     List<File> getResult();
+    boolean isFailed();
 }

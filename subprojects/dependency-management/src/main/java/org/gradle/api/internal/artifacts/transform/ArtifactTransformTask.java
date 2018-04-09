@@ -33,7 +33,7 @@ import java.util.List;
 public abstract class ArtifactTransformTask extends DefaultTask {
 
     private final ArtifactTransformer transform;
-    private TransformationResult transformationResult;
+    private ArtifactTransformationResult transformationResult;
     private final WorkerLeaseService workerLeaseService;
 
     @Inject
@@ -43,45 +43,45 @@ public abstract class ArtifactTransformTask extends DefaultTask {
     }
 
     @Internal
-    public TransformationResult getTransformationResult() {
+    public ArtifactTransformationResult getTransformationResult() {
         return transformationResult;
     }
 
-    public abstract TransformationResult incomingTransformationResult();
+    public abstract ArtifactTransformationResult incomingTransformationResult();
 
     @TaskAction
     public void transformArtifacts() {
         workerLeaseService.withoutProjectLock(new Runnable() {
             @Override
             public void run() {
-                TransformationResult incoming = incomingTransformationResult();
+                ArtifactTransformationResult incoming = incomingTransformationResult();
                 transformationResult = transform(incoming);
             }
         });
     }
 
-    private TransformationResult transform(File file) {
-        try {
-            List<File> result = transform.transform(file);
-            return new TransformationResult(result);
-        } catch (Throwable e) {
-            return new TransformationResult(e);
-        }
-    }
-
-    private TransformationResult transform(TransformationResult incoming) {
+    private ArtifactTransformationResult transform(ArtifactTransformationResult incoming) {
         if (incoming.isFailed()) {
             return incoming;
         }
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File file : incoming.getResult()) {
-            TransformationResult transformationResult = transform(file);
+            ArtifactTransformationResult transformationResult = transform(file);
             if (transformationResult.isFailed()) {
                 return transformationResult;
             }
             builder.addAll(transformationResult.getResult());
         }
         return new TransformationResult(builder.build());
+    }
+
+    private ArtifactTransformationResult transform(File file) {
+        try {
+            List<File> result = transform.transform(file);
+            return new TransformationResult(result);
+        } catch (Throwable e) {
+            return new TransformationResult(e);
+        }
     }
 
     @Inject
@@ -103,18 +103,19 @@ public abstract class ArtifactTransformTask extends DefaultTask {
             this.failure = failure;
         }
 
-        public boolean isFailed() {
-            return failure != null;
-        }
-
         @Override
         public List<File> getResult() {
             return Preconditions.checkNotNull(transformedFiles);
         }
 
         @Override
+        public boolean isFailed() {
+            return failure != null;
+        }
+
+        @Override
         public Throwable getFailure() {
-            return failure;
+            return Preconditions.checkNotNull(failure);
         }
     }
 }

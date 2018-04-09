@@ -53,7 +53,7 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
     }
 
     private void visitTransformedArtifact(String variantName, ResolvableArtifact artifact, ArtifactTransformationResult transformationResult) {
-        if (transformationResult.getFailure() != null) {
+        if (transformationResult.isFailed()) {
             visitor.visitFailure(transformationResult.getFailure());
             return;
         }

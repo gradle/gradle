@@ -746,7 +746,7 @@ allprojects {
         file("lib/dir1.classes").file("child").createFile()
 
         when:
-        succeeds ":app:resolve" , "util:resolve"
+        succeeds ":util:resolve", ":app:resolve"
 
         then:
         output.count("files: [dir1.classes.txt, lib1.jar.txt]") == 2

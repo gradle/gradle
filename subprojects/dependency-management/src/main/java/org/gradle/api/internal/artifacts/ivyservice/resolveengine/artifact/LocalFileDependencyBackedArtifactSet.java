@@ -57,13 +57,9 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             return EMPTY_RESULT;
         }
 
-        return select().startVisit(actions, listener);
-    }
-
-    public ResolvedArtifactSet select() {
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
         if (componentIdentifier != null && !componentFilter.isSatisfiedBy(componentIdentifier)) {
-            return EMPTY;
+            return EMPTY_RESULT;
         }
 
         Set<File> files;
@@ -90,7 +86,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             selectedArtifacts.add(selector.select(variant));
         }
 
-        return CompositeResolvedArtifactSet.of(selectedArtifacts);
+        return CompositeResolvedArtifactSet.of(selectedArtifacts).startVisit(actions, listener);
     }
 
     @Override
@@ -98,7 +94,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         visitor.visitDependency(dependencyMetadata.getFiles().getBuildDependencies());
     }
 
-    public static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
+    private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Completion, ResolvedVariantSet {
         private final File file;
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final String variantName;

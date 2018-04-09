@@ -33,7 +33,7 @@ public class IntermediateArtifactTransformTask extends ArtifactTransformTask {
     }
 
     @Override
-    public TransformationResult incomingTransformationResult() {
+    public ArtifactTransformationResult incomingTransformationResult() {
         return delegateTransform.getTransformationResult();
     }
 }

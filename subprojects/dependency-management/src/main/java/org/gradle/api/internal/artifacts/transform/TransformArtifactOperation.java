@@ -16,14 +16,18 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Preconditions;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
+@NonNullApi
 class TransformArtifactOperation implements RunnableBuildOperation, ArtifactTransformationResult {
     private final ResolvableArtifact artifact;
     private final ArtifactTransformer transform;
@@ -36,7 +40,7 @@ class TransformArtifactOperation implements RunnableBuildOperation, ArtifactTran
     }
 
     @Override
-    public void run(BuildOperationContext context) {
+    public void run(@Nullable BuildOperationContext context) {
         try {
             result = transform.transform(artifact.getFile());
         } catch (Throwable t) {
@@ -51,11 +55,16 @@ class TransformArtifactOperation implements RunnableBuildOperation, ArtifactTran
 
     @Override
     public Throwable getFailure() {
-        return failure;
+        return Preconditions.checkNotNull(failure);
     }
 
     @Override
     public List<File> getResult() {
-        return result;
+        return Preconditions.checkNotNull(result);
+    }
+
+    @Override
+    public boolean isFailed() {
+        return failure != null;
     }
 }

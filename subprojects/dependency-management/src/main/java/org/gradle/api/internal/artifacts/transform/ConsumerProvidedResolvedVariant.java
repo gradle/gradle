@@ -67,7 +67,7 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
         private final Map<File, TransformFileOperation> fileResults;
         private final AttributeContainerInternal attributes;
 
-        public TransformingResult(Completion result, Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults, Map<File, TransformFileOperation> fileResults, AttributeContainerInternal attributes) {
+        TransformingResult(Completion result, Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults, Map<File, TransformFileOperation> fileResults, AttributeContainerInternal attributes) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.fileResults = fileResults;

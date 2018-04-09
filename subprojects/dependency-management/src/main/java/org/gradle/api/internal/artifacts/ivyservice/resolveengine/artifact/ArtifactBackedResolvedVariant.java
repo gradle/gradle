@@ -81,12 +81,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     public static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Completion {
         private final DisplayName variantName;
         private final AttributeContainer variantAttributes;
-        public final ResolvableArtifact artifact;
+        private final ResolvableArtifact artifact;
         private volatile Throwable failure;
-
-        public ResolvableArtifact getArtifact() {
-            return artifact;
-        }
 
         SingleArtifactSet(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
             this.variantName = variantName;
@@ -120,6 +116,10 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         @Override
         public void collectBuildDependencies(BuildDependenciesVisitor visitor) {
             visitor.visitDependency(((Buildable) artifact).getBuildDependencies());
+        }
+
+        public ResolvableArtifact getArtifact() {
+            return artifact;
         }
     }
 

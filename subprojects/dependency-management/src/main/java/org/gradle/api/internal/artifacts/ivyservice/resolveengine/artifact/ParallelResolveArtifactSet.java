@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -28,6 +29,7 @@ import java.io.File;
  * This is done by collecting all artifacts to prepare and/or visit in a first step.
  * The collected artifacts are prepared in parallel and subsequently visited in sequence.
  */
+@NonNullApi
 public abstract class ParallelResolveArtifactSet {
     private static final EmptySet EMPTY = new EmptySet();
 
@@ -45,7 +47,7 @@ public abstract class ParallelResolveArtifactSet {
         }
     }
 
-    public static class VisitingSet extends ParallelResolveArtifactSet {
+    private static class VisitingSet extends ParallelResolveArtifactSet {
         private final ResolvedArtifactSet artifacts;
         private final BuildOperationExecutor buildOperationProcessor;
 
@@ -63,10 +65,10 @@ public abstract class ParallelResolveArtifactSet {
             visitAction.result.visit(visitor);
         }
 
-        public static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
+        private static class AsyncArtifactListenerAdapter implements ResolvedArtifactSet.AsyncArtifactListener {
             private final ArtifactVisitor visitor;
 
-            public AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
+            AsyncArtifactListenerAdapter(ArtifactVisitor visitor) {
                 this.visitor = visitor;
             }
 

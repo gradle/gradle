@@ -73,6 +73,11 @@ public class ArtifactTransformTaskRegistry {
                 public List<File> getResult() {
                     return artifactTransformTask.getTransformationResult().getResult();
                 }
+
+                @Override
+                public boolean isFailed() {
+                    return artifactTransformTask.getTransformationResult().isFailed();
+                }
             });
         }
         return builder.build();

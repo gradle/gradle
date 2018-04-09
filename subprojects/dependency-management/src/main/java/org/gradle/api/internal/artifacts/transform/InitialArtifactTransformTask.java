@@ -69,7 +69,7 @@ public class InitialArtifactTransformTask extends ArtifactTransformTask {
     }
 
     @Override
-    public TransformationResult incomingTransformationResult() {
+    public ArtifactTransformationResult incomingTransformationResult() {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         resolveArtifacts().visit(visitor);
         ResolvedArtifact artifact = Iterables.getOnlyElement(visitor.getArtifacts());
