@@ -341,7 +341,16 @@ If you want any other JAR or alternative archive built, you either have to apply
 </sample>
 ++++
 
-See api:org.gradle.api.tasks.bundling.Jar[] for more details on the configuration options available to you.
+See api:org.gradle.api.tasks.bundling.Jar[] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
+
+
+If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
+
+++++
+<sample id="createUberJarExample" dir="userguide/files/archivesWithJavaPlugin" title="Creating a Java uber or fat JAR">
+    <sourcefile file="build.gradle" snippet="create-uber-jar-example"/>
+</sample>
+++++
 
 There are several options for publishing a JAR once it has been created:
 

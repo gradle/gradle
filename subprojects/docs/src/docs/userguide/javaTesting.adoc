@@ -29,8 +29,10 @@ You can run your tests in parallel by setting this property to a value greater t
 +
 Your tests can distinguish between parallel test processes by using the value of the `org.gradle.test.worker` property, which is unique for each process. You can use this for anything you want, but it's particularly useful for filenames and other resource identifiers to prevent the kind of conflict we just mentioned.
 
-`forkEvery` - default: 0 (no max)::
-This property specifies the maximum number of test classes that Gradle should run on a test process before its disposed of and a fresh one created. This is mainly used as a way to manage memory consumption during the test execution phase of the build.
+`forkEvery` - default: 0 (no maximum)::
+This property specifies the maximum number of test classes that Gradle should run on a test process before its disposed of and a fresh one created. This is mainly used as a way to manage leaky tests or frameworks that have static state that can't be cleared or reset between tests.
++
+*Warning: a low value (other than 0) can severely hurt the performance of the tests*
 
 `ignoreFailures` — default: false::
 If this property is `true`, Gradle will continue with the project's build once the tests have completed, even if some of them have failed. Note that, by default, the `Test` task always executes every test that it detects, irrespective of this setting.
@@ -70,7 +72,7 @@ It's a common requirement to run subsets of a test suite, such as when you're fi
  * Filtering (the preferred option)
  * Test inclusion/exclusion (based on `-Dtest.single`, `test.include` and friends)
  
-The former supersedes the latter, but you may come across test inclusions/exclusions in the wild, so we discuss those in the next section.
+Filtering supersedes the inclusion/exclusionmechanism, but you may still come across the latter in the wild.
 
 With Gradle's test filtering you can select tests to run based on:
 
@@ -149,44 +151,14 @@ gradle test --continuous --tests "com.mypackage.foo.*"
 ```
 
 [[sec:single_test_execution_via_system_properties]]
-=== Single test execution via System Properties
+==== Single test execution via System Properties
 
 [NOTE]
 ====
-This mechanism has been superseded by 'Test Filtering', described above.
+This mechanism has been superseded by 'Test Filtering', described above. We only include it in case you encounter it in online forums and blogs.
 ====
 
-Test inclusions/exclusions are a file-based — as opposed to a class name-based — mechanism for selecting tests to run. To use it, you need to set a system property `__taskName__.single` to a pattern. The rules are:
-
- * __taskName__ can be a full multi-project path like `:sub1:sub2:test` or just the task name
- * The pattern will be used to form an include pattern of `\**/__pattern__*.class`
- * If no matching tests can be found, Gradle throws an exception
- * If tests of more than one subproject are executed, the pattern is applied to each subproject
- * Gradle throws an exception if no tests can be found for a particular subproject
- * You can narrow down the matching tests by using path notation in the pattern — such as 'org/example/MyTest' — or specifying the fully qualified task name.
-
-Here are some examples:
-
-```
-// Runs the 'test' task for the ThisUniquelyNamedTest test case only
-gradle -Dtest.single=ThisUniquelyNamedTest test
-
-// Runs all test cases in packages matching 'a.b' or '**.a.b'
-gradle -Dtest.single=a/b/ test
-
-// Runs the 'integTest' task, selecting only test cases with an
-// 'IntegrationTest' suffix
-gradle -DintegTest.single=\*IntegrationTest integTest
-
-// Executes the 'build' task, selecting only test cases in the 'proj1'
-// child project that have 'Customer' in their name
-gradle -D:proj1:test.single=Customer build
-
-// Executes the default task for the build, selecting only test cases
-// in the 'proj1' child project that are in packages matching 'c.d'
-// or '**.c.d'
-gradle -D:proj1:integTest.single=c/d/
-```
+Test inclusions/exclusions are a file-based — as opposed to a class name-based — mechanism for selecting tests to run. It's activated when you use the `-D__taskName__.single=__<pattern>__` option on the command line, e.g. `-Dtest.single=MyTest`.
 
 [[test_reporting]]
 === Test reporting

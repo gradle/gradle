@@ -57,7 +57,9 @@ Removes the <<sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJa
 The Base Plugin adds no <<managing_dependency_configurations,configurations for dependencies>>, but it does add the following configurations for <<sec:artifacts_and_configurations,artifacts>>:
 
 `default`::
-By default, contains all the artifacts attached to all other configurations. It's used by consumer projects. For example, if project B has a `runtimeOnly` dependency on project A, then the artifacts in project A's `default` configuration are added to project B's `runtimeOnly` configuration.
+A fallback configuration used by consumer projects. Let's say you have project B with a _<<sub:project_dependencies,project dependency>>_ on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
++
+*New builds and plugins should not be using the `default` configuration!* It remains for the reason of backwards compatibility.
 
 `archives`::
 A standard configuration for the production artifacts of a project. This results in an `uploadArchives` task for publishing artifacts attached to the `archives` configuration.
