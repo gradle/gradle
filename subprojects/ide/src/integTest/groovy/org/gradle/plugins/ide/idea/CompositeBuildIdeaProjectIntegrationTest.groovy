@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 import spock.lang.Issue
 
 /**
@@ -135,6 +136,8 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "b1"
     }
 
+    @Issue("https://github.com/gradle/gradle-private/issues/1145")
+    @Ignore
     def "builds IDEA metadata with transitive substitutions"() {
         given:
         dependency "org.test:buildB:1.0"
