@@ -33,5 +33,4 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
 fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {
         param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
-        buildFile = ""
     }

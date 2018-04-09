@@ -201,9 +201,6 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
 fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep =
         customGradle(init) {
             useGradleWrapper = true
-            if (buildFile == null) {
-                buildFile = "" // Let Gradle detect the build script
-            }
         }
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
