@@ -144,6 +144,24 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader)).orNull();
     }
 
+    @Nullable
+    @Override
+    public PluginImplementation<?> maybeLookup(PluginId pluginId) {
+        PluginImplementation lookup;
+        if (parent != null) {
+            lookup = parent.maybeLookup(pluginId);
+            if (lookup != null) {
+                return lookup;
+            }
+        }
+
+        if (classLoaderScope.isLocked()) {
+            return lookup(pluginId);
+        } else {
+            return null;
+        }
+    }
+
     private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {
         try {
             return cache.get(key);
@@ -222,7 +240,16 @@ public class DefaultPluginRegistry implements PluginRegistry {
             if (id.equals(pluginId)) {
                 return true;
             }
-            PluginImplementation<?> other = lookup(id, classLoader);
+
+            PluginImplementation<?> other = maybeLookup(id);
+            if (isSameClassAsThis(other)) {
+                return true;
+            }
+            other = lookup(id, classLoader);
+            return isSameClassAsThis(other);
+        }
+
+        private boolean isSameClassAsThis(PluginImplementation<?> other) {
             return other != null && other.asClass().equals(asClass());
         }
     }
