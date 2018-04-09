@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.TaskOutputOriginFixture
 import org.gradle.internal.id.UniqueId
+import org.junit.Ignore
 import org.junit.Rule
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
@@ -158,6 +159,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
         originBuildInvocationId(":buildSrc:w") == origin
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/4199")
     def "composite participant tasks advertise build id"() {
         given:
         ["a", "b"].each {

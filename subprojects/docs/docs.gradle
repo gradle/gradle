@@ -458,11 +458,7 @@ task editReleaseNotes() {
     }
 }
 
-task releaseNotesMarkdown(type: PegDown) {
-    group = "release notes"
-    markdownFile = file("src/docs/release/notes.md")
-    destination = new File(buildDir, "release-notes-raw/release-notes.html")
-}
+task releaseNotesMarkdown(type: PegDown, group: "release notes", constructorArgs: [file("src/docs/release/notes.md"), new File(buildDir, "release-notes-raw/release-notes.html")])
 
 task releaseNotes(type: Copy) {
     group = "release notes"

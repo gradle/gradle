@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Task;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 public class TaskDependencies {
-    public static final TaskDependencyInternal EMPTY = new AbstractTaskDependency() {
+    public static final TaskDependencyInternal EMPTY = new TaskDependencyInternal() {
+        @Override
+        public Set<? extends Task> getDependencies(@Nullable Task task) {
+            return Collections.emptySet();
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
         }

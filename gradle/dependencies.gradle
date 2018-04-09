@@ -43,6 +43,7 @@ libraries.commons_compress =    [coordinates: 'org.apache.commons:commons-compre
 libraries.commons_httpclient =  [coordinates: 'org.apache.httpcomponents:httpclient', version: '4.5.5']
 libraries.commons_io =          [coordinates: 'commons-io:commons-io', version: '2.4']
 libraries.commons_lang =        [coordinates: 'commons-lang:commons-lang', version: '2.6']
+libraries.commons_math =        [coordinates: 'org.apache.commons:commons-math3', version: '3.6.1']
 libraries.fastutil =            [coordinates: 'it.unimi.dsi:fastutil', version: '7.2.1']
 libraries.gcs =                 [coordinates: 'com.google.apis:google-api-services-storage', version: 'v1-rev116-1.23.0']
 libraries.groovy =              [coordinates: 'org.codehaus.groovy:groovy-all', version: '2.4.12']

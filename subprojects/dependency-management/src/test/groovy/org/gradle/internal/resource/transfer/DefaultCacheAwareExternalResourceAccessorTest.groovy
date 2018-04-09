@@ -37,6 +37,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
@@ -289,6 +290,56 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContentIfPresent(_) >> null
+        1 * repository.withProgressLogging() >> progressLoggingRepo
+        1 * progressLoggingRepo.resource(location, true) >> remoteResource
+        1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
+            a.execute(new ByteArrayInputStream(), remoteMetaData)
+        }
+        0 * _._
+
+        and:
+        1 * cacheLockingManager.useCache(_) >> { org.gradle.internal.Factory factory ->
+            return factory.create()
+        }
+        1 * fileStore.moveIntoCache(tempFile) >> localResource
+        1 * index.store("thing", cachedFile, remoteMetaData)
+        1 * fileRepository.resource(cachedFile, location.uri, remoteMetaData) >> resultResource
+        0 * _._
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4893')
+    def "downloads resource directly when remote sha1 is not readable"() {
+        given:
+        def localCandidates = Mock(LocallyAvailableResourceCandidates)
+        def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
+        def cachedMetaData = Mock(ExternalResourceMetaData)
+        def remoteMetaData = Mock(ExternalResourceMetaData)
+        def remoteResource = Mock(ExternalResource)
+        def remoteSha1 = Mock(ExternalResource)
+        def location = new ExternalResourceName("thing")
+        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def resultResource = Stub(LocallyAvailableExternalResource)
+
+        when:
+        def result = cache.getResource(location, null, fileStore, localCandidates)
+
+        then:
+        result == resultResource
+
+        and:
+        1 * index.lookup("thing") >> null
+        1 * repository.resource(location, true) >> remoteResource
+        1 * remoteResource.metaData >> remoteMetaData
+        localCandidates.none >> false
+        remoteMetaData.sha1 >> null
+        remoteMetaData.etag >> null
+        remoteMetaData.lastModified >> null
+        cachedMetaData.etag >> null
+        cachedMetaData.lastModified >> null
+        1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
+        1 * remoteSha1.withContentIfPresent(_) >> { Transformer t ->
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream("proc".bytes)))
+        }
         1 * repository.withProgressLogging() >> progressLoggingRepo
         1 * progressLoggingRepo.resource(location, true) >> remoteResource
         1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->

@@ -44,23 +44,6 @@ public final class NameValidator {
     /**
      * Turns the given name into a valid name by replacing each forbidden character occurrence with "_".
      */
-    public static String asValidName(String name) {
-        //TODO activate this once the names which are now deprecated are forbidden
-        //for (char forbiddenCharacter : FORBIDDEN_CHARACTERS) {
-        //    name = name.replace(forbiddenCharacter, REPLACEMENT_CHARACTER);
-        //}
-        //if (name.charAt(0) == FORBIDDEN_LEADING_AND_TRAILING_CHARACTER) {
-        //    name = REPLACEMENT_CHARACTER + name.substring(1);
-        //}
-        //if (name.charAt(0) == FORBIDDEN_LEADING_AND_TRAILING_CHARACTER || name.charAt(name.length() - 1) == FORBIDDEN_LEADING_AND_TRAILING_CHARACTER) {
-        //    name = name.substring(0, name.length() - 1) + REPLACEMENT_CHARACTER;
-        //}
-        return name;
-    }
-
-    /**
-     * Turns the given name into a valid name by replacing each forbidden character occurrence with "_".
-     */
     public static String asReallyValidName(String name) {
         for (char forbiddenCharacter : FORBIDDEN_CHARACTERS) {
             name = name.replace(forbiddenCharacter, REPLACEMENT_CHARACTER);

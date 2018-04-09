@@ -29,7 +29,6 @@ import java.util.Set;
  */
 @UsedByScanPlugin
 @Incubating
-// Should really be named ComponentGraphResult
 public interface ResolvedComponentResult {
 
     /**

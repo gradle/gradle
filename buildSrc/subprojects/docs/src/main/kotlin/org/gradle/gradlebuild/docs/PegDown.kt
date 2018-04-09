@@ -14,23 +14,20 @@ import org.pegdown.PegDownProcessor
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.charset.Charset.defaultCharset
+import javax.inject.Inject
 
 
 @CacheableTask
-open class PegDown : DefaultTask() {
+open class PegDown @Inject constructor(
+    @get:PathSensitive(PathSensitivity.NONE) @get:InputFile val markdownFile: File,
+    @get:OutputFile val destination: File
+) : DefaultTask() {
 
     @Input
     val inputEncoding = defaultCharset().name()
 
     @Input
     val outputEncoding = defaultCharset().name()
-
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFile
-    lateinit var markdownFile: File
-
-    @OutputFile
-    lateinit var destination: File
 
     @TaskAction
     fun process() {

@@ -18,6 +18,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
+import org.gradle.api.internal.tasks.TaskDependencies;
+import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +50,11 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     @Override
     public String getDisplayName() {
         return calculatedFiles.getDisplayName();
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return TaskDependencies.EMPTY;
     }
 
     @Override

@@ -115,4 +115,31 @@ public class MyTest {
         then:
         outputContains('MyTest > testMyMethod FAILED')
     }
+
+    @Unroll
+    @Issue('https://github.com/gradle/gradle/issues/4924')
+    def "re-executes test when #type is changed"() {
+        given:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << "test.useJUnit { ${type} 'org.gradle.CategoryA' }"
+
+        when:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        when:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << "test.useJUnit()"
+
+        and:
+        succeeds ':test'
+
+        then:
+        executedAndNotSkipped ':test'
+
+        where:
+        type << ['includeCategories', 'excludeCategories']
+    }
 }

@@ -17,20 +17,19 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":workers"))
+    compile(project(":reporting"))
 
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':workers')
-    compile project(':reporting')
-
-    compile libraries.slf4j_api.coordinates
+    compile(library("slf4j_api"))
 
     // minimal dependencies to make our code compile
     // we don't ship these dependencies because findbugs plugin will download them (and more) at runtime
-    compileOnly 'com.google.code.findbugs:findbugs:2.0.1'
-    testRuntime 'com.google.code.findbugs:bcel:2.0.1'
-    testRuntime 'jaxen:jaxen:1.1'
+    compileOnly("com.google.code.findbugs:findbugs:2.0.1")
+    testRuntime("com.google.code.findbugs:bcel:2.0.1")
+    testRuntime("jaxen:jaxen:1.1")
 }
 
 gradlebuildJava {
@@ -38,5 +37,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }
