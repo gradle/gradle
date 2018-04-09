@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -60,7 +60,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
             }
         });
 
-        spec.setSource(new SimpleFileCollection(javaOnly.getFiles()));
+        spec.setSource(ImmutableFileCollection.of(javaOnly.getFiles()));
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {

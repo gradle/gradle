@@ -47,6 +47,7 @@ class PlayTestPluginTest extends Specification {
     def dependencyHandler = Mock(DependencyHandler)
 
     File buildDir = new File("tmp")
+    File jarFile = new File("file.jar")
 
     PlayTestPlugin plugin = new PlayTestPlugin()
 
@@ -57,6 +58,7 @@ class PlayTestPluginTest extends Specification {
             taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
             taskName(_) >> { String verb -> "${verb}SomeBinary"}
         }
+        _ * binary.jarFile >> jarFile
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration

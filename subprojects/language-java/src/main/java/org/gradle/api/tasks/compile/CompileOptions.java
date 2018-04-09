@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -284,7 +284,7 @@ public class CompileOptions extends AbstractOptions {
             for (String path : paths) {
                 files.add(new File(path));
             }
-            this.bootstrapClasspath = new SimpleFileCollection(files);
+            this.bootstrapClasspath = ImmutableFileCollection.of(files);
         }
     }
 

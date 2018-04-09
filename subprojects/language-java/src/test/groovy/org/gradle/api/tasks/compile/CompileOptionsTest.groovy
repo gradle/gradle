@@ -19,9 +19,11 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@UsesNativeServices
 class CompileOptionsTest extends Specification {
     static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']

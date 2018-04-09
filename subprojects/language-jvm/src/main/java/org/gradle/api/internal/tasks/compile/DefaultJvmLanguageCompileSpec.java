@@ -18,17 +18,19 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
-    private FileCollection source;
+    private Set<File> source;
     private String sourceCompatibility;
     private String targetCompatibility;
 
@@ -63,12 +65,12 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
 
     @Override
     public FileCollection getSource() {
-        return source;
+        return ImmutableFileCollection.of(source);
     }
 
     @Override
     public void setSource(FileCollection source) {
-        this.source = source;
+        this.source = source.getFiles();
     }
 
     @Override

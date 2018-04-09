@@ -32,7 +32,7 @@ import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -143,7 +143,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
+                            spec.setSource(spec.getSource().plus(ImmutableFileCollection.of(stubDir).getAsFileTree()));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
