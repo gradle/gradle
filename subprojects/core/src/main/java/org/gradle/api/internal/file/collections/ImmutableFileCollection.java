@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.collections;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
@@ -44,47 +43,17 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     };
 
     public static ImmutableFileCollection of(File... files) {
+        if (files.length == 0) {
+            return EMPTY;
+        }
         return new FileOnlyImmutableFileCollection(files);
     }
 
-    public static ImmutableFileCollection of(Object... paths) {
-        return of(Arrays.asList(paths));
-    }
-
-    public static ImmutableFileCollection of(Iterable<?> paths) {
-        return usingNullableResolver(null, paths);
-    }
-
-    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object[] paths) {
-        return usingNullableResolver(fileResolver, Arrays.asList(paths));
-    }
-
-    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Iterable<?> paths) {
-        return usingNullableResolver(fileResolver, paths);
-    }
-
-    private static ImmutableFileCollection usingNullableResolver(@Nullable FileResolver fileResolver, Iterable<?> paths) {
-        if (paths instanceof FileCollection) {
-            return new ResolvingImmutableFileCollection(ensureNonNull(fileResolver), ImmutableSet.of(paths));
-        } else if (Iterables.isEmpty(paths)) {
+    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object... paths) {
+        if (paths.length == 0) {
             return EMPTY;
-        } else if (allFiles(paths)) {
-            return new FileOnlyImmutableFileCollection((Iterable<? extends File>) paths);
         }
-        return new ResolvingImmutableFileCollection(ensureNonNull(fileResolver), paths);
-    }
-
-    private static FileResolver ensureNonNull(@Nullable FileResolver fileResolver) {
-        return fileResolver != null ? fileResolver : new IdentityFileResolver();
-    }
-
-    private static boolean allFiles(Iterable<?> files) {
-        return Iterables.all(files, new Predicate<Object>() {
-            @Override
-            public boolean apply(@Nullable Object input) {
-                return input instanceof File;
-            }
-        });
+        return new ResolvingImmutableFileCollection(fileResolver, paths);
     }
 
     private ImmutableFileCollection() {
@@ -104,15 +73,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         private final ImmutableSet<File> files;
 
         FileOnlyImmutableFileCollection(File... files) {
-            this(ImmutableSet.copyOf(files));
-        }
-
-        FileOnlyImmutableFileCollection(Iterable<? extends File> files) {
-            this(ImmutableSet.copyOf(files));
-        }
-
-        private FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
-            this.files = files;
+            this.files = ImmutableSet.copyOf(files);
         }
 
         @Override
@@ -125,7 +86,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         private final FileResolver resolver;
         private final Set<Object> paths;
 
-        ResolvingImmutableFileCollection(FileResolver fileResolver, Iterable<?> paths) {
+        ResolvingImmutableFileCollection(FileResolver fileResolver, Object... paths) {
             this.resolver = fileResolver;
             this.paths = ImmutableSet.copyOf(paths);
         }
