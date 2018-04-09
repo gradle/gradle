@@ -96,9 +96,9 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -115,7 +115,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.*;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
@@ -424,8 +426,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return getFiles();
     }
 
+    @Override
+    public Iterator<File> iterator() {
+        return intrinsicFiles.iterator();
+    }
+
+    @Override
     public Set<File> getFiles() {
         return intrinsicFiles.getFiles();
+    }
+
+    @Override
+    public boolean contains(File file) {
+        return intrinsicFiles.contains(file);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return intrinsicFiles.isEmpty();
     }
 
     public Set<File> files(Dependency... dependencies) {

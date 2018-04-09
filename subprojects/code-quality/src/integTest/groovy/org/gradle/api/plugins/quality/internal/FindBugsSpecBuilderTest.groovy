@@ -36,7 +36,7 @@ class FindBugsSpecBuilderTest extends Specification {
     FindBugsSpecBuilder builder = new FindBugsSpecBuilder(classes)
 
     def setup(){
-        classes.getFiles() >> []
+        classes.iterator() >> [].iterator()
     }
 
     def "fails with empty classes Collection"() {
