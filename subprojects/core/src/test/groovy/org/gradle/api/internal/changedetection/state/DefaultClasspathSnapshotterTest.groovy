@@ -213,7 +213,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     }
 
     def files(File... files) {
-        return ImmutableFileCollection.of((File[]) files)
+        return ImmutableFileCollection.of(files)
     }
 
     def file(Object... path) {

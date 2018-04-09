@@ -73,11 +73,10 @@ class ImmutableFileCollectionTest extends Specification {
         exception.message == "Immutable file collection does not allow modification."
 
         where:
-        description                 | collection
-        'empty'                     | ImmutableFileCollection.of()
-        'regular'                   | ImmutableFileCollection.of(new File('abc'))
-        'using resolver (Object)'   | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
-        'using resolver (Iterable)' | ImmutableFileCollection.usingResolver(Mock(FileResolver), ['abc'])
+        description        | collection
+        'empty'            | ImmutableFileCollection.of()
+        'Files'            | ImmutableFileCollection.of(new File('abc'))
+        'using resolver'   | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
     }
 
     def 'can use a Closure to specify a single file'() {

@@ -23,7 +23,6 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.gradle.util.WrapUtil
 
 class JavadocTest extends AbstractProjectBuilderSpec {
     def testDir = temporaryFolder.getTestDirectory()
