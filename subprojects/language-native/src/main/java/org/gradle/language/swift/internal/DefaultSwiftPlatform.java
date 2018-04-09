@@ -18,25 +18,15 @@ package org.gradle.language.swift.internal;
 
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.ImmutableDefaultNativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 
-public class DefaultSwiftPlatform extends DefaultNativePlatform implements SwiftPlatform {
+public class DefaultSwiftPlatform extends ImmutableDefaultNativePlatform implements SwiftPlatform {
     private final OperatingSystemFamily operatingSystemFamily;
 
     public DefaultSwiftPlatform(String name, OperatingSystemFamily operatingSystemFamily, NativePlatformInternal targetMachine) {
         super(name, targetMachine.getOperatingSystem(), targetMachine.getArchitecture());
         this.operatingSystemFamily = operatingSystemFamily;
-    }
-
-    @Override
-    public void operatingSystem(String name) {
-        throw new UnsupportedOperationException("The operatingSystem cannot be changed.");
-    }
-
-    @Override
-    public void architecture(String name) {
-        throw new UnsupportedOperationException("The architecture cannot be changed.");
     }
 
     @Override
