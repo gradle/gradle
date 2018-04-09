@@ -32,12 +32,6 @@ public abstract class OperatingSystemFamily implements Named {
     public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
 
     /**
-     * @since 4.8
-     */
-    public OperatingSystemFamily() {
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Input
