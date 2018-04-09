@@ -160,7 +160,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
             new OpaqueComponentIdentifier("TODO"),
-            selector, usageConfigurationName, null, mappedUsageConfiguration,
+            selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
             ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
             false, false, true, false, null);
