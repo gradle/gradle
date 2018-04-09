@@ -55,7 +55,6 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = Lists.newLinkedList();
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
-    private ImmutableAttributes edgeAttributes;
 
     EdgeState(NodeState from, DependencyState dependencyState, ModuleExclusion transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -131,7 +130,14 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public ImmutableAttributes getAttributes() {
-        return dependencyMetadata.getAttributes();
+        ImmutableAttributes dependencyAttributes = ImmutableAttributes.EMPTY;
+        ModuleResolveState module = selector.getTargetModule();
+        List<SelectorState> selectors = module.getSelectors();
+        for (SelectorState selectorState : selectors) {
+            // TODO CC: Should check if the attributes have the same value, or we have a conflict
+            dependencyAttributes = resolveState.getAttributesFactory().concat(selectorState.getDependencyMetadata().getAttributes(), dependencyAttributes);
+        }
+        return dependencyAttributes;
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
@@ -145,12 +151,9 @@ class EdgeState implements DependencyGraphEdge {
 
         List<ConfigurationMetadata> targetConfigurations;
         try {
-            if (edgeAttributes == null) {
-                ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
-                ImmutableAttributes dependencyAttributes = dependencyMetadata.getAttributes();
-                edgeAttributes = resolveState.getAttributesFactory().concat(attributes, dependencyAttributes);
-            }
-            targetConfigurations = dependencyMetadata.selectConfigurations(edgeAttributes, targetModuleVersion, resolveState.getAttributesSchema());
+            ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
+            attributes = resolveState.getAttributesFactory().concat(attributes, getAttributes());
+            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
