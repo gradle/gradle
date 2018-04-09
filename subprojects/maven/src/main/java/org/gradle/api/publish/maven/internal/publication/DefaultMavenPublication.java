@@ -58,6 +58,7 @@ import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -349,6 +350,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private MavenArtifact determineMainArtifact() {
+        if (DefaultMavenModuleResolveMetadata.POM_PACKAGING.equals(pom.getPackaging())) {
+            return null;
+        }
         Set<MavenArtifact> unclassifiedArtifacts = getUnclassifiedArtifactsWithExtension();
         if (unclassifiedArtifacts.isEmpty()) {
             return null;
