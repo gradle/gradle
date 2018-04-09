@@ -20,6 +20,7 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
             gradleParams = "-Pgradle_installPath=dogfood-second " + gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
+            buildFile = ""
         }
         gradle {
             name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
@@ -27,6 +28,7 @@ class Gradleception(model: CIBuildModel) : BaseGradleBuildType(model, {
             gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
             gradleParams = gradleParameters.joinToString(separator = " ")
             param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
+            buildFile = ""
         }
     })
 })

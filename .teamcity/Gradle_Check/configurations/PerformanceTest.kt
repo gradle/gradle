@@ -40,6 +40,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType) : BaseGrad
                             + model.parentBuildCache.gradleParameters()
                     ).joinToString(separator = " ")
             useGradleWrapper = true
+            buildFile = ""
         }
         script {
             name = "CHECK_CLEAN_M2"

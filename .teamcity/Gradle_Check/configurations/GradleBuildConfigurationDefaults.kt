@@ -122,6 +122,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                             model.buildScanTags.map { """"-Dscan.tag.$it"""" }
                     ).joinToString(separator = " ")
             useGradleWrapper = true
+            buildFile = ""
         }
     }
 
@@ -138,6 +139,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
             useGradleWrapper = true
+            buildFile = ""
         }
         if (os == OS.windows) {
             gradle {
@@ -146,6 +148,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                 tasks = "killExistingProcessesStartedByGradle"
                 gradleParams = gradleParameterString
                 useGradleWrapper = true
+                buildFile = ""
             }
         }
         if (model.tagBuilds) {

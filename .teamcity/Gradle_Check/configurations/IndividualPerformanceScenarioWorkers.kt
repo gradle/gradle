@@ -44,6 +44,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
                             + model.parentBuildCache.gradleParameters()
                     ).joinToString(separator = " ")
             useGradleWrapper = true
+            buildFile = ""
         }
         script {
             name = "CHECK_CLEAN_M2"
