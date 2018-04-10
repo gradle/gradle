@@ -142,6 +142,22 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.packaging == "ext"
     }
 
+    def 'implicit pom artifact is main artifact for pom packaging'() {
+        when:
+        def mavenArtifact = Mock(MavenArtifact)
+        notationParser.parseNotation('attached') >> mavenArtifact
+        mavenArtifact.extension >> 'pom.asc'
+
+        and:
+        def publication = createPublication()
+        publication.artifact('attached')
+        publication.pom.packaging = 'pom'
+
+        then:
+        !publication.asNormalisedPublication().mainArtifact
+        publication.pom.packaging == 'pom'
+    }
+
     def 'if there is only one artifact it is the main artifact even if packaging is different'() {
         when:
         def mavenArtifact = Mock(MavenArtifact)
