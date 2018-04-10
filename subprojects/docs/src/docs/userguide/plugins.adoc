@@ -193,13 +193,41 @@ BUILD SUCCEEDED
 The `pluginManagement {}` DSL is currently <<feature_lifecycle,incubating>>. Please be aware that the DSL and other configuration may change in later Gradle versions.
 ====
 
+The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts,Initialization Script>>.
+
+*settings.gradle*
+[source,groovy]
+----
+pluginManagement {
+  resolutionStrategy {
+    // ...
+  }
+  repositories {
+    // ...
+  }
+}
+----
+
+*~/.gradle/init.gradle*
+[source,groovy]
+----
+settingsEvaluated { settings ->
+  settings.pluginManagement.resolutionStrategy {
+    // ...
+  }
+
+  settings.pluginManagement.repositories {
+    // ...
+  }
+}
+----
 
 [[sec:custom_plugin_repositories]]
 ====== Custom Plugin Repositories
 
 By default, the `plugins {}` DSL resolves plugins from the public https://plugins.gradle.org[Gradle Plugin Portal.] Many build authors would also like to resolve plugins from private Maven or Ivy repositories because the plugins contain proprietary implementation details, or just to have more control over what plugins are available to their builds.
 
-To specify custom plugin repositories, use the `repositories {}` block inside `pluginManagement {}` in the `settings.gradle` file:
+To specify custom plugin repositories, use the `repositories {}` block inside `pluginManagement {}`:
 
 ++++
 <sample id="customPluginRepositories" dir="plugins/consuming" title="Using plugins from custom plugin repositories.">
@@ -224,7 +252,7 @@ To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManag
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
 
-The `pluginManagement {}` block may only appear in the `settings.gradle` file, and must be the first block in the file. Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin>>.
+Custom Maven and Ivy plugin repositories must contain <<sec:plugin_markers,plugin marker artifacts>> in addition to the artifacts which actually implement the plugin. For more information on publishing plugins to custom repositories read <<java_gradle_plugin>>.
 
 See api:org.gradle.plugin.management.PluginManagementSpec[] for complete documentation for using the `pluginManagement {}` block.
 
