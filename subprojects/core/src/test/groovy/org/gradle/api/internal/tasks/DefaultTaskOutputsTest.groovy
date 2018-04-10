@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.execution.TaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultPropertyMetadataStore
@@ -53,7 +53,7 @@ class DefaultTaskOutputsTest extends Specification {
     def resolver = [
         resolve: { new File(it) },
         resolveFiles: { it ->
-            new SimpleFileCollection(it*.call().flatten().collect { new File((String) it) })
+            ImmutableFileCollection.of(it*.call().flatten().collect { new File((String) it) } as File[])
         }
     ]   as FileResolver
     def project = Stub(ProjectInternal) {

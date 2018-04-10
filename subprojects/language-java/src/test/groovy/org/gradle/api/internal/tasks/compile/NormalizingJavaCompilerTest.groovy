@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import groovy.transform.InheritConstructors
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.util.TestUtil
@@ -43,7 +42,6 @@ class NormalizingJavaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.getClass() == SimpleFileCollection
             assert spec.source.files == old(spec.source.files)
             workResult
         }
@@ -116,10 +114,6 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        new TestFileCollection(paths.collect { new File(it) })
+        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
     }
-
-    // file collection whose type is distinguishable from SimpleFileCollection
-    @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {}
 }

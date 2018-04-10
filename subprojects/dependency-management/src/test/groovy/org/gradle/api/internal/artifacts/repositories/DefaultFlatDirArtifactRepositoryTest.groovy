@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -46,7 +46,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
-        _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
+        _ * fileResolver.resolveFiles(['a', 'b']) >> ImmutableFileCollection.of(dir1, dir2)
         _ * repositoryTransport.repository >> resourceRepository
 
         and:
@@ -73,7 +73,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
 
     def "fails when no directories specified"() {
         given:
-        _ * fileResolver.resolveFiles(_) >> new SimpleFileCollection()
+        _ * fileResolver.resolveFiles(_) >> ImmutableFileCollection.of()
 
         when:
         repository.createResolver()

@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.serialize.HashCodeSerializer
@@ -213,7 +213,7 @@ class DefaultClasspathSnapshotterTest extends Specification {
     }
 
     def files(File... files) {
-        return new SimpleFileCollection(files)
+        return ImmutableFileCollection.of(files)
     }
 
     def file(Object... path) {

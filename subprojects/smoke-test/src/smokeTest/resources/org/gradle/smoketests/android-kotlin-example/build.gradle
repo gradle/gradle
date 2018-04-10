@@ -89,9 +89,9 @@ project.afterEvaluate {
                     "src/$productFlavorName/kotlin",
                     "src/$buildTypeName/kotlin"
                 ]
-                additionalSourceDirs = files(coverageSourceDirs)
-                sourceDirectories = files(coverageSourceDirs)
-                executionData = files("${project.buildDir}/jacoco/${testTaskName}.exec")
+                additionalSourceDirs = layout.filesFor(coverageSourceDirs)
+                sourceDirectories = layout.filesFor(coverageSourceDirs)
+                executionData = layout.filesFor("${project.buildDir}/jacoco/${testTaskName}.exec")
                 reports {
                     xml.enabled = true
                     html.enabled = true

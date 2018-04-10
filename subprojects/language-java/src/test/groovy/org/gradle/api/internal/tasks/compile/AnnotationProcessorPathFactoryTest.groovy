@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
@@ -229,10 +229,10 @@ class AnnotationProcessorPathFactoryTest extends Specification {
     }
 
     FileCollection files(String... paths) {
-        new SimpleFileCollection(paths.collect { tmpDir.file(it).createFile() })
+        ImmutableFileCollection.of(paths.collect { tmpDir.file(it).createFile() } as File[])
     }
 
     FileCollection files(File... files) {
-        new SimpleFileCollection(files)
+        ImmutableFileCollection.of(files)
     }
 }

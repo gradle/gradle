@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -170,7 +170,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -bootclasspath option"() {
         def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.bootstrapClasspath = new SimpleFileCollection([new File("lib1.jar"), new File("lib2.jar")])
+        compileOptions.bootstrapClasspath = ImmutableFileCollection.of(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
         expect:
@@ -312,7 +312,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "can include/exclude source files"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.source = ImmutableFileCollection.of(file1, file2)
 
         when:
         builder.includeSourceFiles(true)
@@ -330,7 +330,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "does not include source files by default"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.source = new SimpleFileCollection(file1, file2)
+        spec.source = ImmutableFileCollection.of(file1, file2)
 
         expect:
         builder.build() == defaultOptions
@@ -389,6 +389,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     String asPath(File... files) {
-        new SimpleFileCollection(files).asPath
+        ImmutableFileCollection.of(files).asPath
     }
 }
