@@ -25,7 +25,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
 
     def setup() {
-        runner.minimumVersion = '4.0'
+        runner.minimumVersion = '4.6'
         runner.targetVersions = ["4.8-20180417000132+0000"]
     }
 
@@ -57,7 +57,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
             runner.args += '--parallel'
         }
         if (improvedPomSupport) {
-            runner.args += '-Porg.gradle.advancedpomsupport=true -PimprovedPomSupport=true'
+            runner.args += '-PimprovedPomSupport=true'
         }
 
         when:
