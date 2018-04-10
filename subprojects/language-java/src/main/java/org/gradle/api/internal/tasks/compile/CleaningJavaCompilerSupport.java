@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
@@ -28,7 +29,7 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
         StaleClassCleaner cleaner = createCleaner(spec);
 
         cleaner.setDestinationDir(spec.getDestinationDir());
-        cleaner.setSource(spec.getSource());
+        cleaner.setSource(ImmutableSet.copyOf(spec.getSource()));
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();

@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -33,7 +35,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -50,6 +51,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -143,7 +145,11 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSource(spec.getSource().plus(ImmutableFileCollection.of(stubDir).getAsFileTree()));
+                            Set<File> newSource = ImmutableSet.<File>builder()
+                                .addAll(spec.getSource())
+                                .add(stubDir)
+                                .build();
+                            spec.setSource(ImmutableFileCollection.of(newSource).getAsFileTree());
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
@@ -155,8 +161,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
-                        spec.setSource(spec.getSource().filter(new Spec<File>() {
-                            public boolean isSatisfiedBy(File file) {
+                        spec.setSource(Iterables.filter(spec.getSource(), new Predicate<File>() {
+                            @Override
+                            public boolean apply(File file) {
                                 return hasExtension(file, ".java");
                             }
                         }));
