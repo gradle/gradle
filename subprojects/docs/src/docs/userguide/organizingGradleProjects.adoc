@@ -161,6 +161,12 @@ A typical project setup places the `gradle.properties` file in the root director
 └── settings.gradle
 ----
 
+=== Avoid writing to the same output directory from different tasks
+
+Tasks should define inputs and outputs to enable proper functioning of <<sec:up_to_date_checks,incremental build functionality>>. When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
+
+Intermingling or overwriting output files produced by different tasks compromises up to date checking leading to longer build times. In turn, Gradle's <<build_cache,build cache>> won't work properly either as incremental task are a foundational mechanism to making a task cacheable.
+
 [[sec:custom_gradle_distribution]]
 === Standardizing builds with a custom Gradle distribution
 
