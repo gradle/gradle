@@ -17,22 +17,19 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
-import org.gradle.api.tasks.wrapper.Wrapper;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 public enum BuildInitDsl {
 
-    GROOVY(".gradle", Wrapper.DistributionType.BIN),
-    KOTLIN(".gradle.kts", Wrapper.DistributionType.ALL);
+    GROOVY(".gradle"),
+    KOTLIN(".gradle.kts");
 
     private final String fileExtension;
-    private final Wrapper.DistributionType wrapperDistributionType;
 
-    BuildInitDsl(String fileExtension, Wrapper.DistributionType wrapperDistributionType) {
+    BuildInitDsl(String fileExtension) {
         this.fileExtension = fileExtension;
-        this.wrapperDistributionType = wrapperDistributionType;
     }
 
     public static BuildInitDsl fromName(@Nullable String name) {
@@ -57,10 +54,6 @@ public enum BuildInitDsl {
 
     public String getId() {
         return name().toLowerCase();
-    }
-
-    public Wrapper.DistributionType getWrapperDistributionType() {
-        return wrapperDistributionType;
     }
 
     public String fileNameFor(String fileNameWithoutExtension) {
