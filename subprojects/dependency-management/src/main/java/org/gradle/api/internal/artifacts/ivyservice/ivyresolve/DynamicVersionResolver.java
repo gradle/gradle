@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -107,6 +108,9 @@ public class DynamicVersionResolver {
         Set<String> rejectedVersions = new LinkedHashSet<String>();
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.applyTo(result, unmatchedVersions, rejectedVersions);
+        }
+        if (result.isRejected()) {
+            return;
         }
         result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), unmatchedVersions, rejectedVersions));
     }
@@ -306,11 +310,15 @@ public class DynamicVersionResolver {
             return candidates;
         }
 
-        protected void applyTo(ResourceAwareResolveResult target, Set<String> unmatchedVersions, Set<String> rejectedVersions) {
+        protected void applyTo(BuildableComponentIdResolveResult target, Set<String> unmatchedVersions, Set<String> rejectedVersions) {
             versionListingResult.applyTo(target);
             attemptCollector.applyTo(target);
             unmatchedVersions.addAll(this.unmatchedVersions);
             rejectedVersions.addAll(this.rejectedVersions);
+
+            if (firstRejected != null) {
+                target.rejected(firstRejected, DefaultModuleVersionIdentifier.newId(firstRejected));
+            }
         }
     }
 
