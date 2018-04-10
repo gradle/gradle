@@ -30,6 +30,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static java.util.Collections.singletonMap
 
@@ -395,11 +396,10 @@ class DefaultTaskContainerTest extends Specification {
         0 * rule._
     }
 
-    void "can define task to create and configure later given name and type"() {
-        def action = Mock(Action)
-
+    @Unroll
+    void "can define task to create #description later given name and type"() {
         when:
-        def provider = container.createLater("task", DefaultTask, action)
+        def provider = container.createLater("task", DefaultTask, argument)
 
         then:
         0 * _
@@ -409,6 +409,11 @@ class DefaultTaskContainerTest extends Specification {
         container.size() == 1
         !container.empty
         !provider.present
+
+        where:
+        description      | argument
+        'and configure'  | Mock(Action)
+        'with arguments' | (['abc', 'def'] as Object[])
     }
 
     void "can define task to create and configure later given name"() {
@@ -461,6 +466,13 @@ class DefaultTaskContainerTest extends Specification {
         then:
         def e3 = thrown(InvalidUserDataException)
         e3.message == "Cannot add task 'task2' as a task with that name already exists."
+
+        when:
+        container.createLater("task1", DefaultTask, 'abc')
+
+        then:
+        def e4 = thrown(InvalidUserDataException)
+        e3.message == "Cannot add task 'task2' as a task with that name already exists."
     }
 
     void "defined task can be created and configured explicitly by using the returned provider"() {
@@ -489,6 +501,29 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
+    void "defined task can be created with arguments explicitly by using the returned provider"() {
+        def task = task("task")
+
+        given:
+        def provider = container.createLater("task", DefaultTask, 'abc', 123)
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+        provider.present
+
+        and:
+        1 * taskFactory.create("task", DefaultTask, 'abc', 123) >> task
+
+        when:
+        provider.get()
+
+        then:
+        0 * _
+    }
+
     void "defined task is created and configured when queried by name"() {
         def action = Mock(Action)
         def task = task("task")
@@ -508,6 +543,22 @@ class DefaultTaskContainerTest extends Specification {
         0 * action._
     }
 
+    void "defined task is created with arguments when queried by name"() {
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, 'abc', 123)
+
+        when:
+        def result = container.getByName("task")
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask, 'abc', 123) >> task
+    }
+
     void "defined task is created and configured when found by name"() {
         def action = Mock(Action)
         def task = task("task")
@@ -525,6 +576,22 @@ class DefaultTaskContainerTest extends Specification {
         1 * taskFactory.create("task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
+    }
+
+    void "defined task is created with arguments when found by name"() {
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, 'abc', 123)
+
+        when:
+        def result = container.findByName("task")
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask, 'abc', 123) >> task
     }
 
     void "can locate defined task by type and name without triggering creation or configuration"() {
@@ -553,6 +620,31 @@ class DefaultTaskContainerTest extends Specification {
         1 * taskFactory.create("task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
+    }
+
+    void "can locate defined task with arguments by type and name without triggering creation"() {
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, 'abc', 123)
+
+        when:
+        def provider = container.getByNameLater(Task, "task")
+
+        then:
+        !provider.present
+
+        and:
+        0 * _
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask, 'abc', 123) >> task
     }
 
     void "can locate task that already exists by type and name without triggering creation or configuration"() {
