@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
@@ -223,18 +224,26 @@ class SelectorStateResolverTest extends Specification {
 
             if (!prefer.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, prefer.selector)
-                result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
+                resolvedOrRejected(id, reject, result)
                 return
             }
 
             def resolved = findDynamicVersion(prefer, reject)
             if (resolved) {
                 def id = DefaultModuleComponentIdentifier.newId(moduleId.group, moduleId.name, resolved as String)
-                result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
+                resolvedOrRejected(id, reject, result)
                 return
             }
 
             result.failed(missing(prefer))
+        }
+
+        def resolvedOrRejected(ModuleComponentIdentifier id, VersionSelector rejectSelector, BuildableComponentIdResolveResult result) {
+            if (rejectSelector.accept(id.version)) {
+                result.rejected(id, DefaultModuleVersionIdentifier.newId(id))
+            } else {
+                result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
+            }
         }
 
         private Integer findDynamicVersion(VersionSelector prefer, VersionSelector reject) {

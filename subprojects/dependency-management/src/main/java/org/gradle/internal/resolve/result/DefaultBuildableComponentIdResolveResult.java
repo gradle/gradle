@@ -53,7 +53,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     @Override
     public boolean isRejected() {
-        assertResolved();
         return rejected;
     }
 

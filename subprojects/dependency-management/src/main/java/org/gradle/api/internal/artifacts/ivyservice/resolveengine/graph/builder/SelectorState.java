@@ -111,14 +111,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * Does the work of actually resolving a component selector to a component identifier.
      */
     public ComponentIdResolveResult resolve(VersionSelector allRejects) {
-        if (idResolveResult != null) {
-            if (idResolveResult.getFailure() != null) {
-                return idResolveResult;
-            }
-            // If the previous result is now rejected, need to re-resolve.
-            if (!allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
-                return idResolveResult;
-            }
+        if (!requiresResolve(allRejects)) {
+            return idResolveResult;
         }
 
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
@@ -136,6 +130,30 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.idResolveResult = idResolveResult;
         this.resolved = true;
         return idResolveResult;
+    }
+
+    private boolean requiresResolve(VersionSelector allRejects) {
+        // If we've never resolved, must resolve
+        if (idResolveResult == null) {
+            return true;
+        }
+
+        // If previous resolve failed, no point in re-resolving
+        if (idResolveResult.getFailure() != null) {
+            return false;
+        }
+
+        // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous rejects)
+        if (idResolveResult.isRejected()) {
+            return false;
+        }
+
+        // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
+        if (!allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

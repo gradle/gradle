@@ -270,12 +270,6 @@ public class DynamicVersionResolver {
 
         @Override
         public void noMatchFound() {
-            // TODO:DAZ This is a bastardisation
-            if (firstRejected != null) {
-                matches(firstRejected);
-                return;
-            }
-
             resolvedVersionMetadata.missing();
         }
 
