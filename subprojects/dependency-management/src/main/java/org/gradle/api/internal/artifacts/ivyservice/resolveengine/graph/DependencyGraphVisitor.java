@@ -25,7 +25,7 @@ public interface DependencyGraphVisitor {
     /**
      * Starts traversal of the graph.
      */
-    void start(DependencyGraphNode root);
+    void start(RootGraphNode root);
 
     /**
      * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdges(DependencyGraphNode)} is called.
@@ -50,7 +50,7 @@ public interface DependencyGraphVisitor {
 
     DependencyGraphVisitor NO_OP = new DependencyGraphVisitor() {
         @Override
-        public void start(DependencyGraphNode root) {
+        public void start(RootGraphNode root) {
         }
 
         @Override

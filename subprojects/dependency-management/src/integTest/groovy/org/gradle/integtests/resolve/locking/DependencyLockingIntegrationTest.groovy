@@ -188,8 +188,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause("Dependency lock for configuration 'lockedConf' is out of date:\n" +
-            "\tLocking constraint was not resolved: 'org:bar:1.0'")
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Did not resolve 'org:bar:1.0' which is part of the lock state")
     }
 
     def 'writes dependency lock file when requested'() {
@@ -337,8 +336,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause("Dependency lock for configuration 'lockedConf' is out of date:\n" +
-            "\tResolution resolved 'org:bar:1.0' which was not in the lockfile")
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Resolved 'org:bar:1.0' which is not part of the lock state")
     }
 
 }

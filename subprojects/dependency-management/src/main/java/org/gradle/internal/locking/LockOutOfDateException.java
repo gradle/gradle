@@ -16,14 +16,19 @@
 
 package org.gradle.internal.locking;
 
+import org.gradle.internal.text.TreeFormatter;
+
 public class LockOutOfDateException extends RuntimeException {
 
     public static LockOutOfDateException createLockOutOfDateException(String configurationName, Iterable<String> errors) {
-        StringBuilder builder = new StringBuilder("Dependency lock for configuration '" + configurationName + "' is out of date:\n");
+        TreeFormatter treeFormatter = new TreeFormatter();
+        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date:");
+        treeFormatter.startChildren();
         for (String error : errors) {
-            builder.append("\t").append(error).append("\n");
+            treeFormatter.node(error);
         }
-        return new LockOutOfDateException(builder.toString());
+        treeFormatter.endChildren();
+        return new LockOutOfDateException(treeFormatter.toString());
     }
 
     private LockOutOfDateException(String message) {

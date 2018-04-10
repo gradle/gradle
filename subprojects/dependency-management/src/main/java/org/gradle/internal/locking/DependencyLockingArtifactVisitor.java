@@ -54,20 +54,19 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
-        if (root.isRoot()) {
-            RootConfigurationMetadata metadata = ((RootGraphNode) root).getMetadata();
-            dependencyLockingState = metadata.getDependencyLockingState();
-            if (dependencyLockingState.hasLockState()) {
-                lockingConstraints = Sets.newHashSetWithExpectedSize(dependencyLockingState.getLockedDependencies().size());
-                for (DependencyConstraint constraint : dependencyLockingState.getLockedDependencies()) {
-                    lockingConstraints.add(constraint.getGroup() + ":" + constraint.getName() + ":" + constraint.getVersionConstraint().getPreferredVersion());
-                }
-                allResolvedModules = Lists.newArrayListWithCapacity(this.lockingConstraints.size());
-                extraModules = new TreeSet<String>();
-            } else {
-                allResolvedModules = new ArrayList<ModuleComponentIdentifier>();
+    public void startArtifacts(RootGraphNode root) {
+        RootConfigurationMetadata metadata = root.getMetadata();
+        dependencyLockingState = metadata.getDependencyLockingState();
+        if (dependencyLockingState.hasLockState()) {
+            Set<DependencyConstraint> lockConstraints = dependencyLockingState.getLockedDependencies();
+            lockingConstraints = Sets.newHashSetWithExpectedSize(lockConstraints.size());
+            for (DependencyConstraint constraint : lockConstraints) {
+                lockingConstraints.add(constraint.getGroup() + ":" + constraint.getName() + ":" + constraint.getVersionConstraint().getPreferredVersion());
             }
+            allResolvedModules = Lists.newArrayListWithCapacity(this.lockingConstraints.size());
+            extraModules = new TreeSet<String>();
+        } else {
+            allResolvedModules = new ArrayList<ModuleComponentIdentifier>();
         }
     }
 
@@ -113,10 +112,10 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     private void throwLockOutOfDateException(Set<String> notResolvedConstraints, Set<String> extraModules) {
         List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size());
         for (String notResolvedConstraint : notResolvedConstraints) {
-            errors.add("Dependency graph does not contain '" + notResolvedConstraint + "' which used to be found in the lock file");
+            errors.add("Did not resolve '" + notResolvedConstraint + "' which is part of the lock state");
         }
         for (String extraModule : extraModules) {
-            errors.add("Resolved '" + extraModule + "' which was not found in the lockfile");
+            errors.add("Resolved '" + extraModule + "' which is not part of the lock state");
         }
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }

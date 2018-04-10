@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 public interface DependencyArtifactsVisitor {
     /**
      * Starts visiting.
      */
-    void startArtifacts(DependencyGraphNode root);
+    void startArtifacts(RootGraphNode root);
 
     /**
      * Visits a node in the graph. All nodes are visited prior to visiting the edges

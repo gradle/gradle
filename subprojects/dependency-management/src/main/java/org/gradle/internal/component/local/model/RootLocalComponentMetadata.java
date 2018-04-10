@@ -52,7 +52,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     }
 
     class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
-        private boolean locked;
+        private boolean configurationLocked;
         private DependencyLockingState dependencyLockingState;
 
         RootLocalConfigurationMetadata(String name,
@@ -69,12 +69,12 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         }
 
         public void enableLocking() {
-            this.locked = true;
+            this.configurationLocked = true;
         }
 
         @Override
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
-            if (locked) {
+            if (configurationLocked) {
                 dependencyLockingState = dependencyLockingProvider.findLockConstraint(getName());
                 for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
