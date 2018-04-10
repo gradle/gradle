@@ -6,7 +6,7 @@ initscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.gradle:build-scan-plugin:1.13")
+        classpath("com.gradle:build-scan-plugin:1.13.1")
     }
 }
 
