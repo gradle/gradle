@@ -18,7 +18,6 @@ package org.gradle.api.publish.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.provider.Provider;

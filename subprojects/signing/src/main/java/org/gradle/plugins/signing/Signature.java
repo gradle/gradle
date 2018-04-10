@@ -123,7 +123,7 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
         this.toSignPublishArtifact = toSign;
     }
 
-    public Signature(final PublicationArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
+    Signature(final PublicationArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
         init(new Callable<File>() {
             public File call() {
@@ -394,7 +394,7 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
         return toSignPublishArtifact;
     }
 
-    public final PublicationArtifact getToSignPublicationArtifact() {
+    final PublicationArtifact getToSignPublicationArtifact() {
         return toSignPublicationArtifact;
     }
 

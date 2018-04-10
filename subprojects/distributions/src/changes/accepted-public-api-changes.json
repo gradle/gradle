@@ -12,6 +12,14 @@
             "type": "org.gradle.nativeplatform.OperatingSystemFamily",
             "member": "Constructor org.gradle.nativeplatform.OperatingSystemFamily()",
             "acceptation": "OperatingSystemFamily is now an abstract class"
+        },
+        {
+            "type": "org.gradle.plugins.signing.Signature",
+            "member": "Class org.gradle.plugins.signing.Signature",
+            "acceptation": "Signing plugin now supports publications",
+            "changes": [
+                "org.gradle.api.publish.PublicationArtifact"
+            ]
         }
     ]
 }

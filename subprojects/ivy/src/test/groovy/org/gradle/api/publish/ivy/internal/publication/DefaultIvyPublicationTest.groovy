@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.publish.PublicationArtifact
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
@@ -273,7 +273,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.artifacts == [ivyArtifact1, ivyArtifact2] as Set
     }
 
-    def "resolving the publishabe files does not throw if gradle metadata is not activated"() {
+    def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
         def publication = instantiator.newInstance(DefaultIvyPublication,
             "pub-name",
@@ -285,13 +285,16 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorFile(ImmutableFileCollection.of(ivyDescriptorFile))
+        publication.setIvyDescriptorArtifact(createPublicationArtifact(ivyDescriptorFile))
 
         when:
         publication.publishableFiles.files
 
         then:
         noExceptionThrown()
+
+        and:
+        publication.publishableFiles.contains(ivyDescriptorFile)
     }
 
     def createPublication() {
@@ -305,9 +308,15 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorFile(ImmutableFileCollection.of(ivyDescriptorFile))
-        publication.setGradleModuleDescriptorFile(ImmutableFileCollection.of(moduleDescriptorFile))
+        publication.setIvyDescriptorArtifact(createPublicationArtifact(ivyDescriptorFile))
+        publication.setGradleModuleDescriptorArtifact(createPublicationArtifact(moduleDescriptorFile))
         return publication
+    }
+
+    def createPublicationArtifact(File file) {
+        return Mock(PublicationArtifact) {
+            getFile() >> file
+        }
     }
 
     def createArtifact() {

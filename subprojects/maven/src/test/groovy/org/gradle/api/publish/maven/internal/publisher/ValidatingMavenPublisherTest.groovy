@@ -15,11 +15,13 @@
  */
 
 package org.gradle.api.publish.maven.internal.publisher
+
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import org.gradle.api.publish.PublicationArtifact
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
@@ -186,7 +188,7 @@ class ValidatingMavenPublisherTest extends Specification {
         }
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
         def pomFile = createPomFile(projectIdentity)
-        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([artifact1]), null)
+        def publication = new MavenNormalizedPublication("pub-name", pomFile, null, projectIdentity, toSet([artifact1, pomFile]), null)
 
         when:
         publisher.publish(publication, repository)
@@ -232,6 +234,13 @@ class ValidatingMavenPublisherTest extends Specification {
             pomFileGenerator.withXml(withXmlAction)
         }
         pomFileGenerator.writeTo(pomFile)
-        return pomFile
+        return createPublicationArtifact(pomFile, "pom")
+    }
+
+    private def createPublicationArtifact(File file, String extension) {
+        return Mock(PublicationArtifact) {
+            getFile() >> file
+            getExtension() >> extension
+        }
     }
 }

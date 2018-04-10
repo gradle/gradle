@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -239,7 +240,10 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     /**
      * Configures the task to sign every artifact of the given publications
+     *
+     * @since 4.8
      */
+    @Incubating
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
             publication.getAllArtifacts().all(

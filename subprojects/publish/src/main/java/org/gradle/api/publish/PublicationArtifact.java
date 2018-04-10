@@ -22,6 +22,11 @@ import org.gradle.api.Incubating;
 import javax.annotation.Nullable;
 import java.io.File;
 
+/**
+ * An artifact published as part of a {@link Publication}.
+ *
+ * @since 4.8
+ */
 @Incubating
 public interface PublicationArtifact extends Buildable {
     /**

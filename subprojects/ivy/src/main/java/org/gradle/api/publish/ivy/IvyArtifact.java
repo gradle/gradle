@@ -16,12 +16,10 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.

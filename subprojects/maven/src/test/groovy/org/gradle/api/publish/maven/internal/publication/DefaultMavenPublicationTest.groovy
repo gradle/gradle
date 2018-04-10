@@ -29,7 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.api.publish.PublicationArtifact
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
@@ -393,30 +394,39 @@ class DefaultMavenPublicationTest extends Specification {
         publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
     }
 
-    def "resolving the publishabe files does not throw if gradle metadata is not activated"() {
+    def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
-        publication.setPomFile(ImmutableFileCollection.of(pomFile))
+        publication.setPomArtifact(createPublicationArtifact(pomFile))
 
         when:
         publication.publishableFiles.files
 
         then:
         noExceptionThrown()
+
+        and:
+        publication.publishableFiles.contains(pomFile)
     }
 
     def createPublication() {
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
-        publication.setPomFile(ImmutableFileCollection.of(pomFile))
-        publication.setGradleModuleMetadataFile(ImmutableFileCollection.of(gradleMetadataFile))
+        publication.setPomArtifact(createPublicationArtifact(pomFile))
+        publication.setGradleModuleMetadataArtifact(createPublicationArtifact(gradleMetadataFile))
         return publication
     }
 
+    def createPublicationArtifact(File file) {
+        return Mock(PublicationArtifact) {
+            getFile() >> file
+            getBuildDependencies() >> new DefaultTaskDependency()
+        }
+    }
+
     def createArtifact() {
-        def artifact = Mock(MavenArtifact) {
+        return Mock(MavenArtifact) {
             getFile() >> artifactFile
         }
-        return artifact
     }
 
     def componentWithDependency(ModuleDependency dependency) {

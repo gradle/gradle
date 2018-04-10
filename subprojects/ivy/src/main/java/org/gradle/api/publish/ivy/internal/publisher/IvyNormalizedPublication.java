@@ -17,9 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.api.publish.ivy.IvyArtifact;
 
-import java.io.File;
 import java.util.Set;
 
 public class IvyNormalizedPublication {

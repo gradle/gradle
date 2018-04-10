@@ -284,11 +284,11 @@ public class SigningExtension {
     }
 
     /**
-     * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all of the artifacts} of the given configurations.
+     * Creates signing tasks that sign {@linkplain Configuration#getAllArtifacts() all of the artifacts} of the given configurations.
      *
      * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "archives" the created task will be named "signArchives".
      *
-     * The signature artifact for the created task is added to the {@link #getConfiguration() for this settings object}.
+     * The signature artifacts for the created tasks are added to the {@linkplain #getConfiguration() configuration} for this settings object.
      *
      * @param configurations The configurations whose archives are to be signed
      * @return the created tasks.
@@ -307,6 +307,19 @@ public class SigningExtension {
         return result;
     }
 
+    /**
+     * Creates signing tasks that sign {@linkplain Publication#getAllArtifacts()} all of the artifacts} of the given publications.
+     *
+     * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
+     * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
+     *
+     * The signature artifacts for the created tasks are added to the {@linkplain Publication#getAdditionalArtifacts() additional artifacts} of the given publications.
+     *
+     * @param publications The publications whose artifacts are to be signed
+     * @return the created tasks.
+     * @since 4.8
+     */
+    @Incubating
     public List<Sign> sign(Publication... publications) {
         List<Sign> result = new ArrayList<Sign>(publications.length);
         for (final Publication publicationToSign : publications) {
@@ -327,13 +340,23 @@ public class SigningExtension {
         return signTask;
     }
 
-    private void addSignaturesToArtifacts(Sign task, final DomainObjectSet<? super Signature> artifacts) {
+    /**
+     * Add the given task's signatures to the given configuration's artifacts.
+     *
+     * @deprecated should have been a private method in the first place
+     */
+    @Deprecated
+    protected Object addSignaturesToConfiguration(Sign task, Configuration configuration) {
+        return addSignaturesToArtifacts(task, configuration.getArtifacts());
+    }
+
+    private Action<? super Signature> addSignaturesToArtifacts(Sign task, final DomainObjectSet<? super Signature> artifacts) {
         task.getSignatures().all(new Action<Signature>() {
             public void execute(Signature signature) {
                 artifacts.add(signature);
             }
         });
-        task.getSignatures().whenObjectRemoved(new Action<Signature>() {
+        return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
             public void execute(Signature signature) {
                 artifacts.remove(signature);
             }
