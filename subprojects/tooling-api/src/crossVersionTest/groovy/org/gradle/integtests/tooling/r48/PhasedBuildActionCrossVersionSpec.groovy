@@ -21,6 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -43,9 +46,16 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                     println "bye"
                 }
             }
+
+            task defTask {
+                doLast {
+                    println "default"
+                }
+            }
             
             allprojects {
                 apply plugin: CustomPlugin
+                defaultTasks 'defTask'
             }
             
             class DefaultCustomModel implements Serializable {
@@ -94,7 +104,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 
                 Object buildAll(String modelName, CustomParameter parameter, Project project) {
                     if (modelName == '${CustomProjectsEvaluatedModel.name}') {
-                        project.setDefaultTasks(parameter.getTasks());
+                        StartParameter startParameter = project.getGradle().getStartParameter();
+                        Set<String> tasks = new HashSet(startParameter.getTaskNames());
+                        tasks.addAll(parameter.getTasks());
+                        startParameter.setTaskNames(tasks);
                         return new DefaultCustomModel('configurationWithTasks');
                     }
                     return null
@@ -150,7 +163,30 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=4.8")
-    def "can modify task graph in after configuration action"() {
+    def "build is interrupted immediately if action fails"() {
+        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
+        def events = ""
+
+        when:
+        withConnection { connection ->
+            connection.phasedAction().projectsLoaded(new FailAction(), projectsLoadedHandler)
+                .build()
+                .addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent event) {
+                        events += event.getDescriptor().getDisplayName() + "\n"
+                    }
+                })
+                .run()
+        }
+
+        then:
+        thrown(BuildActionFailureException)
+        !events.contains("Configure project")
+    }
+
+    @TargetGradleVersion(">=4.8")
+    def "can modify task graph in projects evaluated action"() {
         PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
@@ -182,11 +218,31 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        Pattern regex = Pattern.compile(".*hello.*bye.*afterBuildAction.*", Pattern.DOTALL)
+        Pattern regex = Pattern.compile(".*hello.*bye.*buildFinishedAction.*", Pattern.DOTALL)
         assert stdOut.toString().matches(regex)
         buildFinishedHandler.getResult() == "build"
         stdOut.toString().contains("hello")
         stdOut.toString().contains("bye")
+    }
+
+    @Ignore("Work in progress. See ClientProvidedPhasedActionRunner")
+    @TargetGradleVersion(">=4.8")
+    def "default tasks are not run if no tasks are specified"() {
+        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        def stdOut = new ByteArrayOutputStream()
+
+        when:
+        withConnection { connection ->
+            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .setStandardOutput(stdOut)
+                .run()
+        }
+
+        then:
+        buildFinishedHandler.getResult() == "build"
+        stdOut.toString().contains("buildFinishedAction")
+        !stdOut.toString().contains("default")
     }
 
     @TargetGradleVersion("<4.8")

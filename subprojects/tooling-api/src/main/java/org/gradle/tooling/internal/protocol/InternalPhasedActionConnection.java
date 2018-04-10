@@ -46,8 +46,6 @@ public interface InternalPhasedActionConnection extends InternalProtocolInterfac
      * @throws InternalBuildActionFailureException When one of the actions fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     *
-     * @since 4.8
      */
     BuildResult<?> run(InternalPhasedAction internalPhasedAction,
                        PhasedActionResultListener listener,

@@ -28,10 +28,10 @@ public class InternalPhasedActionAdapter implements InternalPhasedAction {
 
     InternalPhasedActionAdapter(@Nullable InternalBuildActionVersion2<?> projectsLoadedAction,
                                 @Nullable InternalBuildActionVersion2<?> projectsEvaluatedAction,
-                                @Nullable InternalBuildActionVersion2<?> afterBuildAction) {
+                                @Nullable InternalBuildActionVersion2<?> buildFinishedAction) {
         this.projectsLoadedAction = projectsLoadedAction;
         this.projectsEvaluatedAction = projectsEvaluatedAction;
-        this.buildFinishedAction = afterBuildAction;
+        this.buildFinishedAction = buildFinishedAction;
     }
 
     @Nullable

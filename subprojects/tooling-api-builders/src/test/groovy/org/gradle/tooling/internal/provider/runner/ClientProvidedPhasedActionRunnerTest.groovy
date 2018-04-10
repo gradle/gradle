@@ -137,15 +137,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
         then:
         1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
+        thrown(InternalBuildActionFailureException)
         0 * projectsEvaluatedAction.execute(_)
         0 * buildFinishedAction.execute(_)
-        1 * buildController.setResult(_) >> { args ->
-            def it = args[0]
-            assert it instanceof BuildActionResult
-            assert it.failure == serializedFailure
-            assert it.result == null
-            buildController.hasResult() >> true
-        }
         0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.PROJECTS_LOADED
@@ -166,14 +160,14 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
         then:
         1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
-        1 * payloadSerializer.serialize({ it instanceof InternalBuildActionFailureException })
+        thrown(InternalBuildActionFailureException)
 
         when:
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
         1 * projectsLoadedAction.execute(_) >> { throw new BuildCancelledException() }
-        1 * payloadSerializer.serialize({ it instanceof InternalBuildCancelledException })
+        thrown(InternalBuildCancelledException)
     }
 
     def "action not run if null"() {
