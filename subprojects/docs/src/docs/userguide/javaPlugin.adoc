@@ -25,19 +25,130 @@ To use the Java plugin, include the following in your build script:
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="use-plugin"/>
+</sample>
 ++++
 
+
+[[sec:java_project_layout]]
+=== Project layout
+
+The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
+
+[[javalayout]]
+.Java plugin - default project layout
+[cols="a,a,a", options="header"]
+|===
+| Directory
+|
+| Meaning
+
+include::javaProjectMainLayout.adoc[]
+include::javaProjectTestLayout.adoc[]
+include::javaProjectGenericLayout.adoc[]
+|===
+
+
+[[sec:changing_java_project_layout]]
+==== Changing the project layout
+
+You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
+    <sourcefile file="build.gradle" snippet="define-main"/>
+</sample>
+++++
 
 [[sec:java_source_sets]]
 === Source sets
 
-The Java plugin introduces the concept of a _source set_. A source set is simply a group of source files which are compiled and executed together. These source files may include Java source files and resource files. Other plugins add the ability to include Groovy and Scala source files in a source set. A source set has an associated compile classpath, and runtime classpath.
+The plugin adds the following <<sec:java_source_sets,source sets>>:
 
-One use for source sets is to group source files into logical groups which describe their purpose. For example, you might use a source set to define an integration test suite, or you might use separate source sets to define the API and implementation classes of your project.
+`main`::
+Contains the production source code of the project, which is compiled and assembled into a JAR.
 
-The Java plugin defines two standard source sets, called `main` and `test`. The `main` source set contains your production source code, which is compiled and assembled into a JAR file. The `test` source set contains your test source code, which is compiled and executed using JUnit or TestNG. These can be unit tests, integration tests, acceptance tests, or any combination that is useful to you.
+`test`::
+Contains your test source code, which is compiled and executed using JUnit or TestNG. These are typically unit tests, but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
+
+[[sec:source_set_properties]]
+==== Source set properties
+
+The following table lists some of the important properties of a source set. You can find more details in the API documentation for api:org.gradle.api.tasks.SourceSet[].
+
+`(read-only) String name`::
+_The name of the source set, used to identify it._ Default value: Not null
+
+`(read-only) api:org.gradle.api.tasks.SourceSetOutput[] output`::
+_The output files of the source set, containing its compiled classes and resources._ Default value: Not null
+
+`api:org.gradle.api.file.FileCollection[] output.classesDirs`::
+_The directories to generate the classes of this source set into._ Default value: Not null
+
+`File output.resourcesDir`::
+_The directory to generate the resources of this source set into._ Default value: `__buildDir__/resources/__name__`
+
+`api:org.gradle.api.file.FileCollection[] compileClasspath`::
+_The classpath to use when compiling the source files of this source set._ Default value: `__sourceSet__CompileClasspath` configuration.
+
+`api:org.gradle.api.file.FileCollection[] annotationProcessorPath`::
+_The processor path to use when compiling the source files of this source set._ Default value: `__sourceSet__AnnotationProcessor` configuration.
+
+`api:org.gradle.api.file.FileCollection[] runtimeClasspath`::
+_The classpath to use when executing the classes of this source set._ Default value: `output` + `__sourceSet__RuntimeClasspath` configuration.
+
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] java`::
+_The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files._ Default value: Not null
+
+`Set&lt;File&gt; java.srcDirs`::
+_The source directories containing the Java source files of this source set._ Default value: `[__projectDir__/src/__name__/java]`. Can set using anything described in <<sec:specifying_multiple_files>>.
+
+`File java.outputDir`::
+_The directory to generate compiled Java sources into._ Default value: `__buildDir__/classes/java/__sourceSetName__`. Can set using anything described in <<sec:locating_files>>.
+
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] resources`::
+_The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource source directories. Other plugins, such as the Groovy plugin, exclude additional types of files from this collection._ Default value: Not null
+
+`Set&lt;File&gt; resources.srcDirs`::
+_The source directories containing the resources of this source set._ Default value: `[__projectDir__/src/__name__/resources]`. Can set using anything described in <<sec:specifying_multiple_files>>.
+
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allJava`::
+_All `.java` files of this source set. Some plugins, such as the Groovy plugin, add additional Java source files to this collection._ Default value: `java`
+
+`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allSource`::
+_All source files of this source set. This include all resource files and all Java source files. Some plugins, such as the Groovy plugin, add additional source files to this collection._ Default value: `resources + java`
+
+[[sec:defining_new_source_sets]]
+==== Defining new source sets
+
+See the <<sec:configuring_java_integration_tests,integration test example>> in the _Testing in Java & JVM projects_ chapter.
+
+[[sec:some_source_set_examples]]
+==== Some other simple source set examples
+
+Adding a JAR containing the classes of a source set:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
+    <sourcefile file="build.gradle" snippet="jar"/>
+</sample>
+++++
+
+Generating Javadoc for a source set:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
+    <sourcefile file="build.gradle" snippet="javadoc"/>
+</sample>
+++++
+
+Adding a test suite to run the tests in a source set:
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
+    <sourcefile file="build.gradle" snippet="test"/>
+</sample>
+++++
 
 [[sec:java_tasks]]
 === Tasks
@@ -122,43 +233,13 @@ The following diagram shows the relationships between these tasks.
 
 ++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Java plugin - tasks</title>
-            <imageobject>
-                <imagedata fileref="img/javaPluginTasks.png"/>
-            </imageobject>
-        </figure>
+    <title>Java plugin - tasks</title>
+    <imageobject>
+        <imagedata fileref="img/javaPluginTasks.png"/>
+    </imageobject>
+</figure>
 ++++
 
-
-[[sec:java_project_layout]]
-=== Project layout
-
-The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
-
-[[javalayout]]
-.Java plugin - default project layout
-[cols="a,a,a", options="header"]
-|===
-| Directory
-|
-| Meaning
-
-include::javaProjectMainLayout.adoc[]
-include::javaProjectTestLayout.adoc[]
-include::javaProjectGenericLayout.adoc[]
-|===
-
-
-[[sec:changing_java_project_layout]]
-==== Changing the project layout
-
-You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customJavaSourceLayout" dir="java/customizedLayout" title="Custom Java source layout">
-                <sourcefile file="build.gradle" snippet="define-main"/>
-            </sample>
-++++
 
 
 [[sec:java_plugin_and_dependency_management]]
@@ -172,7 +253,7 @@ The Java plugin adds a number of <<managing_dependency_configurations,dependency
 [NOTE]
 ====
 
-For `api` configuration introduced by `java-library` plugin, please consult <<java_library_separation, Java Library Plugin>> and <<dependency_management_for_java_projects, Dependency Management Tutorial>>.
+To find information on the `api` configuration, please consult the <<java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects, Dependency Management Tutorial>>.
 
 ====
 
@@ -229,11 +310,11 @@ _The default configuration used by a project dependency on this project._ Contai
 
 ++++
 <figure xmlns:xi="http://www.w3.org/2001/XInclude">
-            <title>Java plugin - dependency configurations</title>
-            <imageobject>
-                <imagedata fileref="img/javaPluginConfigurations.png"/>
-            </imageobject>
-        </figure>
+    <title>Java plugin - dependency configurations</title>
+    <imageobject>
+        <imagedata fileref="img/javaPluginConfigurations.png"/>
+    </imageobject>
+</figure>
 ++++
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
@@ -272,11 +353,11 @@ The Java plugin adds a number of convention properties to the project, shown bel
 
 ==== Directory properties
 
-`String reportsDirName`::
+`String reporting.baseDir`::
 _The name of the directory to generate reports into, relative to the build directory._ Default value: `reports`
 
 `(read-only) File reportsDir`::
-_The directory to generate reports into._ Default value: `__buildDir__/__reportsDirName__`
+_The directory to generate reports into._ Default value: `__buildDir__/__reporting.baseDir__`
 
 `String testResultsDirName`::
 _The name of the directory to generate test result .xml files into, relative to the build directory._ Default value: `test-results`
@@ -330,128 +411,7 @@ _The manifest to include in all JAR files._ Default value: an empty manifest.
 
 These properties are provided by convention objects of type api:org.gradle.api.plugins.JavaPluginConvention[], and api:org.gradle.api.plugins.BasePluginConvention[].
 
-[[sec:working_with_java_source_sets]]
-=== Working with source sets
 
-You can access the source sets of a project using the `sourceSets` property. This is a container for the project's source sets, of type api:org.gradle.api.tasks.SourceSetContainer[]. There is also a `sourceSets { }` script block, which you can pass a closure to configure the source set container. The source set container works pretty much the same way as other containers, such as `tasks`.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="defineSourceSet" dir="userguide/java/sourceSets" title="Accessing a source set">
-            <sourcefile file="build.gradle" snippet="access-source-set"/>
-        </sample>
-++++
-
-To configure an existing source set, you simply use one of the above access methods to set the properties of the source set. The properties are described below. Here is an example which configures the main Java and resources directories:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="java/customizedLayout" title="Configuring the source directories of a source set">
-            <sourcefile file="build.gradle" snippet="define-main"/>
-        </sample>
-++++
-
-
-[[sec:source_set_properties]]
-==== Source set properties
-
-The following table lists some of the important properties of a source set. You can find more details in the API documentation for api:org.gradle.api.tasks.SourceSet[].
-
-`(read-only) String name`::
-_The name of the source set, used to identify it._ Default value: Not null
-
-`(read-only) api:org.gradle.api.tasks.SourceSetOutput[] output`::
-_The output files of the source set, containing its compiled classes and resources._ Default value: Not null
-
-`api:org.gradle.api.file.FileCollection[] output.classesDirs`::
-_The directories to generate the classes of this source set into._ Default value: Not null
-
-`File output.resourcesDir`::
-_The directory to generate the resources of this source set into._ Default value: `__buildDir__/resources/__name__`
-
-`api:org.gradle.api.file.FileCollection[] compileClasspath`::
-_The classpath to use when compiling the source files of this source set._ Default value: `__sourceSet__CompileClasspath` configuration.
-
-`api:org.gradle.api.file.FileCollection[] annotationProcessorPath`::
-_The processor path to use when compiling the source files of this source set._ Default value: `__sourceSet__AnnotationProcessor` configuration.
-
-`api:org.gradle.api.file.FileCollection[] runtimeClasspath`::
-_The classpath to use when executing the classes of this source set._ Default value: `output` + `__sourceSet__RuntimeClasspath` configuration.
-
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] java`::
-_The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files._ Default value: Not null
-
-`Set&lt;File&gt; java.srcDirs`::
-_The source directories containing the Java source files of this source set._ Default value: `[__projectDir__/src/__name__/java]`. Can set using anything described in <<sec:specifying_multiple_files>>.
-
-`File java.outputDir`::
-_The directory to generate compiled Java sources into._ Default value: `__buildDir__/classes/java/__sourceSetName__`. Can set using anything described in <<sec:locating_files>>.
-
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] resources`::
-_The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource source directories. Other plugins, such as the Groovy plugin, exclude additional types of files from this collection._ Default value: Not null
-
-`Set&lt;File&gt; resources.srcDirs`::
-_The source directories containing the resources of this source set._ Default value: `[__projectDir__/src/__name__/resources]`. Can set using anything described in <<sec:specifying_multiple_files>>.
-
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allJava`::
-_All `.java` files of this source set. Some plugins, such as the Groovy plugin, add additional Java source files to this collection._ Default value: `java`
-
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allSource`::
-_All source files of this source set. This include all resource files and all Java source files. Some plugins, such as the Groovy plugin, add additional source files to this collection._ Default value: `resources + java`
-
-
-[[sec:defining_new_source_sets]]
-==== Defining new source sets
-
-To define a new source set, you simply reference it in the `sourceSets { }` block. Here's an example:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="defineSourceSet" dir="userguide/java/sourceSets" title="Defining a source set">
-                <sourcefile file="build.gradle" snippet="define-source-set"/>
-            </sample>
-++++
-
-When you define a new source set, the Java plugin adds some dependency configurations for the source set, as shown in <<java_source_set_configurations>>. You can use these configurations to define the compile and runtime dependencies of the source set.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="sourceSetDependencies" dir="userguide/java/sourceSets" title="Defining source set dependencies">
-                <sourcefile file="build.gradle" snippet="source-set-dependencies"/>
-            </sample>
-++++
-
-The Java plugin also adds a number of tasks which assemble the classes for the source set, as shown in <<java_source_set_tasks>>. For example, for a source set called `intTest`, compiling the classes for this source set is done by running `gradle intTestClasses`.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="compileSourceSet" dir="userguide/java/sourceSets" title="Compiling a source set">
-                <output args="intTestClasses"/>
-            </sample>
-++++
-
-
-[[sec:some_source_set_examples]]
-==== Some source set examples
-
-Adding a JAR containing the classes of a source set:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
-                <sourcefile file="build.gradle" snippet="jar"/>
-            </sample>
-++++
-
-Generating Javadoc for a source set:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Generating the Javadoc for a source set">
-                <sourcefile file="build.gradle" snippet="javadoc"/>
-            </sample>
-++++
-
-Adding a test suite to run the tests in a source set:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="configureSourceSet" dir="userguide/java/sourceSets" title="Running tests in a source set">
-                <sourcefile file="build.gradle" snippet="test"/>
-            </sample>
-++++
 
 
 [[sec:javadoc]]
@@ -517,7 +477,7 @@ Default value: `__sourceSet__.java.outputDir`
 By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
 
 [[sec:incremental_compile]]
-=== Incremental Java compilation
+==== Incremental Java compilation
 
 Starting with Gradle 2.1, it is possible to compile Java incrementally. See the api:org.gradle.api.tasks.compile.JavaCompile[] task for information on how to enable it.
 
@@ -532,14 +492,14 @@ The incremental compilation at a high level:
 * To make incremental compilation fast, we cache class analysis results and jar snapshots. The initial incremental compilation can be slower due to the cold caches.
 
 [[sec:incremental_compilation_known_issues]]
-==== Known issues
+===== Known issues
 
 
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * Because of type erasure, the incremental compiler is not able to recognize when a type is only used in a type parameter, and never actually used in the code. For example, imagine that you have the following code: `List&lt;? extends A&gt; list = Lists.newArrayList();` but that no member of `A` is in practice used in the code, then changes to `A` will not trigger recompilation of the class. In practice, this should very rarely be an issue.
 
 [[sec:incremental_annotation_processing]]
-=== Incremental annotation processing
+==== Incremental annotation processing
 
 Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
 Annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
@@ -548,7 +508,7 @@ Annotation processors need to opt in to this feature, otherwise they will trigge
 As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
 Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.
 
-==== Making an annotation processor incremental
+===== Making an annotation processor incremental
 
 Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
 As a processor author, please consult the information below to decide which category fits your processor.
@@ -564,7 +524,7 @@ The format is one line per processor, with the qualified name of the processor a
 Processors that don't fit these categories will result in full recompilation.
 This includes processors that use `java.io` instead of the `Filer` API and processors that need to read or write resource files.
 
-===== Isolating annotation processors
+====== Isolating annotation processors
 These look at each annotated element in isolation, creating generated files or validation messages for it.
 For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
 
@@ -588,7 +548,7 @@ For instance it can query the super class, method return types etc, but can't lo
 Gradle will recompile the generated file whenever the source file is affected.
 If the source file is deleted, the generated file is deleted.
 
-===== Aggregating annotation processors
+====== Aggregating annotation processors
 These aggregate several source files into one ore more output files or validation messages.
 For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
 
@@ -613,7 +573,7 @@ If your aggregating processor requires access to parameter names, you need to in
 Gradle will always recompile any files the processor generates.
 
 [[sec:java_compile_avoidance]]
-=== Compile avoidance
+==== Compile avoidance
 
 If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
 
@@ -628,10 +588,11 @@ Some of the types of changes that do not affect the public API and are ignored:
 
 
 Compile-avoidance is deactivated if annotation processors are found on the compile classpath, because for annotation processors the implementation details matter. Annotation processors should be declared on the annotation processor path instead. Gradle 5.0 will ignore processors on the compile classpath.
+
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="annotationProcessing" dir="java/apt" title="Declaring annotation processors">
-                <sourcefile file="build.gradle" snippet="annotation-processing"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="annotation-processing"/>
+</sample>
 ++++
 
 
@@ -640,341 +601,8 @@ Compile-avoidance is deactivated if annotation processors are found on the compi
 
 The `test` task is an instance of api:org.gradle.api.tasks.testing.Test[]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at api:org.gradle.api.tasks.testing.Test[] for the complete API.
 
+See the _<<java_testing,Testing in Java & JVM projects>>_ chapter for more details.
 
-[[sec:test_execution]]
-==== Test execution
-
-Tests are executed in a separate JVM, isolated from the main build process. The api:org.gradle.api.tasks.testing.Test[] task's API allows you some control over how this happens.
-
-There are a number of properties which control how the test process is launched. This includes things such as system properties, JVM arguments, and the Java executable to use.
-
-[NOTE]
-====
-
-The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
-Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.  For example, issues may occur if a https://docs.oracle.com/javase/8/docs/api/java/lang/SecurityManager.html[SecurityManager] is modified in a test because
-Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. (In this case, you should restore the original `SecurityManager` after the test so that the
-gradle test worker process can continue to function.)
-
-====
-
-You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution by running multiple test processes concurrently. Each test process executes only a single test at a time, so you generally don't need to do anything special to your tests to take advantage of this. The `maxParallelForks` property specifies the maximum number of test processes to run at any given time. The default is 1, that is, do not execute the tests in parallel.
-
-The test process sets the `org.gradle.test.worker` system property to a unique identifier for that test process, which you can use, for example, in files names or other resource identifiers.
-
-You can specify that test processes should be restarted after it has executed a certain number of test classes. This can be a useful alternative to giving your test process a very large heap. The `forkEvery` property specifies the maximum number of test classes to execute in a test process. The default is to execute an unlimited number of tests in each test process.
-
-The task has an `ignoreFailures` property to control the behavior when tests fail. The `Test` task always executes every test that it detects. It stops the build afterwards if `ignoreFailures` is false and there are failing tests. The default value of `ignoreFailures` is false.
-
-The `testLogging` property allows you to configure which test events are going to be logged and at which detail level. By default, a concise message will be logged for every failed test. See api:org.gradle.api.tasks.testing.logging.TestLoggingContainer[] for how to tune test logging to your preferences.
-
-Projects with large test suites can take a long time to execute even though a failure occurred early on leading to unnecessary wait times (especially on CI). To short circuit this behavior, the api:org.gradle.api.tasks.testing.Test#getFailFast()[`failFast`] property allows you to cause the `test` task to fail after the first test failure instead of running all tests. When this property is true, the resulting output will only show the results of tests that have completed up to and including the failure. To enable this fail fast behavior in your build file, set the `failFast` property to `true`:
-
-    test {
-        failFast = true
-    }
-
-The `--fail-fast` command line option enables the behavior from the command line. An invocation looks like:
-
-    gradle integTest --fail-fast
-
-The default value for the `failFast` property is false.
-
-[[sec:debugging]]
-==== Debugging
-
-The test task provides a api:org.gradle.api.tasks.testing.Test#getDebug()[] property that can be set to launch to make the JVM wait for a debugger to attach to port 5005 before proceeding with test execution.
-
-This can also be enabled at invocation time via the `--debug-jvm` task option (since Gradle 1.12).
-
-[[test_filtering]]
-==== Test filtering
-
-Starting with Gradle 1.10, it is possible to include only specific tests, based on the test name pattern. Filtering is a different mechanism than test class inclusion / exclusion that will be described in the next few paragraphs (`-Dtest.single`, `test.include` and friends). The latter is based on files, e.g. the physical location of the test implementation class. File-level test selection does not support many interesting scenarios that are possible with test-level filtering. Some of them Gradle handles now and some will be satisfied in future releases:
-
-* Filtering at the level of specific test methods; executing a single test method
-* Filtering based on custom annotations (future)
-* Filtering based on test hierarchy; executing all tests that extend a certain base class (future)
-* Filtering based on some custom runtime rule, e.g. particular value of a system property or some static state (future)
-
-
-Test filtering feature has following characteristic:
-
-* Fully qualified class name or fully qualified method name is supported, e.g. `org.gradle.SomeTest`, `org.gradle.SomeTest.someMethod`.
-* Simple class name or simple method name is supported if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (Since 4.7).
-* Wildcard '*' is supported for matching any characters.
-* Command line option `--tests` is provided to conveniently extend the test filter for an individual Gradle execution. This is especially useful for the classic 'single test method execution' use case. When the command line option is used, the inclusions declared in the build script are still honored. That is, the command line filters are always applied on top of the filter definition in the build script. It is possible to supply multiple `--tests` options and tests matching any of those patterns will be included.
-* Gradle tries to filter the tests given the limitations of the test framework API. Some advanced, synthetic tests may not be fully compatible with filtering. However, the vast majority of tests and use cases should be handled neatly.
-* Test filtering supersedes the file-based test selection. The latter may be completely replaced in future. We will grow the test filtering API and add more kinds of filters.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
-     <sourcefile file="build.gradle" snippet="test-filtering"/>
-</sample>
-++++
-
-For more details and examples please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
-
-Generally speaking, there're two kinds of pattern:
-
-[[simple_name_pattern]]
-===== Simple name pattern
-
-Since 4.7, a pattern starting with an upper-case letter matches simple class name:
-
-```
-# can match 'SomeTest' and corresponding method at any package
-gradle test --tests SomeTestClass
-
-gradle test --tests SomeTestClass.someSpecificMethod
-
-gradle test --tests SomeTestClass.*someMethod*
-```
-
-[[full_qualified_name_pattern]]
-===== Full qualified name pattern
-
-Otherwise, the pattern matches full qualified class name.
-
-```
-# specific class
-gradle test --tests org.gradle.SomeTestClass
-
-# specific class and method
-gradle test --tests org.gradle.SomeTestClass.someSpecificMethod
-
-# method name containing spaces
-gradle test --tests "org.gradle.SomeTestClass.some method containing spaces"
-
-# all classes at specific package (recursively)
-gradle test --tests 'all.in.specific.package*'
-
-# specific method at specific package (recursively)
-gradle test --tests 'all.in.specific.package*.someSpecificMethod'
-
-gradle test --tests '*IntegTest'
-
-gradle test --tests '*IntegTest*ui*'
-
-gradle test --tests '*ParameterizedTest.foo*'
-
-# the second iteration of a parameterized test
-gradle test --tests '*ParameterizedTest.*[2]'
-```
-
-
-This is something you can combine with <<sec:continuous_build, continuous build>> using `--continuous` (or `-t`, for short) to re-execute a subset of tests immediately after every change.
-
-----
-gradle test --continuous --tests "com.mypackage.foo.*"
-----
-
-[[sec:single_test_execution_via_system_properties]]
-==== Single test execution via System Properties
-
-
-[NOTE]
-====
-This mechanism has been superseded by 'Test Filtering', described above.
-====
-
-Setting a system property of __taskName.single__ = __testNamePattern__ will only execute tests that match the specified __testNamePattern__. The __taskName__ can be a full multi-project path like `:sub1:sub2:test` or just the task name. The __testNamePattern__ will be used to form an include pattern of `\**/testNamePattern*.class`. If no tests with this pattern can be found, an exception is thrown. This is to shield you from false security. If tests of more than one subproject are executed, the pattern is applied to each subproject. An exception is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully qualified task name to be executed. You can also specify multiple patterns. Examples:
-
-* `gradle -Dtest.single=ThisUniquelyNamedTest test`
-* `gradle -Dtest.single=a/b/ test`
-* `gradle -DintegTest.single=\*IntegrationTest integTest`
-* `gradle -D:proj1:test.single=Customer build`
-* `gradle -D:proj1:integTest.single=c/d/`
-
-
-[[sec:test_detection]]
-==== Test detection
-
-The `Test` task detects which classes are test classes by inspecting the compiled test classes. By default it scans all `.class` files. You can set custom includes / excludes, only those classes will be scanned. Depending on the test framework used (JUnit / TestNG) the test class detection uses different criteria.
-
-When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the following criteria match, the class is considered to be a JUnit test class:
-
-* Class or a super class extends `TestCase` or `GroovyTestCase`
-* Class or a super class is annotated with `@RunWith`
-* Class or a super class contain a method annotated with `@Test`
-
-
-When using TestNG, we scan for methods annotated with `@Test`.
-
-Note that abstract classes are not executed. Gradle also scans up the inheritance tree into jar files on the test classpath.
-
-If you don't want to use test class detection, you can disable it by setting `scanForTestClasses` to false. This will make the test task only use includes / excludes to find test classes. If `scanForTestClasses` is false and no include / exclude patterns are specified, the defaults are `\**/*Tests.class`, `*\*/*Test.class` and `*\*/Abstract*.class` for include and exclude, respectively.
-
-[NOTE]
-====
-With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `includes`/`excludes` is used to filter test classes, `scanForTestClasses` has no effect.
-====
-
-[[test_grouping]]
-==== Test grouping
-
-JUnit/JUnit Platform and TestNG allow sophisticated groupings of test methods.
-
-For grouping JUnit 4 test classes and methods JUnit 4.8 introduces the concept of categories.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] The `test` task allows the specification of the JUnit categories you want to include and exclude.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitcategories" dir="testing/junit/categories" title="JUnit Categories">
-                <sourcefile file="build.gradle" snippet="test-categories"/>
-            </sample>
-++++
-
-In http://junit.org/junit5/docs/current/user-guide[JUnit Platform], http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] is introduced instead of categories.
-You can specify the included/excluded tags as follows:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="junitplatformtags" dir="testing/junitplatform/tagging" title="JUnit Platform Tags">
-                <sourcefile file="build.gradle" snippet="test-tags"/>
-            </sample>
-++++
-
-The TestNG framework has a quite similar concept. In TestNG you can specify different test groups.footnote:[The TestNG documentation contains more details about test groups: http://testng.org/doc/documentation-main.html#test-groups[].] The test groups that should be included or excluded from the test execution can be configured in the test task.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testnggrouping" dir="testing/testng/groups" title="Grouping TestNG tests">
-                <sourcefile file="build.gradle" snippet="test-config"/>
-            </sample>
-++++
-
-[[using_junit5]]
-==== Using JUnit 5
-
-http://junit.org/junit5[JUnit 5] is the latest version of the well-known JUnit test framework.
-Unlike its predecessor, JUnit 5 is modularized and composed of several modules:
-
-    JUnit 5 = JUnit Platform + JUnit Jupiter + JUnit Vintage
-
-The JUnit Platform serves as a foundation for launching testing frameworks on the JVM. JUnit Jupiter is the combination of the new http://junit.org/junit5/docs/current/user-guide/#writing-tests[programming model]
- and http://junit.org/junit5/docs/current/user-guide/#extensions[extension model] for writing tests and extensions in JUnit 5. JUnit Vintage provides a `TestEngine` for running JUnit 3 and JUnit 4 based tests on the platform.
-
-The following code enables JUnit Platform support in `build.gradle`:
-
-    test {
-        useJUnitPlatform()
-    }
-
-See api:org.gradle.api.tasks.testing.Test#useJUnitPlatform()[] for more details.
-
-[[compiling_and_executing_junit_jupiter_tests]]
-===== Compiling and executing JUnit Jupiter tests
-
-To enable JUnit Jupiter support, add the following dependencies:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterdependencies" dir="testing/junitplatform/jupiter" title="JUnit Jupiter dependencies">
-    <sourcefile file="build.gradle" snippet="jupiter-dependencies"/>
-</sample>
-++++
-
-Put the following code into `src/test/java`:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="jupiterexample" dir="testing/junitplatform/mix" title="Jupiter test example">
-    <sourcefile file="src/test/java/org/gradle/junitplatform/JupiterTest.java" snippet="jupiter-example"/>
-</sample>
-++++
-
-Now you can run `gradle test` to see the results.
-
-A Jupiter sample can be found at `samples/testing/junitplatform/jupiter` in the '-all' distribution of Gradle.
-
-[[executing_legacy_tests_with_junit_vintage]]
-===== Executing legacy tests with JUnit Vintage
-
-If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="vintagedependencies" dir="testing/junitplatform/mix/" title="JUnit Vintage dependencies">
-    <sourcefile file="build.gradle" snippet="vintage-dependencies"/>
-</sample>
-++++
-
-In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
-
-A sample of mixed tests can be found at `samples/testing/junitplatform/mix` in the '-all' distribution of Gradle.
-
-[[filtering_test_engine]]
-===== Filtering test engine
-
-JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
-https://junit.org/junit5/docs/current/api/org/junit/jupiter/engine/package-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org/junit/vintage/engine/package-summary.html[junit-vintage-engine].
-You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
-
-By default, all test engines on the test runtime classpath will be used.
-To control specific test engine implementations explicitly, you can do as follows:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="filterengine" dir="testing/junitplatform/engine/" title="Filter specific engines">
-    <sourcefile file="build.gradle" snippet="filter-engine"/>
-</sample>
-++++
-
-A test engine filtering sample can be found at `samples/testing/junitplatform/engine` in the '-all' distribution of Gradle.
-
-[[test_execution_order]]
-==== Test execution order in TestNG
-
-TestNG allows explicit control of the execution order of tests.
-
-The `preserveOrder` property controls whether tests are executed in deterministic order. Preserving the order guarantees that the complete test (including `@BeforeXXX` and `@AfterXXX`) is run in a test thread before the next test is run. While preserving the order of tests is the default behavior when directly working with `testng.xml` files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API], that is used for running tests programmatically, as well as Gradle's TestNG integration execute tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] Preserving the order of tests was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testngpreserveorder" dir="testing/testng/preserveorder" title="Preserving order of TestNG tests">
-                <sourcefile file="build.gradle" snippet="test-config"/>
-            </sample>
-++++
-
-The `groupByInstance` property controls whether tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all instances before running the dependants. The default behavior is not to group tests by instances.footnote:[The TestNG documentation contains more details about grouping tests by instances: http://testng.org/doc/documentation-main.html#dependencies-with-annotations[].] Grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testnggroupbyinstances" dir="testing/testng/groupbyinstances" title="Grouping TestNG tests by instances">
-                <sourcefile file="build.gradle" snippet="test-config"/>
-            </sample>
-++++
-
-
-[[test_reporting]]
-==== Test reporting
-
-The `Test` task generates the following results by default.
-
-* An HTML test report.
-* The results in an XML format that is compatible with the Ant JUnit report task. This format is supported by many other tools, such as CI servers.
-* Results in an efficient binary format. The task generates the other results from these binary results.
-
-There is also a stand-alone api:org.gradle.api.tasks.testing.TestReport[] task type which can generate the HTML test report from the binary results generated by one or more `Test` task instances. To use this task type, you need to define a `destinationDir` and the test results to include in the report. Here is a sample which generates a combined report for the unit tests from subprojects:
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="subProjectsTestReport" dir="testing/testReport" title="Creating a unit test report for subprojects">
-                <sourcefile file="build.gradle" snippet="test-report"/>
-            </sample>
-++++
-
-You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
-
-
-[[testNgParameterizedReporting]]
-===== TestNG parameterized methods and reporting
-
-TestNG supports http://testng.org/doc/documentation-main.html#parameters[parameterizing test methods], allowing a particular test method to be executed multiple times with different inputs. Gradle includes the parameter values in its reporting of the test method execution.
-
-Given a parameterized test method named `aTestMethod` that takes two parameters, it will be reported with the name: `aTestMethod(toStringValueOfParam1, toStringValueOfParam2)`. This makes identifying the parameter values for a particular iteration easy.
-
-[[sec:convention_values]]
-==== Test convention values
-
-`File testClassesDirs`::
-Default value: `sourceSets.test.output.classesDirs`
-`api:org.gradle.api.file.FileCollection[] classpath`::
-Default value: `sourceSets.test.runtimeClasspath`
-`File testResultsDir`::
-Default value: `testResultsDir`
-`File testReportDir`::
-Default value: `testReportDir`
 
 [[sec:jar]]
 === Jar
@@ -989,24 +617,24 @@ Each jar or war object has a `manifest` property with a separate instance of api
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
-                <sourcefile file="build.gradle" snippet="add-to-manifest"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="add-to-manifest"/>
+</sample>
 ++++
 
 You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Creating a manifest object.">
-                <sourcefile file="build.gradle" snippet="custom-manifest"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="custom-manifest"/>
+</sample>
 ++++
 
 You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
-                <sourcefile file="build.gradle" snippet="merge"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="merge"/>
+</sample>
 ++++
 
 Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a api:org.gradle.api.java.archives.ManifestMergeDetails[] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
@@ -1015,48 +643,7 @@ You can easily write a manifest to disk.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="manifest" dir="userguide/tutorial/manifest" title="Saving a MANIFEST.MF to disk">
-                <sourcefile file="build.gradle" snippet="write"/>
-            </sample>
+    <sourcefile file="build.gradle" snippet="write"/>
+</sample>
 ++++
 
-
-[[sec:upload]]
-=== Uploading
-
-How to upload your archives is described in <<artifact_management>>.
-
-[[sec:java_cross_compilation]]
-=== Compiling and testing Java 6/7
-
-Gradle can only run on Java version 7 or higher. However, support for running Gradle on Java 7 has been deprecated and is scheduled to be removed in Gradle 5.0. There are two reasons for deprecating support for Java 7:
-
-* Java 7 reached link:http://www.oracle.com/technetwork/java/javase/eol-135779.html[end of life]. Therefore, Oracle ceased public availability of security fixes and upgrades for Java 7 as of April 2015.
-* Once support for Java 7 has ceased (likely with Gradle 5.0), Gradle's implementation can start to use Java 8 APIs optimized for performance and usability.
-
-Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
-
-To use Java 6 or Java 7, the following tasks need to be configured:
-
-* `JavaCompile` task to fork and use the correct Java home
-* `Javadoc` task to use the correct `javadoc` executable
-* `Test` and the `JavaExec` task to use the correct `java` executable.
-
-The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<sec:gradle_configuration_properties>> ] in the user's home directory on each developer machine, as shown in the example.
-
-++++
-<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="javaCrossCompilation" dir="java/crossCompilation" title="Configure Java 6 build">
-                <sourcefile file="gradle.properties"/>
-                <sourcefile file="build.gradle" snippet="java-cross-compilation"/>
-            </sample>
-++++
-
-[[sec:properties_files]]
-=== Java properties files
-
-Properties files are used in many places during Java development and so Gradle makes it easy to create them as a normal part of the build. Just use the api:org.gradle.api.tasks.WriteProperties[] task.
-
-The `WriteProperties` task also fixes a well-known problem with `Properties.store()` that can reduce the usefulness of incremental builds (see <<sec:up_to_date_checks>>). The standard Java way to write a properties file produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
-
-* no timestamp comment is added to the output
-* the line separator is system independent, but can be configured explicitly (it defaults to `'\n'`)
-* the properties are sorted alphabetically

@@ -206,6 +206,7 @@
                                 </ul>
                             </li>
                             <li><p></p></li>
+                            <li><a href="/userguide/base_plugin.html">Base Plugin</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-projects" aria-expanded="false" aria-controls="cpp-projects">C++ Projects</a>
                                 <ul id="cpp-projects">
                                     <li><a href="/userguide/native_software.html">Building Native Software</a></li>
@@ -225,6 +226,8 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#java-projects" aria-expanded="false" aria-controls="java-projects">Java Projects</a>
                                 <ul id="java-projects">
                                     <li><a href="/userguide/tutorial_java_projects.html">Java Quickstart</a></li>
+                                    <li><a href="/userguide/building_java_projects.html">Building Java &amp; JVM Projects</a></li>
+                                    <li><a href="/userguide/java_testing.html">Testing Java &amp; JVM Projects</a></li>
                                     <li><a href="/userguide/java_plugin.html">Java Plugin</a></li>
                                     <li><a href="/userguide/java_library_plugin.html">Java Library Plugin</a></li>
                                     <li><a href="/userguide/java_library_distribution_plugin.html">Java Library Distribution Plugin</a></li>
