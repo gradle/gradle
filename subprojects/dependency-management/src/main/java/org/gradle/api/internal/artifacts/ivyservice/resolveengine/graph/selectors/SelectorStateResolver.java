@@ -57,12 +57,11 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
-            return maybeMarkRejected(candidates.get(0), allRejects);
+            return candidates.get(0);
         }
 
         // Perform conflict resolution
-        T max = resolveConflicts(candidates);
-        return maybeMarkRejected(max, allRejects);
+        return resolveConflicts(candidates);
     }
 
     private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
@@ -105,6 +104,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
+        // TODO:DAZ Avoid overhead when no rejects exist
         List<VersionSelector> rejectSelectors = Lists.newArrayList();
         for (ResolvableSelectorState selector : selectors) {
             if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null) {
@@ -122,16 +122,5 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
         return details.getSelected();
-    }
-
-    private T maybeMarkRejected(T selected, VersionSelector allRejects) {
-        if (selected.isRejected()) {
-            return selected;
-        }
-
-        if (allRejects.accept(selected.getVersion())) {
-            selected.reject();
-        }
-        return selected;
     }
 }
