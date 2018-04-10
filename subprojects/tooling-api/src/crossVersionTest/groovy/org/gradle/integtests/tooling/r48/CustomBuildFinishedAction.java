@@ -27,7 +27,7 @@ public class CustomBuildFinishedAction implements BuildAction<String>, Serializa
     @Override
     public String execute(BuildController controller) {
         // Print something to verify it is after task execution
-        System.out.println("afterBuildAction");
+        System.out.println("buildFinishedAction");
         return controller.getModel(CustomBuildFinishedModel.class).getValue();
     }
 }

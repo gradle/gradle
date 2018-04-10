@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
@@ -45,6 +46,9 @@ import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
@@ -149,14 +153,19 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
-        FailsafePhasedActionResultListener failsafeBuildSessionResultListener = new FailsafePhasedActionResultListener(resultListener);
+        FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, listenerConfig.clientSubscriptions);
         try {
-            return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafeBuildSessionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
+            return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
                 providerParameters, params);
+        } catch (BuildExceptionVersion1 e) {
+            // Failures in BuildActions in a PhasedAction will be wrapped inside a BuildExceptionVersion1 since the build itself will fail.
+            // This adapter unwraps the expected exception (thrown by ClientProvidedPhasedActionRunner) so it is in the correct format defined by InternalPhasedActionConnection#run
+            // TODO: instead of unwrap this exception here, introduce API in org.gradle.internal.invocation.BuildController to catch these partial exceptions and set as a build result failure
+            throw new PhasedActionExceptionTransformer().transform(e);
         } finally {
-            failsafeBuildSessionResultListener.rethrowErrors();
+            failsafePhasedActionResultListener.rethrowErrors();
         }
     }
 
@@ -316,6 +325,17 @@ public class ProviderConnection {
                     delegate.dispatch(message);
                 }
             }
+        }
+    }
+
+    class PhasedActionExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
+        public RuntimeException transform(RuntimeException e) {
+            for (Throwable t = e; t != null; t = t.getCause()) {
+                if (t instanceof InternalBuildActionFailureException || t instanceof InternalBuildCancelledException) {
+                    return (RuntimeException) t;
+                }
+            }
+            return e;
         }
     }
 }

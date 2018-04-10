@@ -55,9 +55,10 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
         addBuildListener(phasedAction, buildController);
 
-        // We don't know if the model builders invoked in the after configuration action will add tasks to the graph or not
+        // We don't know if the model builders invoked in the projects evaluated action will add tasks to the graph or not
         // so we have to execute build until Build stage before finishing it.
         // TODO: try to figure out a way to finish the build earlier if possible (no tasks passed by the client and no tasks added by the model builder)
+        // FIXME: default tasks are run even if user defines no task. (see "PhasedBuildActionCrossVersionSpec#default tasks are not run if no tasks are specified")
         buildController.run();
         if (!buildController.hasResult()) {
             buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
@@ -69,24 +70,17 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         gradleInternal.addBuildListener(new BuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
-                // If build controller has a result at this point, it is a failure.
-                if (!buildController.hasResult()) {
-                    run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
-                }
+                run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
             }
 
             @Override
             public void projectsEvaluated(Gradle gradle) {
-                // If build controller has a result at this point, it is a failure.
-                if (!buildController.hasResult()) {
-                    run(phasedAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_EVALUATED);
-                }
+                run(phasedAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_EVALUATED);
             }
 
             @Override
             public void buildFinished(BuildResult result) {
-                // If build controller has a result at this point, it is a failure.
-                if (result.getFailure() == null && !buildController.hasResult()) {
+                if (result.getFailure() == null) {
                     run(phasedAction.getBuildFinishedAction(), PhasedActionResult.Phase.BUILD_FINISHED);
                 }
             }
@@ -94,12 +88,8 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
             private void run(@Nullable InternalBuildActionVersion2<?> action, PhasedActionResult.Phase phase) {
                 if (action != null) {
                     BuildActionResult result = runAction(action, gradleInternal);
-                    if (result.failure != null) {
-                        buildController.setResult(result);
-                    } else {
-                        PhasedBuildActionResult res = new PhasedBuildActionResult(result.result, phase);
-                        getBuildEventConsumer(gradleInternal).dispatch(res);
-                    }
+                    PhasedBuildActionResult res = new PhasedBuildActionResult(result.result, phase);
+                    getBuildEventConsumer(gradleInternal).dispatch(res);
                 }
             }
         });
@@ -107,22 +97,17 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
     private <T> BuildActionResult runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
         DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
-        T model = null;
-        Throwable failure = null;
+        T model;
         try {
             model = action.execute(internalBuildController);
         } catch (BuildCancelledException e) {
-            failure = new InternalBuildCancelledException(e);
+            throw new InternalBuildCancelledException(e);
         } catch (RuntimeException e) {
-            failure = new InternalBuildActionFailureException(e);
+            throw new InternalBuildActionFailureException(e);
         }
 
         PayloadSerializer payloadSerializer = getPayloadSerializer(gradle);
-        if (failure != null) {
-            return new BuildActionResult(null, payloadSerializer.serialize(failure));
-        } else {
-            return new BuildActionResult(payloadSerializer.serialize(model), null);
-        }
+        return new BuildActionResult(payloadSerializer.serialize(model), null);
     }
 
     private PayloadSerializer getPayloadSerializer(GradleInternal gradle) {

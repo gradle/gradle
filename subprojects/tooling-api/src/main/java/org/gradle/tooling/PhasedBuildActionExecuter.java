@@ -48,8 +48,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @param <T> The returning type of the action.
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         *
-         * @since 4.8
          */
         <T> Builder projectsLoaded(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -63,8 +61,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @param <T> The returning type of the action.
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         *
-         * @since 4.8
          */
         <T> Builder projectsEvaluated(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -78,8 +74,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @param <T> The returning type of the action.
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         *
-         * @since 4.8
          */
         <T> Builder buildFinished(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -87,38 +81,36 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * Builds the executer from the added actions.
          *
          * @return The executer.
-         *
-         * @since 4.8
          */
         PhasedBuildActionExecuter build();
     }
 
     /**
-     * Specifies the tasks to execute before executing the AfterBuildAction and after the AfterConfigurationAction.
+     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
      *
      * The graph task can be changed in model builders invoked. If not configured, null, or an empty array is passed, then no tasks will be executed unless one of the model builders configures it.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     * @since 4.8
      */
     @Incubating
     PhasedBuildActionExecuter forTasks(String... tasks);
 
     /**
-     * Specifies the tasks to execute before executing the AfterBuildAction and after the AfterConfigurationAction.
+     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
      *
      * The graph task can be changed in model builders invoked. If not configured, null, or an empty array is passed, then no tasks will be executed unless one of the model builders configures it.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
-     * @since 4.8
      */
     @Incubating
     PhasedBuildActionExecuter forTasks(Iterable<String> tasks);
 
     /**
      * Runs all the actions in their respective build phases, blocking until build is finished.
+     *
+     * <p>If no tasks are defined, project default tasks will be executed.
      *
      * <p>Results of each action are sent to their respective result handlers. If one of the actions fails, the build is interrupted.
      *
@@ -131,7 +123,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * @throws BuildException On some failure executing the Gradle build.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 4.8
      */
     void run() throws GradleConnectionException, IllegalStateException;
 
@@ -139,12 +130,13 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Starts executing the build, passing the build result to the given handler when complete and individual action results to the respective handler when complete.
      * This method returns immediately, and the result is later passed to the given handler's {@link ResultHandler#onComplete(Object)} method.
      *
+     * <p>If no tasks are defined, project default tasks will be executed.
+     *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception. See
      * {@link #run()} for a description of the various exceptions that the operation may fail with.
      *
      * @param handler The handler to supply the build result to. Individual action results are supplied to its respective handler.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 4.8
      */
     void run(ResultHandler<? super Void> handler) throws IllegalStateException;
 }

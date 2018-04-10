@@ -27,8 +27,6 @@ public interface PhasedActionResultListener extends InternalProtocolInterface {
 
     /**
      * Method called when result is available.
-     *
-     * @since 4.8
      */
     void onResult(PhasedActionResult<?> result);
 }

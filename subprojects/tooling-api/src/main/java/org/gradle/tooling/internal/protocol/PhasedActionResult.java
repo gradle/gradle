@@ -31,9 +31,7 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
     /**
      * Gets the action result if it completed successfully.
      *
-     * @return The result. {@code null} if a failure occurred.
-     *
-     * @since 4.8
+     * @return The result.
      */
     T getResult();
 
@@ -41,15 +39,11 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
      * Gets the phase of the build when the action was run.
      *
      * @return The phase.
-     *
-     * @since 4.8
      */
     Phase getPhase();
 
     /**
      * Phases of the build when it is possible to run an action provided by the client.
-     *
-     * @since 4.8
      */
     enum Phase {
         PROJECTS_LOADED,
