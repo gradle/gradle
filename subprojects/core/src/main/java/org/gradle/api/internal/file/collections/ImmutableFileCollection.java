@@ -43,14 +43,14 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         if (files.length == 0) {
             return EMPTY;
         }
-        return new FileOnlyImmutableFileCollection(files);
+        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
     }
 
     public static ImmutableFileCollection of(Iterable<File> files) {
         if (Iterables.isEmpty(files)) {
             return EMPTY;
         }
-        return new FileOnlyImmutableFileCollection(files);
+        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
     }
 
     public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object... paths) {
@@ -76,12 +76,8 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
         private final ImmutableSet<File> files;
 
-        FileOnlyImmutableFileCollection(File... files) {
-            this.files = ImmutableSet.copyOf(files);
-        }
-
-        FileOnlyImmutableFileCollection(Iterable<File> files) {
-            this.files = ImmutableSet.copyOf(files);
+        FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
+            this.files = files;
         }
 
         @Override
