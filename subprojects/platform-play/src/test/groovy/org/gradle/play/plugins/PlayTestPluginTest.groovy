@@ -58,7 +58,7 @@ class PlayTestPluginTest extends Specification {
             taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
             taskName(_) >> { String verb -> "${verb}SomeBinary"}
         }
-        _ * binary.jarFile >> jarFile
+        1 * binary.jarFile >> jarFile
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration
