@@ -50,7 +50,6 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
-import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -104,7 +103,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
+    private final DomainObjectSet<PublicationArtifact> allArtifacts;
     private final DefaultMavenArtifactSet mavenArtifacts;
+    private final PublicationArtifactSet additionalArtifacts;
+    private PublicationArtifact pomArtifact;
+    private PublicationArtifact moduleMetadataArtifact;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
@@ -112,10 +115,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final DomainObjectSet<PublicationArtifact> allArtifacts;
-    private final PublicationArtifactSet additionalArtifacts;
-    private TaskOutputPublicationArtifact pomFile;
-    private TaskOutputPublicationArtifact moduleMetadataFile;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
@@ -161,20 +160,20 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void setPomArtifact(TaskOutputPublicationArtifact artifact) {
-        if (this.pomFile != null) {
-            additionalArtifacts.remove(this.pomFile);
+    public void setPomArtifact(PublicationArtifact artifact) {
+        if (this.pomArtifact != null) {
+            additionalArtifacts.remove(this.pomArtifact);
         }
-        this.pomFile = artifact;
+        this.pomArtifact = artifact;
         additionalArtifacts.add(artifact);
     }
 
     @Override
-    public void setGradleModuleMetadataArtifact(TaskOutputPublicationArtifact artifact) {
-        if (this.moduleMetadataFile != null) {
-            additionalArtifacts.remove(this.moduleMetadataFile);
+    public void setGradleModuleMetadataArtifact(PublicationArtifact artifact) {
+        if (this.moduleMetadataArtifact != null) {
+            additionalArtifacts.remove(this.moduleMetadataArtifact);
         }
-        this.moduleMetadataFile = artifact;
+        this.moduleMetadataArtifact = artifact;
         additionalArtifacts.add(artifact);
     }
 
@@ -337,14 +336,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(name, getPomFile(), moduleMetadataFile, projectIdentity, getAllArtifacts(), determineMainArtifact());
+        return new MavenNormalizedPublication(name, getPomArtifact(), moduleMetadataArtifact, projectIdentity, getAllArtifacts(), determineMainArtifact());
     }
 
-    private PublicationArtifact getPomFile() {
-        if (pomFile == null) {
-            throw new IllegalStateException("pomFile not set for publication");
+    private PublicationArtifact getPomArtifact() {
+        if (pomArtifact == null) {
+            throw new IllegalStateException("pomArtifact not set for publication");
         }
-        return pomFile;
+        return pomArtifact;
     }
 
     public String determinePackagingFromArtifacts() {

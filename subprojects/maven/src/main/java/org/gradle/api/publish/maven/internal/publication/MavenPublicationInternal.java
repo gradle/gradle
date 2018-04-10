@@ -17,8 +17,8 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
@@ -31,9 +31,9 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     MavenPomInternal getPom();
 
-    void setPomArtifact(TaskOutputPublicationArtifact artifact);
+    void setPomArtifact(PublicationArtifact artifact);
 
-    void setGradleModuleMetadataArtifact(TaskOutputPublicationArtifact artifact);
+    void setGradleModuleMetadataArtifact(PublicationArtifact artifact);
 
     FileCollection getPublishableFiles();
 
