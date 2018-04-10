@@ -21,10 +21,10 @@ dependencies {
 // START SNIPPET practical-integ-test-source-set
 sourceSets {
     intTest {
-        java {
-            compileClasspath += sourceSets.main.output
-            runtimeClasspath += sourceSets.main.output
-        }
+        java.srcDir file('src/intTest/java')
+        resources.srcDir file('src/intTest/resources')
+        compileClasspath += sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath += output + compileClasspath
     }
 }
 
@@ -68,9 +68,15 @@ compileJava {
 
 // START SNIPPET integ-test-task
 task integrationTest(type: Test) {
-    testClassesDir = sourceSets.intTest.output.classesDir
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
+    mustRunAfter test
 }
+
+check.dependsOn integrationTest
 // END SNIPPET integ-test-task
 
 // START SNIPPET defining-sources-jar-task
