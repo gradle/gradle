@@ -40,13 +40,13 @@ sourceSets {
 // END SNIPPET custom-source-set
 
 // START SNIPPET custom-report-dirs
-reporting.baseDir = 'my-reports'
-testResultsDirName = 'my-test-results'
+reporting.baseDir = "my-reports"
+testResultsDirName = "$buildDir/my-test-results"
 
 task showDirs {
     doLast {
-        logger.quiet project.reportsDir.canonicalPath
-        logger.quiet project.testResultsDir.canonicalPath
+        logger.quiet(rootDir.toPath().relativize(project.reportsDir.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(project.testResultsDir.toPath()).toString())
     }
 }
 // END SNIPPET custom-report-dirs
