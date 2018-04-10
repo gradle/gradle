@@ -67,7 +67,6 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector requestedVersionMatcher, VersionSelector rejectedVersionSelector) {
         Collection<SpecRuleAction<? super ComponentSelection>> rules = componentSelectionRules.getRules();
 
-        ModuleComponentIdentifier firstRejected = null;
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
             MetadataProvider metadataProvider = createMetadataProvider(candidate);
@@ -77,43 +76,30 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 return;
             }
 
-            String version = candidate.getVersion().getSource();
+            ModuleComponentIdentifier candidateId = candidate.getId();
             if (!versionMatches) {
-                result.notMatched(version);
+                result.notMatched(candidateId);
                 continue;
             }
 
-            ModuleComponentIdentifier candidateIdentifier = candidate.getId();
 
-            if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
-                // Keep the first rejected version and return it instead of failing
-                // TODO:DAZ Determine how to handle the interaction between reject constraints and component selection rules
-                if (firstRejected == null) {
-                    firstRejected = candidateIdentifier;
-                }
-
-                // Mark this version as rejected and continue
-                result.rejected(version);
-                continue;
+            if (isRejectedByConstraint(candidateId, rejectedVersionSelector)) {
+                // Mark this version as rejected
+                result.rejectedByConstraint(candidateId);
+            } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
+                // Mark this version as rejected
+                result.rejectedByRule(candidateId);
             } else {
-                if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
-                    result.matches(candidateIdentifier);
-                    return;
-                }
+                result.matches(candidateId);
+                return;
             }
 
-            // Mark this version as rejected
-            result.rejected(version);
             if (requestedVersionMatcher.matchesUniqueVersion()) {
                 // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
                 break;
             }
         }
 
-        if (firstRejected != null) {
-            result.matches(firstRejected);
-            return;
-        }
         // if we reach this point, no match was found, either because there are no versions matching the selector
         // or all of them were rejected
         result.noMatchFound();
@@ -175,6 +161,10 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
         rulesProcessor.apply(selection, rules, metadataProvider);
         return selection.isRejected();
+    }
+
+    private boolean isRejectedByConstraint(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
+        return rejectedVersionSelector != null && rejectedVersionSelector.accept(candidateIdentifier.getVersion());
     }
 
     private List<ModuleComponentResolveState> sortLatestFirst(Collection<? extends ModuleComponentResolveState> listing) {
