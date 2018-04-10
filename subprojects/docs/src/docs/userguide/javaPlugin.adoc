@@ -250,8 +250,8 @@ _Compile time dependencies for the given source set._ Used by `__sourceSet__Comp
 `__sourceSet__CompileOnly`::
 _Compile time only dependencies for the given source set, not used at runtime._
 
-`__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
-_Compile classpath, used when compiling source._ Used by `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`.
+`__sourceSet__CompileClasspath` extends `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`::
+_Compile classpath, used when compiling source._ Used by task `compile__SourceSet__Java`.
 
 `__sourceSet__AnnotationProcessor`::
 _Annotation processors used during compilation of this source set._
