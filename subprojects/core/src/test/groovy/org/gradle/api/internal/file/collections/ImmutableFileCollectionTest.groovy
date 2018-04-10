@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.file.collections
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Provider
 import org.gradle.util.UsesNativeServices
@@ -157,10 +159,24 @@ class ImmutableFileCollectionTest extends Specification {
         'closure'          | ({ [ 'abc', 'def' ] } as Object[])
         'collection(list)' | [ 'abc', 'def' ]
         'array'            | ([ 'abc', 'def' ] as Object[])
-        'FileCollection'   | new SimpleFileCollection(new File('1'), new File('2'))
+        'FileCollection'   | fileCollectionOf(new File('1'), new File('2'))
         'Callable'         | (({ [ 'abc', 'def' ] } as Callable<Object>) as Object[])
         'Provider'         | providerReturning(['abc', 'def'])
         'nested objects'   | ({[{['abc', { ['def'] as String[] }]}]} as Object[])
+    }
+
+    private FileCollection fileCollectionOf(final File... files) {
+        return new AbstractFileCollection() {
+            @Override
+            String getDisplayName() {
+                return 'test file collection'
+            }
+
+            @Override
+            Set<File> getFiles() {
+                return ImmutableSet.copyOf(files)
+            }
+        }
     }
 
     private Provider<Object> providerReturning(Object result) {
