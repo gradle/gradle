@@ -19,7 +19,9 @@ package org.gradle.api.publish.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -30,21 +32,25 @@ public class TaskOutputPublicationArtifact implements PublicationArtifact {
 
     private final DefaultTaskDependency buildDependencies;
     private final Task task;
+    private final Provider<String> name;
     private final String extension;
+    private final String type;
 
     public TaskOutputPublicationArtifact(Task task, String extension) {
+        this(task, Providers.<String>notDefined(), extension, extension);
+    }
+
+    public TaskOutputPublicationArtifact(Task task, Provider<String> name, String extension, String type) {
         this.task = task;
         this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.of((Object) task));
+        this.name = name;
         this.extension = extension;
+        this.type = type;
     }
 
     @Override
     public File getFile() {
-        return getFiles().getSingleFile();
-    }
-
-    public FileCollection getFiles() {
-        return task.getOutputs().getFiles();
+        return task.getOutputs().getFiles().getSingleFile();
     }
 
     @Override
@@ -53,8 +59,18 @@ public class TaskOutputPublicationArtifact implements PublicationArtifact {
     }
 
     @Override
+    public String getName() {
+        return name.getOrElse("");
+    }
+
+    @Override
     public String getExtension() {
         return extension;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     @Nullable

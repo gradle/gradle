@@ -36,30 +36,47 @@ public class DefaultMavenArtifact implements MavenArtifact {
         this.classifier = GUtil.elvis(classifier, null);
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
+    @Override
     public String getExtension() {
         return extension;
     }
 
+    @Override
     public void setExtension(String extension) {
         this.extension = extension;
     }
 
+    @Override
     public String getClassifier() {
         return classifier;
     }
 
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }
 
+    @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
+    public String getType() {
+        return getExtension();
+    }
+
+    @Override
     public void builtBy(Object... tasks) {
         buildDependencies.add(tasks);
     }
 
+    @Override
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
     }

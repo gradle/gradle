@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
-import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -33,28 +33,32 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
+        PublicationArtifact ivyDescriptorArtifact = publication.getIvyDescriptorArtifact();
+        PublicationArtifact gradleModuleDescriptorArtifact = publication.getGradleModuleDescriptorArtifact();
 
         // Use the legacy metadata type so that we can leverage `ModuleVersionPublisher.publish()`
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
-        for (IvyArtifact publishArtifact : publication.getArtifacts()) {
-            publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
+        for (PublicationArtifact artifact : publication.getAllArtifacts()) {
+            if (artifact == ivyDescriptorArtifact || artifact == gradleModuleDescriptorArtifact) {
+                continue;
+            }
+            publishMetaData.addArtifact(createIvyArtifact(artifact), artifact.getFile());
         }
 
         IvyArtifactName ivyDescriptor = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-        publishMetaData.addArtifact(ivyDescriptor, publication.getIvyDescriptorFile());
+        publishMetaData.addArtifact(ivyDescriptor, ivyDescriptorArtifact.getFile());
 
-        File gradleModuleDescriptorFile = publication.getGradleModuleDescriptorFile();
-        if (gradleModuleDescriptorFile != null && gradleModuleDescriptorFile.exists()) {
+        if (gradleModuleDescriptorArtifact != null && gradleModuleDescriptorArtifact.getFile().exists()) {
             // may not exist if experimental features are disabled
             IvyArtifactName gradleDescriptor = new DefaultIvyArtifactName(projectIdentity.getModule(), "json", "module");
-            publishMetaData.addArtifact(gradleDescriptor, gradleModuleDescriptorFile);
+            publishMetaData.addArtifact(gradleDescriptor, gradleModuleDescriptorArtifact.getFile());
         }
 
         publisher.publish(publishMetaData);
     }
 
-    private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
-        return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
+    private IvyArtifactName createIvyArtifact(PublicationArtifact artifact) {
+        return new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
 
 

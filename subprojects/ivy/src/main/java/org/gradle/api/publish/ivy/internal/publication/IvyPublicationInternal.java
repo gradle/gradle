@@ -17,8 +17,8 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
@@ -32,9 +32,9 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyModuleDescriptorSpecInternal getDescriptor();
 
-    void setIvyDescriptorArtifact(TaskOutputPublicationArtifact descriptorFile);
+    void setIvyDescriptorArtifact(PublicationArtifact descriptorFile);
 
-    void setGradleModuleDescriptorArtifact(TaskOutputPublicationArtifact descriptorFile);
+    void setGradleModuleDescriptorArtifact(PublicationArtifact descriptorFile);
 
     FileCollection getPublishableFiles();
 

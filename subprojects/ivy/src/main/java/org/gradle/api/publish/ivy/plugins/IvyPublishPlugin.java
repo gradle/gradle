@@ -31,6 +31,9 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -58,6 +61,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -149,7 +153,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            publication.setIvyDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "xml"));
+            publication.setIvyDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), Providers.of("ivy"), "xml", "ivy"));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -169,7 +173,14 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            publication.setGradleModuleDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "module"));
+            // TODO #4943 Use ProviderFactory
+            Provider<String> nameProvider = new DefaultProvider<String>(new Callable<String>() {
+                @Override
+                public String call() {
+                    return publication.getIdentity().getModule();
+                }
+            });
+            publication.setGradleModuleDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), nameProvider, "module", "json"));
         }
     }
 

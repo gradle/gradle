@@ -182,4 +182,63 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module").assertExists()
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def "publishes signature files for Ivy publication"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            task sourceJar(type: Jar) {
+                from sourceSets.main.allJava
+                classifier "source"
+            }
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from components.java
+                        module '$artifactId'
+                        artifact(sourceJar) {
+                            type "source"
+                            conf "compile"
+                        }
+                    }
+                }
+                repositories {
+                    ivy {
+                        url "file://\$buildDir/ivyRepo/"
+                        layout "pattern"
+                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.ivyJava
+            }
+        """
+
+        and:
+        enableGradleMetadata()
+
+        when:
+        succeeds "publishIvyJavaPublicationToIvyRepository"
+
+        then:
+        ":publishIvyJavaPublicationToIvyRepository" in nonSkippedTasks
+
+        and:
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertExists()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertExists()
+        ivyRepoFile("$artifactId-${version}-source.jar").assertExists()
+        ivyRepoFile("$artifactId-${version}-source.jar.asc").assertExists()
+        ivyRepoFile("$artifactId-${version}.module").assertExists()
+        ivyRepoFile("$artifactId-${version}.module.asc").assertExists()
+    }
 }

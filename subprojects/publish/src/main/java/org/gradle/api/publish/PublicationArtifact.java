@@ -38,6 +38,19 @@ public interface PublicationArtifact extends Buildable {
     String getClassifier();
 
     /**
+     * The name used to publish the artifact file, never <code>null</code>.
+     * Defaults to the name of the module that this artifact belongs to.
+     */
+    String getName();
+
+    /**
+     * The type used to publish the artifact file, never <code>null</code>.
+     * Often the type is the same as the extension, but sometimes this is not the case.
+     * For example for an ivy XML module descriptor, the type is <em>ivy</em> and the extension is <em>xml</em>.
+     */
+    String getType();
+
+    /**
      * The actual file contents to publish.
      */
     File getFile();

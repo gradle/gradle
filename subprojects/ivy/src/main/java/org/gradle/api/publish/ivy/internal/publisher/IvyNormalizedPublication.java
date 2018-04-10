@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 
 import java.io.File;
@@ -25,16 +26,16 @@ public class IvyNormalizedPublication {
 
     private final String name;
     private final IvyPublicationIdentity projectIdentity;
-    private final File ivyDescriptorFile;
-    private final File gradleModuleDescriptorFile;
-    private final Set<IvyArtifact> artifacts;
+    private final PublicationArtifact ivyDescriptorArtifact;
+    private final PublicationArtifact gradleModuleDescriptorArtifact;
+    private final Set<PublicationArtifact> allArtifacts;
 
-    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, File gradleModuleDescriptorFile, Set<IvyArtifact> artifacts) {
+    public IvyNormalizedPublication(String name, IvyPublicationIdentity projectIdentity, PublicationArtifact ivyDescriptorArtifact, PublicationArtifact gradleModuleDescriptorArtifact, Set<PublicationArtifact> allArtifacts) {
         this.name = name;
         this.projectIdentity = projectIdentity;
-        this.gradleModuleDescriptorFile = gradleModuleDescriptorFile;
-        this.artifacts = artifacts;
-        this.ivyDescriptorFile = ivyDescriptorFile;
+        this.ivyDescriptorArtifact = ivyDescriptorArtifact;
+        this.gradleModuleDescriptorArtifact = gradleModuleDescriptorArtifact;
+        this.allArtifacts = allArtifacts;
     }
 
     public String getName() {
@@ -45,15 +46,15 @@ public class IvyNormalizedPublication {
         return projectIdentity;
     }
 
-    public File getIvyDescriptorFile() {
-        return ivyDescriptorFile;
+    public PublicationArtifact getIvyDescriptorArtifact() {
+        return ivyDescriptorArtifact;
     }
 
-    public File getGradleModuleDescriptorFile() {
-        return gradleModuleDescriptorFile;
+    public PublicationArtifact getGradleModuleDescriptorArtifact() {
+        return gradleModuleDescriptorArtifact;
     }
 
-    public Set<IvyArtifact> getArtifacts() {
-        return artifacts;
+    public Set<PublicationArtifact> getAllArtifacts() {
+        return allArtifacts;
     }
 }

@@ -33,7 +33,6 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -45,6 +44,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -90,15 +90,15 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final IvyModuleDescriptorSpecInternal descriptor;
     private final IvyPublicationIdentity publicationIdentity;
     private final IvyConfigurationContainer configurations;
+    private final DomainObjectSet<PublicationArtifact> allArtifacts;
     private final DefaultIvyArtifactSet ivyArtifacts;
+    private final PublicationArtifactSet additionalArtifacts;
+    private PublicationArtifact ivyDescriptorFile;
+    private PublicationArtifact gradleModuleDescriptorFile;
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final FeaturePreviews featurePreviews;
-    private final DomainObjectSet<PublicationArtifact> allArtifacts;
-    private final DomainObjectSet<PublicationArtifact> additionalArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
-    private TaskOutputPublicationArtifact ivyDescriptorFile;
-    private TaskOutputPublicationArtifact gradleModuleDescriptorFile;
     private SoftwareComponentInternal component;
     private boolean alias;
 
@@ -113,9 +113,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.featurePreviews = featurePreviews;
         ivyArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
+        additionalArtifacts = instantiator.newInstance(PublicationArtifactSet.class, "additional artifacts for " + name, fileCollectionFactory);
+        allArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, ivyArtifacts, additionalArtifacts);
         ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
-        allArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, ivyArtifacts, additionalArtifacts);
     }
 
     public String getName() {
@@ -143,7 +144,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setIvyDescriptorArtifact(TaskOutputPublicationArtifact artifact) {
+    public void setIvyDescriptorArtifact(PublicationArtifact artifact) {
         if (this.ivyDescriptorFile != null) {
             additionalArtifacts.remove(this.ivyDescriptorFile);
         }
@@ -152,7 +153,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setGradleModuleDescriptorArtifact(TaskOutputPublicationArtifact artifact) {
+    public void setGradleModuleDescriptorArtifact(PublicationArtifact artifact) {
         if (this.gradleModuleDescriptorFile != null) {
             additionalArtifacts.remove(this.gradleModuleDescriptorFile);
         }
@@ -289,11 +290,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        if (gradleModuleDescriptorFile == null) {
-            // possible if the gradle metadata feature is disabled
-            return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile.getFiles());
-        }
-        return new UnionFileCollection(ivyArtifacts.getFiles(), ivyDescriptorFile.getFiles(), gradleModuleDescriptorFile.getFiles());
+        return new UnionFileCollection(ivyArtifacts.getFiles(), additionalArtifacts.getFiles());
     }
 
     public IvyPublicationIdentity getIdentity() {
@@ -305,15 +302,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(name, getIdentity(), assertDescriptorFile(ivyDescriptorFile.getFiles()), maybeGradleDescriptorFile(), ivyArtifacts);
-    }
-
-    private File maybeGradleDescriptorFile() {
-        if (gradleModuleDescriptorFile == null) {
-            // possible if the gradle metadata feature is disable
-            return null;
-        }
-        return gradleModuleDescriptorFile.getFile();
+        return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorArtifact(), gradleModuleDescriptorFile, allArtifacts);
     }
 
     @Override
@@ -329,11 +318,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
     }
 
-    private static File assertDescriptorFile(FileCollection ref) {
-        if (ref == null) {
-            throw new IllegalStateException("descriptorFile not set for publication");
+    private PublicationArtifact getIvyDescriptorArtifact() {
+        if (ivyDescriptorFile == null) {
+            throw new IllegalStateException("ivyDescriptorArtifact not set for publication");
         }
-        return ref.getSingleFile();
+        return ivyDescriptorFile;
     }
 
     public ModuleVersionIdentifier getCoordinates() {

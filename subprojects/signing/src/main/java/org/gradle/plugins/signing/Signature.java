@@ -229,7 +229,13 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
 
     @Nullable
     private String defaultName() {
-        return toSignPublishArtifact != null ? toSignPublishArtifact.getName() : fileName();
+        if (toSignPublishArtifact != null) {
+            return toSignPublishArtifact.getName();
+        }
+        if (toSignPublicationArtifact != null) {
+            return toSignPublicationArtifact.getName();
+        }
+        return fileName();
     }
 
     @Nullable
@@ -250,9 +256,10 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
      * @return The extension. May be {@code null} if unknown at this time.
      */
     public String getExtension() {
-        if (extension != null) {
-            return extension;
-        }
+        return extension != null ? extension : defaultExtension();
+    }
+
+    private String defaultExtension() {
         String signatureTypeExtension = signatureTypeExtension();
         return toSignPublicationArtifact == null ? signatureTypeExtension : toSignPublicationArtifact.getExtension() + "." + signatureTypeExtension;
     }

@@ -29,21 +29,10 @@ import java.io.File;
 @Incubating
 public interface IvyArtifact extends PublicationArtifact {
     /**
-     * The name used to publish the artifact file, never <code>null</code>.
-     * Defaults to the name of the module that this artifact belongs to.
-     */
-    String getName();
-
-    /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
      */
     void setName(String name);
-
-    /**
-     * The type used to publish the artifact file, never <code>null</code>.
-     */
-    String getType();
 
     /**
      * Sets the type used to publish the artifact file.
