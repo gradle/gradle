@@ -158,7 +158,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
-    def "Merges consumer configuration attributes with dependency attributes (simulates Java Library)"() {
+    def "Merges consumer configuration attributes with dependency attributes"() {
         given:
         repository {
             'org:test:1.0' {
@@ -205,7 +205,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
-    def "Fails resolution because consumer configuration attributes and dependency attributes conflict (simulates Java Library)"() {
+    def "Fails resolution because consumer configuration attributes and dependency attributes conflict"() {
         given:
         repository {
             'org:test:1.0' {
