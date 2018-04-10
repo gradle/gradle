@@ -35,8 +35,9 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
 
     Path gpgHomeSymlink
 
-    String artifactId = "sign"
-    String jarFileName = "$artifactId-1.0.jar"
+    final String artifactId = "sign"
+    final String version = "1.0"
+    final String jarFileName = "$artifactId-${version}.jar"
 
     def setup() {
         buildFile << """
@@ -44,7 +45,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'signing'
             archivesBaseName = '$artifactId'
             group = 'sign'
-            version = '1.0'
+            version = '$version'
         """
 
         file("src", "main", "java", "Thing.java") << """
@@ -158,7 +159,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     TestFile m2RepoFile(String name) {
-        file("build", "m2Repo", "sign", artifactId, "1.0", name)
+        file("build", "m2Repo", "sign", artifactId, version, name)
     }
 
     TestFile ivyRepoFile(String name) {

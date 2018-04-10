@@ -135,11 +135,18 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             apply plugin: 'maven-publish'
             ${keyInfo.addAsPropertiesScript()}
 
+            task sourceJar(type: Jar) {
+                from sourceSets.main.allJava
+            }
+
             publishing {
                 publications {
                     mavenJava(MavenPublication) {
                         from components.java
                         artifactId '$artifactId'
+                        artifact sourceJar {
+                            classifier "sources"
+                        }
                     }
                 }
                 repositories {
@@ -156,6 +163,9 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
         """
 
+        and:
+        enableGradleMetadata()
+
         when:
         succeeds "publishMavenJavaPublicationToM2Repository"
 
@@ -163,9 +173,13 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ":publishMavenJavaPublicationToM2Repository" in nonSkippedTasks
 
         and:
-        m2RepoFile(jarFileName).assertExists()
-        m2RepoFile("${jarFileName}.asc").assertExists()
         pom().assertExists()
         pomSignature().assertExists()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertExists()
+        m2RepoFile("$artifactId-${version}-sources.jar").assertExists()
+        m2RepoFile("$artifactId-${version}-sources.jar.asc").assertExists()
+        m2RepoFile("$artifactId-${version}.module").assertExists()
+        m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 }

@@ -19,47 +19,40 @@ package org.gradle.api.publish.maven.internal.publisher;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 
-import java.io.File;
 import java.util.Set;
 
 public class MavenNormalizedPublication {
 
     private final String name;
-    private final File pomFile;
-    private final File metadataFile;
+    private final PublicationArtifact pomArtifact;
+    private final PublicationArtifact metadataArtifact;
     private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> mavenArtifacts;
-    private final Set<PublicationArtifact> additionalArtifacts;
+    private final Set<PublicationArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, File metadataFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> mavenArtifacts, MavenArtifact mainArtifact, Set<PublicationArtifact> additionalArtifacts) {
+    public MavenNormalizedPublication(String name, PublicationArtifact pomArtifact, PublicationArtifact metadataArtifact, MavenProjectIdentity projectIdentity, Set<PublicationArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
-        this.pomFile = pomFile;
-        this.metadataFile = metadataFile;
+        this.pomArtifact = pomArtifact;
+        this.metadataArtifact = metadataArtifact;
         this.projectIdentity = projectIdentity;
-        this.mavenArtifacts = mavenArtifacts;
+        this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
-        this.additionalArtifacts = additionalArtifacts;
     }
 
     public String getName() {
         return name;
     }
 
-    public File getPomFile() {
-        return pomFile;
+    public PublicationArtifact getPomArtifact() {
+        return pomArtifact;
     }
 
-    public File getMetadataFile() {
-        return metadataFile;
+    public PublicationArtifact getMetadataArtifact() {
+        return metadataArtifact;
     }
 
-    public Set<MavenArtifact> getMavenArtifacts() {
-        return mavenArtifacts;
-    }
-
-    public Set<PublicationArtifact> getAdditionalArtifacts() {
-        return additionalArtifacts;
+    public Set<PublicationArtifact> getAllArtifacts() {
+        return allArtifacts;
     }
 
     public MavenProjectIdentity getProjectIdentity() {

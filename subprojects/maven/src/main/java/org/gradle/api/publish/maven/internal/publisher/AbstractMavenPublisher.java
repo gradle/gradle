@@ -48,7 +48,10 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
         }
 
-        MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), publication.getMetadataFile(), mavenRepositoryLocator, artifactRepository);
+        File pomFile = publication.getPomArtifact().getFile();
+        // publication.getMetadataArtifact() is null if the gradle metadata feature is disabled
+        File metadataFile = publication.getMetadataArtifact() == null ? null : publication.getMetadataArtifact().getFile();
+        MavenPublishAction deployTask = createDeployTask(pomFile, metadataFile, mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
@@ -61,19 +64,15 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             publishAction.setMainArtifact(mainArtifact.getFile());
         }
 
-        for (PublicationArtifact artifact : publication.getMavenArtifacts()) {
-            if (artifact == mainArtifact) {
+        PublicationArtifact pomArtifact = publication.getPomArtifact();
+        PublicationArtifact metadataArtifact = publication.getMetadataArtifact();
+
+        for (PublicationArtifact artifact : publication.getAllArtifacts()) {
+            if (artifact == mainArtifact || artifact == pomArtifact || artifact == metadataArtifact) {
                 continue;
             }
-            addAdditionalArtifact(publishAction, artifact);
+            publishAction.addAdditionalArtifact(artifact.getFile(), GUtil.elvis(artifact.getExtension(), ""), GUtil.elvis(artifact.getClassifier(), ""));
         }
-        for (PublicationArtifact artifact : publication.getAdditionalArtifacts()) {
-            addAdditionalArtifact(publishAction, artifact);
-        }
-    }
-
-    private void addAdditionalArtifact(MavenPublishAction publishAction, PublicationArtifact artifact) {
-        publishAction.addAdditionalArtifact(artifact.getFile(), GUtil.elvis(artifact.getExtension(), ""), GUtil.elvis(artifact.getClassifier(), ""));
     }
 
     private void execute(MavenPublishAction publishAction) {

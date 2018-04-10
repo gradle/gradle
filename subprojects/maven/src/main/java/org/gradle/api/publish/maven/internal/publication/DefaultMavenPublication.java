@@ -36,7 +36,6 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -48,11 +47,9 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -116,9 +113,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final DomainObjectSet<PublicationArtifact> allArtifacts;
-    private final DomainObjectSet<PublicationArtifact> additionalArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
-    private final DomainObjectSet<PublicationArtifact> metadataArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
-    private final FileCollection additionalFiles;
+    private final PublicationArtifactSet additionalArtifacts;
     private TaskOutputPublicationArtifact pomFile;
     private TaskOutputPublicationArtifact moduleMetadataFile;
     private SoftwareComponentInternal component;
@@ -135,37 +130,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
-        allArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, mavenArtifacts, metadataArtifacts, additionalArtifacts);
+        additionalArtifacts = instantiator.newInstance(PublicationArtifactSet.class, "additional artifacts for " + name, fileCollectionFactory);
+        allArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, mavenArtifacts, additionalArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
         this.featurePreviews = featurePreviews;
-        additionalFiles = fileCollectionFactory.create(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                for (PublicationArtifact artifact : metadataArtifacts) {
-                    context.add(artifact.getBuildDependencies());
-                }
-                for (PublicationArtifact artifact : getAdditionalArtifacts()) {
-                    context.add(artifact.getBuildDependencies());
-                }
-            }
-        }, new MinimalFileSet() {
-            @Override
-            public String getDisplayName() {
-                return "additional artifacts";
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                Set<File> result = new LinkedHashSet<File>();
-                for (PublicationArtifact artifact : metadataArtifacts) {
-                    result.add(artifact.getFile());
-                }
-                for (PublicationArtifact artifact : getAdditionalArtifacts()) {
-                    result.add(artifact.getFile());
-                }
-                return result;
-            }
-        });
     }
 
     public String getName() {
@@ -195,19 +163,19 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public void setPomArtifact(TaskOutputPublicationArtifact artifact) {
         if (this.pomFile != null) {
-            metadataArtifacts.remove(this.pomFile);
+            additionalArtifacts.remove(this.pomFile);
         }
         this.pomFile = artifact;
-        metadataArtifacts.add(artifact);
+        additionalArtifacts.add(artifact);
     }
 
     @Override
     public void setGradleModuleMetadataArtifact(TaskOutputPublicationArtifact artifact) {
         if (this.moduleMetadataFile != null) {
-            metadataArtifacts.remove(this.moduleMetadataFile);
+            additionalArtifacts.remove(this.moduleMetadataFile);
         }
         this.moduleMetadataFile = artifact;
-        metadataArtifacts.add(artifact);
+        additionalArtifacts.add(artifact);
     }
 
     public void pom(Action<? super MavenPom> configure) {
@@ -343,7 +311,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public FileCollection getPublishableFiles() {
-        return new UnionFileCollection(mavenArtifacts.getFiles(), additionalFiles);
+        return new UnionFileCollection(mavenArtifacts.getFiles(), additionalArtifacts.getFiles());
     }
 
     public MavenProjectIdentity getMavenProjectIdentity() {
@@ -369,22 +337,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
-        return new MavenNormalizedPublication(name, getPomFile(), getGradleMetadataFile(), projectIdentity, getArtifacts(), determineMainArtifact(), getAdditionalArtifacts());
+        return new MavenNormalizedPublication(name, getPomFile(), moduleMetadataFile, projectIdentity, getAllArtifacts(), determineMainArtifact());
     }
 
-    private File getPomFile() {
+    private PublicationArtifact getPomFile() {
         if (pomFile == null) {
             throw new IllegalStateException("pomFile not set for publication");
         }
-        return pomFile.getFile();
-    }
-
-    private File getGradleMetadataFile() {
-        if (moduleMetadataFile == null) {
-            // possible if the gradle metadata feature is disabled
-            return null;
-        }
-        return moduleMetadataFile.getFile();
+        return pomFile;
     }
 
     public String determinePackagingFromArtifacts() {
