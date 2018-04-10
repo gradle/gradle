@@ -194,6 +194,14 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         buildCFinishedPosition < rootBuildFinishedPosition
         buildCFinishedPosition < buildSuccessfulPosition
+
+        def lastRootBuildTaskPosition = outputLines.indexOf("> Task :resolveArtifacts")
+        lastRootBuildTaskPosition >= 0
+
+        def lateIncludedBuildTaskPosition = outputLines.indexOf("> Task :buildB:b2:wait")
+        lastRootBuildTaskPosition < lateIncludedBuildTaskPosition
+
+        lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
     void verifyBuildEvents() {
