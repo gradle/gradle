@@ -33,15 +33,15 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                     println("Create ${path}")
                 }
             }
-            class SomeInjectedTask extends DefaultTask {
+            class SomeTaskWithStringArgument extends DefaultTask {
                 @Inject
-                SomeInjectedTask(String value) {
+                SomeTaskWithStringArgument(String value) {
                     println("Create ${path} - ${value}")
                 }
             }
-            class SomeOtherInjectedTask extends DefaultTask {
+            class SomeTaskWithIntArgument extends DefaultTask {
                 @Inject
-                SomeOtherInjectedTask(int value) {
+                SomeTaskWithIntArgument(int value) {
                     println("Create ${path} - ${value}")
                 }
             }
@@ -77,8 +77,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created with arguments when included directly in task graph"() {
         buildFile << '''
-            tasks.createLater("task1", SomeInjectedTask, 'abc')
-            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.createLater("task1", SomeTaskWithStringArgument, 'abc')
+            tasks.createLater("task2", SomeTaskWithIntArgument, 123)
         '''
 
         when:
@@ -204,10 +204,10 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "task is created with arguments eagerly when referenced using withType(type, action)"() {
         buildFile << '''
-            tasks.createLater("task1", SomeInjectedTask, 'abc')
-            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.createLater("task1", SomeTaskWithStringArgument, 'abc')
+            tasks.createLater("task2", SomeTaskWithIntArgument, 123)
             tasks.create("other")
-            tasks.withType(SomeInjectedTask) {
+            tasks.withType(SomeTaskWithStringArgument) {
                 println "Matched ${path}"
             }
         '''
@@ -256,8 +256,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task with arguments only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeInjectedTask, 'abc')
-            tasks.createLater("task2", SomeOtherInjectedTask, 123)
+            tasks.createLater("task1", SomeTaskWithStringArgument, 'abc')
+            tasks.createLater("task2", SomeTaskWithIntArgument, 123)
             tasks.configureEachLater {
                 println "Received ${path}"
             }
@@ -316,9 +316,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task with arguments of a given type only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeInjectedTask, 'abc')
-            tasks.createLater("task2", SomeOtherInjectedTask, 123)
-            tasks.configureEachLater(SomeInjectedTask) {
+            tasks.createLater("task1", SomeTaskWithStringArgument, 'abc')
+            tasks.createLater("task2", SomeTaskWithIntArgument, 123)
+            tasks.configureEachLater(SomeTaskWithStringArgument) {
                 println "Received ${path}"
             }
             tasks.create("other")

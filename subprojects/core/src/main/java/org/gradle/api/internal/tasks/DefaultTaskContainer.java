@@ -39,6 +39,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -72,12 +73,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private static final Set<String> MANDATORY_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_NAME, Task.TASK_TYPE
     );
-    private static final Action<? super Task> EMPTY_ACTION = new Action<Task>() {
-        @Override
-        public void execute(Task o) {
-            // do nothing
-        }
-    };
 
     private final MutableModelNode modelNode;
     private final ITaskFactory taskFactory;
@@ -277,7 +272,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> Provider<T> createLater(String name, Class<T> type, Object... constructorArgs) {
-        return createLater(name, type, EMPTY_ACTION, constructorArgs);
+        return createLater(name, type, Actions.doNothing(), constructorArgs);
     }
 
     private <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction, Object... constructorArgs) {
