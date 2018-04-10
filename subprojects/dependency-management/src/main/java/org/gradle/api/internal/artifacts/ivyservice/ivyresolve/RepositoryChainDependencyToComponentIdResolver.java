@@ -67,7 +67,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 String version = resolvedVersionConstraint.getPreferredVersion();
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
                 ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
-                if (rejectSelector.accept(version)) {
+                if (rejectSelector != null && rejectSelector.accept(version)) {
                     result.rejected(id, mvId);
                 } else {
                     result.resolved(id, mvId);

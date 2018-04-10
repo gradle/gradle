@@ -149,7 +149,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        if (!allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+        if (allRejects == null || !allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
             return false;
         }
 
