@@ -74,11 +74,6 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public void systemInclude(File... systemIncludeRoots) {
-        Collections.addAll(this.systemIncludeRoots, systemIncludeRoots);
-    }
-
-    @Override
     public List<File> getSourceFiles() {
         return sourceFiles;
     }

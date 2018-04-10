@@ -42,8 +42,6 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void systemInclude(Iterable<File> systemIncludeRoots);
 
-    void systemInclude(File... systemIncludeRoots);
-
     List<File> getSourceFiles();
 
     void setSourceFiles(Collection<File> sources);
