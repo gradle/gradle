@@ -88,7 +88,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private void validateArtifacts(MavenNormalizedPublication publication) {
-        for (MavenArtifact artifact : publication.getArtifacts()) {
+        for (MavenArtifact artifact : publication.getMavenArtifacts()) {
             field(publication, "artifact extension", artifact.getExtension())
                     .notNull()
                     .validInFileName();
@@ -103,7 +103,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     private void checkNoDuplicateArtifacts(MavenNormalizedPublication publication) {
         Set<MavenArtifact> verified = new HashSet<MavenArtifact>();
 
-        for (MavenArtifact artifact : publication.getArtifacts()) {
+        for (MavenArtifact artifact : publication.getMavenArtifacts()) {
             checkNotDuplicate(publication, verified, artifact.getExtension(), artifact.getClassifier());
             verified.add(artifact);
         }

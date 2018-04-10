@@ -52,12 +52,6 @@ public interface IvyArtifact extends PublicationArtifact {
     void setType(String type);
 
     /**
-     * The extension used to publish the artifact file, never <code>null</code>.
-     * For an artifact without an extension, this value will be an empty String.
-     */
-    String getExtension();
-
-    /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
      */

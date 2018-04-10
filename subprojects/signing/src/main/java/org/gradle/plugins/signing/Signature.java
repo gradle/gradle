@@ -250,7 +250,11 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
      * @return The extension. May be {@code null} if unknown at this time.
      */
     public String getExtension() {
-        return extension != null ? extension : signatureTypeExtension();
+        if (extension != null) {
+            return extension;
+        }
+        String signatureTypeExtension = signatureTypeExtension();
+        return toSignPublicationArtifact == null ? signatureTypeExtension : toSignPublicationArtifact.getExtension() + "." + signatureTypeExtension;
     }
 
     @Nullable

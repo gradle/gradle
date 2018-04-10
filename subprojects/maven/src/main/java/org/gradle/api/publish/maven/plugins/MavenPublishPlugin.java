@@ -178,7 +178,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             });
             // Wire the generated pom into the publication.
-            publication.setPomArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
+            publication.setPomArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "pom"));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -198,7 +198,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            publication.setGradleModuleMetadataArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
+            publication.setGradleModuleMetadataArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "module"));
         }
 
     }

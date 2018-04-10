@@ -17,7 +17,6 @@
 package org.gradle.api.publish.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -31,10 +30,12 @@ public class TaskOutputPublicationArtifact implements PublicationArtifact {
 
     private final DefaultTaskDependency buildDependencies;
     private final Task task;
+    private final String extension;
 
-    public TaskOutputPublicationArtifact(Task task) {
+    public TaskOutputPublicationArtifact(Task task, String extension) {
         this.task = task;
         this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.of((Object) task));
+        this.extension = extension;
     }
 
     @Override
@@ -49,6 +50,11 @@ public class TaskOutputPublicationArtifact implements PublicationArtifact {
     @Override
     public TaskDependency getBuildDependencies() {
         return buildDependencies;
+    }
+
+    @Override
+    public String getExtension() {
+        return extension;
     }
 
     @Nullable

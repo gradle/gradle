@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.io.File;
@@ -27,16 +28,18 @@ public class MavenNormalizedPublication {
     private final File pomFile;
     private final File metadataFile;
     private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> artifacts;
+    private final Set<MavenArtifact> mavenArtifacts;
+    private final Set<PublicationArtifact> additionalArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, File gradleMetadataFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, File pomFile, File metadataFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> mavenArtifacts, MavenArtifact mainArtifact, Set<PublicationArtifact> additionalArtifacts) {
         this.name = name;
         this.pomFile = pomFile;
-        this.metadataFile = gradleMetadataFile;
+        this.metadataFile = metadataFile;
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
+        this.mavenArtifacts = mavenArtifacts;
         this.mainArtifact = mainArtifact;
+        this.additionalArtifacts = additionalArtifacts;
     }
 
     public String getName() {
@@ -51,8 +54,12 @@ public class MavenNormalizedPublication {
         return metadataFile;
     }
 
-    public Set<MavenArtifact> getArtifacts() {
-        return artifacts;
+    public Set<MavenArtifact> getMavenArtifacts() {
+        return mavenArtifacts;
+    }
+
+    public Set<PublicationArtifact> getAdditionalArtifacts() {
+        return additionalArtifacts;
     }
 
     public MavenProjectIdentity getProjectIdentity() {
@@ -62,4 +69,5 @@ public class MavenNormalizedPublication {
     public MavenArtifact getMainArtifact() {
         return mainArtifact;
     }
+
 }

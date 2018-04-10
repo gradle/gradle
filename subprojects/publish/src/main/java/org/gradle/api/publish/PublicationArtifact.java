@@ -24,6 +24,11 @@ import java.io.File;
 
 @Incubating
 public interface PublicationArtifact extends Buildable {
+    /**
+     * The extension used to publish the artifact file, never <code>null</code>.
+     * For an artifact without an extension, this value will be an empty String.
+     */
+    String getExtension();
 
     /**
      * The classifier used to publish the artifact file.
