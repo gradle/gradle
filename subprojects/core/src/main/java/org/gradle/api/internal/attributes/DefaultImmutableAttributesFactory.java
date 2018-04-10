@@ -120,4 +120,30 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         }
         return current;
     }
+
+    @Override
+    public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
+        if (attributes1 == ImmutableAttributes.EMPTY) {
+            return attributes2;
+        }
+        if (attributes2 == ImmutableAttributes.EMPTY) {
+            return attributes1;
+        }
+        ImmutableAttributes current = attributes2;
+        for (Attribute attribute : attributes1.keySet()) {
+            Object currentAttribute = current.getAttribute(attribute);
+            if (currentAttribute != null) {
+                Object existingAttribute = attributes1.getAttribute(attribute);
+                if (!currentAttribute.equals(existingAttribute)) {
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
+                }
+            }
+            if (attributes1 instanceof DefaultImmutableAttributes) {
+                current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
+            } else {
+                current = concat(current, attribute, attributes1.getAttribute(attribute));
+            }
+        }
+        return current;
+    }
 }

@@ -363,6 +363,104 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "Fails resolution because consumer configuration attributes and constraint attributes conflict"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "java-api"))
+
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf 'org:test'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Unable to find a matching configuration of org:test:1.0:
+  - Configuration 'api':
+      - Required custom 'c2' and found incompatible value 'c1'.
+      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+  - Configuration 'runtime':
+      - Required custom 'c2' and found compatible value 'c2'.
+      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+      - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'""")
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "Fails resolution because dependency attributes and constraint attributes conflict"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf('org:test') {
+                   attributes {
+                      attribute(CUSTOM_ATTRIBUTE, 'c1')
+                   }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot choose between 'org:test' and 'org:test:1.0' because they require a different value for attribute 'custom':
+  - Dependency 'org:test' wants value 'c1'
+  - Constraint 'org:test:1.0' wants value 'c2'""")
+    }
+
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }
