@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
 import org.gradle.api.logging.Logger;
@@ -44,16 +43,11 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
-    }
-
-    private void resolveAndFilterSourceFiles(final ScalaJavaJointCompileSpec spec) {
-        spec.setSource(ImmutableFileCollection.of(spec.getSource().getFiles()));
     }
 
     private void resolveClasspath(ScalaJavaJointCompileSpec spec) {

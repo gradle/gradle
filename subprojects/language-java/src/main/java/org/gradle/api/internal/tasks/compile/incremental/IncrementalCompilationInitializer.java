@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
@@ -41,7 +42,7 @@ class IncrementalCompilationInitializer {
 
     public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
-            spec.setSource(ImmutableFileCollection.of());
+            spec.setSource(ImmutableSet.<File>of());
             spec.setClasses(Collections.<String>emptySet());
             return;
         }
@@ -58,7 +59,7 @@ class IncrementalCompilationInitializer {
     }
 
     private void narrowDownSourcesToCompile(JavaCompileSpec spec, PatternSet sourceToCompile) {
-        spec.setSource(spec.getSource().getAsFileTree().matching(sourceToCompile));
+        spec.setSource(ImmutableFileCollection.of(spec.getSource()).getAsFileTree().matching(sourceToCompile));
     }
 
     private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
