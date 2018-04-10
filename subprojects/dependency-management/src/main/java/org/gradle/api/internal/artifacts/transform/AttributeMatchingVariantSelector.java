@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.configurations.ArtifactTransformTaskRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -36,12 +37,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final AttributesSchemaInternal schema;
     private final AttributeContainerInternal requested;
     private final boolean ignoreWhenNoMatches;
+    private final ArtifactTransformTaskRegistry taskRegistry;
 
-    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches, ArtifactTransformTaskRegistry taskRegistry) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
+        this.taskRegistry = taskRegistry;
     }
 
     @Override
@@ -81,7 +84,10 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
-            return new ConsumerProvidedResolvedVariant(result.getLeft().getArtifacts(), result.getRight().attributes, result.getRight().transformer);
+            ResolvedArtifactSet delegate = result.getLeft().getArtifacts();
+            AttributeContainerInternal attributes = result.getRight().attributes;
+            ArtifactTransformer transformer = result.getRight().transformer;
+            return new ConsumerProvidedResolvedVariant(delegate, attributes, transformer, taskRegistry.get(delegate, transformer));
         }
 
         if (!candidates.isEmpty()) {

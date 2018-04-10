@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 
 public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
@@ -28,6 +30,22 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
 
     private CompositeResolvedArtifactSet(List<ResolvedArtifactSet> sets) {
         this.sets = sets;
+    }
+
+    public static List<ResolvedArtifactSet> unpack(ResolvedArtifactSet initialArtifactSet) {
+        List<ResolvedArtifactSet> artifactSets = new ArrayList<ResolvedArtifactSet>();
+        Deque<ResolvedArtifactSet> queue = new ArrayDeque<ResolvedArtifactSet>();
+        queue.add(initialArtifactSet);
+
+        while (!queue.isEmpty()) {
+            ResolvedArtifactSet artifactSet = queue.remove();
+            if (artifactSet instanceof CompositeResolvedArtifactSet) {
+                queue.addAll(((CompositeResolvedArtifactSet) artifactSet).getSets());
+            } else {
+                artifactSets.add(artifactSet);
+            }
+        }
+        return artifactSets;
     }
 
     public static ResolvedArtifactSet of(Collection<? extends ResolvedArtifactSet> sets) {
@@ -60,6 +78,10 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         for (ResolvedArtifactSet set : sets) {
             set.collectBuildDependencies(visitor);
         }
+    }
+
+    public List<ResolvedArtifactSet> getSets() {
+        return sets;
     }
 
     private static class CompositeResult implements Completion {

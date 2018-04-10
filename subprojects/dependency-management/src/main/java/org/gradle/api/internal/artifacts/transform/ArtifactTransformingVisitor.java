@@ -36,10 +36,10 @@ import java.util.Map;
 class ArtifactTransformingVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
+    private final Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults;
     private final Map<File, TransformFileOperation> fileResults;
 
-    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+    ArtifactTransformingVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, ArtifactTransformationResult> artifactResults, Map<File, TransformFileOperation> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -48,14 +48,18 @@ class ArtifactTransformingVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformArtifactOperation operation = artifactResults.get(artifact);
-        if (operation.getFailure() != null) {
-            visitor.visitFailure(operation.getFailure());
+        ArtifactTransformationResult transformationResult = artifactResults.get(artifact.getId());
+        visitTransformedArtifact(variantName, artifact, transformationResult);
+    }
+
+    private void visitTransformedArtifact(String variantName, ResolvableArtifact artifact, ArtifactTransformationResult transformationResult) {
+        if (transformationResult.isFailed()) {
+            visitor.visitFailure(transformationResult.getFailure());
             return;
         }
 
         ResolvedArtifact sourceArtifact = artifact.toPublicView();
-        List<File> transformedFiles = operation.getResult();
+        List<File> transformedFiles = transformationResult.getResult();
         TaskDependency buildDependencies = ((Buildable) artifact).getBuildDependencies();
 
         for (File output : transformedFiles) {

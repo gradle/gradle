@@ -19,7 +19,9 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Timeout
 
+@Timeout(10)
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -80,10 +82,11 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 compile 'test:test3:3.3'
             }
             task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
                 doLast {
-                    def artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
                     assert artifacts.artifactFiles.collect { it.name } == ['test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }

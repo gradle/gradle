@@ -60,11 +60,12 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
+    private ArtifactTransformTaskRegistry artifactTransformTaskRegistry = Mock()
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, new RootScriptDomainObjectContext(),
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(),
             globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
-            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter)
+            immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, artifactTransformTaskRegistry)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

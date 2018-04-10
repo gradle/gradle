@@ -29,6 +29,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.ArtifactTransformTaskRegistry;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -80,6 +81,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
@@ -180,7 +182,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ProjectFinder projectFinder, LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
-                                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter) {
+                                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, ArtifactTransformTaskRegistry artifactTransformTaskRegistry) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -198,7 +200,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 taskResolverFor(domainObjectContext),
                 attributesFactory,
                 moduleIdentifierFactory,
-                componentSelectorConverter
+                componentSelectorConverter,
+                artifactTransformTaskRegistry
             );
         }
 
@@ -257,6 +260,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, rules);
         }
 
+        ArtifactTransformTaskRegistry createArtifactTransformTaskRegistry(ITaskFactory taskFactory) {
+            return new ArtifactTransformTaskRegistry(taskFactory);
+        }
+
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,
                                                        RepositoryHandler repositories,
                                                        GlobalDependencyResolutionRules metadataHandler,
@@ -272,7 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
                                                        BuildIdentity buildIdentity,
-                                                       DependencyLockingProvider dependencyLockingProvider) {
+                                                       DependencyLockingProvider dependencyLockingProvider,
+                                                       ArtifactTransformTaskRegistry taskRegistry) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -287,7 +295,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     variantTransforms,
                                     attributesSchema,
                                     attributesFactory),
-                                attributesSchema),
+                                attributesSchema,
+                                taskRegistry),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
                             artifactTypeRegistry,
