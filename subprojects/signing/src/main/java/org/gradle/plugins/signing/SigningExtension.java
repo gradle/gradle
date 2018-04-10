@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -272,7 +273,7 @@ public class SigningExtension {
         List<Sign> result = new ArrayList<Sign>(tasks.length);
         for (final Task taskToSign : tasks) {
             result.add(
-                createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
+                createSignTaskFor(taskToSign.getName(), getConfiguration().getArtifacts(), new Action<Sign>() {
                     public void execute(Sign task) {
                         task.sign(taskToSign);
                     }
@@ -296,7 +297,7 @@ public class SigningExtension {
         List<Sign> result = new ArrayList<Sign>(configurations.length);
         for (final Configuration configurationToSign : configurations) {
             result.add(
-                createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
+                createSignTaskFor(configurationToSign.getName(), getConfiguration().getArtifacts(), new Action<Sign>() {
                     public void execute(Sign task) {
                         task.sign(configurationToSign);
                     }
@@ -309,33 +310,32 @@ public class SigningExtension {
     public List<Sign> sign(Publication... publications) {
         List<Sign> result = new ArrayList<Sign>(publications.length);
         for (final Publication publicationToSign : publications) {
-            CharSequence suffix = publicationToSign.getName() + "Publication";
-            Sign signTask = project.getTasks().create("sign" + capitalize(suffix), Sign.class, new Action<Sign>() {
-                public void execute(Sign task) {
-                    task.sign(publicationToSign);
-                }
-            });
-            // TODO #4943 Add signTask.getSignatures() to Publication
-            result.add(signTask);
+            result.add(
+                createSignTaskFor(publicationToSign.getName() + "Publication", publicationToSign.getAdditionalArtifacts(), new Action<Sign>() {
+                    public void execute(Sign task) {
+                        task.sign(publicationToSign);
+                    }
+                })
+            );
         }
         return result;
     }
 
-    private Sign createSignTaskFor(final CharSequence name, Action<Sign> taskConfiguration) {
+    private Sign createSignTaskFor(CharSequence name, DomainObjectSet<? super Signature> artifacts, Action<Sign> taskConfiguration) {
         Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
-        addSignaturesToConfiguration(signTask, getConfiguration());
+        addSignaturesToArtifacts(signTask, artifacts);
         return signTask;
     }
 
-    protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
+    private void addSignaturesToArtifacts(Sign task, final DomainObjectSet<? super Signature> artifacts) {
         task.getSignatures().all(new Action<Signature>() {
-            public void execute(Signature sig) {
-                configuration.getArtifacts().add(sig);
+            public void execute(Signature signature) {
+                artifacts.add(signature);
             }
         });
-        return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
-            public void execute(Signature sig) {
-                configuration.getArtifacts().remove(sig);
+        task.getSignatures().whenObjectRemoved(new Action<Signature>() {
+            public void execute(Signature signature) {
+                artifacts.remove(signature);
             }
         });
     }

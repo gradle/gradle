@@ -16,7 +16,9 @@
 
 package org.gradle.api.publish.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.PublicationArtifact;
@@ -25,22 +27,23 @@ import org.gradle.api.tasks.TaskDependency;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class SimplePublicationArtifact implements PublicationArtifact {
+public class TaskOutputPublicationArtifact implements PublicationArtifact {
 
-    private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-    private final FileCollection files;
+    private final DefaultTaskDependency buildDependencies;
+    private final Task task;
 
-    public SimplePublicationArtifact(FileCollection files) {
-        this.files = files;
+    public TaskOutputPublicationArtifact(Task task) {
+        this.task = task;
+        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.of((Object) task));
     }
 
     @Override
     public File getFile() {
-        return files.getSingleFile();
+        return getFiles().getSingleFile();
     }
 
     public FileCollection getFiles() {
-        return files;
+        return task.getOutputs().getFiles();
     }
 
     @Override
@@ -48,18 +51,9 @@ public class SimplePublicationArtifact implements PublicationArtifact {
         return buildDependencies;
     }
 
-    @Override
-    public void builtBy(Object... tasks) {
-        buildDependencies.add(tasks);
-    }
-
     @Nullable
     @Override
     public String getClassifier() {
         return null;
-    }
-
-    @Override
-    public void setClassifier(@Nullable String classifier) {
     }
 }

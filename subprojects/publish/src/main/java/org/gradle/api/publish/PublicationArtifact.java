@@ -33,20 +33,8 @@ public interface PublicationArtifact extends Buildable {
     String getClassifier();
 
     /**
-     * Sets the classifier used to publish the artifact file.
-     * @param classifier The classifier.
-     */
-    void setClassifier(@Nullable String classifier);
-
-    /**
      * The actual file contents to publish.
      */
     File getFile();
 
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

@@ -35,7 +35,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.SimplePublicationArtifact;
+import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
@@ -149,10 +149,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            Task task = tasks.get(descriptorTaskName);
-            SimplePublicationArtifact descriptorArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
-            descriptorArtifact.builtBy(task);
-            publication.setIvyDescriptorArtifact(descriptorArtifact);
+            publication.setIvyDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -172,10 +169,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            Task task = tasks.get(descriptorTaskName);
-            SimplePublicationArtifact gradleModuleMetadataArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
-            gradleModuleMetadataArtifact.builtBy(task);
-            publication.setGradleModuleDescriptorArtifact(gradleModuleMetadataArtifact);
+            publication.setGradleModuleDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
         }
     }
 

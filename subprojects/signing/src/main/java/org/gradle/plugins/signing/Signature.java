@@ -36,7 +36,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
  *
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
-public class Signature extends AbstractPublishArtifact {
+public class Signature extends AbstractPublishArtifact implements PublicationArtifact {
 
     /**
      * The specification of how to generate the signature.

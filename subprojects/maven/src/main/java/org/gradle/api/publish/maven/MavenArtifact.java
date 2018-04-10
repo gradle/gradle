@@ -38,4 +38,17 @@ public interface MavenArtifact extends PublicationArtifact {
      * @param extension The extension.
      */
     void setExtension(String extension);
+
+    /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(@Nullable String classifier);
+
+    /**
+     * Registers some tasks which build this artifact.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     */
+    void builtBy(Object... tasks);
 }

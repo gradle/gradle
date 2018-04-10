@@ -64,6 +64,12 @@ public interface IvyArtifact extends PublicationArtifact {
     void setExtension(String extension);
 
     /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(@Nullable String classifier);
+
+    /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
      * A <code>null</code> value (the default) indicates that this artifact will be published without a conf attribute.
@@ -78,4 +84,11 @@ public interface IvyArtifact extends PublicationArtifact {
      * @param conf The value of 'conf' for this artifact.
      */
     void setConf(@Nullable String conf);
+
+    /**
+     * Registers some tasks which build this artifact.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     */
+    void builtBy(Object... tasks);
 }

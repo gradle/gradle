@@ -35,13 +35,14 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
 
     Path gpgHomeSymlink
 
-    String jarFileName = "sign-1.0.jar"
+    String artifactId = "sign"
+    String jarFileName = "$artifactId-1.0.jar"
 
     def setup() {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'signing'
-            archivesBaseName = 'sign'
+            archivesBaseName = '$artifactId'
             group = 'sign'
             version = '1.0'
         """
@@ -156,21 +157,20 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    File m2RepoFile(String name) {
-        file("build", "m2Repo", "sign", "sign", "1.0", name)
+    TestFile m2RepoFile(String name) {
+        file("build", "m2Repo", "sign", artifactId, "1.0", name)
     }
 
-    File ivyRepoFile(String name) {
+    TestFile ivyRepoFile(String name) {
         file("build", "ivyRepo", name)
     }
 
-    File fileRepoFile(String name) {
+    TestFile fileRepoFile(String name) {
         file("build", "fileRepo", name)
     }
 
 
     void jarUploaded(String jarFileName = jarFileName) {
-        assert m2RepoFile(jarFileName).exists()
         assert m2RepoFile(jarFileName).exists()
         assert ivyRepoFile(jarFileName).exists()
         assert fileRepoFile(jarFileName).exists()
@@ -204,11 +204,11 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    File pom(String name = "sign-1.0") {
+    TestFile pom(String name = "sign-1.0") {
         m2RepoFile("${name}.pom")
     }
 
-    File pomSignature(String name = "sign-1.0") {
+    TestFile pomSignature(String name = "sign-1.0") {
         m2RepoFile("${name}.pom.asc")
     }
 

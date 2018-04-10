@@ -34,7 +34,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.SimplePublicationArtifact;
+import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
@@ -178,10 +178,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             });
             // Wire the generated pom into the publication.
-            Task task = tasks.get(descriptorTaskName);
-            SimplePublicationArtifact pomArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
-            pomArtifact.builtBy(task);
-            publication.setPomArtifact(pomArtifact);
+            publication.setPomArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -201,10 +198,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            Task task = tasks.get(descriptorTaskName);
-            SimplePublicationArtifact gradleModuleMetadataArtifact = new SimplePublicationArtifact(task.getOutputs().getFiles());
-            gradleModuleMetadataArtifact.builtBy(task);
-            publication.setGradleModuleMetadataArtifact(gradleModuleMetadataArtifact);
+            publication.setGradleModuleMetadataArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName)));
         }
 
     }

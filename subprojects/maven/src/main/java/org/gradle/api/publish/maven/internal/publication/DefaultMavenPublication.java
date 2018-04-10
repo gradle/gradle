@@ -50,7 +50,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.api.publish.internal.SimplePublicationArtifact;
+import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -112,10 +112,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final DomainObjectSet<PublicationArtifact> publicationArtifacts;
-    private final DomainObjectSet<PublicationArtifact> metadataArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
-    private SimplePublicationArtifact pomFile;
-    private SimplePublicationArtifact moduleMetadataFile;
+    private final DomainObjectSet<PublicationArtifact> allArtifacts;
+    private final DomainObjectSet<PublicationArtifact> additionalArtifacts = new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact.class);
+    private TaskOutputPublicationArtifact pomFile;
+    private TaskOutputPublicationArtifact moduleMetadataFile;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
@@ -130,7 +130,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
-        publicationArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, mavenArtifacts, metadataArtifacts);
+        allArtifacts = CompositeDomainObjectSet.create(PublicationArtifact.class, mavenArtifacts, additionalArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
         this.featurePreviews = featurePreviews;
     }
@@ -160,21 +160,21 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void setPomArtifact(SimplePublicationArtifact artifact) {
+    public void setPomArtifact(TaskOutputPublicationArtifact artifact) {
         if (this.pomFile != null) {
-            metadataArtifacts.remove(this.pomFile);
+            additionalArtifacts.remove(this.pomFile);
         }
         this.pomFile = artifact;
-        metadataArtifacts.add(artifact);
+        additionalArtifacts.add(artifact);
     }
 
     @Override
-    public void setGradleModuleMetadataArtifact(SimplePublicationArtifact artifact) {
+    public void setGradleModuleMetadataArtifact(TaskOutputPublicationArtifact artifact) {
         if (this.moduleMetadataFile != null) {
-            metadataArtifacts.remove(this.moduleMetadataFile);
+            additionalArtifacts.remove(this.moduleMetadataFile);
         }
         this.moduleMetadataFile = artifact;
-        metadataArtifacts.add(artifact);
+        additionalArtifacts.add(artifact);
     }
 
     public void pom(Action<? super MavenPom> configure) {
@@ -458,8 +458,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public DomainObjectSet<? extends PublicationArtifact> getPublicationArtifacts() {
-        return publicationArtifacts;
+    public DomainObjectSet<PublicationArtifact> getAllArtifacts() {
+        return allArtifacts;
+    }
+
+    @Override
+    public DomainObjectSet<PublicationArtifact> getAdditionalArtifacts() {
+        return additionalArtifacts;
     }
 
     /*

@@ -242,14 +242,18 @@ public class Sign extends DefaultTask implements SignatureSpec {
      */
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
-            publication.getPublicationArtifacts().all(
+            publication.getAllArtifacts().all(
                 new Action<PublicationArtifact>() {
                     @Override
                     public void execute(PublicationArtifact artifact) {
+                        if (artifact instanceof Signature) {
+                            return;
+                        }
+
                         signArtifact(artifact);
                     }
                 });
-            publication.getPublicationArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
+            publication.getAllArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
                 @Override
                 public void execute(final PublicationArtifact artifact) {
                     signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {

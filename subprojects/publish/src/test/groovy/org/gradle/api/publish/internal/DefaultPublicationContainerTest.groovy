@@ -101,7 +101,12 @@ class DefaultPublicationContainerTest extends Specification {
         }
 
         @Override
-        DomainObjectSet<? extends PublicationArtifact> getPublicationArtifacts() {
+        DomainObjectSet<PublicationArtifact> getAdditionalArtifacts() {
+            new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact)
+        }
+
+        @Override
+        DomainObjectSet<PublicationArtifact> getAllArtifacts() {
             new DefaultDomainObjectSet<PublicationArtifact>(PublicationArtifact)
         }
     }

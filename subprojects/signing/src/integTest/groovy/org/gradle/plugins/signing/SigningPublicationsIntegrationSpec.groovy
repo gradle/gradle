@@ -16,7 +16,9 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf;
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
@@ -124,5 +126,46 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "publications", "maven", "module.json.asc").text
         file("build", "publications", "ivy", "module.json.asc").text
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def "publishes signature files for Maven publication"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                        artifactId '$artifactId'
+                    }
+                }
+                repositories {
+                    maven {
+                        name "m2"
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+        """
+
+        when:
+        succeeds "publishMavenJavaPublicationToM2Repository"
+
+        then:
+        ":publishMavenJavaPublicationToM2Repository" in nonSkippedTasks
+
+        and:
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertExists()
+        pom().assertExists()
+        pomSignature().assertExists()
     }
 }
