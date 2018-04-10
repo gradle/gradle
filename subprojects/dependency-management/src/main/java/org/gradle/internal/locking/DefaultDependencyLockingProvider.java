@@ -22,7 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -49,7 +49,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public LockConstraint findLockConstraint(String configurationName) {
+    public DependencyLockingState findLockConstraint(String configurationName) {
         if (!writeLocks) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
@@ -62,10 +62,10 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                     }
                 }
                 LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
-                return new DefaultLockConstraint(results);
+                return new DefaultDependencyLockingState(results);
             }
         }
-        return EmptyLockConstraint.getInstance();
+        return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override

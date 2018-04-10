@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -53,7 +53,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
 
     class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
         private boolean locked;
-        private LockConstraint lockConstraint;
+        private DependencyLockingState dependencyLockingState;
 
         RootLocalConfigurationMetadata(String name,
                                        String description,
@@ -75,21 +75,19 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         @Override
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
             if (locked) {
-                lockConstraint = dependencyLockingProvider.findLockConstraint(getName());
-                if (lockConstraint.isLockDefined()) {
-                    for (DependencyConstraint dependencyConstraint : lockConstraint.getLockedDependencies()) {
-                        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                            dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
-                        result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(), null,
-                            Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
-                    }
+                dependencyLockingState = dependencyLockingProvider.findLockConstraint(getName());
+                for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
+                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+                        dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
+                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(), null,
+                        Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
                 }
             }
         }
 
         @Override
-        public LockConstraint getLockConstraint() {
-            return lockConstraint;
+        public DependencyLockingState getDependencyLockingState() {
+            return dependencyLockingState;
         }
     }
 }

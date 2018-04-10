@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -37,7 +37,7 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.locking.EmptyLockConstraint;
+import org.gradle.internal.locking.DefaultDependencyLockingState;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
@@ -191,8 +191,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
 
 
         @Override
-        public LockConstraint getLockConstraint() {
-            return EmptyLockConstraint.getInstance();
+        public DependencyLockingState getDependencyLockingState() {
+            return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
         }
     }
 }

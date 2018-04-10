@@ -18,7 +18,7 @@ package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
 import java.util.Collection;
 
@@ -35,8 +35,8 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public LockConstraint findLockConstraint(String configurationName) {
-        return EmptyLockConstraint.getInstance();
+    public DependencyLockingState findLockConstraint(String configurationName) {
+        return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override

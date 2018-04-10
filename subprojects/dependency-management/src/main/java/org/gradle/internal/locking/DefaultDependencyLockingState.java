@@ -17,20 +17,31 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
 import java.util.Set;
 
-public class DefaultLockConstraint implements LockConstraint {
+import static java.util.Collections.emptySet;
+
+public class DefaultDependencyLockingState implements DependencyLockingState {
+
+    public static final DefaultDependencyLockingState EMPTY_LOCK_CONSTRAINT = new DefaultDependencyLockingState();
+
+    private final boolean lockDefined;
     private final Set<DependencyConstraint> constraints;
 
-    public DefaultLockConstraint(Set<DependencyConstraint> constraints) {
+    private DefaultDependencyLockingState() {
+        lockDefined = false;
+        constraints = emptySet();
+    }
+    public DefaultDependencyLockingState(Set<DependencyConstraint> constraints) {
+        lockDefined = true;
         this.constraints = constraints;
     }
 
     @Override
-    public boolean isLockDefined() {
-        return true;
+    public boolean hasLockState() {
+        return lockDefined;
     }
 
     @Override

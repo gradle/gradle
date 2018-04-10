@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -46,7 +46,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     private Set<String> lockingConstraints = Collections.emptySet();
     private List<ModuleComponentIdentifier> allResolvedModules;
     private Set<String> extraModules;
-    private LockConstraint lockConstraint;
+    private DependencyLockingState dependencyLockingState;
 
     public DependencyLockingArtifactVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationName = configurationName;
@@ -57,10 +57,10 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     public void startArtifacts(DependencyGraphNode root) {
         if (root.isRoot()) {
             RootConfigurationMetadata metadata = ((RootGraphNode) root).getMetadata();
-            lockConstraint = metadata.getLockConstraint();
-            if (lockConstraint.isLockDefined()) {
-                lockingConstraints = Sets.newHashSetWithExpectedSize(lockConstraint.getLockedDependencies().size());
-                for (DependencyConstraint constraint : lockConstraint.getLockedDependencies()) {
+            dependencyLockingState = metadata.getDependencyLockingState();
+            if (dependencyLockingState.hasLockState()) {
+                lockingConstraints = Sets.newHashSetWithExpectedSize(dependencyLockingState.getLockedDependencies().size());
+                for (DependencyConstraint constraint : dependencyLockingState.getLockedDependencies()) {
                     lockingConstraints.add(constraint.getGroup() + ":" + constraint.getName() + ":" + constraint.getVersionConstraint().getPreferredVersion());
                 }
                 allResolvedModules = Lists.newArrayListWithCapacity(this.lockingConstraints.size());
@@ -77,7 +77,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
             allResolvedModules.add(id);
-            if (lockConstraint.isLockDefined()) {
+            if (dependencyLockingState.hasLockState()) {
                 String displayName = id.getDisplayName();
                 if (!lockingConstraints.remove(displayName)) {
                     extraModules.add(displayName);
@@ -98,7 +98,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
 
     @Override
     public void finishArtifacts() {
-        if (lockConstraint.isLockDefined()) {
+        if (dependencyLockingState.hasLockState()) {
             LOGGER.debug(" Dependency lock not matched '{}', extra resolved modules '{}'", lockingConstraints, extraModules);
             Set<String> notResolvedConstraints = Collections.emptySet();
             if (!lockingConstraints.isEmpty()) {
@@ -113,10 +113,10 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     private void throwLockOutOfDateException(Set<String> notResolvedConstraints, Set<String> extraModules) {
         List<String> errors = Lists.newArrayListWithCapacity(notResolvedConstraints.size() + extraModules.size());
         for (String notResolvedConstraint : notResolvedConstraints) {
-            errors.add("Locking constraint was not resolved: '" + notResolvedConstraint + "'");
+            errors.add("Dependency graph does not contain '" + notResolvedConstraint + "' which used to be found in the lock file");
         }
         for (String extraModule : extraModules) {
-            errors.add("Resolution resolved '" + extraModule + "' which was not in the lockfile");
+            errors.add("Resolved '" + extraModule + "' which was not found in the lockfile");
         }
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }

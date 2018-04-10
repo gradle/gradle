@@ -21,21 +21,24 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import java.util.Set;
 
 /**
- * Described the lock state for a given configuration.
+ * Describes the lock state for a given configuration.
  */
-public interface LockConstraint {
+public interface DependencyLockingState {
 
     /**
-     * Indicates if there is locking in place
+     * Indicates if there was lock state defined for the configuration
      *
-     * @return {@code true} if locking is in place
+     * @return {@code true} if lock state was found, {@code false} otherwise
      */
-    boolean isLockDefined();
+    boolean hasLockState();
 
     /**
-     * Returns the set of locking constraints
+     * Returns the set of locking constraints found.
+     * Note that an empty set can mean either that lock state was not defined or that lock state is an empty set.
+     * Disambiguation can be done by calling {@link #hasLockState()}.
      *
      * @return a set of constraints
+     * @see #hasLockState()
      */
     Set<DependencyConstraint> getLockedDependencies();
 }

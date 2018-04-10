@@ -22,7 +22,7 @@ import java.util.Collection;
 
 public interface DependencyLockingProvider {
 
-    LockConstraint findLockConstraint(String configurationName);
+    DependencyLockingState findLockConstraint(String configurationName);
 
     void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolutionResult);
 }

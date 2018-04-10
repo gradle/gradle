@@ -16,9 +16,9 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.LockConstraint;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
 public interface RootConfigurationMetadata extends LocalConfigurationMetadata {
 
-    LockConstraint getLockConstraint();
+    DependencyLockingState getDependencyLockingState();
 }
