@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
@@ -104,12 +105,21 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
-        // TODO:DAZ Avoid overhead when no rejects exist
-        List<VersionSelector> rejectSelectors = Lists.newArrayList();
+        List<VersionSelector> rejectSelectors = null;
         for (ResolvableSelectorState selector : selectors) {
-            if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null) {
-                rejectSelectors.add(selector.getVersionConstraint().getRejectedSelector());
+            ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+            if (versionConstraint != null && versionConstraint.getRejectedSelector() != null) {
+                if (rejectSelectors == null) {
+                    rejectSelectors = Lists.newArrayListWithCapacity(selectors.size());
+                }
+                rejectSelectors.add(versionConstraint.getRejectedSelector());
             }
+        }
+        if (rejectSelectors == null) {
+            return null;
+        }
+        if (rejectSelectors.size() == 1) {
+            return rejectSelectors.get(0);
         }
         return new UnionVersionSelector(rejectSelectors);
     }
