@@ -246,7 +246,7 @@ public class FindBugsSpecBuilder {
             args.addAll(extraArgs);
         }
 
-        for (File classDir : classesDirs.getFiles()) {
+        for (File classDir : classesDirs) {
             // FindBugs cannot handle missing directories
             if (classDir.exists()) {
                 args.add(classDir.getAbsolutePath());

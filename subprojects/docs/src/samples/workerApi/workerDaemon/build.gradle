@@ -54,7 +54,7 @@ class ReverseFiles extends SourceTask {
     @TaskAction
     void reverseFiles() {
         // Create and submit a unit of work for each file
-        source.files.each { file ->
+        source.each { file ->
             // START SNIPPET worker-daemon
             workerExecutor.submit(ReverseFile.class) { WorkerConfiguration config ->
                 // Run this work in an isolated process

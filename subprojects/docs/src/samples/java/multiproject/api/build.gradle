@@ -65,7 +65,7 @@ task checkProjectDependency(dependsOn: project(':shared').jar) {
             from project(':shared').jar.archivePath
             into cachedSharedJarDir
         }
-        File sharedJar = configurations.compile.files.find { File file -> file.name.startsWith('shared') }
+        File sharedJar = configurations.compile.find { File file -> file.name.startsWith('shared') }
         assert sharedJar.absolutePath == project(':shared').jar.archivePath.absolutePath
     }
 }

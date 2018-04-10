@@ -55,7 +55,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
-            allArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getFiles()));
+            allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
         }
         return allArgs;
     }

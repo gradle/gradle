@@ -87,7 +87,7 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                 if (binary.isTestable()) {
                     compile.getCompilerArgs().add("-enable-testing");
                 }
-                if (binary.getTargetPlatform().getOperatingSystem().isMacOsX()) {
+                if (binary.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
                     compile.getCompilerArgs().add("-sdk");
                     compile.getCompilerArgs().add(locator.find().getAbsolutePath());
                 }

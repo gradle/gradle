@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -60,7 +61,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
-            for (IncludedBuildController buildController : buildControllers.values()) {
+            for (IncludedBuildController buildController : ImmutableList.copyOf(buildControllers.values())) {
                 if (buildController.populateTaskGraph()) {
                     tasksDiscovered = true;
                 }

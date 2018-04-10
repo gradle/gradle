@@ -430,8 +430,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return getFiles();
     }
 
+    @Override
+    public Iterator<File> iterator() {
+        return intrinsicFiles.iterator();
+    }
+
+    @Override
     public Set<File> getFiles() {
         return intrinsicFiles.getFiles();
+    }
+
+    @Override
+    public boolean contains(File file) {
+        return intrinsicFiles.contains(file);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return intrinsicFiles.isEmpty();
     }
 
     public Set<File> files(Dependency... dependencies) {

@@ -182,7 +182,7 @@ tasks.withType(AssembleDslDocTask) {
 
 task configureCss {
     doLast {
-        def tokens = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+        def tokens = fileTree(dir: "src/docs/css/images", include: "*.*").collectEntries {
             [it.name, it.bytes.encodeBase64().toString()]
         }
 

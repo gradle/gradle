@@ -41,7 +41,7 @@ dependencies {
     compile(testLibrary("jsoup"))
 
     constraints {
-        add(configurations.compile.name, "cglib:cglib-nodep:3.2.6") {
+        add(configurations.compile.name, "cglib:cglib:3.2.6") {
             because("required to work with Java 9")
         }
     }

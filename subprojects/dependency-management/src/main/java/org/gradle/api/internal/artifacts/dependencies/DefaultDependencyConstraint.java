@@ -16,17 +16,25 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 
 public class DefaultDependencyConstraint implements DependencyConstraint {
+
+    private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
     public static DefaultDependencyConstraint strictConstraint(String group, String name, String version) {
         return new DefaultDependencyConstraint(group, name, new DefaultMutableVersionConstraint(version, true));
@@ -37,6 +45,8 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     private final MutableVersionConstraint versionConstraint;
 
     private String reason;
+    private ImmutableAttributesFactory attributesFactory;
+    private AttributeContainerInternal attributes;
 
     public DefaultDependencyConstraint(String group, String name, String version) {
         this.group = group;
@@ -68,11 +78,29 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     }
 
     @Override
-    public int hashCode() {
-        int result = group != null ? group.hashCode() : 0;
-        result = 31 * result + name.hashCode();
-        result = 31 * result + versionConstraint.hashCode();
-        return result;
+    public AttributeContainer getAttributes() {
+        return attributes == null ? ImmutableAttributes.EMPTY : attributes.asImmutable();
+    }
+
+    @Override
+    public DependencyConstraint attributes(Action<? super AttributeContainer> configureAction) {
+        if (attributesFactory == null) {
+            warnAboutInternalApiUse();
+            return this;
+        }
+        if (attributes == null) {
+            attributes = attributesFactory.mutable();
+        }
+        configureAction.execute(attributes);
+        return this;
+    }
+
+    private void warnAboutInternalApiUse() {
+        LOG.warn("Cannot set attributes for constraint \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+    }
+
+    public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -83,19 +111,16 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DependencyConstraint that = (DependencyConstraint) o;
-        return contentEquals(that);
+        DefaultDependencyConstraint that = (DefaultDependencyConstraint) o;
+        return Objects.equal(group, that.group) &&
+            Objects.equal(name, that.name) &&
+            Objects.equal(versionConstraint, that.versionConstraint) &&
+            Objects.equal(attributes, that.attributes);
     }
 
-    private boolean contentEquals(DependencyConstraint dependency) {
-        if (this == dependency) {
-            return true;
-        }
-        if (dependency == null || getClass() != dependency.getClass()) {
-            return false;
-        }
-        DefaultDependencyConstraint that = (DefaultDependencyConstraint) dependency;
-        return StringUtils.equals(group, that.getGroup()) && StringUtils.equals(name, that.getName()) && versionConstraint.equals(that.versionConstraint);
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(group, name, versionConstraint, attributes);
     }
 
     @Override
@@ -126,6 +151,15 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
     public DependencyConstraint copy() {
         DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(group, name, versionConstraint);
         constraint.reason = reason;
+        constraint.attributes = attributes;
+        constraint.attributesFactory = attributesFactory;
         return constraint;
+    }
+
+    @Override
+    public String toString() {
+        return "constraint " +
+            group + ':' + name + ":" + versionConstraint +
+            ", attributes=" + attributes;
     }
 }
