@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
@@ -325,7 +324,6 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
-    @NotYetImplemented // Currently selects 1.5 and then fails because it is rejected.
     def "dynamic version ignores rejected module in one repository when higher candidate is available in another repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -349,11 +347,9 @@ Searched in the following locations:
 
         when:
         repo1.getModuleMetaData("group", "projectA").expectGet()
-        projectA1.pom.expectGet()
-
         repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGet()
-//        projectA2.artifact.expectGet()
+        projectA2.artifact.expectGet()
 
         then:
         succeeds 'retrieve'
