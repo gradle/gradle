@@ -89,14 +89,15 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
                 // Mark this version as rejected
                 result.rejectedByRule(candidateId);
+
+                // TODO:DAZ This logic should apply to rejection by constraint as well
+                if (requestedVersionMatcher.matchesUniqueVersion()) {
+                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                    break;
+                }
             } else {
                 result.matches(candidateId);
                 return;
-            }
-
-            if (requestedVersionMatcher.matchesUniqueVersion()) {
-                // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
-                break;
             }
         }
 
