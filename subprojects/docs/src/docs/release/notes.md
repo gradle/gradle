@@ -50,7 +50,7 @@ If you are a processor author, have a look at the [user guide](userguide/java_pl
 
 Gradle has two basic console modes, which determine how Gradle formats the text output it generates: The 'plain' console mode is used by default when Gradle is running without without an associated console, for example from an IDE or a CI build agent, and the 'rich' console is used by default when Gradle is running with an associated console, for example when running from the command-line.
 
-In previous releases, the rich console had some features that the plain console was missing. These are now available for the plain console as well. In this Gradle release, the plain console groups the output from each task is grouped with a header rather than interleaving the output. This makes diagnosing issues on CI using the log output much easier.
+In previous releases, the rich console had some features that the plain console was missing. These are now available for the plain console as well. In this Gradle release, the plain console groups the output from each task under a header rather than interleaving the output. This makes diagnosing issues on CI using the log output much easier.
 
 ### Rerun failed tests first
 
@@ -73,7 +73,7 @@ The IDEA plugin now automatically marks your Java resource directories (e.g. `sr
 ### Support for mapped nested inputs
 
 When dealing with task inputs, it may be that not all values are known upfront.
-For example, for code quality plugins like e.g. the [`findbugs`](userguide/findbugs_plugin.html), it is possible to configure the creation of different kinds of reports, e.g. generating an HTML report and a plain text report.
+For example, for code quality plugins like [`FindBugs`](userguide/findbugs_plugin.html), it is possible to configure the creation of different kinds of reports, such as generating an HTML report and a plain text report.
 
 Each report may have a different output location and the report is only created when enabled.
 For example, the HTML report is generated to `findbugs.html`, while the XML report is generated to `findbugs.xml`.
