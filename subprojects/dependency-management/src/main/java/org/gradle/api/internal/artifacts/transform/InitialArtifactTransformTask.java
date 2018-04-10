@@ -55,7 +55,7 @@ public class InitialArtifactTransformTask extends ArtifactTransformTask {
 
                     @Override
                     public void visitFailure(Throwable failure) {
-                        throw new GradleException("Broken!");
+                        throw new GradleException(String.format("Could not determine dependencies of %s.", InitialArtifactTransformTask.this.delegate.getArtifact().getId().getDisplayName()), failure);
                     }
                 });
             }
