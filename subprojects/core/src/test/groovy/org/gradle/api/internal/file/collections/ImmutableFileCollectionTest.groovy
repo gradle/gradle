@@ -32,10 +32,12 @@ import java.util.concurrent.Callable
 @UsesNativeServices
 class ImmutableFileCollectionTest extends Specification {
     def 'can create empty collection'() {
-        ImmutableFileCollection files = ImmutableFileCollection.of()
+        ImmutableFileCollection collection1 = ImmutableFileCollection.of()
+        ImmutableFileCollection collection2 = ImmutableFileCollection.of(new File[0])
 
         expect:
-        files.files.size() == 0
+        collection1.files.size() == 0
+        collection2.files.size() == 0
     }
 
     def 'empty collections are fixed instance'() {

@@ -39,6 +39,10 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         }
     };
 
+    public static ImmutableFileCollection of() {
+        return EMPTY;
+    }
+
     public static ImmutableFileCollection of(File... files) {
         if (files.length == 0) {
             return EMPTY;
