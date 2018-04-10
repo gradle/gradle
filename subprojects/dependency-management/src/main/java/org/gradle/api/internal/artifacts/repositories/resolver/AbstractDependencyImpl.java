@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 
 public abstract class AbstractDependencyImpl<T extends DependencyMetadata> implements DependencyMetadata<T> {
@@ -28,6 +30,7 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata> imple
     private final String name;
     private MutableVersionConstraint versionConstraint;
     private String reason;
+    private AttributeContainer attributes = ImmutableAttributes.EMPTY;
 
     public AbstractDependencyImpl(String group, String name, String version) {
         this.group = group;
@@ -57,6 +60,12 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata> imple
     }
 
     @Override
+    public T attributes(Action<? super AttributeContainer> configureAction) {
+        configureAction.execute(attributes);
+        return Cast.uncheckedCast(this);
+    }
+
+    @Override
     public String getReason() {
         return reason;
     }
@@ -65,6 +74,15 @@ public abstract class AbstractDependencyImpl<T extends DependencyMetadata> imple
     public T because(String reason) {
         this.reason = reason;
         return Cast.uncheckedCast(this);
+    }
+
+    public void setAttributes(AttributeContainer attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
     }
 
     @Override

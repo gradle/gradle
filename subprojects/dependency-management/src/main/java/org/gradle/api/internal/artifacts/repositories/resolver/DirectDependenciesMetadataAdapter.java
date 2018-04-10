@@ -18,15 +18,18 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.List;
 
 public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata> implements DirectDependenciesMetadata {
-    public DirectDependenciesMetadataAdapter(List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata, Instantiator instantiator,
+    public DirectDependenciesMetadataAdapter(ImmutableAttributesFactory attributesFactory,
+                                             List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata,
+                                             Instantiator instantiator,
                                              NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser) {
-        super(dependenciesMetadata, instantiator, dependencyNotationParser);
+        super(attributesFactory, dependenciesMetadata, instantiator, dependencyNotationParser);
     }
 
     @Override

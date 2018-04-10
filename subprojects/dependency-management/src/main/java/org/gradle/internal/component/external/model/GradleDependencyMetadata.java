@@ -32,7 +32,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collections;
 import java.util.List;
 
 public class GradleDependencyMetadata implements ModuleDependencyMetadata {
@@ -40,19 +39,14 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     private final List<ExcludeMetadata> excludes;
     private final boolean pending;
     private final String reason;
+    private final ImmutableAttributes attributes;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, boolean pending, String reason) {
-        this.selector = selector;
-        this.reason = reason;
-        this.excludes = Collections.emptyList();
-        this.pending = pending;
-    }
-
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, String reason) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean pending, String reason, ImmutableAttributes attributes) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
-        this.pending = false;
+        this.pending = pending;
+        this.attributes = attributes;
     }
 
     @Override
@@ -65,7 +59,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion), pending, reason);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion), excludes, pending, reason, attributes);
     }
 
     @Override
@@ -73,18 +67,26 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
         if (Objects.equal(reason, this.reason)) {
             return this;
         }
-        return new GradleDependencyMetadata(selector, pending, reason);
+        return new GradleDependencyMetadata(selector, excludes, pending, reason, attributes);
+    }
+
+    @Override
+    public ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes) {
+        if (Objects.equal(attributes, this.attributes)) {
+            return this;
+        }
+        return new GradleDependencyMetadata(selector, excludes, pending, reason, attributes);
     }
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        return attributes;
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target, pending, reason);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, pending, reason, attributes);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }

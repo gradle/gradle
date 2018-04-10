@@ -63,7 +63,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private HashValue contentHash = EMPTY_CONTENT;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
 
-    private final VariantMetadataRules variantMetadataRules = new VariantMetadataRules();
+    private final VariantMetadataRules variantMetadataRules;
 
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
@@ -73,6 +73,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
         this.componentLevelAttributes = defaultAttributes(attributesFactory);
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
     }
 
     AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -86,6 +87,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
