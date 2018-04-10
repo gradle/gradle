@@ -94,6 +94,9 @@
     <part>
         <title>Building JVM projects</title>
         <xi:include href='../../../build/asciidoc/userguide/tutorialJavaProjects.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/buildingJavaProjects.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/javaTesting.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/basePlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/javaLibraryPlugin.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/webProjectTutorial.xml'/>

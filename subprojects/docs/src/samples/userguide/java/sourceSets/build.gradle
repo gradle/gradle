@@ -7,17 +7,17 @@ if (hasProperty('showOutput')) {
 println sourceSets.main.output.classesDirs
 println sourceSets['main'].output.classesDirs
 sourceSets {
-    println main.output.classesDirs
+    logger.quiet main.output.classesDirs
 }
 sourceSets {
     main {
-        println output.classesDirs
+        logger.quiet output.classesDirs
     }
 }
 
 // Iterate over the source sets
 sourceSets.all {
-    println name
+    logger.quiet name
 }
 // END SNIPPET access-source-set
 
