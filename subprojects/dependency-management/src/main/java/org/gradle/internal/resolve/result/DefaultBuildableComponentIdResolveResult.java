@@ -26,6 +26,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentResolveMetadata metadata;
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
+    private boolean rejected;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -50,10 +51,21 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         return metadata;
     }
 
+    @Override
+    public boolean isRejected() {
+        return rejected;
+    }
+
     public void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
         reset();
         this.id = id;
         this.moduleVersionId = moduleVersionIdentifier;
+    }
+
+    @Override
+    public void rejected(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
+        resolved(id, moduleVersionIdentifier);
+        rejected = true;
     }
 
     public void resolved(ComponentResolveMetadata metadata) {
@@ -80,5 +92,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         metadata = null;
         id = null;
         moduleVersionId = null;
+        rejected = false;
     }
 }
