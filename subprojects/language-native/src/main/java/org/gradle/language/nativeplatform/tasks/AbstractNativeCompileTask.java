@@ -258,15 +258,6 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     }
 
     /**
-     * Add system include directories where the compiler should search for header files.
-     *
-     * @since 4.8
-     */
-    public void systemIncludes(Object systemIncludeRoots) {
-        systemIncludes.from(systemIncludeRoots);
-    }
-
-    /**
      * Returns the source files to be compiled.
      */
     @InputFiles
