@@ -85,4 +85,6 @@ public interface DependencyMetadata {
     DependencyMetadata withReason(String reason);
 
     ImmutableAttributes getAttributes();
+
+    DependencyMetadata withAttributes(ImmutableAttributes attributes);
 }

@@ -44,17 +44,20 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
+    private final ImmutableAttributes attributes;
+
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason, ImmutableAttributes attributes) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
+        this.attributes = attributes;
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
-        this(configuration, componentId, dependencyDescriptor, null);
+        this(configuration, componentId, dependencyDescriptor, null, ImmutableAttributes.EMPTY);
     }
 
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
@@ -123,12 +126,20 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason, attributes);
     }
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        return attributes;
+    }
+
+    @Override
+    public ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes) {
+        if (Objects.equal(attributes, this.getAttributes())) {
+            return this;
+        }
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason, attributes);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {

@@ -53,7 +53,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                                             AttributeContainer moduleAttributes,
                                             AttributeContainer dependencyAttributes,
                                             String dependencyConfiguration,
-                                            List<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
+                                            List<IvyArtifactName> artifactNames,
+                                            List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive, boolean pending,
                                             String reason) {
         this.componentId = componentId;
@@ -190,11 +191,23 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return dependencyAttributes;
     }
 
+    @Override
+    public DependencyMetadata withAttributes(ImmutableAttributes attributes) {
+        if (Objects.equal(attributes, this.dependencyAttributes)) {
+            return this;
+        }
+        return copyWithAttributes(attributes);
+    }
+
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithReason(String reason) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
+    }
+
+    private LocalOriginDependencyMetadata copyWithAttributes(ImmutableAttributes attributes) {
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, attributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 }

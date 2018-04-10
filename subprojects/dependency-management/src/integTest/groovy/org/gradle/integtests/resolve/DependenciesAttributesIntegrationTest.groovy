@@ -461,6 +461,344 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
   - Constraint 'org:test:1.0' wants value 'c2'""")
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("Selects variant #expectedVariant using dependency attribute value #attributeValue set in a metadata rule")
+    def "attribute value set by metadata rule is used during selection"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+            'org:testB:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+
+            'org:directA:1.0' {
+                dependsOn 'org:testA:1.0'
+            }
+            'org:directB:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                // this is actually the rules that we want to test
+                components {
+                    // first notation: mutation of existing dependencies
+                    withModule('org:directA') {
+                        allVariants {
+                            withDependencies {
+                                it.each {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
+                                   }
+                                }
+                            }
+                        }
+                    }
+                    // 2d notation: adding dependencies (this is a different code path)
+                    withModule('org:directB') {
+                        allVariants {
+                            withDependencies {
+                                it.add('org:testB:1.0') {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
+                                   }
+                                }
+                            }
+                        }
+                    }
+                }
+                conf('org:directA:1.0')
+                conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:directA:1.0' {
+                expectResolve()
+            }
+            'org:testA:1.0' {
+                expectResolve()
+            }
+            'org:directB:1.0' {
+                expectResolve()
+            }
+            'org:testB:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:directA:1.0') {
+                    module('org:testA:1.0') {
+                        configuration = expectedVariant
+                        variant(expectedVariant, expectedAttributes)
+                    }
+                }
+                module('org:directB:1.0') {
+                    module('org:testB:1.0') {
+                        configuration = expectedVariant
+                        variant(expectedVariant, expectedAttributes)
+                    }
+                }
+            }
+        }
+
+        where:
+        attributeValue | expectedVariant | expectedAttributes
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+    }
+
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("Selects variant #expectedVariant using transitive dependency attribute value #attributeValue set in a metadata rule")
+    def "attribute value set by metadata rule on transitive dependency is used during selection"() {
+        given:
+        repository {
+            'org:testA:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+            'org:testB:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+
+            'org:directA:1.0' {
+                dependsOn 'org:transitiveA:1.0'
+            }
+            'org:directB:1.0' {
+                dependsOn 'org:transitiveB:1.0'
+            }
+
+            'org:transitiveA:1.0' {
+                dependsOn 'org:testA:1.0'
+            }
+
+            'org:transitiveB:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                // this is actually the rules that we want to test
+                components {
+                    // first notation: mutation of existing dependencies
+                    withModule('org:transitiveA') {
+                        allVariants {
+                            withDependencies {
+                                it.each {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
+                                   }
+                                }
+                            }
+                        }
+                    }
+                    // 2d notation: adding dependencies (this is a different code path)
+                    withModule('org:transitiveB') {
+                        allVariants {
+                            withDependencies {
+                                it.add('org:testB:1.0') {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$attributeValue')
+                                   }
+                                }
+                            }
+                        }
+                    }
+                }
+                conf('org:directA:1.0')
+                conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:directA:1.0' {
+                expectResolve()
+            }
+            'org:transitiveA:1.0' {
+                expectResolve()
+            }
+            'org:testA:1.0' {
+                expectResolve()
+            }
+            'org:directB:1.0' {
+                expectResolve()
+            }
+            'org:transitiveB:1.0' {
+                expectResolve()
+            }
+            'org:testB:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:directA:1.0') {
+                    module('org:transitiveA:1.0') {
+                        module('org:testA:1.0') {
+                            configuration = expectedVariant
+                            variant(expectedVariant, expectedAttributes)
+                        }
+                    }
+                }
+                module('org:directB:1.0') {
+                    module('org:transitiveB:1.0') {
+                        module('org:testB:1.0') {
+                            configuration = expectedVariant
+                            variant(expectedVariant, expectedAttributes)
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        attributeValue | expectedVariant | expectedAttributes
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives")
+    def "Attribute value on dependency only affects selection of this dependency"() {
+        given:
+        repository {
+            def modules = ['direct', 'transitive', 'leaf']
+            modules.eachWithIndex { module, idx ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        if (idx < modules.size() - 1) {
+                            dependsOn("org:${modules[idx + 1]}${appendix}:1.0")
+                        }
+                        variant('api') {
+                            attribute('custom', 'c1')
+                        }
+                        variant('runtime') {
+                            attribute('custom', 'c2')
+                        }
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationAttributeValue')
+
+            dependencies {
+                components {
+                    // transitive module will override the configuration attribute
+                    // and it shouldn't affect the selection of 'direct' or 'leaf' dependencies
+                    withModule('org:transitiveA') {
+                        allVariants {
+                            withDependencies {
+                                it.each {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$transitiveAttributeValueA')
+                                   }
+                                }
+                            }
+                        }
+                    } 
+                    withModule('org:transitiveB') {
+                        allVariants {
+                            withDependencies {
+                                it.each {
+                                   it.attributes {
+                                      it.attribute(CUSTOM_ATTRIBUTE, '$transitiveAttributeValueB')
+                                   }
+                                }
+                            }
+                        }
+                    }                    
+                }
+                conf('org:directA:1.0')
+                conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            ['direct', 'transitive', 'leaf'].each { module ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        expectResolve()
+                    }
+                }
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:directA:1.0') {
+                    configuration = expectedDirectVariant
+                    module('org:transitiveA:1.0') {
+                        configuration = expectedTransitiveVariantA
+                        module('org:leafA:1.0') {
+                            configuration = expectedLeafVariant
+                        }
+                    }
+                }
+                module('org:directB:1.0') {
+                    configuration = expectedDirectVariant
+                    module('org:transitiveB:1.0') {
+                        configuration = expectedTransitiveVariantB
+                        module('org:leafB:1.0') {
+                            configuration = expectedLeafVariant
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        configurationAttributeValue | transitiveAttributeValueA | transitiveAttributeValueB | expectedDirectVariant | expectedTransitiveVariantA | expectedTransitiveVariantB | expectedLeafVariant
+        'c1'                        | 'c1'                      | 'c1'                      | 'api'                 | 'api'                      | 'api'                      | 'api'
+        'c1'                        | 'c2'                      | 'c2'                      | 'api'                 | 'runtime'                  | 'runtime'                  | 'api'
+        'c2'                        | 'c2'                      | 'c2'                      | 'runtime'             | 'runtime'                  | 'runtime'                  | 'runtime'
+        'c2'                        | 'c1'                      | 'c1'                      | 'runtime'             | 'api'                      | 'api'                      | 'runtime'
+
+        'c1'                        | 'c1'                      | 'c2'                      | 'api'                 | 'api'                      | 'runtime'                  | 'api'
+        'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
+        'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
+        'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
+    }
+
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }

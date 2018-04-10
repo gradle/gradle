@@ -123,4 +123,9 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     public ComponentSelector getSelector() {
         return delegate.getSelector();
     }
+
+    @Override
+    public DependencyMetadata withAttributes(ImmutableAttributes attributes) {
+        return delegate.withAttributes(attributes);
+    }
 }

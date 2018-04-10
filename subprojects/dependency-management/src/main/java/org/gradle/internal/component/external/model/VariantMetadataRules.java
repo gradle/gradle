@@ -43,9 +43,14 @@ import java.util.Iterator;
 import java.util.List;
 
 public class VariantMetadataRules {
+    private final ImmutableAttributesFactory attributesFactory;
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
     private CapabilitiesRules capabilitiesRules;
+
+    public VariantMetadataRules(ImmutableAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
+    }
 
     public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
         if (variantAttributesRules != null) {
@@ -71,14 +76,14 @@ public class VariantMetadataRules {
 
     public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {
         if (dependencyMetadataRules == null) {
-            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
         }
         dependencyMetadataRules.addDependencyAction(action);
     }
 
     public void addDependencyConstraintAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DependencyConstraintsMetadata> action) {
         if (dependencyMetadataRules == null) {
-            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser);
+            dependencyMetadataRules = new DependencyMetadataRules(instantiator, dependencyNotationParser, dependencyConstraintNotationParser, attributesFactory);
         }
         dependencyMetadataRules.addDependencyConstraintAction(action);
     }
@@ -129,6 +134,10 @@ public class VariantMetadataRules {
 
     private static class ImmutableRules extends VariantMetadataRules {
         private final static ImmutableRules INSTANCE = new ImmutableRules();
+
+        private ImmutableRules() {
+            super(null);
+        }
 
         @Override
         public void addDependencyAction(Instantiator instantiator, NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser, NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintNotationParser, VariantAction<? super DirectDependenciesMetadata> action) {

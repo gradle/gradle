@@ -58,6 +58,11 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
+    public ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes) {
+        return (ModuleDependencyMetadata) delegate.withAttributes(attributes);
+    }
+
+    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
