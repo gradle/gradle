@@ -45,7 +45,8 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
-        List<T> candidates = resolveSelectors(selectors);
+        VersionSelector allRejects = createAllRejects(selectors);
+        List<T> candidates = resolveSelectors(selectors, allRejects);
         assert !candidates.isEmpty();
 
         // If the module matches, add the root component into the mix
@@ -56,23 +57,23 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
-            return maybeMarkRejected(candidates.get(0), selectors);
+            return maybeMarkRejected(candidates.get(0), allRejects);
         }
 
         // Perform conflict resolution
         T max = resolveConflicts(candidates);
-        return maybeMarkRejected(max, selectors);
+        return maybeMarkRejected(max, allRejects);
     }
 
-    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors) {
+    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            ComponentIdResolveResult resolved = selectorState.resolve(createAllRejects(Collections.singletonList(selectorState)));
+            ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
             T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
             return Collections.singletonList(selected);
         }
 
-        return buildResolveResults(selectors);
+        return buildResolveResults(selectors, allRejects);
     }
 
     /**
@@ -80,9 +81,8 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors) {
+    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults();
-        VersionSelector allRejects = createAllRejects(selectors);
         for (ResolvableSelectorState selector : selectors) {
 
             // For a 'reject-only' selector, don't need to resolve
@@ -124,17 +124,13 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         return details.getSelected();
     }
 
-    private T maybeMarkRejected(T selected, List<? extends ResolvableSelectorState> selectors) {
+    private T maybeMarkRejected(T selected, VersionSelector allRejects) {
         if (selected.isRejected()) {
             return selected;
         }
 
-        String version = selected.getVersion();
-        for (ResolvableSelectorState selector : selectors) {
-            if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null && selector.getVersionConstraint().getRejectedSelector().accept(version)) {
-                selected.reject();
-                break;
-            }
+        if (allRejects.accept(selected.getVersion())) {
+            selected.reject();
         }
         return selected;
     }
