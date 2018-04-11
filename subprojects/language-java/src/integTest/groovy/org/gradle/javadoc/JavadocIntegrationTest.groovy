@@ -41,7 +41,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-2520", "https://github.com/gradle/gradle/issues/4993"])
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def canCombineLocalOptionWithOtherOptions() {
         when:
         run("javadoc")
