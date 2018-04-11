@@ -59,7 +59,7 @@ class IncrementalCompilationInitializer {
     }
 
     private void narrowDownSourcesToCompile(JavaCompileSpec spec, PatternSet sourceToCompile) {
-        spec.setSource(ImmutableFileCollection.of(spec.getSource()).getAsFileTree().matching(sourceToCompile));
+        spec.setSource(ImmutableFileCollection.of(spec.getSource()).getAsFileTree().matching(sourceToCompile).getFiles());
     }
 
     private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {

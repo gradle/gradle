@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.util.TestUtil
@@ -42,7 +41,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == files('Person1.java', 'Person2.groovy').files
+            assert spec.source == files('Person1.java', 'Person2.groovy')
         }
     }
 
@@ -54,7 +53,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == files('package.html').files
+            assert spec.source == files('package.html')
         }
     }
 
@@ -91,6 +90,6 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
+        paths.collect { new File(it) } as Set
     }
 }

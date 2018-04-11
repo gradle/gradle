@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -63,12 +65,12 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public Iterable<File> getSource() {
+    public Collection<File> getSource() {
         return source;
     }
 
     @Override
-    public void setSource(Iterable<File> source) {
+    public void setSource(Collection<File> source) {
         this.source = ImmutableSet.copyOf(source);
     }
 
