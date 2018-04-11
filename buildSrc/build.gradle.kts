@@ -111,7 +111,6 @@ allprojects {
     repositories {
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
         maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
-        maven { url = uri("https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local/")}
         gradlePluginPortal()
     }
 }
