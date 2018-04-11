@@ -17,21 +17,25 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.serialize.SerializerSpec
 import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
+import static org.gradle.util.TestUtil.attributes
+import static org.gradle.util.TestUtil.attributesFactory
 
 class ModuleComponentSelectorSerializerTest extends SerializerSpec {
-    private serializer = new ModuleComponentSelectorSerializer()
+    private serializer = new ModuleComponentSelectorSerializer(new AttributeContainerSerializer(attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     @Unroll
     def "serializes"() {
         when:
-        def result = serialize(newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects)), serializer)
+        def result = serialize(newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects), attributes(foo: 'bar')), serializer)
 
         then:
-        result == newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects))
+        result == newSelector("org", "foo", new DefaultMutableVersionConstraint(version, rejects), attributes(foo: 'bar'))
 
         where:
         version | rejects

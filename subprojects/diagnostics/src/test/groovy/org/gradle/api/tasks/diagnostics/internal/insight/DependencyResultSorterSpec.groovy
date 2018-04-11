@@ -49,8 +49,8 @@ class DependencyResultSorterSpec extends Specification {
         t.message == "Dependency edge or the requested component selector may not be null"
 
         where:
-        d1           | d2
-        null         | null
+        d1                                                                                                                                                          | d2
+        null                                                                                                                                                        | null
         null         | newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", v("1.0")), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
         newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", v("1.0")), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0")) | null
         newDependency(null, DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0")) | newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", v("1.0")), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))

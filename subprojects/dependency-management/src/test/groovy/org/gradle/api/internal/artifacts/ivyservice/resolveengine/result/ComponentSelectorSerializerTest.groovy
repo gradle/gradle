@@ -23,15 +23,17 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
     private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     private ImmutableVersionConstraint constraint(String version, boolean strict = false) {
         def reject = strict ? versionSelectorScheme.complementForRejection(versionSelectorScheme.parseSelector(version)) : null

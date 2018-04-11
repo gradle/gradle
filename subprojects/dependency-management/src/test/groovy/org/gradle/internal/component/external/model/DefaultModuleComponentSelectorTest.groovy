@@ -17,16 +17,14 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
+import static org.gradle.util.TestUtil.attributes
 
 class DefaultModuleComponentSelectorTest extends Specification {
     private static ImmutableVersionConstraint v(String version) {
@@ -85,11 +83,11 @@ class DefaultModuleComponentSelectorTest extends Specification {
         assert t.message == assertionMessage
 
         where:
-        group        | name        | version          | attrs                     | assertionMessage
+        group        | name        | version          | attrs                      | assertionMessage
         null         | 'some-name' | v('1.0') | attributes(custom: 'foo') | 'group cannot be null'
-        'some-group' | null        | v('1.0') | attributes(custom: 'foo') | 'module cannot be null'
-        'some-group' | 'some-name' | null             | attributes(custom: 'foo') | 'version cannot be null'
-        'some-group' | 'some-name' | v('1.0') | null                      | 'attributes cannot be null'
+        'some-group' | null        | v('1.0') | attributes(custom: 'foo')          | 'module cannot be null'
+        'some-group' | 'some-name' | null             | attributes(custom: 'foo')  | 'version cannot be null'
+        'some-group' | 'some-name' | v('1.0') | null                               | 'attributes cannot be null'
     }
 
     @Unroll
@@ -177,13 +175,4 @@ class DefaultModuleComponentSelectorTest extends Specification {
         'some-group'  | 'some-name'  | '2.0'   | false
     }
 
-    static AttributeContainer attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
-    }
 }
