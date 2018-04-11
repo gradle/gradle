@@ -384,7 +384,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof Javadoc
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
-        Assert.assertThat(task.classpath, sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        Assert.assertThat(task.classpath, sameCollection(project.layout.mutableFilesFor(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir == project.file("$project.docsDir/javadoc")
         task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
 

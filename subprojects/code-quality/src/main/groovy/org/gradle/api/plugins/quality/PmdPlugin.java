@@ -66,7 +66,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
         extension.setRuleSets(new ArrayList<String>(Arrays.asList("java-basic")));
-        extension.setRuleSetFiles(project.files());
+        extension.setRuleSetFiles(project.getLayout().filesFor());
         conventionMappingOf(extension).map("targetJdk", new Callable<Object>() {
             @Override
             public Object call() {

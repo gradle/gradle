@@ -43,7 +43,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: "java"
 
             task run(type: JavaExec) {
-                classpath = project.files(compileJava)
+                classpath = project.layout.filesFor(compileJava)
                 main "driver.Driver"
                 args "1"
             }

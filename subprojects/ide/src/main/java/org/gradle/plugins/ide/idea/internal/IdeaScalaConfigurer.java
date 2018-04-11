@@ -137,7 +137,7 @@ public class IdeaScalaConfigurer {
             return createScalaSdkFromPlatform(scalaPlatform, scalaClasspath, useScalaSdk);
         } else if (ideaModule.getScalaPlatform() != null) {
             // TODO: Wrong, using the full classpath of the application
-            return createScalaSdkFromPlatform(ideaModule.getScalaPlatform(), scalaProject.files(files), useScalaSdk);
+            return createScalaSdkFromPlatform(ideaModule.getScalaPlatform(), scalaProject.getLayout().filesFor(files), useScalaSdk);
         } else {
             // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
             // we can't create a Scala SDK without either one

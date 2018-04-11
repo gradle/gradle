@@ -57,7 +57,7 @@ class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
     def "the publishableFiles of the publication are inputs of the task"() {
         given:
-        def publishableFiles = project.files("a", "b", "c")
+        def publishableFiles = project.layout.filesFor("a", "b", "c")
 
         publication.getPublishableFiles() >> publishableFiles
 

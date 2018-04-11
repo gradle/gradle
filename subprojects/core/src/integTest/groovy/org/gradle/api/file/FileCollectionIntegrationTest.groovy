@@ -138,6 +138,6 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "help"
-        output.contains "The AbstractFileCollection.getBuildDependencies() method has been deprecated and is scheduled to be removed in Gradle 5.0. Do not extend AbstractFileCollection, use Project.files() instead."
+        output.contains "The AbstractFileCollection.getBuildDependencies() method has been deprecated and is scheduled to be removed in Gradle 5.0. Do not extend AbstractFileCollection, use ProjectLayout.filesFor() instead."
     }
 }

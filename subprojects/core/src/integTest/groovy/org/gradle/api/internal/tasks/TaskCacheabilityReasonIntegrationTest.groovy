@@ -218,7 +218,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
             class NoSources extends NotCacheable {
                 @InputFiles
                 @SkipWhenEmpty
-                FileCollection empty = project.files()
+                FileCollection empty = project.layout.filesFor()
             }
             
             task cacheable(type: NoSources) {

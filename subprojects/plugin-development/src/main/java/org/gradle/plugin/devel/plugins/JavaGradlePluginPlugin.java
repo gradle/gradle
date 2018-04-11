@@ -384,7 +384,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();
                 dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
                 String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
-                dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
+                dependencies.add(runtimeConfigurationName, project.getLayout().filesFor(pluginClasspathTask));
             }
         }
     }

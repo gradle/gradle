@@ -273,7 +273,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
                 resources {
                     srcDirs = [project.file("resrc1"), project.file("resrc2")]
                 }
-                compileClasspath = project.files("jar1.jar", "jar2.jar")
+                compileClasspath = project.layout.filesFor("jar1.jar", "jar2.jar")
             }
         }
 
@@ -286,7 +286,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def java = sources.withType(JavaSourceSet).iterator().next()
         java.source.srcDirs as Set == [project.file("src1"), project.file("src2")] as Set
-        java.compileClasspath.files as Set == project.files("jar1.jar", "jar2.jar") as Set
+        java.compileClasspath.files as Set == project.layout.filesFor("jar1.jar", "jar2.jar") as Set
 
         and:
         def resources = sources.withType(JvmResourceSet).iterator().next()

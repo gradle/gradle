@@ -28,7 +28,7 @@ gradlebuildJava {
 
 tasks {
     val generateGradleApiPackageList by creating(PackageListGenerator::class) {
-        classpath = files(
+        classpath = layout.filesFor(
             rootProject.configurations["externalModules"],
             listOf(":core", ":dependencyManagement", ":pluginUse", ":toolingApi").map {
                 project(it).configurations.runtimeClasspath

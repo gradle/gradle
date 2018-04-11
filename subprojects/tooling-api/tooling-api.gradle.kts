@@ -45,7 +45,7 @@ val baseVersion: String by rootProject.extra
 val shadedJarWithoutVersion by tasks.creating(ShadedJar::class) {
     val outputDir = file("$buildDir/shaded-jar-without-version")
     sourceFiles = jar.outputs.files +
-        files(deferred { configurations.runtimeClasspath - configurations.publishCompile })
+        layout.filesFor(deferred { configurations.runtimeClasspath - configurations.publishCompile })
     analysisFile = file("$outputDir/analysis.txt")
     classesDir = file("$outputDir/classes")
     jarFile = file("$outputDir/gradle-tooling-api-shaded-$baseVersion.jar")
