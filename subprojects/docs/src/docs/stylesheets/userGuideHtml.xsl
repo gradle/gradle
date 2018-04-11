@@ -262,16 +262,16 @@
 
                         <h3 id="integrating-gradle">Integrating Gradle</h3>
                         <ul>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#ci-integration" aria-expanded="false" aria-controls="ci-integration">Continuous Integration</a>
+                                <ul id="ci-integration">
+                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-jenkins">Using Gradle with Jenkins</a></li>
+                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-travisci">Using Gradle with Travis CI</a></li>
+                                </ul>
+                            </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#ide-integration" aria-expanded="false" aria-controls="ide-integration">IDE Integration</a>
                                 <ul id="ide-integration">
                                     <li><a href="/userguide/eclipse_plugin.html">Eclipse Plugin</a></li>
                                     <li><a href="/userguide/idea_plugin.html">IDEA Plugin</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="nav-dropdown" data-toggle="collapse" href="#ci-integration" aria-expanded="false" aria-controls="ci-integration">Continuous Integration</a>
-                                <ul id="ci-integration">
-                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-jenkins">Executing Gradle builds on Jenkins</a></li>
-                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-travisci">Executing Gradle builds on Travis CI</a></li>
                                 </ul>
                             </li>
                             <li><a href="/userguide/embedding.html">Tooling API</a></li>
