@@ -33,9 +33,9 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.util.Path;
@@ -151,10 +151,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
 
-        buildListener.buildFinished(result);
         if (!isNestedBuild()) {
             gradle.getServices().get(IncludedBuildControllers.class).stopTaskExecution();
         }
+
+        buildListener.buildFinished(result);
+
         stage = Stage.Finished;
     }
 
