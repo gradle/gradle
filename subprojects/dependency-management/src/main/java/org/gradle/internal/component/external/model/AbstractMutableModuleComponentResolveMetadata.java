@@ -380,6 +380,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -436,6 +441,11 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         @Override
         public String getReason() {
             return reason;
+        }
+
+        @Override
+        public ImmutableAttributes getAttributes() {
+            return attributes;
         }
 
         @Override

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -31,7 +30,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.internal.id.UniqueId
@@ -42,6 +40,8 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataFileGeneratorTest extends Specification {
 
@@ -478,7 +478,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
-        v2.attributes >> attributes()
+        v2.attributes >> attributes([:])
 
         component.usages >> [v1, v2]
 
@@ -826,16 +826,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         publication.component >> component
         publication.coordinates >> coords
         return publication
-    }
-
-    def attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
     }
 
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {

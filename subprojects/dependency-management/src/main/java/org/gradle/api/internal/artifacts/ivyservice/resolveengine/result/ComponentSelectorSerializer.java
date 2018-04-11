@@ -22,8 +22,10 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -36,18 +38,28 @@ import java.util.List;
 
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
 
+    private final AttributeContainerSerializer attributeContainerSerializer;
+
+    public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+        this.attributeContainerSerializer = attributeContainerSerializer;
+    }
+
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
             return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
-            return DefaultModuleComponentSelector.newSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder));
+            return DefaultModuleComponentSelector.newSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder), readAttributes(decoder));
         } else if (Implementation.LIBRARY.getId() == id) {
             return new DefaultLibraryComponentSelector(decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
         }
 
         throw new IllegalArgumentException("Unable to find component selector with id: " + id);
+    }
+
+    private ImmutableAttributes readAttributes(Decoder decoder) throws IOException {
+        return attributeContainerSerializer.read(decoder);
     }
 
     ImmutableVersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
@@ -75,6 +87,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             encoder.writeString(moduleComponentSelector.getModule());
             VersionConstraint versionConstraint = moduleComponentSelector.getVersionConstraint();
             writeVersionConstraint(encoder, versionConstraint);
+            writeAttributes(encoder, moduleComponentSelector.getAttributes());
         } else if (implementation == Implementation.BUILD) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
             encoder.writeString(projectComponentSelector.getBuildName());
@@ -87,6 +100,10 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         } else {
             throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
+    }
+
+    private void writeAttributes(Encoder encoder, AttributeContainer attributes) throws IOException {
+        attributeContainerSerializer.write(encoder, attributes);
     }
 
     private void writeVersionConstraint(Encoder encoder, VersionConstraint versionConstraint) throws IOException {
