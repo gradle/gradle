@@ -372,7 +372,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
                 visitingNodes.remove(taskNode, currentSegment);
                 path.pop();
-                executionPlan.put(taskNode.getTask(), taskNode);
+                Preconditions.checkState(executionPlan.put(taskNode.getTask(), taskNode) == null, "no duplicate tasks in execution plan");
                 Project project = taskNode.getTask().getProject();
                 projectLocks.put(project, getOrCreateProjectLock(project));
 
