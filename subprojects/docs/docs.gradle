@@ -106,10 +106,10 @@ ext {
 }
 
 ext.outputs = [:]
-outputs.samples = files(samplesDir) {
+outputs.samples = layout.filesFor(samplesDir) {
     builtBy 'samples'
 }
-outputs.distDocs = files(distDocsDir) {
+outputs.distDocs = layout.filesFor(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
@@ -319,7 +319,7 @@ task dslHtml(type: Docbook2Xhtml) {
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
     dependsOn userguideAsciidoc
-    docbookFiles = files(
+    docbookFiles = layout.filesFor(
         fileTree(userguideSrcDir) { include "**/*.xml" },
         userguideAsciidoc.outputs.files
     )
@@ -349,7 +349,7 @@ task pdfUserguideDocbook(type: UserGuideTransformTask) {
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    includes = files(
+    includes = layout.filesFor(
         samplesDocbook,
         defaultImports.importsDestFile,
         fileTree(dir: userguideSrcDir, includes: ['*.xml']),
@@ -419,7 +419,7 @@ task javadocAll(type: Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = layout.filesFor(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     PublicApi.includes.each {
         include it
     }
@@ -434,7 +434,7 @@ task javadocAll(type: Javadoc) {
 task checkstyleApi(type: Checkstyle) {
     source javadocAll.source
     configFile = new File(checkstyle.configDir, "checkstyle-api.xml")
-    classpath = files()
+    classpath = layout.filesFor()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 

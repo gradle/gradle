@@ -225,7 +225,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                         convention.map("sourceDirs", new Callable<Set<File>>() {
                             @Override
                             public Set<File> call() throws Exception {
-                                return project.files(project.getConvention().getPlugin(EarPluginConvention.class).getAppDirName()).getFiles();
+                                return project.getLayout().filesFor(project.getConvention().getPlugin(EarPluginConvention.class).getAppDirName()).getFiles();
                             }
                         });
                         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {

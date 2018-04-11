@@ -51,11 +51,13 @@ class FileCollectionSymlinkTest extends Specification {
         fileCollection.contains(symlinked)
         fileCollection.files == [file, symlink, symlinked] as Set
 
-        (fileCollection - project.files(symlink)).files == [file, symlinked] as Set
+        (fileCollection - project.getLayout().filesFor(symlink)).files == [file, symlinked] as Set
 
         where:
-        desc                 | fileCollection
-        "project.files()"    | project.files(file, symlink, symlinked)
-        "project.fileTree()" | project.fileTree(baseDir)
+        desc                                  | fileCollection
+        "project.files()"                     | project.files(file, symlink, symlinked)
+        "project.layout.filesFor()"           | project.getLayout().filesFor(file, symlink, symlinked)
+        "project.layout.mutableFilesFor()"    | project.getLayout().mutableFilesFor(file, symlink, symlinked)
+        "project.fileTree()"                  | project.fileTree(baseDir)
     }
 }

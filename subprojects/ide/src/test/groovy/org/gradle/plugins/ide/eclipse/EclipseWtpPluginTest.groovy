@@ -222,7 +222,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
             checkEclipseWtpComponentForEar(project.sourceSets.main.allSource.srcDirs)
         } else {
             checkEclipseClasspath([])
-            checkEclipseWtpComponentForEar(project.files(project.appDirName) as Set)
+            checkEclipseWtpComponentForEar(project.layout.filesFor(project.appDirName) as Set)
         }
         checkEclipseWtpFacet([
                 new Facet(FacetType.fixed, "jst.ear", null),

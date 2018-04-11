@@ -113,7 +113,7 @@ class UserGuideSectionVerifierTest extends Specification {
         given: "A task instance configured with an empty collection of input files"
         def project = new ProjectBuilder().withProjectDir(projectDirProvider.newFolder("no-inputs")).build()
         def verifierTask = project.tasks.create("verifySectionIds", UserGuideSectionVerifier) { task ->
-            task.docbookFiles = project.files()
+            task.docbookFiles = project.layout.filesFor()
         }
         initOutputFile(verifierTask)
 

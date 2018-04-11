@@ -106,9 +106,9 @@ task checkBinaryCompatibility(type: JapicmpTask) {
     inputs.files("foldersWithAPISources", foldersWithAPISources)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
-    oldArchives = files(baselineConfigurations)
-    newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
+    newClasspath = layout.filesFor(ProjectGroups.INSTANCE.getPublicProjects(project).configurations.runtimeClasspath)
+    oldArchives = layout.filesFor(baselineConfigurations)
+    newArchives = layout.filesFor(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
     onlyModified = true

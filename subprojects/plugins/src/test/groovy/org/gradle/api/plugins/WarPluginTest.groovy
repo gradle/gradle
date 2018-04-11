@@ -118,10 +118,10 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         project.dependencies {
-            providedCompile project.files(providedJar)
-            compile project.files(compileJar)
-            compileOnly project.files(compileOnlyJar)
-            runtime project.files(runtimeJar)
+            providedCompile project.layout.filesFor(providedJar)
+            compile project.layout.filesFor(compileJar)
+            compileOnly project.layout.filesFor(compileOnlyJar)
+            runtime project.layout.filesFor(runtimeJar)
         }
 
         then:
