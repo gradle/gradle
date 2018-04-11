@@ -29,7 +29,7 @@ class NormalizingGroovyCompilerTest extends Specification {
     def setup() {
         spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
         spec.groovyClasspath = spec.compileClasspath
-        spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.groovyCompileOptions = new GroovyCompileOptions()
@@ -41,7 +41,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source == files('Person1.java', 'Person2.groovy')
+            assert spec.sourceFiles == files('Person1.java', 'Person2.groovy')
         }
     }
 
@@ -53,7 +53,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source == files('package.html')
+            assert spec.sourceFiles == files('package.html')
         }
     }
 

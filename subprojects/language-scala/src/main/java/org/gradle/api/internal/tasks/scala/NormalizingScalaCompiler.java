@@ -72,7 +72,7 @@ public class NormalizingScalaCompiler implements Compiler<ScalaJavaJointCompileS
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             builder.append('\n');
             builder.append(file);
         }

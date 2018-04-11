@@ -42,7 +42,7 @@ class IncrementalCompilationInitializer {
 
     public void initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         if (!recompilationSpec.isBuildNeeded()) {
-            spec.setSource(ImmutableSet.<File>of());
+            spec.setSourceFiles(ImmutableSet.<File>of());
             spec.setClasses(Collections.<String>emptySet());
             return;
         }
@@ -59,7 +59,7 @@ class IncrementalCompilationInitializer {
     }
 
     private void narrowDownSourcesToCompile(JavaCompileSpec spec, PatternSet sourceToCompile) {
-        spec.setSource(ImmutableFileCollection.of(spec.getSource()).getAsFileTree().matching(sourceToCompile).getFiles());
+        spec.setSourceFiles(ImmutableFileCollection.of(spec.getSourceFiles()).getAsFileTree().matching(sourceToCompile).getFiles());
     }
 
     private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {

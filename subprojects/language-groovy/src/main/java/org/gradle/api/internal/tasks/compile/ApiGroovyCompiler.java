@@ -135,7 +135,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         // Sort source files to work around https://issues.apache.org/jira/browse/GROOVY-7966
-        File[] sortedSourceFiles = Iterables.toArray(spec.getSource(), File.class);
+        File[] sortedSourceFiles = Iterables.toArray(spec.getSourceFiles(), File.class);
         Arrays.sort(sortedSourceFiles);
         unit.addSources(sortedSourceFiles);
 
@@ -147,10 +147,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
                             Set<File> newSource = ImmutableSet.<File>builder()
-                                .addAll(spec.getSource())
+                                .addAll(spec.getSourceFiles())
                                 .add(stubDir)
                                 .build();
-                            spec.setSource(ImmutableFileCollection.of(newSource).getAsFileTree().getFiles());
+                            spec.setSourceFiles(ImmutableFileCollection.of(newSource).getAsFileTree().getFiles());
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
@@ -162,7 +162,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
-                        spec.setSource(Collections2.filter(spec.getSource(), new Predicate<File>() {
+                        spec.setSourceFiles(Collections2.filter(spec.getSourceFiles(), new Predicate<File>() {
                             @Override
                             public boolean apply(File file) {
                                 return hasExtension(file, ".java");
