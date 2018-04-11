@@ -40,7 +40,7 @@ data class CIBuildModel (
                     functionalTests = listOf(
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.linux, JvmVersion.java7),
                             TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java7),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10),
                             TestCoverage(TestType.parallel, OS.linux, JvmVersion.java7, JvmVendor.ibm))),
             Stage("Release Accept", "Once a day: Rerun tests in more environments",
                     trigger = Trigger.daily,
@@ -52,7 +52,7 @@ data class CIBuildModel (
                             TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
                             TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8),
                             TestCoverage(TestType.platform, OS.macos, JvmVersion.java8),
-                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java10)),
+                            TestCoverage(TestType.platform, OS.linux, JvmVersion.java9)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions",
