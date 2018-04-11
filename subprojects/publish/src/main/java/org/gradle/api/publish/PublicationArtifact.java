@@ -39,5 +39,4 @@ public interface PublicationArtifact extends Buildable {
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      */
     void builtBy(Object... tasks);
-
 }

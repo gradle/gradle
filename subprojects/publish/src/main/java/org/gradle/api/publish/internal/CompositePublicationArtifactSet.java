@@ -35,6 +35,7 @@ public class CompositePublicationArtifactSet<T extends PublicationArtifact> exte
         files = new UnionFileCollection(fileCollections);
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }

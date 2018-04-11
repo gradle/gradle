@@ -60,6 +60,7 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
         });
     }
 
+    @Override
     public FileCollection getFiles() {
         return files;
     }
