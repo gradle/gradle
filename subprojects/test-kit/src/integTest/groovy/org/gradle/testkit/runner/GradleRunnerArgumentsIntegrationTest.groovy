@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.NotYetImplemented
+import org.gradle.api.JavaVersion
 import spock.lang.Issue
 
 class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -89,7 +90,7 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
 
         when:
         runner("writeValue", "--parallel")
-            .withGradleVersion("3.1")
+            .withGradleVersion(JavaVersion.current() > JavaVersion.VERSION_1_9 ? "4.1" : "3.1") // Gradle 4.0 can't recognize Java 10
             .build()
 
         then:
