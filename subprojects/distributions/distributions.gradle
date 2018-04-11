@@ -18,6 +18,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    id("gradlebuild.parameter-names")
+}
+
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {
@@ -46,6 +50,14 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
+parameterNames {
+    sources = ProjectGroups.INSTANCE.getJavaProjects(project)
+        .collect { it.sourceSets.main.allJava.asFileTree }
+        .inject { acc, fileTree -> acc.plus(fileTree) }
+        .matching { include(PublicApi.includes) exclude(PublicApi.excludes) }
+    classpath = rootProject.configurations.runtime + rootProject.configurations.gradlePlugins
+    baseName = "gradle-api-parameter-names"
+}
 
 evaluationDependsOn ":docs"
 
@@ -61,6 +73,7 @@ ext {
         }
         into('lib') {
             from rootProject.configurations.runtime
+            from parameterNames.jarTask
             into('plugins') {
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }
