@@ -30,7 +30,7 @@ class NormalizingJavaCompilerTest extends Specification {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
         def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.annotationProcessorPath = files("processor.jar")
+        compileOptions.annotationProcessorPath = ImmutableFileCollection.of(new File("processor.jar"))
         spec.compileOptions = compileOptions
     }
 
@@ -42,7 +42,7 @@ class NormalizingJavaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == old(spec.source.files)
+            assert spec.source == old(spec.source)
             workResult
         }
         result == workResult
@@ -56,7 +56,7 @@ class NormalizingJavaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.source.files == files("Person1.java", "Person2.java").files
+            assert spec.source == files("Person1.java", "Person2.java")
         }
     }
 
@@ -114,6 +114,6 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
+        paths.collect { new File(it) } as Set
     }
 }

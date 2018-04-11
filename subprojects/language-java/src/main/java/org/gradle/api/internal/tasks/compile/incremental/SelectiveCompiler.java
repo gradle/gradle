@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarClasspathSnapshotProvider;
@@ -64,7 +63,7 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
 
         incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec);
 
-        if (Iterables.isEmpty(spec.getSource()) && spec.getClasses().isEmpty()) {
+        if (spec.getSource().isEmpty() && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
             return new RecompilationNotNecessary();
         }

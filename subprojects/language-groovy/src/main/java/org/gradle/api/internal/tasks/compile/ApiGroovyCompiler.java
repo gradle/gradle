@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -149,7 +150,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                                 .addAll(spec.getSource())
                                 .add(stubDir)
                                 .build();
-                            spec.setSource(ImmutableFileCollection.of(newSource).getAsFileTree());
+                            spec.setSource(ImmutableFileCollection.of(newSource).getAsFileTree().getFiles());
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
@@ -161,7 +162,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
-                        spec.setSource(Iterables.filter(spec.getSource(), new Predicate<File>() {
+                        spec.setSource(Collections2.filter(spec.getSource(), new Predicate<File>() {
                             @Override
                             public boolean apply(File file) {
                                 return hasExtension(file, ".java");
