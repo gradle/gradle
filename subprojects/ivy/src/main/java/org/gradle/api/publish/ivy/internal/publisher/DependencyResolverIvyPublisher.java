@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
-import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModulePublishMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -34,14 +34,14 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
 
         // Use the legacy metadata type so that we can leverage `ModuleVersionPublisher.publish()`
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
-        for (PublicationArtifact artifact : publication.getAllArtifacts()) {
+        for (IvyArtifact artifact : publication.getAllArtifacts()) {
             publishMetaData.addArtifact(createIvyArtifact(artifact), artifact.getFile());
         }
 
         publisher.publish(publishMetaData);
     }
 
-    private IvyArtifactName createIvyArtifact(PublicationArtifact artifact) {
+    private IvyArtifactName createIvyArtifact(IvyArtifact artifact) {
         return new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExtension(), artifact.getClassifier());
     }
 

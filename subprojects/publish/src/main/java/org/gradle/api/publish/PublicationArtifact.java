@@ -19,7 +19,6 @@ package org.gradle.api.publish;
 import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -30,34 +29,15 @@ import java.io.File;
 @Incubating
 public interface PublicationArtifact extends Buildable {
     /**
-     * The extension used to publish the artifact file, never <code>null</code>.
-     * For an artifact without an extension, this value will be an empty String.
-     */
-    String getExtension();
-
-    /**
-     * The classifier used to publish the artifact file.
-     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
-     */
-    @Nullable
-    String getClassifier();
-
-    /**
-     * The name used to publish the artifact file, never <code>null</code>.
-     * Defaults to the name of the module that this artifact belongs to.
-     */
-    String getName();
-
-    /**
-     * The type used to publish the artifact file, never <code>null</code>.
-     * Often the type is the same as the extension, but sometimes this is not the case.
-     * For example for an ivy XML module descriptor, the type is <em>ivy</em> and the extension is <em>xml</em>.
-     */
-    String getType();
-
-    /**
      * The actual file contents to publish.
      */
     File getFile();
+
+    /**
+     * Registers some tasks which build this artifact.
+     *
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     */
+    void builtBy(Object... tasks);
 
 }

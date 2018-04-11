@@ -20,13 +20,23 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.PublicationArtifact;
 
-public interface PublicationInternal extends Publication, ProjectPublication {
+import java.io.File;
+
+public interface PublicationInternal<T extends PublicationArtifact> extends Publication, ProjectPublication {
     ModuleVersionIdentifier getCoordinates();
 
     ImmutableAttributes getAttributes();
 
     void setAlias(boolean alias);
+
+    /**
+     * Returns all publishable artifacts of this publication (read-only).
+     */
+    PublicationArtifactSet<T> getPublishableArtifacts();
+
+    T addDerivedArtifact(T originalArtifact, File file);
 
     /**
      * Provide the file coordinates for the published artifact, if any.

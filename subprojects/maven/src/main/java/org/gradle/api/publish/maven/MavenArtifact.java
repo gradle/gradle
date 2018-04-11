@@ -26,21 +26,27 @@ import javax.annotation.Nullable;
 @Incubating
 public interface MavenArtifact extends PublicationArtifact {
     /**
+     * The extension used to publish the artifact file, never <code>null</code>.
+     * For an artifact without an extension, this value will be an empty String.
+     */
+    String getExtension();
+
+    /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
      */
     void setExtension(String extension);
 
     /**
+     * The classifier used to publish the artifact file.
+     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     */
+    @Nullable
+    String getClassifier();
+
+    /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
      */
     void setClassifier(@Nullable String classifier);
-
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

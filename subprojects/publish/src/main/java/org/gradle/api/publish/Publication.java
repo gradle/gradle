@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
@@ -27,20 +26,4 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Publication extends Named {
-
-    /**
-     * Allows to add/remove additional publications to/from this publication.
-     *
-     * @return The mutable set.
-     * @since 4.8
-     */
-    DomainObjectSet<PublicationArtifact> getAdditionalArtifacts();
-
-    /**
-     * Returns all artifacts of this publication.
-     *
-     * @return The (read-only) set.
-     * @since 4.8
-     */
-    DomainObjectSet<PublicationArtifact> getAllArtifacts();
 }

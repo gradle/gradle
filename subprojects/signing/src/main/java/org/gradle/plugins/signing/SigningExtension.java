@@ -30,6 +30,8 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -308,12 +310,12 @@ public class SigningExtension {
     }
 
     /**
-     * Creates signing tasks that sign {@linkplain Publication#getAllArtifacts()} all of the artifacts} of the given publications.
+     * Creates signing tasks that sign {@linkplain PublicationInternal#getPublishableArtifacts()} all publishable artifacts} of the given publications.
      *
      * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
      * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
      *
-     * The signature artifacts for the created tasks are added to the {@linkplain Publication#getAdditionalArtifacts() additional artifacts} of the given publications.
+     * The signature artifacts for the created tasks are added to the {@linkplain PublicationInternal#getPublishableArtifacts()} publishable artifacts} of the given publications.
      *
      * @param publications The publications whose artifacts are to be signed
      * @return the created tasks.
@@ -322,16 +324,29 @@ public class SigningExtension {
     @Incubating
     public List<Sign> sign(Publication... publications) {
         List<Sign> result = new ArrayList<Sign>(publications.length);
-        for (final Publication publicationToSign : publications) {
-            result.add(
-                createSignTaskFor(publicationToSign.getName() + "Publication", publicationToSign.getAdditionalArtifacts(), new Action<Sign>() {
-                    public void execute(Sign task) {
-                        task.sign(publicationToSign);
-                    }
-                })
-            );
+        for (final Publication publication : publications) {
+            if (publication instanceof PublicationInternal) {
+                result.add(sign((PublicationInternal<?>) publication));
+            }
         }
         return result;
+    }
+
+    private <T extends PublicationArtifact> Sign sign(final PublicationInternal<T> publicationToSign) {
+        final Sign signTask = project.getTasks().create("sign" + capitalize((CharSequence) (publicationToSign.getName() + "Publication")), Sign.class, new Action<Sign>() {
+            public void execute(Sign task) {
+                task.sign(publicationToSign);
+            }
+        });
+        signTask.getSignatures().all(new Action<Signature>() {
+            public void execute(Signature signature) {
+                publicationToSign
+                    .addDerivedArtifact((T) signature.getToSignPublicationArtifact(), signature.getFile())
+                    .builtBy(signTask);
+            }
+        });
+        // TODO #4943 Decide how to handle removal of signatures
+        return signTask;
     }
 
     private Sign createSignTaskFor(CharSequence name, DomainObjectSet<? super Signature> artifacts, Action<Sign> taskConfiguration) {

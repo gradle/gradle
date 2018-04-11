@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 
 import java.util.Set;
@@ -24,12 +23,12 @@ import java.util.Set;
 public class MavenNormalizedPublication {
 
     private final String name;
-    private final PublicationArtifact pomArtifact;
+    private final MavenArtifact pomArtifact;
     private final MavenProjectIdentity projectIdentity;
-    private final Set<PublicationArtifact> allArtifacts;
+    private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, PublicationArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<PublicationArtifact> allArtifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
         this.pomArtifact = pomArtifact;
         this.projectIdentity = projectIdentity;
@@ -41,11 +40,11 @@ public class MavenNormalizedPublication {
         return name;
     }
 
-    public PublicationArtifact getPomArtifact() {
+    public MavenArtifact getPomArtifact() {
         return pomArtifact;
     }
 
-    public Set<PublicationArtifact> getAllArtifacts() {
+    public Set<MavenArtifact> getAllArtifacts() {
         return allArtifacts;
     }
 

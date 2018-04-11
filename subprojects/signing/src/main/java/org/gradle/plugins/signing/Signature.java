@@ -36,7 +36,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
  *
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
-public class Signature extends AbstractPublishArtifact implements PublicationArtifact {
+public class Signature extends AbstractPublishArtifact {
 
     /**
      * The specification of how to generate the signature.
@@ -129,11 +129,7 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
             public File call() {
                 return toSign.getFile();
             }
-        }, new Callable<String>() {
-            public String call() {
-                return toSign.getClassifier();
-            }
-        }, signatureSpec);
+        }, null, signatureSpec);
         this.toSignPublicationArtifact = toSign;
     }
 
@@ -232,9 +228,6 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
         if (toSignPublishArtifact != null) {
             return toSignPublishArtifact.getName();
         }
-        if (toSignPublicationArtifact != null) {
-            return toSignPublicationArtifact.getName();
-        }
         return fileName();
     }
 
@@ -256,12 +249,7 @@ public class Signature extends AbstractPublishArtifact implements PublicationArt
      * @return The extension. May be {@code null} if unknown at this time.
      */
     public String getExtension() {
-        return extension != null ? extension : defaultExtension();
-    }
-
-    private String defaultExtension() {
-        String signatureTypeExtension = signatureTypeExtension();
-        return toSignPublicationArtifact == null ? signatureTypeExtension : toSignPublicationArtifact.getExtension() + "." + signatureTypeExtension;
+        return extension != null ? extension : signatureTypeExtension();
     }
 
     @Nullable

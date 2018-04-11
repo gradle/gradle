@@ -45,7 +45,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
         }).withPropertyName("publication.publishableFiles");
 

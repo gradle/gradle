@@ -34,9 +34,9 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
@@ -178,7 +178,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 }
             });
             // Wire the generated pom into the publication.
-            publication.setPomArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "pom"));
+            publication.setPomArtifact(createMavenArtifactForOutputFiles(tasks.get(descriptorTaskName), "pom"));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -198,9 +198,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            publication.setGradleModuleMetadataArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), "module"));
+            publication.setGradleModuleMetadataArtifact(createMavenArtifactForOutputFiles(tasks.get(descriptorTaskName), "module"));
         }
 
+        private MavenArtifact createMavenArtifactForOutputFiles(Task task, String extension) {
+            MavenArtifact artifact = new DefaultMavenArtifact(task.getOutputs().getFiles(), extension, null);
+            artifact.builtBy(task);
+            return artifact;
+        }
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {

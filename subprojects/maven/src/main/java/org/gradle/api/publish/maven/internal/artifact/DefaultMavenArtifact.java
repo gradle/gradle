@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
@@ -25,12 +27,16 @@ import java.io.File;
 
 public class DefaultMavenArtifact implements MavenArtifact {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-    private final File file;
+    private final FileCollection files;
     private String extension;
     private String classifier;
 
     public DefaultMavenArtifact(File file, String extension, String classifier) {
-        this.file = file;
+        this(ImmutableFileCollection.of(file), extension, classifier);
+    }
+
+    public DefaultMavenArtifact(FileCollection files, String extension, String classifier) {
+        this.files = files;
         this.extension = extension;
         // Handle empty classifiers that come from PublishArtifact and AbstractArchiveTask
         this.classifier = GUtil.elvis(classifier, null);
@@ -38,7 +44,7 @@ public class DefaultMavenArtifact implements MavenArtifact {
 
     @Override
     public File getFile() {
-        return file;
+        return files.getSingleFile();
     }
 
     @Override
@@ -59,16 +65,6 @@ public class DefaultMavenArtifact implements MavenArtifact {
     @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
-    }
-
-    @Override
-    public String getName() {
-        return "";
-    }
-
-    @Override
-    public String getType() {
-        return getExtension();
     }
 
     @Override

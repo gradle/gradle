@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
-import org.gradle.api.publish.PublicationArtifact
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator
@@ -234,11 +233,11 @@ class ValidatingMavenPublisherTest extends Specification {
             pomFileGenerator.withXml(withXmlAction)
         }
         pomFileGenerator.writeTo(pomFile)
-        return createPublicationArtifact(pomFile, "pom")
+        return createArtifact(pomFile, "pom")
     }
 
-    private def createPublicationArtifact(File file, String extension) {
-        return Mock(PublicationArtifact) {
+    private def createArtifact(File file, String extension) {
+        return Mock(MavenArtifact) {
             getFile() >> file
             getExtension() >> extension
         }

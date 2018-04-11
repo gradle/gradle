@@ -27,10 +27,21 @@ import javax.annotation.Nullable;
 @Incubating
 public interface IvyArtifact extends PublicationArtifact {
     /**
+     * The name used to publish the artifact file, never <code>null</code>.
+     * Defaults to the name of the module that this artifact belongs to.
+     */
+    String getName();
+
+    /**
      * Sets the name used to publish the artifact file.
      * @param name The name.
      */
     void setName(String name);
+
+    /**
+     * The type used to publish the artifact file, never <code>null</code>.
+     */
+    String getType();
 
     /**
      * Sets the type used to publish the artifact file.
@@ -39,10 +50,23 @@ public interface IvyArtifact extends PublicationArtifact {
     void setType(String type);
 
     /**
+     * The extension used to publish the artifact file, never <code>null</code>.
+     * For an artifact without an extension, this value will be an empty String.
+     */
+    String getExtension();
+
+    /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
      */
     void setExtension(String extension);
+
+    /**
+     * The classifier used to publish the artifact file.
+     * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     */
+    @Nullable
+    String getClassifier();
 
     /**
      * Sets the classifier used to publish the artifact file.
@@ -65,11 +89,4 @@ public interface IvyArtifact extends PublicationArtifact {
      * @param conf The value of 'conf' for this artifact.
      */
     void setConf(@Nullable String conf);
-
-    /**
-     * Registers some tasks which build this artifact.
-     *
-     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
-     */
-    void builtBy(Object... tasks);
 }

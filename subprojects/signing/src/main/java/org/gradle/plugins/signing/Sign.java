@@ -25,7 +25,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -33,8 +32,8 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -239,36 +238,29 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     /**
-     * Configures the task to sign every artifact of the given publications
-     *
-     * @since 4.8
+     * Configures the task to sign every artifact of the given publication
      */
-    @Incubating
-    public void sign(Publication... publications) {
-        for (Publication publication : publications) {
-            publication.getAllArtifacts().all(
-                new Action<PublicationArtifact>() {
-                    @Override
-                    public void execute(PublicationArtifact artifact) {
-                        if (artifact instanceof Signature) {
-                            return;
-                        }
-
+    void sign(PublicationInternal<?> publication) {
+        publication.getPublishableArtifacts().all(
+            new Action<PublicationArtifact>() {
+                @Override
+                public void execute(PublicationArtifact artifact) {
+                    if (!getSignatureFiles().contains(artifact.getFile())) {
                         signArtifact(artifact);
                     }
-                });
-            publication.getAllArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
-                @Override
-                public void execute(final PublicationArtifact artifact) {
-                    signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
-                        @Override
-                        public boolean apply(Signature input) {
-                            return input.getToSignPublicationArtifact().equals(artifact);
-                        }
-                    }));
                 }
             });
-        }
+        publication.getPublishableArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
+            @Override
+            public void execute(final PublicationArtifact artifact) {
+                signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
+                    @Override
+                    public boolean apply(Signature input) {
+                        return input.getFile().equals(artifact.getFile());
+                    }
+                }));
+            }
+        });
     }
 
     private boolean addSignature(Signature signature) {

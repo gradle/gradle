@@ -31,16 +31,13 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.api.publish.internal.TaskOutputPublicationArtifact;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
@@ -61,7 +58,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -153,7 +149,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            publication.setIvyDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), Providers.of("ivy"), "xml", "ivy"));
+            publication.setIvyDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), "ivy", "xml", "ivy"));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -173,14 +169,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            // TODO #4943 Use ProviderFactory
-            Provider<String> nameProvider = new DefaultProvider<String>(new Callable<String>() {
-                @Override
-                public String call() {
-                    return publication.getIdentity().getModule();
-                }
-            });
-            publication.setGradleModuleDescriptorArtifact(new TaskOutputPublicationArtifact(tasks.get(descriptorTaskName), nameProvider, "module", "json"));
+            publication.setGradleModuleDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), publication.getIdentity().getModule(), "module", "json"));
+        }
+
+        private IvyArtifact createIvyArtifactForOutputFiles(Task task, String name, String extension, String type) {
+            IvyArtifact artifact = new DefaultIvyArtifact(task.getOutputs().getFiles(), name, extension, type, null);
+            artifact.builtBy(task);
+            return artifact;
         }
     }
 
