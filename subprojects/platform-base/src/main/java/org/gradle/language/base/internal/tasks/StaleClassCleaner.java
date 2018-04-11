@@ -15,6 +15,8 @@
  */
 package org.gradle.language.base.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.io.File;
 import java.util.Collection;
 
@@ -29,7 +31,7 @@ public abstract class StaleClassCleaner {
     }
 
     public void setSource(Collection<File> source) {
-        this.source = source;
+        this.source = ImmutableSet.copyOf(source);
     }
 
     public void setDestinationDir(File destinationDir) {
