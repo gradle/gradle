@@ -90,13 +90,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final IvyConfigurationContainer configurations;
     private final PublicationArtifactSet<IvyArtifact> publishableArtifacts;
     private final DefaultIvyArtifactSet ivyArtifacts;
-    private final DefaultPublicationArtifactSet<IvyArtifact> additionalArtifacts;
-    private IvyArtifact ivyDescriptorFile;
-    private IvyArtifact gradleModuleDescriptorFile;
+    private final PublicationArtifactSet<IvyArtifact> additionalArtifacts;
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final FeaturePreviews featurePreviews;
+    private IvyArtifact ivyDescriptorArtifact;
+    private IvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
 
@@ -143,19 +143,19 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public void setIvyDescriptorArtifact(IvyArtifact artifact) {
-        if (this.ivyDescriptorFile != null) {
-            additionalArtifacts.remove(this.ivyDescriptorFile);
+        if (this.ivyDescriptorArtifact != null) {
+            additionalArtifacts.remove(this.ivyDescriptorArtifact);
         }
-        this.ivyDescriptorFile = artifact;
+        this.ivyDescriptorArtifact = artifact;
         additionalArtifacts.add(artifact);
     }
 
     @Override
     public void setGradleModuleDescriptorArtifact(IvyArtifact artifact) {
-        if (this.gradleModuleDescriptorFile != null) {
-            additionalArtifacts.remove(this.gradleModuleDescriptorFile);
+        if (this.gradleModuleDescriptorArtifact != null) {
+            additionalArtifacts.remove(this.gradleModuleDescriptorArtifact);
         }
-        this.gradleModuleDescriptorFile = artifact;
+        this.gradleModuleDescriptorArtifact = artifact;
         additionalArtifacts.add(artifact);
     }
 
@@ -327,10 +327,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private File getIvyDescriptorFile() {
-        if (ivyDescriptorFile == null) {
+        if (ivyDescriptorArtifact == null) {
             throw new IllegalStateException("ivyDescriptorArtifact not set for publication");
         }
-        return ivyDescriptorFile.getFile();
+        return ivyDescriptorArtifact.getFile();
     }
 
     public ModuleVersionIdentifier getCoordinates() {

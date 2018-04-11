@@ -104,9 +104,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenProjectIdentity projectIdentity;
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
     private final DefaultMavenArtifactSet mavenArtifacts;
-    private final DefaultPublicationArtifactSet<MavenArtifact> additionalArtifacts;
-    private MavenArtifact pomArtifact;
-    private MavenArtifact moduleMetadataArtifact;
+    private final PublicationArtifactSet<MavenArtifact> additionalArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
@@ -114,6 +112,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private MavenArtifact pomArtifact;
+    private MavenArtifact moduleMetadataArtifact;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
