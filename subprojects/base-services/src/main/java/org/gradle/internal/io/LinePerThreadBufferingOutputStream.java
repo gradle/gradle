@@ -67,9 +67,10 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
 
     @Override
     public void close() {
-        PrintStream stream = maybeGetStream();
-        if (stream != null) {
-            stream.close();
+        PrintStream currentStream = maybeGetStream();
+        if (currentStream != null) {
+            currentStream.close();
+            stream.set(null);
         } else {
             handler.endOfStream(null);
         }
