@@ -95,25 +95,6 @@ A typical Gradle project with a settings file look as such:
 └── settings.gradle
 ----
 
-[[sec:split_build_logic_functional_boundaries]]
-=== Split build logic based on functional boundaries
-
-Over time build scripts can grow large in size if you continue to add logic over time. A good middle ground between a `build.gradle` file and a binary plugin is to extract a <<sec:script_plugins,script plugin>>. A script plugin can come in handy if you want to split the build logic along functional boundaries. Typical examples include publishing code, IDE configuration or a dedicated script plugin for declaring dependencies. It is highly recommended to identify those portions of the build code and separate them into a script plugin.
-
-The following example demonstrates the practice of separation of concerns for build logic.
-
-----
-.
-├── build.gradle
-├── gradle
-│   ├── build-scan.gradle
-│   ├── ide.gradle
-│   └── publishing.gradle
-└── settings.gradle
-----
-
-We recommend you place script plugins under the `gradle` directory of your root project as most projects have adopted this. Of course, Gradle allows script plugins to be resolved from anywhere, including remotely.
-
 [[sec:build_sources]]
 === Use `buildSrc` project to abstract imperative logic
 
