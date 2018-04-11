@@ -274,13 +274,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes));
         }
 
         @Override
-        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason) {
-            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason));
+        public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
+            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes));
         }
 
         @Override
@@ -343,13 +343,15 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final VersionConstraint versionConstraint;
         private final ImmutableList<ExcludeMetadata> excludes;
         private final String reason;
+        private final ImmutableAttributes attributes;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = ImmutableList.copyOf(excludes);
             this.reason = reason;
+            this.attributes = attributes;
         }
 
         @Override
@@ -391,12 +393,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
                 && Objects.equal(module, that.module)
                 && Objects.equal(versionConstraint, that.versionConstraint)
                 && Objects.equal(excludes, that.excludes)
-                && Objects.equal(reason, that.reason);
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
         }
     }
 
@@ -405,12 +408,14 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         private final String module;
         private final VersionConstraint versionConstraint;
         private final String reason;
+        private final ImmutableAttributes attributes;
 
-        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason) {
+        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.reason = reason;
+            this.attributes = attributes;
         }
 
         @Override
@@ -446,12 +451,13 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
             return Objects.equal(group, that.group)
                 && Objects.equal(module, that.module)
                 && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(reason, that.reason);
+                && Objects.equal(reason, that.reason)
+                && Objects.equal(attributes, that.attributes);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, reason);
+            return Objects.hashCode(group, module, versionConstraint, reason, attributes);
         }
     }
 

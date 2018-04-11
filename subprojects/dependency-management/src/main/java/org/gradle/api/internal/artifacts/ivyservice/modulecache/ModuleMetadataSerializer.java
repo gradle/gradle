@@ -439,7 +439,7 @@ public class ModuleMetadataSerializer {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
                 String reason = decoder.readNullableString();
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason);
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, ImmutableAttributes.EMPTY);
             }
         }
 
@@ -448,7 +448,7 @@ public class ModuleMetadataSerializer {
             for (int i = 0; i < count; i++) {
                 ModuleComponentSelector selector = COMPONENT_SELECTOR_SERIALIZER.read(decoder);
                 String reason = decoder.readNullableString();
-                variant.addDependencyConstraint(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), reason);
+                variant.addDependencyConstraint(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), reason, ImmutableAttributes.EMPTY);
             }
         }
 
