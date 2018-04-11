@@ -43,9 +43,11 @@ class ImmutableFileCollectionTest extends Specification {
     def 'empty collections are fixed instance'() {
         ImmutableFileCollection collection1 = ImmutableFileCollection.of()
         ImmutableFileCollection collection2 = ImmutableFileCollection.of()
+        ImmutableFileCollection collection3 = ImmutableFileCollection.of(new File[0])
 
         expect:
         collection1.is(collection2)
+        collection1.is(collection3)
     }
 
     def 'resolves specified files using FileResolver'() {
