@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -42,6 +43,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -86,7 +88,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
@@ -136,19 +140,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void addToTaskGraph(Collection<? extends Task> tasks) {
         List<TaskInfo> queue = new ArrayList<TaskInfo>();
 
-        List<Task> sortedTasks = new ArrayList<Task>(tasks);
-        Collections.sort(sortedTasks);
-        for (Task task : sortedTasks) {
-            TaskInfo node = nodeFactory.createNode(task);
-            if (node.isMustNotRun()) {
-                requireWithDependencies(node);
-            } else if (filter.isSatisfiedBy(task)) {
-                node.require();
-            }
-            entryTasks.add(node);
-            queue.add(node);
-        }
+        addTaskInfosToQueue(tasks, queue);
+        resolveDependencies(queue);
+        resolveTasksInUnknownState();
+    }
 
+    private void resolveDependencies(List<TaskInfo> queue) {
         Set<TaskInfo> visiting = new HashSet<TaskInfo>();
         CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
@@ -174,37 +171,19 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(node)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
+
                 // Make sure it has been configured
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task, task.getTaskDependencies());
-                for (Task dependsOnTask : dependsOnTasks) {
-                    TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
-                    node.addDependencySuccessor(targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
-                    }
-                }
-                for (Task finalizerTask : context.getDependencies(task, task.getFinalizedBy())) {
-                    TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
-                    addFinalizerNode(node, targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
-                    }
-                }
-                for (Task mustRunAfter : context.getDependencies(task, task.getMustRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
-                    node.addMustSuccessor(targetNode);
-                }
-                for (Task shouldRunAfter : context.getDependencies(task, task.getShouldRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
-                    node.addShouldSuccessor(targetNode);
-                }
+                context.setTask(task);
+
+                addNodeDependencies(queue, visiting, context, node, task.getTaskDependencies());
+                addNodeFinalizers(queue, visiting, context, node, task.getFinalizedBy());
+
+                addMustSuccessors(context, node, task.getMustRunAfter());
+                addShouldSuccessors(context, node, task.getShouldRunAfter());
+
                 if (node.isRequired()) {
-                    for (TaskInfo successor : node.getDependencySuccessors()) {
-                        if (filter.isSatisfiedBy(successor.getTask())) {
-                            successor.require();
-                        }
-                    }
+                    requireSuccessors(node);
                 } else {
                     tasksInUnknownState.add(node);
                 }
@@ -215,7 +194,64 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 node.dependenciesProcessed();
             }
         }
-        resolveTasksInUnknownState();
+    }
+
+    private void addNodeFinalizers(List<TaskInfo> queue, Set<TaskInfo> visiting, CachingTaskDependencyResolveContext context, TaskInfo node, TaskDependency finalizedBy) {
+        for (Task finalizerTask : context.getDependencies(finalizedBy)) {
+            TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
+            addFinalizerNode(node, targetNode);
+            if (!visiting.contains(targetNode)) {
+                queue.add(0, targetNode);
+            }
+        }
+    }
+
+    private void addNodeDependencies(List<TaskInfo> queue, Set<TaskInfo> visiting, CachingTaskDependencyResolveContext context, TaskInfo node, TaskDependency taskDependencies) {
+        Set<? extends Task> dependsOnTasks = context.getDependencies(taskDependencies);
+        for (Task dependsOnTask : dependsOnTasks) {
+            TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
+            node.addDependencySuccessor(targetNode);
+            if (!visiting.contains(targetNode)) {
+                queue.add(0, targetNode);
+            }
+        }
+    }
+
+    private void addMustSuccessors(CachingTaskDependencyResolveContext context, TaskInfo node, TaskDependency mustRunAfterDependency) {
+        for (Task mustRunAfter : context.getDependencies(mustRunAfterDependency)) {
+            TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
+            node.addMustSuccessor(targetNode);
+        }
+    }
+
+    private void addShouldSuccessors(CachingTaskDependencyResolveContext context, TaskInfo node, TaskDependency shouldRunAfterDependencies) {
+        for (Task shouldRunAfter : context.getDependencies(shouldRunAfterDependencies)) {
+            TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
+            node.addShouldSuccessor(targetNode);
+        }
+    }
+
+    private void requireSuccessors(TaskInfo node) {
+        for (TaskInfo successor : node.getDependencySuccessors()) {
+            if (filter.isSatisfiedBy(successor.getTask())) {
+                successor.require();
+            }
+        }
+    }
+
+    private void addTaskInfosToQueue(Collection<? extends Task> tasks, List<TaskInfo> queue) {
+        List<Task> sortedTasks = new ArrayList<Task>(tasks);
+        Collections.sort(sortedTasks);
+        for (Task task : sortedTasks) {
+            TaskInfo node = nodeFactory.createNode(task);
+            if (node.isMustNotRun()) {
+                requireWithDependencies(node);
+            } else if (filter.isSatisfiedBy(task)) {
+                node.require();
+            }
+            entryTasks.add(node);
+            queue.add(node);
+        }
     }
 
     private void resolveTasksInUnknownState() {

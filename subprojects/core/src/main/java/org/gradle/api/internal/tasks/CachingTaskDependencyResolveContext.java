@@ -54,15 +54,22 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
             new TaskGraphImpl());
     private Task task;
 
-    public Set<? extends Task> getDependencies(@Nullable Task task, TaskDependency container) {
+    public void setTask(Task task) {
         this.task = task;
+    }
+
+    public Set<? extends Task> getDependencies(@Nullable Task task, Object container) {
+        this.task = task;
+        return getDependencies(container);
+    }
+
+    public Set<? extends Task> getDependencies(Object container) {
         try {
             return doGetDependencies(container);
         } catch (Exception e) {
             throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
             queue.clear();
-            this.task = null;
         }
     }
 
@@ -71,7 +78,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         return task;
     }
 
-    private Set<Task> doGetDependencies(TaskDependency container) {
+    private Set<Task> doGetDependencies(Object container) {
         walker.add(container);
         return walker.findValues();
     }
