@@ -84,7 +84,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private MutableIvyModuleResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
-            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorArtifact().getFile(), true);
+            return moduleDescriptorParser.parseMetaData(parserSettings, publication.getIvyDescriptorFile(), true);
         } catch (MetaDataParseException pe) {
             throw new InvalidIvyPublicationException(publication.getName(), pe.getLocalizedMessage(), pe);
         }

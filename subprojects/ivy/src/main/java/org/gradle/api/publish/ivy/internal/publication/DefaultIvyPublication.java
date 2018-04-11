@@ -61,6 +61,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -300,7 +301,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
-        return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorArtifact(), gradleModuleDescriptorFile, allArtifacts);
+        return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), allArtifacts);
     }
 
     @Override
@@ -316,11 +317,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return featurePreviews.isFeatureEnabled(GRADLE_METADATA);
     }
 
-    private PublicationArtifact getIvyDescriptorArtifact() {
+    private File getIvyDescriptorFile() {
         if (ivyDescriptorFile == null) {
             throw new IllegalStateException("ivyDescriptorArtifact not set for publication");
         }
-        return ivyDescriptorFile;
+        return ivyDescriptorFile.getFile();
     }
 
     public ModuleVersionIdentifier getCoordinates() {

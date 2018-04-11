@@ -31,25 +31,11 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
-        PublicationArtifact ivyDescriptorArtifact = publication.getIvyDescriptorArtifact();
-        PublicationArtifact gradleModuleDescriptorArtifact = publication.getGradleModuleDescriptorArtifact();
 
         // Use the legacy metadata type so that we can leverage `ModuleVersionPublisher.publish()`
         DefaultIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
         for (PublicationArtifact artifact : publication.getAllArtifacts()) {
-            if (artifact == ivyDescriptorArtifact || artifact == gradleModuleDescriptorArtifact) {
-                continue;
-            }
             publishMetaData.addArtifact(createIvyArtifact(artifact), artifact.getFile());
-        }
-
-        IvyArtifactName ivyDescriptor = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-        publishMetaData.addArtifact(ivyDescriptor, ivyDescriptorArtifact.getFile());
-
-        if (gradleModuleDescriptorArtifact != null && gradleModuleDescriptorArtifact.getFile().exists()) {
-            // may not exist if experimental features are disabled
-            IvyArtifactName gradleDescriptor = new DefaultIvyArtifactName(projectIdentity.getModule(), "json", "module");
-            publishMetaData.addArtifact(gradleDescriptor, gradleModuleDescriptorArtifact.getFile());
         }
 
         publisher.publish(publishMetaData);
