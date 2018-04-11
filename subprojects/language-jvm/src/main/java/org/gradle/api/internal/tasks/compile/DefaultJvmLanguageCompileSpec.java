@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 
 import java.io.File;
 import java.io.Serializable;
