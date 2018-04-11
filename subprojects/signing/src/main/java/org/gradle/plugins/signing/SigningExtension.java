@@ -341,7 +341,7 @@ public class SigningExtension {
         signTask.getSignatures().all(new Action<Signature>() {
             public void execute(Signature signature) {
                 publicationToSign
-                    .addDerivedArtifact((T) signature.getToSignPublicationArtifact(), signature.getFile())
+                    .addDerivedArtifact((T) signature.getSource(), signature.getFile())
                     .builtBy(signTask);
             }
         });

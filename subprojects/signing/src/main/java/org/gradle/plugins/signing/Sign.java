@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
@@ -180,9 +181,13 @@ public class Sign extends DefaultTask implements SignatureSpec {
         addSignature(new Signature(publishArtifact, this, this));
     }
 
-    private void signArtifact(PublicationArtifact publicationArtifact) {
+    private void signArtifact(final PublicationArtifact publicationArtifact) {
         dependsOn(publicationArtifact);
-        addSignature(new Signature(publicationArtifact, this, this));
+        addSignature(new Signature(publicationArtifact, new Callable<File>() {
+            public File call() {
+                return publicationArtifact.getFile();
+            }
+        }, null, null, this, this));
     }
 
     /**
@@ -203,7 +208,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
         for (File file : files) {
             addSignature(new Signature(file, classifier, this, this));
         }
-
     }
 
     /**
@@ -225,12 +229,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             configuration.getAllArtifacts().whenObjectRemoved(new Action<PublishArtifact>() {
                 @Override
                 public void execute(final PublishArtifact publishArtifact) {
-                    signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
-                        @Override
-                        public boolean apply(Signature input) {
-                            return input.getToSignArtifact().equals(publishArtifact);
-                        }
-                    }));
+                    removeSignature(publishArtifact);
                 }
             });
         }
@@ -253,18 +252,22 @@ public class Sign extends DefaultTask implements SignatureSpec {
         publication.getPublishableArtifacts().whenObjectRemoved(new Action<PublicationArtifact>() {
             @Override
             public void execute(final PublicationArtifact artifact) {
-                signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
-                    @Override
-                    public boolean apply(Signature input) {
-                        return input.getFile().equals(artifact.getFile());
-                    }
-                }));
+                removeSignature(artifact);
             }
         });
     }
 
-    private boolean addSignature(Signature signature) {
-        return signatures.add(signature);
+    private void addSignature(Signature signature) {
+        signatures.add(signature);
+    }
+
+    private void removeSignature(final Buildable source) {
+        signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
+            @Override
+            public boolean apply(Signature input) {
+                return input.getSource().equals(source);
+            }
+        }));
     }
 
     /**
