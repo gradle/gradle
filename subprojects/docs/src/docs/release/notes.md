@@ -42,7 +42,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### `SimpleFileCollection`
 
 The internal `SimpleFileCollection` implementation of `FileCollection` has been deprecated.
-You should use `ProjectLayout.filesFor(Object...)` if you need an immutable `FileCollection` or `ProjectLayout.mutableFilesFor(Object...)` if you need a mutable `ConfigurableFileCollection`.
+You should use `Project.files()` instead.
 
 ## Potential breaking changes
 
