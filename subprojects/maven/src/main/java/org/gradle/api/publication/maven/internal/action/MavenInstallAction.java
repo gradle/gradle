@@ -26,8 +26,8 @@ import java.util.Collection;
 
 public class MavenInstallAction extends AbstractMavenPublishAction {
 
-    public MavenInstallAction(File pomFile, File metadataFile) {
-        super(pomFile, metadataFile, null);
+    public MavenInstallAction(File pomFile) {
+        super(pomFile, null);
     }
 
     @Override

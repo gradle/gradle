@@ -38,8 +38,8 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
 
-    public MavenDeployAction(File pomFile, File metadataFile, List<File> wagonJars) {
-        super(pomFile, metadataFile, wagonJars);
+    public MavenDeployAction(File pomFile, List<File> wagonJars) {
+        super(pomFile, wagonJars);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {

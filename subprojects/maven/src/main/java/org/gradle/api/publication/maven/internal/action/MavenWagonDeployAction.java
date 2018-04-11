@@ -23,7 +23,7 @@ import java.util.List;
  * A deploy action that uses the baked in Maven wagon implementations, or a custom user-provided wagon implemented.
  */
 public class MavenWagonDeployAction extends MavenDeployAction {
-    public MavenWagonDeployAction(File pomFile, File metadataFile, List<File> jars) {
-        super(pomFile, metadataFile, jars);
+    public MavenWagonDeployAction(File pomFile, List<File> jars) {
+        super(pomFile, jars);
     }
 }

@@ -30,8 +30,8 @@ public class MavenLocalPublisher extends AbstractMavenPublisher {
     }
 
     @Override
-    protected MavenInstallAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        MavenInstallAction mavenInstallTask = new MavenInstallAction(pomFile, metadataFile);
+    protected MavenInstallAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        MavenInstallAction mavenInstallTask = new MavenInstallAction(pomFile);
         mavenInstallTask.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         return mavenInstallTask;
     }

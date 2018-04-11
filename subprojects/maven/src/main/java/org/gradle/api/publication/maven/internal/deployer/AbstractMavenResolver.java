@@ -83,7 +83,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return this;
     }
 
-    protected abstract MavenPublishAction createPublishAction(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
@@ -111,7 +111,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
             File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishAction publishAction = createPublishAction(pomFile, null, mavenRepositoryLocator);
+            MavenPublishAction publishAction = createPublishAction(pomFile, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(publishAction, mavenDeployment);
             execute(publishAction);

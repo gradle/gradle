@@ -49,14 +49,12 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         File pomFile = publication.getPomArtifact().getFile();
-        // publication.getMetadataArtifact() is null if the gradle metadata feature is disabled
-        File metadataFile = publication.getMetadataArtifact() == null ? null : publication.getMetadataArtifact().getFile();
-        MavenPublishAction deployTask = createDeployTask(pomFile, metadataFile, mavenRepositoryLocator, artifactRepository);
+        MavenPublishAction deployTask = createDeployTask(pomFile, mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected MavenPublishAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
         MavenArtifact mainArtifact = publication.getMainArtifact();
@@ -65,10 +63,9 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         PublicationArtifact pomArtifact = publication.getPomArtifact();
-        PublicationArtifact metadataArtifact = publication.getMetadataArtifact();
 
         for (PublicationArtifact artifact : publication.getAllArtifacts()) {
-            if (artifact == mainArtifact || artifact == pomArtifact || artifact == metadataArtifact) {
+            if (artifact == mainArtifact || artifact == pomArtifact) {
                 continue;
             }
             publishAction.addAdditionalArtifact(artifact.getFile(), GUtil.elvis(artifact.getExtension(), ""), GUtil.elvis(artifact.getClassifier(), ""));

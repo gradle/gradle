@@ -57,11 +57,10 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     private final List<Artifact> attached = new ArrayList<Artifact>();
     private final Artifact pomArtifact;
-    private final Artifact metadataArtifact;
     private Artifact mainArtifact;
     private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
-    protected AbstractMavenPublishAction(File pomFile, File metadataFile, List<File> wagonJars) {
+    protected AbstractMavenPublishAction(File pomFile, List<File> wagonJars) {
         container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
 
@@ -71,16 +70,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
         Model pom = parsePom(pomFile);
         pomArtifact = new DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), "pom", pom.getVersion()).setFile(pomFile);
-        metadataArtifact = toGradleMetadataArtifact(pom, metadataFile);
         mainArtifact = createTypedArtifact(pom.getPackaging(), null);
-    }
-
-    private Artifact toGradleMetadataArtifact(Model pom, File metadataFile) {
-        if (metadataFile == null || !metadataFile.exists()) {
-            // possible if experimental features are disabled
-            return null;
-        }
-        return new DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), "module", pom.getVersion()).setFile(metadataFile);
     }
 
     public void setLocalMavenRepositoryLocation(File localMavenRepository) {
@@ -106,9 +96,6 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
             artifacts.add(mainArtifact);
         }
         artifacts.add(pomArtifact);
-        if (metadataArtifact != null) {
-            artifacts.add(metadataArtifact);
-        }
         for (Artifact artifact : attached) {
             File file = artifact.getFile();
             if (file != null && file.isFile()) {

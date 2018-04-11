@@ -25,15 +25,13 @@ public class MavenNormalizedPublication {
 
     private final String name;
     private final PublicationArtifact pomArtifact;
-    private final PublicationArtifact metadataArtifact;
     private final MavenProjectIdentity projectIdentity;
     private final Set<PublicationArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, PublicationArtifact pomArtifact, PublicationArtifact metadataArtifact, MavenProjectIdentity projectIdentity, Set<PublicationArtifact> allArtifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, PublicationArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<PublicationArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
         this.pomArtifact = pomArtifact;
-        this.metadataArtifact = metadataArtifact;
         this.projectIdentity = projectIdentity;
         this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
@@ -45,10 +43,6 @@ public class MavenNormalizedPublication {
 
     public PublicationArtifact getPomArtifact() {
         return pomArtifact;
-    }
-
-    public PublicationArtifact getMetadataArtifact() {
-        return metadataArtifact;
     }
 
     public Set<PublicationArtifact> getAllArtifacts() {
