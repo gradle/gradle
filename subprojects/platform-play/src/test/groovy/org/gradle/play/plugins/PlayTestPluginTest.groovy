@@ -62,6 +62,8 @@ class PlayTestPluginTest extends Specification {
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration
+        _ * configurations.getByName(_) >> configuration
+        0 * _
     }
 
     def "adds test related tasks per binary"() {
@@ -81,5 +83,6 @@ class PlayTestPluginTest extends Specification {
         1 * taskModelMap.create("testSomeBinary", Test, _)
         0 * taskModelMap.create(_)
         0 * taskModelMap.create(_, _, _)
+        1 * taskModelMap.get('testSomeBinary')
     }
 }
