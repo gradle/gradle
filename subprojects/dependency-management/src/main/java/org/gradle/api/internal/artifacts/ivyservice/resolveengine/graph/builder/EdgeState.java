@@ -21,10 +21,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -238,7 +240,11 @@ class EdgeState implements DependencyGraphEdge {
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, List<SelectorState> selectors, SelectorState selectorState) {
         try {
-            dependencyAttributes = resolveState.getAttributesFactory().safeConcat(selectorState.getDependencyMetadata().getAttributes(), dependencyAttributes);
+            ComponentSelector selector = selectorState.getDependencyMetadata().getSelector();
+            if (selector instanceof ModuleComponentSelector) {
+                ImmutableAttributes attributes = ((AttributeContainerInternal) ((ModuleComponentSelector) selector).getAttributes()).asImmutable();
+                dependencyAttributes = resolveState.getAttributesFactory().safeConcat(attributes, dependencyAttributes);
+            }
         } catch (AttributeMergingException e) {
             return throwMergeError(selectors, e);
         }
@@ -274,7 +280,7 @@ class EdgeState implements DependencyGraphEdge {
         DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
         StringBuilder sb = new StringBuilder(dependencyMetadata.isPending() ? "Constraint '" : "Dependency '");
         sb.append(state.getRequested()).append("' wants value ");
-        sb.append("'").append(dependencyMetadata.getAttributes().getAttribute(attribute)).append("'");
+        sb.append("'").append(((ModuleComponentSelector)dependencyMetadata.getSelector()).getAttributes().getAttribute(attribute)).append("'");
         return sb.toString();
     }
 }

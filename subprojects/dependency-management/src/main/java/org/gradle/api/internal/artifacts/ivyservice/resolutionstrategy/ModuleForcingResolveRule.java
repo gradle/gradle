@@ -59,7 +59,7 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
             ModuleIdentifier key = moduleIdentifierFactory.module(selector.getGroup(), selector.getModule());
             if (forcedModules.containsKey(key)) {
                 DefaultImmutableVersionConstraint versionConstraint = new DefaultImmutableVersionConstraint(forcedModules.get(key));
-                details.useTarget(newSelector(key.getGroup(), key.getName(), versionConstraint), VersionSelectionReasons.FORCED);
+                details.useTarget(newSelector(key.getGroup(), key.getName(), versionConstraint, selector.getAttributes()), VersionSelectionReasons.FORCED);
 
             }
         }

@@ -17,7 +17,6 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.DependencyMetadata;
 
 public interface ModuleDependencyMetadata extends DependencyMetadata {
@@ -32,6 +31,4 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
     @Override
     ModuleDependencyMetadata withReason(String reason);
 
-    @Override
-    ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes);
 }

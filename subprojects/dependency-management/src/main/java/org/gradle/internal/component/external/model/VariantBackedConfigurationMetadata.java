@@ -62,15 +62,15 @@ class VariantBackedConfigurationMetadata implements ConfigurationMetadata {
         for (ComponentVariant.Dependency dependency : variant.getDependencies()) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason(), ImmutableAttributes.EMPTY));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.getReason()));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(dependencyConstraint.getGroup(), dependencyConstraint.getModule(), dependencyConstraint.getVersionConstraint()),
                 Collections.<ExcludeMetadata>emptyList(),
                 true,
-                dependencyConstraint.getReason(),
-                ImmutableAttributes.EMPTY));
+                dependencyConstraint.getReason()
+            ));
         }
         this.dependencies = ImmutableList.copyOf(dependencies);
     }

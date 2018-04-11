@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
@@ -77,7 +77,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector target = (ModuleComponentSelector) delegate.getTarget();
             if (!version.equals(target.getVersionConstraint())) {
-                delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getGroup(), target.getModule(), version), selectionReason);
+                delegate.useTarget(DefaultModuleComponentSelector.newSelector(target.getGroup(), target.getModule(), version, target.getAttributes()), selectionReason);
             } else {
                 // Still 'updated' with reason when version remains the same.
                 delegate.useTarget(delegate.getTarget(), selectionReason);

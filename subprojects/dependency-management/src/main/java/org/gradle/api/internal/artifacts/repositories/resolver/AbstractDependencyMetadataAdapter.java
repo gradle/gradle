@@ -20,11 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
@@ -90,14 +92,16 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
 
     @Override
     public AttributeContainer getAttributes() {
-        return getOriginalMetadata().getAttributes();
+        return getOriginalMetadata().getSelector().getAttributes();
     }
 
     @Override
     public T attributes(Action<? super AttributeContainer> configureAction) {
-        AttributeContainer attributes = attributesFactory.mutable(getOriginalMetadata().getAttributes());
+        ModuleComponentSelector selector = getOriginalMetadata().getSelector();
+        AttributeContainerInternal attributes = attributesFactory.mutable((AttributeContainerInternal) selector.getAttributes());
         configureAction.execute(attributes);
-        ModuleDependencyMetadata metadata = getOriginalMetadata().withAttributes(((AttributeContainerInternal) attributes).asImmutable());
+        ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), attributes.asImmutable());
+        ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getOriginalMetadata().withTarget(target);
         updateMetadata(metadata);
         return Cast.uncheckedCast(this);
     }

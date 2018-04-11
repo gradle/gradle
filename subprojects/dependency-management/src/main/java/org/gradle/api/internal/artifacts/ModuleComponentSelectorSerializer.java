@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -34,7 +35,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String group = decoder.readString();
         String name = decoder.readString();
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
-        return newSelector(group, name, versionConstraint);
+        return newSelector(group, name, versionConstraint, ImmutableAttributes.EMPTY);
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
