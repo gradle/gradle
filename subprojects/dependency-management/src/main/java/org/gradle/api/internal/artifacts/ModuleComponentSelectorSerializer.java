@@ -20,6 +20,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -31,11 +33,18 @@ import java.util.List;
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector;
 
 public class ModuleComponentSelectorSerializer implements Serializer<ModuleComponentSelector> {
+    private final AttributeContainerSerializer attributeContainerSerializer;
+
+    public ModuleComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+        this.attributeContainerSerializer = attributeContainerSerializer;
+    }
+
     public ModuleComponentSelector read(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
         VersionConstraint versionConstraint = readVersionConstraint(decoder);
-        return newSelector(group, name, versionConstraint, ImmutableAttributes.EMPTY);
+        ImmutableAttributes attributes = readAttributes(decoder);
+        return newSelector(group, name, versionConstraint, attributes);
     }
 
     public VersionConstraint readVersionConstraint(Decoder decoder) throws IOException {
@@ -52,12 +61,14 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getModule());
         writeVersionConstraint(encoder, value.getVersionConstraint());
+        writeAttributes(encoder, ((AttributeContainerInternal)value.getAttributes()).asImmutable());
     }
 
-    public void write(Encoder encoder, String group, String module, VersionConstraint version) throws IOException {
+    public void write(Encoder encoder, String group, String module, VersionConstraint version, ImmutableAttributes attributes) throws IOException {
         encoder.writeString(group);
         encoder.writeString(module);
         writeVersionConstraint(encoder, version);
+        writeAttributes(encoder, attributes);
     }
 
     public void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {
@@ -67,5 +78,13 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         for (String rejectedVersion : rejectedVersions) {
             encoder.writeString(rejectedVersion);
         }
+    }
+
+    private ImmutableAttributes readAttributes(Decoder decoder) throws IOException {
+        return attributeContainerSerializer.read(decoder);
+    }
+
+    private void writeAttributes(Encoder encoder, ImmutableAttributes attributes) throws IOException {
+        attributeContainerSerializer.write(encoder, attributes);
     }
 }

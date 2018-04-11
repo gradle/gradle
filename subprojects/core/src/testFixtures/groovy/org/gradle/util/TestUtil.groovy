@@ -17,11 +17,13 @@ package org.gradle.util
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -205,6 +207,16 @@ class TestUtil {
 
     static String createUniqueId() {
         return new UID().toString();
+    }
+
+    static ImmutableAttributes attributes(Map<String, ?> values) {
+        def attrs = ImmutableAttributes.EMPTY
+        if (values) {
+            values.each { String key, Object value ->
+                attrs = attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
+            }
+        }
+        return attrs
     }
 
 }

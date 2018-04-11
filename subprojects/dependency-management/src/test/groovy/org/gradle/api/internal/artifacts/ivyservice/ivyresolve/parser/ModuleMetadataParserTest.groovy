@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -30,6 +29,8 @@ import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataParserTest extends Specification {
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
@@ -424,8 +425,8 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant1
-        1 * metadata.addVariant("runtime", attributes()) >> variant2
+        1 * metadata.addVariant("api", attributes([:])) >> variant1
+        1 * metadata.addVariant("runtime", attributes([:])) >> variant2
         0 * _
     }
 
@@ -522,7 +523,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes())
+        1 * metadata.addVariant("api", attributes([:]))
         0 * metadata._
     }
 
@@ -553,7 +554,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes([:])) >> variant
         0 * metadata._
     }
 
@@ -588,7 +589,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes([:])) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY)
         0 * metadata._
     }
@@ -647,16 +648,6 @@ class ModuleMetadataParserTest extends Specification {
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse module metadata <resource>"
         e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.4 only."
-    }
-
-    def attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
     }
 
     def resource(String content) {

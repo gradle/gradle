@@ -46,10 +46,10 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        cacheLayout.key == 'metadata-2.56'
-        cacheLayout.version == VersionNumber.parse("2.56.0")
-        cacheLayout.formattedVersion == '2.56'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.56')
+        cacheLayout.key == 'metadata-2.57'
+        cacheLayout.version == VersionNumber.parse("2.57.0")
+        cacheLayout.formattedVersion == '2.57'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.57')
     }
 
     def "use transforms layout"() {
