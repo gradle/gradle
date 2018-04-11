@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.logging.Logger
 import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -229,6 +229,6 @@ class AnnotationProcessorDetectorTest extends Specification {
     }
 
     FileCollection files(File... files) {
-        new SimpleFileCollection(files)
+        ImmutableFileCollection.of(files)
     }
 }

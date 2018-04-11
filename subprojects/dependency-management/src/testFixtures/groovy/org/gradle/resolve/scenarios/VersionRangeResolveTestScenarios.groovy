@@ -102,6 +102,15 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [FIXED_12, REJECT_13],
         expectedNoStrict: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_11],
+        expectedNoStrict: "12"
+    ).and(
+        versions: [RANGE_10_12, REJECT_12],
+        expectedNoStrict: "11"
+    ).and(
+        versions: [RANGE_10_12, REJECT_13],
+        expectedNoStrict: "12"
     )
 
     public static final StrictPermutationsProvider SCENARIOS_THREE_DEPENDENCIES = StrictPermutationsProvider.check(
@@ -172,15 +181,12 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_12, RANGE_13_14, REJECT_13],
         expectedNoStrict: REJECTED,
     ).and(
-        ignore: true,
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_11],
         expectedNoStrict: "10",
     ).and(
-        ignore: true,
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_12],
         expectedNoStrict: "11",
     ).and(
-        ignore: true,
         versions: [FIXED_9, RANGE_10_11, RANGE_10_12, REJECT_13],
         expectedNoStrict: "11",
     )

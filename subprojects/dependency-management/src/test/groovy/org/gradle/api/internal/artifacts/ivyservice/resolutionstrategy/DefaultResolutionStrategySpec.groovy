@@ -26,14 +26,18 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.locking.NoOpDependencyLockingProvider
 import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.vcs.internal.VcsResolver
+import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -47,13 +51,15 @@ class DefaultResolutionStrategySpec extends Specification {
     def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
     def vcsResolver = Mock(VcsResolver)
+    @Shared
+    def dependencyLockingProvider = Mock(DependencyLockingProvider)
 
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider)
 
     def "allows setting forced modules"() {
         expect:
@@ -263,5 +269,20 @@ class DefaultResolutionStrategySpec extends Specification {
             }
         })
         then: 0 * validator.validateMutation(_)
+    }
+
+    @Unroll
+    def 'provides the expected DependencyLockingProvider (#activateLocking)'() {
+        when:
+        if (activateLocking) {
+            strategy.activateDependencyLocking()
+        }
+        then:
+        strategy.dependencyLockingProvider.is(expectedProvider)
+
+        where:
+        activateLocking | expectedProvider
+        true            | dependencyLockingProvider
+        false           | NoOpDependencyLockingProvider.instance
     }
 }

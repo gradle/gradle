@@ -23,17 +23,21 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.locking.DefaultDependencyLockingState;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
@@ -156,10 +160,39 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
             new OpaqueComponentIdentifier("TODO"),
-            selector, usageConfigurationName, null, mappedUsageConfiguration,
+            selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
             ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
             false, false, true, false, null);
     }
 
+    @Override
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+        assert hierarchy.contains(name);
+        DefaultLocalConfigurationMetadata conf = new LibraryLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        addToConfigurations(name, conf);
+        return conf;
+    }
+
+    class LibraryLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
+
+        LibraryLocalConfigurationMetadata(String name,
+                                          String description,
+                                          boolean visible,
+                                          boolean transitive,
+                                          Set<String> extendsFrom,
+                                          Set<String> hierarchy,
+                                          ImmutableAttributes attributes,
+                                          boolean canBeConsumed,
+                                          boolean canBeResolved,
+                                          ImmutableCapabilities capabilities) {
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        }
+
+
+        @Override
+        public DependencyLockingState getDependencyLockingState() {
+            return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+        }
+    }
 }

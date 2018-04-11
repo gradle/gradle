@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.AmbiguousVariantSelectionException;
 import org.gradle.internal.component.NoMatchingVariantSelectionException;
@@ -34,13 +36,15 @@ import java.util.List;
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
-    private final AttributeContainerInternal requested;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
 
-    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
+    AttributeMatchingVariantSelector(ConsumerProvidedVariantFinder consumerProvidedVariantFinder, AttributesSchemaInternal schema, ImmutableAttributesFactory attributesFactory, AttributeContainerInternal requested, boolean ignoreWhenNoMatches) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
-        this.requested = requested;
+        this.attributesFactory = attributesFactory;
+        this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
     }
 
@@ -62,19 +66,20 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
-        List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), requested);
+        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverridenAttributes());
+        List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         }
         if (matches.size() > 1) {
-            throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), requested, matches, matcher);
+            throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher);
         }
 
         List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
         for (ResolvedVariant variant : producer.getVariants()) {
             AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
             ConsumerVariantMatchResult matchResult = new ConsumerVariantMatchResult();
-            consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requested, matchResult);
+            consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, componentRequested, matchResult);
             for (ConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
                 candidates.add(Pair.of(variant, consumerVariant));
             }
@@ -85,12 +90,12 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
 
         if (!candidates.isEmpty()) {
-            throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), requested, candidates);
+            throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), componentRequested, candidates);
         }
 
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
-        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), requested, producer.getVariants(), matcher);
+        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
     }
 }

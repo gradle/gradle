@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.ArrayList;
@@ -40,14 +41,14 @@ import java.util.Set;
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
     private final Map<ComponentSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ComponentSelector, BrokenDependency>();
     private final ComponentSelectorConverter componentSelectorConverter;
-    private DependencyGraphNode root;
+    private RootGraphNode root;
 
     public ResolutionFailureCollector(ComponentSelectorConverter componentSelectorConverter) {
         this.componentSelectorConverter = componentSelectorConverter;
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         this.root = root;
     }
 

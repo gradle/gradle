@@ -42,8 +42,11 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-            componentId, selector, clientConfiguration,
+            componentId,
+            selector,
+            clientConfiguration,
             clientAttributes,
+            dependency.getAttributes(),
             projectDependency.getTargetConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
             excludes,

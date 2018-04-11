@@ -22,7 +22,7 @@ import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Destroys
@@ -74,7 +74,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         File inputFile = new File("some-location")
 
         @InputFiles
-        FileCollection inputFiles = new SimpleFileCollection([new File("files")])
+        FileCollection inputFiles = ImmutableFileCollection.of(new File("files"))
 
         @OutputFile
         File outputFile = new File("output")

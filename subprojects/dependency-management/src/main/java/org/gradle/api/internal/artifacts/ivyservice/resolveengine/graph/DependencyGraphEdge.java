@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
@@ -37,6 +38,8 @@ public interface DependencyGraphEdge extends DependencyResult {
     boolean contributesArtifacts();
 
     List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
+
+    ImmutableAttributes getAttributes();
 
     /**
      * The original dependency instance declared in the build script, if any.

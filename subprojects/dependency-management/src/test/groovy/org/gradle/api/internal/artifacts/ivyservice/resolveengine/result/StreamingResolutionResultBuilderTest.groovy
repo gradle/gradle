@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -41,7 +42,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore(), moduleIdentifierFactory, new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     def "result can be read multiple times"() {
-        def rootNode = node(1, "org", "root", "1.0", root())
+        def rootNode = rootNode(1, "org", "root", "1.0")
         builder.start(rootNode)
         builder.visitNode(rootNode)
         builder.finish(rootNode)
@@ -59,7 +60,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "maintains graph in byte stream"() {
-        def root = node(1, "org", "root", "1.0", root())
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(1, "org", "dep1", "2.0")
         def selector2 = selector(2, "org", "dep2", "3.0")
         def dep1 = node(2, "org", "dep1", "2.0", of([CONFLICT_RESOLUTION]))
@@ -89,7 +90,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector = selector(7, "org", "dep1", "2.0")
         root.outgoingEdges >> [dep(selector, 2)]
 
@@ -117,7 +118,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "accumulates dependencies for all configurations of same component"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(10, "org", "dep1", "1.0")
         root.outgoingEdges >> [dep(selector1, 2)]
 
@@ -159,7 +160,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "dependency failures are remembered"() {
-        def root = node(1, "org", "root", "1.0")
+        def root = rootNode(1, "org", "root", "1.0")
         def selector1 = selector(10, "org", "dep1", "1.0")
         def selector2 = selector(11, "org", "dep2", "2.0")
         root.outgoingEdges >> [
@@ -222,6 +223,18 @@ class StreamingResolutionResultBuilderTest extends Specification {
         _ * component.selectionReason >> reason
 
         def node = Stub(DependencyGraphNode)
+        _ * node.owner >> component
+        return node
+    }
+
+    private RootGraphNode rootNode(Long resultId, String org, String name, String ver) {
+        def component = Stub(DependencyGraphComponent)
+        _ * component.resultId >> resultId
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
+        _ * component.selectionReason >> root()
+
+        def node = Stub(RootGraphNode)
         _ * node.owner >> component
         return node
     }

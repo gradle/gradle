@@ -21,13 +21,13 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -49,12 +49,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public Set<DependencyConstraint> findLockedDependencies(String configurationName) {
-        Set<DependencyConstraint> results = Collections.emptySet();
+    public DependencyLockingState findLockConstraint(String configurationName) {
         if (!writeLocks) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
-                results = Sets.newHashSetWithExpectedSize(lockedModules.size());
+                Set<DependencyConstraint> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
                     try {
                         results.add(converter.convertToDependencyConstraint(module));
@@ -62,30 +61,28 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                         throw new InvalidLockFileException(configurationName, e);
                     }
                 }
+                LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
+                return new DefaultDependencyLockingState(results);
             }
-            LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
         }
-        return results;
+        return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, ResolutionResult resolutionResult) {
+    public void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolvedModules) {
         if (writeLocks) {
-            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolutionResult.getAllComponents()));
+            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedModules));
         }
     }
 
-    private List<String> getModulesOrdered(Set<ResolvedComponentResult> resolvedComponents) {
+    private List<String> getModulesOrdered(Collection<ModuleComponentIdentifier> resolvedComponents) {
         List<String> modules = Lists.newArrayListWithCapacity(resolvedComponents.size());
-        for (ResolvedComponentResult resolvedComponentResult : resolvedComponents) {
-            // TODO this filtering needs to happen at the caller instead
-            if (resolvedComponentResult.getId() instanceof ModuleComponentIdentifier) {
-                ModuleComponentIdentifier id = (ModuleComponentIdentifier) resolvedComponentResult.getId();
-                modules.add(converter.convertToLockNotation(id));
-            }
+        for (ModuleComponentIdentifier identifier : resolvedComponents) {
+            modules.add(converter.convertToLockNotation(identifier));
         }
         Collections.sort(modules);
         LOGGER.debug("Found the following modules:\n\t{}", modules);
         return modules;
     }
+
 }

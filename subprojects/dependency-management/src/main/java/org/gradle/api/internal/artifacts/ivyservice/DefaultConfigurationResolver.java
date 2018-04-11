@@ -63,6 +63,7 @@ import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.CollectionUtils;
 
@@ -148,7 +149,14 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(newModelBuilder, localComponentsVisitor, failureCollector);
-        DependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, fileDependencyVisitor, artifactsBuilder);
+        DependencyArtifactsVisitor artifactsVisitor;
+        DependencyLockingArtifactVisitor lockingVisitor = null;
+        if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
+            lockingVisitor = new DependencyLockingArtifactVisitor(configuration.getName(), configuration.getResolutionStrategy().getDependencyLockingProvider());
+            artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, fileDependencyVisitor, artifactsBuilder, lockingVisitor);
+        } else {
+            artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, fileDependencyVisitor, artifactsBuilder);
+        }
 
         resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, Specs.<DependencyMetadata>satisfyAll(), graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
 
@@ -160,9 +168,9 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         results.graphResolved(newModelBuilder.complete(), localComponentsVisitor, new BuildDependenciesOnlyVisitedArtifactSet(failures, artifactsResults, artifactTransforms));
 
         results.retainState(new ArtifactResolveState(graphResults, artifactsResults, fileDependencyResults, failures, oldTransientModelBuilder));
-        if (configuration.getResolutionStrategy().isDependencyLockingEnabled() && !results.hasError() && failures.isEmpty()) {
-            // TODO this needs to be done through a visitor and coupled with post resolve validation
-            dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), results.getResolutionResult());
+        if (lockingVisitor != null && !results.hasError() && failures.isEmpty()) {
+            // TODO is there no way to confirm this state from the visitor itself?
+            lockingVisitor.complete();
         }
     }
 

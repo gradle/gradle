@@ -22,8 +22,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -33,6 +35,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
@@ -129,6 +132,14 @@ class EdgeState implements DependencyGraphEdge {
         attachToTargetConfigurations();
     }
 
+    public ImmutableAttributes getAttributes() {
+        ImmutableAttributes dependencyAttributes = ImmutableAttributes.EMPTY;
+        ModuleResolveState module = selector.getTargetModule();
+        List<SelectorState> selectors = module.getSelectors();
+        dependencyAttributes = mergeSelectorAttributes(dependencyAttributes, selectors);
+        return dependencyAttributes;
+    }
+
     private void calculateTargetConfigurations(ComponentState targetComponent) {
         targetNodes.clear();
         targetNodeSelectionFailure = null;
@@ -138,9 +149,10 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
         List<ConfigurationMetadata> targetConfigurations;
         try {
+            ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
+            attributes = resolveState.getAttributesFactory().concat(attributes, getAttributes());
             targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
         } catch (Throwable t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
@@ -217,4 +229,52 @@ class EdgeState implements DependencyGraphEdge {
         });
     }
 
+    private ImmutableAttributes mergeSelectorAttributes(ImmutableAttributes dependencyAttributes, List<SelectorState> selectors) {
+        for (SelectorState selectorState : selectors) {
+            dependencyAttributes = appendAttributes(dependencyAttributes, selectors, selectorState);
+        }
+        return dependencyAttributes;
+    }
+
+    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, List<SelectorState> selectors, SelectorState selectorState) {
+        try {
+            dependencyAttributes = resolveState.getAttributesFactory().safeConcat(selectorState.getDependencyMetadata().getAttributes(), dependencyAttributes);
+        } catch (AttributeMergingException e) {
+            return throwMergeError(selectors, e);
+        }
+        return dependencyAttributes;
+    }
+
+    private static ImmutableAttributes throwMergeError(List<SelectorState> selectors, AttributeMergingException e) {
+        TreeFormatter error = new TreeFormatter();
+        error.node("Cannot choose between ");
+        boolean first = true;
+        for (SelectorState state : selectors) {
+            if (!first) {
+                error.append(" and ");
+            }
+            first = false;
+            error.append("'");
+            error.append(state.getRequested().toString());
+            error.append("'");
+        }
+        error.append(" because they require a different value for attribute '");
+        Attribute<?> attribute = e.getAttribute();
+        error.append(attribute.toString());
+        error.append("'");
+        error.startChildren();
+        for (SelectorState state : selectors) {
+            error.node(formatSelector(state, attribute));
+        }
+        error.endChildren();
+        throw new IllegalStateException(error.toString());
+    }
+
+    private static String formatSelector(SelectorState state, Attribute<?> attribute) {
+        DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
+        StringBuilder sb = new StringBuilder(dependencyMetadata.isPending() ? "Constraint '" : "Dependency '");
+        sb.append(state.getRequested()).append("' wants value ");
+        sb.append("'").append(dependencyMetadata.getAttributes().getAttribute(attribute)).append("'");
+        return sb.toString();
+    }
 }

@@ -60,13 +60,18 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 resolvedVersionConstraint = new DefaultResolvedVersionConstraint(raw, versionSelectorScheme);
             }
             VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
+            VersionSelector rejectSelector = resolvedVersionConstraint.getRejectedSelector();
             if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, resolvedVersionConstraint.getRejectedSelector(), result);
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, result);
             } else {
                 String version = resolvedVersionConstraint.getPreferredVersion();
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
                 ModuleVersionIdentifier mvId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getModule(), version);
-                result.resolved(id, mvId);
+                if (rejectSelector != null && rejectSelector.accept(version)) {
+                    result.rejected(id, mvId);
+                } else {
+                    result.resolved(id, mvId);
+                }
             }
         }
     }

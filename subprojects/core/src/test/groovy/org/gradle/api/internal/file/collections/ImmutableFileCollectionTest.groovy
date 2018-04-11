@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.collections
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
@@ -74,11 +73,10 @@ class ImmutableFileCollectionTest extends Specification {
         exception.message == "Immutable file collection does not allow modification."
 
         where:
-        description      | collection
-        'empty'          | ImmutableFileCollection.of()
-        'regular'        | ImmutableFileCollection.of('abc')
-        'collection'     | ImmutableFileCollection.of(ImmutableList.of(new File('def')))
-        'using resolver' | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
+        description        | collection
+        'empty'            | ImmutableFileCollection.of()
+        'Files'            | ImmutableFileCollection.of(new File('abc'))
+        'using resolver'   | ImmutableFileCollection.usingResolver(Mock(FileResolver), 'abc')
     }
 
     def 'can use a Closure to specify a single file'() {
@@ -213,22 +211,5 @@ class ImmutableFileCollectionTest extends Specification {
         'URL'         | new URL('file:/abc') | null
         'Directory'   | Mock(Directory)      | null
         'RegularFile' | Mock(RegularFile)    | null
-    }
-
-    @Unroll
-    def 'avoids file resolution when FileCollection contains only Files (#count)'() {
-        def input = (0..(count)).collect { new File(it.toString()) }
-        FileResolver fileResolver = Mock()
-        ImmutableFileCollection collection = ImmutableFileCollection.usingResolver(fileResolver, input)
-
-        when:
-        Set<File> files = collection.getFiles()
-
-        then:
-        0 * fileResolver.resolve(_)
-        files == input as LinkedHashSet
-
-        where:
-        count << [0, 1, 2, 10]
     }
 }
