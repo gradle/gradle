@@ -18,11 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.DependenciesMetadata;
+import org.gradle.api.artifacts.DependencyMetadata;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
@@ -112,7 +111,7 @@ public abstract class AbstractDependenciesMetadataAdapter<T extends DependencyMe
     }
 
     private org.gradle.internal.component.model.DependencyMetadata toDependencyMetadata(T details) {
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getGroup(), details.getName(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()));
-        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), isPending(), details.getReason(), ((AttributeContainerInternal)details.getAttributes()).asImmutable());
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(details.getGroup(), details.getName(), DefaultImmutableVersionConstraint.of(details.getVersionConstraint()), details.getAttributes());
+        return new GradleDependencyMetadata(selector, Collections.<ExcludeMetadata>emptyList(), isPending(), details.getReason());
     }
 }

@@ -49,7 +49,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         given:
         def dependency = Mock(ModuleDependencyMetadata)
         def result = Mock(BuildableModuleVersionListingResolveResult)
-        dependency.getSelector() >> new DefaultModuleComponentSelector('a', 'b', DefaultImmutableVersionConstraint.of('1.0'))
+        dependency.getSelector() >> DefaultModuleComponentSelector.newSelector('a', 'b', DefaultImmutableVersionConstraint.of('1.0'))
 
         when: 'repo is not blacklisted'
         repositoryBlacklister.isBlacklisted(REPOSITORY_ID) >> false

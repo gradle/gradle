@@ -253,7 +253,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        def selector = new DefaultModuleComponentSelector("x", requested, DefaultImmutableVersionConstraint.of("1"))
+        def selector = DefaultModuleComponentSelector.newSelector("x", requested, DefaultImmutableVersionConstraint.of("1"))
         def moduleVersionSelector = newSelector("x", requested, new DefaultMutableVersionConstraint("1"))
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)

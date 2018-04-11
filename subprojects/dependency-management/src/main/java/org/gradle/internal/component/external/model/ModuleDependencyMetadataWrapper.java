@@ -43,23 +43,13 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         ModuleComponentSelector selector = getSelector();
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion, selector.getAttributes());
         return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
         return new ModuleDependencyMetadataWrapper(delegate.withReason(reason));
-    }
-
-    @Override
-    public ImmutableAttributes getAttributes() {
-        return delegate.getAttributes();
-    }
-
-    @Override
-    public ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes) {
-        return (ModuleDependencyMetadata) delegate.withAttributes(attributes);
     }
 
     @Override

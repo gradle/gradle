@@ -40,7 +40,11 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean changing = externalModuleDependency.isChanging();
         boolean transitive = externalModuleDependency.isTransitive();
 
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable());
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
+            nullToEmpty(dependency.getGroup()),
+            nullToEmpty(dependency.getName()),
+            ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
+            dependency.getAttributes());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(

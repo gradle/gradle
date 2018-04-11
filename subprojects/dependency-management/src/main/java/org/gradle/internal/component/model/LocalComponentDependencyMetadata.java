@@ -186,19 +186,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return copyWithReason(reason);
     }
 
-    @Override
-    public ImmutableAttributes getAttributes() {
-        return dependencyAttributes;
-    }
-
-    @Override
-    public DependencyMetadata withAttributes(ImmutableAttributes attributes) {
-        if (Objects.equal(attributes, this.dependencyAttributes)) {
-            return this;
-        }
-        return copyWithAttributes(attributes);
-    }
-
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
@@ -207,7 +194,4 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 
-    private LocalOriginDependencyMetadata copyWithAttributes(ImmutableAttributes attributes) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, attributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
-    }
 }

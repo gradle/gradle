@@ -44,20 +44,18 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
-    private final ImmutableAttributes attributes;
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason, ImmutableAttributes attributes) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
-        this.attributes = attributes;
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
-        this(configuration, componentId, dependencyDescriptor, null, ImmutableAttributes.EMPTY);
+        this(configuration, componentId, dependencyDescriptor, null);
     }
 
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
@@ -98,7 +96,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint());
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes());
             if (newSelector.equals(getSelector())) {
                 return this;
             }
@@ -117,7 +115,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion);
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getGroup(), selector.getModule(), requestedVersion, selector.getAttributes());
         return withRequested(newSelector);
     }
 
@@ -126,20 +124,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason, attributes);
-    }
-
-    @Override
-    public ImmutableAttributes getAttributes() {
-        return attributes;
-    }
-
-    @Override
-    public ModuleDependencyMetadata withAttributes(ImmutableAttributes attributes) {
-        if (Objects.equal(attributes, this.getAttributes())) {
-            return this;
-        }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason, attributes);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {

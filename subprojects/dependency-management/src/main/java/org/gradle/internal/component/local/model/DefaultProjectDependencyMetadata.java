@@ -91,13 +91,4 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
         return delegate.withReason(reason);
     }
 
-    @Override
-    public ImmutableAttributes getAttributes() {
-        return delegate.getAttributes();
-    }
-
-    @Override
-    public DependencyMetadata withAttributes(ImmutableAttributes attributes) {
-        return delegate.withAttributes(attributes);
-    }
 }

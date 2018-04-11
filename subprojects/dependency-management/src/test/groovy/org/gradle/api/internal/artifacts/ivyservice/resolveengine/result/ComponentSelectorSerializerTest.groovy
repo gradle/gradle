@@ -53,7 +53,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', constraint('version-one'))
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector('group-one', 'name-one', constraint('version-one'))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)
@@ -99,7 +99,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes strict constraint"() {
         given:
-        ModuleComponentSelector selection = new DefaultModuleComponentSelector('group-one', 'name-one', constraint('version-one', true))
+        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector('group-one', 'name-one', constraint('version-one', true))
 
         when:
         ModuleComponentSelector result = serialize(selection, serializer)

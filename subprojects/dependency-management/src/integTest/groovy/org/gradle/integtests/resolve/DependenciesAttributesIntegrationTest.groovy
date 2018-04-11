@@ -694,7 +694,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives")
-    def "Attribute value on dependency only affects selection of this dependency"() {
+    def "Attribute value on dependency only affects selection of this dependency (using component metadata rules)"() {
         given:
         repository {
             def modules = ['direct', 'transitive', 'leaf']
@@ -722,7 +722,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                 components {
                     // transitive module will override the configuration attribute
                     // and it shouldn't affect the selection of 'direct' or 'leaf' dependencies
-                    withModule('org:transitiveA') {
+                    withModule('org:directA') {
                         allVariants {
                             withDependencies {
                                 it.each {
@@ -733,7 +733,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                             }
                         }
                     } 
-                    withModule('org:transitiveB') {
+                    withModule('org:directB') {
                         allVariants {
                             withDependencies {
                                 it.each {
@@ -767,19 +767,25 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 module('org:directA:1.0') {
                     configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
                     module('org:transitiveA:1.0') {
                         configuration = expectedTransitiveVariantA
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantA", custom: transitiveAttributeValueA])
                         module('org:leafA:1.0') {
                             configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
                         }
                     }
                 }
                 module('org:directB:1.0') {
                     configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
                     module('org:transitiveB:1.0') {
                         configuration = expectedTransitiveVariantB
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantB", custom: transitiveAttributeValueB])
                         module('org:leafB:1.0') {
                             configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
                         }
                     }
                 }

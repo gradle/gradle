@@ -78,7 +78,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                 dependencyLockingState = dependencyLockingProvider.findLockConstraint(getName());
                 for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                        dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
+                        dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes());
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
                         Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
                 }

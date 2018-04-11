@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -185,15 +184,15 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.group == "org.gradle.test"
         dependenciesMetadata[0].selector.module == "module1"
         dependenciesMetadata[0].selector.version == "1.0"
-        dependenciesMetadata[0].attributes.keySet() == [attr] as Set
-        dependenciesMetadata[0].attributes.getAttribute(attr) == 'foo'
+        dependenciesMetadata[0].selector.attributes.keySet() == [attr] as Set
+        dependenciesMetadata[0].selector.attributes.getAttribute(attr) == 'foo'
     }
 
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
-            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, null, ImmutableAttributes.EMPTY) ]
+            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, null) ]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }

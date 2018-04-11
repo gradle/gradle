@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -58,4 +59,15 @@ public interface ModuleComponentSelector extends ComponentSelector {
      */
     @Incubating
     VersionConstraint getVersionConstraint();
+
+    /**
+     * The attributes of the module to select the component from. The attributes only include
+     * selector specific attributes. This means it typically doesn't include any consumer specific attribute.
+     *
+     * @return the attributes
+     *
+     * @since 4.8
+     */
+    @Incubating
+    AttributeContainer getAttributes();
 }
