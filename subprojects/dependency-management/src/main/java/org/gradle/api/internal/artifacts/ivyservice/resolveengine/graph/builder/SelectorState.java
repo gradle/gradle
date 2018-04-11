@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
@@ -109,8 +110,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     /**
      * Does the work of actually resolving a component selector to a component identifier.
      */
-    public ComponentIdResolveResult resolve() {
-        if (idResolveResult != null) {
+    public ComponentIdResolveResult resolve(VersionSelector allRejects) {
+        if (!requiresResolve(allRejects)) {
             return idResolveResult;
         }
 
@@ -118,7 +119,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (dependencyState.failure != null) {
             idResolveResult.failed(dependencyState.failure);
         } else {
-            resolver.resolve(dependencyMetadata, versionConstraint, idResolveResult);
+            ResolvedVersionConstraint mergedConstraint = versionConstraint == null ? null : new DefaultResolvedVersionConstraint(versionConstraint.getPreferredSelector(), allRejects);
+            resolver.resolve(dependencyMetadata, mergedConstraint, idResolveResult);
         }
 
         if (idResolveResult.getFailure() != null) {
@@ -128,6 +130,30 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.idResolveResult = idResolveResult;
         this.resolved = true;
         return idResolveResult;
+    }
+
+    private boolean requiresResolve(VersionSelector allRejects) {
+        // If we've never resolved, must resolve
+        if (idResolveResult == null) {
+            return true;
+        }
+
+        // If previous resolve failed, no point in re-resolving
+        if (idResolveResult.getFailure() != null) {
+            return false;
+        }
+
+        // If the previous result was rejected, do not need to re-resolve (new rejects will be a superset of previous rejects)
+        if (idResolveResult.isRejected()) {
+            return false;
+        }
+
+        // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
+        if (allRejects == null || !allRejects.accept(idResolveResult.getModuleVersionId().getVersion())) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

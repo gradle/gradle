@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
@@ -35,9 +36,15 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setDestinationDir(File destinationDir);
 
-    Collection<File> getSource();
+    @Deprecated
+    FileCollection getSource();
 
-    void setSource(Collection<File> source);
+    @Deprecated
+    void setSource(FileCollection source);
+
+    Collection<File> getSourceFiles();
+
+    void setSourceFiles(Collection<File> sourceFiles);
 
     @Deprecated
     Iterable<File> getClasspath();

@@ -61,7 +61,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                 return '.' + extension;
             }
         });
-        Collection<File> filtered = Collections2.filter(spec.getSource(), new Predicate<File>() {
+        Collection<File> filtered = Collections2.filter(spec.getSourceFiles(), new Predicate<File>() {
             @Override
             public boolean apply(File element) {
                 for (String fileExtension : fileExtensions) {
@@ -73,7 +73,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
             }
         });
 
-        spec.setSource(filtered);
+        spec.setSourceFiles(filtered);
     }
 
     private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
@@ -99,7 +99,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             builder.append('\n');
             builder.append(file);
         }

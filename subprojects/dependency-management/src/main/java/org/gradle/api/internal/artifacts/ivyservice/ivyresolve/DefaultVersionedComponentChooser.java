@@ -76,31 +76,31 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 return;
             }
 
-            String version = candidate.getVersion().getSource();
+            ModuleComponentIdentifier candidateId = candidate.getId();
             if (!versionMatches) {
-                result.notMatched(version);
+                result.notMatched(candidateId);
                 continue;
             }
 
-            if (rejectedVersionSelector != null && rejectedVersionSelector.accept(version)) {
-                // Mark this version as rejected and continue
-                result.rejected(version);
-                continue;
-            } else {
-                ModuleComponentIdentifier candidateIdentifier = candidate.getId();
-                if (!isRejectedByRules(candidateIdentifier, rules, metadataProvider)) {
-                    result.matches(candidateIdentifier);
-                    return;
+
+            if (isRejectedByConstraint(candidateId, rejectedVersionSelector)) {
+                // Mark this version as rejected
+                result.rejectedByConstraint(candidateId);
+            } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
+                // Mark this version as rejected
+                result.rejectedByRule(candidateId);
+
+                // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
+                if (requestedVersionMatcher.matchesUniqueVersion()) {
+                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                    break;
                 }
-            }
-
-            // Mark this version as rejected
-            result.rejected(version);
-            if (requestedVersionMatcher.matchesUniqueVersion()) {
-                // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
-                break;
+            } else {
+                result.matches(candidateId);
+                return;
             }
         }
+
         // if we reach this point, no match was found, either because there are no versions matching the selector
         // or all of them were rejected
         result.noMatchFound();
@@ -162,6 +162,10 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
         rulesProcessor.apply(selection, rules, metadataProvider);
         return selection.isRejected();
+    }
+
+    private boolean isRejectedByConstraint(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
+        return rejectedVersionSelector != null && rejectedVersionSelector.accept(candidateIdentifier.getVersion());
     }
 
     private List<ModuleComponentResolveState> sortLatestFirst(Collection<? extends ModuleComponentResolveState> listing) {

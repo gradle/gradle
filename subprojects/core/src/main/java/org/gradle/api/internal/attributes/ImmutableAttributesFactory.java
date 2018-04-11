@@ -48,4 +48,10 @@ public interface ImmutableAttributesFactory {
      * Merges the second container into the first container and returns the result. Values in the second container win.
      */
     ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2);
+
+    /**
+     * Merges the second container into the first container and returns the result. If the second container has the same
+     * attribute with a different value, this method will fail instead of overriding the attribute value.
+     */
+    ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException;
 }

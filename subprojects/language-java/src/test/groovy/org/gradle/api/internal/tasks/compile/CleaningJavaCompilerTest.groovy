@@ -39,7 +39,7 @@ class CleaningJavaCompilerTest extends Specification {
         File destDir = new File('dest')
         _ * spec.destinationDir >> destDir
         def files = [new File('src')] as Set
-        _ * spec.source >> files
+        _ * spec.sourceFiles >> files
 
         when:
         def r = compiler.execute(spec)

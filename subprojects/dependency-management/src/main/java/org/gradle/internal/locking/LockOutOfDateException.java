@@ -16,26 +16,19 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
-import java.util.Collection;
+import org.gradle.internal.text.TreeFormatter;
 
 public class LockOutOfDateException extends RuntimeException {
 
-    public static LockOutOfDateException createLockOutOfDateException(Iterable<String> errors) {
-        StringBuilder builder = new StringBuilder("Dependency lock out of date:\n");
+    public static LockOutOfDateException createLockOutOfDateException(String configurationName, Iterable<String> errors) {
+        TreeFormatter treeFormatter = new TreeFormatter();
+        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date:");
+        treeFormatter.startChildren();
         for (String error : errors) {
-            builder.append("\t").append(error).append("\n");
+            treeFormatter.node(error);
         }
-        return new LockOutOfDateException(builder.toString());
-    }
-
-    public static LockOutOfDateException createLockOutOfDateExceptionStrictMode(Collection<ModuleComponentIdentifier> extraModules) {
-        StringBuilder builder = new StringBuilder("Dependency lock out of date (strict mode):\n");
-        for (ModuleComponentIdentifier extraModule : extraModules) {
-            builder.append("Module missing from lock file: ").append(extraModule.getGroup()).append(":").append(extraModule.getModule()).append(":").append(extraModule.getVersion()).append("\n");
-        }
-        return new LockOutOfDateException(builder.toString());
+        treeFormatter.endChildren();
+        return new LockOutOfDateException(treeFormatter.toString());
     }
 
     private LockOutOfDateException(String message) {

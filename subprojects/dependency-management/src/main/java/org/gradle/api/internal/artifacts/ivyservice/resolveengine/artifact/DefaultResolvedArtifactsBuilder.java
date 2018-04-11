@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -44,7 +45,7 @@ public class DefaultResolvedArtifactsBuilder implements DependencyArtifactsVisit
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
+    public void startArtifacts(RootGraphNode root) {
     }
 
     @Override

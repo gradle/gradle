@@ -17,9 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
-
-import static org.gradle.util.Matchers.containsText
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -161,7 +158,6 @@ dependencies {
             "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version 1.0")
     }
 
-    @Ignore("Post resolve validation missing")
     def 'fails when lock file entry not resolved'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -192,7 +188,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertThatCause(containsText("Lock file contained 'org:bar:1.0' but it is not part of the resolved modules"))
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Did not resolve 'org:bar:1.0' which is part of the lock state")
     }
 
     def 'writes dependency lock file when requested'() {
@@ -309,8 +305,7 @@ dependencies {
 //            "\tLock file expected 'org:foo:1.0' but resolution result was 'org:foo:1.1'")
     }
 
-    @Ignore("Post resolve validation missing")
-    def 'fails in strict mode when new dependencies appear'() {
+    def 'fails when new dependencies appear'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
@@ -341,8 +336,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause("Dependency lock out of date (strict mode):\n" +
-            "Module missing from lock file: org:bar:1.0")
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Resolved 'org:bar:1.0' which is not part of the lock state")
     }
 
 }

@@ -56,4 +56,9 @@ public interface ComponentIdResolveResult extends ResolveResult {
     @Nullable
     ComponentResolveMetadata getMetadata();
 
+    /**
+     * Returns true if the component id was resolved, but it was rejected by constraint.
+     */
+    boolean isRejected();
+
 }

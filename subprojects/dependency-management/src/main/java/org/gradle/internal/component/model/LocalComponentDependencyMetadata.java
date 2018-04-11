@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException;
@@ -44,11 +45,13 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final String reason;
 
     private final AttributeContainer moduleAttributes;
+    private final ImmutableAttributes dependencyAttributes;
 
     public LocalComponentDependencyMetadata(ComponentIdentifier componentId,
                                             ComponentSelector selector,
                                             String moduleConfiguration,
                                             AttributeContainer moduleAttributes,
+                                            AttributeContainer dependencyAttributes,
                                             String dependencyConfiguration,
                                             List<IvyArtifactName> artifactNames, List<ExcludeMetadata> excludes,
                                             boolean force, boolean changing, boolean transitive, boolean pending,
@@ -57,6 +60,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.selector = selector;
         this.moduleConfiguration = moduleConfiguration;
         this.moduleAttributes = moduleAttributes;
+        this.dependencyAttributes = ((AttributeContainerInternal)dependencyAttributes).asImmutable();
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = ImmutableList.copyOf(artifactNames);
         this.excludes = excludes;
@@ -181,11 +185,16 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return copyWithReason(reason);
     }
 
+    @Override
+    public ImmutableAttributes getAttributes() {
+        return dependencyAttributes;
+    }
+
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 
     private LocalOriginDependencyMetadata copyWithReason(String reason) {
-        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
+        return new LocalComponentDependencyMetadata(componentId, selector, moduleConfiguration, moduleAttributes, dependencyAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, pending, reason);
     }
 }

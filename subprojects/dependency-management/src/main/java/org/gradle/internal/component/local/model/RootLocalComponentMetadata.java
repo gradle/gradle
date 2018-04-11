@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -45,13 +46,14 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     @Override
     public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        RootLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
         addToConfigurations(name, conf);
         return conf;
     }
 
-    class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata {
-        private boolean canBeLocked;
+    class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
+        private boolean configurationLocked;
+        private DependencyLockingState dependencyLockingState;
 
         RootLocalConfigurationMetadata(String name,
                                        String description,
@@ -67,19 +69,25 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         }
 
         public void enableLocking() {
-            this.canBeLocked = true;
+            this.configurationLocked = true;
         }
 
         @Override
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
-            if (canBeLocked) {
-                for (DependencyConstraint dependencyConstraint : dependencyLockingProvider.findLockedDependencies(getName())) {
+            if (configurationLocked) {
+                dependencyLockingState = dependencyLockingProvider.findLockConstraint(getName());
+                for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
                         dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint());
-                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(), null,
+                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
                         Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason()));
                 }
             }
+        }
+
+        @Override
+        public DependencyLockingState getDependencyLockingState() {
+            return dependencyLockingState;
         }
     }
 }

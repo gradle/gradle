@@ -140,7 +140,6 @@ class ModuleResolveState implements CandidateModule {
             selected.removeOutgoingEdges();
         }
         for (ComponentState version : versions.values()) {
-            // TODO:DAZ Only the current selection should require the `makeSelectable` call.
             if (version.isSelected()) {
                 version.makeSelectable();
             }
