@@ -39,6 +39,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 - `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
 - `FileCollection.stopExecutionIfEmpty()` is deprecated without a replacement. You can use `@SkipWhenEmpty` on a `FileCollection` property, or throw a `StopExecutionException` in your code manually instead.
 
+### `SimpleFileCollection`
+
+The internal `SimpleFileCollection` implementation of `FileCollection` has been deprecated.
+You should use `ProjectLayout.filesFor(Object...)` if you need an immutable `FileCollection` or `ProjectLayout.mutableFilesFor(Object...)` if you need a mutable `ConfigurableFileCollection`.
+
 ## Potential breaking changes
 
 <!--
