@@ -17,7 +17,6 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -275,7 +274,7 @@ public class SigningExtension {
         List<Sign> result = new ArrayList<Sign>(tasks.length);
         for (final Task taskToSign : tasks) {
             result.add(
-                createSignTaskFor(taskToSign.getName(), getConfiguration().getArtifacts(), new Action<Sign>() {
+                createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
                         task.sign(taskToSign);
                     }
@@ -299,7 +298,7 @@ public class SigningExtension {
         List<Sign> result = new ArrayList<Sign>(configurations.length);
         for (final Configuration configurationToSign : configurations) {
             result.add(
-                createSignTaskFor(configurationToSign.getName(), getConfiguration().getArtifacts(), new Action<Sign>() {
+                createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
                         task.sign(configurationToSign);
                     }
@@ -349,31 +348,21 @@ public class SigningExtension {
         return signTask;
     }
 
-    private Sign createSignTaskFor(CharSequence name, DomainObjectSet<? super Signature> artifacts, Action<Sign> taskConfiguration) {
+    private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
         Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
-        addSignaturesToArtifacts(signTask, artifacts);
+        addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }
 
-    /**
-     * Add the given task's signatures to the given configuration's artifacts.
-     *
-     * @deprecated should have been a private method in the first place
-     */
-    @Deprecated
-    protected Object addSignaturesToConfiguration(Sign task, Configuration configuration) {
-        return addSignaturesToArtifacts(task, configuration.getArtifacts());
-    }
-
-    private Action<? super Signature> addSignaturesToArtifacts(Sign task, final DomainObjectSet<? super Signature> artifacts) {
+    protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
         task.getSignatures().all(new Action<Signature>() {
-            public void execute(Signature signature) {
-                artifacts.add(signature);
+            public void execute(Signature sig) {
+                configuration.getArtifacts().add(sig);
             }
         });
         return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
-            public void execute(Signature signature) {
-                artifacts.remove(signature);
+            public void execute(Signature sig) {
+                configuration.getArtifacts().remove(sig);
             }
         });
     }
