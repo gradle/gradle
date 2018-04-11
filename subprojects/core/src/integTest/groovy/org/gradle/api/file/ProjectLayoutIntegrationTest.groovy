@@ -217,7 +217,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'Closure'        | 'project.layout.filesFor({ "%s/src/resource/file.txt" })'
         'FileCollection'             | 'List'           | 'project.layout.filesFor([ "%s/src/resource/file.txt" ])'
         'FileCollection'             | 'array'          | 'project.layout.filesFor([ "%s/src/resource/file.txt" ] as Object[])'
-        'FileCollection'             | 'FileCollection' | 'project.layout.filesFor(new org.gradle.api.internal.file.collections.FileCollectionAdapter(new org.gradle.api.internal.file.collections.ListBackedFileSet(new File("%s/src/resource/file.txt"))))'
+        'FileCollection'             | 'FileCollection' | 'project.layout.filesFor(org.gradle.api.internal.file.collections.ImmutableFileCollection.of(new File("%s/src/resource/file.txt")))'
         'FileCollection'             | 'Callable'       | "project.layout.filesFor($STRING_CALLABLE)"
         'FileCollection'             | 'Provider'       | "project.layout.filesFor(provider($STRING_CALLABLE))"
         'FileCollection'             | 'nested objects' | "project.layout.filesFor({[{$STRING_CALLABLE}]})"
@@ -232,7 +232,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'Closure'        | 'project.layout.mutableFilesFor({ "%s/src/resource/file.txt" })'
         'ConfigurableFileCollection' | 'List'           | 'project.layout.mutableFilesFor([ "%s/src/resource/file.txt" ])'
         'ConfigurableFileCollection' | 'array'          | 'project.layout.mutableFilesFor([ "%s/src/resource/file.txt" ] as Object[])'
-        'ConfigurableFileCollection' | 'FileCollection' | 'project.layout.mutableFilesFor(new org.gradle.api.internal.file.collections.FileCollectionAdapter(new org.gradle.api.internal.file.collections.ListBackedFileSet(new File("%s/src/resource/file.txt"))))'
+        'ConfigurableFileCollection' | 'FileCollection' | 'project.layout.mutableFilesFor(org.gradle.api.internal.file.collections.ImmutableFileCollection.of(new File("%s/src/resource/file.txt")))'
         'ConfigurableFileCollection' | 'Callable'       | "project.layout.mutableFilesFor($STRING_CALLABLE)"
         'ConfigurableFileCollection' | 'Provider'       | "project.layout.mutableFilesFor(provider($STRING_CALLABLE))"
         'ConfigurableFileCollection' | 'nested objects' | "project.layout.mutableFilesFor({[{$STRING_CALLABLE}]})"
