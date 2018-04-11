@@ -805,6 +805,103 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives (using published metadata)")
+    def "Attribute value on dependency only affects selection of this dependency (using published metadata)"() {
+        given:
+        repository {
+            def modules = ['direct', 'transitive', 'leaf']
+            modules.eachWithIndex { module, idx ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        if (idx < modules.size() - 1) {
+                            ['api', 'runtime'].each { name ->
+                                variant(name) {
+                                    dependsOn("org:${modules[idx + 1]}${appendix}:1.0") {
+                                        if (module == 'direct') {
+                                            attributes.custom = "${appendix == 'A' ? transitiveAttributeValueA : transitiveAttributeValueB}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        variant('api') {
+                            attribute('custom', 'c1')
+                        }
+                        variant('runtime') {
+                            attribute('custom', 'c2')
+                        }
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationAttributeValue')
+
+            dependencies {                
+                conf('org:directA:1.0')
+                conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            ['direct', 'transitive', 'leaf'].each { module ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        expectResolve()
+                    }
+                }
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:directA:1.0') {
+                    configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    module('org:transitiveA:1.0') {
+                        configuration = expectedTransitiveVariantA
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantA", custom: transitiveAttributeValueA])
+                        module('org:leafA:1.0') {
+                            configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                        }
+                    }
+                }
+                module('org:directB:1.0') {
+                    configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    module('org:transitiveB:1.0') {
+                        configuration = expectedTransitiveVariantB
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantB", custom: transitiveAttributeValueB])
+                        module('org:leafB:1.0') {
+                            configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        configurationAttributeValue | transitiveAttributeValueA | transitiveAttributeValueB | expectedDirectVariant | expectedTransitiveVariantA | expectedTransitiveVariantB | expectedLeafVariant
+        'c1'                        | 'c1'                      | 'c1'                      | 'api'                 | 'api'                      | 'api'                      | 'api'
+        'c1'                        | 'c2'                      | 'c2'                      | 'api'                 | 'runtime'                  | 'runtime'                  | 'api'
+        'c2'                        | 'c2'                      | 'c2'                      | 'runtime'             | 'runtime'                  | 'runtime'                  | 'runtime'
+        'c2'                        | 'c1'                      | 'c1'                      | 'runtime'             | 'api'                      | 'api'                      | 'runtime'
+
+        'c1'                        | 'c1'                      | 'c2'                      | 'api'                 | 'api'                      | 'runtime'                  | 'api'
+        'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
+        'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
+        'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
+    }
+
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }

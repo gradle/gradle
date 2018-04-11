@@ -87,6 +87,13 @@ class GradleFileModuleAdapter {
                                     }
                                 })
                             }
+                            if (d.attributes) {
+                                attributes {
+                                    d.attributes.each { key, value ->
+                                        "$key" value
+                                    }
+                                }
+                            }
                         }
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->
@@ -103,6 +110,13 @@ class GradleFileModuleAdapter {
                             }
                             if (dc.reason) {
                                 reason dc.reason
+                            }
+                            if (dc.attributes) {
+                                attributes {
+                                    dc.attributes.each { key, value ->
+                                        "$key" value
+                                    }
+                                }
                             }
                         }
                     })
