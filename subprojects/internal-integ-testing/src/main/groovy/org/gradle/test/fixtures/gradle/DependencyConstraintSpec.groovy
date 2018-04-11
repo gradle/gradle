@@ -25,12 +25,14 @@ class DependencyConstraintSpec {
     String prefers
     List<String> rejects
     String reason
+    Map<String, ?> attributes
 
-    DependencyConstraintSpec(String g, String m, String version, List<String> r, String desc) {
+    DependencyConstraintSpec(String g, String m, String version, List<String> r, String desc, Map<String, ?> attrs) {
         group = g
         module = m
         prefers = version
         rejects = r?:Collections.<String>emptyList()
         reason = desc
+        attributes = attrs
     }
 }
