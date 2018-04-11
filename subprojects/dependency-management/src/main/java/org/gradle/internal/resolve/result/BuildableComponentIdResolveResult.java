@@ -28,6 +28,11 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
+     * Marks the component selector as resolved to the specified id, but rejected.
+     */
+    void rejected(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
+
+    /**
      * Marks the component selector as resolved, with the provided metadata. The id is taken from the metadata.
      */
     void resolved(ComponentResolveMetadata metaData);

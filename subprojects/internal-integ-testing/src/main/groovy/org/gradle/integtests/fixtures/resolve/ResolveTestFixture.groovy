@@ -582,12 +582,15 @@ allprojects {
         /**
          * Defines a link between nodes created through a dependency constraint.
          */
-        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId) {
+        NodeBuilder edgeFromConstraint(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             if (this == graph.root) {
                 graph.constraints.add(node)
             }
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
             return node
         }
 
@@ -689,7 +692,7 @@ allprojects {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, String> attributes = [:]) {
+        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
             checkVariant = true
             variantName = name
             variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')

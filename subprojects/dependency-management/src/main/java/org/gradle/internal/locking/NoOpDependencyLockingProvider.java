@@ -16,12 +16,11 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.Collection;
 
 public class NoOpDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -36,12 +35,12 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public Set<DependencyConstraint> findLockedDependencies(String configurationName) {
-        return Collections.emptySet();
+    public DependencyLockingState findLockConstraint(String configurationName) {
+        return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, ResolutionResult resolutionResult) {
+    public void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolutionResult) {
         // No-op
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -60,7 +61,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifactSet = Stub(ArtifactSet)
 
         when:
-        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY)
 
         then:
         result == artifactSet
@@ -73,7 +74,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         1 * localAccess2.resolveArtifacts(component, _) >> {
             it[1].resolved(artifacts)
         }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion) >> artifactSet
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY) >> artifactSet
         0 * _._
     }
 
@@ -85,7 +86,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         def artifactSet = Stub(ArtifactSet)
 
         when:
-        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion)
+        def result = resolver.resolveArtifacts(component, configuration, artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY)
 
         then:
         result == artifactSet
@@ -100,7 +101,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
         1 * remoteAccess2.resolveArtifacts(component, _) >> {
             it[1].resolved(artifacts)
         }
-        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion) >> artifactSet
+        1 * artifacts.getArtifactsFor(component, configuration, resolver, [:], artifactTypeRegistry, exclusion, ImmutableAttributes.EMPTY) >> artifactSet
         0 * _._
     }
 

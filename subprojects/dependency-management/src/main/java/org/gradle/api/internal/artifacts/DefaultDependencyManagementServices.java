@@ -180,7 +180,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     ProjectFinder projectFinder, LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
-                                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter) {
+                                                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter,
+                                                                    DependencyLockingProvider dependencyLockingProvider) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -198,7 +199,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 taskResolverFor(domainObjectContext),
                 attributesFactory,
                 moduleIdentifierFactory,
-                componentSelectorConverter
+                componentSelectorConverter,
+                dependencyLockingProvider
             );
         }
 
@@ -287,7 +289,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     variantTransforms,
                                     attributesSchema,
                                     attributesFactory),
-                                attributesSchema),
+                                attributesSchema,
+                                attributesFactory),
                             moduleIdentifierFactory,
                             buildOperationExecutor,
                             artifactTypeRegistry,

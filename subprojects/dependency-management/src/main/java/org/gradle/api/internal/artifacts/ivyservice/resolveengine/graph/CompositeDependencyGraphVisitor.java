@@ -27,7 +27,7 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.start(root);
         }

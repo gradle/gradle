@@ -77,6 +77,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata {
     }
 
     @Override
+    public ImmutableAttributes getAttributes() {
+        return ImmutableAttributes.EMPTY;
+    }
+
+    @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             return new GradleDependencyMetadata((ModuleComponentSelector) target, pending, reason);

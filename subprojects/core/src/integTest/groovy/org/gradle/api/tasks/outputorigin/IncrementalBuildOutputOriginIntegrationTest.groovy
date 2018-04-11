@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.TaskOutputOriginFixture
 import org.gradle.internal.id.UniqueId
-import org.junit.Ignore
 import org.junit.Rule
+import spock.lang.Ignore
 
 class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpec {
 
