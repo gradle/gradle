@@ -1,6 +1,12 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2017_2.*
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2017_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2017_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2017_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
@@ -101,6 +107,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     val java7HomeParameter = java7Homes[os]!!
     val gradleParameterString = gradleParameters.joinToString(separator = " ")
             .replace(java7Homes[OS.linux]!!, java7HomeParameter)
+    val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
     buildType.steps {
         gradleWrapper {
@@ -118,7 +125,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                     listOf(gradleParameterString) +
                             buildType.buildCache.gradleParameters() +
                             listOf(extraParameters) +
-                            model.buildScanTags.map { """"-Dscan.tag.$it"""" }
+                            buildScanTags.map { buildScanTag(it) }
                     ).joinToString(separator = " ")
         }
     }
@@ -158,6 +165,9 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
+fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
+fun buildScanCustomValue(key: String, value: String) = """"-Dscan.value.$key=$value""""
+
 fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick: Boolean = false) {
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
@@ -174,17 +184,17 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
 
     if (buildType !is SanityCheck) {
         buildType.dependencies {
-            val sanityCheck = SanityCheck(model)
+            val sanityCheckId = SanityCheck.buildTypeId(model)
             // Sanity Check has to succeed before anything else is started
-            dependency(sanityCheck) {
+            dependency(sanityCheckId) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL
                 }
             }
             // Get the build receipt from sanity check to reuse the timestamp
-            artifacts(sanityCheck) {
-                id = "ARTIFACT_DEPENDENCY_${sanityCheck.id}"
+            artifacts(sanityCheckId) {
+                id = "ARTIFACT_DEPENDENCY_$sanityCheckId"
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-distributions"
             }

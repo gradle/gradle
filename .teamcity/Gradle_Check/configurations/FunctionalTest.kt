@@ -2,10 +2,11 @@ package configurations
 
 import model.CIBuildModel
 import model.OS
+import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "") : BaseGradleBuildType(model, {
+class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = testCoverage.asConfigurationId(model, subProject)
     id = uuid
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
@@ -15,8 +16,18 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
         ""
     } + testCoverage.testType.name + "Test"
     val quickTest = testCoverage.testType == TestType.quick
+    val buildScanTags = listOf("FunctionalTest")
+    val buildScanValues = mapOf(
+            "coverageOs" to testCoverage.os.name,
+            "coverageJvmVendor" to testCoverage.vendor.name,
+            "coverageJvmVersion" to testCoverage.version.name
+    )
     applyDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
-            extraParameters = """"-PtestJavaHome=%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%"""",
+            extraParameters = (
+                    listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%"""")
+                            + buildScanTags.map { buildScanTag(it) }
+                            + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+                    ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout)
 
     params {

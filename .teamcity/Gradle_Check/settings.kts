@@ -26,4 +26,4 @@ calling the subProjects() method in this project.
 */
 
 version = "2017.2"
-project(RootProject(CIBuildModel()))
+project(RootProject(CIBuildModel(buildScanTags = listOf("Check"))))

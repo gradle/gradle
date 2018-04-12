@@ -1,9 +1,10 @@
 package configurations
 
 import model.CIBuildModel
+import model.Stage
 
-class SanityCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
-    uuid = "${model.projectPrefix}SanityCheck"
+class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
+    uuid = buildTypeId(model)
     id = uuid
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
@@ -18,9 +19,18 @@ class SanityCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
         }
     }
 
-    applyDefaults(model, this, "compileAll sanityCheck", extraParameters = "-DenableCodeQuality=true")
+    applyDefaults(
+            model,
+            this,
+            "compileAll sanityCheck",
+            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}"
+    )
 
     artifactRules = """$artifactRules
         build/build-receipt.properties
     """.trimIndent()
-}, usesParentBuildCache = true)
+}) {
+    companion object {
+        fun buildTypeId(model: CIBuildModel) = "${model.projectPrefix}SanityCheck"
+    }
+}

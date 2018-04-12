@@ -2,7 +2,6 @@ package configurations
 
 import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2017_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v2017_2.triggers.VcsTrigger
@@ -13,8 +12,8 @@ import model.Stage
 import model.TestType
 import model.Trigger
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, {
-    uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-", "")}_Trigger"
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGradleBuildType(model, init = {
+    uuid = "${model.projectPrefix}Stage_${stage.id}_Trigger"
     id = uuid
     name = stage.name + " (Trigger)"
 
@@ -81,7 +80,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
                 buildFile = "gradle/buildTagging.gradle"
             }
         }
@@ -89,7 +88,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
 
     dependencies {
         if (!stage.runsIndependent && prevStage != null) {
-            dependency("${model.projectPrefix}Stage_${prevStage.name.replace(" ", "").replace("-", "")}_Trigger") {
+            dependency("${model.projectPrefix}Stage_${prevStage.id}_Trigger") {
                 snapshot {
                     onDependencyFailure = FailureAction.ADD_PROBLEM
                 }
@@ -97,7 +96,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?) : BaseGr
         }
 
         stage.specificBuilds.forEach {
-            dependency(it.create(model)) {
+            dependency(it.create(model, stage)) {
                 snapshot {}
             }
         }

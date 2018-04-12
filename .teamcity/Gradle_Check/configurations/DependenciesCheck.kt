@@ -1,8 +1,9 @@
 package configurations
 
 import model.CIBuildModel
+import model.Stage
 
-class DependenciesCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
+class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}DependenciesCheck"
     id = uuid
     name = "Dependencies Check - Java8 Linux"
@@ -12,5 +13,11 @@ class DependenciesCheck(model: CIBuildModel) : BaseGradleBuildType(model, {
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(model, this, "dependencyCheckAnalyze", notQuick = true)
+    applyDefaults(
+            model,
+            this,
+            "dependencyCheckAnalyze",
+            notQuick = true,
+            extraParameters = buildScanTag("DependenciesCheck")
+    )
 })

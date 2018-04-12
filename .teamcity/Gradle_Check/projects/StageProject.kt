@@ -11,7 +11,7 @@ import model.Stage
 import model.TestType
 
 class StageProject(model: CIBuildModel, stage: Stage) : Project({
-    this.uuid = "${model.projectPrefix}Stage_${stage.name.replace(" ", "").replace("-","")}"
+    this.uuid = "${model.projectPrefix}Stage_${stage.id}"
     this.id = uuid
     this.name = stage.name
     this.description = stage.description
@@ -27,18 +27,18 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
     }
 
     val specificBuildTypes = stage.specificBuilds.map {
-        it.create(model)
+        it.create(model, stage)
     }
     specificBuildTypes.forEach { buildType(it) }
 
     stage.performanceTests.forEach {
-        buildType(PerformanceTest(model, it))
+        buildType(PerformanceTest(model, it, stage))
     }
 
     stage.functionalTests.forEach { testCoverage ->
         val isSplitIntoBuckets = testCoverage.testType != TestType.soak
         if (isSplitIntoBuckets) {
-            val functionalTests = FunctionalTestProject(model, testCoverage)
+            val functionalTests = FunctionalTestProject(model, testCoverage, stage)
             subProject(functionalTests)
             if (stage.functionalTestsDependOnSpecificBuilds) {
                 functionalTests.buildTypes.forEach { functionalTestBuildType ->
@@ -56,7 +56,7 @@ class StageProject(model: CIBuildModel, stage: Stage) : Project({
                 }
             }
         } else {
-            buildType(FunctionalTest(model, testCoverage))
+            buildType(FunctionalTest(model, testCoverage, stage = stage))
         }
     }
 })

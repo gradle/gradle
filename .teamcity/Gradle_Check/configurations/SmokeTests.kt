@@ -1,8 +1,9 @@
 package configurations
 
 import model.CIBuildModel
+import model.Stage
 
-class SmokeTests(model: CIBuildModel) : BaseGradleBuildType(model, {
+class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}SmokeTests"
     id = uuid
     name = "Smoke Tests with 3rd Party Plugins - Java8 Linux"
@@ -13,5 +14,11 @@ class SmokeTests(model: CIBuildModel) : BaseGradleBuildType(model, {
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
 
-    applyDefaults(model, this, "smokeTest:smokeTest", notQuick = true)
+    applyDefaults(
+            model,
+            this,
+            "smokeTest:smokeTest",
+            notQuick = true,
+            extraParameters = buildScanTag("SmokeTests")
+    )
 })

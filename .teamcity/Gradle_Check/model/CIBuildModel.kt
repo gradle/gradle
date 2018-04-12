@@ -176,7 +176,9 @@ object NoBuildCache : BuildCache {
     }
 }
 
-data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false)
+data class Stage(val name: String, val description: String, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false) {
+    val id = name.replace(" ", "").replace("-", "")
+}
 
 data class TestCoverage(val testType: TestType, val os: OS, val version: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle) {
     fun asId(model : CIBuildModel): String {
@@ -228,32 +230,32 @@ enum class Trigger {
 
 enum class SpecificBuild {
     SanityCheck {
-        override fun create(model: CIBuildModel): BuildType {
-            return SanityCheck(model)
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SanityCheck(model, stage)
         }
     },
     BuildDistributions {
-        override fun create(model: CIBuildModel): BuildType {
-            return BuildDistributions(model)
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return BuildDistributions(model, stage)
         }
 
     },
     Gradleception {
-        override fun create(model: CIBuildModel): BuildType {
-            return Gradleception(model)
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return Gradleception(model, stage)
         }
 
     },
     SmokeTests {
-        override fun create(model: CIBuildModel): BuildType {
-            return SmokeTests(model)
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage)
         }
     },
     DependenciesCheck {
-        override fun create(model: CIBuildModel): BuildType {
-            return DependenciesCheck(model)
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return DependenciesCheck(model, stage)
         }
     };
 
-    abstract fun create(model: CIBuildModel): BuildType
+    abstract fun create(model: CIBuildModel, stage: Stage): BuildType
 }
