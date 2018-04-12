@@ -6,7 +6,7 @@ import model.CIBuildModel
 import model.PerformanceTestType
 import model.Stage
 
-class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, {
+class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = type.asId(model)
     id = uuid
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
@@ -58,4 +58,4 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
     }
 
     applyDefaultDependencies(model, this, true)
-}, stage = stage)
+})

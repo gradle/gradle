@@ -3,7 +3,7 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, {
+class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, usesParentBuildCache = true, init = {
     uuid = buildTypeId(model)
     id = uuid
     name = "Sanity Check"
@@ -29,7 +29,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     artifactRules = """$artifactRules
         build/build-receipt.properties
     """.trimIndent()
-}, usesParentBuildCache = true, stage = stage) {
+}) {
     companion object {
         fun buildTypeId(model: CIBuildModel) = "${model.projectPrefix}SanityCheck"
     }

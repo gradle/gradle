@@ -6,7 +6,7 @@ import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", stage: Stage) : BaseGradleBuildType(model, {
+class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject: String = "", stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = testCoverage.asConfigurationId(model, subProject)
     id = uuid
     name = testCoverage.asName() + if (!subProject.isEmpty()) " ($subProject)" else ""
@@ -25,9 +25,9 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
     applyDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
             extraParameters = (
                     listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.version}.${testCoverage.vendor}.64bit%"""")
-                    + buildScanTags.map { buildScanTag(it) }
-                    + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
-            ).joinToString(separator = " "),
+                            + buildScanTags.map { buildScanTag(it) }
+                            + buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+                    ).joinToString(separator = " "),
             timeout = testCoverage.testType.timeout)
 
     params {
@@ -36,4 +36,4 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
             param("env.ANDROID_HOME", "/opt/android/sdk")
         }
     }
-}, stage = stage)
+})

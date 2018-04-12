@@ -3,7 +3,7 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, {
+class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}DependenciesCheck"
     id = uuid
     name = "Dependencies Check - Java8 Linux"
@@ -20,4 +20,4 @@ class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType
             notQuick = true,
             extraParameters = buildScanTag("DependenciesCheck")
     )
-}, stage = stage)
+})

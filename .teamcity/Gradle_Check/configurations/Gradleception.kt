@@ -5,7 +5,7 @@ import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.Stage
 
-class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, {
+class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}Gradleception"
     id = uuid
     name = "Gradleception - Java8 Linux"
@@ -32,7 +32,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
             gradleParams = defaultParameters
         }
     })
-}, stage = stage)
+})
 
 fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {

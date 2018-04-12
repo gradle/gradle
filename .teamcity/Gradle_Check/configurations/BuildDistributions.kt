@@ -3,7 +3,7 @@ package configurations
 import model.CIBuildModel
 import model.Stage
 
-class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, {
+class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
     uuid = "${model.projectPrefix}BuildDistributions"
     id = uuid
     name = "Build Distributions"
@@ -19,4 +19,4 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     params {
         param("env.JAVA_HOME", "%linux.java8.oracle.64bit%")
     }
-}, stage = stage)
+})
