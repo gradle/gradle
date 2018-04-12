@@ -461,4 +461,68 @@ class TestCapability implements Capability {
             noMoreDependencies()
         }
     }
+
+    def "publishes dependency/constraint attributes"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            def attr1 = Attribute.of('custom', String)
+            def attr2 = Attribute.of('nice', Boolean)
+            
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
+                    attributes: configurations.implementation.attributes))
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                   attributes {
+                      attribute(attr1, 'foo')
+                   }
+                }
+                constraints {                
+                    implementation("org:bar:2.0") {
+                        attributes {
+                           attribute(attr2, true)
+                        }
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variant('api') {
+            dependency('org:foo:1.0') {
+                hasAttribute('custom', 'foo')
+            }
+            constraint('org:bar:2.0') {
+                hasAttribute('nice', true)
+            }
+            noMoreDependencies()
+        }
+    }
+
 }
