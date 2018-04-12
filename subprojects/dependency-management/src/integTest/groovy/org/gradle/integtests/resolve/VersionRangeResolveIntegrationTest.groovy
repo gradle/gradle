@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 /**
@@ -27,6 +29,12 @@ import spock.lang.Unroll
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
  * TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
  */
+@IgnoreIf({
+    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
+    // infrastructure to simulate everything done here, so we're only going to execute this test in
+    // embedded mode
+    !GradleContextualExecuter.embedded
+})
 class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def baseBuild
