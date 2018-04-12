@@ -17,41 +17,83 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.internal.IoActions;
 
 import java.io.Closeable;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskStatistics implements Closeable {
+    private final static Logger LOGGER = Logging.getLogger(TaskStatistics.class);
+    private final static String TASK_STATISTICS_PROPERTY = "org.gradle.internal.tasks.stats";
+
     private final AtomicInteger eagerTasks = new AtomicInteger();
     private final AtomicInteger lazyTasks = new AtomicInteger();
     private final AtomicInteger lazyRealizedTasks = new AtomicInteger();
     private final Map<Class, Integer> typeCounts = Maps.newHashMap();
+    private final boolean collectStatistics;
 
-    public void eagerTask(Class<?> type) {
-        eagerTasks.incrementAndGet();
-        synchronized (typeCounts) {
-            Integer count = typeCounts.get(type);
-            if (count == null) {
-                count = 0;
-            } else {
-                count = count+1;
+    private PrintWriter lazyTaskLog;
+
+    public TaskStatistics() {
+        String taskStatistics = System.getProperty(TASK_STATISTICS_PROPERTY);
+        if (taskStatistics!=null) {
+            collectStatistics = true;
+            if (!taskStatistics.isEmpty()) {
+                try {
+                    lazyTaskLog = new PrintWriter(new FileWriter(taskStatistics));
+                } catch (IOException e) {
+                    // don't care
+                }
             }
-            typeCounts.put(type, count);
+        } else {
+            collectStatistics = false;
         }
     }
+
+    public void eagerTask(Class<?> type) {
+        if (collectStatistics) {
+            eagerTasks.incrementAndGet();
+            synchronized (typeCounts) {
+                Integer count = typeCounts.get(type);
+                if (count == null) {
+                    count = 1;
+                } else {
+                    count = count + 1;
+                }
+                typeCounts.put(type, count);
+            }
+        }
+    }
+
     public void lazyTask() {
-        lazyTasks.incrementAndGet();
+        if (collectStatistics) {
+            lazyTasks.incrementAndGet();
+        }
     }
+
     public void lazyTaskRealized() {
-        lazyRealizedTasks.incrementAndGet();
+        if (collectStatistics) {
+            lazyRealizedTasks.incrementAndGet();
+            if (lazyTaskLog != null) {
+                new Throwable().printStackTrace(lazyTaskLog);
+            }
+        }
     }
+
     @Override
     public void close() throws IOException {
-        System.out.printf("E %d L %d LR %d\n", eagerTasks.getAndSet(0), lazyTasks.getAndSet(0), lazyRealizedTasks.getAndSet(0));
-        for (Map.Entry<Class, Integer> typeCount : typeCounts.entrySet()) {
-            System.out.println(typeCount.getKey() + " " + typeCount.getValue());
+        if (collectStatistics) {
+            LOGGER.lifecycle("E {} L {} LR {}", eagerTasks.getAndSet(0), lazyTasks.getAndSet(0), lazyRealizedTasks.getAndSet(0));
+            for (Map.Entry<Class, Integer> typeCount : typeCounts.entrySet()) {
+                LOGGER.lifecycle(typeCount.getKey() + " " + typeCount.getValue());
+            }
+            IoActions.closeQuietly(lazyTaskLog);
         }
     }
 }
