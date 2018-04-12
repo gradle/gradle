@@ -212,4 +212,8 @@ class ModuleResolveState implements CandidateModule {
     public List<SelectorState> getSelectors() {
         return selectors;
     }
+
+    List<EdgeState> getUnattachedDependencies() {
+        return unattachedDependencies;
+    }
 }
