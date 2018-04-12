@@ -111,7 +111,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
         Object[] constructorArgs = getConstructorArgs(actualArgs);
         TaskInternal task = createTask(name, type, constructorArgs);
-        statistics.eagerTask();
+        statistics.eagerTask(type);
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -223,7 +223,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         T task = createTask(name, type, constructorArgs);
-        statistics.eagerTask();
+        statistics.eagerTask(type);
         return addTask(task, false);
     }
 

@@ -16,17 +16,30 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Maps;
+
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskStatistics implements Closeable {
     private final AtomicInteger eagerTasks = new AtomicInteger();
     private final AtomicInteger lazyTasks = new AtomicInteger();
     private final AtomicInteger lazyRealizedTasks = new AtomicInteger();
+    private final Map<Class, Integer> typeCounts = Maps.newHashMap();
 
-    public void eagerTask() {
+    public void eagerTask(Class<?> type) {
         eagerTasks.incrementAndGet();
+        synchronized (typeCounts) {
+            Integer count = typeCounts.get(type);
+            if (count == null) {
+                count = 0;
+            } else {
+                count = count+1;
+            }
+            typeCounts.put(type, count);
+        }
     }
     public void lazyTask() {
         lazyTasks.incrementAndGet();
@@ -34,9 +47,11 @@ public class TaskStatistics implements Closeable {
     public void lazyTaskRealized() {
         lazyRealizedTasks.incrementAndGet();
     }
-
     @Override
     public void close() throws IOException {
         System.out.printf("E %d L %d LR %d\n", eagerTasks.getAndSet(0), lazyTasks.getAndSet(0), lazyRealizedTasks.getAndSet(0));
+        for (Map.Entry<Class, Integer> typeCount : typeCounts.entrySet()) {
+            System.out.println(typeCount.getKey() + " " + typeCount.getValue());
+        }
     }
 }
