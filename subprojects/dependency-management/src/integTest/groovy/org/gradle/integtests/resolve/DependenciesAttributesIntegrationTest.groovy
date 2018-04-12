@@ -456,9 +456,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot choose between 'org:test' and 'org:test:1.0' because they require a different value for attribute 'custom':
-  - Dependency 'org:test' wants value 'c1'
-  - Constraint 'org:test:1.0' wants value 'c2'""")
+        failure.assertHasCause("""Cannot select a variant of 'org:test' because different values for attribute 'custom' are requested:
+  - Dependency path ':test:unspecified' wants 'org:test' with attribute custom = c1
+  - Constraint path ':test:unspecified' wants 'org:test:1.0' with attribute custom = c2""")
     }
 
     @RequiredFeatures(
@@ -900,6 +900,73 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
         'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "fails when 2 transitive dependencies requires a different attribute value"() {
+        given:
+        repository {
+            'org:directA:1.0' {
+                variant('api') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c1')
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c1')
+                    }
+                }
+            }
+            'org:directB:1.0' {
+                variant('api') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c2')
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c2')
+                    }
+                }
+            }
+            'org:transitive:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf('org:directA:1.0')
+               conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:directA:1.0' {
+                expectGetMetadata()
+            }
+            'org:directB:1.0' {
+                expectGetMetadata()
+            }
+            'org:transitive:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot select a variant of 'org:transitive' because different values for attribute 'custom' are requested:
+  - Dependency path ':test:unspecified' --> 'org:directA:1.0' wants 'org:transitive:1.0' with attribute custom = c1
+  - Dependency path ':test:unspecified' --> 'org:directB:1.0' wants 'org:transitive:1.0' with attribute custom = c2""")
     }
 
     static Closure<String> defaultStatus() {
