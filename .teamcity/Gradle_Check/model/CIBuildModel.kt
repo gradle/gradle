@@ -204,7 +204,7 @@ enum class JvmVersion {
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
     quick(true, true, false, 60), platform(true, true, false),
     quickFeedbackCrossVersion(false, false, true), allVersionsCrossVersion(false, false, true),
-    parallel(false, true, false), noDaemon(false, true, false, 210),
+    parallel(false, true, false), noDaemon(false, true, false, 240),
     soak(false, false, false)
 }
 
