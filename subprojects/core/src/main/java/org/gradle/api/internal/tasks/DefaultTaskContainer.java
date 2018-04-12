@@ -66,6 +66,7 @@ import java.util.TreeSet;
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private static final Object[] NO_ARGS = new Object[0];
+    private final static String EAGERLY_CREATE_LAZY_TASKS_PROPERTY = "org.gradle.internal.tasks.eager";
 
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
@@ -78,11 +79,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
-<<<<<<< HEAD
     private final Object lock = new Object();
-=======
+
     private final TaskStatistics statistics;
->>>>>>> Add task statistics
+    private final boolean eagerlyCreateLazyTasks;
 
     public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics) {
         super(Task.class, instantiator, project);
@@ -90,6 +90,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
+        this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
     }
 
     public Task create(Map<String, ?> options) {
@@ -280,6 +281,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
         TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
         addLater(provider);
+        if (eagerlyCreateLazyTasks) {
+            provider.get();
+        }
         return provider;
     }
 
