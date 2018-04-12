@@ -38,6 +38,7 @@ import org.gradle.build.ReproduciblePropertiesWriter
 
 import com.thoughtworks.qdox.JavaProjectBuilder
 import com.thoughtworks.qdox.library.SortedClassLibraryBuilder
+import com.thoughtworks.qdox.model.JavaMethod
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -55,21 +56,25 @@ open class ParameterNamesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        val parameterNamesResource by tasks.creating(ParameterNamesResourceTask::class)
         val parameterNamesJar by tasks.creating(Jar::class)
 
-        val extension = extensions.create("parameterNames", ParameterNamesExtension::class.java, project, parameterNamesJar)
+        val extension =
+            extensions.create("parameterNames", ParameterNamesExtension::class.java, project, parameterNamesJar)
 
         afterEvaluate {
-            parameterNamesResource.apply {
+            val baseName = extension.baseName.get()
+            val parameterNamesResource by tasks.creating(ParameterNamesResourceTask::class) {
                 sources = extension.sources.get()
                 classpath = extension.classpath.get()
-                destinationFile.set(layout.buildDirectory.file("generated-resources/parameter-names/${extension.baseName.get()}.properties"))
+                destinationFile.set(
+                    layout.buildDirectory.file("generated-resources/parameter-names/$baseName.properties"))
             }
             parameterNamesJar.apply {
+                description = "Assembles the parameter names jar."
+                group = "build"
                 from(parameterNamesResource)
                 destinationDir = base.libsDir
-                archiveName = "${extension.baseName.get()}-$version.jar"
+                archiveName = "$baseName-$version.jar"
             }
         }
     }
@@ -94,26 +99,53 @@ open class ParameterNamesResourceTask : DefaultTask() {
     @TaskAction
     fun generate() {
 
-        val libraryBuilder = SortedClassLibraryBuilder()
-        libraryBuilder.appendClassLoader(project.serviceOf<ClassLoaderFactory>().createIsolatedClassLoader(DefaultClassPath.of(classpath.files)))
-        val qdoxBuilder = JavaProjectBuilder(libraryBuilder)
+        val qdoxBuilder = JavaProjectBuilder(sortedClassLibraryBuilderWithClassLoaderFor(classpath))
         val qdoxSources = sources.asSequence().mapNotNull { qdoxBuilder.addSource(it) }
 
-        val properties = qdoxSources.flatMap { it.classes.asSequence().filter { it.isPublic } }
+        val properties = qdoxSources
+            .flatMap { it.classes.asSequence().filter { it.isPublic } }
             .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
-            .map {
-                val parameters = it.parameters.joinToString(separator = ",") { p ->
-                    if (p.isVarArgs || p.javaClass.isArray) "${p.type.binaryName}[]"
-                    else p.type.binaryName
-                }
-                val key = "${it.declaringClass.binaryName}.${it.name}($parameters)"
-                val value = it.parameters.joinToString(separator = ",") { it.name }
-                Pair(key, value)
+            .map { method ->
+                fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method)
             }.toMap(linkedMapOf())
 
+        write(properties)
+    }
+
+    private
+    fun write(properties: LinkedHashMap<String, String>) {
         destinationFile.get().asFile.let { file ->
             file.parentFile.mkdirs()
             ReproduciblePropertiesWriter.store(properties, file)
         }
     }
+
+    private
+    fun fullyQualifiedSignatureOf(method: JavaMethod): String =
+        "${method.declaringClass.binaryName}.${method.name}(${signatureOf(method)})"
+
+    private
+    fun signatureOf(method: JavaMethod): String =
+        method.parameters.joinToString(separator = ",") { p ->
+            if (p.isVarArgs || p.javaClass.isArray) "${p.type.binaryName}[]"
+            else p.type.binaryName
+        }
+
+    private
+    fun commaSeparatedParameterNamesOf(method: JavaMethod) =
+        method.parameters.joinToString(separator = ",") { it.name }
+
+    private
+    fun sortedClassLibraryBuilderWithClassLoaderFor(classpath: FileCollection): SortedClassLibraryBuilder =
+        SortedClassLibraryBuilder().apply {
+            appendClassLoader(isolatedClassLoaderFor(classpath))
+        }
+
+    private
+    fun isolatedClassLoaderFor(classpath: FileCollection) =
+        classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(classpath.files))
+
+    private
+    val classLoaderFactory
+        get() = project.serviceOf<ClassLoaderFactory>()
 }
