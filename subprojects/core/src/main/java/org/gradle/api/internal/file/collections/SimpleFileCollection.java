@@ -36,6 +36,6 @@ public class SimpleFileCollection extends FileCollectionAdapter implements Seria
 
     private SimpleFileCollection(MinimalFileSet fileSet) {
         super(fileSet);
-        DeprecationLogger.nagUserOfDiscontinuedApi("SimpleFileCollection type", "Please use ProjectLayout.filesFor() or ProjectLayout.mutableFilesFor() instead.");
+        DeprecationLogger.nagUserOfDiscontinuedApi("SimpleFileCollection type", "Please use Project.files() instead.");
     }
 }
