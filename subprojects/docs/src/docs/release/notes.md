@@ -10,6 +10,22 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Signing Publications
+
+The Signing plugin now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications.mavenJava
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 
 class SigningSamplesSpec extends AbstractIntegrationSpec {
     @Rule
-    public final Sample mavenSample = new Sample(temporaryFolder)
+    public final Sample sampleProject = new Sample(temporaryFolder)
 
     void setup() {
         using m2
@@ -36,7 +36,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     @UsesSample('signing/maven')
     def "upload attaches signatures"() {
         given:
-        sample mavenSample
+        sample sampleProject
 
         when:
         run "uploadArchives"
@@ -49,7 +49,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "conditional signing"() {
         given:
-        sample mavenSample
+        sample sampleProject
 
         when:
         run "uploadArchives"
@@ -69,7 +69,7 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         def symlink = GpgCmdFixture.setupGpgCmd(file('signing/gnupg-signatory'))
 
         when:
-        sample mavenSample
+        sample sampleProject
 
         and:
         run "signArchives"
@@ -81,7 +81,19 @@ class SigningSamplesSpec extends AbstractIntegrationSpec {
         GpgCmdFixture.cleanupGpgCmd(symlink)
     }
 
+    @UsesSample('signing/maven-publish')
+    def "publish attaches signatures"() {
+        given:
+        sample sampleProject
+
+        when:
+        run "publish"
+
+        then:
+        repo.module('gradle', 'maven-publish', '1.0').assertArtifactsPublished('maven-publish-1.0.pom', 'maven-publish-1.0.pom.asc', 'maven-publish-1.0.jar', 'maven-publish-1.0.jar.asc')
+    }
+
     MavenFileRepository getRepo() {
-        return maven(mavenSample.dir.file("build/repo"))
+        return maven(sampleProject.dir.file("build/repo"))
     }
 }
