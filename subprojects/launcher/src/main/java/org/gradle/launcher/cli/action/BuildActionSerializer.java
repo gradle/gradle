@@ -34,6 +34,7 @@ import org.gradle.internal.serialize.SetSerializer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -166,8 +167,8 @@ public class BuildActionSerializer {
             startParameter.setSearchUpwards(decoder.readBoolean());
 
             // Other stuff
-            startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
-            startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
+            startParameter.setProjectProperties(new HashMap<String, String>(NO_NULL_STRING_MAP_SERIALIZER.read(decoder)));
+            startParameter.setSystemPropertiesArgs(new HashMap<String, String>(NO_NULL_STRING_MAP_SERIALIZER.read(decoder)));
             startParameter.setInitScripts(fileListSerializer.read(decoder));
 
             // Flags

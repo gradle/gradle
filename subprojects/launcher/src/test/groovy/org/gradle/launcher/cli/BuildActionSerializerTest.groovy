@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.provider.BuildModelAction
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import spock.lang.Issue
 
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
@@ -33,6 +34,17 @@ class BuildActionSerializerTest extends SerializerSpec {
         expect:
         def result = serialize(action, BuildActionSerializer.create())
         result instanceof ExecuteBuildAction
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/5017')
+    def "systemPropertiesArgs and projectProperties is mutable"() {
+        given:
+        def action = new ExecuteBuildAction(new StartParameterInternal())
+        def result = serialize(action, BuildActionSerializer.create())
+
+        expect:
+        result.startParameter.systemPropertiesArgs.get('key', 'defaultValue') == 'defaultValue'
+        result.startParameter.projectProperties.get('key', 'defaultValue') == 'defaultValue'
     }
 
     def "serializes ExecuteBuildAction with non-defaults"() {
