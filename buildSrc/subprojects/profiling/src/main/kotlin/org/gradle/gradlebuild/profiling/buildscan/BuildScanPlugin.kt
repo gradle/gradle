@@ -15,25 +15,21 @@
  */
 package org.gradle.gradlebuild.profiling.buildscan
 
-import org.gradle.gradlebuild.BuildEnvironment.isCiServer
+import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
+import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-
-import com.gradle.scan.plugin.BuildScanExtension
-
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-
-import kotlin.concurrent.thread
-
 import java.util.concurrent.CountDownLatch
-
-import org.gradle.kotlin.dsl.*
+import kotlin.concurrent.thread
 
 
 open class BuildScanPlugin : Plugin<Project> {
@@ -159,7 +155,7 @@ open class BuildScanPlugin : Plugin<Project> {
                 .split(",")
 
             buildScan.buildFinished {
-                allprojects.flatMap { it.tasks }
+                allprojects.flatMap { gradle.taskGraph.allTasks }
                     .filter { it.state.executed && it.path in tasksToInvestigate }
                     .forEach { task ->
                         val hasher = (gradle as GradleInternal).services.get(ClassLoaderHierarchyHasher::class.java)
