@@ -71,7 +71,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "incremental compile on #testProject"() {
         given:
-        runner.targetVersions = [ '4.8-20180404000014+0000' ]
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
