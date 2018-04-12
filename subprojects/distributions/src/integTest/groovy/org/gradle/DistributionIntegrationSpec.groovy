@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.PreconditionVerifier
@@ -143,6 +144,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
 
+        // Others
+        assertIsGradleApiParameterNamesJar(contentsDir.file("lib/gradle-api-parameter-names-${baseVersion}.jar"))
+
         // Jars that must not be shipped
         assert !contentsDir.file("lib/tools.jar").exists()
         assert !contentsDir.file("lib/plugins/tools.jar").exists()
@@ -152,5 +156,11 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         jar.assertIsFile()
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(baseVersion))
         assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
+    }
+
+    private static void assertIsGradleApiParameterNamesJar(TestFile jar) {
+        def entries = new JarTestFixture(jar.canonicalFile).content("gradle-api-parameter-names.properties").readLines()
+        assert entries.size() > 2900
+        assert entries.contains("org.gradle.api.DomainObjectCollection.withType(java.lang.Class,org.gradle.api.Action)=type,configureAction")
     }
 }
