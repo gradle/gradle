@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
@@ -50,9 +51,16 @@ class IncompatibleDependencyAttributesMessageBuilder {
 
     private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute) {
         DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
-        StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
-        sb.append(((ModuleComponentSelector) dependencyMetadata.getSelector()).getAttributes().getAttribute(attribute));
-        return sb.toString();
+        ComponentSelector selector = dependencyMetadata.getSelector();
+        if (selector instanceof ModuleComponentSelector) {
+            StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
+            sb.append(((ModuleComponentSelector) selector).getAttributes().getAttribute(attribute));
+            return sb.toString();
+        } else {
+            // This is a safety net, it's unsure whether this can happen, because it's likely (certain?)
+            // that for a specific module resolve state, all selectors are of the same type
+            return "doesn't provide any value for attribute " + attribute.getName();
+        }
     }
 
 }
