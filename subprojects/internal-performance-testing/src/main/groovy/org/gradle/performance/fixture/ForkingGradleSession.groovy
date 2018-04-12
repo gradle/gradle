@@ -19,6 +19,7 @@ package org.gradle.performance.fixture
 import com.google.common.base.Joiner
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
@@ -36,6 +37,7 @@ class ForkingGradleSession implements GradleSession {
 
     final GradleInvocationSpec invocation
     private final IntegrationTestBuildContext integrationTestBuildContext
+    File mirrorScript
 
     private ProcessBuilder stop
 
@@ -47,6 +49,7 @@ class ForkingGradleSession implements GradleSession {
     @Override
     void prepare() {
         cleanup()
+        mirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
     }
 
     @Override
@@ -92,6 +95,7 @@ class ForkingGradleSession implements GradleSession {
             args << '-Dorg.gradle.jvmargs'
             env.put("GRADLE_OPTS", jvmArgs)
         }
+        args << "--init-script" << mirrorScript.absolutePath
         args += invocation.args
 
         ProcessBuilder run = newProcessBuilder(invocationInfo, args + tasks, env)

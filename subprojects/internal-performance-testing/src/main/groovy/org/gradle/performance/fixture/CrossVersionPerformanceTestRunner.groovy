@@ -251,7 +251,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     def resolveGradleOpts() {
-        PerformanceTestJvmOptions.customizeJvmOptions(this.gradleOpts)
+        PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
     }
 
     void addBuildExperimentListener(BuildExperimentListener buildExperimentListener) {
