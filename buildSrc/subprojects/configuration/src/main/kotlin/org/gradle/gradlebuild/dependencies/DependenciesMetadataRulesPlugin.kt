@@ -65,9 +65,6 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 // Read capabilities declared in capabilities.json
                 readCapabilitiesFromJson()
 
-                replaceCglibNodepWithCglib("org.spockframework:spock-core")
-                replaceCglibNodepWithCglib("org.jmock:jmock-legacy")
-
                 //TODO check if we can upgrade the following dependencies and remove the rules
                 downgradeIvy("org.codehaus.groovy:groovy-all")
                 downgradeTestNG("org.codehaus.groovy:groovy-all")
@@ -221,20 +218,6 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
                     it.version { prefer("1.4.01") }
                     it.because("Gradle has trouble with the versioning scheme and pom redirects in higher versions")
                 }
-            }
-        }
-    }
-}
-
-
-fun ComponentMetadataHandler.replaceCglibNodepWithCglib(module: String) {
-    withModule(module) {
-        allVariants {
-            withDependencies {
-                filter { it.name == "cglib-nodep" }.forEach {
-                    add("${it.group}:cglib:3.2.6")
-                }
-                removeAll { it.name == "cglib-nodep" }
             }
         }
     }
