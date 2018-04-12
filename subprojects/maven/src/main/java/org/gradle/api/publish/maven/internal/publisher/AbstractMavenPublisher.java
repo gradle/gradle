@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import com.google.common.base.Strings;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
@@ -23,7 +24,6 @@ import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +67,7 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             if (artifact == mainArtifact || artifact == pomArtifact) {
                 continue;
             }
-            publishAction.addAdditionalArtifact(artifact.getFile(), GUtil.elvis(artifact.getExtension(), ""), GUtil.elvis(artifact.getClassifier(), ""));
+            publishAction.addAdditionalArtifact(artifact.getFile(), Strings.nullToEmpty(artifact.getExtension()), Strings.nullToEmpty(artifact.getClassifier()));
         }
     }
 
