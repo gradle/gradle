@@ -285,11 +285,11 @@ public class SigningExtension {
     }
 
     /**
-     * Creates signing tasks that sign {@linkplain Configuration#getAllArtifacts() all of the artifacts} of the given configurations.
+     * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all artifacts} of the given configurations.
      *
      * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "archives" the created task will be named "signArchives".
      *
-     * The signature artifacts for the created tasks are added to the {@linkplain #getConfiguration() configuration} for this settings object.
+     * The signature artifacts for the created tasks are added to the {@link #getConfiguration() configuration} for this settings object.
      *
      * @param configurations The configurations whose archives are to be signed
      * @return the created tasks.
@@ -309,12 +309,12 @@ public class SigningExtension {
     }
 
     /**
-     * Creates signing tasks that sign {@linkplain PublicationInternal#getPublishableArtifacts()} all publishable artifacts} of the given publications.
+     * Creates signing tasks that sign all publishable artifacts of the given publications.
      *
      * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
      * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
      *
-     * The signature artifacts for the created tasks are added to the {@linkplain PublicationInternal#getPublishableArtifacts()} publishable artifacts} of the given publications.
+     * The signature artifacts for the created tasks are added to the publishable artifacts of the given publications.
      *
      * @param publications The publications whose artifacts are to be signed
      * @return the created tasks.
@@ -324,14 +324,12 @@ public class SigningExtension {
     public List<Sign> sign(Publication... publications) {
         List<Sign> result = new ArrayList<Sign>(publications.length);
         for (final Publication publication : publications) {
-            if (publication instanceof PublicationInternal) {
-                result.add(sign((PublicationInternal<?>) publication));
-            }
+            result.add(createSignTaskFor((PublicationInternal<?>) publication));
         }
         return result;
     }
 
-    private <T extends PublicationArtifact> Sign sign(final PublicationInternal<T> publicationToSign) {
+    private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
         final Sign signTask = project.getTasks().create("sign" + capitalize((CharSequence) (publicationToSign.getName() + "Publication")), Sign.class, new Action<Sign>() {
             public void execute(Sign task) {
                 task.sign(publicationToSign);

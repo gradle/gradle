@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2018 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,19 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>name</td>
-            </tr>
-            <tr>
-                <td>type</td>
-            </tr>
-            <tr>
-                <td>extension</td>
-            </tr>
-            <tr>
-                <td>classifier</td>
-            </tr>
-            <tr>
-                <td>conf</td>
+                <td>file</td>
             </tr>
         </table>
     </section>
@@ -48,6 +36,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>builtBy</td>
+            </tr>
         </table>
     </section>
 </section>
