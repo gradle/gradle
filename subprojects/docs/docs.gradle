@@ -106,10 +106,10 @@ ext {
 }
 
 ext.outputs = [:]
-outputs.samples = layout.filesFor(samplesDir) {
+outputs.samples = files(samplesDir) {
     builtBy 'samples'
 }
-outputs.distDocs = layout.filesFor(distDocsDir) {
+outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
