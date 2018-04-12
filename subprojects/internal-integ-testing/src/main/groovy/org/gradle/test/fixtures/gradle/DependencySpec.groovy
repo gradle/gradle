@@ -45,4 +45,9 @@ class DependencySpec {
         this.reason = reason
         this.attributes = attributes
     }
+
+    DependencySpec attribute(String name, Object value) {
+        attributes[name] = value
+        this
+    }
 }
