@@ -100,13 +100,6 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesCompile(library("junit"))
             testFixturesCompile(testLibrary("spock"))
             testLibraries("jmock").forEach { testFixturesCompile(it) }
-
-            constraints {
-                testFixturesCompile("cglib:cglib") {
-                    version { prefer("3.2.6") }
-                    because("We need to upgrade to a Java 9 compatible version")
-                }
-            }
         }
 
         plugins.withType<IdeaPlugin> {
