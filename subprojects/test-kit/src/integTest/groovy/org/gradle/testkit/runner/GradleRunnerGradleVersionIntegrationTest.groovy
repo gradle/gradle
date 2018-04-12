@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.RetryRuleUtil
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.testing.internal.util.RetryRule
@@ -32,8 +31,7 @@ import spock.lang.Shared
 @NonCrossVersion
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
-    // Gradle 4.0 can't recognize Java 10
-    public static final String VERSION = JavaVersion.current() > JavaVersion.VERSION_1_9 ? "4.1" : "2.10"
+    public static final String VERSION = "4.1"
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
