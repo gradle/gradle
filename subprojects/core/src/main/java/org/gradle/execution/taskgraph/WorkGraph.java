@@ -34,6 +34,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The graph of work to be done. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
+ * methods. */
 @NonNullApi
 public class WorkGraph {
 

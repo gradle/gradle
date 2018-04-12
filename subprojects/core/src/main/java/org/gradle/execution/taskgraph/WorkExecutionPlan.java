@@ -290,6 +290,7 @@ public class WorkExecutionPlan {
     }
 
     public void clear() {
+        workGraph.clear();
         executionPlan.clear();
     }
 

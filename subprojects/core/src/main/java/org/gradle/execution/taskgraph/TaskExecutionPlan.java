@@ -52,11 +52,6 @@ public interface TaskExecutionPlan extends Describable {
     List<Task> getTasks();
 
     /**
-     * @return The set of all filtered tasks that don't get executed.
-     */
-    Set<Task> getFilteredTasks();
-
-    /**
      * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
      * can be executed.  If all tasks have been executed, returns false.
      *

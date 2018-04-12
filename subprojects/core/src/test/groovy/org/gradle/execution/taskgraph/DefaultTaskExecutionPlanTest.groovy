@@ -57,10 +57,12 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def coordinationService = Mock(ResourceLockCoordinationService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
     def gradle = Mock(GradleInternal)
+    def failureCollector = new TaskFailureCollector()
+    def workGraph = new WorkGraph(failureCollector)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        executionPlan = new DefaultTaskExecutionPlan(workGraph, cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal), failureCollector)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
@@ -121,8 +123,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addToTaskGraph(toList(c, b))
-        executionPlan.addToTaskGraph(toList(d, a))
+        workGraph.addToTaskGraph(toList(c, b))
+        workGraph.addToTaskGraph(toList(d, a))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -155,8 +157,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addToTaskGraph(toList(c))
-        executionPlan.addToTaskGraph(toList(e))
+        workGraph.addToTaskGraph(toList(c))
+        workGraph.addToTaskGraph(toList(e))
         executionPlan.determineExecutionPlan()
 
         then:
@@ -183,8 +185,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addToTaskGraph([c])
-        executionPlan.addToTaskGraph([b])
+        workGraph.addToTaskGraph([c])
+        workGraph.addToTaskGraph([b])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -305,7 +307,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        executionPlan.useFilter(filter)
+        workGraph.useFilter(filter)
         addToGraphAndPopulate([finalized])
 
         then:
@@ -348,8 +350,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addToTaskGraph([finalized])
-        executionPlan.addToTaskGraph([dependsOnFinalizer])
+        workGraph.addToTaskGraph([finalized])
+        workGraph.addToTaskGraph([dependsOnFinalizer])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -516,10 +518,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addToTaskGraph([d])
+        workGraph.addToTaskGraph([d])
 
         when:
-        executionPlan.addToTaskGraph([a])
+        workGraph.addToTaskGraph([a])
         executionPlan.determineExecutionPlan()
 
         then:
@@ -804,7 +806,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        workGraph.useFilter(filter)
         addToGraphAndPopulate([a, b])
 
         then:
@@ -823,7 +825,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        workGraph.useFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -843,7 +845,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        workGraph.useFilter(filter)
         addToGraphAndPopulate([b, c])
 
         then:
@@ -864,7 +866,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.useFilter(filter)
+        workGraph.useFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -873,7 +875,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addToTaskGraph(tasks)
+        workGraph.addToTaskGraph(tasks)
         executionPlan.determineExecutionPlan()
     }
 
@@ -889,7 +891,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     void filtered(Task... expectedTasks) {
-        assert executionPlan.filteredTasks == expectedTasks as Set
+        assert workGraph.filteredTasks == expectedTasks as Set
     }
 
     def getExecutedTasks() {

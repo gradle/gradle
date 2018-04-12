@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.specs.Spec;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
@@ -69,13 +68,12 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISH
 import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 /**
- * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
+ * A reusable implementation of TaskExecutionPlan. The {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
  */
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
-    private final TaskFailureCollector failureCollector = new TaskFailureCollector();
-    private final WorkGraph workGraph = new WorkGraph(failureCollector);
+    private final TaskFailureCollector failureCollector;
     private final WorkExecutionPlan workExecutionPlan;
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final WorkerLeaseService workerLeaseService;
@@ -93,12 +91,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
+    public DefaultTaskExecutionPlan(WorkGraph workGraph, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle, TaskFailureCollector failureCollector) {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
         this.workExecutionPlan = new WorkExecutionPlan(workGraph);
         this.gradle = gradle;
+        this.failureCollector = failureCollector;
     }
 
     @Override
@@ -108,10 +107,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             return "gradle";
         }
         return path.toString();
-    }
-
-    public void addToTaskGraph(Collection<? extends Task> tasks) {
-        workGraph.addToTaskGraph(tasks);
     }
 
     public void determineExecutionPlan() {
@@ -173,7 +168,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                workGraph.clear();
                 workExecutionPlan.clear();
                 projectLocks.clear();
                 taskMutations.clear();
@@ -192,15 +186,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     @Override
     public List<Task> getTasks() {
         return workExecutionPlan.getTasks();
-    }
-
-    @Override
-    public Set<Task> getFilteredTasks() {
-        return workGraph.getFilteredTasks();
-    }
-
-    public void useFilter(Spec<? super Task> filter) {
-        workGraph.useFilter(filter);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
