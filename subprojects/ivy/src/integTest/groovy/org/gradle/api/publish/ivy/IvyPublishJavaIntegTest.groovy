@@ -17,11 +17,12 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
-    def javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
+    IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     String getDependencies() {
         """dependencies {
@@ -781,6 +782,65 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             noMoreCapabilities()
         }
     }
+
+    def "can publish java-library with dependencies/constraints with attributes"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+            def attr1 = Attribute.of('custom', String)
+            def attr2 = Attribute.of('nice', Boolean)
+
+            dependencies {
+                api("org.test:bar:1.0") {
+                    attributes {
+                        attribute(attr1, 'hello')
+                    }
+                }
+                
+                constraints {
+                    implementation("org.test:bar:1.1") {
+                        attributes {
+                            attribute(attr1, 'world')
+                            attribute(attr2, true)
+                        }
+                    }
+                }
+            }
+            
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            constraint('org.test:bar:1.1') {
+                hasAttributes(custom: 'world', nice: true)
+            }
+            noMoreDependencies()
+        }
+    }
+
 
 
     private void createBuildScripts(def append) {
