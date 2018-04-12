@@ -39,12 +39,6 @@ dependencies {
     testLibraries("jmock").forEach { compile(it) }
     compile(testLibrary("spock"))
     compile(testLibrary("jsoup"))
-
-    constraints {
-        add(configurations.compile.name, "cglib:cglib:3.2.6") {
-            because("required to work with Java 9")
-        }
-    }
 }
 
 gradlebuildJava {
