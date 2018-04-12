@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -34,6 +35,12 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     void setIvyDescriptorArtifact(IvyArtifact descriptorFile);
 
     void setGradleModuleDescriptorArtifact(IvyArtifact descriptorFile);
+
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
+    FileCollection getPublishableFiles();
 
     Set<IvyDependencyInternal> getDependencies();
 

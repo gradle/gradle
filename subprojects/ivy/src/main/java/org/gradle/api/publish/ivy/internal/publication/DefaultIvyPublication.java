@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -285,6 +286,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public void setRevision(String revision) {
         publicationIdentity.setRevision(revision);
+    }
+
+    @Override
+    public FileCollection getPublishableFiles() {
+        return getPublishableArtifacts().getFiles();
     }
 
     @Override

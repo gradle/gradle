@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -306,6 +307,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     public void setVersion(String version) {
         projectIdentity.setVersion(version);
+    }
+
+    @Override
+    public FileCollection getPublishableFiles() {
+        return getPublishableArtifacts().getFiles();
     }
 
     @Override

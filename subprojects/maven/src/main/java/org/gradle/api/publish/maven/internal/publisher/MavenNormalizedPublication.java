@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.publish.maven.MavenArtifact;
 
+import java.io.File;
 import java.util.Set;
 
 public class MavenNormalizedPublication {
@@ -38,6 +39,14 @@ public class MavenNormalizedPublication {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
+    public File getPomFile() {
+        return pomArtifact.getFile();
     }
 
     public MavenArtifact getPomArtifact() {

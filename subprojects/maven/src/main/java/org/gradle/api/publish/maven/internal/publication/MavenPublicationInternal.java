@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenDependency;
@@ -33,6 +34,12 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     void setPomArtifact(MavenArtifact artifact);
 
     void setGradleModuleMetadataArtifact(MavenArtifact artifact);
+
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
+    FileCollection getPublishableFiles();
 
     MavenProjectIdentity getMavenProjectIdentity();
 
