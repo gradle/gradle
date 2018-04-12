@@ -41,7 +41,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
             def symlink = new File(baseDir, "symlink")
             def symlinked = new File(baseDir, "symlinked")
             def fileCollection = $code
-            
+
             assert fileCollection.contains(file)
             assert fileCollection.contains(symlink)
             assert fileCollection.contains(symlinked)
