@@ -399,7 +399,7 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s api:org.gradle.api.file.FileCollection[] type and anything else that can be passed to either the api:org.gradle.api.Project#file(java.lang.Object)[] method - for single file/directory properties - or the api:org.gradle.api.Project#files(java.lang.Object...)[] method.
+These consist of the standard `File` class but also derivatives of Gradle’s api:org.gradle.api.file.FileCollection[] type and anything else that can be passed to either the api:org.gradle.api.Project#file(java.lang.Object)[] method - for single file/directory properties - or the api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#filesFor(java.lang.Object...)[], and api:org.gradle.api.file.ProjectLayout#mutableFilesFor(java.lang.Object...)[] methods.
 
 * Nested values
 +
@@ -538,7 +538,9 @@ The `@CompileClasspath` annotation was introduced in Gradle 3.4. To stay compati
 |===
 
 *::
-In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[]. This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values. Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
+In fact, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[] and `Iterable&lt;File&gt;` can be any type accepted by api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#filesFor(java.lang.Object...)[], or api:org.gradle.api.file.ProjectLayout#mutableFilesFor(java.lang.Object...)[].
+This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
+Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
 
 **::
 Similar to the above, `File` can be any type accepted by api:org.gradle.api.Project#file(java.lang.Object)[]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
@@ -818,7 +820,7 @@ The implementation is quite simple and you can use the same technique for your o
 
 In other words, as long as you add values and files to formal task inputs and outputs during the configuration phase, they will be treated as such regardless from where in the build you add them.
 
-If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.files()` method like so:
+If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.layout.filesFor()` method like so:
 
 ++++
 <sample id="incrementalBuildCustomMethodsWithTaskArg" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Declaring a method to add a task as an input">
@@ -828,7 +830,8 @@ If we want to support tasks as arguments as well and treat their outputs as the 
                 </sample>
 ++++
 
-This technique can make your custom task easier to use and result in cleaner build files. As an added benefit, our use of `getProject().files()` means that our custom method can set up an inferred task dependency.
+This technique can make your custom task easier to use and result in cleaner build files.
+As an added benefit, our use of `getProject().getLayout().filesFor()` means that our custom method can set up an inferred task dependency.
 
 One last thing to note: if you are developing a task that takes collections of source files as inputs, like this example, consider using the built-in api:org.gradle.api.tasks.SourceTask[]. It will save you having to implement some of the plumbing that we put into `ProcessTemplates`.
 
@@ -859,16 +862,16 @@ One solution is to use the `TaskOutputs.files` property, as demonstrated by the 
                 </sample>
 ++++
 
-Alternatively, you can get Gradle to access the appropriate property itself by using the `project.files()` method in place of `project.fileTree()`:
+Alternatively, you can get Gradle to access the appropriate property itself by using one of `project.files()`, `project.layout.filesFor()` or `project.layout.mutableFilesFor()` in place of `project.fileTree()`:
 
 ++++
-<sample id="incrementalBuildInputFilesConfigUsingTask" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with files()">
+<sample id="incrementalBuildInputFilesConfigUsingTask" dir="userguide/tasks/incrementalBuild/incrementalBuildAdvanced" title="Setting up an inferred task dependency with filesFor()">
                     <sourcefile file="build.gradle" snippet="inferred-task-dep-with-files"/>
                     <output args="clean instrumentClasses2" ignoreExtraLines="true" ignoreLineOrder="true"/>
                 </sample>
 ++++
 
-Remember that `files()` can take tasks as arguments, whereas `fileTree()` cannot.
+Remember that `files()`, `layout.filesFor()` and `layout.mutableFilesFor()` can take tasks as arguments, whereas `fileTree()` cannot.
 
 The downside of this approach is that all file outputs of the source task become the input files of the target - `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
