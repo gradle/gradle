@@ -351,7 +351,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
            task empty {
-                inputs.files(project.layout.filesFor()).skipWhenEmpty()
+                inputs.files(project.files()).skipWhenEmpty()
                 doLast{}
            }
         """
