@@ -40,7 +40,8 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
     }
 
-    @Issue("GRADLE-2520")
+    @Issue(["GRADLE-2520", "https://github.com/gradle/gradle/issues/4993"])
+    @Requires(TestPrecondition.JDK9_OR_EARLIER)
     def canCombineLocalOptionWithOtherOptions() {
         when:
         run("javadoc")

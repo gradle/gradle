@@ -86,5 +86,13 @@
         ],
         "selected": "org.ow2.asm:asm-util",
         "upgrade": "6.1"
+    },
+    {
+        "name": "cglib",
+        "providedBy": [
+            "cglib:cglib-nodep"
+        ],
+        "selected": "cglib:cglib",
+        "upgrade": "3.2.6"
     }
 ]
