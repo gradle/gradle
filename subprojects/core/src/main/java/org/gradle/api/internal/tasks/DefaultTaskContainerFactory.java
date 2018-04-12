@@ -39,19 +39,21 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private static final ModelType<TaskContainer> TASK_CONTAINER_MODEL_TYPE = ModelType.of(TaskContainer.class);
     private static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
     private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
-    public static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
+    private static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
     private Project project;
-    public ProjectAccessListener projectAccessListener;
+    private final ProjectAccessListener projectAccessListener;
+    private final TaskStatistics statistics;
 
-    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener) {
+    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
         this.project = project;
         this.projectAccessListener = projectAccessListener;
+        this.statistics = statistics;
     }
 
     public TaskContainerInternal create() {
@@ -62,7 +64,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             new Transformer<DefaultTaskContainer, MutableModelNode>() {
                 @Override
                 public DefaultTaskContainer transform(MutableModelNode mutableModelNode) {
-                    return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener);
+                    return instantiator.newInstance(DefaultTaskContainer.class, mutableModelNode, project, instantiator, taskFactory, projectAccessListener, statistics);
                 }
             },
             new Task.Namer(),

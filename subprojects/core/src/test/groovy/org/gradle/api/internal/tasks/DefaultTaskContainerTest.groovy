@@ -42,7 +42,7 @@ class DefaultTaskContainerTest extends Specification {
     }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
+    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, statistics).create()
 
     void 'cannot create task with no name'() {
         when:

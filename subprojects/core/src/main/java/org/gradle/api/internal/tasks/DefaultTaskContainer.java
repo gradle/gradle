@@ -78,13 +78,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
+<<<<<<< HEAD
     private final Object lock = new Object();
+=======
+    private final TaskStatistics statistics;
+>>>>>>> Add task statistics
 
-    public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
+    public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener, TaskStatistics statistics) {
         super(Task.class, instantiator, project);
         this.modelNode = modelNode;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
+        this.statistics = statistics;
     }
 
     public Task create(Map<String, ?> options) {
@@ -106,6 +111,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
         Object[] constructorArgs = getConstructorArgs(actualArgs);
         TaskInternal task = createTask(name, type, constructorArgs);
+        statistics.eagerTask();
 
         Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
         if (dependsOnTasks != null) {
@@ -217,6 +223,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         T task = createTask(name, type, constructorArgs);
+        statistics.eagerTask();
         return addTask(task, false);
     }
 
@@ -485,6 +492,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
             super(type, name);
             this.configureAction = configureAction;
+            statistics.lazyTask();
         }
 
         @Override
@@ -495,6 +503,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     task = type.cast(findByNameWithoutRules(name));
                     if (task == null) {
                         task = createTask(name, type, NO_ARGS);
+                        statistics.lazyTaskRealized();
                         add(task);
                         configureAction.execute(task);
                         configureAction = null;
