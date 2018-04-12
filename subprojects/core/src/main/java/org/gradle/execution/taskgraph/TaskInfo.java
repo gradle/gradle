@@ -16,11 +16,13 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 
 import javax.annotation.Nonnull;
 import java.util.TreeSet;
 
+@NonNullApi
 public class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {

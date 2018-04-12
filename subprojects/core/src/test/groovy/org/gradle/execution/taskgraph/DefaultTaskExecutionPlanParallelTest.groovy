@@ -742,8 +742,8 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         }
 
         then:
-        executionPlan.executionPlan[finalized].isSuccessful()
-        executionPlan.executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
+        executionPlan.workExecutionPlan.@executionPlan[finalized].isSuccessful()
+        executionPlan.workExecutionPlan.@executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
