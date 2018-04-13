@@ -162,7 +162,7 @@
                             <a target="_top" class="site-header__navigation-link" href="https://gradle.org/training/" itemprop="url">Training</a>
                         </li>
                         <li class="site-header__navigation-item" itemprop="name">
-                            <a target="_top" class="site-header__navigation-link" href="https://gradle.com/enterprise" itemprop="url">Enterprise</a>
+                            <a target="_top" class="site-header__navigation-link" href="https://gradle.com/enterprise" itemprop="url">Try Gradle Enterprise</a>
                         </li>
                     </ul>
                 </div>
