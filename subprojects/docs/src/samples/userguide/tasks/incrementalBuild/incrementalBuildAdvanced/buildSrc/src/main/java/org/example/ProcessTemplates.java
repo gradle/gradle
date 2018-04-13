@@ -19,7 +19,7 @@ public class ProcessTemplates extends DefaultTask {
         return this.templateEngine;
     }
 // START SNIPPET custom-task-class
-    private FileCollection sourceFiles = getProject().getLayout.filesFor();
+    private FileCollection sourceFiles = getProject().getLayout().filesFor();
 
     @SkipWhenEmpty
     @InputFiles
