@@ -67,9 +67,11 @@ subprojects {
         }
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-        apply {
-            plugin("kotlin")
-            plugin("org.gradle.kotlin.ktlint-convention")
+
+        apply(plugin = "kotlin")
+
+        if (project.name != "plugins") {
+            apply(plugin = "org.gradle.kotlin.ktlint-convention")
         }
 
         tasks.withType<KotlinCompile> {
