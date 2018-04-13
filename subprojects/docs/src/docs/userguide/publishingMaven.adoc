@@ -216,15 +216,7 @@ The resulting task in this example is named “`publishMavenJavaPublicationToMav
 [[publishing_maven:signing]]
 === Signing artifacts
 
-The <<signing_plugin, Signing plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin.
-
-++++
-<sample dir="signing/maven-publish" id="publishingMavenUseSigningPlugin" title="Using the Signing plugin">
-    <sourcefile file="build.gradle" snippet="use-plugin"/>
-</sample>
-++++
-
-Then, specify the publications you want to have signed using the `signing` DSL.
+The <<signing_plugin, Signing plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
 
 ++++
 <sample dir="signing/maven-publish" id="publishingMavenSignPublication" title="Signing a publication">
