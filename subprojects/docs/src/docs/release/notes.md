@@ -238,6 +238,10 @@ The following methods were changed:
 - `getEnabledFileReportDestinations()` has been removed
 - `getEnabledReportNames()` has been removed
 
+### Immutable `systemPropertiesArgs` and `projectProperties` in `StartParameter`
+
+Now `systemPropertiesArgs` and `projectProperties` properties in `StartParameter` is immutable. This will make any write operation fail, including some unintentional write operation like Groovy's [Map.get(Object key, Object defaultValue)](http://docs.groovy-lang.org/latest/html/groovy-jdk/java/util/Map.html).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
