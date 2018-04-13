@@ -365,4 +365,8 @@
         <span class="hl-value"><xsl:apply-templates mode="xslthl"/></span>
     </xsl:template>
 
+    <xsl:template match='xslthl:word' mode="xslthl">
+        <span class="hl-word"><xsl:apply-templates mode="xslthl"/></span>
+    </xsl:template>
+
 </xsl:stylesheet>
