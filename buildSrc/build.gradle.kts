@@ -85,7 +85,7 @@ subprojects {
         plugin("eclipse")
     }
 
-    the<IdeaModel>().apply {
+    configure<IdeaModel> {
         module.name = "buildSrc-${this@subprojects.name}"
     }
 
@@ -111,8 +111,8 @@ subprojects {
 
 allprojects {
     repositories {
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/libs-snapshots") }
+        maven(url = "https://repo.gradle.org/gradle/libs-releases")
+        maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
         gradlePluginPortal()
     }
 }
@@ -124,7 +124,7 @@ dependencies {
 }
 
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
-val isCiServer: Boolean by extra { System.getenv().containsKey("CI") }
+val isCiServer: Boolean by extra { "CI" in System.getenv() }
 if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
     apply { from("../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts") }
 }
