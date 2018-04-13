@@ -1299,14 +1299,13 @@ table .caution {
 /*
  * Code highlighting
  */
-.hl-string, .hl-number, .hl-value { color: #d14; }
-
-.hl-keyword { color: #963; }
-
-.hl-comment, .hl-doccomment { color: #998; }
-
-.hl-annotation { color: #007; }
-
+.hl-string { color: #008000; }
+.hl-value { color: #660E7A; }
+.hl-number { color: #0000FF; }
+.hl-keyword { color: #000080; }
+.hl-word { font-style: italic; font-weight: bold; color: #D2691E; }
+.hl-comment, .hl-doccomment { font-style: italic; color: #808080; }
+.hl-annotation { color: #808000; }
 .hl-directive { color: #555; }
 
 /*

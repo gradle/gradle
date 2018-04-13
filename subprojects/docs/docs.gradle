@@ -118,6 +118,7 @@ outputs.docs = files(docsDir) {
 
 tasks.withType(CacheableAsciidoctorTask) {
     backends = ['docbook']
+
     separateOutputDirs = false
     options doctype: 'book'
     inputs.file asciidocSanitizeStylesheet withPropertyName "sanitizerStylesheet" withPathSensitivity PathSensitivity.NONE
@@ -137,7 +138,8 @@ tasks.withType(CacheableAsciidoctorTask) {
         }
     }
 
-    attributes website: 'http://www.gradle.org',
+    attributes 'source-highlighter': 'prettify',
+               website: 'http://www.gradle.org',
                javaApi: 'https://docs.oracle.com/javase/7/docs/api',
                antManual: 'https://ant.apache.org/manual'
 
@@ -228,6 +230,7 @@ task userguideStyleSheets(type: Copy) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
     into new File(buildDir, 'stylesheets')
     from(stylesheetsDir) {
+        include '**/*.xml'
         include '*.xsl'
     }
     from(cssFiles)
