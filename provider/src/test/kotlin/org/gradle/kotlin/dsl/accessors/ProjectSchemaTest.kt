@@ -64,7 +64,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             ClassPath.EMPTY)
 
         assertThat(
-            projectSchema.extension("buildScan")!!.type,
+            projectSchema.extension("buildScan").type,
             equalTo(inaccessible(typeString, nonAvailable(typeString))))
     }
 
@@ -78,7 +78,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWithPublicType(typeString))
 
         assertThat(
-            projectSchema.extension("buildScan")!!.type,
+            projectSchema.extension("buildScan").type,
             equalTo(accessible(typeString)))
     }
 
@@ -92,7 +92,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWithPrivateType(typeString))
 
         assertThat(
-            projectSchema.extension("buildScan")!!.type,
+            projectSchema.extension("buildScan").type,
             equalTo(inaccessible(typeString, nonPublic(typeString))))
     }
 
@@ -106,7 +106,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWithType(typeString, ACC_PUBLIC, ACC_SYNTHETIC))
 
         assertThat(
-            projectSchema.extension("buildScan")!!.type,
+            projectSchema.extension("buildScan").type,
             equalTo(inaccessible(typeString, synthetic(typeString))))
     }
 
@@ -120,7 +120,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWith(PublicGenericType::class, PublicComponentType::class))
 
         assertThat(
-            projectSchema.extension("generic")!!.type,
+            projectSchema.extension("generic").type,
             equalTo(accessible(genericTypeString)))
     }
 
@@ -134,7 +134,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWith(PublicGenericType::class, PrivateComponentType::class))
 
         assertThat(
-            projectSchema.extension("generic")!!.type,
+            projectSchema.extension("generic").type,
             equalTo(inaccessible(genericTypeString, nonPublic(PrivateComponentType::class.qualifiedName!!))))
     }
 
@@ -148,7 +148,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             classPathWith(PublicGenericType::class))
 
         assertThat(
-            projectSchema.extension("generic")!!.type,
+            projectSchema.extension("generic").type,
             equalTo(inaccessible(genericTypeString, nonAvailable(PublicComponentType::class.qualifiedName!!))))
     }
 
@@ -162,7 +162,7 @@ class ProjectSchemaTest : TestWithClassPath() {
             jarClassPathWith(PublicGenericType::class, PublicComponentType::class))
 
         assertThat(
-            projectSchema.extension("generic")!!.type,
+            projectSchema.extension("generic").type,
             equalTo(accessible(genericTypeString)))
     }
 
@@ -175,5 +175,5 @@ class ProjectSchemaTest : TestWithClassPath() {
 
     private
     fun <T> ProjectSchema<T>.extension(name: String) =
-        extensions.firstOrNull { it.name == name }
+        extensions.first { it.name == name }
 }
