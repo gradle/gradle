@@ -26,29 +26,38 @@ import java.util.List;
 /**
  * Provides access to snapshots of the content and metadata of the file system.
  *
- * The implementation will attempt to efficiently honour the queries, maintaining some or all state in-memory and dealing with concurrent access to the same parts of the file system.
+ * The implementation will attempt to efficiently honour the queries,
+ * maintaining some or all state in-memory and dealing with concurrent access to the same parts of the file system.
  *
  * Note: use this interface only for those files that are not expected to be changing, for example task inputs.
  */
 @ThreadSafe
 public interface FileSystemSnapshotter {
+
     /**
-     * Determines whether the given file is not missing. Using this method can be more efficient than using {@link File#exists()}.
+     * Determines whether the given file is not missing.
+     * Using this method can be more efficient than using {@link File#exists()}.
      */
     boolean exists(File file);
 
     /**
-     * Returns the current snapshot of the contents and meta-data of the given file. The file may be a regular file, a directory or missing. When the specified file is a directory, details about the directory itself is returned, rather than details about the children of the directory.
+     * Returns the current snapshot of the contents and meta-data of the given file.
+     * The file may be a regular file, a directory or missing.
+     * When the specified file is a directory, details about the directory itself is returned,
+     * rather than details about the children of the directory.
      */
     FileSnapshot snapshotSelf(File file);
 
     /**
-     * Returns a simple snapshot of the contents and meta-data of the given file. The file may or may not be a regular file, a directory or missing. When the specified file is a directory, the directory and all its children are hashed.
+     * Returns a simple snapshot of the contents and meta-data of the given file.
+     * The file may or may not be a regular file, a directory or missing.
+     * When the specified file is a directory, the directory and all its children are hashed.
      */
     Snapshot snapshotAll(File file);
 
     /**
-     * Returns the current snapshot of the contents and meta-data of the given directory. The provided directory must exist and be a directory.
+     * Returns the current snapshot of the contents and meta-data of the given directory.
+     * The provided directory must exist and be a directory.
      */
     FileTreeSnapshot snapshotDirectoryTree(File dir);
 
@@ -58,7 +67,8 @@ public interface FileSystemSnapshotter {
     FileTreeSnapshot snapshotDirectoryTree(DirectoryFileTree dirTree);
 
     /**
-     * Returns the current snapshot of the contents and meta-data of the given file tree. Note: currently does not include the root elements, if any.
+     * Returns the current snapshot of the contents and meta-data of the given file tree.
+     * Note: currently does not include the root elements, if any.
      */
     List<FileSnapshot> snapshotTree(FileTreeInternal tree);
 }
