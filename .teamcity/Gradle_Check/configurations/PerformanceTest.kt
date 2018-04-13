@@ -12,6 +12,9 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
     applyDefaultSettings(this, timeout = type.timeout)
+    artifactRules = """
+        build/report-*-performance-tests.zip => .
+    """.trimIndent()
     detectHangingBuilds = false
     maxRunningBuilds = 2
 
