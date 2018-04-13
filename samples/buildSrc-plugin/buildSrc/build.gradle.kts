@@ -5,9 +5,9 @@ plugins {
 
 gradlePlugin {
     (plugins) {
-        "my-plugin" {
+        "greet-plugin" {
             id = "greet"
-            implementationClass = "my.GreetPlugin"
+            implementationClass = "GreetPlugin"
         }
     }
 }
