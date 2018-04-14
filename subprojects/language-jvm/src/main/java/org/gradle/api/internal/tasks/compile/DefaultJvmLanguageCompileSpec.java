@@ -65,12 +65,14 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
         this.tempDir = tempDir;
     }
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
     @Deprecated
     @Override
     public FileCollection getSource() {
         return ImmutableFileCollection.of(sourceFiles);
     }
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
     @Deprecated
     @Override
     public void setSource(FileCollection source) {
