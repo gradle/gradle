@@ -205,6 +205,30 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         !build3.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
     }
 
+    def "handles two clients that attempt to connect to an idle daemon simultaneously"() {
+        given:
+        succeeds("help")
+        buildFile << """
+            task block {
+                doLast {
+                    new URL("${getUrl('started')}\$buildNum").text
+                }
+            }
+        """
+
+        when:
+        server.expectConcurrent("started1", "started2")
+        def gradle1 = executer.withTasks("block").withArguments("--debug", "-PbuildNum=1").start()
+        def gradle2 = executer.withTasks("block").withArguments("--debug", "-PbuildNum=2").start()
+
+        then:
+        gradle1.waitForFinish()
+        gradle2.waitForFinish()
+
+        and:
+        daemons.daemons.size() == 2
+    }
+
     String getUrl(String event) {
         return "http://localhost:${server.port}/${event}"
     }
