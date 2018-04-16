@@ -83,7 +83,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected List<String> customizeJvmOptions(List<String> jvmOptions) {
-        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptions)
+        PerformanceTestJvmOptions.normalizeJvmOptions(jvmOptions)
     }
 
     abstract R newResult()

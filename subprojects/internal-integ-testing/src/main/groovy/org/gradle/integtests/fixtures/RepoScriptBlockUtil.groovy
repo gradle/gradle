@@ -16,7 +16,43 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.transform.CompileStatic
+
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
+import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
+
+@CompileStatic
 class RepoScriptBlockUtil {
+
+    private static enum MirroredRepository {
+        JCENTER(BINTRAY_JCENTER_URL, System.getProperty('org.gradle.integtest.mirrors.jcenter'), "maven"),
+        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
+        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
+        LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
+        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy")
+
+        String originalUrl
+        String mirrorUrl
+        String name
+        String type
+
+        private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
+            this.originalUrl = originalUrl
+            this.mirrorUrl = mirrorUrl ?: originalUrl
+            this.name = mirrorUrl ? name() + "_MIRROR" : name()
+            this.type = type
+        }
+
+        String getRepositoryDefinition() {
+            """
+                ${type}{
+                    name '${name}'
+                    url '${mirrorUrl}'
+                }
+            """
+        }
+    }
 
     private RepoScriptBlockUtil() {
     }
@@ -46,84 +82,61 @@ class RepoScriptBlockUtil {
     }
 
     static String jcenterRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.jcenter')
-        if (repoUrl) {
-            return """
-                maven {
-                    name 'jcenter-remote'
-                    url '${repoUrl}'
-                }
-            """
-        } else {
-            return 'jcenter()'
-        }
+        MirroredRepository.JCENTER.repositoryDefinition
     }
 
     static String mavenCentralRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.mavencentral')
-        if (repoUrl) {
-            return """
-                maven {
-                    name 'repo1-remote'
-                    url '${repoUrl}'
-                }
-            """
-        } else {
-            return 'mavenCentral()'
-        }
+        MirroredRepository.MAVEN_CENTRAL.repositoryDefinition
     }
 
     static String lightbendMavenRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendmaven')
-        if (repoUrl) {
-            return """
-                maven {
-                    name 'lightbend-maven-release-remote'
-                    url '${repoUrl}'
-                }
-            """
-        } else {
-            return """
-                maven {
-                    name 'lightbend-maven-release'
-                    url 'https://repo.lightbend.com/lightbend/maven-releases'
-                }
-            """
-        }
+        MirroredRepository.LIGHTBEND_MAVEN.repositoryDefinition
     }
 
     static String lightbendIvyRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.lightbendivy')
-        if (repoUrl) {
-            return """
-                ivy {
-                    name 'lightbend-ivy-release-remote'
-                    url '${repoUrl}'
-                    layout 'ivy'
-                }
-            """
-        } else {
-            return """
-                ivy {
-                    name 'lightbend-ivy-release'
-                    url 'https://repo.lightbend.com/lightbend/ivy-releases'
-                    layout 'ivy'
-                }
-            """
-        }
+        MirroredRepository.LIGHTBEND_IVY.repositoryDefinition
     }
 
     static String googleRepositoryDefinition() {
-        String repoUrl = System.getProperty('org.gradle.integtest.mirrors.google')
-        if (repoUrl) {
-            return """
-                maven {
-                    name 'Google'
-                    url '${repoUrl}'
+        MirroredRepository.GOOGLE.repositoryDefinition
+    }
+
+    static File createMirrorInitScript() {
+        File mirrors = File.createTempFile("mirrors", ".gradle")
+        mirrors.deleteOnExit()
+        def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
+            """
+                if (repo.url.toString() == '${mirror.originalUrl}') {
+                    repo.url = '${mirror.mirrorUrl}'
                 }
             """
-        } else {
-            return 'google()'
-        }
+        }.join("")
+        mirrors << """
+            def withMirrors(repos) {
+                repos.all { repo ->
+                    if (repo.hasProperty('url')) {
+                        mirror(repo)
+                    }
+                }
+            }
+
+            def mirror(repo) {
+                ${mirrorConditions}
+            }
+
+            allprojects {
+                buildscript.configurations.classpath.incoming.beforeResolve {
+                    withMirrors(buildscript.repositories)
+                }
+                afterEvaluate {
+                    withMirrors(repositories)
+                }
+            }
+
+            settingsEvaluated { settings ->
+                withMirrors(settings.pluginManagement.repositories)
+            }
+        """
+        mirrors
     }
 }
