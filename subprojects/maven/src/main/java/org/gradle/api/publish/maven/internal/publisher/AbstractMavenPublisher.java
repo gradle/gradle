@@ -17,7 +17,9 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import com.google.common.base.Strings;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
@@ -26,8 +28,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public abstract class AbstractMavenPublisher implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
@@ -47,21 +47,23 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
         }
 
-        File pomFile = publication.getPomArtifact().getFile();
-        MavenPublishAction deployTask = createDeployTask(pomFile, mavenRepositoryLocator, artifactRepository);
+        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
+        ModuleVersionIdentifier coordinates = new DefaultModuleVersionIdentifier(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
+        MavenPublishAction deployTask = createDeployTask(publication.getPackaging(), coordinates, mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
+        MavenArtifact pomArtifact = publication.getPomArtifact();
+        publishAction.setPomArtifact(pomArtifact.getFile());
+
         MavenArtifact mainArtifact = publication.getMainArtifact();
         if (mainArtifact != null) {
             publishAction.setMainArtifact(mainArtifact.getFile());
         }
-
-        MavenArtifact pomArtifact = publication.getPomArtifact();
 
         for (MavenArtifact artifact : publication.getAllArtifacts()) {
             if (artifact == mainArtifact || artifact == pomArtifact) {

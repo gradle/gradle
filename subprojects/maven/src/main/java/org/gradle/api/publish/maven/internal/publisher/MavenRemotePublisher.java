@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.wagon.Wagon;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -43,8 +44,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenPublishAction createDeployTask(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(packaging, coordinates, artifactRepository, repositoryTransportFactory);
 
         // This isn't right, since it seems like `org.sonatype.aether.impl.internal.DefaultDeployer` assumes that
         // this will point to an existing `.m2` repository, so it can list previous snapshot versions to create maven-metadata.xml
@@ -66,8 +67,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
 
-        public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(pomFile, null);
+        public GradleWagonMavenDeployAction(String packaging, ModuleVersionIdentifier coordinates, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            super(packaging, coordinates, null);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
 

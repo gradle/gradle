@@ -24,13 +24,15 @@ import java.util.Set;
 public class MavenNormalizedPublication {
 
     private final String name;
+    private final String packaging;
     private final MavenArtifact pomArtifact;
     private final MavenProjectIdentity projectIdentity;
     private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, String packaging, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
+        this.packaging = packaging;
         this.pomArtifact = pomArtifact;
         this.projectIdentity = projectIdentity;
         this.allArtifacts = allArtifacts;
@@ -39,6 +41,10 @@ public class MavenNormalizedPublication {
 
     public String getName() {
         return name;
+    }
+
+    public String getPackaging() {
+        return packaging;
     }
 
     /**

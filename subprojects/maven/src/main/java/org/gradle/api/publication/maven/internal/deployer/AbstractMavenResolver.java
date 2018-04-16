@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.MavenPom;
@@ -83,7 +84,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return this;
     }
 
-    protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
@@ -110,8 +111,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private void publish() {
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
-            File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishAction publishAction = createPublishAction(pomFile, mavenRepositoryLocator);
+            MavenPublishAction publishAction = createPublishAction(mavenDeployment.getPackaging(), mavenDeployment.getCoordinates(), mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(publishAction, mavenDeployment);
             execute(publishAction);
@@ -128,6 +128,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     }
 
     private void addArtifacts(MavenPublishAction publishAction, MavenDeployment mavenDeployment) {
+        publishAction.setPomArtifact(mavenDeployment.getPomArtifact().getFile());
         if (mavenDeployment.getMainArtifact() != null) {
             publishAction.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }

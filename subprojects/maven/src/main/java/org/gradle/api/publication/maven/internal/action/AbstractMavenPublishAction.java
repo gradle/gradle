@@ -16,8 +16,6 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.apache.maven.repository.internal.SnapshotMetadataGeneratorFactory;
 import org.apache.maven.repository.internal.VersionsMetadataGeneratorFactory;
@@ -29,6 +27,7 @@ import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -44,8 +43,6 @@ import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,23 +51,24 @@ import java.util.List;
 abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private final PlexusContainer container;
     private final DefaultRepositorySystemSession session;
+    private final ModuleVersionIdentifier coordinates;
 
     private final List<Artifact> attached = new ArrayList<Artifact>();
-    private final Artifact pomArtifact;
+    private Artifact pomArtifact;
     private Artifact mainArtifact;
     private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
-    protected AbstractMavenPublishAction(File pomFile, List<File> wagonJars) {
+    protected AbstractMavenPublishAction(String packaging, ModuleVersionIdentifier coordinates, List<File> wagonJars) {
         container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
+        this.coordinates = coordinates;
 
         CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
         BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
         session.setTransferListener(new LoggingMavenTransferListener(currentBuildOperationRef, currentBuildOperation));
 
-        Model pom = parsePom(pomFile);
-        pomArtifact = new DefaultArtifact(pom.getGroupId(), pom.getArtifactId(), "pom", pom.getVersion()).setFile(pomFile);
-        mainArtifact = createTypedArtifact(pom.getPackaging(), null);
+        pomArtifact = new DefaultArtifact(coordinates.getGroup(), coordinates.getName(), "pom", coordinates.getVersion());
+        mainArtifact = createTypedArtifact(packaging, null);
     }
 
     public void setLocalMavenRepositoryLocation(File localMavenRepository) {
@@ -79,6 +77,10 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
 
     public void produceLegacyMavenMetadata() {
         session.getConfigProperties().put("maven.metadata.legacy", "true");
+    }
+
+    public void setPomArtifact(File file) {
+        pomArtifact = pomArtifact.setFile(file);
     }
 
     public void setMainArtifact(File file) {
@@ -149,22 +151,6 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         }
     }
 
-    private Model parsePom(File pomFile) {
-        FileReader reader = null;
-        try {
-            reader = new FileReader(pomFile);
-            return new MavenXpp3Reader().read(reader, false);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            try {
-                reader.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    }
-
     private Artifact createTypedArtifact(String type, String classifier) {
         String extension = type;
         ArtifactType stereotype = session.getArtifactTypeRegistry().get(type);
@@ -174,7 +160,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
                 classifier = stereotype.getClassifier();
             }
         }
-        return new DefaultArtifact(pomArtifact.getGroupId(), pomArtifact.getArtifactId(), classifier, extension, pomArtifact.getVersion());
+        return new DefaultArtifact(coordinates.getGroup(), coordinates.getName(), classifier, extension, coordinates.getVersion());
     }
 
     public void setUniqueVersion(boolean uniqueVersion) {

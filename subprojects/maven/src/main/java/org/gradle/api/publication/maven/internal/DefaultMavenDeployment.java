@@ -16,6 +16,7 @@
 package org.gradle.api.publication.maven.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 
@@ -23,14 +24,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultMavenDeployment implements MavenDeployment {
-    private Set<PublishArtifact> attachedArtifacts;
+    private final String packaging;
+    private final ModuleVersionIdentifier coordinates;
     private final PublishArtifact pomArtifact;
     private final PublishArtifact mainArtifact;
+    private Set<PublishArtifact> attachedArtifacts;
 
-    public DefaultMavenDeployment(PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
+    public DefaultMavenDeployment(String packaging, ModuleVersionIdentifier coordinates, PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
+        this.packaging = packaging;
+        this.coordinates = coordinates;
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
         this.attachedArtifacts = Sets.newLinkedHashSet(attachedArtifacts);
+    }
+
+    @Override
+    public String getPackaging() {
+        return packaging;
+    }
+
+    @Override
+    public ModuleVersionIdentifier getCoordinates() {
+        return coordinates;
     }
 
     public void addArtifact(PublishArtifact artifact) {

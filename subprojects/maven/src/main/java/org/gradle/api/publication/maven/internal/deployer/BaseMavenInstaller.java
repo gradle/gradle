@@ -15,6 +15,7 @@
  */
 package org.gradle.api.publication.maven.internal.deployer;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
@@ -23,16 +24,14 @@ import org.gradle.api.publication.maven.internal.action.MavenInstallAction;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
-import java.io.File;
-
 public class BaseMavenInstaller extends AbstractMavenResolver {
     public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager,
                               MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenInstallAction installAction = new MavenInstallAction(pomFile);
+    protected MavenPublishAction createPublishAction(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenInstallAction installAction = new MavenInstallAction(packaging, coordinates);
         installAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         installAction.produceLegacyMavenMetadata();
         return installAction;
