@@ -34,7 +34,9 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     val repositoriesBlock by lazy {
         """
             repositories {
-                maven { url = uri("$testRepositoryPath") }
+                ${testRepositories.joinToString(separator = "\n") { """
+                    maven(url = "$it")
+                """}}
                 gradlePluginPortal()
             }
         """
@@ -45,9 +47,9 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         loadTestProperties()["version"]!!
     }
 
-    private
-    val testRepositoryPath: String
-        get() = normaliseFileSeparators(absolutePathOf("build/repository"))
+    protected
+    open val testRepositories: List<String>
+        get() = normalisedPathsOf("build/repository")
 
     @Before
     fun setUpTestPluginRepository() {
@@ -63,6 +65,14 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     protected
     fun buildWithPlugin(vararg arguments: String) =
         build(*arguments)
+
+    protected
+    fun normalisedPathsOf(vararg paths: String) =
+        paths.map(::normalisedPathOf)
+
+    protected
+    fun normalisedPathOf(relativePath: String) =
+        normaliseFileSeparators(absolutePathOf(relativePath))
 
     private
     fun absolutePathOf(path: String) =
