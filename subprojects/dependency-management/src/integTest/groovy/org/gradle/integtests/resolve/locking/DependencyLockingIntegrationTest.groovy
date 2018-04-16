@@ -404,4 +404,35 @@ dependencies {
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
+
+    def 'includes transitive dependencies in the lock file'() {
+        def dep = mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+    }
 }
