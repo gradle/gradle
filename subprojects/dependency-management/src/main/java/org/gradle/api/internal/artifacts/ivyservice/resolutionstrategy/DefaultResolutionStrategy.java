@@ -221,6 +221,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
             out.getComponentSelection().addRule(ruleAction);
         }
+        if (isDependencyLockingEnabled()) {
+            out.activateDependencyLocking();
+        }
         return out;
     }
 
