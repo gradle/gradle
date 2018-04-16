@@ -37,7 +37,9 @@ public class LogContent {
     private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT|WAIT)ING( \\[((\\d+h )? \\d+m )?\\d+s\\])?";
     private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
     private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
-    private final static String WORK_IN_PROGRESS_AREA_PATTERN = PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN;
+    private final static Pattern WORK_IN_PROGRESS_AREA_PATTERN = Pattern.compile(PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN);
+    private final static Pattern JAVA_ILLEGAL_ACCESS_WARNING_PATTERN = Pattern.compile("WARNING: An illegal reflective access operation has occurred[\n\r]+.+[\n\r]+"
+        + "WARNING: All illegal access operations will be denied in a future release[\n\r]+", Pattern.DOTALL);
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
@@ -53,7 +55,7 @@ public class LogContent {
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        return new LogContent(toLines(stripWorkInProgressArea(chars)), false, null);
+        return new LogContent(toLines(stripJavaIllegalAccessWarnings(stripWorkInProgressArea(chars))), false, null);
     }
 
     private static ImmutableList<String> toLines(String chars) {
@@ -226,7 +228,11 @@ public class LogContent {
         for (int i = 1; i <= 10; ++i) {
             result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
         }
-        return result.replaceAll(WORK_IN_PROGRESS_AREA_PATTERN, "");
+        return WORK_IN_PROGRESS_AREA_PATTERN.matcher(result).replaceAll("");
+    }
+
+    private static String stripJavaIllegalAccessWarnings(String result) {
+        return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
     }
 
     private static String workInProgressAreaScrollingPattern(int scroll) {
