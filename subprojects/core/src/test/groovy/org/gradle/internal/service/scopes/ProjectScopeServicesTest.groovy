@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskStatistics
 import org.gradle.api.logging.LoggingManager
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -114,6 +115,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ScriptClassPathResolver) >> Mock(ScriptClassPathResolver)
         parent.get(StreamHasher) >> Mock(StreamHasher)
         parent.get(FileHasher) >> Mock(FileHasher)
+        parent.get(TaskStatistics) >> new TaskStatistics()
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 
