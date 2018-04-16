@@ -38,7 +38,7 @@ class ClassGraph(
     operator fun get(className: String) =
         classes.computeIfAbsent(className) {
             val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
-            ClassDetails(className, outputClassName).also { classDetails ->
+            ClassDetails(outputClassName).also { classDetails ->
                 if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
                     entryPoints.add(classDetails)
                 }
@@ -50,7 +50,7 @@ class ClassGraph(
 
 
 internal
-class ClassDetails(val className: String, val outputClassName: String) {
+class ClassDetails(val outputClassName: String) {
     var visited: Boolean = false
     val dependencies: MutableSet<ClassDetails> = linkedSetOf()
     val outputClassFilename
