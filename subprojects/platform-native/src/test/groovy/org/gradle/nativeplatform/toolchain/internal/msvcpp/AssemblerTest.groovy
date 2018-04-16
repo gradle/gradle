@@ -34,8 +34,8 @@ class AssemblerTest extends VisualCppNativeCompilerTest {
     }
 
     @Override
-    protected List<String> getCompilerSpecificArguments(File includeDir) {
-        [''] + super.getCompilerSpecificArguments(includeDir)
+    protected List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir) {
+        [''] + super.getCompilerSpecificArguments(includeDir, systemIncludeDir)
     }
 
     def "check that position sensitive arguments are in the right order"() {

@@ -95,7 +95,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
 
                 CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
                 compile.includes(binary.getCompileIncludePath());
-                compile.includes(systemIncludes);
+                compile.getSystemIncludes().from(systemIncludes);
                 compile.source(binary.getCppSource());
                 if (binary.isDebuggable()) {
                     compile.setDebuggable(true);
