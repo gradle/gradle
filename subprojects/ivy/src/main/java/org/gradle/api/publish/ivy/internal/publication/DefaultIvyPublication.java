@@ -307,6 +307,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return artifact;
     }
 
+    @Override
+    public void removeDerivedArtifact(IvyArtifact artifact) {
+        additionalArtifacts.remove(artifact);
+    }
+
     public IvyPublicationIdentity getIdentity() {
         return publicationIdentity;
     }

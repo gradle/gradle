@@ -38,6 +38,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     T addDerivedArtifact(T originalArtifact, File file);
 
+    void removeDerivedArtifact(T artifact);
+
     /**
      * Provide the file coordinates for the published artifact, if any.
      *

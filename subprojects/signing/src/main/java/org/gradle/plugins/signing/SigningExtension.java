@@ -42,7 +42,9 @@ import org.gradle.plugins.signing.type.SignatureTypeProvider;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
@@ -335,14 +337,20 @@ public class SigningExtension {
                 task.sign(publicationToSign);
             }
         });
+        final Map<Signature, T> artifacts = new HashMap<Signature, T>();
         signTask.getSignatures().all(new Action<Signature>() {
             public void execute(Signature signature) {
-                publicationToSign
-                    .addDerivedArtifact((T) signature.getSource(), signature.getFile())
-                    .builtBy(signTask);
+                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), signature.getFile());
+                artifact.builtBy(signTask);
+                artifacts.put(signature, artifact);
             }
         });
-        // TODO #4943 Decide how to handle removal of signatures
+        signTask.getSignatures().whenObjectRemoved(new Action<Signature>() {
+            public void execute(Signature signature) {
+                T artifact = artifacts.remove(signature);
+                publicationToSign.removeDerivedArtifact(artifact);
+            }
+        });
         return signTask;
     }
 

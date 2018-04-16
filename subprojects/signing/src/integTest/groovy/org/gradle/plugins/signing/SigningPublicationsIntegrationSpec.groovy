@@ -277,4 +277,47 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-source.jar.asc").assertExists()
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
+
+    def "publish task takes into account configuration changes"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                        artifactId '$artifactId'
+                    }
+                }
+                repositories {
+                    maven {
+                        name "m2"
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+
+            signMavenJavaPublication.signatures.removeAll { signature ->
+                signature.toSign.name.endsWith('.jar')
+            }
+        """
+
+        when:
+        succeeds "publishMavenJavaPublicationToM2Repository"
+
+        then:
+        ":publishMavenJavaPublicationToM2Repository" in nonSkippedTasks
+
+        and:
+        pomSignature().assertExists()
+        m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+    }
+
 }

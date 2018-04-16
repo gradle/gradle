@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
@@ -271,12 +272,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void removeSignature(final Buildable source) {
-        signatures.remove(Iterables.find(signatures, new Predicate<Signature>() {
+        Optional<Signature> signature = Iterables.tryFind(signatures, new Predicate<Signature>() {
             @Override
             public boolean apply(Signature input) {
                 return input.getSource().equals(source);
             }
-        }));
+        });
+        if (signature.isPresent()) {
+            signatures.remove(signature.get());
+        }
     }
 
     /**

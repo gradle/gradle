@@ -327,6 +327,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return artifact;
     }
 
+    @Override
+    public void removeDerivedArtifact(MavenArtifact artifact) {
+        additionalArtifacts.remove(artifact);
+    }
+
     public MavenProjectIdentity getMavenProjectIdentity() {
         return projectIdentity;
     }
