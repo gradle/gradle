@@ -109,7 +109,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     public ModuleResolveState getModule(ModuleIdentifier id) {
         ModuleResolveState module = modules.get(id);
         if (module == null) {
-            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder);
+            module = new ModuleResolveState(idGenerator, id, metaDataResolver, variantNameBuilder, attributesFactory);
             modules.put(id, module);
         }
         return module;
