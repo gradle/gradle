@@ -21,12 +21,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -133,11 +130,8 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     public ImmutableAttributes getAttributes() {
-        ImmutableAttributes dependencyAttributes = ImmutableAttributes.EMPTY;
         ModuleResolveState module = selector.getTargetModule();
-        List<SelectorState> selectors = module.getSelectors();
-        dependencyAttributes = mergeSelectorAttributes(dependencyAttributes, selectors);
-        return dependencyAttributes;
+        return module.getMergedSelectorAttributes();
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
@@ -228,26 +222,4 @@ class EdgeState implements DependencyGraphEdge {
             }
         });
     }
-
-    private ImmutableAttributes mergeSelectorAttributes(ImmutableAttributes dependencyAttributes, List<SelectorState> selectors) {
-        for (SelectorState selectorState : selectors) {
-            dependencyAttributes = appendAttributes(dependencyAttributes, selectorState);
-        }
-        return dependencyAttributes;
-    }
-
-    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
-        try {
-            ComponentSelector selector = selectorState.getDependencyMetadata().getSelector();
-            if (selector instanceof ModuleComponentSelector) {
-                ImmutableAttributes attributes = ((AttributeContainerInternal) ((ModuleComponentSelector) selector).getAttributes()).asImmutable();
-                dependencyAttributes = resolveState.getAttributesFactory().safeConcat(attributes, dependencyAttributes);
-            }
-        } catch (AttributeMergingException e) {
-            ModuleResolveState moduleState = selectorState.getTargetModule();
-            throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(moduleState, e));
-        }
-        return dependencyAttributes;
-    }
-
 }

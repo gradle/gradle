@@ -79,8 +79,11 @@ abstract class MessageBuilderHelper {
 
     static Set<EdgeState> getIncomingEdges(ModuleResolveState module) {
         Set<EdgeState> incoming = Sets.newLinkedHashSet();
-        for (NodeState nodeState : module.getSelected().getNodes()) {
-            incoming.addAll(nodeState.getIncomingEdges());
+        ComponentState selected = module.getSelected();
+        if (selected != null) {
+            for (NodeState nodeState : selected.getNodes()) {
+                incoming.addAll(nodeState.getIncomingEdges());
+            }
         }
         return incoming;
     }
