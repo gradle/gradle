@@ -198,7 +198,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.replaceIndent())
+    """.replaceIndent().trim())
 }
 
 
