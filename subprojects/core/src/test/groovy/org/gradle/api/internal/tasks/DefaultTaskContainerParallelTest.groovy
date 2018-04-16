@@ -31,7 +31,7 @@ class DefaultTaskContainerParallelTest extends ConcurrentSpec {
         getModelRegistry() >> modelRegistry
     }
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener).create()
+    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, new TaskStatistics()).create()
 
     def "two threads can access a lazy task simultaneously using create provider"() {
         def task = Mock(DefaultTask) {
