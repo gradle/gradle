@@ -49,6 +49,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 TBD - previously this was broken, and plugins may accidentally rely on this behaviour.
 
+### Signature.setFile() no longer changes the file to be published
+
+Previously, `Signature.setFile()` could be used to replace the file used for publishing a `Signature`. However, the actual signature file was still being generated at its default location. Therefore, `Signature.setFile()` is now deprecated and will be removed in a future release.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
