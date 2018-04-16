@@ -225,13 +225,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
 
+            Set<ExcludeRule> globalExcludes = usageContext.getGlobalExcludes();
+
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency)) {
                     if (dependency instanceof ProjectDependency) {
-                        addProjectDependency((ProjectDependency) dependency, dependencies);
+                        addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        addModuleDependency(dependency, dependencies);
+                        addModuleDependency(dependency, globalExcludes, dependencies);
                     }
                 }
             }
@@ -265,21 +267,21 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return runtimeDependencyConstraints;
     }
 
-    private void addProjectDependency(ProjectDependency dependency, Set<MavenDependencyInternal> dependencies) {
+    private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
+        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(globalExcludes, dependency)));
     }
 
-    private void addModuleDependency(ModuleDependency dependency, Set<MavenDependencyInternal> dependencies) {
-        dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
+    private void addModuleDependency(ModuleDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
+        dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(globalExcludes, dependency)));
     }
 
     private void addDependencyConstraint(DependencyConstraint dependency, Set<MavenDependency> dependencies) {
         dependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion()));
     }
 
-    private static Set<ExcludeRule> getExcludeRules(ModuleDependency dependency) {
-        return dependency.isTransitive() ? dependency.getExcludeRules() : EXCLUDE_ALL_RULE;
+    private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {
+        return dependency.isTransitive() ? Sets.union(globalExcludes, dependency.getExcludeRules()) : EXCLUDE_ALL_RULE;
     }
 
     public MavenArtifact artifact(Object source) {

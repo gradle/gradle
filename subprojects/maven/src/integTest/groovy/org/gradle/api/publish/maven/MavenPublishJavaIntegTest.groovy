@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
@@ -646,6 +647,54 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5034")
+    void "generated POM includes configuration exclusions"() {
+        given:
+        createBuildScripts("""
+            configurations.apiElements {
+                exclude group: "foo", module: "bar"
+            }
+
+            configurations.runtimeElements {
+                exclude group: "baz", module: "qux"
+            }
+
+            dependencies {
+                api "org.test:a:1.0"
+                implementation "org.test:b:2.0"
+                api project(':subproject')
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+        settingsFile << """
+            include "subproject"
+        """
+        file('subproject/build.gradle') << """
+            apply plugin: 'java'
+            group = 'org.gradle.test'
+            version = '1.2'
+        """
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.test:a:1.0", "org.gradle.test:subproject:1.2")
+        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("foo", "bar"))
+        javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("foo", "bar"))
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.test:b:2.0")
+        javaLibrary.parsedPom.scopes.runtime.hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("baz", "qux"))
     }
 
     def createBuildScripts(def append) {
