@@ -361,7 +361,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
             $applyPrecompiledScriptPlugins
         """
 
-    protected
+    private
     val applyPrecompiledScriptPlugins
         get() = "apply<${PrecompiledScriptPlugins::class.qualifiedName}>()"
 
