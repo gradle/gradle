@@ -237,4 +237,44 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ivyRepoFile("$artifactId-${version}.module").assertExists()
         ivyRepoFile("$artifactId-${version}.module.asc").assertExists()
     }
+
+    def "sign task takes into account configuration changes"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            task sourceJar(type: Jar) {
+                from sourceSets.main.allJava
+                classifier "source"
+            }
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+
+            publishing.publications.mavenJava.artifacts = [] 
+            publishing.publications.mavenJava.artifact(sourceJar)
+        """
+
+        when:
+        run "signMavenJavaPublication"
+
+        then:
+        ":signMavenJavaPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").assertDoesNotExist()
+        file("build", "libs", "sign-1.0-source.jar.asc").assertExists()
+        file("build", "publications", "mavenJava", "pom-default.xml.asc").text
+    }
 }
