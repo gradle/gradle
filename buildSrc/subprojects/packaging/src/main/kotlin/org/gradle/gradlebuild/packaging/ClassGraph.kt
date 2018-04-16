@@ -39,7 +39,6 @@ class ClassGraph(
         classes.computeIfAbsent(className) {
             val outputClassName = if (unshadedPackages.matches(className)) className else shadowPackagePrefix + className
             ClassDetails(className, outputClassName).also { classDetails ->
-                classes[className] = classDetails
                 if (keepPackages.matches(className) && !ignorePackages.matches(className)) {
                     entryPoints.add(classDetails)
                 }
