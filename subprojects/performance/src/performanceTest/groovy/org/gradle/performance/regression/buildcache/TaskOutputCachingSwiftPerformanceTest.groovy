@@ -17,7 +17,6 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
-import org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest
 import spock.lang.Unroll
 
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
