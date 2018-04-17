@@ -19,6 +19,7 @@ package org.gradle.nativeplatform;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.tasks.Input;
 
 /**
  * Represents the operating system of a configuration. Typical operating system include Windows, Linux, and macOS.
@@ -27,27 +28,65 @@ import org.gradle.api.attributes.Attribute;
  * @since 4.7
  */
 @Incubating
-public interface OperatingSystemFamily extends Named {
-    Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
+public abstract class OperatingSystemFamily implements Named {
+    public static final Attribute<OperatingSystemFamily> OPERATING_SYSTEM_ATTRIBUTE = Attribute.of("org.gradle.native.operatingSystem", OperatingSystemFamily.class);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Input
+    @Override
+    public abstract String getName();
 
     /**
      * The Windows operating system family.
      *
      * @since 4.7
      */
-    String WINDOWS = "windows";
+    public static final String WINDOWS = "windows";
+
+    /**
+     * Is this the Windows operating system family?
+     *
+     * @since 4.8
+     */
+    public boolean isWindows() {
+        return is(WINDOWS);
+    }
 
     /**
      * The Linux operating system family.
      *
      * @since 4.7
      */
-    String LINUX = "linux";
+    public static final String LINUX = "linux";
+
+    /**
+     * Is this the Linux operating system family?
+     *
+     * @since 4.8
+     */
+    public boolean isLinux() {
+        return is(LINUX);
+    }
 
     /**
      * The macOS operating system family.
      *
-     * @since 4.7
+     * @since 4.8
      */
-    String MAC_OS = "macos";
+    public static final String MACOS = "macos";
+
+    /**
+     * Is this the macOS operating system family?
+     *
+     * @since 4.8
+     */
+    public boolean isMacOs() {
+        return is(MACOS);
+    }
+
+    private boolean is(String osFamily) {
+        return getName().equals(osFamily);
+    }
 }

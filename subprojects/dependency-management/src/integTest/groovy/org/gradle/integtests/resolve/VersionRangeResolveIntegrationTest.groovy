@@ -18,8 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 /**
@@ -27,6 +29,12 @@ import spock.lang.Unroll
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
  * TODO:DAZ This is a bit _too_ comprehensive, and has coverage overlap. Consolidate and streamline.
  */
+@IgnoreIf({
+    // This test is very expensive. Ideally we shouldn't need an integration test here, but lack the
+    // infrastructure to simulate everything done here, so we're only going to execute this test in
+    // embedded mode
+    !GradleContextualExecuter.embedded
+})
 class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def baseBuild
@@ -278,25 +286,25 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
 
         where:
-        dep1         | reject       | lenientResult | strictResult | correctLenient | correctStrict
-        "1.0"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"       | ''             | ''
-        "[1.0, 1.2]" | "1.0"        | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, 1.2]" | "[1.0, 1.4]" | "FAIL"        | "FAIL"       | ''             | ''
-        "[1.0, 1.2]" | "[1.0, )"    | "FAIL"        | "FAIL"       | ''             | ''
-        "[1.0, )"    | "1.0"        | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.1]" | "1.2"         | "1.2"        | ''             | ''
-        "[1.0, )"    | "[1.0, 1.4]" | "FAIL"        | "FAIL"       | ''             | ''
-        "[1.0, )"    | "[1.0, )"    | "FAIL"        | "FAIL"       | ''             | ''
-        "1.+"        | "1.0"        | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.0, 1.1]" | "1.2"         | "1.2"        | ''             | ''
-        "1.+"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"       | ''             | ''
-        "1.+"        | "[1.0, )"    | "FAIL"        | "FAIL"       | ''             | ''
+        dep1         | reject       | lenientResult | strictResult
+        "1.0"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"
+        "[1.0, 1.2]" | "1.0"        | "1.2"         | "1.2"
+        "[1.0, 1.2]" | "[1.0, 1.1]" | "1.2"         | "1.2"
+        "[1.0, 1.2]" | "[1.0, 1.4]" | "FAIL"        | "FAIL"
+        "[1.0, 1.2]" | "[1.0, )"    | "FAIL"        | "FAIL"
+        "[1.0, )"    | "1.0"        | "1.2"         | "1.2"
+        "[1.0, )"    | "[1.0, 1.1]" | "1.2"         | "1.2"
+        "[1.0, )"    | "[1.0, 1.4]" | "FAIL"        | "FAIL"
+        "[1.0, )"    | "[1.0, )"    | "FAIL"        | "FAIL"
+        "1.+"        | "1.0"        | "1.2"         | "1.2"
+        "1.+"        | "[1.0, 1.1]" | "1.2"         | "1.2"
+        "1.+"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"
+        "1.+"        | "[1.0, )"    | "FAIL"        | "FAIL"
 
         // Incorrect behaviour: should find older version in preferred range when newest is rejected
-        "[1.0, 1.2]" | "1.2"        | "FAIL"        | "FAIL"       | "1.1"          | "1.1"
-        "[1.0, )"    | "1.2"        | "FAIL"        | "FAIL"       | "1.1"          | "1.1"
-        "1.+"        | "1.2"        | "FAIL"        | "FAIL"       | "1.1"          | "1.1"
+        "[1.0, 1.2]" | "1.2"        | "1.1"          | "1.1"
+        "[1.0, )"    | "1.2"        | "1.1"          | "1.1"
+        "1.+"        | "1.2"        | "1.1"          | "1.1"
     }
 
     @Unroll

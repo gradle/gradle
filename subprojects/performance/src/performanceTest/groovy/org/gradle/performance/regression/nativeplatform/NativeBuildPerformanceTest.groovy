@@ -21,11 +21,9 @@ import org.gradle.performance.mutator.ApplyChangeToNativeSourceFileMutator
 import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    public static final String TARGET_VERSION = "4.6-20180228115532+0000"
-
     def setup() {
         runner.minimumVersion = '4.0'
-        runner.targetVersions = [TARGET_VERSION]
+        runner.targetVersions = ["4.8-20180417000132+0000"]
     }
 
     @Unroll

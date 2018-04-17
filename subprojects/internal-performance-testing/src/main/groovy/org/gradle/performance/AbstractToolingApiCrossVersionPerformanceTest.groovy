@@ -16,7 +16,7 @@
 
 package org.gradle.performance
 
-import groovy.transform.InheritConstructors
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -38,12 +38,12 @@ import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
+import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.fixture.PerformanceTestJvmOptions
 import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
@@ -68,6 +68,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.lang.reflect.Proxy
 
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
@@ -95,6 +97,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @Rule
     RetryRule retry = new PerformanceTestRetryRule()
+
+    File repositoryMirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
 
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
@@ -127,12 +131,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    protected String[] customizeJvmOptions(List<String> jvmOptionns = []) {
-        PerformanceTestJvmOptions.customizeJvmOptions(jvmOptionns)
-    }
-
-    @InheritConstructors
-    public static class ToolingApiExperimentSpec extends BuildExperimentSpec {
+    public class ToolingApiExperimentSpec extends BuildExperimentSpec {
         List<String> targetVersions = []
         String minimumVersion
 
@@ -140,8 +139,43 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         Closure<?> action
 
+        ToolingApiExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+            super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
+        }
+
         void action(@DelegatesTo(ProjectConnection) Closure<?> action) {
-            this.action = action
+            this.action = { connection ->
+                asPerformanceTestConnection(connection).with(action)
+            }
+        }
+
+        public asPerformanceTestConnection(Object connection) {
+            Proxy.newProxyInstance(tapiClassLoader, [tapiClassLoader.loadClass(ProjectConnection.name)] as Class[]) { proxy, method, args ->
+                switch (method.name) {
+                    case "model": return withAdditionalArgs(connection.model(args[0]))
+                    case "getModel":
+                        if (args.length == 1) {
+                            return withAdditionalArgs(connection.model(args[0])).get()
+                        } else {
+                            return withAdditionalArgs(connection.model(args[0])).get(args[2])
+                        }
+                    case "newBuild": return withAdditionalArgs(connection.newBuild)
+                    case "newTestLauncher": return withAdditionalArgs(connection.newBuild)
+                    case "action": return withAdditionalArgs(connection.action(args[0]))
+                    default: method.invoke(connection, args)
+                }
+            }
+        }
+
+        public withAdditionalArgs(operation) {
+            Proxy.newProxyInstance(tapiClassLoader, operation.class.interfaces) { proxy, method, args ->
+                if (method.name in ["run", "get"]) {
+                    def params = operation.operationParamsBuilder
+                    params.arguments = params.arguments = params.arguments ?: []
+                    params.arguments += ["--init-script", repositoryMirrorScript.absolutePath]
+                }
+                method.invoke(operation, args)
+            }
         }
 
         @Override

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.Lists
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -57,7 +57,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def spec = new DefaultJavaCompileSpec()
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
-        spec.source = new SimpleFileCollection(sources)
+        spec.source = ImmutableFileCollection.of(sources as File[])
         spec.compileClasspath = classpath
         spec.tempDir = tempDir.testDirectory
         spec

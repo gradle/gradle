@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
@@ -165,6 +166,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void debugLogging() {
+        disableStacktraceCheckOnJava7()
         checkOutput(this.&run, logOutput.debug)
     }
 
@@ -200,7 +202,20 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiThreadedDebugLogging() {
+        disableStacktraceCheckOnJava7()
         checkOutput(this.&runMultiThreaded, multiThreaded.debug)
+    }
+
+    /**
+     * Sometimes on Java7, when another client tries to connect to the daemon, we
+     * get a spurious stacktrace in the debug output from the daemon related to the
+     * other connection.  It doesn't affect this test functionally, but the stacktrace
+     * check fails the test anyways because the logged error shows up in the debug output.
+     */
+    def disableStacktraceCheckOnJava7() {
+        if (JavaVersion.current().isJava7()) {
+            executer.withStackTraceChecksDisabled()
+        }
     }
 
     def run(LogLevel level) {

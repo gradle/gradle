@@ -17,12 +17,7 @@
 package org.gradle.internal.locking
 
 import org.gradle.StartParameter
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.ResolvedComponentResult
-import org.gradle.api.artifacts.result.ResolvedVariantResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
@@ -52,14 +47,12 @@ class DefaultDependencyLockingProviderTest extends Specification {
 
     def 'can persist resolved modules as lockfile'() {
         given:
-        ResolutionResult resolutionResult = Mock()
         startParameter.isWriteDependencyLocks() >> true
         provider = new DefaultDependencyLockingProvider(resolver, startParameter)
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
-        resolutionResult.getAllComponents() >> modules
 
         when:
-        provider.persistResolvedDependencies('conf', resolutionResult)
+        provider.persistResolvedDependencies('conf', modules)
 
         then:
         lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}org:bar:1.3
@@ -73,10 +66,11 @@ org:foo:1.0
 org:foo:1.0
 """
         when:
-        def result = provider.findLockedDependencies('conf')
+        def result = provider.findLockConstraint('conf')
 
         then:
-        result == [strictConstraint('org', 'bar', '1.3'), strictConstraint('org', 'foo', '1.0')] as Set
+        result.hasLockState()
+        result.getLockedDependencies() == [strictConstraint('org', 'bar', '1.3'), strictConstraint('org', 'foo', '1.0')] as Set
     }
 
     def 'fails with invalid content in lock file'() {
@@ -84,7 +78,7 @@ org:foo:1.0
         lockDir.file('conf.lockfile') << """invalid"""
 
         when:
-        provider.findLockedDependencies('conf')
+        provider.findLockConstraint('conf')
 
         then:
         def ex = thrown(InvalidLockFileException)
@@ -92,8 +86,8 @@ org:foo:1.0
         ex.cause.message == 'The module notation does not respect the lock file format of \'group:name:version\' - received \'invalid\''
     }
 
-    private ResolvedComponentResult module(String org, String name, String version) {
-        return new DefaultResolvedComponentResult(Mock(ModuleVersionIdentifier), Mock(ComponentSelectionReason), new DefaultModuleComponentIdentifier(org, name, version), Mock(ResolvedVariantResult))
+    private ModuleComponentIdentifier module(String org, String name, String version) {
+        return new DefaultModuleComponentIdentifier(org, name, version)
     }
 
 }

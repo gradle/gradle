@@ -6,9 +6,11 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<!--
-### Example new and noteworthy
--->
+### Better control over system include path for native compilation
+
+In previous versions of Gradle, the native compile task include path was a single monolithic collection of files that was accessible through the `includes` property on the compile task.
+In Gradle 4.8, system header include directories can now be accessed separately via the `systemIncludes` property. 
+On GCC-compatible toolchains, the system header include directories specified with `systemIncludes` will be specified on the command line using the ["-isystem" argument](https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html), which marks them for special treatment by the compiler.   
 
 ## Promoted features
 
@@ -16,10 +18,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
@@ -48,6 +46,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### TaskContainer.remove() now actually removes the task
 
 TBD - previously this was broken, and plugins may accidentally rely on this behaviour.
+
+### Signature.setFile() no longer changes the file to be published
+
+Previously, `Signature.setFile()` could be used to replace the file used for publishing a `Signature`. However, the actual signature file was still being generated at its default location. Therefore, `Signature.setFile()` is now deprecated and will be removed in a future release.
 
 ## External contributions
 

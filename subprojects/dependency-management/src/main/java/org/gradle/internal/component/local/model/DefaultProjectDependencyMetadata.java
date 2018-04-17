@@ -90,4 +90,5 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
     }
+
 }

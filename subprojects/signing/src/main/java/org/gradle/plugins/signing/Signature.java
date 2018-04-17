@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -81,13 +82,6 @@ public class Signature extends AbstractPublishArtifact {
      * @see #getDate()
      */
     private Date date;
-
-    /**
-     * The signature file.
-     *
-     * @see #getFile()
-     */
-    private File file;
 
     private Callable<File> toSignGenerator;
 
@@ -309,23 +303,26 @@ public class Signature extends AbstractPublishArtifact {
         return new Date(modified);
     }
 
-    public void setFile(File file) {
-        this.file = file;
+    /**
+     * Set the file for the generated signature.
+     *
+     * @param file ignored
+     * @deprecated changing the output file is not supported.
+     */
+    @Deprecated
+    public void setFile(@SuppressWarnings("unused") File file) {
+        DeprecationLogger.nagUserOfDeprecated("Using Signature.setFile()");
     }
 
     /**
      * The file for the generated signature, which may not yet exist.
      *
-     * <p>Defaults to a file alongside the {@link #getToSign() file to sign} with the extension of the {@link #getSignatureType() signature type}.</p>
+     * <p>The file will be placed alongside the {@link #getToSign() file to sign} with the extension of the {@link #getSignatureType() signature type}.
      *
      * @return The signature file. May be {@code null} if unknown at this time.
+     * @see SignatureType#fileFor(File)
      */
     public File getFile() {
-        return file != null ? file : defaultFile();
-    }
-
-    @Nullable
-    private File defaultFile() {
         File toSign = getToSign();
         SignatureType signatureType = getSignatureType();
         return toSign != null && signatureType != null

@@ -15,6 +15,10 @@
  */
 package org.gradle.plugins.signing
 
+import spock.lang.Issue
+
+import java.nio.file.Files
+
 class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
     def "signing configurations"() {
@@ -43,5 +47,36 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "libs", "sign-1.0-javadoc.jar.asc").text
         file("build", "libs", "sign-1.0-sources.jar.asc").text
+    }
+
+    @Issue("gradle/gradle#4980")
+    def "removing signature file causes sign task to re-execute"() {
+        given:
+        buildFile << """
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+        """
+
+        when:
+        run "sign"
+
+        then:
+        executedAndNotSkipped ":signArchives"
+
+        when:
+        Files.delete(file("build", "libs", "sign-1.0.jar.asc").toPath())
+
+        and:
+        run "sign"
+
+        then:
+        executedAndNotSkipped ":signArchives"
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
     }
 }

@@ -72,10 +72,10 @@ class DistributionTestingPlugin : Plugin<Project> {
 
     private
     fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
-        distributionTest.reports.junitXml.destination = File(java.testResultsDir, distributionTest.name)
+        distributionTest.reports.junitXml.destination = java.testResultsDir.resolve(distributionTest.name)
         // TODO Confirm that this is not needed
         afterEvaluate {
-            distributionTest.reports.html.destination = file("${the<ReportingExtension>().baseDir}/$name")
+            distributionTest.reports.html.destination = file("${the<ReportingExtension>().baseDir}/${distributionTest.name}")
         }
     }
 

@@ -157,6 +157,6 @@ dependencies {
 
 task resolveConfiguration {
     doLast {
-        configurations.sampleConfig.files.each { println it }
+        configurations.sampleConfig.each { println it }
     }
 }

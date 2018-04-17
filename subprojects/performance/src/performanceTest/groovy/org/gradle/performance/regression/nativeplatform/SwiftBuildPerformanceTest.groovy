@@ -25,7 +25,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = [NativeBuildPerformanceTest.TARGET_VERSION]
+        runner.targetVersions = ["4.8-20180417000132+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
@@ -71,7 +71,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "incremental compile on #testProject"() {
         given:
-        runner.targetVersions = [ '4.8-20180404000014+0000' ]
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]

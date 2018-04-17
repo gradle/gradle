@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -169,18 +171,35 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.version == "2.0"
     }
 
+    def "can modify dependency attributes"() {
+        given:
+        def attr = Attribute.of('test', String)
+        fillDependencyList(1)
+
+        when:
+        adapter.get(0).attributes { it.attribute(attr, 'foo') }
+
+        then:
+        dependenciesMetadata.size() == 1
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.version == "1.0"
+        dependenciesMetadata[0].selector.attributes.keySet() == [attr] as Set
+        dependenciesMetadata[0].selector.attributes.getAttribute(attr) == 'foo'
+    }
+
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector("org.gradle.test", "module$size", "1.0")
-            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], null) ]
+            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, null) ]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }
 
     class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
         TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
-            super(dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class))
+            super(TestUtil.attributesFactory(), dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class))
         }
 
         @Override

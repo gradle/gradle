@@ -83,7 +83,7 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
- * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
@@ -836,8 +836,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @return The test framework options.
      */
     @Nested
-    // TestFrameworkOptions currently don't have any annotated properties. We use this nested input to distinguish between testing frameworks.
-    // This works since the actual option class changes when we change the testing framework.
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }

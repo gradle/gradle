@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+@NonNullApi
+package org.gradle.api.internal.file.collections;
 
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
-
-public class ProjectConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher {
-    public ProjectConnectionBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
-        super(connection, parameters);
-    }
-}
+import org.gradle.api.NonNullApi;

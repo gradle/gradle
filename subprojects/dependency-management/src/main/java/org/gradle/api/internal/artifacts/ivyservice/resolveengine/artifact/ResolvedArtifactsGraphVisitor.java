@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -49,7 +51,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void start(DependencyGraphNode root) {
+    public void start(RootGraphNode root) {
         artifactResults.startArtifacts(root);
     }
 
@@ -86,11 +88,12 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private ArtifactsForNode getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode toConfiguration) {
         ConfigurationMetadata targetConfiguration = toConfiguration.getMetadata();
         ComponentResolveMetadata component = toConfiguration.getOwner().getMetadata();
+        ImmutableAttributes overriddenAttributes = dependency.getAttributes();
 
         List<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(targetConfiguration);
         if (!artifacts.isEmpty()) {
             int id = nextId++;
-            ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts);
+            ArtifactSet artifactSet = artifactSelector.resolveArtifacts(component, artifacts, overriddenAttributes);
             return new ArtifactsForNode(id, artifactSet);
         }
 
@@ -104,8 +107,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 //            ModuleExclusion nodeExclusions = targetConfiguration.getExclusions(moduleExclusions);
 //            ModuleExclusion edgeExclusions = dependency.getExclusions();
 //            ModuleExclusion exclusions = moduleExclusions.intersect(edgeExclusions, nodeExclusions);
-
-            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions);
+            ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.tasks.scala
 
-import groovy.transform.InheritConstructors
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
@@ -115,11 +114,7 @@ class NormalizingScalaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        new TestFileCollection(paths.collect { new File(it) })
+        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
     }
-
-    // file collection whose type is distinguishable from SimpleFileCollection
-    @InheritConstructors
-    static class TestFileCollection extends SimpleFileCollection {}
 }
 

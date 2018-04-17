@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -127,6 +128,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public Set<ResolvedVariant> getVariants() {
             return Collections.<ResolvedVariant>singleton(this);
+        }
+
+        @Override
+        public ImmutableAttributes getOverridenAttributes() {
+            return ImmutableAttributes.EMPTY;
         }
 
         @Override

@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -201,7 +202,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         public SelectedArtifactResults artifactsResults;
 
         @Override
-        public void start(DependencyGraphNode root) {
+        public void start(RootGraphNode root) {
         }
 
         @Override
@@ -228,7 +229,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         }
 
         @Override
-        public void startArtifacts(DependencyGraphNode root) {
+        public void startArtifacts(RootGraphNode root) {
         }
 
         @Override

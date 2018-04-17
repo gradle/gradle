@@ -112,4 +112,5 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     public ComponentSelector getSelector() {
         return delegate.getSelector();
     }
+
 }

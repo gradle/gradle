@@ -214,7 +214,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 }
             } else if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
-                for (File file : fileCollection.getFiles()) {
+                for (File file : fileCollection) {
                     convertFileToFileTree(file, result);
                 }
             } else if (element instanceof MinimalFileCollection) {

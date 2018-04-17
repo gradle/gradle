@@ -31,7 +31,7 @@ public class CompositeDependencyArtifactsVisitor implements DependencyArtifactsV
     }
 
     @Override
-    public void startArtifacts(DependencyGraphNode root) {
+    public void startArtifacts(RootGraphNode root) {
         for (DependencyArtifactsVisitor visitor : visitors) {
             visitor.startArtifacts(root);
         }

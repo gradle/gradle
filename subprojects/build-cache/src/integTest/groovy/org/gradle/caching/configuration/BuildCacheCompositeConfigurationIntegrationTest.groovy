@@ -30,9 +30,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    def setup() {
-    }
-
     enum EnabledBy {
         INVOCATION_SWITCH,
         PROGRAMMATIC
@@ -127,23 +124,29 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
     @Issue("https://github.com/gradle/gradle/issues/4216")
     def "build cache service is closed only after all included builds are finished"() {
+        executer.beforeExecute { it.withBuildCacheEnabled() }
         def localCache = new TestBuildCache(file("local-cache"))
+        settingsFile << localCache.localCacheConfiguration(true)
 
         buildTestFixture.withBuildInSubDir()
         multiProjectBuild('included', ['first', 'second']) {
             buildFile << """
-                    gradle.startParameter.setTaskNames(['build'])
+                    gradle.startParameter.setTaskNames(['clean', 'build'])
                     allprojects {
                         apply plugin: 'java-library'
                         
-                        tasks.withType(JavaCompile) {
+                        tasks.withType(Jar) {
                             doFirst {
                                 // this makes it more probable that tasks from the included build finish after the root build
-                                Thread.sleep(2000)
+                                Thread.sleep(1000)
                             }
                         }
                     }
                 """
+
+            file("src/test/java/Test.java") << """class Test {}"""
+            file("first/src/test/java/Test.java") << """class TestFirst {}"""
+            file("second/src/test/java/Test.java") << """class TestSecond {}"""
         }
 
         settingsFile << localCache.localCacheConfiguration() << """
@@ -157,16 +160,11 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         expect:
         succeeds "build"
-
-        when:
-        file("included/src/test/java/DummyTest.java") << "public class DummyTest {}"
-        then:
         succeeds "build"
-        int buildSuccessful = output.indexOf("BUILD SUCCESSFUL")
-        int includedTest = output.indexOf(":included:test")
-        buildSuccessful > 0
-        includedTest > 0
-        buildSuccessful < includedTest
+
+        and:
+        // Will run after the root build has finished
+        output.contains("> Task :included:second:test FROM-CACHE")
     }
 
     private static String customTaskCode(String val = "foo") {

@@ -189,7 +189,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
                 library {
                     binaries.configureEach {
                         dependencies {
-                            if (targetPlatform.operatingSystem.macOsX) {
+                            if (targetPlatform.operatingSystemFamily.macOs) {
                                 implementation project(':shuffle')
                             }
                         }

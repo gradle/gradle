@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.execution.internal.DefaultTaskInputsListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -211,7 +211,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void declareInput(File file) {
-        inputsListener.onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
+        inputsListener.onExecute(Mock(TaskInternal), ImmutableFileCollection.of(file))
     }
 
     private ContinuousBuildActionExecuter executer() {

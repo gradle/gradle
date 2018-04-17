@@ -16,9 +16,7 @@ task iterateResolvedArtifacts {
     dependsOn configurations.scm
 
     doLast {
-        Set<File> files = configurations.scm.files
-
-        files.each {
+        configurations.scm.each {
             logger.quiet it.absolutePath
         }
     }

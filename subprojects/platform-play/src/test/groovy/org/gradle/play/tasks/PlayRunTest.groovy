@@ -16,10 +16,10 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.deployment.internal.Deployment
-import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplication
+import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -42,7 +42,7 @@ class PlayRunTest extends Specification {
         playRun = TestUtil.create(tmpDir).task(PlayRun)
         playRun.workingDir.set(tmpDir.testDirectory)
         playRun.applicationJar = new File("application.jar")
-        playRun.runtimeClasspath = new SimpleFileCollection()
+        playRun.runtimeClasspath = ImmutableFileCollection.of()
         playRun.playToolProvider = playToolProvider
         runnerToken.isRunning() >> true
         runnerToken.playAppAddress >> address

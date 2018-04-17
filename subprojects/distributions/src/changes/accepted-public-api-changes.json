@@ -1,5 +1,17 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.api.artifacts.ModuleDependency",
+            "member": "Class org.gradle.api.artifacts.ModuleDependency",
+            "acceptation": "Module dependencies now support attributes",
+            "changes": [
+                "org.gradle.api.attributes.HasConfigurableAttributes"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.OperatingSystemFamily",
+            "member": "Constructor org.gradle.nativeplatform.OperatingSystemFamily()",
+            "acceptation": "OperatingSystemFamily is now an abstract class"
+        }
     ]
 }

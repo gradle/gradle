@@ -46,8 +46,8 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
 
     public LocalOriginDependencyMetadata createDependencyConstraintDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName()), dependencyConstraint.getVersionConstraint());
-        return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, null,
+            nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes());
+        return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, dependencyConstraint.getAttributes(), null,
             Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, true, dependencyConstraint.getReason());
     }
 

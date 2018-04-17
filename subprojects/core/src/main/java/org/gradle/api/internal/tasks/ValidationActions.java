@@ -119,7 +119,7 @@ public enum ValidationActions implements ValidationAction {
         if (value instanceof Map) {
             return toFiles(context, ((Map) value).values());
         } else if (value instanceof FileCollection) {
-            return ((FileCollection) value).getFiles();
+            return (FileCollection) value;
         } else {
             return context.getResolver().resolveFiles(value);
         }

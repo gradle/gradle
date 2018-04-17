@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+}
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+version = '1.2.1'
+
+// START SNIPPET custom-src-dirs
+sourceSets {
+    main {
+         java {
+            srcDirs = ['src']
+         }
+    }
+
+    test {
+        java {
+            srcDirs = ['test']
+        }
+    }
+}
+// END SNIPPET custom-src-dirs
+
+// START SNIPPET custom-extra-src-dir
+sourceSets {
+    main {
+        java {
+            srcDir 'thirdParty/src/main/java'
+        }
+    }
+}
+// END SNIPPET custom-extra-src-dir
+
+
+// START SNIPPET custom-source-set
+sourceSets {
+    intTest
+}
+// END SNIPPET custom-source-set
+
+// START SNIPPET custom-report-dirs
+reporting.baseDir = "my-reports"
+testResultsDirName = "$buildDir/my-test-results"
+
+task showDirs {
+    doLast {
+        logger.quiet(rootDir.toPath().relativize(project.reportsDir.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(project.testResultsDir.toPath()).toString())
+    }
+}
+// END SNIPPET custom-report-dirs

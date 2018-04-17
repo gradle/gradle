@@ -38,7 +38,7 @@ class ReverseFiles extends SourceTask {
     @TaskAction
     void reverseFiles() {
         // Create and submit a unit of work for each file
-        source.files.each { file ->
+        source.each { file ->
             workerExecutor.submit(ReverseFile.class) { WorkerConfiguration config ->
                 // Use the minimum level of isolation
                 config.isolationMode = IsolationMode.NONE

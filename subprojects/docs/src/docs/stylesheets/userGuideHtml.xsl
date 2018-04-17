@@ -206,6 +206,7 @@
                                 </ul>
                             </li>
                             <li><p></p></li>
+                            <li><a href="/userguide/base_plugin.html">Base Plugin</a></li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp-projects" aria-expanded="false" aria-controls="cpp-projects">C++ Projects</a>
                                 <ul id="cpp-projects">
                                     <li><a href="/userguide/native_software.html">Building Native Software</a></li>
@@ -225,6 +226,8 @@
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#java-projects" aria-expanded="false" aria-controls="java-projects">Java Projects</a>
                                 <ul id="java-projects">
                                     <li><a href="/userguide/tutorial_java_projects.html">Java Quickstart</a></li>
+                                    <li><a href="/userguide/building_java_projects.html">Building Java &amp; JVM Projects</a></li>
+                                    <li><a href="/userguide/java_testing.html">Testing Java &amp; JVM Projects</a></li>
                                     <li><a href="/userguide/java_plugin.html">Java Plugin</a></li>
                                     <li><a href="/userguide/java_library_plugin.html">Java Library Plugin</a></li>
                                     <li><a href="/userguide/java_library_distribution_plugin.html">Java Library Distribution Plugin</a></li>
@@ -262,6 +265,12 @@
 
                         <h3 id="integrating-gradle">Integrating Gradle</h3>
                         <ul>
+                            <li><a class="nav-dropdown" data-toggle="collapse" href="#ci-integration" aria-expanded="false" aria-controls="ci-integration">Continuous Integration</a>
+                                <ul id="ci-integration">
+                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-jenkins">Using Gradle with Jenkins</a></li>
+                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-travisci">Using Gradle with Travis CI</a></li>
+                                </ul>
+                            </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#ide-integration" aria-expanded="false" aria-controls="ide-integration">IDE Integration</a>
                                 <ul id="ide-integration">
                                     <li><a href="/userguide/eclipse_plugin.html">Eclipse Plugin</a></li>

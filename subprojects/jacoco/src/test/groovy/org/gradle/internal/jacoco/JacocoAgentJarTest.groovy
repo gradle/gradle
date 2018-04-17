@@ -16,7 +16,7 @@
 
 package org.gradle.internal.jacoco
 
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ class JacocoAgentJarTest extends Specification {
     def "versions >= 0.6.2 support jmx #version -> #jmxSupport"() {
         given:
         def agentJarName = "org.jacoco.agent-${version}.jar"
-        jacocoAgentJar.agentConf = new SimpleFileCollection(project.file(agentJarName))
+        jacocoAgentJar.agentConf = ImmutableFileCollection.of(project.file(agentJarName))
 
         expect:
         jacocoAgentJar.supportsJmx() == jmxSupport
@@ -51,7 +51,7 @@ class JacocoAgentJarTest extends Specification {
     def "versions >= 0.7.6 support include no location classes #version -> #incNoLocationClassesSupport"() {
         given:
         def agentJarName = "org.jacoco.agent-${version}.jar"
-        jacocoAgentJar.agentConf = new SimpleFileCollection(project.file(agentJarName))
+        jacocoAgentJar.agentConf = ImmutableFileCollection.of(project.file(agentJarName))
 
         expect:
         jacocoAgentJar.supportsInclNoLocationClasses() == incNoLocationClassesSupport

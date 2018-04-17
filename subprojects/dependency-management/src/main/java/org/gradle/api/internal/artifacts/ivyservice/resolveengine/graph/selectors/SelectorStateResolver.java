@@ -15,7 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -42,7 +46,8 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     }
 
     public T selectBest(ModuleIdentifier moduleId, List<? extends ResolvableSelectorState> selectors) {
-        List<T> candidates = resolveSelectors(selectors);
+        VersionSelector allRejects = createAllRejects(selectors);
+        List<T> candidates = resolveSelectors(selectors, allRejects);
         assert !candidates.isEmpty();
 
         // If the module matches, add the root component into the mix
@@ -53,23 +58,22 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         // If we have a single common resolution, no conflicts to resolve
         if (candidates.size() == 1) {
-            return maybeMarkRejected(candidates.get(0), selectors);
+            return candidates.get(0);
         }
 
         // Perform conflict resolution
-        T max = resolveConflicts(candidates);
-        return maybeMarkRejected(max, selectors);
+        return resolveConflicts(candidates);
     }
 
-    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors) {
+    private List<T> resolveSelectors(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         if (selectors.size() == 1) {
             ResolvableSelectorState selectorState = selectors.get(0);
-            ComponentIdResolveResult resolved = selectorState.resolve();
+            ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
             T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
             return Collections.singletonList(selected);
         }
 
-        return buildResolveResults(selectors);
+        return buildResolveResults(selectors, allRejects);
     }
 
     /**
@@ -77,7 +81,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
      * If a single version can satisfy all of the selectors, the result will reflect this.
      * If not, a minimal set of versions will be provided in the result, and conflict resolution will be required to choose.
      */
-    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors) {
+    private List<T> buildResolveResults(List<? extends ResolvableSelectorState> selectors, VersionSelector allRejects) {
         SelectorStateResolverResults results = new SelectorStateResolverResults();
         for (ResolvableSelectorState selector : selectors) {
 
@@ -93,11 +97,31 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             }
 
             // Need to perform the actual resolve
-            ComponentIdResolveResult resolved = selector.resolve();
+            ComponentIdResolveResult resolved = selector.resolve(allRejects);
 
             results.registerResolution(selector, resolved);
         }
         return results.getResolved(componentFactory);
+    }
+
+    private VersionSelector createAllRejects(List<? extends ResolvableSelectorState> selectors) {
+        List<VersionSelector> rejectSelectors = null;
+        for (ResolvableSelectorState selector : selectors) {
+            ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+            if (versionConstraint != null && versionConstraint.getRejectedSelector() != null) {
+                if (rejectSelectors == null) {
+                    rejectSelectors = Lists.newArrayListWithCapacity(selectors.size());
+                }
+                rejectSelectors.add(versionConstraint.getRejectedSelector());
+            }
+        }
+        if (rejectSelectors == null) {
+            return null;
+        }
+        if (rejectSelectors.size() == 1) {
+            return rejectSelectors.get(0);
+        }
+        return new UnionVersionSelector(rejectSelectors);
     }
 
     private T resolveConflicts(Collection<T> candidates) {
@@ -108,20 +132,5 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
             throw UncheckedException.throwAsUncheckedException(details.getFailure());
         }
         return details.getSelected();
-    }
-
-    private T maybeMarkRejected(T selected, List<? extends ResolvableSelectorState> selectors) {
-        if (selected.isRejected()) {
-            return selected;
-        }
-
-        String version = selected.getVersion();
-        for (ResolvableSelectorState selector : selectors) {
-            if (selector.getVersionConstraint() != null && selector.getVersionConstraint().getRejectedSelector() != null && selector.getVersionConstraint().getRejectedSelector().accept(version)) {
-                selected.reject();
-                break;
-            }
-        }
-        return selected;
     }
 }

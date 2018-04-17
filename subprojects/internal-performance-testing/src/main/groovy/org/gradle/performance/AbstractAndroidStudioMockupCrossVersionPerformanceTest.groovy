@@ -16,10 +16,12 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import org.gradle.api.Action
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.tooling.BuildActionExecuter
+
 /**
  * This is the base class for performance tests aimed at simulating what happens in Android Studio. In particular, it will
  * use the Tooling API to synchronize project or run builds.
@@ -32,32 +34,38 @@ import org.gradle.tooling.BuildActionExecuter
 @CompileStatic
 public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
-    void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
+    void experiment(String projectName, String displayName, @DelegatesTo(AndroidStudioExperimentSpec) Closure<?> spec) {
         experimentSpec = new AndroidStudioExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, null, null)
         performanceTestIdProvider.testSpec = experimentSpec
-        ((AndroidStudioExperimentSpec) experimentSpec).test = this
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
     }
 
-    @InheritConstructors
-    public static class AndroidStudioExperimentSpec extends org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperimentSpec {
-        AbstractAndroidStudioMockupCrossVersionPerformanceTest test
+    @Override
+    void experiment(String projectName, @DelegatesTo(AndroidStudioExperimentSpec) Closure<?> spec) {
+        experiment(projectName, null, spec)
+    }
+
+    public class AndroidStudioExperimentSpec extends AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperimentSpec {
+
+        AndroidStudioExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+            super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
+        }
 
         void action(String className) {
             action(className, null)
         }
 
-        void action(String className, @DelegatesTo(value=BuildActionExecuter, strategy = Closure.DELEGATE_FIRST) Closure config) {
+        void action(String className, @DelegatesTo(value = BuildActionExecuter, strategy = Closure.DELEGATE_FIRST) Closure config) {
             action {
-                test.tapiClassLoader.loadClass("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
+                tapiClassLoader.loadClass("org.gradle.tooling.BuildAction") //make sure BuildAction is available in the Gradle version we are currently running
                 def proxy = { exec ->
                     config.delegate = exec
                     config.resolveStrategy = Closure.DELEGATE_FIRST
                     config.call()
                 }.asType(it.class.classLoader.loadClass(Action.name))
-                test.tapiClassLoader.loadClass(className).invokeMethod('withProjectConnection', [it, proxy] as Object[])
+                tapiClassLoader.loadClass(className).invokeMethod('withProjectConnection', [it, proxy] as Object[])
             }
         }
 

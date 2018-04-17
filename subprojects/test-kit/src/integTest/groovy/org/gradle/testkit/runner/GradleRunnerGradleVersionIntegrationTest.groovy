@@ -31,8 +31,7 @@ import spock.lang.Shared
 @NonCrossVersion
 @Requires(TestPrecondition.ONLINE)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
-
-    public static final String VERSION = "2.10"
+    public static final String VERSION = "4.1"
 
     @Shared
     DistributionLocator locator = new DistributionLocator()

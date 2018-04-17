@@ -62,5 +62,18 @@ class SigningTasksSpec extends SigningProjectSpec {
         then:
         [signSourcesJarTask, signJavadocJarTask]*.name == ["signSourcesJar", "signJavadocJar"]
     }
-    
+
+    def "output files contain signature files"() {
+        given:
+        useJavadocAndSourceJars()
+        applyPlugin()
+        addSigningProperties()
+
+        when:
+        def signTask = signing.sign(jar).first()
+
+        then:
+        File libsDir = jar.outputs.files.singleFile.parentFile
+        signTask.outputFiles == ["test_jar_asc": new File(libsDir, "test.jar.asc")]
+    }
 }

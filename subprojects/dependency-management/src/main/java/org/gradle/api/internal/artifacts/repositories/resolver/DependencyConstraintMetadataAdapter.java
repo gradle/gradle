@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
 import java.util.List;
 
 public class DependencyConstraintMetadataAdapter extends AbstractDependencyMetadataAdapter<DependencyConstraintMetadata> implements DependencyConstraintMetadata {
 
-    public DependencyConstraintMetadataAdapter(List<ModuleDependencyMetadata> container, int originalIndex) {
-        super(container, originalIndex);
+    public DependencyConstraintMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<ModuleDependencyMetadata> container, int originalIndex) {
+        super(attributesFactory, container, originalIndex);
     }
 }
