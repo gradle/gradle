@@ -207,6 +207,59 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
+    def "recompiles binary when system header file changes"() {
+        given:
+        def systemHeader = file("src/main/system/${headerFile.name}")
+        systemHeader.text = headerFile.text
+        assert headerFile.delete()
+        buildFile << """
+            tasks.withType(AbstractNativeCompileTask) {
+                systemIncludes.from("src/main/system")
+            }
+        """
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        skipped libraryCompileTask
+        skipped mainCompileTask
+
+        when:
+        maybeWait()
+        systemHeader << """
+            int unused();
+        """
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        if (nonDeterministicCompilation) {
+            // Relinking may (or may not) be required after recompiling
+            executed ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executed ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        skipped libraryCompileTask
+        skipped mainCompileTask
+    }
+
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
