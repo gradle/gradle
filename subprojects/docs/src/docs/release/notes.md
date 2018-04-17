@@ -39,10 +39,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changed behaviour for missing init scripts
-
-In previous releases of Gradle, an init script specified on the command line that did not exist would be silently ignored. In this release, the build will fail if any of the init scripts specified on the command line does not exist.
-
 <!--
 ### Example breaking change
 -->
