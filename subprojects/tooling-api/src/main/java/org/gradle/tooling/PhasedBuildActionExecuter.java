@@ -88,8 +88,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
     /**
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
      *
-     * The graph task can be changed in model builders invoked. If not configured, null, or an empty array is passed, then no tasks will be executed unless one of the model builders configures it.
-     *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
      */
@@ -98,8 +96,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
 
     /**
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
-     *
-     * The graph task can be changed in model builders invoked. If not configured, null, or an empty array is passed, then no tasks will be executed unless one of the model builders configures it.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * @return this
