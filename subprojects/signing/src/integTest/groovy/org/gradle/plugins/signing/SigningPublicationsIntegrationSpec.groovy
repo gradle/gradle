@@ -16,9 +16,7 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.IgnoreIf;
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
@@ -128,7 +126,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "module.json.asc").text
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "publishes signature files for Maven publication"() {
         given:
         buildFile << """
@@ -183,7 +180,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "publishes signature files for Ivy publication"() {
         given:
         buildFile << """
