@@ -40,7 +40,7 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
     }
 
     @Override
-    public boolean hasLockState() {
+    public boolean mustValidateLockState() {
         return lockDefined;
     }
 
