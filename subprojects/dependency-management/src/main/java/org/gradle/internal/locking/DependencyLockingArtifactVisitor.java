@@ -57,7 +57,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     public void startArtifacts(RootGraphNode root) {
         RootConfigurationMetadata metadata = root.getMetadata();
         dependencyLockingState = metadata.getDependencyLockingState();
-        if (dependencyLockingState.hasLockState()) {
+        if (dependencyLockingState.mustValidateLockState()) {
             Set<DependencyConstraint> lockConstraints = dependencyLockingState.getLockedDependencies();
             lockingConstraints = Sets.newHashSetWithExpectedSize(lockConstraints.size());
             for (DependencyConstraint constraint : lockConstraints) {
@@ -75,7 +75,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
         ComponentIdentifier identifier = node.getOwner().getComponentId();
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
-            if (allResolvedModules.add(id) && dependencyLockingState.hasLockState()) {
+            if (allResolvedModules.add(id) && dependencyLockingState.mustValidateLockState()) {
                 String displayName = id.getDisplayName();
                 if (!lockingConstraints.remove(displayName)) {
                     extraModules.add(displayName);
@@ -96,7 +96,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
 
     @Override
     public void finishArtifacts() {
-        if (dependencyLockingState.hasLockState()) {
+        if (dependencyLockingState.mustValidateLockState()) {
             LOGGER.debug(" Dependency lock not matched '{}', extra resolved modules '{}'", lockingConstraints, extraModules);
             Set<String> notResolvedConstraints = Collections.emptySet();
             if (!lockingConstraints.isEmpty()) {

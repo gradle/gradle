@@ -69,7 +69,7 @@ org:foo:1.0
         def result = provider.findLockConstraint('conf')
 
         then:
-        result.hasLockState()
+        result.mustValidateLockState()
         result.getLockedDependencies() == [strictConstraint('org', 'bar', '1.3'), strictConstraint('org', 'foo', '1.0')] as Set
     }
 

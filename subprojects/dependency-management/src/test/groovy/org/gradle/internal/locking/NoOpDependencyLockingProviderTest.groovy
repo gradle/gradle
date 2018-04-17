@@ -29,7 +29,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
         def result = provider.findLockConstraint('conf')
 
         then:
-        !result.hasLockState()
+        !result.mustValidateLockState()
     }
 
     def 'does nothing on persist'() {
