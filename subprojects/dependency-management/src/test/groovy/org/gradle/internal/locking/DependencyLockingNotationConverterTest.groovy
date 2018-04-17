@@ -39,7 +39,7 @@ class DependencyLockingNotationConverterTest extends Specification {
         converted.group == 'org'
         converted.name == 'foo'
         converted.version == '1.1'
-        converted.reason == 'dependency was locked to version 1.1'
+        converted.reason == 'dependency was locked to version \'1.1\''
         converted.versionConstraint.preferredVersion == '1.1'
         converted.versionConstraint.rejectedVersions == [']1.1,)']
     }

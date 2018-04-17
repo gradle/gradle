@@ -58,7 +58,7 @@ dependencies {
 
         then:
         outputContains('org:foo:1.0')
-        outputContains('dependency was locked to version 1.0')
+        outputContains('dependency was locked to version \'1.0\'')
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -135,7 +135,7 @@ dependencies {
 
         then:
         outputContains('org:foo:1.0')
-        outputContains('dependency was locked to version 1.0')
+        outputContains('dependency was locked to version \'1.0\'')
     }
 
     def 'writes lock file entries for inherited dependencies'() {

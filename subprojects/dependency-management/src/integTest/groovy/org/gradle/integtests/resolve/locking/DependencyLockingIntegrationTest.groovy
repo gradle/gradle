@@ -155,7 +155,7 @@ dependencies {
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the version constraints: \n" +
             "   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '1.+'\n" +
             "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.1'\n" +
-            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version 1.0")
+            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version '1.0'")
     }
 
     def 'fails when lock file entry not resolved'() {
@@ -299,7 +299,7 @@ dependencies {
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the version constraints: \n" +
             "   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '[1.0, 1.1]'\n" +
             "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.1'\n" +
-            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version 1.0")
+            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version '1.0'")
 //        failure.assertHasCause("Dependency lock out of date:\n" +
 //            "\tLock file contained 'org:bar:1.0' but it is not part of the resolved modules\n" +
 //            "\tLock file expected 'org:foo:1.0' but resolution result was 'org:foo:1.1'")

@@ -32,7 +32,7 @@ class DependencyLockingNotationConverter {
             module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
             module.substring(nameVersionSeparatorIndex + 1));
 
-        constraint.because("dependency was locked to version " + constraint.getVersion());
+        constraint.because("dependency was locked to version '" + constraint.getVersion() + "'");
 
         return constraint;
     }
