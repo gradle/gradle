@@ -55,6 +55,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 - `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
 - `FileCollection.stopExecutionIfEmpty()` is deprecated without a replacement. You can use `@SkipWhenEmpty` on a `FileCollection` property, or throw a `StopExecutionException` in your code manually instead.
 
+### Method on `Signature`
+
+`Signature.getToSignArtifact()` should have been an internal API and is now deprecated without a replacement.
+
 ## Potential breaking changes
 
 <!--

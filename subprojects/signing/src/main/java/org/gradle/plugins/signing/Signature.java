@@ -375,7 +375,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * Get the artifact that this signature is for, if available.
      *
-     * @deprecated use {@link #getSource()}
+     * @deprecated do not use; should have been internal
      */
     @Deprecated
     public final PublishArtifact getToSignArtifact() {
