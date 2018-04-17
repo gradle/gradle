@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.notations;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
@@ -46,7 +47,9 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.*;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathNotationConverter implements NotationConverter<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
 
@@ -88,7 +91,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private SelfResolvingDependency maybeCreateUnderLock(final DependencyFactory.ClassPathNotation notation) {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            final Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
+            final Collection<File> classpath = Lists.newArrayList(classPathRegistry.getClassPath(notation.name()).getAsFiles());
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
             FileCollectionInternal fileCollectionInternal;
             if (runningFromInstallation && notation.equals(GRADLE_API)) {
@@ -152,7 +155,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
-        List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
+        List<File> gradleApi = Lists.newArrayList(classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles());
         testKitClasspath.removeAll(gradleApi);
 
         return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", RuntimeShadedJarType.TEST_KIT)
