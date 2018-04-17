@@ -35,7 +35,7 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public DependencyLockingState findLockConstraint(String configurationName) {
+    public DependencyLockingState loadLockState(String configurationName) {
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 

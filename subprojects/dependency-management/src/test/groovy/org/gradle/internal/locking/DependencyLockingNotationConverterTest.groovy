@@ -19,16 +19,13 @@ package org.gradle.internal.locking
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 class DependencyLockingNotationConverterTest extends Specification {
 
-    @Subject
-    def converter = new DependencyLockingNotationConverter()
-
-    def 'converts a lock notation to a strict dependency constraint'() {
+    def 'converts a lock notation to a strict dependency constraint when no update mode'() {
         given:
+        def converter = new DependencyLockingNotationConverter(false)
         def lockEntry = 'org:foo:1.1'
 
         when:
@@ -44,9 +41,28 @@ class DependencyLockingNotationConverterTest extends Specification {
         converted.versionConstraint.rejectedVersions == [']1.1,)']
     }
 
+    def 'converts a lock notation to a prefer dependency constraint in update mode'() {
+        given:
+        def converter = new DependencyLockingNotationConverter(true)
+        def lockEntry = 'org:foo:1.1'
+
+        when:
+        def converted = converter.convertToDependencyConstraint(lockEntry)
+
+        then:
+        converted instanceof DependencyConstraint
+        converted.group == 'org'
+        converted.name == 'foo'
+        converted.version == '1.1'
+        converted.reason == 'dependency was locked to version \'1.1\' (update mode)'
+        converted.versionConstraint.preferredVersion == '1.1'
+        converted.versionConstraint.rejectedVersions.isEmpty()
+    }
+
     @Unroll
     def "fails to convert an invalid lock notation: #lockEntry"() {
         when:
+        def converter = new DependencyLockingNotationConverter(false)
         def converted = converter.convertToDependencyConstraint(lockEntry)
 
         then:
@@ -59,6 +75,7 @@ class DependencyLockingNotationConverterTest extends Specification {
 
     def 'converts a ModuleComponentIdentifier to a lock notation'() {
         given:
+        def converter = new DependencyLockingNotationConverter(false)
         def module = new DefaultModuleComponentIdentifier('org', 'foo', '1.1')
 
         when:
