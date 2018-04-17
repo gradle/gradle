@@ -45,6 +45,7 @@ import java.util.zip.ZipFile;
 public class DefaultModuleRegistry implements ModuleRegistry {
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<String, Module>();
+    private final Map<String, Module> externalModules = new HashMap<String, Module>();
     private final List<File> classpath = new ArrayList<File>();
     private final Map<String, File> classpathJars = new LinkedHashMap<String, File>();
 
@@ -73,6 +74,15 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     public Module getExternalModule(String name) {
+        Module module = externalModules.get(name);
+        if (module == null) {
+            module = loadExternalModule(name);
+            externalModules.put(name, module);
+        }
+        return module;
+    }
+
+    private Module loadExternalModule(String name) {
         File externalJar = findJar(name);
         if (externalJar == null) {
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
