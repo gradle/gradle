@@ -177,8 +177,8 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 Tasks should define inputs and outputs to enable proper functioning of <<sec:up_to_date_checks,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
-Intermingling or overwriting output files produced by different tasks compromises up to date checking leading to longer build times.
-In turn, Gradle's <<build_cache,build cache>> won't work properly either as incremental task are a foundational mechanism to making a task cacheable.
+Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.
+In turn, these filesystem changes may prevent Gradle's <<build_cache,build cache>> from properly identifying and caching what would otherwise be cacheable tasks.
 
 [[sec:custom_gradle_distribution]]
 === Standardizing builds with a custom Gradle distribution
@@ -188,8 +188,9 @@ Specifying an in-house binary repository and its credentials is a typical use ca
 
 Often times enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
 You can achieve that with the help of initialization scripts.
-The drawback is that you will have to communicate the setup process across all developers in the company.
-Another challenge is updating the initialization script logic uniformly or enforcing the use it in all developer and Continuous Integration environments.
+There are some drawbacks to the approach.
+First of all, you will have to communicate the setup process across all developers in the company.
+Furthermore, updating the initialization script logic uniformly can prove challenging.
 
 Custom Gradle distributions are a practical solution to this very problem.
 A custom Gradle distribution is comprised of the standard Gradle distribution plus one or many custom initialization scripts.
