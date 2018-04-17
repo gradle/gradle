@@ -184,7 +184,8 @@ The build script has been shrunk from 8 lines of code to a one liner.
 [[sec:avoiding_use_of_gradlebuild]]
 === Avoiding the use of `GradleBuild`
 
-A build script can define task for invocation other Gradle builds through the task type api:org.gradle.api.tasks.GradleBuild[]. The use of this type is generally discouraged.
+The api:org.gradle.api.tasks.GradleBuild[] task type allows a build script to define a task that invokes another Gradle build.
+The use of this type is generally discouraged.
 There are some corner cases where the invoked build doesn't expose the same runtime behavior as from the command line or through the Tooling API leading to unexpected results.
 
 Usually, there's a better way to model the requirement.
@@ -196,7 +197,7 @@ The appropriate approach depends on the problem at hand. Here're some options:
 [[sec:avoiding_inter_project_configuration]]
 === Avoiding inter-project configuration
 
-Gradle does not restrict build script author to reach into the domain model from one project into another one in a <<multi_project_builds,multi-project build>>.
+Gradle does not restrict build script authors from reaching into the domain model from one project into another one in a <<multi_project_builds,multi-project build>>.
 Strongly-coupled projects hurts <<sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
 
 The following practices should be avoided:
