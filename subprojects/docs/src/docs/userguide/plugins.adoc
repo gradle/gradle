@@ -195,32 +195,12 @@ The `pluginManagement {}` DSL is currently <<feature_lifecycle,incubating>>. Ple
 
 The `pluginManagement {}` block may only appear in either the `settings.gradle` file, where it must be the first block in the file, or in an <<init_scripts,Initialization Script>>.
 
-*settings.gradle*
-[source,groovy]
-----
-pluginManagement {
-  resolutionStrategy {
-    // ...
-  }
-  repositories {
-    // ...
-  }
-}
-----
-
-*~/.gradle/init.gradle*
-[source,groovy]
-----
-settingsEvaluated { settings ->
-  settings.pluginManagement.resolutionStrategy {
-    // ...
-  }
-
-  settings.pluginManagement.repositories {
-    // ...
-  }
-}
-----
+++++
+<sample id="pluginManagementConfiguration" dir="plugins/pluginManagement" title="Configuring pluginManagement per-project and globally">
+    <sourcefile file="settings.gradle"/>
+    <sourcefile file="init.gradle"/>
+</sample>
+++++
 
 [[sec:custom_plugin_repositories]]
 ====== Custom Plugin Repositories

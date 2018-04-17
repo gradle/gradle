@@ -1,0 +1,8 @@
+pluginManagement {
+    resolutionStrategy {
+        // ...
+    }
+    repositories {
+        // ...
+    }
+}
