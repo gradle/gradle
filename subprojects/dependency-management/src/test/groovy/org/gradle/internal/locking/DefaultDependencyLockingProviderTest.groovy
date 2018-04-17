@@ -18,6 +18,7 @@ package org.gradle.internal.locking
 
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
@@ -42,6 +43,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
 
     def setup() {
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
+        startParameter.getLockedDependenciesToUpdate() >> []
         provider = new DefaultDependencyLockingProvider(resolver, startParameter)
     }
 
@@ -66,11 +68,28 @@ org:foo:1.0
 org:foo:1.0
 """
         when:
-        def result = provider.findLockConstraint('conf')
+        def result = provider.loadLockState('conf')
 
         then:
         result.mustValidateLockState()
         result.getLockedDependencies() == [strictConstraint('org', 'bar', '1.3'), strictConstraint('org', 'foo', '1.0')] as Set
+    }
+
+    def 'can load lockfile as prefer constraints in update mode'() {
+        given:
+        startParameter = Mock()
+        startParameter.isWriteDependencyLocks() >> true
+        startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        lockDir.file('conf.lockfile') << """org:bar:1.3
+org:foo:1.0
+"""
+        when:
+        def result = provider.loadLockState('conf')
+
+        then:
+        !result.mustValidateLockState()
+        result.getLockedDependencies() == [new DefaultDependencyConstraint('org', 'bar', '1.3')] as Set
     }
 
     def 'fails with invalid content in lock file'() {
@@ -78,7 +97,7 @@ org:foo:1.0
         lockDir.file('conf.lockfile') << """invalid"""
 
         when:
-        provider.findLockConstraint('conf')
+        provider.loadLockState('conf')
 
         then:
         def ex = thrown(InvalidLockFileException)

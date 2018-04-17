@@ -31,14 +31,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
 
-    private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
+    private final DependencyLockingNotationConverter converter;
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
+    private final boolean partialUpdate;
+    private final Pattern updateModulePattern;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter) {
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
@@ -46,15 +49,26 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");
         }
+        List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
+        this.partialUpdate = !lockedDependenciesToUpdate.isEmpty();
+        StringBuilder patternBuilder = new StringBuilder();
+        for (String module : lockedDependenciesToUpdate) {
+            patternBuilder.append(module).append(".+|");
+        }
+        updateModulePattern = Pattern.compile(patternBuilder.toString());
+        converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
     }
 
     @Override
-    public DependencyLockingState findLockConstraint(String configurationName) {
-        if (!writeLocks) {
+    public DependencyLockingState loadLockState(String configurationName) {
+        if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
                 Set<DependencyConstraint> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
+                    if (updateModulePattern.matcher(module).matches()) {
+                        continue;
+                    }
                     try {
                         results.add(converter.convertToDependencyConstraint(module));
                     } catch (IllegalArgumentException e) {
@@ -62,7 +76,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                     }
                 }
                 LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
-                return new DefaultDependencyLockingState(results);
+                return new DefaultDependencyLockingState(partialUpdate, results);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;

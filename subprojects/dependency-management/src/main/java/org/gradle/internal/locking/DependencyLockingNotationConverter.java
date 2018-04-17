@@ -22,17 +22,31 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstrain
 
 class DependencyLockingNotationConverter {
 
+    private final boolean updating;
+
+    public DependencyLockingNotationConverter(boolean updating) {
+        this.updating = updating;
+    }
+
     DependencyConstraint convertToDependencyConstraint(String module) {
         int groupNameSeparatorIndex = module.indexOf(':');
         int nameVersionSeparatorIndex = module.lastIndexOf(':');
         if (groupNameSeparatorIndex < 0 || nameVersionSeparatorIndex == groupNameSeparatorIndex) {
             throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + module + "'");
         }
-        DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
-            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
-            module.substring(nameVersionSeparatorIndex + 1));
+        DefaultDependencyConstraint constraint;
+        if (updating) {
+            constraint = new DefaultDependencyConstraint(module.substring(0, groupNameSeparatorIndex),
+                module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+                module.substring(nameVersionSeparatorIndex + 1));
+            constraint.because("dependency was locked to version '" + constraint.getVersion() + "' (update mode)");
+        } else {
+            constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
+                module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+                module.substring(nameVersionSeparatorIndex + 1));
+            constraint.because("dependency was locked to version '" + constraint.getVersion() + "'");
+        }
 
-        constraint.because("dependency was locked to version '" + constraint.getVersion() + "'");
 
         return constraint;
     }

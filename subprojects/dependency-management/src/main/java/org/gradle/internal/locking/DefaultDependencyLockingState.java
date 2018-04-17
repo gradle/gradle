@@ -34,8 +34,12 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
         lockDefined = false;
         constraints = emptySet();
     }
-    public DefaultDependencyLockingState(Set<DependencyConstraint> constraints) {
-        lockDefined = true;
+    public DefaultDependencyLockingState(boolean partialUpdate, Set<DependencyConstraint> constraints) {
+        if (partialUpdate) {
+            lockDefined = false;
+        } else {
+            lockDefined = true;
+        }
         this.constraints = constraints;
     }
 
