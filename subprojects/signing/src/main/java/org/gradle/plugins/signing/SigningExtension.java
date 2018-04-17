@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -328,6 +329,30 @@ public class SigningExtension {
         for (final Publication publication : publications) {
             result.add(createSignTaskFor((PublicationInternal<?>) publication));
         }
+        return result;
+    }
+
+    /**
+     * Creates signing tasks that sign all publishable artifacts of the given publication collection.
+     *
+     * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
+     * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
+     *
+     * The signature artifacts for the created tasks are added to the publishable artifacts of the given publications.
+     *
+     * @param publications The collection of publications whose artifacts are to be signed
+     * @return the created tasks.
+     * @since 4.8
+     */
+    @Incubating
+    public List<Sign> sign(DomainObjectCollection<Publication> publications) {
+        final List<Sign> result = new ArrayList<Sign>();
+        publications.all(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                result.add(createSignTaskFor((PublicationInternal<?>) publication));
+            }
+        });
         return result;
     }
 

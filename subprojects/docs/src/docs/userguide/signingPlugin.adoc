@@ -150,6 +150,8 @@ This will create a task (of type api:org.gradle.plugins.signing.Sign[]) in your 
 </sample>
 ++++
 
+In addition, the above DSL allows to `sign` multiple comma-separated publications. Alternatively, you may specify `publishing.publications` to sign all publications, or use `publishing.publications.matching { … }` to sign all publications that match the specified predicate.
+
 [[sec:signing_configurations]]
 ==== Signing Configurations
 

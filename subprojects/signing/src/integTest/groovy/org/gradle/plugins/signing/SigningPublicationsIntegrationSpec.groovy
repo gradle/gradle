@@ -320,4 +320,72 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
+    def "signs all publications in container"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications
+            }
+        """
+
+        when:
+        run "signIvyPublication", "signMavenPublication"
+
+        then:
+        ":signIvyPublication" in nonSkippedTasks
+        ":signMavenPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").assertExists()
+        file("build", "publications", "maven", "pom-default.xml.asc").assertExists()
+        file("build", "publications", "ivy", "ivy.xml.asc").assertExists()
+    }
+
+    def "signs filtered publications of container"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.matching { it.name == 'maven' }
+            }
+        """
+
+        when:
+        succeeds "signMavenPublication"
+
+        then:
+        fails "signIvyPublication"
+        failureDescriptionContains "Task 'signIvyPublication' not found"
+    }
 }

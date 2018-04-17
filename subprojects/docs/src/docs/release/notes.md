@@ -23,7 +23,7 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
     }
 
     signing {
-        sign publishing.publications.mavenJava
+        sign publishing.publications
     }
 
 ## Promoted features
