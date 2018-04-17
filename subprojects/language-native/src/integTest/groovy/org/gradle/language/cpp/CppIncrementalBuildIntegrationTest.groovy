@@ -1367,6 +1367,67 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.noneRecompiled()
     }
 
+    def "recompiles when system headers change"() {
+        when:
+        appSourceFile.insertBefore('#include <lib.h>', '#include <common.h>')
+        appSourceFile.replace('"world"', 'TARGET')
+
+        def systemHeaderInOtherDir = file("app/src/main/system/common.h")
+        systemHeaderInOtherDir << """
+            #pragma once
+            #define TARGET "world"
+        """
+
+        buildFile << """
+            project(':app') {
+                tasks.withType(CppCompile) {
+                    systemIncludes.from("src/main/system")
+                }
+            }
+        """
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello world"
+
+        when:
+        succeeds installApp
+
+        then:
+        install.exec().out == "hello world"
+
+        and:
+        nonSkippedTasks.empty
+
+        when:
+        systemHeaderInOtherDir.replace('"world"', '"universe"')
+
+        and:
+        appObjects.snapshot()
+        libObjects.snapshot()
+
+        then:
+        succeeds installApp
+        install.exec().out == "hello universe"
+
+        and:
+        executedAndNotSkipped appDebug.compile
+        skipped libraryDebug.compile
+
+        and:
+        appObjects.recompiledFiles(appSourceFile)
+        libObjects.noneRecompiled()
+
+        when:
+        succeeds installApp
+
+        then:
+        install.exec().out == "hello universe"
+
+        and:
+        nonSkippedTasks.empty
+    }
+
     private boolean unresolvedHeadersDetected(String taskPath) {
         executed(taskPath)
         output.contains("After parsing the source files, Gradle cannot calculate the exact set of include files for '${taskPath}'. Every file in the include search path will be considered a header dependency.")
