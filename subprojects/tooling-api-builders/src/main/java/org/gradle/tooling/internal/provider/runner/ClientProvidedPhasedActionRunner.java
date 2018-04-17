@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildEventConsumer;
@@ -55,11 +56,23 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
         addBuildListener(phasedAction, buildController);
 
-        // We don't know if the model builders invoked in the projects evaluated action will add tasks to the graph or not
-        // so we have to execute build until Build stage before finishing it.
-        // TODO: try to figure out a way to finish the build earlier if possible (no tasks passed by the client and no tasks added by the model builder)
-        // FIXME: default tasks are run even if user defines no task. (see "PhasedBuildActionCrossVersionSpec#default tasks are not run if no tasks are specified")
-        buildController.run();
+        try {
+            // We don't know if the model builders invoked in the projects evaluated action will add tasks to the graph or not
+            // so we have to execute build until Build stage before finishing it.
+            // TODO: try to figure out a way to finish the build earlier if possible (no tasks passed by the client and no tasks added by the model builder)
+            // FIXME: default tasks are run even if user defines no task. (see "PhasedBuildActionCrossVersionSpec#default tasks are not run if no tasks are specified")
+            buildController.run();
+        } catch (RuntimeException e) {
+            // Failures in BuildActions in a PhasedAction will be wrapped inside other runtime exceptions by the build itself.
+            // This adapter unwraps the expected exception so it is in the correct format and client will receive it correctly.
+            // TODO: instead of unwrap this exception here, introduce API in org.gradle.internal.invocation.BuildController to catch these partial exceptions and set as a build result failure directly
+            RuntimeException unwrappedException = new PhasedActionExceptionTransformer().transform(e);
+            if (unwrappedException == null) {
+                throw e;
+            } else {
+                buildController.setResult(new BuildActionResult(null, payloadSerializer.serialize(unwrappedException)));
+            }
+        }
         if (!buildController.hasResult()) {
             buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
         }
@@ -116,5 +129,16 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
 
     private BuildEventConsumer getBuildEventConsumer(GradleInternal gradle) {
         return gradle.getServices().get(BuildEventConsumer.class);
+    }
+
+    class PhasedActionExceptionTransformer implements Transformer<RuntimeException, RuntimeException> {
+        public RuntimeException transform(RuntimeException e) {
+            for (Throwable t = e; t != null; t = t.getCause()) {
+                if (t instanceof InternalBuildActionFailureException || t instanceof InternalBuildCancelledException) {
+                    return (RuntimeException) t;
+                }
+            }
+            return null;
+        }
     }
 }
