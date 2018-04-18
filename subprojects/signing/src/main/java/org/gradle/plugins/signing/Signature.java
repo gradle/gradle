@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
+import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -46,7 +47,7 @@ public class Signature extends AbstractPublishArtifact {
     /**
      * The artifact that this signature is for, which may be {@code null} if this signature is not for an artifact.
      */
-    private PublishArtifact toSignArtifact;
+    private Buildable source;
 
     /**
      * The name of the signature artifact.
@@ -87,6 +88,8 @@ public class Signature extends AbstractPublishArtifact {
 
     private Callable<String> classifierGenerator;
 
+    private Callable<String> nameGenerator;
+
     /**
      * Creates a signature artifact for the given public artifact.
      *
@@ -98,8 +101,7 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
-        init(new Callable<File>() {
+        this(toSign, new Callable<File>() {
             public File call() {
                 return toSign.getFile();
             }
@@ -107,8 +109,18 @@ public class Signature extends AbstractPublishArtifact {
             public String call() {
                 return toSign.getClassifier();
             }
-        }, signatureSpec);
-        this.toSignArtifact = toSign;
+        }, new Callable<String>() {
+            @Override
+            public String call() {
+                return toSign.getName();
+            }
+        }, signatureSpec, tasks);
+    }
+
+    Signature(Buildable source, Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec, Object... tasks) {
+        super(tasks);
+        init(toSign, classifier, name, signatureSpec);
+        this.source = source;
     }
 
     /**
@@ -120,7 +132,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
-        init(returning(toSign), null, signatureSpec);
+        init(returning(toSign), null, null, signatureSpec);
     }
 
     /**
@@ -133,7 +145,7 @@ public class Signature extends AbstractPublishArtifact {
      */
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
-        init(returning(toSign), returning(classifier), signatureSpec);
+        init(returning(toSign), returning(classifier), null, signatureSpec);
     }
 
     /**
@@ -170,9 +182,10 @@ public class Signature extends AbstractPublishArtifact {
         this.signatureSpec = signatureSpec;
     }
 
-    private void init(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec) {
+    private void init(Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
+        this.nameGenerator = name;
         this.signatureSpec = signatureSpec;
     }
 
@@ -203,7 +216,7 @@ public class Signature extends AbstractPublishArtifact {
 
     @Nullable
     private String defaultName() {
-        return toSignArtifact != null ? toSignArtifact.getName() : fileName();
+        return nameGenerator != null ? uncheckedCall(nameGenerator) : fileName();
     }
 
     @Nullable
@@ -356,8 +369,18 @@ public class Signature extends AbstractPublishArtifact {
         return signatureSpec;
     }
 
+    /**
+     * Get the artifact that this signature is for, if available.
+     *
+     * @deprecated do not use; should have been internal
+     */
+    @Deprecated
     public final PublishArtifact getToSignArtifact() {
-        return toSignArtifact;
+        return source instanceof PublishArtifact ? (PublishArtifact) source : null;
+    }
+
+    Buildable getSource() {
+        return source;
     }
 
     /**

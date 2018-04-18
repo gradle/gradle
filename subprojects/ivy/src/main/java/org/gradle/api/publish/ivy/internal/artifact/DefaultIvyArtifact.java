@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
@@ -25,7 +27,7 @@ import java.io.File;
 
 public class DefaultIvyArtifact implements IvyArtifact {
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-    private final File file;
+    private final FileCollection files;
     private String name;
     private String extension;
     private String type;
@@ -33,7 +35,11 @@ public class DefaultIvyArtifact implements IvyArtifact {
     private String conf;
 
     public DefaultIvyArtifact(File file, String name, String extension, String type, String classifier) {
-        this.file = file;
+        this(ImmutableFileCollection.of(file), name, extension, type, classifier);
+    }
+
+    public DefaultIvyArtifact(FileCollection files, String name, String extension, String type, String classifier) {
+        this.files = files;
         this.name = name;
 
         this.extension = extension;
@@ -43,7 +49,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     }
 
     public File getFile() {
-        return file;
+        return files.getSingleFile();
     }
 
     public String getName() {
@@ -53,7 +59,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getType() {
         return type;
     }
@@ -61,7 +67,7 @@ public class DefaultIvyArtifact implements IvyArtifact {
     public void setType(String type) {
         this.type = type;
     }
-    
+
     public String getExtension() {
         return extension;
     }

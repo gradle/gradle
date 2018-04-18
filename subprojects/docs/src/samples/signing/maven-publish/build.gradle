@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+group = 'gradle'
+version = '1.0'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url file("$buildDir/repo")
+        }
+    }
+}
+
+// START SNIPPET sign-publication
+signing {
+    sign publishing.publications.mavenJava
+}
+// END SNIPPET sign-publication

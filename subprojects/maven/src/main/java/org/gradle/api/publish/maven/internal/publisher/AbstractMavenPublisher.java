@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import com.google.common.base.Strings;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
@@ -23,11 +24,8 @@ import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public abstract class AbstractMavenPublisher implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
@@ -47,24 +45,27 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
         }
 
-        MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), publication.getMetadataFile(), mavenRepositoryLocator, artifactRepository);
+        MavenPublishAction deployTask = createDeployTask(publication.getPackaging(), publication.getProjectIdentity(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected MavenPublishAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
+        MavenArtifact pomArtifact = publication.getPomArtifact();
+        publishAction.setPomArtifact(pomArtifact.getFile());
+
         MavenArtifact mainArtifact = publication.getMainArtifact();
         if (mainArtifact != null) {
             publishAction.setMainArtifact(mainArtifact.getFile());
         }
 
-        for (MavenArtifact mavenArtifact : publication.getArtifacts()) {
-            if (mavenArtifact == mainArtifact) {
+        for (MavenArtifact artifact : publication.getAllArtifacts()) {
+            if (artifact == mainArtifact || artifact == pomArtifact) {
                 continue;
             }
-            publishAction.addAdditionalArtifact(mavenArtifact.getFile(), GUtil.elvis(mavenArtifact.getExtension(), ""), GUtil.elvis(mavenArtifact.getClassifier(), ""));
+            publishAction.addAdditionalArtifact(artifact.getFile(), Strings.nullToEmpty(artifact.getExtension()), Strings.nullToEmpty(artifact.getClassifier()));
         }
     }
 

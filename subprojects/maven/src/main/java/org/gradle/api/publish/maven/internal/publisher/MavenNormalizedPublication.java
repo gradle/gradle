@@ -24,18 +24,18 @@ import java.util.Set;
 public class MavenNormalizedPublication {
 
     private final String name;
-    private final File pomFile;
-    private final File metadataFile;
+    private final String packaging;
+    private final MavenArtifact pomArtifact;
     private final MavenProjectIdentity projectIdentity;
-    private final Set<MavenArtifact> artifacts;
+    private final Set<MavenArtifact> allArtifacts;
     private final MavenArtifact mainArtifact;
 
-    public MavenNormalizedPublication(String name, File pomFile, File gradleMetadataFile, MavenProjectIdentity projectIdentity, Set<MavenArtifact> artifacts, MavenArtifact mainArtifact) {
+    public MavenNormalizedPublication(String name, String packaging, MavenArtifact pomArtifact, MavenProjectIdentity projectIdentity, Set<MavenArtifact> allArtifacts, MavenArtifact mainArtifact) {
         this.name = name;
-        this.pomFile = pomFile;
-        this.metadataFile = gradleMetadataFile;
+        this.packaging = packaging;
+        this.pomArtifact = pomArtifact;
         this.projectIdentity = projectIdentity;
-        this.artifacts = artifacts;
+        this.allArtifacts = allArtifacts;
         this.mainArtifact = mainArtifact;
     }
 
@@ -43,16 +43,24 @@ public class MavenNormalizedPublication {
         return name;
     }
 
+    public String getPackaging() {
+        return packaging;
+    }
+
+    /**
+     * @deprecated Kept to not break third-party plugins
+     */
+    @Deprecated
     public File getPomFile() {
-        return pomFile;
+        return pomArtifact.getFile();
     }
 
-    public File getMetadataFile() {
-        return metadataFile;
+    public MavenArtifact getPomArtifact() {
+        return pomArtifact;
     }
 
-    public Set<MavenArtifact> getArtifacts() {
-        return artifacts;
+    public Set<MavenArtifact> getAllArtifacts() {
+        return allArtifacts;
     }
 
     public MavenProjectIdentity getProjectIdentity() {
@@ -62,4 +70,5 @@ public class MavenNormalizedPublication {
     public MavenArtifact getMainArtifact() {
         return mainArtifact;
     }
+
 }

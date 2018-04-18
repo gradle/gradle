@@ -43,8 +43,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    protected MavenPublishAction createDeployTask(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
-        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(pomFile, metadataFile, artifactRepository, repositoryTransportFactory);
+    protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository) {
+        GradleWagonMavenDeployAction deployTask = new GradleWagonMavenDeployAction(packaging, projectIdentity, artifactRepository, repositoryTransportFactory);
 
         // This isn't right, since it seems like `org.sonatype.aether.impl.internal.DefaultDeployer` assumes that
         // this will point to an existing `.m2` repository, so it can list previous snapshot versions to create maven-metadata.xml
@@ -66,8 +66,8 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         private final MavenArtifactRepository artifactRepository;
         private final RepositoryTransportFactory repositoryTransportFactory;
 
-        public GradleWagonMavenDeployAction(File pomFile, File metadataFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(pomFile, metadataFile, null);
+        public GradleWagonMavenDeployAction(String packaging, MavenProjectIdentity projectIdentity, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
+            super(packaging, projectIdentity, null);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
 

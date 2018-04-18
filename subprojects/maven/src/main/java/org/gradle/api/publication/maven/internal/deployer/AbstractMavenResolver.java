@@ -40,6 +40,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
@@ -83,7 +85,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
         return this;
     }
 
-    protected abstract MavenPublishAction createPublishAction(File pomFile, File metadataFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
+    protected abstract MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
     public void publish(IvyModulePublishMetadata moduleVersion) {
         for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
@@ -110,8 +112,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     private void publish() {
         Set<MavenDeployment> mavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         for (MavenDeployment mavenDeployment : mavenDeployments) {
-            File pomFile = mavenDeployment.getPomArtifact().getFile();
-            MavenPublishAction publishAction = createPublishAction(pomFile, null, mavenRepositoryLocator);
+            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(mavenDeployment.getGroupId(), mavenDeployment.getArtifactId(), mavenDeployment.getVersion());
+            MavenPublishAction publishAction = createPublishAction(mavenDeployment.getPackaging(), projectIdentity, mavenRepositoryLocator);
             beforeDeploymentActions.execute(mavenDeployment);
             addArtifacts(publishAction, mavenDeployment);
             execute(publishAction);
@@ -128,6 +130,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     }
 
     private void addArtifacts(MavenPublishAction publishAction, MavenDeployment mavenDeployment) {
+        publishAction.setPomArtifact(mavenDeployment.getPomArtifact().getFile());
         if (mavenDeployment.getMainArtifact() != null) {
             publishAction.setMainArtifact(mavenDeployment.getMainArtifact().getFile());
         }

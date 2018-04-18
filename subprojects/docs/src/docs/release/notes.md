@@ -16,6 +16,22 @@ On GCC-compatible toolchains, the system header include directories specified wi
 
 The default version of `CodeNarc` is `1.1` now.
 
+### Signing Publications
+
+The Signing plugin now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -40,6 +56,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
 - `FileCollection.stopExecutionIfEmpty()` is deprecated without a replacement. You can use `@SkipWhenEmpty` on a `FileCollection` property, or throw a `StopExecutionException` in your code manually instead.
+
+### Method on `Signature`
+
+`Signature.getToSignArtifact()` should have been an internal API and is now deprecated without a replacement.
 
 ## Potential breaking changes
 

@@ -1,0 +1,11 @@
+> Task :generatePomFileForMavenJavaPublication
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :signMavenJavaPublication
+> Task :publishMavenJavaPublicationToMavenRepository
+> Task :publish
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

@@ -37,6 +37,7 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
@@ -148,7 +149,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            publication.setIvyDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            publication.setIvyDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), "ivy", "xml", "ivy"));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -168,7 +169,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            publication.setGradleModuleDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            publication.setGradleModuleDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), publication.getIdentity().getModule(), "module", "json"));
+        }
+
+        private IvyArtifact createIvyArtifactForOutputFiles(Task task, String name, String extension, String type) {
+            IvyArtifact artifact = new DefaultIvyArtifact(task.getOutputs().getFiles(), name, extension, type, null);
+            artifact.builtBy(task);
+            return artifact;
         }
     }
 
