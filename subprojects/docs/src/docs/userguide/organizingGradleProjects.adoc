@@ -157,7 +157,7 @@ A typical project including `buildSrc` has the following layout.
 In Gradle, properties can be define in the build script, in a `gradle.properties` file or as parameters on the command line.
 
 It's common to declare properties on the command line for ad-hoc scenarios.
-For example you may want pass in a specific property value to control runtime behavior just for this one invocation of the build.
+For example you may want to pass in a specific property value to control runtime behavior just for this one invocation of the build.
 Properties in a build script can easily become a maintenance headache and convolute the build script logic.
 The `gradle.properties` helps with keeping properties separate from the build script and should be explored as viable option.
 It's a good location for placing <<sec:gradle_configuration_properties,properties that control the build environment>>.
