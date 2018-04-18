@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.logging.Logging;
@@ -113,7 +114,9 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
                 throw new UncheckedIOException("Error snapshotting jar [" + jarFile.getName() + "]", e);
             } catch (Exception e) {
                 // Other Exceptions can be thrown by invalid zips, too. See https://github.com/gradle/gradle/issues/1581.
-                Logging.getLogger(getClass()).error(jarFile.getPath(), e);
+                if (JavaVersion.current() == JavaVersion.VERSION_11) {
+                    Logging.getLogger(getClass()).error(jarFile.getPath(), e);
+                }
                 return hashMalformedZip(jarFile);
             }
         }

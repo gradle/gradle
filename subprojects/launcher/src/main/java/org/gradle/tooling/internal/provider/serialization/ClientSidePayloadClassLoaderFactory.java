@@ -20,6 +20,7 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
+import org.gradle.util.internal.PatchedClassReader;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -68,7 +69,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         @Override
         protected byte[] transform(String className, byte[] bytes) {
             // First scan for annotation, and short circuit transformation if not present
-            ClassReader classReader = new ClassReader(bytes);
+            ClassReader classReader = new PatchedClassReader(bytes);
 
             AnnotationDetector detector = new AnnotationDetector();
             classReader.accept(detector, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE);
