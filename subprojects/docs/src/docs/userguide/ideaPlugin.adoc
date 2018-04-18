@@ -19,7 +19,7 @@ The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[
 
 [NOTE]
 ====
-If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA!
+If you simply want to load a Gradle project into IntelliJ IDEA, then use the IDE's https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import facility]. You do not need to apply this plugin to import your project into IDEA, although if you do, the import will take account of any extra IDEA configuration you have that doesn't directly modify the generated files — see the <<sec:idea_configuration,Configuration>> section for more details.
 ====
 
 What exactly the IDEA plugin generates depends on which other plugins are used:
@@ -87,28 +87,35 @@ Generates the `.iws` file. This task is only added to the root project.
 [[sec:idea_configuration]]
 === Configuration
 
+The plugin adds some configuration options that allow to customize the IDEA project and module files that it generates. These take the form of both simple properties and more advanced mechanisms that modify the generated files directly. For example, you can add source and resource directories, as well as inject your own fragments of XML. The former type of configuration is honored by IDEA's import facility, whereas the latter is not.
+
+Here are the configuration properties you can use:
 
 [[idea-configuration]]
 
-`idea` — api:org.gradle.plugins.ide.idea.model.IdeaModel[]::
+`idea` — type: api:org.gradle.plugins.ide.idea.model.IdeaModel[]::
 Top level element that enables configuration of the idea plugin in a DSL-friendly fashion
 
-`idea.project` — api:org.gradle.plugins.ide.idea.model.IdeaProject[]::
+`idea.project` — type: api:org.gradle.plugins.ide.idea.model.IdeaProject[]::
 Allows configuring project information
 
-`idea.module` — api:org.gradle.plugins.ide.idea.model.IdeaModule[]::
+`idea.module` — type: api:org.gradle.plugins.ide.idea.model.IdeaModule[]::
 Allows configuring module information
 
-`idea.workspace` — api:org.gradle.plugins.ide.idea.model.IdeaWorkspace[]::
+`idea.workspace` — type: api:org.gradle.plugins.ide.idea.model.IdeaWorkspace[]::
 Allows configuring the workspace XML
+
+Follow the links to the types for examples of using these configuration properties.
 
 
 [[sec:idea_customizing_the_generated_files]]
 === Customizing the generated files
 
-The IDEA plugin provides hooks and behavior for customizing the generated content. The workspace file can effectively only be manipulated via the `withXml` hook because its corresponding domain object is essentially empty.
+The IDEA plugin provides hooks and behavior for customizing the generated content in a more controlled and detailed way. In addition, the `withXml` hook is the only practical way to modify the workspace file because its corresponding domain object is essentially empty.
 
-The tasks recognize existing IDEA files, and merge them with the generated content.
+NOTE: The techniques we discuss in this section don't work with IDEA's import facility
+
+The tasks recognize existing IDEA files and merge them with the generated content.
 
 
 [[sec:merging_with_idea_files]]
