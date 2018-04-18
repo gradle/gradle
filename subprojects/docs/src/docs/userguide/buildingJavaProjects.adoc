@@ -428,9 +428,9 @@ The unique aspect of library projects is that they are used (or "consumed") by o
 
 Gradle manages this distinction via the <<java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-NOTE:  that the Java Library Plugin automatically applies the standard Java Plugin as well.
+NOTE: The Java Library Plugin automatically applies the standard Java Plugin as well.
 
-You can learn more about these configurations and other aspects of building Java libraries in the plugin's chapter. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
+If you're unsure of the difference between an API and implementation dependency, the <<sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
 
 [[sec:building_java_applications]]
 === Building Java applications
