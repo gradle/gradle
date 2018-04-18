@@ -97,8 +97,4 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     private
     fun absolutePathOf(path: String) =
         File(path).absolutePath
-
-    private
-    fun <T> Iterable<T>.joinLines(transform: (T) -> String) =
-        joinToString(separator = "\n", transform = transform)
 }
