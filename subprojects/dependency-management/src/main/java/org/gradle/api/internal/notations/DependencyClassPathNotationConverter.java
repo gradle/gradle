@@ -43,9 +43,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
 import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
@@ -58,8 +56,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final FileResolver fileResolver;
     private final RuntimeShadedJarFactory runtimeShadedJarFactory;
     private final CurrentGradleInstallation currentGradleInstallation;
-    private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
-    private final Lock internCacheWriteLock = new ReentrantLock();
+    private final ConcurrentMap<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newConcurrentMap();
 
     public DependencyClassPathNotationConverter(
         Instantiator instantiator,
@@ -82,22 +79,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            internCacheWriteLock.lock();
-            try {
-                dependency = maybeCreateUnderLock(notation);
-            } finally {
-                internCacheWriteLock.unlock();
-            }
+            dependency = create(notation);
         }
-
         result.converted(dependency);
     }
 
-    private SelfResolvingDependency maybeCreateUnderLock(final DependencyFactory.ClassPathNotation notation) {
-        SelfResolvingDependency dependency = internCache.get(notation);
-        if (dependency != null) {
-            return dependency;
-        }
+    private SelfResolvingDependency create(final DependencyFactory.ClassPathNotation notation) {
         boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
         FileCollectionInternal fileCollectionInternal;
         if (runningFromInstallation && notation.equals(GRADLE_API)) {
@@ -117,9 +104,9 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         } else {
             fileCollectionInternal = fileResolver.resolveFiles((Collection<File>) getClassPath(notation));
         }
-        dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileCollectionInternal);
-        internCache.put(notation, dependency);
-        return dependency;
+        SelfResolvingDependency dependency = instantiator.newInstance(DefaultSelfResolvingDependency.class, new OpaqueComponentIdentifier(notation.displayName), fileCollectionInternal);
+        SelfResolvingDependency alreadyPresent = internCache.putIfAbsent(notation, dependency);
+        return alreadyPresent != null ? alreadyPresent : dependency;
     }
 
     private List<File> getClassPath(DependencyFactory.ClassPathNotation notation) {
