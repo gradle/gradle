@@ -82,7 +82,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {
         SelfResolvingDependency dependency = internCache.get(notation);
         if (dependency == null) {
-            dependency = maybeCreateUnderLock(notation);
+            internCacheWriteLock.lock();
+            try {
+                dependency = maybeCreateUnderLock(notation);
+            } finally {
+                internCacheWriteLock.unlock();
+            }
         }
 
         result.converted(dependency);
@@ -98,24 +103,14 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
                 fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
                     @Override
                     FileCollection generateFileCollection() {
-                        try {
-                            internCacheWriteLock.lock();
-                            return gradleApiFileCollection(classpath);
-                        } finally {
-                            internCacheWriteLock.unlock();
-                        }
+                        return gradleApiFileCollection(classpath);
                     }
                 };
             } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
                 fileCollectionInternal = new GeneratedFileCollection(notation.displayName) {
                     @Override
                     FileCollection generateFileCollection() {
-                        try {
-                            internCacheWriteLock.lock();
-                            return gradleTestKitFileCollection(classpath);
-                        } finally {
-                            internCacheWriteLock.unlock();
-                        }
+                        return gradleTestKitFileCollection(classpath);
                     }
                 };
             } else {
