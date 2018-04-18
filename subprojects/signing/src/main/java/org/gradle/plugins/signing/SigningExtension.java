@@ -32,6 +32,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -353,11 +354,20 @@ public class SigningExtension {
                 result.add(createSignTaskFor((PublicationInternal<?>) publication));
             }
         });
+        publications.whenObjectRemoved(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                TaskContainer tasks = project.getTasks();
+                Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
+                tasks.remove(task);
+                result.remove(task);
+            }
+        });
         return result;
     }
 
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
-        final Sign signTask = project.getTasks().create("sign" + capitalize((CharSequence) (publicationToSign.getName() + "Publication")), Sign.class, new Action<Sign>() {
+        final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
             public void execute(Sign task) {
                 task.sign(publicationToSign);
             }
@@ -377,6 +387,10 @@ public class SigningExtension {
             }
         });
         return signTask;
+    }
+
+    private String determineSignTaskNameForPublication(Publication publication) {
+        return "sign" + capitalize((CharSequence) publication.getName()) + "Publication";
     }
 
     private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
