@@ -93,7 +93,7 @@ fun projectScriptTarget(
     KotlinScriptTarget(
         host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
         scriptTemplate = KotlinBuildScript::class,
-        buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
+        buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
         onPrepare = {
