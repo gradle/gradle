@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 
 import java.util.Set;
@@ -37,13 +36,31 @@ public interface MavenDeployment {
     String getPackaging();
 
     /**
-     * Returns the coordinates for this deployment.
+     * Returns the group ID for this deployment.
      *
-     * @return The coordinates. Never null.
+     * @return The group ID. Never null.
      * @since 4.8
      */
     @Incubating
-    ModuleVersionIdentifier getCoordinates();
+    String getGroupId();
+
+    /**
+     * Returns the artifact ID for this deployment.
+     *
+     * @return The artifact ID. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getArtifactId();
+
+    /**
+     * Returns the version for this deployment.
+     *
+     * @return The version. Never null.
+     * @since 4.8
+     */
+    @Incubating
+    String getVersion();
 
     /**
      * Returns the POM for this deployment.

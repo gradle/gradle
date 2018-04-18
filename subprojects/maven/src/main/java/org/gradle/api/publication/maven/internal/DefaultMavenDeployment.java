@@ -16,23 +16,23 @@
 package org.gradle.api.publication.maven.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultMavenDeployment implements MavenDeployment {
     private final String packaging;
-    private final ModuleVersionIdentifier coordinates;
+    private final MavenProjectIdentity projectIdentity;
     private final PublishArtifact pomArtifact;
     private final PublishArtifact mainArtifact;
     private Set<PublishArtifact> attachedArtifacts;
 
-    public DefaultMavenDeployment(String packaging, ModuleVersionIdentifier coordinates, PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
+    public DefaultMavenDeployment(String packaging, MavenProjectIdentity projectIdentity, PublishArtifact pomArtifact, PublishArtifact mainArtifact, Iterable<? extends PublishArtifact> attachedArtifacts) {
         this.packaging = packaging;
-        this.coordinates = coordinates;
+        this.projectIdentity = projectIdentity;
         this.pomArtifact = pomArtifact;
         this.mainArtifact = mainArtifact;
         this.attachedArtifacts = Sets.newLinkedHashSet(attachedArtifacts);
@@ -44,8 +44,18 @@ public class DefaultMavenDeployment implements MavenDeployment {
     }
 
     @Override
-    public ModuleVersionIdentifier getCoordinates() {
-        return coordinates;
+    public String getGroupId() {
+        return projectIdentity.getGroupId();
+    }
+
+    @Override
+    public String getArtifactId() {
+        return projectIdentity.getArtifactId();
+    }
+
+    @Override
+    public String getVersion() {
+        return projectIdentity.getVersion();
     }
 
     public void addArtifact(PublishArtifact artifact) {

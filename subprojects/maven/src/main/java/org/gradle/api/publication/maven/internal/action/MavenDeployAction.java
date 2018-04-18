@@ -17,7 +17,7 @@ package org.gradle.api.publication.maven.internal.action;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonatype.aether.RepositorySystem;
@@ -39,8 +39,8 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
 
-    public MavenDeployAction(String packaging, ModuleVersionIdentifier coordinates, List<File> wagonJars) {
-        super(packaging, coordinates, wagonJars);
+    public MavenDeployAction(String packaging, MavenProjectIdentity projectIdentity, List<File> wagonJars) {
+        super(packaging, projectIdentity, wagonJars);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {

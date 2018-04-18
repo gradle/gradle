@@ -17,7 +17,6 @@ package org.gradle.api.publication.maven.internal.deployer;
 
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.api.publication.maven.internal.action.MavenWagonDeployAction;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -49,8 +49,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         super(pomFilterContainer, artifactPomContainer, loggingManager, mavenSettingsProvider, mavenRepositoryLocator);
     }
 
-    protected MavenPublishAction createPublishAction(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(packaging, coordinates, getJars());
+    protected MavenPublishAction createPublishAction(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator) {
+        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(packaging, projectIdentity, getJars());
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         deployAction.produceLegacyMavenMetadata();
         deployAction.setUniqueVersion(isUniqueVersion());

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
@@ -26,8 +26,8 @@ import java.util.Collection;
 
 public class MavenInstallAction extends AbstractMavenPublishAction {
 
-    public MavenInstallAction(String packaging, ModuleVersionIdentifier coordinates) {
-        super(packaging, coordinates, null);
+    public MavenInstallAction(String packaging, MavenProjectIdentity projectIdentity) {
+        super(packaging, projectIdentity, null);
     }
 
     @Override

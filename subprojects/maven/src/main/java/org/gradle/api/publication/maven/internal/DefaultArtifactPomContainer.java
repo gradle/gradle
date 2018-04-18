@@ -17,12 +17,12 @@ package org.gradle.api.publication.maven.internal;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -64,9 +64,9 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
             File pomFile = createPomFile(activeArtifactPomName);
             MavenPom mavenPom = activeArtifactPom.getPom();
             String packaging = mavenPom.getPackaging();
-            ModuleVersionIdentifier coordinates = new DefaultModuleVersionIdentifier(mavenPom.getGroupId(), mavenPom.getArtifactId(), mavenPom.getVersion());
+            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(mavenPom.getGroupId(), mavenPom.getArtifactId(), mavenPom.getVersion());
             PublishArtifact pomArtifact = activeArtifactPom.writePom(pomFile);
-            mavenDeployments.add(new DefaultMavenDeployment(packaging, coordinates, pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
+            mavenDeployments.add(new DefaultMavenDeployment(packaging, projectIdentity, pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
         }
         return mavenDeployments;
     }

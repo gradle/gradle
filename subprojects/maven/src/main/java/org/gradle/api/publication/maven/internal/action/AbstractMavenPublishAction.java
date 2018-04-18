@@ -27,7 +27,7 @@ import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -51,23 +51,23 @@ import java.util.List;
 abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private final PlexusContainer container;
     private final DefaultRepositorySystemSession session;
-    private final ModuleVersionIdentifier coordinates;
+    private final MavenProjectIdentity projectIdentity;
 
     private final List<Artifact> attached = new ArrayList<Artifact>();
     private Artifact pomArtifact;
     private Artifact mainArtifact;
     private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
-    protected AbstractMavenPublishAction(String packaging, ModuleVersionIdentifier coordinates, List<File> wagonJars) {
+    protected AbstractMavenPublishAction(String packaging, MavenProjectIdentity projectIdentity, List<File> wagonJars) {
         container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
-        this.coordinates = coordinates;
+        this.projectIdentity = projectIdentity;
 
         CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
         BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
         session.setTransferListener(new LoggingMavenTransferListener(currentBuildOperationRef, currentBuildOperation));
 
-        pomArtifact = new DefaultArtifact(coordinates.getGroup(), coordinates.getName(), "pom", coordinates.getVersion());
+        pomArtifact = new DefaultArtifact(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), "pom", projectIdentity.getVersion());
         mainArtifact = createTypedArtifact(packaging, null);
     }
 
@@ -160,7 +160,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
                 classifier = stereotype.getClassifier();
             }
         }
-        return new DefaultArtifact(coordinates.getGroup(), coordinates.getName(), classifier, extension, coordinates.getVersion());
+        return new DefaultArtifact(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), classifier, extension, projectIdentity.getVersion());
     }
 
     public void setUniqueVersion(boolean uniqueVersion) {

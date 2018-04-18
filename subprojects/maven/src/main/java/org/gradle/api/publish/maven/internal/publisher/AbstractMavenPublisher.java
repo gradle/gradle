@@ -17,9 +17,7 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import com.google.common.base.Strings;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
@@ -47,14 +45,12 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
             LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), artifactRepository.getUrl());
         }
 
-        MavenProjectIdentity projectIdentity = publication.getProjectIdentity();
-        ModuleVersionIdentifier coordinates = new DefaultModuleVersionIdentifier(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
-        MavenPublishAction deployTask = createDeployTask(publication.getPackaging(), coordinates, mavenRepositoryLocator, artifactRepository);
+        MavenPublishAction deployTask = createDeployTask(publication.getPackaging(), publication.getProjectIdentity(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);
     }
 
-    abstract protected MavenPublishAction createDeployTask(String packaging, ModuleVersionIdentifier coordinates, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
+    abstract protected MavenPublishAction createDeployTask(String packaging, MavenProjectIdentity projectIdentity, LocalMavenRepositoryLocator mavenRepositoryLocator, MavenArtifactRepository artifactRepository);
 
     private void addPomAndArtifacts(MavenPublishAction publishAction, MavenNormalizedPublication publication) {
         MavenArtifact pomArtifact = publication.getPomArtifact();
