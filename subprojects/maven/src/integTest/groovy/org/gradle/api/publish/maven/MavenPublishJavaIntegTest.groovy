@@ -649,8 +649,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/5034")
-    void "generated POM includes configuration exclusions"() {
+    @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
+    void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
             configurations.apiElements {
@@ -689,12 +689,29 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
-        javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.test:a:1.0", "org.gradle.test:subproject:1.2")
+        javaLibrary.assertApiDependencies("org.test:a:1.0", "org.gradle.test:subproject:1.2")
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.test:a:1.0", new MavenDependencyExclusion("foo", "bar"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.gradle.test:subproject:1.2", new MavenDependencyExclusion("foo", "bar"))
-        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.test:b:2.0")
+        javaLibrary.assertRuntimeDependencies("org.test:b:2.0")
         javaLibrary.parsedPom.scopes.runtime.hasDependencyExclusion("org.test:b:2.0", new MavenDependencyExclusion("baz", "qux"))
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.test:a:1.0') {
+                hasExclude('foo', 'bar')
+                noMoreExcludes()
+            }
+            dependency('org.gradle.test:subproject:1.2') {
+                hasExclude('foo', 'bar')
+                noMoreExcludes()
+            }
+        }
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:a:1.0') {
+                hasExclude('baz', 'qux')
+                noMoreExcludes()
+            }
+        }
     }
 
     def createBuildScripts(def append) {
