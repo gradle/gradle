@@ -12,6 +12,10 @@ In previous versions of Gradle, the native compile task include path was a singl
 In Gradle 4.8, system header include directories can now be accessed separately via the `systemIncludes` property. 
 On GCC-compatible toolchains, the system header include directories specified with `systemIncludes` will be specified on the command line using the ["-isystem" argument](https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html), which marks them for special treatment by the compiler.   
 
+### Upgradation of CodeNarc
+
+The default version of `CodeNarc` is `1.1` now.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -60,7 +64,8 @@ Previously, `Signature.setFile()` could be used to replace the file used for pub
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
-- [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle/pull/4845)
+- [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
+- [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
