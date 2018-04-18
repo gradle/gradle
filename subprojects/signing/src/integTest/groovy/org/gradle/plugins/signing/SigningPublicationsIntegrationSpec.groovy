@@ -16,14 +16,12 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableGradleMetadata
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
-    private TestFile enableGradleMetadata() {
-        settingsFile << "enableFeaturePreview('GRADLE_METADATA')"
-    }
 
     def "signs single Maven publication"() {
         given:
@@ -186,7 +184,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         and:
         run "signIvyPublication", "signMavenPublication"
@@ -236,7 +234,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         and:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         when:
         succeeds "publishMavenJavaPublicationToM2Repository"
@@ -294,7 +292,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         and:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         when:
         succeeds "publishIvyJavaPublicationToIvyRepository"
