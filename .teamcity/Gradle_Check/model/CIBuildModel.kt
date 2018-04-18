@@ -62,7 +62,7 @@ data class CIBuildModel (
             Stage("Experimental", "On demand: Run experimental tests",
                     trigger = Trigger.never,
                     runsIndependent = true,
-                    functionalTests = listOf()))
+                    functionalTests = listOf(TestCoverage(TestType.platform, OS.linux, JvmVersion.java11))))
     ) {
 
     val subProjects = listOf(
@@ -200,7 +200,7 @@ enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String>
 }
 
 enum class JvmVersion {
-    java7, java8, java9, java10
+    java7, java8, java9, java10, java11
 }
 
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
