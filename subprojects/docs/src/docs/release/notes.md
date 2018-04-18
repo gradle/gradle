@@ -39,6 +39,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changed behaviour for missing init scripts
+
+In previous releases of Gradle, an init script specified on the command line that did not exist would be silently ignored. In this release, the build will fail if any of the init scripts specified on the command line does not exist.
+
 <!--
 ### Example breaking change
 -->
@@ -56,6 +60,7 @@ Previously, `Signature.setFile()` could be used to replace the file used for pub
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+- [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle/pull/4845)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
