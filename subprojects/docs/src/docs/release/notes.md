@@ -60,6 +60,7 @@ Previously, `Signature.setFile()` could be used to replace the file used for pub
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+- [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle/pull/4845)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
