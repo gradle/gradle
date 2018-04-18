@@ -107,25 +107,38 @@ open class KotlinDslPluginBundle : Plugin<Project> {
             dependsOn("publishPluginMavenPublicationToTestRepository")
         }
 
-        val processTestResources = tasks.getByName("processTestResources") as ProcessResources
-        val writeTestProperties = tasks.create("writeTestProperties", WriteProperties::class.java).apply {
-            outputFile = processTestResources.destinationDir.resolve("test.properties")
-            property("version", version)
-        }
-        processTestResources.dependsOn(writeTestProperties)
-
         tasks.getByName("test").apply {
             dependsOn(publishPluginsToTestRepository)
         }
 
+        val writeFuturePluginVersions = createWriteFuturePluginVersionsTask()
+
         afterEvaluate {
-            kotlinDslPlugins.all {
+
+            kotlinDslPlugins.all { plugin ->
+
                 publishPluginsToTestRepository
-                    .dependsOn("publish${it.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+                    .dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+
+                writeFuturePluginVersions
+                    .property(plugin.id, version)
             }
         }
     }
+
+    private
+    fun Project.createWriteFuturePluginVersionsTask(): WriteProperties {
+        val processTestResources = tasks.getByName("processTestResources") as ProcessResources
+        return tasks.create("writeFuturePluginVersions", WriteProperties::class.java).apply {
+            outputFile = processTestResources.futurePluginVersionsFile
+            processTestResources.dependsOn(this)
+        }
+    }
 }
+
+
+val ProcessResources.futurePluginVersionsFile
+    get() = destinationDir.resolve("future-plugin-versions.properties")
 
 
 private

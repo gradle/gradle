@@ -149,8 +149,8 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
     tasks {
 
         val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
-        val sourceSet = sourceSets["main"]
-        sourceSet.kotlin.srcDir(generatedSourcesDir)
+
+        sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
         val generateScriptPluginAdapters by creating {
             inputs.files(scriptSourceFiles)
@@ -198,7 +198,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.replaceIndent())
+    """.replaceIndent().trim())
 }
 
 

@@ -146,7 +146,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""
             buildscript {
                 repositories {
-                    ivy { setUrl("${fixturesRepository.toURI()}") }
+                    ivy(url = "${fixturesRepository.toURI()}")
                     jcenter()
                 }
                 dependencies {

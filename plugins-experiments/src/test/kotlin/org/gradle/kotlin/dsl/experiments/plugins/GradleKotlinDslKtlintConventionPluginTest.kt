@@ -235,7 +235,6 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
         build("ktlintMainCheck")
     }
 
-
     private
     fun withSource(text: String) =
         withFile("src/main/kotlin/source.kt", text)
