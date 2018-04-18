@@ -65,6 +65,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    @LeaksFileHandles
     fun `given a script plugin with a buildscript block, it will be used to compute its classpath`() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
@@ -743,8 +744,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             """))
     }
 
-    @LeaksFileHandles
     @Test
+    @LeaksFileHandles
     fun `can cross configure buildscript`() {
 
         withClassJar("zero.jar", ZeroThought::class.java)
