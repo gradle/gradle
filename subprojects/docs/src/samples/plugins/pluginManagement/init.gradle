@@ -1,9 +1,6 @@
 settingsEvaluated { settings ->
     settings.pluginManagement.resolutionStrategy {
-        // ...
     }
-
     settings.pluginManagement.repositories {
-        // ...
     }
 }
