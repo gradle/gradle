@@ -22,8 +22,8 @@ class DefaultClassPathTest extends Specification {
     def "removes duplicates when constructed"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
-        def cp1 = new DefaultClassPath(file1, file2, file1, file2)
-        def cp2 = new DefaultClassPath([file1, file1, file2, file1])
+        def cp1 = DefaultClassPath.of(file1, file2, file1, file2)
+        def cp2 = DefaultClassPath.of([file1, file1, file2, file1])
 
         expect:
         cp1.asFiles == [file1, file2]
@@ -33,8 +33,8 @@ class DefaultClassPathTest extends Specification {
     def "can add classpaths together"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
-        def cp1 = new DefaultClassPath(file1)
-        def cp2 = new DefaultClassPath(file2)
+        def cp1 = DefaultClassPath.of(file1)
+        def cp2 = DefaultClassPath.of(file2)
 
         expect:
         def cp3 = cp1 + cp2
@@ -45,8 +45,8 @@ class DefaultClassPathTest extends Specification {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
         def file3 = new File("c.jar")
-        def cp1 = new DefaultClassPath(file1, file2)
-        def cp2 = new DefaultClassPath(file3, file2, file1)
+        def cp1 = DefaultClassPath.of(file1, file2)
+        def cp2 = DefaultClassPath.of(file3, file2, file1)
 
         expect:
         def cp3 = cp1 + cp2
@@ -54,7 +54,7 @@ class DefaultClassPathTest extends Specification {
     }
 
     def "add returns lhs when rhs is empty"() {
-        def cp1 = new DefaultClassPath(new File("a.jar"))
+        def cp1 = DefaultClassPath.of(new File("a.jar"))
         def cp2 = ClassPath.EMPTY
 
         expect:
@@ -63,7 +63,7 @@ class DefaultClassPathTest extends Specification {
 
     def "add returns rhs when lhs is empty"() {
         def cp1 = ClassPath.EMPTY
-        def cp2 = new DefaultClassPath(new File("a.jar"))
+        def cp2 = DefaultClassPath.of(new File("a.jar"))
 
         expect:
         (cp1 + cp2).is(cp2)
@@ -72,7 +72,7 @@ class DefaultClassPathTest extends Specification {
     def "can add collection of files to classpath"() {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
-        def cp = new DefaultClassPath(file1)
+        def cp = DefaultClassPath.of(file1)
 
         expect:
         (cp + [file2]).asFiles == [file1, file2]
@@ -83,13 +83,13 @@ class DefaultClassPathTest extends Specification {
         def file1 = new File("a.jar")
         def file2 = new File("b.jar")
         def file3 = new File("c.jar")
-        def cp = new DefaultClassPath(file1, file2)
-        def same = new DefaultClassPath(file1, file2)
-        def sameWithDuplicates = new DefaultClassPath(file1, file2, file2, file1)
-        def differentOrder = new DefaultClassPath(file2, file1)
-        def missing = new DefaultClassPath(file2)
-        def extra = new DefaultClassPath(file1, file2, file3)
-        def different = new DefaultClassPath(file3)
+        def cp = DefaultClassPath.of(file1, file2)
+        def same = DefaultClassPath.of(file1, file2)
+        def sameWithDuplicates = DefaultClassPath.of(file1, file2, file2, file1)
+        def differentOrder = DefaultClassPath.of(file2, file1)
+        def missing = DefaultClassPath.of(file2)
+        def extra = DefaultClassPath.of(file1, file2, file3)
+        def different = DefaultClassPath.of(file3)
 
         expect:
         cp Matchers.strictlyEqual(same)

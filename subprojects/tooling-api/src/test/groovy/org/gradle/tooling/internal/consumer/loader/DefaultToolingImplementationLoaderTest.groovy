@@ -82,7 +82,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -119,7 +119,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),

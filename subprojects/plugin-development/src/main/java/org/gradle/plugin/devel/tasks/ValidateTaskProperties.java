@@ -117,7 +117,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     @TaskAction
     public void validateTaskClasses() throws IOException {
         ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
-        ClassPath classPath = new DefaultClassPath(Iterables.concat(getClasses(), getClasspath()));
+        ClassPath classPath = DefaultClassPath.of(Iterables.concat(getClasses(), getClasspath()));
         ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
         Thread.currentThread().setContextClassLoader(classLoader);
         try {

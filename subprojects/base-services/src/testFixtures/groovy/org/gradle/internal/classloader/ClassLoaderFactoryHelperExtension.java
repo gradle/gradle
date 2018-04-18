@@ -19,9 +19,10 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.io.File;
+import java.util.Collection;
 
 public class ClassLoaderFactoryHelperExtension {
-    public static ClassLoader createIsolatedClassLoader(ClassLoaderFactory factory, Iterable<File> files) {
-        return factory.createIsolatedClassLoader(new DefaultClassPath(files));
+    public static ClassLoader createIsolatedClassLoader(ClassLoaderFactory factory, Collection<File> files) {
+        return factory.createIsolatedClassLoader(DefaultClassPath.of(files));
     }
 }
