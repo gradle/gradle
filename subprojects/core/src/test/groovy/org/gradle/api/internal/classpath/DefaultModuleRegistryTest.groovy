@@ -111,7 +111,7 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "locates module using jar from additional classpath"() {
         given:
-        def registry = new DefaultModuleRegistry(new DefaultClassPath([jarFile, runtimeDep]), null)
+        def registry = new DefaultModuleRegistry(DefaultClassPath.of([jarFile, runtimeDep]), null)
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -124,7 +124,7 @@ class DefaultModuleRegistryTest extends Specification {
         def classesDir = tmpDir.createDir("out/production/someModule")
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
         def ignoredDir = tmpDir.createDir("ignore-me-out/production/someModule")
-        def registry = new DefaultModuleRegistry(new DefaultClassPath([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep]), null)
+        def registry = new DefaultModuleRegistry(DefaultClassPath.of([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep]), null)
 
         expect:
         def module = registry.getModule("gradle-some-module")

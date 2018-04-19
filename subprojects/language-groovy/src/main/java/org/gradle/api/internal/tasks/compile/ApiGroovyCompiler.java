@@ -92,9 +92,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
-            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getCompileClasspath()));
+            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
         } else {
-            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(spec.getCompileClasspath()));
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath.of(spec.getCompileClasspath()));
         }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);

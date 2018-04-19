@@ -46,7 +46,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
             assert fileCollection.contains(symlink)
             assert fileCollection.contains(symlinked)
             assert fileCollection.files == [file, symlink, symlinked] as Set
-            assert (fileCollection - project.layout.filesFor(symlink)).files == [file, symlinked] as Set
+            assert (fileCollection - project.layout.files(symlink)).files == [file, symlinked] as Set
         """
 
         when:
@@ -58,8 +58,8 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         where:
         desc                                  | code
         "project.files()"                     | "project.files(file, symlink, symlinked)"
-        "project.layout.filesFor()"           | "project.layout.filesFor(file, symlink, symlinked)"
-        "project.layout.mutableFilesFor()"    | "project.layout.mutableFilesFor(file, symlink, symlinked)"
+        "project.layout.files()"              | "project.layout.files(file, symlink, symlinked)"
+        "project.layout.configurableFiles()"  | "project.layout.configurableFiles(file, symlink, symlinked)"
         "project.fileTree()"                  | "project.fileTree(baseDir)"
     }
 }

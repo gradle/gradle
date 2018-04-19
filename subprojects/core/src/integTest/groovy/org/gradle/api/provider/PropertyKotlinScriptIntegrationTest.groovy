@@ -44,7 +44,7 @@ class PropertyKotlinScriptIntegrationTest extends KotlinScriptIntegrationTest {
 
             open class MyTask : DefaultTask() {
                 val enabled: PropertyState<Boolean> = project.property(Boolean::class.java)
-                val outputFiles: ConfigurableFileCollection = project.layout.mutableFilesFor()
+                val outputFiles: ConfigurableFileCollection = project.layout.configurableFiles()
 
                 init {
                     enabled.set(false)
@@ -88,7 +88,7 @@ class PropertyKotlinScriptIntegrationTest extends KotlinScriptIntegrationTest {
         when:
         buildFile << """
             myTask.setEnabled(true)
-            myTask.setOutputFiles(project.layout.filesFor("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}"))
+            myTask.setOutputFiles(project.layout.files("${normaliseFileSeparators(projectUnderTest.customOutputFile.canonicalPath)}"))
         """
         succeeds('myTask')
 

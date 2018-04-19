@@ -29,7 +29,7 @@ tasks {
     "buildClassPath"(BuildClassPath::class) {
         val jar: Jar by getting
         dependsOn(jar)
-        classpath = androidTools + layout.filesFor(jar.archivePath)
+        classpath = androidTools + layout.files(jar.archivePath)
         outputFile = buildDir.resolve("classpath.txt")
     }
 

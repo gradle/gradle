@@ -55,7 +55,7 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
         goodCode()
         buildFile << """
             tasks.withType(JavaCompile) { 
-                options.sourcepath = project.layout.filesFor()
+                options.sourcepath = project.layout.files()
             }
         """
 
@@ -71,7 +71,7 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
         goodCode()
         buildFile << """
             tasks.withType(JavaCompile) { 
-                options.bootstrapClasspath = project.layout.filesFor("$bootClasspath")
+                options.bootstrapClasspath = project.layout.files("$bootClasspath")
             }
         """
 

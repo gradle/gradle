@@ -47,7 +47,7 @@ class MonkeyPatchRelocationIntegrationTest extends AbstractIntegrationSpec imple
         dir.file("build.gradle") << """
             @CacheableTask
             class Broken extends DefaultTask {
-                FileCollection processorListFile = project.layout.filesFor("input.txt")
+                FileCollection processorListFile = project.layout.files("input.txt")
 
                 @InputFiles
                 FileCollection getProcessorListFile() {

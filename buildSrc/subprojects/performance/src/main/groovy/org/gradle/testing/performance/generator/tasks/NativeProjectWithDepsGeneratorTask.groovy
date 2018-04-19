@@ -81,7 +81,7 @@ class NativeProjectWithDepsGeneratorTask extends TemplateProjectGeneratorTask {
      * These files do not have any filtering/expanding done to them.
      */
     @InputFiles
-    ConfigurableFileCollection resources = project.layout.mutableFilesFor()
+    ConfigurableFileCollection resources = project.layout.configurableFiles()
 
     /**
      * @return names of all generated subprojects

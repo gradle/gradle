@@ -186,8 +186,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | expression
-        'FileCollection'             | 'project.layout.filesFor()'
-        'ConfigurableFileCollection' | 'project.layout.mutableFilesFor()'
+        'FileCollection'             | 'project.layout.files()'
+        'ConfigurableFileCollection' | 'project.layout.configurableFiles()'
     }
 
     @Unroll
@@ -208,35 +208,35 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | content          | expressionTemplate
-        'FileCollection'             | 'String'         | 'project.layout.filesFor("%s/src/resource/file.txt")'
-        'FileCollection'             | 'File'           | 'project.layout.filesFor(new File("%s", "src/resource/file.txt"))'
-        'FileCollection'             | 'Path'           | 'project.layout.filesFor(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
-        'FileCollection'             | 'URI'            | 'project.layout.filesFor(new File("%s", "/src/resource/file.txt").toURI())'
-        'FileCollection'             | 'URL'            | 'project.layout.filesFor(new File("%s", "/src/resource/file.txt").toURI().toURL())'
-        'FileCollection'             | 'Directory'      | 'project.layout.filesFor(project.layout.projectDirectory)'
-        'FileCollection'             | 'RegularFile'    | 'project.layout.filesFor(project.layout.projectDirectory.file("src/resource/file.txt"))'
-        'FileCollection'             | 'Closure'        | 'project.layout.filesFor({ "%s/src/resource/file.txt" })'
-        'FileCollection'             | 'List'           | 'project.layout.filesFor([ "%s/src/resource/file.txt" ])'
-        'FileCollection'             | 'array'          | 'project.layout.filesFor([ "%s/src/resource/file.txt" ] as Object[])'
-        'FileCollection'             | 'FileCollection' | "project.layout.filesFor(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
-        'FileCollection'             | 'Callable'       | "project.layout.filesFor($STRING_CALLABLE)"
-        'FileCollection'             | 'Provider'       | "project.layout.filesFor(provider($STRING_CALLABLE))"
-        'FileCollection'             | 'nested objects' | "project.layout.filesFor({[{$STRING_CALLABLE}]})"
+        'FileCollection'             | 'String'         | 'project.layout.files("%s/src/resource/file.txt")'
+        'FileCollection'             | 'File'           | 'project.layout.files(new File("%s", "src/resource/file.txt"))'
+        'FileCollection'             | 'Path'           | 'project.layout.files(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
+        'FileCollection'             | 'URI'            | 'project.layout.files(new File("%s", "/src/resource/file.txt").toURI())'
+        'FileCollection'             | 'URL'            | 'project.layout.files(new File("%s", "/src/resource/file.txt").toURI().toURL())'
+        'FileCollection'             | 'Directory'      | 'project.layout.files(project.layout.projectDirectory)'
+        'FileCollection'             | 'RegularFile'    | 'project.layout.files(project.layout.projectDirectory.file("src/resource/file.txt"))'
+        'FileCollection'             | 'Closure'        | 'project.layout.files({ "%s/src/resource/file.txt" })'
+        'FileCollection'             | 'List'           | 'project.layout.files([ "%s/src/resource/file.txt" ])'
+        'FileCollection'             | 'array'          | 'project.layout.files([ "%s/src/resource/file.txt" ] as Object[])'
+        'FileCollection'             | 'FileCollection' | "project.layout.files(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
+        'FileCollection'             | 'Callable'       | "project.layout.files($STRING_CALLABLE)"
+        'FileCollection'             | 'Provider'       | "project.layout.files(provider($STRING_CALLABLE))"
+        'FileCollection'             | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
 
-        'ConfigurableFileCollection' | 'String'         | 'project.layout.mutableFilesFor("%s/src/resource/file.txt")'
-        'ConfigurableFileCollection' | 'File'           | 'project.layout.mutableFilesFor(new File("%s", "src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'Path'           | 'project.layout.mutableFilesFor(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'URI'            | 'project.layout.mutableFilesFor(new File("%s", "/src/resource/file.txt").toURI())'
-        'ConfigurableFileCollection' | 'URL'            | 'project.layout.mutableFilesFor(new File("%s", "/src/resource/file.txt").toURI().toURL())'
-        'ConfigurableFileCollection' | 'Directory'      | 'project.layout.mutableFilesFor(project.layout.projectDirectory)'
-        'ConfigurableFileCollection' | 'RegularFile'    | 'project.layout.mutableFilesFor(project.layout.projectDirectory.file("src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'Closure'        | 'project.layout.mutableFilesFor({ "%s/src/resource/file.txt" })'
-        'ConfigurableFileCollection' | 'List'           | 'project.layout.mutableFilesFor([ "%s/src/resource/file.txt" ])'
-        'ConfigurableFileCollection' | 'array'          | 'project.layout.mutableFilesFor([ "%s/src/resource/file.txt" ] as Object[])'
-        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.mutableFilesFor(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
-        'ConfigurableFileCollection' | 'Callable'       | "project.layout.mutableFilesFor($STRING_CALLABLE)"
-        'ConfigurableFileCollection' | 'Provider'       | "project.layout.mutableFilesFor(provider($STRING_CALLABLE))"
-        'ConfigurableFileCollection' | 'nested objects' | "project.layout.mutableFilesFor({[{$STRING_CALLABLE}]})"
+        'ConfigurableFileCollection' | 'String'         | 'project.layout.configurableFiles("%s/src/resource/file.txt")'
+        'ConfigurableFileCollection' | 'File'           | 'project.layout.configurableFiles(new File("%s", "src/resource/file.txt"))'
+        'ConfigurableFileCollection' | 'Path'           | 'project.layout.configurableFiles(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
+        'ConfigurableFileCollection' | 'URI'            | 'project.layout.configurableFiles(new File("%s", "/src/resource/file.txt").toURI())'
+        'ConfigurableFileCollection' | 'URL'            | 'project.layout.configurableFiles(new File("%s", "/src/resource/file.txt").toURI().toURL())'
+        'ConfigurableFileCollection' | 'Directory'      | 'project.layout.configurableFiles(project.layout.projectDirectory)'
+        'ConfigurableFileCollection' | 'RegularFile'    | 'project.layout.configurableFiles(project.layout.projectDirectory.file("src/resource/file.txt"))'
+        'ConfigurableFileCollection' | 'Closure'        | 'project.layout.configurableFiles({ "%s/src/resource/file.txt" })'
+        'ConfigurableFileCollection' | 'List'           | 'project.layout.configurableFiles([ "%s/src/resource/file.txt" ])'
+        'ConfigurableFileCollection' | 'array'          | 'project.layout.configurableFiles([ "%s/src/resource/file.txt" ] as Object[])'
+        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.configurableFiles(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
+        'ConfigurableFileCollection' | 'Callable'       | "project.layout.configurableFiles($STRING_CALLABLE)"
+        'ConfigurableFileCollection' | 'Provider'       | "project.layout.configurableFiles(provider($STRING_CALLABLE))"
+        'ConfigurableFileCollection' | 'nested objects' | "project.layout.configurableFiles({[{$STRING_CALLABLE}]})"
     }
 
     @Unroll
@@ -262,10 +262,10 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | dependencyType | expression
-        'FileCollection'             | 'Task'         | 'project.layout.filesFor(project.tasks.myTask)'
-        'FileCollection'             | 'TaskOutputs'  | 'project.layout.filesFor(project.tasks.myTask.outputs)'
-        'ConfigurableFileCollection' | 'Task'         | 'project.layout.mutableFilesFor(project.tasks.myTask)'
-        'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.mutableFilesFor(project.tasks.myTask.outputs)'
+        'FileCollection'             | 'Task'         | 'project.layout.files(project.tasks.myTask)'
+        'FileCollection'             | 'TaskOutputs'  | 'project.layout.files(project.tasks.myTask.outputs)'
+        'ConfigurableFileCollection' | 'Task'         | 'project.layout.configurableFiles(project.tasks.myTask)'
+        'ConfigurableFileCollection' | 'TaskOutputs'  | 'project.layout.configurableFiles(project.tasks.myTask.outputs)'
     }
 
     @Unroll
@@ -296,7 +296,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [${new File(testDirectory.absolutePath, '/build/resource/file.txt').absolutePath}]")
 
         where:
-        methodName << ['filesFor', 'mutableFilesFor']
+        methodName << ['files', 'configurableFiles']
     }
 
     @Unroll
@@ -323,8 +323,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | expression
-        'FileCollection'             | 'project.layout.filesFor(configurations.other)'
-        'ConfigurableFileCollection' | 'project.layout.mutableFilesFor(configurations.other)'
+        'FileCollection'             | 'project.layout.files(configurations.other)'
+        'ConfigurableFileCollection' | 'project.layout.configurableFiles(configurations.other)'
     }
 
     @Unroll
@@ -340,8 +340,8 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         collectionType               | expression
-        'FileCollection (Object...)' | 'project.layout.filesFor((Object) null)'
-        'FileCollection (File...)'   | 'project.layout.filesFor((File) null)'
-        'ConfigurableFileCollection' | 'project.layout.mutableFilesFor(null)'
+        'FileCollection (Object...)' | 'project.layout.files((Object) null)'
+        'FileCollection (File...)'   | 'project.layout.files((File) null)'
+        'ConfigurableFileCollection' | 'project.layout.configurableFiles(null)'
     }
 }

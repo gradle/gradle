@@ -56,7 +56,7 @@ class GradleRunnerResultIntegrationTest extends BaseGradleRunnerIntegrationTest 
         given:
         buildFile << """
            task empty {
-                inputs.files(project.layout.filesFor()).skipWhenEmpty()
+                inputs.files(project.layout.files()).skipWhenEmpty()
                 doLast{}
            }
         """

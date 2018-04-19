@@ -206,7 +206,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractFileCollection.getBuildDependencies()", "Do not extend AbstractFileCollection, use ProjectLayout.filesFor() instead.");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractFileCollection.getBuildDependencies()", "Do not extend AbstractFileCollection, use Project.files() instead.");
         return TaskDependencies.EMPTY;
     }
 

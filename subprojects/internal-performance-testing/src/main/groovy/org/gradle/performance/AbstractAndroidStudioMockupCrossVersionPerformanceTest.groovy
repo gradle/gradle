@@ -17,8 +17,6 @@ package org.gradle.performance
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.tooling.BuildActionExecuter
 
@@ -34,23 +32,19 @@ import org.gradle.tooling.BuildActionExecuter
 @CompileStatic
 public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
-    void experiment(String projectName, String displayName, @DelegatesTo(AndroidStudioExperimentSpec) Closure<?> spec) {
-        experimentSpec = new AndroidStudioExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, null, null)
-        performanceTestIdProvider.testSpec = experimentSpec
-        def clone = spec.rehydrate(experimentSpec, this, this)
-        clone.resolveStrategy = Closure.DELEGATE_FIRST
-        clone.call(experimentSpec)
-    }
-
     @Override
-    void experiment(String projectName, @DelegatesTo(AndroidStudioExperimentSpec) Closure<?> spec) {
-        experiment(projectName, null, spec)
+    void experiment(String projectName, @DelegatesTo(AndroidStudioExperiment) Closure<?> spec) {
+        experiment = new AndroidStudioExperiment(projectName)
+        performanceTestIdProvider.testSpec = experiment
+        def clone = spec.rehydrate(experiment, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_FIRST
+        clone.call(experiment)
     }
 
-    public class AndroidStudioExperimentSpec extends AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperimentSpec {
+    public class AndroidStudioExperiment extends AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperiment {
 
-        AndroidStudioExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
-            super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
+        AndroidStudioExperiment(String projectName) {
+            super(projectName)
         }
 
         void action(String className) {

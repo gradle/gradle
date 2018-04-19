@@ -22,7 +22,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
- * @deprecated Use {@link org.gradle.api.file.ProjectLayout#filesFor(Object...)} or {@link org.gradle.api.file.ProjectLayout#mutableFilesFor(Object...)}
+ * @deprecated Use {@link org.gradle.api.file.ProjectLayout#files(Object...)} or {@link org.gradle.api.file.ProjectLayout#configurableFiles(Object...)}
  */
 @Deprecated
 public class SimpleFileCollection extends FileCollectionAdapter implements Serializable {

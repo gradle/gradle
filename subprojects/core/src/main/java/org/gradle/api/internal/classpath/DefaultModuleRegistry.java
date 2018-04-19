@@ -70,7 +70,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
     @Override
     public ClassPath getAdditionalClassPath() {
-        return gradleInstallation == null ? new DefaultClassPath(classpath) : ClassPath.EMPTY;
+        return gradleInstallation == null ? DefaultClassPath.of(classpath) : ClassPath.EMPTY;
     }
 
     public Module getExternalModule(String name) {
@@ -285,12 +285,12 @@ public class DefaultModuleRegistry implements ModuleRegistry {
             this.name = name;
             this.projects = projects;
             this.optionalProjects = optionalProjects;
-            this.implementationClasspath = new DefaultClassPath(implementationClasspath);
-            this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
+            this.implementationClasspath = DefaultClassPath.of(implementationClasspath);
+            this.runtimeClasspath = DefaultClassPath.of(runtimeClasspath);
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(implementationClasspath);
             classpath.addAll(runtimeClasspath);
-            this.classpath = new DefaultClassPath(classpath);
+            this.classpath = DefaultClassPath.of(classpath);
         }
 
         public DefaultModule(String name, Set<File> singleton, Set<File> files) {

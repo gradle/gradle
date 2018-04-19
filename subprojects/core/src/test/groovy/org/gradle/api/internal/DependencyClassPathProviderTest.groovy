@@ -56,8 +56,8 @@ class DependencyClassPathProviderTest extends Specification {
 
     def module(String name, Module ... requiredModules) {
         Module module = Mock()
-        _ * module.classpath >> new DefaultClassPath(new File("$name-runtime"))
-        _ * module.implementationClasspath >> new DefaultClassPath(new File("$name-runtime"))
+        _ * module.classpath >> DefaultClassPath.of(new File("$name-runtime"))
+        _ * module.implementationClasspath >> DefaultClassPath.of(new File("$name-runtime"))
         _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
         return module
     }
