@@ -17,6 +17,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
@@ -463,5 +464,65 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         then:
         fails "signIvyPublication"
         failureDescriptionContains "Task 'signIvyPublication' not found"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5099")
+    def "disabling sign tasks skips uploading signature artifacts but does not break publishing"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        module '$artifactId'
+                    }
+                    maven(MavenPublication) {
+                        from components.java
+                        artifactId '$artifactId'
+                    }
+                }
+                repositories {
+                    maven {
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                    ivy {
+                        url "file://\$buildDir/ivyRepo/"
+                        layout "pattern"
+                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications
+            }
+
+            tasks.withType(Sign)*.enabled = false
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        ":signIvyPublication" in skippedTasks
+        ":signMavenPublication" in skippedTasks
+        ":publishIvyPublicationToIvyRepository" in nonSkippedTasks
+        ":publishMavenPublicationToMavenRepository" in nonSkippedTasks
+
+        and:
+        pom().assertExists()
+        pomSignature().assertDoesNotExist()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
     }
 }
