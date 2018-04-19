@@ -308,6 +308,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    public void allArtifacts(Action<? super IvyArtifact> action) {
+        publishableArtifacts.all(action);
+    }
+
+    @Override
+    public void whenArtifactRemoved(Action<? super IvyArtifact> action) {
+        publishableArtifacts.whenObjectRemoved(action);
+    }
+
+    @Override
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, File file) {
         String type = getFileExtension(file.getName());
         String extension = originalArtifact.getExtension() + "." + type;

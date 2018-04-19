@@ -118,6 +118,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
+    private boolean populated;
+    private boolean artifactsOverridden;
 
     public DefaultMavenPublication(
         String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
@@ -196,7 +198,17 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             throw new InvalidUserDataException(String.format("Maven publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
+        artifactsOverridden = false;
+    }
 
+    private void populateFromComponent() {
+        if (populated) {
+            return;
+        }
+        populated = true;
+        if (component == null) {
+            return;
+        }
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -204,7 +216,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             // TODO Need a smarter way to map usage to artifact classifier
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
                 ArtifactKey key = new ArtifactKey(publishArtifact.getFile(), publishArtifact.getClassifier(), publishArtifact.getExtension());
-                if (seenArtifacts.add(key)) {
+                if (!artifactsOverridden && seenArtifacts.add(key)) {
                     artifact(publishArtifact);
                 }
             }
@@ -275,10 +287,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public MavenArtifactSet getArtifacts() {
+        populateFromComponent();
         return mavenArtifacts;
     }
 
     public void setArtifacts(Iterable<?> sources) {
+        artifactsOverridden = true;
         mavenArtifacts.clear();
         for (Object source : sources) {
             artifact(source);
@@ -316,7 +330,18 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public PublicationArtifactSet<MavenArtifact> getPublishableArtifacts() {
+        populateFromComponent();
         return publishableArtifacts;
+    }
+
+    @Override
+    public void allArtifacts(Action<? super MavenArtifact> action) {
+        publishableArtifacts.all(action);
+    }
+
+    @Override
+    public void whenArtifactRemoved(Action<? super MavenArtifact> action) {
+        publishableArtifacts.whenObjectRemoved(action);
     }
 
     @Override
@@ -338,23 +363,28 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public Set<MavenDependency> getApiDependencyConstraints() {
+        populateFromComponent();
         return apiDependencyConstraints;
     }
 
     @Override
     public Set<MavenDependency> getRuntimeDependencyConstraints() {
+        populateFromComponent();
         return runtimeDependencyConstraints;
     }
 
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
+        populateFromComponent();
         return runtimeDependencies;
     }
 
     public Set<MavenDependencyInternal> getApiDependencies() {
+        populateFromComponent();
         return apiDependencies;
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {
+        populateFromComponent();
         return new MavenNormalizedPublication(name, pom.getPackaging(), getPomArtifact(), projectIdentity, getPublishableArtifacts(), determineMainArtifact());
     }
 
@@ -393,6 +423,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private Set<MavenArtifact> getUnclassifiedArtifactsWithExtension() {
+        populateFromComponent();
         return CollectionUtils.filter(mavenArtifacts, new Spec<MavenArtifact>() {
             public boolean isSatisfiedBy(MavenArtifact mavenArtifact) {
                 return hasNoClassifier(mavenArtifact) && hasExtension(mavenArtifact);
@@ -474,6 +505,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
      * published metadata to accurately reflect the local component metadata.
      */
     private void checkThatArtifactIsPublishedUnmodified(PublishArtifact source) {
+        populateFromComponent();
         for (MavenArtifact mavenArtifact : mavenArtifacts) {
             if (source.getFile().equals(mavenArtifact.getFile())
                 && source.getExtension().equals(mavenArtifact.getExtension())

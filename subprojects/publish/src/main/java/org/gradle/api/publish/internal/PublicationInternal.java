@@ -15,6 +15,7 @@
  */
 package org.gradle.api.publish.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
@@ -35,6 +36,10 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * Returns all publishable artifacts of this publication (read-only).
      */
     PublicationArtifactSet<T> getPublishableArtifacts();
+
+    void allArtifacts(Action<? super T> action);
+
+    void whenArtifactRemoved(Action<? super T> action);
 
     T addDerivedArtifact(T originalArtifact, File file);
 
