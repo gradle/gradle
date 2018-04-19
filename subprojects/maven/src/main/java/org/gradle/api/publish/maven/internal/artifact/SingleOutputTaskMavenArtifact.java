@@ -27,13 +27,13 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final Task generator;
     private final String extension;
     private final String classifier;
-    private final DefaultTaskDependency builDependencies;
+    private final DefaultTaskDependency buildDependencies;
 
     public SingleOutputTaskMavenArtifact(Task generator, String extension, String classifier) {
         this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;
-        this.builDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(generator));
+        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(generator));
     }
 
     @Override
@@ -53,6 +53,6 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
 
     @Override
     protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return builDependencies;
+        return buildDependencies;
     }
 }

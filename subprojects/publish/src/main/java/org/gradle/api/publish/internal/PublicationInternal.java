@@ -38,9 +38,9 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      */
     PublicationArtifactSet<T> getPublishableArtifacts();
 
-    void allArtifacts(Action<? super T> action);
+    void allPublishableArtifacts(Action<? super T> action);
 
-    void whenArtifactRemoved(Action<? super T> action);
+    void whenPublishableArtifactRemoved(Action<? super T> action);
 
     T addDerivedArtifact(T originalArtifact, Factory<File> file);
 

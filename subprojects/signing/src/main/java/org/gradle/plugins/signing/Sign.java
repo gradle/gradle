@@ -259,7 +259,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
                     });
                 }
             });
-            publicationInternal.allArtifacts(
+            publicationInternal.allPublishableArtifacts(
                 new Action<PublicationArtifact>() {
                     @Override
                     public void execute(PublicationArtifact artifact) {
@@ -268,7 +268,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
                         }
                     }
                 });
-            publicationInternal.whenArtifactRemoved(new Action<PublicationArtifact>() {
+            publicationInternal.whenPublishableArtifactRemoved(new Action<PublicationArtifact>() {
                 @Override
                 public void execute(final PublicationArtifact artifact) {
                     removeSignature(artifact);

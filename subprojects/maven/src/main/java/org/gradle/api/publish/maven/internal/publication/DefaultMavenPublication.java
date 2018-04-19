@@ -335,12 +335,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void allArtifacts(Action<? super MavenArtifact> action) {
+    public void allPublishableArtifacts(Action<? super MavenArtifact> action) {
         publishableArtifacts.all(action);
     }
 
     @Override
-    public void whenArtifactRemoved(Action<? super MavenArtifact> action) {
+    public void whenPublishableArtifactRemoved(Action<? super MavenArtifact> action) {
         publishableArtifacts.whenObjectRemoved(action);
     }
 

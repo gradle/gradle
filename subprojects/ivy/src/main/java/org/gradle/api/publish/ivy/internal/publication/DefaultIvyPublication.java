@@ -309,12 +309,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void allArtifacts(Action<? super IvyArtifact> action) {
+    public void allPublishableArtifacts(Action<? super IvyArtifact> action) {
         publishableArtifacts.all(action);
     }
 
     @Override
-    public void whenArtifactRemoved(Action<? super IvyArtifact> action) {
+    public void whenPublishableArtifactRemoved(Action<? super IvyArtifact> action) {
         publishableArtifacts.whenObjectRemoved(action);
     }
 
