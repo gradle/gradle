@@ -42,6 +42,19 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     void whenPublishableArtifactRemoved(Action<? super T> action);
 
+    /**
+     * Add a derived artifact for the supplied original artifact.
+     *
+     * <p>Derived artifacts are not mandatory, i.e. when the supplied file does not exist when this
+     * publication is about to be published, they will simply be omitted from the file transfer.
+     *
+     * <p>Currently, the only known use case for derived artifacts is adding signature files
+     * created by the signing plugin.
+     *
+     * @param originalArtifact The original artifact to create a derived artifact for.
+     * @param file The file to be used for publishing the derived artifact.
+     * @return The newly created derived artifact.
+     */
     T addDerivedArtifact(T originalArtifact, Factory<File> file);
 
     void removeDerivedArtifact(T artifact);
