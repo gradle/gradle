@@ -15,7 +15,6 @@
   ~ limitations under the License.
   -->
 <xslthl-config>
-    <highlighter id="gradle" file="gradle-hl.xml" />
     <highlighter id="groovy" file="groovy-hl.xml" />
     <highlighter id="java" file="java-hl.xml" />
     <highlighter id="kotlin" file="kotlin-hl.xml" />
