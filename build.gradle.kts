@@ -134,6 +134,7 @@ allprojects {
     group = "org.gradle"
 
     repositories {
+        maven(url = "file://${File(rootProject.projectDir, "gradle/libs").absolutePath.replace('\\', '/')}")
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://repo.gradle.org/gradle/libs-milestones")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
