@@ -20,7 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -39,9 +41,33 @@ import java.util.Set;
 public class SourceTask extends ConventionTask implements PatternFilterable {
     protected final List<Object> source = new ArrayList<Object>();
     private final PatternFilterable patternSet;
+    private final FileTree sourceTree;
 
     public SourceTask() {
-        patternSet = getPatternSetFactory().create();
+        this.patternSet = getPatternSetFactory().create();
+        this.sourceTree = new AbstractFileTree() {
+            @Override
+            public FileTree visit(FileVisitor visitor) {
+                getSourceTree().visit(visitor);
+                return this;
+            }
+
+            @Override
+            public TaskDependency getBuildDependencies() {
+                return getSourceTree().getBuildDependencies();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "sources";
+            }
+
+            private FileTree getSourceTree() {
+                ArrayList<Object> copy = new ArrayList<Object>(SourceTask.this.source);
+                FileTree src = getProject().files(copy).getAsFileTree();
+                return src.matching(patternSet);
+            }
+        };
     }
 
     @Inject
@@ -57,9 +83,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        ArrayList<Object> copy = new ArrayList<Object>(this.source);
-        FileTree src = getProject().files(copy).getAsFileTree();
-        return src.matching(patternSet);
+        return sourceTree;
     }
 
     /**
