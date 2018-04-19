@@ -161,12 +161,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     }
 
     @Override
-    public FileCollection filesFor(Object... paths) {
+    public FileCollection files(Object... paths) {
         return ImmutableFileCollection.usingResolver(fileResolver, paths);
     }
 
     @Override
-    public ConfigurableFileCollection mutableFilesFor(Object... files) {
+    public ConfigurableFileCollection configurableFiles(Object... files) {
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, files);
     }
 
