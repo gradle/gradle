@@ -350,8 +350,8 @@ project(":") {
     if (isCiServer) {
         clean.dependsOn killExistingProcessesStartedByGradle
         subprojects {
-            tasks.all {
-                mustRunAfter(killExistingProcessesStartedByGradle)
+            tasks.configureEachLater { task ->
+                task.mustRunAfter(killExistingProcessesStartedByGradle)
             }
         }
     }

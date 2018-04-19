@@ -129,10 +129,10 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTestTasks.all {
-    requiresDists = true
-    systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
-    systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
+integTestTasks.configureEachLater { task ->
+    task.requiresDists = true
+    task.systemProperty 'org.gradle.public.api.includes', publicApiIncludes.join(':')
+    task.systemProperty 'org.gradle.public.api.excludes', publicApiExcludes.join(':')
 }
 
 apply from: 'binary-compatibility.gradle'

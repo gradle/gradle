@@ -27,8 +27,8 @@ task checkForCleanM2Repository {
 
 if(isCiServer){
     allprojects {
-        tasks.withType(Test) {
-            finalizedBy checkForCleanM2Repository
+        tasks.withType(Test).configureEachLater { task ->
+            task.finalizedBy checkForCleanM2Repository
         }
     }
 }

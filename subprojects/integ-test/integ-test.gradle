@@ -15,13 +15,13 @@ dependencies {
 useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 
-integTestTasks.all { task ->
-    project.tasks.findByName("configure${task.name.capitalize()}").configure {
-        requiresSamples = true
-        requiresLibsRepo = true
+integTestTasks.configureEachLater { task ->
+    project.tasks.findByName("configure${task.name.capitalize()}").configure { configureTask ->
+        task.requiresSamples = true
+        task.requiresLibsRepo = true
 
 
-        doLast {
+        configureTask.doLast {
             configure(task) {
                 def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
                 samplesXml = new File(project(':docs').docbookSrc, 'samples.xml')

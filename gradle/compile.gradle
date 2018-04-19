@@ -18,15 +18,15 @@ ext.javaInstallationForCompilation = new DefaultJavaInstallation()
 javaInstallationProbe.current(currentJavaInstallation)
 javaInstallationProbe.current(javaInstallationForCompilation)
 
-tasks.withType(AbstractCompile) {
-    options.fork = true // Always fork compilation
+tasks.withType(AbstractCompile).configureEachLater { task ->
+    task.options.fork = true // Always fork compilation
 }
 
 if (java7Home) {
     jvmForCompilation = Jvm.forHome(file(java7Home))
     javaInstallationProbe.checkJdk(file(java7Home)).configure(javaInstallationForCompilation)
-    tasks.withType(AbstractCompile) {
-        options.with {
+    tasks.withType(AbstractCompile).configureEachLater { task ->
+        task.options.with {
             fork = true
             forkOptions.javaHome = jvmForCompilation.javaHome
         }
@@ -35,15 +35,17 @@ if (java7Home) {
 
 rootProject.ext.java7HomeSet = java7Home as boolean
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'utf-8'
-    // We need to ignore the path warning since the launcher.jar references
-    // core.jar and base-services.jar in its Manifest - and these are not present
-    // while compiling.
-    options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
-    options.incremental = true
-    inputs.property('javaInstallation') {
-        javaInstallationForCompilation.displayName
+tasks.withType(JavaCompile).configureEachLater { task ->
+    task.with {
+        options.encoding = 'utf-8'
+        // We need to ignore the path warning since the launcher.jar references
+        // core.jar and base-services.jar in its Manifest - and these are not present
+        // while compiling.
+        options.compilerArgs = ['-Xlint:-options', '-Xlint:-path']
+        options.incremental = true
+        inputs.property('javaInstallation') {
+            javaInstallationForCompilation.displayName
+        }
     }
 }
 tasks.withType(GroovyCompile) {

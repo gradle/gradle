@@ -11,7 +11,7 @@ if (testJavaHome) {
 
     if (testJavaInstallation.javaVersion.java9) {
 
-        tasks.withType(org.gradle.testing.IntegrationTest) {
+        tasks.withType(org.gradle.testing.IntegrationTest).configureEachLater { task ->
             [
                 // TODO requires investigation
                 "DaemonGroovyCompilerIntegrationTest",
@@ -155,7 +155,7 @@ if (testJavaHome) {
                   MaxPermSize as GRADLE_OPTS
                  */
                 "ClientShutdownCrossVersionSpec",
-            ].collect { "**/*${it}*" }.each { exclude it }
+            ].collect { "**/*${it}*" }.each { task.exclude it }
         }
     }
 }

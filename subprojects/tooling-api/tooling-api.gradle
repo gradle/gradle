@@ -99,9 +99,9 @@ task publishLocalArchives(type: Upload) {
     }
 }
 
-integTestTasks.all {
-    requiresBinZip = true
-    requiresLibsRepo = true
+integTestTasks.configureEachLater { task ->
+    task.requiresBinZip = true
+    task.requiresLibsRepo = true
 }
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false

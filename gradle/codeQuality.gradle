@@ -50,6 +50,6 @@ task codeQuality {
     dependsOn codeQualityTasks
 }
 
-tasks.withType(Test) {
-    shouldRunAfter codeQualityTasks
+tasks.withType(Test).configureEachLater { task ->
+    task.shouldRunAfter codeQualityTasks
 }

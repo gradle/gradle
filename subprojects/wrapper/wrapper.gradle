@@ -50,8 +50,8 @@ task executableJar(type: Jar) {
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
-integTestTasks.all {
-    requiresBinZip = true
+integTestTasks.configureEachLater { task ->
+    task.requiresBinZip = true
 }
 
 useTestFixtures()

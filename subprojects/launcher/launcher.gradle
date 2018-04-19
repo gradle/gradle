@@ -35,8 +35,8 @@ useTestFixtures(project: ':languageJava')
 useTestFixtures(project: ':messaging')
 useTestFixtures(project: ":logging")
 
-integTestTasks.all {
-    maxParallelForks = Math.min(3, rootProject.maxParallelForks)
+integTestTasks.configureEachLater { task ->
+    task.maxParallelForks = Math.min(3, rootProject.maxParallelForks)
 }
 
 task configureJar {
