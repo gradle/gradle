@@ -38,7 +38,7 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
 
     @Override
     public final int compareTo(NormalizedFileSnapshot o) {
-        int result = getNormalizedPath().compareTo(o.getNormalizedPath());
+        int result = compareNormalizedPathTo(o);
         if (result == 0) {
             result = getSnapshot().getContentMd5().compareTo(o.getSnapshot().getContentMd5());
         }
@@ -89,5 +89,15 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
      */
     protected int hashNormalizedPath() {
         return getNormalizedPath().hashCode();
+    }
+
+    /**
+     * This is a performance optimization and must return the same result as
+     * <pre>
+     *     getNormalizedPath().compareTo(other.getNormalizedPath());
+     * </pre>
+     */
+    protected int compareNormalizedPathTo(NormalizedFileSnapshot other) {
+        return getNormalizedPath().compareTo(other.getNormalizedPath());
     }
 }
