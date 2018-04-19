@@ -87,7 +87,7 @@ Generates the `.iws` file. This task is only added to the root project.
 [[sec:idea_configuration]]
 === Configuration
 
-The plugin adds some configuration options that allow to customize the IDEA project and module files that it generates. These take the form of both simple properties and more advanced mechanisms that modify the generated files directly. For example, you can add source and resource directories, as well as inject your own fragments of XML. The former type of configuration is honored by IDEA's import facility, whereas the latter is not.
+The plugin adds some configuration options that allow to customize the IDEA project and module files that it generates. These take the form of both model properties and lower-level mechanisms that modify the generated files directly. For example, you can add source and resource directories, as well as inject your own fragments of XML. The former type of configuration is honored by IDEA's import facility, whereas the latter is not.
 
 Here are the configuration properties you can use:
 
