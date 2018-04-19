@@ -144,10 +144,7 @@ project.logger.debug("debug logging");
     }
 
     private removeStartupWarnings(String output) {
-        if (output.startsWith('Starting a Gradle Daemon')) {
-            output = output.substring(output.indexOf('\n') + 1)
-        }
-        if (output.startsWith('Parallel execution is an incubating feature.')) {
+        while (output.startsWith('Starting a Gradle Daemon') || output.startsWith('Parallel execution is an incubating feature.')) {
             output = output.substring(output.indexOf('\n') + 1)
         }
         output
