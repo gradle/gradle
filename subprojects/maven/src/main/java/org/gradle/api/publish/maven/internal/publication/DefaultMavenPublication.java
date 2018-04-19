@@ -126,7 +126,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
-        this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
+        this.projectIdentity = projectIdentity;
         this.immutableAttributesFactory = immutableAttributesFactory;
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
         additionalArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "additional artifacts for " + name, fileCollectionFactory);

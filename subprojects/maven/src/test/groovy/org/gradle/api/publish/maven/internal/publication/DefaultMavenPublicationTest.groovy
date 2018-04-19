@@ -32,7 +32,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -46,7 +45,7 @@ class DefaultMavenPublicationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def module = Mock(MavenProjectIdentity)
+    def module = new DefaultMavenProjectIdentity("group", "name", "version")
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
@@ -64,11 +63,6 @@ class DefaultMavenPublicationTest extends Specification {
 
     def "name and identity properties are passed through"() {
         when:
-        module.artifactId >> "name"
-        module.groupId >> "group"
-        module.version >> "version"
-
-        and:
         def publication = createPublication()
 
         then:
@@ -78,13 +72,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.mavenProjectIdentity.version == "version"
     }
 
-    def "changing publication coordinates does not effect those provided"() {
+    def "publication coordinates are live"() {
         when:
-        module.artifactId >> "name"
-        module.groupId >> "group"
-        module.version >> "version"
-
-        and:
         def publication = createPublication()
 
         and:
@@ -93,9 +82,9 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version = "version2"
 
         then:
-        module.groupId == "group"
-        module.artifactId == "name"
-        module.version == "version"
+        module.groupId == "group2"
+        module.artifactId == "name2"
+        module.version == "version2"
 
         and:
         publication.groupId == "group2"
