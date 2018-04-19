@@ -36,8 +36,8 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
+import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -177,8 +177,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generatePomTask.setDestination(new File(buildDir, "publications/" + publication.getName() + "/pom-default.xml"));
                 }
             });
-            // Wire the generated pom into the publication.
-            publication.setPomArtifact(createMavenArtifactForOutputFiles(tasks.get(descriptorTaskName), "pom"));
+            publication.setPomArtifact(new SingleOutputTaskMavenArtifact(tasks.get(descriptorTaskName), "pom", null));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -198,13 +197,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            publication.setGradleModuleMetadataArtifact(createMavenArtifactForOutputFiles(tasks.get(descriptorTaskName), "module"));
-        }
-
-        private MavenArtifact createMavenArtifactForOutputFiles(Task task, String extension) {
-            MavenArtifact artifact = new DefaultMavenArtifact(task.getOutputs().getFiles(), extension, null);
-            artifact.builtBy(task);
-            return artifact;
+            publication.setGradleModuleMetadataArtifact(new SingleOutputTaskMavenArtifact(tasks.get(descriptorTaskName), "module", null));
         }
     }
 

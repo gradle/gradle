@@ -52,8 +52,8 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
+import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
@@ -74,7 +74,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.io.Files.getFileExtension;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
@@ -346,8 +345,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, File file) {
-        String extension = originalArtifact.getExtension() + "." + getFileExtension(file.getName());
-        MavenArtifact artifact = new DefaultMavenArtifact(file, extension, originalArtifact.getClassifier());
+        MavenArtifact artifact = new DerivedMavenArtifact(originalArtifact, file);
         additionalArtifacts.add(artifact);
         return artifact;
     }
