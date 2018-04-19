@@ -20,89 +20,101 @@ import org.gradle.util.GradleVersion
 
 ext.distributionTestTasks = tasks.withType(DistributionTest)
 
-distributionTestTasks.all { DistributionTest task ->
-    dependsOn ':toolingApi:toolingApiShadedJar'
-    dependsOn ':cleanUpCaches'
-    finalizedBy ':cleanUpDaemons'
-    shouldRunAfter 'test'
+distributionTestTasks.configureEachLater { DistributionTest task ->
+    task.with {
+        dependsOn ':toolingApi:toolingApiShadedJar'
+        dependsOn ':cleanUpCaches'
+        finalizedBy ':cleanUpDaemons'
+        shouldRunAfter 'test'
 
-    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
-    if (!javaVersion.java8Compatible) {
-        jvmArgs '-XX:MaxPermSize=768m'
+        jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+        if (!javaVersion.java8Compatible) {
+            jvmArgs '-XX:MaxPermSize=768m'
 
-    }
+        }
 
-    reports.junitXml.destination = new File(project.testResultsDir, name)
+        reports.junitXml.destination = new File(project.testResultsDir, name)
 
-    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
-    if (project.hasProperty('testVersions')) {
-        systemProperties['org.gradle.integtest.versions'] = project.testVersions
-    }
-    if (!systemProperties['org.gradle.integtest.versions']) {
-        systemProperties['org.gradle.integtest.versions'] = 'latest'
-    }
+        // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+        if (project.hasProperty('testVersions')) {
+            systemProperties['org.gradle.integtest.versions'] = project.testVersions
+        }
+        if (!systemProperties['org.gradle.integtest.versions']) {
+            systemProperties['org.gradle.integtest.versions'] = 'latest'
+        }
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
+        systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
+        systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
-    def mirrorUrls = collectMirrorUrls()
-    def mirrors = ['mavencentral', 'jcenter', 'lightbendmaven', 'ligthbendivy', 'google']
-    mirrors.each { mirror ->
-        systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ''
-    }
+        def mirrorUrls = collectMirrorUrls()
+        def mirrors = ['mavencentral', 'jcenter', 'lightbendmaven', 'ligthbendivy', 'google']
+        mirrors.each { mirror ->
+            systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ''
+        }
 
-    dependsOn project.task("configure${task.name.capitalize()}") {
+        dependsOn "configure${task.name.capitalize()}"
+
+        ext.daemonListener = null
+
+        doFirst {
+            def daemonPids = rootProject.cleanUpDaemons.daemonPids
+            def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
+            daemonListener = [
+                beforeTest: { test -> },
+                afterTest: { test, result -> },
+                beforeSuite: { suite ->
+                    forEachJavaProcess { pid, process ->
+                        // processes that exist before the test suite execution should
+                        // not trigger a warning
+                        daemonPids << pid
+                    }
+                },
+                afterSuite: { suite, result ->
+                    forEachJavaProcess { pid, process ->
+                        if (!daemonPids.contains(pid)) {
+                            daemonPids << pid
+                            suspiciousDaemons."$suite" << pid
+                        }
+                    }
+                }] as TestListener
+            gradle.addListener(daemonListener)
+        }
+
         doLast {
-            configure(task) {
-                reports.html.destination = file("${project.reporting.baseDir}/$name")
-                gradleHomeDir = intTestImage.destinationDir
-                gradleUserHomeDir = rootProject.file('intTestHomeDir')
-                toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
-
-                if (requiresLibsRepo) {
-                    libsRepo = rootProject.file('build/repo')
-                }
-                if (requiresDists) {
-                    distsDir = rootProject.distsDir
-                    systemProperties['integTest.distZipVersion'] = version
-                }
-                if (requiresBinZip) {
-                    binZip = project(':distributions').binZip.archivePath
-                }
-                daemonRegistry = file("$rootProject.buildDir/daemon")
-            }
+            gradle.removeListener(daemonListener)
         }
     }
+}
 
-    ext.daemonListener = null
+tasks.addRule("Configure the task with the given name") { taskName ->
+    if (taskName.startsWith("configure")) {
+        def distTestTaskName = (taskName - "configure").uncapitalize()
+        def distTestTask = tasks.findByName(distTestTaskName)
+        if (distTestTask && distTestTask instanceof DistributionTest) {
+            project.task(taskName) {
+                doLast {
+                    configure(distTestTask) {
+                        reports.html.destination = file("${project.reporting.baseDir}/$distTestTaskName")
+                        gradleHomeDir = intTestImage.destinationDir
+                        gradleUserHomeDir = rootProject.file('intTestHomeDir')
+                        toolingApiShadedJarDir = rootProject.project(':toolingApi').toolingApiShadedJar.destinationDir
 
-    doFirst {
-        def daemonPids = rootProject.cleanUpDaemons.daemonPids
-        def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
-        daemonListener = [
-            beforeTest : { test -> },
-            afterTest  : { test, result -> },
-            beforeSuite: { suite ->
-                forEachJavaProcess { pid, process ->
-                    // processes that exist before the test suite execution should
-                    // not trigger a warning
-                    daemonPids << pid
-                }
-            },
-            afterSuite : { suite, result ->
-                forEachJavaProcess { pid, process ->
-                    if (!daemonPids.contains(pid)) {
-                        daemonPids << pid
-                        suspiciousDaemons."$suite" << pid
+                        if (requiresLibsRepo) {
+                            libsRepo = rootProject.file('build/repo')
+                        }
+                        if (requiresDists) {
+                            distsDir = rootProject.distsDir
+                            systemProperties['integTest.distZipVersion'] = version
+                        }
+                        if (requiresBinZip) {
+                            binZip = project(':distributions').binZip.archivePath
+                        }
+                        daemonRegistry = file("$rootProject.buildDir/daemon")
                     }
                 }
-            }] as TestListener
-        gradle.addListener(daemonListener)
-    }
-
-    doLast {
-        gradle.removeListener(daemonListener)
+            }
+        }
     }
 }
 

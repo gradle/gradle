@@ -25,8 +25,8 @@ checkstyle {
     configDir = new File(codeQualityConfigDir, "checkstyle")
 }
 
-tasks.withType(CodeNarc) {
-    reports.xml.enabled = true
+tasks.withType(CodeNarc).configureEachLater { task ->
+    task.reports.xml.enabled = true
 }
 
 configurations.codenarc.resolutionStrategy.force(libraries.groovy)

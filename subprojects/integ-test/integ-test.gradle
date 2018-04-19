@@ -16,7 +16,7 @@ useTestFixtures(sourceSet: 'integTest', project: ':diagnostics')
 useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 
 integTestTasks.configureEachLater { task ->
-    project.tasks.findByName("configure${task.name.capitalize()}").configure { configureTask ->
+    project.tasks.matching { it.name == "configure${task.name.capitalize()}" }.configureEachLater { configureTask ->
         task.requiresSamples = true
         task.requiresLibsRepo = true
 

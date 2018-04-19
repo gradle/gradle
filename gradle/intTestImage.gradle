@@ -19,8 +19,8 @@ task intTestImage(type: Sync) {
     into file("$buildDir/integ test")
 }
 
-distributionTestTasks.all {
-    dependsOn intTestImage
+distributionTestTasks.configureEachLater { task ->
+    task.dependsOn intTestImage
 }
 
 configurations {
