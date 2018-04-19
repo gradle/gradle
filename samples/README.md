@@ -8,6 +8,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`ant`](./ant): demonstrates how to use Ant from Gradle via the Ant Groovy Builder
  - [`build-cache`](./build-cache): demonstrates how to configure the Gradle build cache
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
+ - [`buildSrc-plugin`](./buildSrc-plugin): demonstrates how to use the `kotlin-dsl` and `java-gradle-plugin` plugins together in `buildSrc`
  - [`code-quality`](./code-quality): demonstrates how to configure Gradle code quality plugins
  - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
