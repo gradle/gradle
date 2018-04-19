@@ -27,24 +27,22 @@ import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
 import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.fixture.DefaultBuildExperimentInvocationInfo
-import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestGradleDistribution
 import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.fixture.PerformanceTestRetryRule
+import org.gradle.performance.fixture.Profiler
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.results.BuildDisplayInfo
@@ -85,7 +83,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     static def resultStore = new CrossVersionResultsStore()
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
-    protected ToolingApiExperimentSpec experimentSpec
+    protected ToolingApiExperiment experiment
 
     protected ClassLoader tapiClassLoader
 
@@ -100,6 +98,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     File repositoryMirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
 
+    Profiler profiler
+
     public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
     }
@@ -108,20 +108,21 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         logger = LoggerFactory.getLogger(getClass())
     }
 
-    void experiment(String projectName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experiment(projectName, null, spec)
-    }
-
-    void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 20, 40, null, null)
-        performanceTestIdProvider.testSpec = experimentSpec
-        def clone = spec.rehydrate(experimentSpec, this, this)
+    void experiment(String projectName, @DelegatesTo(ToolingApiExperiment) Closure<?> spec) {
+        experiment = new ToolingApiExperiment(projectName)
+        performanceTestIdProvider.testSpec = experiment
+        def clone = spec.rehydrate(experiment, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
-        clone.call(experimentSpec)
+        clone.call(experiment)
     }
 
     CrossVersionPerformanceResults performMeasurements() {
-        new Measurement().run()
+        profiler = Profiler.create()
+        try {
+            new Measurement().run()
+        } finally {
+            CompositeStoppable.stoppable(profiler).stop()
+        }
     }
 
     static {
@@ -131,51 +132,29 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
     }
 
-    public class ToolingApiExperimentSpec extends BuildExperimentSpec {
+    public class ToolingApiExperiment {
+        final String projectName
+        String displayName
         List<String> targetVersions = []
         String minimumVersion
-
         List<File> extraTestClassPath = []
-
         Closure<?> action
+        Integer invocationCount
+        Integer warmUpCount
 
-        ToolingApiExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
-            super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
+        ToolingApiExperiment(String projectName) {
+            this.projectName = projectName
         }
 
         void action(@DelegatesTo(ProjectConnection) Closure<?> action) {
-            this.action = { connection ->
-                asPerformanceTestConnection(connection).with(action)
-            }
+            this.action = action
         }
+    }
 
-        public asPerformanceTestConnection(Object connection) {
-            Proxy.newProxyInstance(tapiClassLoader, [tapiClassLoader.loadClass(ProjectConnection.name)] as Class[]) { proxy, method, args ->
-                switch (method.name) {
-                    case "model": return withAdditionalArgs(connection.model(args[0]))
-                    case "getModel":
-                        if (args.length == 1) {
-                            return withAdditionalArgs(connection.model(args[0])).get()
-                        } else {
-                            return withAdditionalArgs(connection.model(args[0])).get(args[2])
-                        }
-                    case "newBuild": return withAdditionalArgs(connection.newBuild)
-                    case "newTestLauncher": return withAdditionalArgs(connection.newBuild)
-                    case "action": return withAdditionalArgs(connection.action(args[0]))
-                    default: method.invoke(connection, args)
-                }
-            }
-        }
+    private static class ToolingApiBuildExperimentSpec extends BuildExperimentSpec {
 
-        public withAdditionalArgs(operation) {
-            Proxy.newProxyInstance(tapiClassLoader, operation.class.interfaces) { proxy, method, args ->
-                if (method.name in ["run", "get"]) {
-                    def params = operation.operationParamsBuilder
-                    params.arguments = params.arguments = params.arguments ?: []
-                    params.arguments += ["--init-script", repositoryMirrorScript.absolutePath]
-                }
-                method.invoke(operation, args)
-            }
+        ToolingApiBuildExperimentSpec(String version, TestFile workingDir, ToolingApiExperiment experiment) {
+            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, null)
         }
 
         @Override
@@ -193,17 +172,17 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private final Clock clock = Time.clock()
 
         private CrossVersionPerformanceResults run() {
-            def testId = experimentSpec.displayName
+            def testId = experiment.displayName
             def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experimentSpec.projectName].toSet(), resultStore))
+            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
 
             def testProjectLocator = new TestProjectLocator()
-            def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
+            def projectDir = testProjectLocator.findProjectDir(experiment.projectName)
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
             def results = new CrossVersionPerformanceResults(
                 testId: testId,
                 previousTestIds: [],
-                testProject: experimentSpec.projectName,
+                testProject: experiment.projectName,
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
                 host: InetAddress.getLocalHost().getHostName(),
@@ -219,13 +198,14 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 channel: ResultsStoreHelper.determineChannel())
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, experimentSpec.minimumVersion).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
                 [*baselines, 'current'].each { String version ->
+                    def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist.version.version), workingDirProvider.testDirectory)
-                    List<File> testClassPath = [*experimentSpec.extraTestClassPath]
+                    List<File> testClassPath = [*experiment.extraTestClassPath]
                     // add TAPI test fixtures to classpath
                     testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
                     tapiClassLoader = getTestClassLoader([:], toolingApiDistribution, testClassPath) {
@@ -236,12 +216,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
 
-                    if (experimentSpec.listener) {
-                        experimentSpec.listener.beforeExperiment(experimentSpec, workingDirProvider.testDirectory)
-                    }
-
-                    warmup(toolingApi, workingDirProvider.testDirectory)
-                    measure(results, toolingApi, version, workingDirProvider.testDirectory)
+                    warmup(toolingApi, experimentSpec)
+                    profiler.start(experimentSpec)
+                    measure(results, toolingApi, version, experimentSpec)
+                    profiler.stop(experimentSpec)
                     toolingApi.daemons.killAll()
                 }
             } finally {
@@ -278,19 +256,15 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             }
         }
 
-        private void measure(CrossVersionPerformanceResults results, toolingApi, String version, File workingDir) {
+        private void measure(CrossVersionPerformanceResults results, toolingApi, String version, ToolingApiBuildExperimentSpec experimentSpec) {
             OperationTimer timer = new OperationTimer()
             MeasuredOperationList versionResults = 'current' == version ? results.current : results.version(version).results
-            experimentSpec.with {
+            experiment.with {
                 def count = iterationCount("runs", invocationCount)
                 count.times { n ->
-                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir, BuildExperimentRunner.Phase.MEASUREMENT, n + 1, count)
-                    if (experimentSpec.listener) {
-                        experimentSpec.listener.beforeInvocation(info)
-                    }
                     println "Run #${n + 1}"
                     def measuredOperation = timer.measure {
-                        toolingApi.withConnection(action)
+                        toolingApi.withConnection(wrapAction(action, experimentSpec))
                     }
 
                     boolean omit = false
@@ -300,9 +274,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                             omit = true
                         }
                     }
-                    if (experimentSpec.listener) {
-                        experimentSpec.listener.afterInvocation(info, measuredOperation, cb)
-                    }
                     if (!omit) {
                         versionResults.add(measuredOperation)
                     }
@@ -310,22 +281,12 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             }
         }
 
-        private void warmup(toolingApi, File workingDir) {
-            OperationTimer timer = new OperationTimer()
-            experimentSpec.with {
+        private void warmup(toolingApi, ToolingApiBuildExperimentSpec experimentSpec) {
+            experiment.with {
                 def count = iterationCount("warmups", warmUpCount)
                 count.times { n ->
-                    BuildExperimentInvocationInfo info = new DefaultBuildExperimentInvocationInfo(experimentSpec, workingDir, BuildExperimentRunner.Phase.WARMUP, n + 1, count)
-                    if (experimentSpec.listener) {
-                        experimentSpec.listener.beforeInvocation(info)
-                    }
                     println "Warm-up #${n + 1}"
-                    def measuredOperation = timer.measure {
-                        toolingApi.withConnection(action)
-                    }
-                    if (experimentSpec.listener) {
-                        experimentSpec.listener.afterInvocation(info, measuredOperation, null)
-                    }
+                    toolingApi.withConnection(wrapAction(action, experimentSpec))
                 }
             }
         }
@@ -336,6 +297,43 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 return Integer.valueOf(value)
             }
             return defaultValue
+        }
+
+        public Closure wrapAction(Closure action, ToolingApiBuildExperimentSpec spec) {
+            { connection -> asPerformanceTestConnection(connection, spec).with(action) }
+        }
+
+        public asPerformanceTestConnection(Object connection, ToolingApiBuildExperimentSpec spec) {
+            Proxy.newProxyInstance(tapiClassLoader, [tapiClassLoader.loadClass(ProjectConnection.name)] as Class[]) { proxy, method, args ->
+                switch (method.name) {
+                    case "model": return withAdditionalArgs(connection.model(args[0]), spec)
+                    case "getModel":
+                        if (args.length == 1) {
+                            return withAdditionalArgs(connection.model(args[0]), spec).get()
+                        } else {
+                            return withAdditionalArgs(connection.model(args[0]), spec).get(args[2])
+                        }
+                    case "newBuild": return withAdditionalArgs(connection.newBuild, spec)
+                    case "newTestLauncher": return withAdditionalArgs(connection.newBuild, spec)
+                    case "action": return withAdditionalArgs(connection.action(args[0]), spec)
+                    default: method.invoke(connection, args)
+                }
+            }
+        }
+
+        public withAdditionalArgs(operation, ToolingApiBuildExperimentSpec spec) {
+            Proxy.newProxyInstance(tapiClassLoader, operation.class.interfaces) { proxy, method, args ->
+                if (method.name in ["run", "get"]) {
+                    def params = operation.operationParamsBuilder
+                    params.arguments = params.arguments = params.arguments ?: []
+                    params.arguments += ["--init-script", repositoryMirrorScript.absolutePath]
+                    params.arguments += profiler.getAdditionalGradleArgs(spec)
+
+                    params.jvmArguments = params.jvmArguments = params.jvmArguments ?: []
+                    params.jvmArguments += profiler.getAdditionalJvmOpts(spec)
+                }
+                method.invoke(operation, args)
+            }
         }
     }
 
