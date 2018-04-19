@@ -232,9 +232,7 @@ class UserGuideTransformTask extends DefaultTask {
                     Element programListingElement = doc.createElement('programlisting')
                     if (file.endsWith('.java')) {
                         programListingElement.setAttribute('language', 'java')
-                    } else if (file.endsWith('.gradle')) {
-                        programListingElement.setAttribute('language', 'gradle')
-                    } else if (file.endsWith('.groovy')) {
+                    } else if (file.endsWith('.groovy') || file.endsWith('.gradle')) {
                         programListingElement.setAttribute('language', 'groovy')
                     } else if (file.endsWith('.kt') || file.endsWith('.kts')) {
                         programListingElement.setAttribute('language', 'kotlin')
