@@ -280,6 +280,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
                         task.sign(taskToSign);
                     }
                 })
@@ -304,6 +305,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
                         task.sign(configurationToSign);
                     }
                 })
@@ -369,6 +371,7 @@ public class SigningExtension {
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
         final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
             public void execute(Sign task) {
+                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
                 task.sign(publicationToSign);
             }
         });
