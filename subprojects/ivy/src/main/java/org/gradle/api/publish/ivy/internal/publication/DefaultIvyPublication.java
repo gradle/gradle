@@ -58,6 +58,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.GUtil;
@@ -318,7 +319,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, File file) {
+    public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, Factory<File> fileProvider) {
+        File file = fileProvider.create();
         String type = getFileExtension(file.getName());
         String extension = originalArtifact.getExtension() + "." + type;
         IvyArtifact artifact = new DefaultIvyArtifact(file, originalArtifact.getName(), extension, type, originalArtifact.getClassifier());

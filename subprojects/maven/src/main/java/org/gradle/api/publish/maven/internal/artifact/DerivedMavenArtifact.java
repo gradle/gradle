@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -26,23 +27,21 @@ import static com.google.common.io.Files.getFileExtension;
 
 public class DerivedMavenArtifact extends AbstractMavenArtifact {
     private final MavenArtifact original;
-    private final File derivedFile;
-    private final String extension;
+    private final Factory<File> derivedFile;
 
-    public DerivedMavenArtifact(MavenArtifact original, File derivedFile) {
+    public DerivedMavenArtifact(MavenArtifact original, Factory<File> derivedFile) {
         this.original = original;
         this.derivedFile = derivedFile;
-        this.extension = original.getExtension() + "." + getFileExtension(derivedFile.getName());
     }
 
     @Override
     public File getFile() {
-        return derivedFile;
+        return derivedFile.create();
     }
 
     @Override
     protected String getDefaultExtension() {
-        return extension;
+        return original.getExtension() + "." + getFileExtension(getFile().getName());
     }
 
     @Override

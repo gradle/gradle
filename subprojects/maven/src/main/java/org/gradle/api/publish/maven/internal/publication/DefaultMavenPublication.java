@@ -61,6 +61,7 @@ import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -344,7 +345,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, File file) {
+    public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, Factory<File> file) {
         MavenArtifact artifact = new DerivedMavenArtifact(originalArtifact, file);
         additionalArtifacts.add(artifact);
         return artifact;

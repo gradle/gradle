@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -41,7 +42,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     void whenArtifactRemoved(Action<? super T> action);
 
-    T addDerivedArtifact(T originalArtifact, File file);
+    T addDerivedArtifact(T originalArtifact, Factory<File> file);
 
     void removeDerivedArtifact(T artifact);
 
