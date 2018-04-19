@@ -78,7 +78,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     // that triggered the reload as the trigger point to close the replaced loader.
                     closeOldLoaders();
                     if (result.changed) {
-                        ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
+                        ClassPath classpath = DefaultClassPath.of(applicationJar).plus(DefaultClassPath.of(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;

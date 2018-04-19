@@ -83,7 +83,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                             .cache("workerMain")
                             .withInitializer(new CacheInitializer())
                             .open();
-                    workerClassPath = new DefaultClassPath(jarFile(workerClassPathCache));
+                    workerClassPath = DefaultClassPath.of(jarFile(workerClassPathCache));
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;

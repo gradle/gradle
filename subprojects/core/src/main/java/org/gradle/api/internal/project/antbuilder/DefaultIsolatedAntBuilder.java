@@ -75,7 +75,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
-        antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
+        antLoader = classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
         loggingLoaderSpec.allowPackage("org.apache.commons.logging");
@@ -107,7 +107,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.antLoader = copy.antLoader;
         this.baseAntLoader = copy.baseAntLoader;
         this.antAdapterLoader = copy.antAdapterLoader;
-        this.libClasspath = new DefaultClassPath(libClasspath);
+        this.libClasspath = DefaultClassPath.of(libClasspath);
         this.gradleApiGroovyLoader = copy.gradleApiGroovyLoader;
         this.antAdapterGroovyLoader = copy.antAdapterGroovyLoader;
         this.classLoaderCache = copy.classLoaderCache;

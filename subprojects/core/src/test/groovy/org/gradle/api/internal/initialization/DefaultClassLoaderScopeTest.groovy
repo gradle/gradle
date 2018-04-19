@@ -53,7 +53,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     }
 
     ClassPath classPath(String... paths) {
-        new DefaultClassPath(paths.collect { file(it).createDir() } as Iterable<File>)
+        DefaultClassPath.of(paths.collect { file(it).createDir() } as Iterable<File>)
     }
 
     def "locked scope with no modifications exports parent"() {
