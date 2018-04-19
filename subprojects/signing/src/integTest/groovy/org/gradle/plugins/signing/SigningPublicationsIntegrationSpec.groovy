@@ -55,6 +55,80 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
+    def "component can still be mutated after signing is configured"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+
+            version = 3.0
+        """
+
+        when:
+        run "signMavenJavaPublication"
+
+        then:
+        ":signMavenJavaPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-3.0.jar.asc").text
+        file("build", "libs", "sign-3.0.jar").text
+    }
+
+    def "artifacts can still be mutated after signing is configured"() {
+        given:
+
+        file("foo.txt") << "foo"
+
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            task customJar(type:Jar) {
+                with jar
+                classifier = 'custom'
+            }
+
+            publishing {
+                publications {
+                    custom(MavenPublication) {
+                        artifact customJar 
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.custom
+            }
+
+            customJar.classifier = 'custom2'
+
+        """
+
+        when:
+        run "signCustomPublication"
+
+        then:
+        ":signCustomPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-1.0-custom2.jar.asc").text
+    }
+
     def "signs single Ivy publication"() {
         given:
         buildFile << """
@@ -304,8 +378,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 sign publishing.publications.mavenJava
             }
 
-            signMavenJavaPublication.signatures.removeAll { signature ->
-                signature.toSign.name.endsWith('.jar')
+            signMavenJavaPublication.signatures.all { signature ->
+                if (signature.toSign.name.endsWith('.jar')) {
+                    signMavenJavaPublication.signatures.remove signature
+                }    
             }
         """
 

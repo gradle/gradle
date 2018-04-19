@@ -33,6 +33,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -374,8 +375,13 @@ public class SigningExtension {
         });
         final Map<Signature, T> artifacts = new HashMap<Signature, T>();
         signTask.getSignatures().all(new Action<Signature>() {
-            public void execute(Signature signature) {
-                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), signature.getFile());
+            public void execute(final Signature signature) {
+                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new Factory<File>() {
+                    @Override
+                    public File create() {
+                        return signature.getFile();
+                    }
+                });
                 artifact.builtBy(signTask);
                 artifacts.put(signature, artifact);
             }

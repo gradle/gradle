@@ -151,7 +151,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         return allTasks
     }
 
-    def "publication identity is a snapshot of project properties"() {
+    def "publication identity is live"() {
         when:
         project.group = "group"
         project.version = "version"
@@ -171,8 +171,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
-            groupId == "group"
-            version == "version"
+            groupId == "changed-group"
+            version == "changed-version"
         }
     }
 
