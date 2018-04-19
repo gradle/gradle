@@ -50,7 +50,7 @@ The following source tree contains Java and Kotlin source files. Java source fil
 
 It's very common that a project defines and executes different types of tests e.g. unit tests, integration tests, functional tests or smoke tests.
 Optimally, the test source code for each test type should be stored in dedicated source directories.
-Separated test source code has a positive impact on maintainability and separation of concerns.
+Separated test source code has a positive impact on maintainability and separation of concerns as you can run test types independent from each other.
 
 The following source tree demonstrates how to separate unit from integration tests in a Java-based project.
 
@@ -77,11 +77,20 @@ The following source tree demonstrates how to separate unit from integration tes
 Gradle models source code directories with the help of the <<sec:working_with_java_source_sets,source set concept>>.
 By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box.
 
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="integrationTestSourceSetAndTask" dir="userguide/organizingGradleProjects/separatedTestTypes" title="Integration test source set">
+    <sourcefile file="gradle/integration-test.gradle" snippet="custom-source-set"/>
+</sample>
+++++
+
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
 For the purpose of test execution, a corresponding task of type api:org.gradle.api.tasks.testing.Test[] needs to be established.
 
-The user guide won't go into detail on the implementation details.
-You can find a sample project in the `samples` directory of the standard `-all` Gradle distribution.
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="integrationTestSourceSetAndTask" dir="userguide/organizingGradleProjects/separatedTestTypes" title="Integration test task">
+    <sourcefile file="gradle/integration-test.gradle" snippet="test-task"/>
+</sample>
+++++
 
 [[sec:use_standard_conventions]]
 === Use standard conventions as much as possible
@@ -174,7 +183,7 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 
 === Avoid writing to the same output directory from different tasks
 
-Tasks should define inputs and outputs to enable proper functioning of <<sec:up_to_date_checks,incremental build functionality>>.
+Tasks should define inputs and outputs to get the performance benefits of <<sec:up_to_date_checks,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.
@@ -183,11 +192,11 @@ In turn, these filesystem changes may prevent Gradle's <<build_cache,build cache
 [[sec:custom_gradle_distribution]]
 === Standardizing builds with a custom Gradle distribution
 
-<<init_scripts,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
-Specifying an in-house binary repository and its credentials is a typical use case for setting up an initialization script.
-
-Often times enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
+Often enterprises want to standardize the build platform for all projects in the organization by defining common conventions or rules.
 You can achieve that with the help of initialization scripts.
+<<init_scripts,Initialization scripts>> make it extremely easy to apply build logic across all projects on a single machine.
+For example, to declare a in-house repository and its credentials.
+
 There are some drawbacks to the approach.
 First of all, you will have to communicate the setup process across all developers in the company.
 Furthermore, updating the initialization script logic uniformly can prove challenging.
@@ -197,7 +206,7 @@ A custom Gradle distribution is comprised of the standard Gradle distribution pl
 The initialization scripts come bundled with the distribution and are applied every time the build is run.
 Developers only need to point their checked-in <<gradle_wrapper,Wrapper>> files to the URL of the custom Gradle distribution.
 
-Let's talk about the process for creating such a custom Gradle distribution. The following steps are required:
+The following steps are typical for creating a custom Gradle distribution:
 
 1. Implement logic for downloading and repackaging a Gradle distribution.
 2. Define one or many initialization scripts with the desired logic.
@@ -205,5 +214,4 @@ Let's talk about the process for creating such a custom Gradle distribution. The
 4. Upload the Gradle distribution archive to a HTTP server.
 5. Change the Wrapper files of all projects to point to the URL of the custom Gradle distribution.
 
-The user guide won't go into detail on the implementation details.
-However, you can find a sample project that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
+You can find a sample project that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
