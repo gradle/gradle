@@ -19,8 +19,8 @@ package org.gradle.internal.composite;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.IncludedBuildInternal;
-import org.gradle.composite.internal.IncludedBuildRegistry;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
@@ -32,9 +32,9 @@ import java.util.List;
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
     private final NestedBuildFactory nestedBuildFactory;
-    private final IncludedBuildRegistry includedBuildRegistry;
+    private final BuildStateRegistry includedBuildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, IncludedBuildRegistry includedBuildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, BuildStateRegistry includedBuildRegistry) {
         this.delegate = delegate;
         this.nestedBuildFactory = nestedBuildFactory;
         this.includedBuildRegistry = includedBuildRegistry;
@@ -49,7 +49,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         if (!includedBuilds.isEmpty()) {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
-                IncludedBuildInternal includedBuild = includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
+                IncludedBuildState includedBuild = includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
                 includedBuildSpec.configurer.execute(includedBuild.getModel());
             }
         }

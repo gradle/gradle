@@ -26,7 +26,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -115,7 +115,7 @@ import static org.gradle.util.ConfigureUtil.configure;
 public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
-    private final ProjectPathRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectPathRegistry;
     private final IdeArtifactRegistry artifactRegistry;
 
     private List<IdeaModule> modules;
@@ -133,7 +133,7 @@ public class IdeaProject implements IdeWorkspace {
         this.ipr = ipr;
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
-        this.projectPathRegistry = services.get(ProjectPathRegistry.class);
+        this.projectPathRegistry = services.get(ProjectStateRegistry.class);
         this.artifactRegistry = services.get(IdeArtifactRegistry.class);
         this.outputFile = project.getLayout().fileProperty();
     }

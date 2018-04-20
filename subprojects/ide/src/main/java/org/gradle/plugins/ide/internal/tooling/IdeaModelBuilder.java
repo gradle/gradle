@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
@@ -84,7 +84,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
         for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            IncludedBuildState includedBuildInternal = (IncludedBuildState) includedBuild;
             applyIdeaPlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
         }
     }

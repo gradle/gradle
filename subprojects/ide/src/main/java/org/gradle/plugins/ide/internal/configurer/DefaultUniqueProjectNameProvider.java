@@ -17,16 +17,16 @@ package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.util.Path;
 
 import java.util.Map;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final ProjectPathRegistry projectRegistry;
+    private final ProjectStateRegistry projectRegistry;
     private Map<Path, String> deduplicated;
 
-    public DefaultUniqueProjectNameProvider(ProjectPathRegistry projectRegistry) {
+    public DefaultUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 

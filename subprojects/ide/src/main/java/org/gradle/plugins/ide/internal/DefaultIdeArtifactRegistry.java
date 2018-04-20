@@ -29,7 +29,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.composite.internal.IncludedBuildTaskReference;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
@@ -41,12 +41,12 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
-    private final ProjectPathRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectPathRegistry;
     private final DomainObjectContext domainObjectContext;
     private final BuildIdentity buildIdentity;
     private final FileOperations fileOperations;
 
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectPathRegistry projectPathRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
+    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectPathRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
         this.store = store;
         this.projectPathRegistry = projectPathRegistry;
         this.fileOperations = fileOperations;
