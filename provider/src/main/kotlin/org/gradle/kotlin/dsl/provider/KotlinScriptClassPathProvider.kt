@@ -88,7 +88,7 @@ class KotlinScriptClassPathProvider(
      * Generated extensions to the Gradle API.
      */
     val gradleApiExtensions: ClassPath by lazy {
-        DefaultClassPath(gradleKotlinDslExtensions())
+        DefaultClassPath.of(gradleKotlinDslExtensions())
     }
 
     /**
