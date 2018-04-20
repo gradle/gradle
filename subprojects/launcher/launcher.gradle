@@ -66,6 +66,7 @@ task startScripts(type: GradleStartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }

@@ -16,102 +16,85 @@
 
 package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
-import org.gradle.api.Project
-import org.gradle.api.internal.AbstractTask
-import org.gradle.api.tasks.TaskExecutionException
-import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class EmptyDirectoryCheckTest extends Specification {
-    @Rule
-    public final TemporaryFolder tempProjectDir = new TemporaryFolder()
-
-    Project project
-    File buildFile
+class EmptyDirectoryCheckTest extends AbstractIntegrationTest {
     File targetDir
-    File leftoverReport
+    File reportFile
 
     def setup() {
-        buildFile = tempProjectDir.newFile('build.gradle')
-        targetDir = tempProjectDir.newFolder("clean_me")
-        tempProjectDir.newFolder("clean_me", "casserole")
-        leftoverReport = new File(tempProjectDir.getRoot(), "reports/leftovers.txt")
-    }
-
-    @Unroll
-    def "empty directory creates no output. errors: #withErrors"() {
-        given:
-        buildFile(withErrors)
-
-        when:
-        leftoversTask().execute()
-
-        then:
-        !leftoverReport.exists()
-
-        where:
-        withErrors << [true, false]
-    }
-
-    def "reports existing files"() {
-        given:
-        def files = populateLeftovers()
-        buildFile(false /* withErrors */)
-
-        when:
-        leftoversTask().execute()
-
-        then:
-        leftoverReport.exists()
-        def output = leftoverReport.getText("UTF-8")
-        files.each {
-            output.contains(it.path)
-        }
-    }
-
-    def "reports existing files and errors"() {
-        given:
-        def files = populateLeftovers()
-        buildFile(true /* withErrors */)
-
-        when:
-        leftoversTask().execute()
-
-        then:
-        TaskExecutionException tee = thrown()
-        tee.getCause().getMessage().contains(targetDir.canonicalPath)
-        leftoverReport.exists()
-        def output = leftoverReport.getText("UTF-8")
-        files.each {
-            output.contains(it.path)
-        }
-    }
-
-    private def buildFile(boolean withErrors) {
+        targetDir = file("build/tmp/test files")
+        reportFile = file("build/reports/remains.txt")
         buildFile << """
-            import org.gradle.gradlebuild.testing.integrationtests.cleanup.EmptyDirectoryCheck
-
-            task leftovers(type: EmptyDirectoryCheck) {
-                targetDir = fileTree('clean_me')
-                report = file('reports/leftovers.txt')
-                errorWhenNotEmpty = $withErrors
+            plugins {
+                id "gradlebuild.test-files-cleanup"
             }
         """
     }
 
-    private def populateLeftovers() {
-        def files = new ArrayList<File>();
-        files.add(tempProjectDir.newFile("clean_me/casserole/peas.txt"))
-        files.add(tempProjectDir.newFile("clean_me/casserole/tuna.txt"))
-        files.add(tempProjectDir.newFile("clean_me/meatloaf.txt"))
-        return files
+    @Unroll
+    def "empty directory creates no output. errors: #behavior"() {
+        given:
+        setBehaviorWhenNotEmpty(behavior)
+
+        when:
+        build("verifyTestFilesCleanup")
+
+        then:
+        !reportFile.exists()
+
+        where:
+        behavior << ["REPORT", "FAIL"]
     }
 
-    private def leftoversTask() {
-        project = ProjectBuilder.builder().withProjectDir(tempProjectDir.getRoot()).build()
-        return (AbstractTask) project.getTasksByName("leftovers", false /* recursive */).first()
+    def "reports existing files"() {
+        given:
+        def files = populateFiles()
+        setBehaviorWhenNotEmpty("REPORT")
+
+        when:
+        build("verifyTestFilesCleanup")
+
+        then:
+        assertReportHasFiles(files)
+    }
+
+    def "reports existing files and errors"() {
+        given:
+        def files = populateFiles()
+
+        when:
+        buildAndFail("verifyTestFilesCleanup")
+
+        then:
+        assertReportHasFiles(files)
+        result.output.contains("The directory ${targetDir.canonicalPath} was not empty. Report: file://")
+    }
+
+    private void assertReportHasFiles(List<File> files) {
+        assert reportFile.exists()
+        def reportedFiles = reportFile.readLines()
+        assert reportedFiles.containsAll(files.collect { it.canonicalPath })
+    }
+
+    private void setBehaviorWhenNotEmpty(behavior) {
+        buildFile << """
+            import ${WhenNotEmpty.canonicalName}
+            verifyTestFilesCleanup.policy = WhenNotEmpty.$behavior
+        """
+    }
+
+    private List<File> populateFiles() {
+        File subdir = new File(targetDir, "subdir")
+        subdir.mkdirs()
+
+        List<File> files = []
+        files << new File(targetDir, "root.txt")
+        files << new File(subdir, "file.txt")
+        files << new File(subdir, "file2.txt")
+        files.each { file ->
+            file.text = file.absolutePath
+        }
+        return files
     }
 }

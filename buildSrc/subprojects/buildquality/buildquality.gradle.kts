@@ -43,10 +43,6 @@ gradlePlugin {
             id = "gradlebuild.task-properties-validation"
             implementationClass = "org.gradle.gradlebuild.buildquality.TaskPropertyValidationPlugin"
         }
-        "testFilesCleanUp" {
-            id = "gradlebuild.test-files-cleanup"
-            implementationClass = "org.gradle.gradlebuild.buildquality.testfiles.TestFilesCleanUpPlugin"
-        }
     }
 }
 
