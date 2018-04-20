@@ -23,11 +23,15 @@ fun copySampleProject(from: File, to: File) {
 
 private
 fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) =
-    loadPropertiesFrom(gradlePropertiesFile).also { baseProperties ->
-        gradlePropertiesFile.delete()
+    loadThenDeletePropertiesFrom(gradlePropertiesFile).also { baseProperties ->
         action()
-        loadPropertiesFrom(gradlePropertiesFile).also { sampleProperties ->
+        loadThenDeletePropertiesFrom(gradlePropertiesFile).also { sampleProperties ->
             baseProperties.putAll(sampleProperties)
             gradlePropertiesFile.outputStream().use { baseProperties.store(it, null) }
         }
     }
+
+
+private
+fun loadThenDeletePropertiesFrom(file: File) =
+    loadPropertiesFrom(file).also { file.delete() }
