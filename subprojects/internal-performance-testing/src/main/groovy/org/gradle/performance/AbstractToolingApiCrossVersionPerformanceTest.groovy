@@ -197,7 +197,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
-                [*baselines, 'current'].each { String version ->
+                ['current', *baselines].each { String version ->
                     def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)

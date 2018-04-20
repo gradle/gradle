@@ -283,12 +283,12 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         when:
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             10.times {
-                result.add(operation(totalTime: Duration.seconds(6)))
+                result.add(operation(totalTime: Duration.seconds(5)))
             }
         }
         1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             10.times {
-                result.add(operation(totalTime: Duration.seconds(5)))
+                result.add(operation(totalTime: Duration.seconds(6)))
             }
         }
         def results = runner.run()
