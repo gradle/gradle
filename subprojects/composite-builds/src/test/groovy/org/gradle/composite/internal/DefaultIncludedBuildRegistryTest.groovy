@@ -46,7 +46,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition, _) >> includedBuild
+        includedBuildFactory.createBuild(buildDefinition, false, _) >> includedBuild
 
         expect:
         def result = registry.addExplicitBuild(buildDefinition, nestedBuildFactory)
@@ -65,8 +65,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild2 = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition1, _) >> includedBuild1
-        includedBuildFactory.createBuild(buildDefinition2, _) >> includedBuild2
+        includedBuildFactory.createBuild(buildDefinition1, false, _) >> includedBuild1
+        includedBuildFactory.createBuild(buildDefinition2, false, _) >> includedBuild2
 
         expect:
         registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
@@ -94,7 +94,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition, _) >> includedBuild
+        includedBuildFactory.createBuild(buildDefinition, true, _) >> includedBuild
 
         expect:
         def result = registry.addImplicitBuild(buildDefinition, nestedBuildFactory)

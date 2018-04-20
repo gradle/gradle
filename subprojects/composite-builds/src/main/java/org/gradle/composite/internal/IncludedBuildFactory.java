@@ -21,5 +21,5 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 
 public interface IncludedBuildFactory {
-    IncludedBuildState createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState createBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory);
 }

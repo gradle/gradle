@@ -20,19 +20,16 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.CollectionUtils;
@@ -41,7 +38,6 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +47,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final DefaultProjectPathRegistry projectRegistry;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
 
-    // TODO: Locking around this
+    // TODO: Locking around this state
     // TODO: use some kind of build identifier as the key
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
 
@@ -73,7 +69,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
-        return registerBuild(buildDefinition, nestedBuildFactory);
+        return registerBuild(buildDefinition, false, nestedBuildFactory);
     }
 
     @Override
@@ -98,8 +94,14 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         // Set the only visible included builds from the root build
         settings.getGradle().setIncludedBuilds(modelElements);
-        registerProjects(includedBuilds, false);
+        registerProjects(includedBuilds);
         registerSubstitutions(includedBuilds);
+    }
+
+    private void registerProjects(Collection<IncludedBuildState> includedBuilds) {
+        for (IncludedBuildState includedBuild : includedBuilds) {
+            projectRegistry.registerProjects(includedBuild);
+        }
     }
 
     private void validateIncludedBuilds(SettingsInternal settings) {
@@ -129,45 +131,47 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // TODO: synchronization
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
-            includedBuild = registerBuild(buildDefinition, nestedBuildFactory);
-            registerProjects(Collections.singletonList(includedBuild), true);
+            includedBuild = registerBuild(buildDefinition, true, nestedBuildFactory);
+            projectRegistry.registerProjects(includedBuild);
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
     }
 
-    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
-            includedBuild = includedBuildFactory.createBuild(buildDefinition, nestedBuildFactory);
+            includedBuild = includedBuildFactory.createBuild(buildDefinition, isImplicit, nestedBuildFactory);
             includedBuilds.put(buildDefinition.getBuildRootDir(), includedBuild);
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
     }
 
-    private void registerRootBuildProjects(SettingsInternal settings) {
-        ProjectRegistry<DefaultProjectDescriptor> settingsProjectRegistry = settings.getProjectRegistry();
-        BuildIdentifier buildIdentifier = DefaultBuildIdentifier.ROOT;
-        registerProjects(Path.ROOT, buildIdentifier, settingsProjectRegistry.getAllProjects(), false);
-    }
+    private void registerRootBuildProjects(final SettingsInternal settings) {
+        BuildState rootBuild = new BuildState() {
+            @Override
+            public SettingsInternal getLoadedSettings() {
+                return settings;
+            }
 
-    private void registerProjects(Iterable<IncludedBuildState> includedBuilds, boolean isImplicitBuild) {
-        for (IncludedBuildState includedBuild : includedBuilds) {
-            Path rootProjectPath = Path.ROOT.child(includedBuild.getName());
-            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(includedBuild.getName());
-            Set<DefaultProjectDescriptor> allProjects = includedBuild.getLoadedSettings().getProjectRegistry().getAllProjects();
-            registerProjects(rootProjectPath, buildIdentifier, allProjects, isImplicitBuild);
-        }
-    }
+            @Override
+            public Path getIdentityPathForProject(Path path) {
+                return path;
+            }
 
-    private void registerProjects(Path rootPath, BuildIdentifier buildIdentifier, Set<DefaultProjectDescriptor> allProjects, boolean isImplicitBuild) {
-        for (DefaultProjectDescriptor project : allProjects) {
-            Path projectIdentityPath = rootPath.append(project.path());
-            ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, project.getPath());
-            projectRegistry.add(projectIdentityPath, project.getName(), projectComponentIdentifier, isImplicitBuild);
-        }
+            @Override
+            public BuildIdentifier getBuildIdentifier() {
+                return DefaultBuildIdentifier.ROOT;
+            }
+
+            @Override
+            public boolean isImplicitBuild() {
+                return false;
+            }
+        };
+        projectRegistry.registerProjects(rootBuild);
     }
 
     @Override
