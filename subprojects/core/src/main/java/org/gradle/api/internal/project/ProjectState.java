@@ -13,33 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 
 /**
- * A registry of all of the projects present in a build tree.
+ * Encapsulates the identity and state of a particular project in a build tree.
  */
-public interface ProjectStateRegistry {
+public interface ProjectState {
     /**
-     * Returns all projects in the build tree.
+     * Returns the parent of this project in the project tree.
      */
-    Collection<? extends ProjectState> getAllProjects();
+    @Nullable
+    ProjectState getParent();
 
     /**
-     * Returns all projects from all implicitly included builds in the build tree.
+     * Returns the name of this project (which may not necessarily be unique).
      */
-    Collection<? extends ProjectState> getAllImplicitProjects();
+    String getName();
 
     /**
-     * Returns all projects from all explicitly included builds in the build tree.
+     * Returns the identifier of the default component produced by this project.
      */
-    Collection<? extends ProjectState> getAllExplicitProjects();
-
-    /**
-     * Locates the state object that owns a given project object.
-     */
-    ProjectState forProject(Project project);
+    ProjectComponentIdentifier getComponentIdentifier();
 }

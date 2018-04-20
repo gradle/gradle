@@ -28,6 +28,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
@@ -48,7 +50,6 @@ import org.gradle.ide.xcode.tasks.GenerateSchemeFileTask;
 import org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask;
 import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppSharedLibrary;
@@ -70,7 +71,6 @@ import org.gradle.nativeplatform.test.xctest.plugins.XCTestConventionPlugin;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -454,8 +454,8 @@ public class XcodePlugin extends IdePlugin {
             public boolean isSatisfiedBy(ComponentIdentifier id) {
                 if (id instanceof ProjectComponentIdentifier) {
                     ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) id;
-                    for (Path path : projectPathRegistry.getAllImplicitProjectPaths()) {
-                        if (identifier.equals(projectPathRegistry.getProjectComponentIdentifier(path))) {
+                    for (ProjectState project : projectPathRegistry.getAllImplicitProjects()) {
+                        if (identifier.equals(project.getComponentIdentifier())) {
                             return true;
                         }
                     }
