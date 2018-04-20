@@ -1,0 +1,18 @@
+> Task :generatePomFileForBinaryAndSourcesPublication
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :sourcesJar
+> Task :publishBinaryAndSourcesPublicationToExternalRepository SKIPPED
+> Task :publishBinaryAndSourcesPublicationToInternalRepository
+> Task :generatePomFileForBinaryPublication
+> Task :publishBinaryPublicationToExternalRepository
+> Task :publishBinaryPublicationToInternalRepository SKIPPED
+> Task :publish
+> Task :publishBinaryAndSourcesPublicationToMavenLocal
+> Task :publishBinaryPublicationToMavenLocal SKIPPED
+> Task :publishToMavenLocal
+
+BUILD SUCCESSFUL in 0s
+9 actionable tasks: 9 executed
