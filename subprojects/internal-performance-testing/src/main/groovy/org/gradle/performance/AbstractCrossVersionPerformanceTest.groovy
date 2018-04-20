@@ -25,12 +25,10 @@ import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.SlackReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
@@ -44,9 +42,6 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
-
-    @Rule
-    RetryRule retry = new PerformanceTestRetryRule()
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
