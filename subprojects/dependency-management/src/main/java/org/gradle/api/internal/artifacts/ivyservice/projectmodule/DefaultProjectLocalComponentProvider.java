@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -31,7 +30,7 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
-public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
+public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -62,7 +61,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     private LocalComponentMetadata getLocalComponentMetaData(ProjectInternal project) {
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ComponentIdentifier componentIdentifier = newProjectId(project);
+        ProjectComponentIdentifier componentIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
         for (ConfigurationInternal configuration : project.getConfigurations().withType(ConfigurationInternal.class)) {
             metadataBuilder.addConfiguration(metaData, configuration);
