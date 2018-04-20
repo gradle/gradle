@@ -49,7 +49,7 @@ task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.Integra
     maxParallelForks = 1
 }
 
-tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
+tasks.configureEachLater(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
     if (task != integTestPrepare) {
         task.dependsOn(integTestPrepare)
     }
