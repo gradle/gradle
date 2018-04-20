@@ -39,7 +39,9 @@ In order to create OpenPGP signatures, you will need a key pair (instructions on
 * The absolute path to the secret key ring file containing your private key. (Since gpg 2.1, you need to export the keys with command `gpg --keyring secring.gpg --export-secret-keys > ~/.gnupg/secring.gpg`).
 * The passphrase used to protect your private key.
 
-These items must be supplied as the values of properties `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` respectively. Given the personal and private nature of these values, a good practice is to store them in the user `gradle.properties` file (described in <<sec:gradle_system_properties>>).
+These items must be supplied as the values of the `signing.keyId`, `signing.secretKeyRingFile`, and `signing.password` properties, respectively.
+
+NOTE: Given the personal and private nature of these values, a good practice is to store them in the `gradle.properties` file in the user's Gradle home directory (described in <<sec:gradle_system_properties>>) instead of in the project directory itself.
 
 [source,properties]
 ----
