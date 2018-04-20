@@ -4,11 +4,20 @@ import accessors.eclipse
 import accessors.groovy
 import accessors.idea
 import accessors.java
+import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getting
+import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.project
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
+import org.gradle.kotlin.dsl.getValue
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
@@ -61,18 +70,16 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     // For all of the other executers, add an executer specific task
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
-        createTestTask(taskName, executer, sourceSet, testType)
+        createTestTask(taskName, executer, sourceSet, testType, Action {})
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
-    createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType)
-    tasks["check"].dependsOn("${prefix}Test")
+    tasks["check"].dependsOn(createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {}))
 }
 
 
 internal
-fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType): IntegrationTest {
-
-    return tasks.create<IntegrationTest>(name) {
+fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): Provider<IntegrationTest> {
+    return tasks.createLater(name, IntegrationTest::class.java, {
         addBaseConfigurationForIntegrationAndCrossVersionTestTasks(currentTestJavaVersion)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
@@ -80,7 +87,8 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
         libsRepository.required = testType.libRepoRequired
-    }
+        extraConfig.execute(this)
+    })
 }
 
 

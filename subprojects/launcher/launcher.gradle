@@ -45,8 +45,8 @@ testFixtures {
     from(':toolingApi')
 }
 
-integTestTasks.all {
-    maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
+integTestTasks.configureEachLater { task ->
+    task.maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
 task configureJar {
