@@ -161,8 +161,7 @@ open class AbstractIntegrationTest {
 
     private
     fun loadGradleProperties() =
-        gradlePropertiesFile.takeIf { it.isFile }?.inputStream()?.use { Properties().apply { load(it) } }
-            ?: Properties()
+        loadPropertiesFrom(gradlePropertiesFile)
 
     private
     val gradlePropertiesFile by lazy { existing("gradle.properties") }
@@ -232,3 +231,7 @@ fun setOrClearProperty(key: String, value: String?) {
         else -> System.setProperty(key, value)
     }
 }
+
+
+fun loadPropertiesFrom(file: File) =
+    file.takeIf { it.isFile }?.inputStream()?.use { Properties().apply { load(it) } } ?: Properties()

@@ -1,9 +1,9 @@
 package org.gradle.kotlin.dsl.samples
 
+import org.gradle.kotlin.dsl.fixtures.loadPropertiesFrom
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import java.io.File
-import java.util.Properties
 
 
 internal
@@ -31,8 +31,3 @@ fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) =
             gradlePropertiesFile.outputStream().use { baseProperties.store(it, null) }
         }
     }
-
-
-private
-fun loadPropertiesFrom(file: File) =
-    file.takeIf { it.isFile }?.inputStream()?.use { Properties().apply { load(it) } } ?: Properties()
