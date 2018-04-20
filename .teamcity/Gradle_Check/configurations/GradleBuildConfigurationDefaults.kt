@@ -33,7 +33,7 @@ val gradleParameters = listOf(
         "-s",
         "--daemon",
         "--continue",
-        "-I ./gradle/init-scripts/build-scan.init.gradle.kts",
+        """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         java7Homes[OS.linux]!!
 )
 
