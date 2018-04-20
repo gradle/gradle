@@ -175,12 +175,23 @@ If a project defines multiple publications then Gradle will publish each of thes
 Publications are published to repositories. The repositories to publish to are defined by the api:org.gradle.api.publish.PublishingExtension#getRepositories()[] container.
 
 ++++
-<sample dir="maven-publish/quickstart" id="publishing_maven:repositories" title="Declaring repositories to publish to">
+<sample dir="maven-publish/quickstart" id="publishing_maven:example:repositories" title="Declaring repositories to publish to">
     <sourcefile file="build.gradle" snippet="repositories"/>
 </sample>
 ++++
 
 The DSL used to declare repositories for publication is the same DSL that is used to declare repositories to consume dependencies from, api:org.gradle.api.artifacts.dsl.RepositoryHandler[]. However, in the context of Maven publication only api:org.gradle.api.artifacts.repositories.MavenArtifactRepository[] repositories can be used for publication.
+
+[[publishing_maven:snapshot_and_release_repositories]]
+==== Snapshot and release repositories
+
+It is a common practice to publish snapshots and releases to different Maven repositories. A simple way to accomplish this is to configure the repository URL based on the project version. The following sample uses one URL for versions that end with "SNAPSHOT" and a different URL for the rest:
+
+++++
+<sample dir="maven-publish/javaProject" id="publishing_maven:example:repo-url-from-variable" title="Configuring repository URL based on project version">
+    <sourcefile file="build.gradle" snippet="repo-url-from-variable"/>
+</sample>
+++++
 
 [[publishing_maven:publishing]]
 === Performing a publish
