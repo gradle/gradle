@@ -54,15 +54,17 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
         return new ArtifactAtRepositoryKeySerializer(serializerRegistry.build(ComponentArtifactIdentifier.class));
     }
 
-    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash) {
+    public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash,
+        long cachedFileLastModified, long cachedFileSize) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
-        storeInternal(key, createEntry(artifactFile, moduleDescriptorHash));
+        storeInternal(key, createEntry(artifactFile, moduleDescriptorHash, cachedFileLastModified, cachedFileSize));
     }
 
-    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
+    private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash,
+        long cachedFileLastModified, long cachedFileSize) {
         return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash,
-            artifactFile.lastModified(), artifactFile.length());
+            cachedFileLastModified, cachedFileSize);
     }
 
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {

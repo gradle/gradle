@@ -33,7 +33,7 @@ public interface ModuleArtifactCache {
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
      */
-    void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash);
+    void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash, long cachedFileLastModified, long cachedFileSize);
 
     /**
      * Record that the artifact with the given key was missing.

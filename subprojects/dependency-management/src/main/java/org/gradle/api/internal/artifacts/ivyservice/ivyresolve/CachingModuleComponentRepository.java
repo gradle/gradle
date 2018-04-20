@@ -428,7 +428,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             ArtifactResolveException failure = result.getFailure();
             if (failure == null) {
-                moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
+                File artifactFile = result.getResult();
+                moduleArtifactCache.store(artifactCacheKey(artifact.getId()), artifactFile,
+                    cachingModuleSource.getDescriptorHash(), artifactFile.lastModified(), artifactFile.length());
             } else if (failure instanceof ArtifactNotFoundException) {
                 moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
