@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.samples
 
 import org.gradle.kotlin.dsl.fixtures.loadPropertiesFrom
+import org.gradle.kotlin.dsl.fixtures.mergePropertiesInto
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import java.io.File
@@ -22,14 +23,12 @@ fun copySampleProject(from: File, to: File) {
 
 
 private
-fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) =
-    loadThenDeletePropertiesFrom(gradlePropertiesFile).also { baseProperties ->
+fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) {
+    loadThenDeletePropertiesFrom(gradlePropertiesFile).let { baseProperties ->
         action()
-        loadPropertiesFrom(gradlePropertiesFile).also { sampleProperties ->
-            baseProperties.putAll(sampleProperties)
-            gradlePropertiesFile.outputStream().use { baseProperties.store(it, null) }
-        }
+        mergePropertiesInto(gradlePropertiesFile, baseProperties.map { it.toPair() })
     }
+}
 
 
 private

@@ -150,10 +150,7 @@ open class AbstractIntegrationTest {
 
     private
     fun withGradleProperties(vararg gradleProperties: Pair<String, String>) =
-        loadGradleProperties().let { properties ->
-            properties.putAll(gradleProperties)
-            storeGradleProperties(properties)
-        }
+        mergePropertiesInto(gradlePropertiesFile, gradleProperties.asIterable())
 
     private
     fun storeGradleProperties(properties: Properties) =
@@ -235,3 +232,11 @@ fun setOrClearProperty(key: String, value: String?) {
 
 fun loadPropertiesFrom(file: File) =
     file.takeIf { it.isFile }?.inputStream()?.use { Properties().apply { load(it) } } ?: Properties()
+
+
+fun mergePropertiesInto(propertiesFile: File, additionalProperties: Iterable<Pair<Any, Any>>) {
+    loadPropertiesFrom(propertiesFile).let { originalProperties ->
+        originalProperties.putAll(additionalProperties)
+        propertiesFile.outputStream().use { originalProperties.store(it, null) }
+    }
+}
