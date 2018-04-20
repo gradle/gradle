@@ -16,74 +16,89 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.Transformer;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     // TODO: Synchronization
     private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
 
     void add(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isImplicitBuild) {
-        allProjects.put(projectIdentityPath, new ProjectPathEntry(projectName, identifier, isImplicitBuild));
+        allProjects.put(projectIdentityPath, new ProjectPathEntry(projectIdentityPath, projectName, identifier, isImplicitBuild));
     }
 
     @Override
-    public Set<Path> getAllProjectPaths() {
-        return allProjects.keySet();
+    public Collection<? extends ProjectState> getAllProjects() {
+        return allProjects.values();
     }
 
     @Override
-    public Set<Path> getAllExplicitProjectPaths() {
+    public Collection<? extends ProjectState> getAllExplicitProjects() {
         return filterProjectPaths(false);
     }
 
     @Override
-    public Set<Path> getAllImplicitProjectPaths() {
+    public Collection<? extends ProjectState> getAllImplicitProjects() {
         return filterProjectPaths(true);
     }
 
-    private Set<Path> filterProjectPaths(final boolean isAddedImplicitly) {
-        return CollectionUtils.collect(
-            CollectionUtils.filter(allProjects.entrySet(), new Spec<Map.Entry<Path, ProjectPathEntry>>() {
-                @Override
-                public boolean isSatisfiedBy(Map.Entry<Path, ProjectPathEntry> entry) {
-                    return isAddedImplicitly == entry.getValue().isAddedImplicitly;
-                }
-            }),
-            new Transformer<Path, Map.Entry<Path, ProjectPathEntry>>() {
-                @Override
-                public Path transform(Map.Entry<Path, ProjectPathEntry> entry) {
-                    return entry.getKey();
-                }
-            });
+    private Collection<? extends ProjectState> filterProjectPaths(final boolean isAddedImplicitly) {
+        List<ProjectState> result = new ArrayList<ProjectState>();
+        for (ProjectPathEntry entry : allProjects.values()) {
+            if (entry.isAddedImplicitly == isAddedImplicitly) {
+                result.add(entry);
+            }
+        }
+        return result;
     }
 
     @Override
-    public ProjectComponentIdentifier getProjectComponentIdentifier(Path identityPath) {
-        return allProjects.get(identityPath).identifier;
+    public ProjectState forProject(Project project) {
+        return allProjects.get(((ProjectInternal) project).getIdentityPath());
     }
 
-    @Override
-    public String getProjectName(Path identityPath) {
-        return allProjects.get(identityPath).projectName;
-    }
-
-    private static class ProjectPathEntry {
+    private class ProjectPathEntry implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
         private final boolean isAddedImplicitly;
+        private final Path projectIdentityPath;
 
-        ProjectPathEntry(String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+        ProjectPathEntry(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+            this.projectIdentityPath = projectIdentityPath;
             this.projectName = projectName;
             this.identifier = identifier;
             this.isAddedImplicitly = isAddedImplicitly;
+        }
+
+        @Override
+        public String toString() {
+            return identifier.getDisplayName();
+        }
+
+        @Nullable
+        @Override
+        public ProjectState getParent() {
+            return projectIdentityPath.getParent() == null ? null : allProjects.get(projectIdentityPath.getParent());
+        }
+
+        @Override
+        public String getName() {
+            return projectName;
+        }
+
+        @Override
+        public ProjectComponentIdentifier getComponentIdentifier() {
+            return identifier;
         }
     }
 }
