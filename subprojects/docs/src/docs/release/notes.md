@@ -32,9 +32,9 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
         sign publishing.publications
     }
 
-### Published Ivy descriptors now contain configuration-wide dependency exclusions
+### Configuration-wide dependency excludes are now published
 
-The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor.
+The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
 ## Promoted features
 
