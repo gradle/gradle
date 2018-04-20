@@ -174,7 +174,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     val (packageDir, packageDeclaration) =
         packageName?.let { packageName ->
-            outputDir.mkdir(packageName.replace('.', '/')) to "package $packageName"
+            packageDir(outputDir, packageName) to "package $packageName"
         } ?: outputDir to ""
 
     val outputFile =
@@ -199,6 +199,11 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     """.replaceIndent().trim())
 }
+
+
+private
+fun packageDir(outputDir: File, packageName: String) =
+    outputDir.mkdir(packageName.replace('.', '/'))
 
 
 private
