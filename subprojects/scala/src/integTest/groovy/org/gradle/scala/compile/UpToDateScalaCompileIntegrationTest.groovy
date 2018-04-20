@@ -67,7 +67,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         def jdk7 = AvailableJavaHomes.getJdk(VERSION_1_7)
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
 
-        buildScript(scalaProjectBuildScript('0.3.13', '2.11.8'))
+        buildScript(scalaProjectBuildScript('0.3.13', '2.11.12'))
         when:
         executer.withJavaHome(jdk7.javaHome)
         run 'compileScala'
