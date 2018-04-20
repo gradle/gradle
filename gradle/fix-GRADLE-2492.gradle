@@ -8,18 +8,18 @@ def lock = new ReentrantLock()
 def available = lock.newCondition()
 def busy = new AtomicBoolean()
 def serializedTasks = []
-//allprojects {
-//    tasks.matching { it.name == "generatePom" || it instanceof Upload }.configureEachLater { task ->
-//        serializedTasks << task
-//        task.doFirst {
-//            lock.lock()
-//            while (busy.get()) {
-//                available.await()
-//            }
-//            busy.set(true)
-//        }
-//    }
-//}
+allprojects {
+    tasks.matching { it.name == "generatePom" || it instanceof Upload }.configureEachLater { task ->
+        serializedTasks << task
+        task.doFirst {
+            lock.lock()
+            while (busy.get()) {
+                available.await()
+            }
+            busy.set(true)
+        }
+    }
+}
 gradle.taskGraph.afterTask {
     if (it in serializedTasks && lock.heldByCurrentThread) {
         busy.set(false)
