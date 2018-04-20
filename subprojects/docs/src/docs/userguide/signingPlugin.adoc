@@ -195,15 +195,23 @@ For a task to be “signable”, it must produce an archive of some type. Tasks 
 [[sec:conditional_signing]]
 ==== Conditional Signing
 
-A common usage pattern is to only sign build artifacts under certain conditions. For example, you may not wish to sign artifacts for non-release versions. To achieve this, you can specify that signing is only required under certain conditions.
+A common usage pattern is to require the signing of build artifacts only under certain conditions. For example, you may not need to sign artifacts for non-release versions. To achieve this, you can specify the condition as an argument of the `required()` method.
 
 ++++
-<sample id="conditionalSigning" dir="signing/conditional" title="Conditional signing">
-                <sourcefile file="build.gradle" snippet="conditional-signing"/>
-            </sample>
+<sample id="conditionalSigning" dir="signing/conditional" title="Specifying when signing is required">
+    <sourcefile file="build.gradle" snippet="conditional-signing"/>
+</sample>
 ++++
 
 In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See api:org.gradle.plugins.signing.SigningExtension#setRequired(java.lang.Object)[] for more information.
+
+If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the `Sign` tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
+
+++++
+<sample id="conditionalSigning" dir="signing/conditional" title="Specifying when signing is skipped">
+    <sourcefile file="build.gradle" snippet="only-if"/>
+</sample>
+++++
 
 [[sec:publishing_the_signatures]]
 === Publishing the signatures
