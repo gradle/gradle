@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
@@ -50,7 +51,7 @@ import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
-public class DefaultIncludedBuild implements IncludedBuildInternal, ConfigurableIncludedBuild, Stoppable {
+public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildDefinition buildDefinition;

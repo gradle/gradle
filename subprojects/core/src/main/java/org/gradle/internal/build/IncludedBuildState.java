@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -28,7 +28,10 @@ import org.gradle.internal.Pair;
 import java.util.List;
 import java.util.Set;
 
-public interface IncludedBuildInternal {
+/**
+ * Encapsulates the identity and state of an included build.
+ */
+public interface IncludedBuildState extends BuildState {
     String getName();
     ConfigurableIncludedBuild getModel();
     List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();

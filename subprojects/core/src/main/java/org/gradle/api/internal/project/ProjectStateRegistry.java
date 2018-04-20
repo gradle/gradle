@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.api.internal.project;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.util.Path;
@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * A registry of all of the projects present in a build tree.
  */
-public interface ProjectPathRegistry {
+public interface ProjectStateRegistry {
     /**
      * Returns an path for every project in a build, including projects from included builds.
      * Always returns the same set for the lifetime of the build.

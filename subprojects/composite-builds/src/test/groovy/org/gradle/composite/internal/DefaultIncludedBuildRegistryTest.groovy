@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.composite.CompositeBuildContext
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.IncludedBuildState
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -42,7 +43,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def "can add an explicit included build"() {
         def dir = tmpDir.createDir("b1")
         def buildDefinition = build(dir)
-        def includedBuild = Stub(IncludedBuildInternal)
+        def includedBuild = Stub(IncludedBuildState)
 
         given:
         includedBuildFactory.createBuild(buildDefinition, _) >> includedBuild
@@ -60,8 +61,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def dir2 = tmpDir.createDir("b2")
         def buildDefinition1 = build(dir1)
         def buildDefinition2 = build(dir2)
-        def includedBuild1 = Stub(IncludedBuildInternal)
-        def includedBuild2 = Stub(IncludedBuildInternal)
+        def includedBuild1 = Stub(IncludedBuildState)
+        def includedBuild2 = Stub(IncludedBuildState)
 
         given:
         includedBuildFactory.createBuild(buildDefinition1, _) >> includedBuild1
@@ -90,7 +91,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def "can add an implicit included build"() {
         def dir = tmpDir.createDir("b1")
         def buildDefinition = build(dir)
-        def includedBuild = Stub(IncludedBuildInternal)
+        def includedBuild = Stub(IncludedBuildState)
 
         given:
         includedBuildFactory.createBuild(buildDefinition, _) >> includedBuild

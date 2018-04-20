@@ -21,6 +21,7 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -39,7 +40,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildTreeScopeServices {
-        public IncludedBuildRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+        public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context, DefaultProjectPathRegistry projectRegistry, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
             return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, context);
@@ -53,7 +54,7 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext(moduleIdentifierFactory, new IncludedBuildDependencyMetadataBuilder());
         }
 
-        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuildRegistry includedBuildRegistry) {
+        public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry includedBuildRegistry) {
             return new DefaultIncludedBuildControllers(executorFactory, includedBuildRegistry);
         }
 

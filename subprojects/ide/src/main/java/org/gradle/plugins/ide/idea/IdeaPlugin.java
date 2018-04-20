@@ -39,7 +39,7 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -99,10 +99,10 @@ public class IdeaPlugin extends IdePlugin {
     private List<Project> allJavaProjects;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
-    private final ProjectPathRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectPathRegistry;
 
     @Inject
-    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectPathRegistry projectPathRegistry) {
+    public IdeaPlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
         this.instantiator = instantiator;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
