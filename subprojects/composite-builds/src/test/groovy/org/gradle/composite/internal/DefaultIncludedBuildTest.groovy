@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def "creates a foreign id for projects"() {
-        def build = new DefaultIncludedBuild(Stub(BuildDefinition), Stub(NestedBuildFactory), Stub(WorkerLeaseRegistry.WorkerLease))
+        def build = new DefaultIncludedBuild(Stub(BuildDefinition), false, Stub(NestedBuildFactory), Stub(WorkerLeaseRegistry.WorkerLease))
 
         expect:
         def id = build.idForProjectInThisBuild(":a:b:c")

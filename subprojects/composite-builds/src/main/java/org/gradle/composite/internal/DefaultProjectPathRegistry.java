@@ -21,25 +21,35 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class DefaultProjectPathRegistry implements ProjectStateRegistry {
-    // TODO: Synchronization
+    private final Object lock = new Object();
     private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
+    private final List<BuildState> pending = new LinkedList<BuildState>();
 
-    void add(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isImplicitBuild) {
-        allProjects.put(projectIdentityPath, new ProjectPathEntry(projectIdentityPath, projectName, identifier, isImplicitBuild));
+    public void registerProjects(BuildState build) {
+        synchronized (lock) {
+            pending.add(build);
+        }
     }
 
     @Override
-    public Collection<? extends ProjectState> getAllProjects() {
-        return allProjects.values();
+    public Collection<ProjectPathEntry> getAllProjects() {
+        synchronized (lock) {
+            flushPending();
+            return allProjects.values();
+        }
     }
 
     @Override
@@ -53,18 +63,35 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     }
 
     private Collection<? extends ProjectState> filterProjectPaths(final boolean isAddedImplicitly) {
-        List<ProjectState> result = new ArrayList<ProjectState>();
-        for (ProjectPathEntry entry : allProjects.values()) {
-            if (entry.isAddedImplicitly == isAddedImplicitly) {
-                result.add(entry);
+        synchronized (lock) {
+            Collection<ProjectPathEntry> allProjects = getAllProjects();
+            List<ProjectState> result = new ArrayList<ProjectState>(allProjects.size());
+            for (ProjectPathEntry entry : allProjects) {
+                if (entry.isAddedImplicitly == isAddedImplicitly) {
+                    result.add(entry);
+                }
             }
+            return result;
         }
-        return result;
     }
 
     @Override
-    public ProjectState forProject(Project project) {
-        return allProjects.get(((ProjectInternal) project).getIdentityPath());
+    public ProjectState stateFor(Project project) {
+        synchronized (lock) {
+            flushPending();
+            return allProjects.get(((ProjectInternal) project).getIdentityPath());
+        }
+    }
+
+    private void flushPending() {
+        for (BuildState build : pending) {
+            for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
+                Path identityPath = build.getIdentityPathForProject(descriptor.path());
+                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
+                allProjects.put(identityPath, new ProjectPathEntry(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild()));
+            }
+        }
+        pending.clear();
     }
 
     private class ProjectPathEntry implements ProjectState {

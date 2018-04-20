@@ -16,8 +16,19 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.util.Path;
+
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
  */
 public interface BuildState {
+    BuildIdentifier getBuildIdentifier();
+
+    boolean isImplicitBuild();
+
+    SettingsInternal getLoadedSettings();
+
+    Path getIdentityPathForProject(Path projectPath);
 }
