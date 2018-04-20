@@ -109,9 +109,8 @@ fun Project.exposeScriptsAsGradlePlugins() {
         it.include("**/*.gradle.kts")
     }
 
-    val scriptPlugins = lazy {
+    val scriptPlugins =
         scriptSourceFiles.map(::ScriptPlugin)
-    }
 
     declareScriptPlugins(scriptPlugins)
 
@@ -130,10 +129,10 @@ val Project.gradlePlugin
 
 
 private
-fun Project.declareScriptPlugins(scriptPlugins: Lazy<List<ScriptPlugin>>) {
+fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 
     configure<GradlePluginDevelopmentExtension> {
-        for (scriptPlugin in scriptPlugins.value) {
+        for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {
                 it.id = scriptPlugin.id
                 it.implementationClass = scriptPlugin.implementationClass
@@ -144,7 +143,7 @@ fun Project.declareScriptPlugins(scriptPlugins: Lazy<List<ScriptPlugin>>) {
 
 
 private
-fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, scriptSourceFiles: FileTree) {
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: FileTree) {
 
     tasks {
 
@@ -157,7 +156,7 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, s
             outputs.dir(generatedSourcesDir)
             doLast {
                 val outputDir = generatedSourcesDir.get().asFile
-                for (scriptPlugin in scriptPlugins.value) {
+                for (scriptPlugin in scriptPlugins) {
                     scriptPlugin.writeScriptPluginAdapterTo(outputDir)
                 }
             }
