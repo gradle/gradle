@@ -6,17 +6,18 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TestName
 
 import java.io.File
+import java.util.Properties
 
 
 internal
@@ -30,6 +31,10 @@ open class AbstractIntegrationTest {
 
     @JvmField
     @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
+
+    @Before
+    fun withDefaultGradleJvmArguments() =
+        withGradleJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
 
     protected
     val projectRoot: File
@@ -138,6 +143,25 @@ open class AbstractIntegrationTest {
     protected
     fun gradleRunnerForArguments(vararg arguments: String) =
         gradleRunnerFor(projectRoot, *arguments)
+
+    protected
+    fun withGradleJvmArguments(vararg jvmArguments: String) =
+        withGradleProperties("org.gradle.jvmargs" to jvmArguments.joinToString(" "))
+
+    private
+    fun withGradleProperties(vararg gradleProperties: Pair<String, String>) =
+        mergePropertiesInto(gradlePropertiesFile, gradleProperties.asIterable())
+
+    private
+    fun storeGradleProperties(properties: Properties) =
+        gradlePropertiesFile.outputStream().use { properties.store(it, null) }
+
+    private
+    fun loadGradleProperties() =
+        loadPropertiesFrom(gradlePropertiesFile)
+
+    private
+    val gradlePropertiesFile by lazy { existing("gradle.properties") }
 }
 
 
@@ -157,7 +181,6 @@ fun gradleRunnerFor(projectDir: File, vararg arguments: String): GradleRunner = 
     withDebug(false)
     if (isCI) withArguments(*arguments, "--stacktrace", "-Dkotlin-daemon.verbose=true")
     else withArguments(*arguments, "--stacktrace")
-    (this as DefaultGradleRunner).withJvmArguments("-Xms128m", "-Xmx512m", "-Dfile.encoding=UTF-8")
     return this
 }
 
@@ -203,5 +226,17 @@ fun setOrClearProperty(key: String, value: String?) {
     when (value) {
         null -> System.clearProperty(key)
         else -> System.setProperty(key, value)
+    }
+}
+
+
+fun loadPropertiesFrom(file: File) =
+    file.takeIf { it.isFile }?.inputStream()?.use { Properties().apply { load(it) } } ?: Properties()
+
+
+fun mergePropertiesInto(propertiesFile: File, additionalProperties: Iterable<Pair<Any, Any>>) {
+    loadPropertiesFrom(propertiesFile).let { originalProperties ->
+        originalProperties.putAll(additionalProperties)
+        propertiesFile.outputStream().use { originalProperties.store(it, null) }
     }
 }
