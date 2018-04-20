@@ -17,6 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
@@ -28,6 +29,10 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
+
+    def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/versionsWithConstraints")
     def "respects dependency constraints for direct and transitive dependencies"() {
@@ -52,13 +57,13 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         failure.assertHasDescription("Could not resolve all files for configuration ':compileClasspath'.")
         failure.assertHasCause("""Could not find jms.jar (javax.jms:jms:1.1).
 Searched in the following locations:
-    https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar""")
+    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}javax/jms/jms/1.1/jms-1.1.jar""")
         failure.assertHasCause("""Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
 Searched in the following locations:
-    https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar""")
+    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar""")
         failure.assertHasCause("""Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
 Searched in the following locations:
-    https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
+    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
     }
 
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")

@@ -93,7 +93,7 @@ A team might decide to implement a series of features before releasing a new ver
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
 ++++
-<sample id="dependencies-changing-version" dir="userguide/dependencyManagement/declaringDependencies/changingVersion" title="Declaring a dependencies with a changing version">
+<sample id="dependencies-changing-version" dir="userguide/dependencyManagement/declaringDependencies/changingVersion" title="Declaring a dependency with a changing version">
     <sourcefile file="build.gradle" snippet="dependencies"/>
 </sample>
 ++++
