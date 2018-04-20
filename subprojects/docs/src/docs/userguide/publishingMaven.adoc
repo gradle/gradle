@@ -193,6 +193,14 @@ It is a common practice to publish snapshots and releases to different Maven rep
 </sample>
 ++++
 
+Similarly, you can use a <<build_environment, project or system property>> to decide which repository to publish to. The following example uses the release repository if the project property `release` is set, such as when a user runs `gradle -Prelease publish`:
+
+++++
+<sample dir="maven-publish/javaProject" id="publishing_maven:example:repo-url-from-variable" title="Configuring repository URL based on project property">
+    <sourcefile file="build.gradle" snippet="repo-url-from-project-property"/>
+</sample>
+++++
+
 [[publishing_maven:publishing]]
 === Performing a publish
 
