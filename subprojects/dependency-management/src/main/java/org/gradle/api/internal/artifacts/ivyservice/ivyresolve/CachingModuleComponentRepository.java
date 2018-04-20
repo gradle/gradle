@@ -341,12 +341,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
                     boolean isLocalFileModified = !cached.isLocalFileUnchanged();
+
                     if (cachedArtifactFile != null && isLocalFileModified) {
                         boolean ret = cachedArtifactFile.delete();
                         LOGGER.info("Cached resource {} has been modified. "
                                 + "(cachedLastModified: {}, actualLastModified: {}) "
                                 + " successfully deleted: {}", cachedArtifactFile.getAbsolutePath(),
-                            cached.getCachedFileLastModified(), cached.getCachedFile().lastModified(), ret);
+                            cached.getCachedFileLastModified(), cachedArtifactFile.lastModified(), ret);
                     }
 
                     if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule,

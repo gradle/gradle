@@ -44,5 +44,4 @@ public abstract class AbstractCachedItem implements CachedItem, Serializable {
     public long getCachedAt() {
         return cachedAt;
     }
-
 }
