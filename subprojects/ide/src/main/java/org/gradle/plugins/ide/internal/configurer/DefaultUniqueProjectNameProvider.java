@@ -31,7 +31,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
 
     @Override
     public String getUniqueName(Project project) {
-        String uniqueName = getDeduplicatedNames().get(projectRegistry.forProject(project));
+        String uniqueName = getDeduplicatedNames().get(projectRegistry.stateFor(project));
         if (uniqueName != null) {
             return uniqueName;
         }
@@ -41,7 +41,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
     private synchronized Map<ProjectState, String> getDeduplicatedNames() {
         if (deduplicated == null) {
             HierarchicalElementDeduplicator<ProjectState> deduplicator = new HierarchicalElementDeduplicator<ProjectState>(new ProjectPathDeduplicationAdapter());
-            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
+            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllExplicitProjects());
         }
         return deduplicated;
     }

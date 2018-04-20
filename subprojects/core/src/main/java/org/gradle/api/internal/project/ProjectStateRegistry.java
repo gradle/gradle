@@ -17,11 +17,13 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 
 /**
  * A registry of all of the projects present in a build tree.
  */
+@ThreadSafe
 public interface ProjectStateRegistry {
     /**
      * Returns all projects in the build tree.
@@ -41,5 +43,5 @@ public interface ProjectStateRegistry {
     /**
      * Locates the state object that owns a given project object.
      */
-    ProjectState forProject(Project project);
+    ProjectState stateFor(Project project);
 }

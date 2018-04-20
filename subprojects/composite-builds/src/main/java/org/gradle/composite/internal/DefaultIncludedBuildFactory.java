@@ -44,8 +44,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildState createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildState createBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDefinition.getBuildRootDir());
-        return instantiator.newInstance(DefaultIncludedBuild.class, buildDefinition, nestedBuildFactory, workerLeaseService.getCurrentWorkerLease());
+        return instantiator.newInstance(DefaultIncludedBuild.class, buildDefinition, isImplicit, nestedBuildFactory, workerLeaseService.getCurrentWorkerLease());
     }
 }

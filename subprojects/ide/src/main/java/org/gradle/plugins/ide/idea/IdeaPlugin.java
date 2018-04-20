@@ -502,7 +502,7 @@ public class IdeaPlugin extends IdePlugin {
 
     private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
         List<TaskDependency> dependencies = Lists.newArrayList();
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.forProject(project).getComponentIdentifier();
+        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {

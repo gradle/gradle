@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Encapsulates the identity and state of a particular project in a build tree.
  */
+@ThreadSafe
 public interface ProjectState {
     /**
-     * Returns the parent of this project in the project tree.
+     * Returns the parent of this project in the project tree. Note that this isn't the same as {@link Project#getParent()}.
      */
     @Nullable
     ProjectState getParent();

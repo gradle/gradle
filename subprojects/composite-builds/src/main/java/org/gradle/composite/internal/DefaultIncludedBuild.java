@@ -23,11 +23,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -42,6 +44,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,7 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildDefinition buildDefinition;
+    private final boolean isImplicit;
     private final NestedBuildFactory gradleLauncherFactory;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
@@ -66,10 +70,16 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(BuildDefinition buildDefinition, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
         this.buildDefinition = buildDefinition;
+        this.isImplicit = isImplicit;
         this.gradleLauncherFactory = launcherFactory;
         this.parentLease = parentLease;
+    }
+
+    @Override
+    public boolean isImplicitBuild() {
+        return isImplicit;
     }
 
     @Override
@@ -94,6 +104,16 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
             name = getLoadedSettings().getRootProject().getName();
         }
         return name;
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return new DefaultBuildIdentifier(getName());
+    }
+
+    @Override
+    public Path getIdentityPathForProject(Path projectPath) {
+        return Path.ROOT.child(getName()).append(projectPath);
     }
 
     @Override
