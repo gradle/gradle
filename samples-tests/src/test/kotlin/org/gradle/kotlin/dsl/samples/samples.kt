@@ -25,7 +25,7 @@ private
 fun withMergedGradleProperties(gradlePropertiesFile: File, action: () -> Unit) =
     loadThenDeletePropertiesFrom(gradlePropertiesFile).also { baseProperties ->
         action()
-        loadThenDeletePropertiesFrom(gradlePropertiesFile).also { sampleProperties ->
+        loadPropertiesFrom(gradlePropertiesFile).also { sampleProperties ->
             baseProperties.putAll(sampleProperties)
             gradlePropertiesFile.outputStream().use { baseProperties.store(it, null) }
         }
