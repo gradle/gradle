@@ -32,6 +32,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -39,7 +40,6 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -502,7 +502,7 @@ public class IdeaPlugin extends IdePlugin {
 
     private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
         List<TaskDependency> dependencies = Lists.newArrayList();
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(project.getIdentityPath());
+        ProjectComponentIdentifier thisProjectId = projectPathRegistry.forProject(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {

@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -349,7 +349,7 @@ public class IdeaProject implements IdeWorkspace {
     }
 
     private void configureModulePaths(Project xmlProject) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(((ProjectInternal) project).getIdentityPath());
+        ProjectComponentIdentifier thisProjectId = projectPathRegistry.forProject(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {

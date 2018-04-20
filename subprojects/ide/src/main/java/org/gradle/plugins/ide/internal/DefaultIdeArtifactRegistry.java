@@ -24,14 +24,14 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.composite.internal.IncludedBuildTaskReference;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -74,8 +74,8 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     @Override
     public <T extends IdeProjectMetadata> List<Reference<T>> getIdeArtifactMetadata(Class<T> type) {
         List<Reference<T>> result = Lists.newArrayList();
-        for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
-            final ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+        for (ProjectState project : projectPathRegistry.getAllExplicitProjects()) {
+            ProjectComponentIdentifier projectId = project.getComponentIdentifier();
             for (IdeProjectMetadata ideProjectMetadata : store.get(projectId)) {
                 if (type.isInstance(ideProjectMetadata)) {
                     final T metadata = type.cast(ideProjectMetadata);
