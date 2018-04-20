@@ -181,7 +181,7 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 └── settings.gradle
 ----
 
-=== Avoid writing to the same output directory from different tasks
+=== Avoid overlapping task outputs
 
 Tasks should define inputs and outputs to get the performance benefits of <<sec:up_to_date_checks,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
