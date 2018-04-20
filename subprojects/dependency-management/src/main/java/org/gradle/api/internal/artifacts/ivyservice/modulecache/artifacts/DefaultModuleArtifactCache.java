@@ -61,7 +61,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash) {
-        return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash);
+        return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash,
+            artifactFile.lastModified(), artifactFile.length());
     }
 
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
@@ -127,6 +128,8 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             encoder.writeBinary(hash);
             if (!value.isMissing()) {
                 encoder.writeString(value.getCachedFile().getPath());
+                encoder.writeLong(value.getCachedFileLastModified());
+                encoder.writeLong(value.getCachedFileSize());
             } else {
                 encoder.writeSmallInt(value.attemptedLocations().size());
                 for (String location : value.attemptedLocations()) {
@@ -142,7 +145,9 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             BigInteger hash = new BigInteger(encodedHash);
             if (!isMissing) {
                 File file = new File(decoder.readString());
-                return new DefaultCachedArtifact(file, createTimestamp, hash);
+                long cachedFileLastModified = decoder.readLong();
+                long cachedFileSize = decoder.readLong();
+                return new DefaultCachedArtifact(file, createTimestamp, hash, cachedFileLastModified, cachedFileSize);
             } else {
                 int size = decoder.readSmallInt();
                 List<String> attempted = new ArrayList<String>(size);

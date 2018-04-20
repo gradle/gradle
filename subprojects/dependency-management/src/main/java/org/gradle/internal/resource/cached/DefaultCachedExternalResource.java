@@ -22,34 +22,18 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 
-public class DefaultCachedExternalResource implements CachedExternalResource, Serializable {
-    private final File cachedFile;
-    private final long cachedAt;
+public class DefaultCachedExternalResource extends AbstractCachedItem implements CachedExternalResource, Serializable {
     private final ExternalResourceMetaData externalResourceMetaData;
 
-    public DefaultCachedExternalResource(File cachedFile, long cachedAt, ExternalResourceMetaData externalResourceMetaData) {
-        this.cachedFile = cachedFile;
-        this.cachedAt = cachedAt;
+    public DefaultCachedExternalResource(File cachedFile, long cachedAt,
+        ExternalResourceMetaData externalResourceMetaData, long cachedFileLastModified, long cachedFileSize) {
+        super(cachedFile, cachedAt, cachedFileLastModified, cachedFileSize);
         this.externalResourceMetaData = externalResourceMetaData;
     }
 
     public DefaultCachedExternalResource(long cachedAt) {
-        this.cachedAt = cachedAt;
-
-        this.cachedFile = null;
+        super(cachedAt);
         this.externalResourceMetaData = null;
-    }
-
-    public boolean isMissing() {
-        return cachedFile == null;
-    }
-
-    public File getCachedFile() {
-        return cachedFile;
-    }
-
-    public long getCachedAt() {
-        return cachedAt;
     }
 
     public ExternalResourceMetaData getExternalResourceMetaData() {
@@ -59,9 +43,4 @@ public class DefaultCachedExternalResource implements CachedExternalResource, Se
     public Date getExternalLastModified() {
         return externalResourceMetaData != null ? externalResourceMetaData.getLastModified() : null;
     }
-
-    public long getContentLength() {
-        return isMissing() ? -1 : cachedFile.length();
-    }
-
 }

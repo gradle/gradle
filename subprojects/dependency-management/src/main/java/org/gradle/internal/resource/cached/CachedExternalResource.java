@@ -26,13 +26,6 @@ import java.util.Date;
  */
 public interface CachedExternalResource extends CachedItem {
 
-    /**
-     * Always the actual content length of the cached file, not the external source.
-     *
-     * @return The content length of the cached file.
-     */
-    long getContentLength();
-
     @Nullable
     ExternalResourceMetaData getExternalResourceMetaData();
 

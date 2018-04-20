@@ -21,37 +21,24 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import org.gradle.internal.resource.cached.AbstractCachedItem;
 
-public class DefaultCachedArtifact implements CachedArtifact, Serializable {
-    private final File cachedFile;
-    private final long cachedAt;
+
+public class DefaultCachedArtifact extends AbstractCachedItem implements CachedArtifact, Serializable {
     private final BigInteger descriptorHash;
     private final List<String> attemptedLocations;
 
-    public DefaultCachedArtifact(File cachedFile, long cachedAt, BigInteger descriptorHash) {
-        this.cachedFile = cachedFile;
-        this.cachedAt = cachedAt;
+    public DefaultCachedArtifact(File cachedFile, long cachedAt, BigInteger descriptorHash,
+        long cachedFileLastModified, long cachedFileSize) {
+        super(cachedFile, cachedAt, cachedFileLastModified, cachedFileSize);
         this.descriptorHash = descriptorHash;
         this.attemptedLocations = Collections.emptyList();
     }
 
     public DefaultCachedArtifact(List<String> attemptedLocations, long cachedAt, BigInteger descriptorHash) {
+        super(cachedAt);
         this.attemptedLocations = attemptedLocations;
-        this.cachedAt = cachedAt;
-        this.cachedFile = null;
         this.descriptorHash = descriptorHash;
-    }
-
-    public boolean isMissing() {
-        return cachedFile == null;
-    }
-
-    public File getCachedFile() {
-        return cachedFile;
-    }
-
-    public long getCachedAt() {
-        return cachedAt;
     }
 
     public BigInteger getDescriptorHash() {
