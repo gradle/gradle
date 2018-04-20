@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
-import org.gradle.api.internal.BuildDefinition;
-import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.build.IncludedBuildState;
-
-public interface IncludedBuildFactory {
-    IncludedBuildState createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+/**
+ * Encapsulates the identity and state of a particular build in a build tree.
+ */
+public interface BuildState {
 }

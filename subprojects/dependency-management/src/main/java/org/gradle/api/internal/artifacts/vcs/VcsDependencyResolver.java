@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.IncludedBuildInternal;
-import org.gradle.composite.internal.IncludedBuildRegistry;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -104,9 +104,9 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                 File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
 
                 // TODO: This shouldn't rely on the service registry to find NestedBuildFactory
-                IncludedBuildRegistry includedBuildRegistry = serviceRegistry.get(IncludedBuildRegistry.class);
+                BuildStateRegistry includedBuildRegistry = serviceRegistry.get(BuildStateRegistry.class);
                 NestedBuildFactory nestedBuildFactory = serviceRegistry.get(NestedBuildFactory.class);
-                IncludedBuildInternal includedBuild = includedBuildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
+                IncludedBuildState includedBuild = includedBuildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {

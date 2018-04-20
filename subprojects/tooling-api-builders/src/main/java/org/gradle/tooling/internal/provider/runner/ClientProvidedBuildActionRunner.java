@@ -20,7 +20,7 @@ import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
@@ -96,7 +96,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
         try {
             gradle.getServices().get(ProjectConfigurer.class).configureHierarchyFully(gradle.getRootProject());
             for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-                GradleInternal build = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
+                GradleInternal build = ((IncludedBuildState) includedBuild).getConfiguredBuild();
                 forceFullConfiguration(build);
             }
         } catch (BuildCancelledException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -27,27 +27,27 @@ import java.util.Collection;
 /**
  * A registry of all the builds present in a build tree.
  */
-public interface IncludedBuildRegistry {
+public interface BuildStateRegistry {
     /**
      * Returns all children of the root build.
      */
-    Collection<? extends IncludedBuildInternal> getIncludedBuilds();
+    Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
      * Locates a build by {@link BuildIdentifier}, if present.
      */
     @Nullable
-    IncludedBuildInternal getBuild(BuildIdentifier buildIdentifier);
+    IncludedBuildState getBuild(BuildIdentifier buildIdentifier);
 
     void validateExplicitIncludedBuilds(SettingsInternal settings);
 
     /**
      * Registers an included build.
      */
-    IncludedBuildInternal addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
-     * Registers a child build that is not an included.
+     * Registers a child build that is not an included build.
      */
-    IncludedBuildInternal addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }

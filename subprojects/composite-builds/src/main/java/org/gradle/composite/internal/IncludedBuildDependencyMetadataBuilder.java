@@ -27,6 +27,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -41,7 +42,7 @@ import java.util.Set;
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
-    public Map<ProjectComponentIdentifier, RegisteredProject> build(IncludedBuildInternal build) {
+    public Map<ProjectComponentIdentifier, RegisteredProject> build(IncludedBuildState build) {
         Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects = Maps.newHashMap();
         Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
@@ -50,7 +51,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         return registeredProjects;
     }
 
-    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuildInternal build, ProjectInternal project) {
+    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuildState build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);

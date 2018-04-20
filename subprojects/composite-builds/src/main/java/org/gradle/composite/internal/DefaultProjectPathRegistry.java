@@ -19,14 +19,14 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.ProjectPathRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultProjectPathRegistry implements ProjectPathRegistry {
+public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     // TODO: Synchronization
     private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
 
