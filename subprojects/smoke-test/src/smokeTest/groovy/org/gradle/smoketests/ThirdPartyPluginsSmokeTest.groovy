@@ -277,13 +277,13 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id 'org.gosu-lang.gosu' version '0.3.6'
+                id 'org.gosu-lang.gosu' version '0.3.7'
             }
 
             ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
             }
             """.stripIndent()
 
