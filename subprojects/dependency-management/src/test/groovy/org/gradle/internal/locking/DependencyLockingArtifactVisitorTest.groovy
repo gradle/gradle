@@ -29,7 +29,7 @@ import org.gradle.internal.component.local.model.RootConfigurationMetadata
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static java.util.Collections.singletonList
+import static java.util.Collections.singleton
 
 class DependencyLockingArtifactVisitorTest extends Specification {
 
@@ -146,7 +146,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.complete()
 
         then:
-        1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singletonList(identifier))
+        1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier))
 
     }
 

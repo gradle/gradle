@@ -34,7 +34,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
     def 'does nothing on persist'() {
         given:
-        def result = Mock(Collection)
+        def result = Mock(Set)
 
 
         when:

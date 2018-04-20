@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
-import java.util.Collection;
+import java.util.Set;
 
 public interface DependencyLockingProvider {
 
     DependencyLockingState findLockConstraint(String configurationName);
 
-    void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolutionResult);
+    void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult);
 }

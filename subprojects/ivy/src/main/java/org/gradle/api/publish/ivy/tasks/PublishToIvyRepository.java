@@ -51,7 +51,7 @@ public class PublishToIvyRepository extends DefaultTask {
         getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 IvyPublicationInternal publicationInternal = getPublicationInternal();
-                return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
+                return publicationInternal == null ? null : publicationInternal.getPublishableArtifacts().getFiles();
             }
         }).withPropertyName("publication.publishableFiles");
 

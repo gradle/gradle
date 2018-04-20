@@ -49,8 +49,9 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
                 return false;
             }
             return absolutePath.regionMatches(index, that.absolutePath, that.index, myLength);
+        } else {
+            return super.hasSameNormalizedPathAs(other);
         }
-        return false;
     }
 
     @Override
@@ -60,5 +61,26 @@ public class IndexedNormalizedFileSnapshot extends AbstractNormalizedFileSnapsho
             h = 31 * h + absolutePath.charAt(i);
         }
         return h;
+    }
+
+    @Override
+    protected int compareNormalizedPathTo(NormalizedFileSnapshot other) {
+        if (other instanceof IndexedNormalizedFileSnapshot) {
+            IndexedNormalizedFileSnapshot that = (IndexedNormalizedFileSnapshot) other;
+            int length1 = absolutePath.length() - index;
+            int length2 = that.absolutePath.length() - that.index;
+            int limit = Math.min(length1, length2);
+
+            for (int pos = 0; pos < limit; pos++) {
+                char c1 = absolutePath.charAt(pos + index);
+                char c2 = that.absolutePath.charAt(pos + that.index);
+                if (c1 != c2) {
+                    return c1 - c2;
+                }
+            }
+            return length1 - length2;
+        } else {
+            return super.compareNormalizedPathTo(other);
+        }
     }
 }

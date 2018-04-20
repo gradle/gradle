@@ -339,4 +339,69 @@ dependencies {
         failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Resolved 'org:bar:1.0' which is not part of the lock state")
     }
 
+    def 'counts dependencies with multiple paths as one instance'() {
+        def foo = mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0', 'org:bar:1.0'])
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains("org:foo:1.0")
+    }
+
+    def 'does not write duplicates in the lockfile'() {
+        def foo = mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+    }
 }

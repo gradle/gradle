@@ -40,6 +40,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ModuleMetadataFileGeneratorTest extends Specification {
@@ -719,6 +720,104 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     }
   ]
 }
+"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5035")
+    def "writes file for component with configuration excludes"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def apiDependency = Stub(ExternalDependency)
+        apiDependency.group >> "com.acme"
+        apiDependency.name >> "api"
+        apiDependency.transitive >> true
+        apiDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "api")]
+
+        def runtimeDependency = Stub(ExternalDependency)
+        runtimeDependency.group >> "com.acme"
+        runtimeDependency.name >> "runtime"
+        runtimeDependency.transitive >> true
+        runtimeDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "runtime")]
+
+        def intransitiveDependency = Stub(ExternalDependency)
+        intransitiveDependency.group >> "com.acme"
+        intransitiveDependency.name >> "intransitive"
+        intransitiveDependency.transitive >> false
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.dependencies >> [apiDependency]
+        v1.globalExcludes >> [new DefaultExcludeRule("org.example.api", null)]
+
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.dependencies >> [runtimeDependency, intransitiveDependency]
+        v2.globalExcludes >> [new DefaultExcludeRule("org.example.runtime", null)]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString().contains """
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {},
+      "dependencies": [
+        {
+          "group": "com.acme",
+          "module": "api",
+          "version": {},
+          "excludes": [
+            {
+              "group": "org.example.api",
+              "module": "*"
+            },
+            {
+              "group": "com.example.bad",
+              "module": "api"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "v2",
+      "attributes": {},
+      "dependencies": [
+        {
+          "group": "com.acme",
+          "module": "runtime",
+          "version": {},
+          "excludes": [
+            {
+              "group": "org.example.runtime",
+              "module": "*"
+            },
+            {
+              "group": "com.example.bad",
+              "module": "runtime"
+            }
+          ]
+        },
+        {
+          "group": "com.acme",
+          "module": "intransitive",
+          "version": {},
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 """
     }
 

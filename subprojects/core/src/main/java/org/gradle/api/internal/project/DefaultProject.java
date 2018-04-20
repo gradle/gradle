@@ -853,7 +853,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return getLayout().mutableFilesFor(paths);
+        return getLayout().configurableFiles(paths);
     }
 
     @Override

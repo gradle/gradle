@@ -140,7 +140,7 @@ public interface ProjectLayout {
      * @return The file collection. Never returns null.
      * @since 4.8
      */
-    FileCollection filesFor(Object... paths);
+    FileCollection files(Object... paths);
 
     /**
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
@@ -188,5 +188,5 @@ public interface ProjectLayout {
      * @return The file collection. Never returns null.
      * @since 4.8
      */
-    ConfigurableFileCollection mutableFilesFor(Object... paths);
+    ConfigurableFileCollection configurableFiles(Object... paths);
 }

@@ -26,6 +26,7 @@ import org.gradle.api.publish.ivy.IvyConfiguration;
 
 import org.gradle.api.publish.ivy.IvyExtraInfoSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.internal.MutableActionSet;
 
@@ -95,5 +96,10 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
 
     public Set<IvyDependencyInternal> getDependencies() {
         return ivyPublication.getDependencies();
+    }
+
+    @Override
+    public Set<IvyExcludeRule> getGlobalExcludes() {
+        return ivyPublication.getGlobalExcludes();
     }
 }

@@ -27,16 +27,17 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
+import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
@@ -176,8 +177,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generatePomTask.setDestination(new File(buildDir, "publications/" + publication.getName() + "/pom-default.xml"));
                 }
             });
-            // Wire the generated pom into the publication.
-            publication.setPomFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            publication.setPomArtifact(new SingleOutputTaskMavenArtifact(tasks.get(descriptorTaskName), "pom", null));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -197,7 +197,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publication.getName() + "/module.json"));
                 }
             });
-            publication.setGradleModuleMetadataFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
+            publication.setGradleModuleMetadataArtifact(new SingleOutputTaskMavenArtifact(tasks.get(descriptorTaskName), "module", null));
         }
     }
 
@@ -213,9 +213,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
         }
 
         public MavenPublication create(final String name) {
-
             Module module = dependencyMetaDataProvider.getModule();
-            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
+            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(module);
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
 
             return instantiator.newInstance(

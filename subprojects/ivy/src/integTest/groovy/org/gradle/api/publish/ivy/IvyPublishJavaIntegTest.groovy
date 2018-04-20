@@ -25,11 +25,11 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     String getDependencies() {
         """dependencies {
-                api "commons-collections:commons-collections:3.2.2"
-                compileOnly "javax.servlet:servlet-api:2.5"
-                runtimeOnly "commons-io:commons-io:1.4"
-                testImplementation "junit:junit:4.12"
-            }
+               api "commons-collections:commons-collections:3.2.2"
+               compileOnly "javax.servlet:servlet-api:2.5"
+               runtimeOnly "commons-io:commons-io:1.4"
+               testImplementation "junit:junit:4.12"
+           }
 """
     }
 
@@ -351,6 +351,53 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 "jackson-module-jaxb-annotations-2.4.3.jar",
                 "publishTest-1.9.jar",
                 "spring-core-2.5.6.jar"
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
+    void "generated ivy descriptor includes configuration exclusions"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+            configurations.apiElements {
+                exclude group: "foo", module: "bar"
+            }
+
+            configurations.runtimeElements {
+                exclude group: "baz", module: "qux"
+            }
+
+            $dependencies
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile", "baz:qux@runtime"]
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                hasExclude('foo', 'bar')
+                noMoreExcludes()
+            }
+        }
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-io:commons-io:1.4') {
+                hasExclude('baz', 'qux')
+                noMoreExcludes()
+            }
         }
     }
 

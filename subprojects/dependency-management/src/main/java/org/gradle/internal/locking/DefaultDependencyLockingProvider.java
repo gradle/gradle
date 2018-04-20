@@ -69,7 +69,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolvedModules) {
+    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules) {
         if (writeLocks) {
             lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedModules));
         }

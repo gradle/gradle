@@ -211,7 +211,7 @@ include("child")
         fails('init', '--dsl', 'some-unknown-dsl')
 
         then:
-        failure.assertHasDescription("The requested build script DSL 'some-unknown-dsl' is not supported.")
+        failure.assertHasCause("The requested build script DSL 'some-unknown-dsl' is not supported.")
     }
 
     def "gives decent error message when using unknown test framework"() {

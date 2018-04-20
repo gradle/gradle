@@ -29,10 +29,9 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -46,7 +45,7 @@ class DefaultMavenPublicationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def module = Mock(MavenProjectIdentity)
+    def module = new DefaultMavenProjectIdentity("group", "name", "version")
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
@@ -64,11 +63,6 @@ class DefaultMavenPublicationTest extends Specification {
 
     def "name and identity properties are passed through"() {
         when:
-        module.artifactId >> "name"
-        module.groupId >> "group"
-        module.version >> "version"
-
-        and:
         def publication = createPublication()
 
         then:
@@ -78,13 +72,8 @@ class DefaultMavenPublicationTest extends Specification {
         publication.mavenProjectIdentity.version == "version"
     }
 
-    def "changing publication coordinates does not effect those provided"() {
+    def "publication coordinates are live"() {
         when:
-        module.artifactId >> "name"
-        module.groupId >> "group"
-        module.version >> "version"
-
-        and:
         def publication = createPublication()
 
         and:
@@ -93,9 +82,9 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version = "version2"
 
         then:
-        module.groupId == "group"
-        module.artifactId == "name"
-        module.version == "version"
+        module.groupId == "group2"
+        module.artifactId == "name2"
+        module.version == "version2"
 
         and:
         publication.groupId == "group2"
@@ -163,7 +152,7 @@ class DefaultMavenPublicationTest extends Specification {
         def publication = createPublication()
 
         then:
-        publication.publishableFiles.files == [pomFile, gradleMetadataFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile] as Set
         publication.artifacts.empty
         publication.runtimeDependencies.empty
     }
@@ -187,7 +176,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(componentWithArtifact(artifact))
 
         then:
-        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
         publication.runtimeDependencies.empty
 
@@ -197,7 +186,7 @@ class DefaultMavenPublicationTest extends Specification {
         publishArtifactDependencies.getDependencies(task) >> [task]
 
         then:
-        publication.publishableFiles.buildDependencies.getDependencies(task) == [task] as Set
+        publication.publishableArtifacts.files.buildDependencies.getDependencies(task) == [task] as Set
     }
 
     def "multiple usages of a component can provide the same artifact"() {
@@ -225,7 +214,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.from(component)
 
         then:
-        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
         publication.artifacts == [mavenArtifact] as Set
     }
 
@@ -340,7 +329,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.artifacts == [mavenArtifact] as Set
-        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
@@ -366,7 +355,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.artifacts == [mavenArtifact] as Set
-        publication.publishableFiles.files == [pomFile, gradleMetadataFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [pomFile, gradleMetadataFile, artifactFile] as Set
     }
 
     def "can use setter to replace existing artifacts set"() {
@@ -393,30 +382,37 @@ class DefaultMavenPublicationTest extends Specification {
         publication.artifacts == [mavenArtifact1, mavenArtifact2] as Set
     }
 
-    def "resolving the publishabe files does not throw if gradle metadata is not activated"() {
+    def "resolving the publishable files does not throw if gradle metadata is not activated"() {
         given:
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
-        publication.setPomFile(ImmutableFileCollection.of(pomFile))
+        publication.setPomArtifact(createArtifact(pomFile))
 
         when:
-        publication.publishableFiles.files
+        publication.publishableArtifacts.files.files
 
         then:
         noExceptionThrown()
+
+        and:
+        publication.publishableArtifacts.files.contains(pomFile)
     }
 
     def createPublication() {
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver, TestFiles.fileCollectionFactory(), TestUtil.featurePreviews(), TestUtil.attributesFactory())
-        publication.setPomFile(ImmutableFileCollection.of(pomFile))
-        publication.setGradleModuleMetadataFile(ImmutableFileCollection.of(gradleMetadataFile))
+        publication.setPomArtifact(createArtifact(pomFile))
+        publication.setGradleModuleMetadataArtifact(createArtifact(gradleMetadataFile))
         return publication
     }
 
-    def createArtifact() {
-        def artifact = Mock(MavenArtifact) {
-            getFile() >> artifactFile
+    def createArtifact(File file) {
+        return Mock(MavenArtifact) {
+            getFile() >> file
+            getBuildDependencies() >> new DefaultTaskDependency()
         }
-        return artifact
+    }
+
+    def createArtifact() {
+        return createArtifact(artifactFile)
     }
 
     def componentWithDependency(ModuleDependency dependency) {

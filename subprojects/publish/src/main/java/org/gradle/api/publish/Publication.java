@@ -26,5 +26,4 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Publication extends Named {
-
 }

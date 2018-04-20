@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.CollectionUtils;
@@ -51,6 +52,7 @@ public class IvyDescriptorFileGenerator {
     private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
     private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
     private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
+    private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
@@ -84,6 +86,11 @@ public class IvyDescriptorFileGenerator {
 
     public IvyDescriptorFileGenerator addDependency(IvyDependencyInternal ivyDependency) {
         dependencies.add(ivyDependency);
+        return this;
+    }
+
+    public IvyDescriptorFileGenerator addGlobalExclude(IvyExcludeRule excludeRule) {
+        globalExcludes.add(excludeRule);
         return this;
     }
 
@@ -204,6 +211,9 @@ public class IvyDescriptorFileGenerator {
             }
             xmlWriter.endElement();
         }
+        for (IvyExcludeRule excludeRule : globalExcludes) {
+            writeGlobalExclude(excludeRule, xmlWriter);
+        }
         xmlWriter.endElement();
     }
 
@@ -221,6 +231,14 @@ public class IvyDescriptorFileGenerator {
                 .attribute("type", dependencyArtifact.getType())
                 .attribute("ext", dependencyArtifact.getExtension())
                 .attribute("m:classifier", dependencyArtifact.getClassifier())
+                .endElement();
+    }
+
+    private void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+        xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getOrg())
+                .attribute("module", excludeRule.getModule())
+                .attribute("conf", excludeRule.getConf())
                 .endElement();
     }
 

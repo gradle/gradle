@@ -123,7 +123,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
-        return classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+        return classLoaderFactory.createIsolatedClassLoader(DefaultClassPath.of(forkOptions.getClasspath()));
     }
 
     private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<?> actionClass) {

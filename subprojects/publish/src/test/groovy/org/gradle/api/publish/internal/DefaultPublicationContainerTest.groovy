@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.internal
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.UnknownDomainObjectException

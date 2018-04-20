@@ -23,6 +23,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 
+import java.io.File;
+
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
  */
@@ -37,12 +39,7 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
         if (startParameter.getBuildFile() != null) {
-            if (!startParameter.getBuildFile().isFile()) {
-                if (!startParameter.getBuildFile().exists()) {
-                    throw new IllegalArgumentException(String.format("The specified build file '%s' does not exist.", startParameter.getBuildFile()));
-                }
-                throw new IllegalArgumentException(String.format("The specified build file '%s' is not a file.", startParameter.getBuildFile()));
-            }
+            validateIsFileAndExists(startParameter.getBuildFile(), "build file");
         }
         if (startParameter.getProjectDir() != null) {
             if (!startParameter.getProjectDir().isDirectory()) {
@@ -53,14 +50,21 @@ public class StartParamsValidatingActionExecuter implements BuildExecuter {
             }
         }
         if (startParameter.getSettingsFile() != null) {
-            if (!startParameter.getSettingsFile().isFile()) {
-                if (!startParameter.getSettingsFile().exists()) {
-                    throw new IllegalArgumentException(String.format("The specified settings file '%s' does not exist.", startParameter.getSettingsFile()));
-                }
-                throw new IllegalArgumentException(String.format("The specified settings file '%s' is not a file.", startParameter.getSettingsFile()));
-            }
+            validateIsFileAndExists(startParameter.getSettingsFile(), "settings file");
+        }
+        for (File initScript : startParameter.getInitScripts()) {
+            validateIsFileAndExists(initScript, "initialization script");
         }
 
         return delegate.execute(action, requestContext, actionParameters, contextServices);
+    }
+
+    private static void validateIsFileAndExists(File file, String fileType) {
+        if (!file.isFile()) {
+            if (!file.exists()) {
+                throw new IllegalArgumentException(String.format("The specified %s '%s' does not exist.", fileType, file));
+            }
+            throw new IllegalArgumentException(String.format("The specified %s '%s' is not a file.", fileType, file));
+        }
     }
 }

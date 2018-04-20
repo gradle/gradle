@@ -23,6 +23,8 @@ dependencies {
     compile project(':plugins')
     compile project(':maven')
 
+    testCompile project(':ivy')
+
     compile libraries.bouncycastle_pgp.coordinates
 }
 

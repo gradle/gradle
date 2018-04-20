@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -28,6 +29,11 @@ import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -39,7 +45,9 @@ import org.gradle.plugins.signing.type.SignatureTypeProvider;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
@@ -273,6 +281,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
                         task.sign(taskToSign);
                     }
                 })
@@ -282,11 +291,11 @@ public class SigningExtension {
     }
 
     /**
-     * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all of the artifacts} of the given configurations.
+     * Creates signing tasks that sign {@link Configuration#getAllArtifacts() all artifacts} of the given configurations.
      *
      * <p>The created tasks will be named "sign<i>&lt;configuration name capitalized&gt;</i>". That is, given a configuration with the name "archives" the created task will be named "signArchives".
      *
-     * The signature artifact for the created task is added to the {@link #getConfiguration() for this settings object}.
+     * The signature artifacts for the created tasks are added to the {@link #getConfiguration() configuration} for this settings object.
      *
      * @param configurations The configurations whose archives are to be signed
      * @return the created tasks.
@@ -297,6 +306,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
                         task.sign(configurationToSign);
                     }
                 })
@@ -305,7 +315,94 @@ public class SigningExtension {
         return result;
     }
 
-    private Sign createSignTaskFor(final CharSequence name, Action<Sign> taskConfiguration) {
+    /**
+     * Creates signing tasks that sign all publishable artifacts of the given publications.
+     *
+     * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
+     * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
+     *
+     * The signature artifacts for the created tasks are added to the publishable artifacts of the given publications.
+     *
+     * @param publications The publications whose artifacts are to be signed
+     * @return the created tasks.
+     * @since 4.8
+     */
+    @Incubating
+    public List<Sign> sign(Publication... publications) {
+        List<Sign> result = new ArrayList<Sign>(publications.length);
+        for (final Publication publication : publications) {
+            result.add(createSignTaskFor((PublicationInternal<?>) publication));
+        }
+        return result;
+    }
+
+    /**
+     * Creates signing tasks that sign all publishable artifacts of the given publication collection.
+     *
+     * <p>The created tasks will be named "sign<i>&lt;publication name capitalized&gt;</i>Publication".
+     * That is, given a publication with the name "mavenJava" the created task will be named "signMavenJavaPublication".
+     *
+     * The signature artifacts for the created tasks are added to the publishable artifacts of the given publications.
+     *
+     * @param publications The collection of publications whose artifacts are to be signed
+     * @return the created tasks.
+     * @since 4.8
+     */
+    @Incubating
+    public List<Sign> sign(DomainObjectCollection<Publication> publications) {
+        final List<Sign> result = new ArrayList<Sign>();
+        publications.all(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                result.add(createSignTaskFor((PublicationInternal<?>) publication));
+            }
+        });
+        publications.whenObjectRemoved(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                TaskContainer tasks = project.getTasks();
+                Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
+                tasks.remove(task);
+                result.remove(task);
+            }
+        });
+        return result;
+    }
+
+    private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
+        final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
+            public void execute(Sign task) {
+                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
+                task.sign(publicationToSign);
+            }
+        });
+        final Map<Signature, T> artifacts = new HashMap<Signature, T>();
+        signTask.getSignatures().all(new Action<Signature>() {
+            public void execute(final Signature signature) {
+                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new Factory<File>() {
+                    @Override
+                    public File create() {
+                        return signature.getFile();
+                    }
+                });
+                artifact.builtBy(signTask);
+                artifacts.put(signature, artifact);
+            }
+        });
+        signTask.getSignatures().whenObjectRemoved(new Action<Signature>() {
+            public void execute(Signature signature) {
+                T artifact = artifacts.remove(signature);
+                publicationToSign.removeDerivedArtifact(artifact);
+            }
+        });
+        return signTask;
+    }
+
+    private String determineSignTaskNameForPublication(Publication publication) {
+        return "sign" + capitalize((CharSequence) publication.getName()) + "Publication";
+    }
+
+    private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
         Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;

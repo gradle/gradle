@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.performance.util.JCmd
+import org.gradle.util.CollectionUtils
 
 /**
  * Profiles performance test scenarios using the Java Flight Recorder.
@@ -63,7 +64,7 @@ class JfrProfiler extends Profiler implements Stoppable {
         if (!useDaemon(spec)) {
             flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=$config"
         }
-        ["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"] as List<String>
+        CollectionUtils.stringize(["-XX:+UnlockCommercialFeatures", "-XX:+FlightRecorder", "-XX:FlightRecorderOptions=$flightRecordOptions", "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"])
     }
 
     @Override
@@ -97,10 +98,6 @@ class JfrProfiler extends Profiler implements Stoppable {
     }
 
     private boolean useDaemon(BuildExperimentSpec spec) {
-        if (spec instanceof GradleBuildExperimentSpec) {
-            (spec.invocation as GradleInvocationSpec).useDaemon
-        } else {
-            false
-        }
+        spec.displayInfo.daemon
     }
 }

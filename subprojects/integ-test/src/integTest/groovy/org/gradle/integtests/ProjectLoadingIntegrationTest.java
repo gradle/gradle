@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.integtests.fixtures.executer.ExecutionResult;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.io.File;
 
@@ -148,6 +149,30 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         result = inTestDirectory().usingSettingsFile(file).runWithFailure();
         result.assertHasDescription("The specified settings file '" + file + "' is not a file.");
+    }
+
+    @Issue("gradle/gradle#4672")
+    @Test
+    public void buildFailsWhenSpecifiedInitScriptIsNotAFile() {
+        TestFile file = testFile("unknown");
+
+        ExecutionFailure result = inTestDirectory().usingInitScript(file).runWithFailure();
+        result.assertHasDescription("The specified initialization script '" + file + "' does not exist.");
+
+        file.createDir();
+
+        result = inTestDirectory().usingInitScript(file).runWithFailure();
+        result.assertHasDescription("The specified initialization script '" + file + "' is not a file.");
+    }
+
+    @Issue("gradle/gradle#4672")
+    @Test
+    public void buildFailsWhenOneInitScriptDoesNotExist() {
+        TestFile initFile1 = testFile("init1").write("// empty");
+        TestFile initFile2 = testFile("init2");
+
+        ExecutionFailure result = inTestDirectory().usingInitScript(initFile1).usingInitScript(initFile2).runWithFailure();
+        result.assertHasDescription("The specified initialization script '" + initFile2 + "' does not exist.");
     }
 
     @Test

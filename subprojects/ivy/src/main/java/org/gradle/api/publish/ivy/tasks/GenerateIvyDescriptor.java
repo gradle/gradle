@@ -23,6 +23,7 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
@@ -119,6 +120,10 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
         for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
             ivyGenerator.addDependency(ivyDependency);
+        }
+
+        for (IvyExcludeRule excludeRule : descriptorInternal.getGlobalExcludes()) {
+            ivyGenerator.addGlobalExclude(excludeRule);
         }
 
         ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());

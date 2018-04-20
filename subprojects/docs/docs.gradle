@@ -47,8 +47,6 @@ plugins {
 
 repositories {
     javaScript.googleApis()
-
-    maven { url 'https://repo.gradle.org/gradle/gradle-build-internal' }
 }
 
 configurations {
