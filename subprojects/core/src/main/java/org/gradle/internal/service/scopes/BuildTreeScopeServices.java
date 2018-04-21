@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.project.DefaultProjectPathRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.DefaultExceptionAnalyser;
@@ -49,5 +50,9 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
         }
         return exceptionAnalyser;
+    }
+
+    public DefaultProjectPathRegistry createProjectPathRegistry() {
+        return new DefaultProjectPathRegistry();
     }
 }
