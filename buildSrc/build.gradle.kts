@@ -72,6 +72,10 @@ subprojects {
             plugin("org.gradle.kotlin.ktlint-convention")
         }
 
+        dependencies {
+            "ktlint"(kotlin("reflect"))
+        }
+
         tasks.withType<KotlinCompile> {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xjsr305=strict")
