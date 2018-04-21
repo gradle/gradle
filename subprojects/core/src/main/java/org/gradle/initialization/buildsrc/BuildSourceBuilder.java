@@ -17,6 +17,8 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -26,14 +28,15 @@ import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
@@ -55,14 +58,16 @@ public class BuildSourceBuilder {
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
+    private final BuildStateRegistry buildStateRegistry;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildStateRegistry) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
+        this.buildStateRegistry = buildStateRegistry;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle, File rootDir, StartParameter containingBuildParameters) {
@@ -111,8 +116,14 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(BuildDefinition buildDefinition) {
-        BuildController buildController = createBuildController(buildDefinition);
+        final BuildController buildController = createBuildController(buildDefinition);
         try {
+            buildController.getGradle().rootProject(new Action<Project>() {
+                @Override
+                public void execute(Project rootProject) {
+                    buildStateRegistry.addNestedBuild(buildController.getGradle().getSettings());
+                }
+            });
             File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
             FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
             try {

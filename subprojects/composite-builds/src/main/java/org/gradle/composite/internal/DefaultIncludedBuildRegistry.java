@@ -27,10 +27,12 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.CollectionUtils;
@@ -84,7 +86,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void validateExplicitIncludedBuilds(SettingsInternal settings) {
+    public void registerRootBuild(SettingsInternal settings) {
         validateIncludedBuilds(settings);
 
         registerRootBuildProjects(settings);
@@ -139,6 +141,13 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
+    @Override
+    public NestedBuildState addNestedBuild(SettingsInternal settings) {
+        NestedBuildImpl build = new NestedBuildImpl(settings);
+        projectRegistry.registerProjects(build);
+        return build;
+    }
+
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {
         // TODO: synchronization
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
@@ -151,32 +160,68 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void registerRootBuildProjects(final SettingsInternal settings) {
-        BuildState rootBuild = new BuildState() {
-            @Override
-            public SettingsInternal getLoadedSettings() {
-                return settings;
-            }
-
-            @Override
-            public Path getIdentityPathForProject(Path path) {
-                return path;
-            }
-
-            @Override
-            public BuildIdentifier getBuildIdentifier() {
-                return DefaultBuildIdentifier.ROOT;
-            }
-
-            @Override
-            public boolean isImplicitBuild() {
-                return false;
-            }
-        };
+        BuildState rootBuild = new RootBuild(settings);
         projectRegistry.registerProjects(rootBuild);
     }
 
     @Override
     public void stop() {
         CompositeStoppable.stoppable(includedBuilds.values()).stop();
+    }
+
+    private static class RootBuild implements BuildState {
+        private final SettingsInternal settings;
+
+        RootBuild(SettingsInternal settings) {
+            this.settings = settings;
+        }
+
+        @Override
+        public SettingsInternal getLoadedSettings() {
+            return settings;
+        }
+
+        @Override
+        public Path getIdentityPathForProject(Path path) {
+            return path;
+        }
+
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return DefaultBuildIdentifier.ROOT;
+        }
+
+        @Override
+        public boolean isImplicitBuild() {
+            return false;
+        }
+    }
+
+    private static class NestedBuildImpl implements NestedBuildState {
+        private final SettingsInternal settings;
+
+        NestedBuildImpl(SettingsInternal settings) {
+            this.settings = settings;
+        }
+
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return settings.getGradle().getServices().get(BuildIdentity.class).getCurrentBuild();
+        }
+
+        @Override
+        public boolean isImplicitBuild() {
+            return true;
+        }
+
+        @Override
+        public SettingsInternal getLoadedSettings() {
+            return settings;
+        }
+
+        @Override
+        public Path getIdentityPathForProject(Path projectPath) {
+            return settings.getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
+        }
     }
 }

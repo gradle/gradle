@@ -702,7 +702,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':impl:checkDeps'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':impl:conf'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':impl:conf'.")
         failure.assertHasCause("project :doesnotexist not found.")
     }
 
