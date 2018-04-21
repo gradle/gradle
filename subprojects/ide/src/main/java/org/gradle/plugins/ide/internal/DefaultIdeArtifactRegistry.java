@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
