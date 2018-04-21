@@ -22,6 +22,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.util.Path;
@@ -35,7 +37,8 @@ import java.util.Map;
 
 public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     private final Object lock = new Object();
-    private final Map<Path, ProjectPathEntry> allProjects = Maps.newLinkedHashMap();
+    private final Map<Path, ProjectPathEntry> projectsByPath = Maps.newLinkedHashMap();
+    private final Map<ProjectComponentIdentifier, ProjectPathEntry> projectsById = Maps.newLinkedHashMap();
     private final List<BuildState> pending = new LinkedList<BuildState>();
 
     public void registerProjects(BuildState build) {
@@ -48,7 +51,7 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     public Collection<ProjectPathEntry> getAllProjects() {
         synchronized (lock) {
             flushPending();
-            return allProjects.values();
+            return projectsByPath.values();
         }
     }
 
@@ -79,7 +82,23 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
     public ProjectState stateFor(Project project) {
         synchronized (lock) {
             flushPending();
-            return allProjects.get(((ProjectInternal) project).getIdentityPath());
+            ProjectPathEntry projectState = projectsByPath.get(((ProjectInternal) project).getIdentityPath());
+            if (projectState == null) {
+                throw new IllegalArgumentException("Could not find state for " + project);
+            }
+            return projectState;
+        }
+    }
+
+    @Override
+    public ProjectState stateFor(ProjectComponentIdentifier identifier) {
+        synchronized (lock) {
+            flushPending();
+            ProjectPathEntry projectState = projectsById.get(identifier);
+            if (projectState == null) {
+                throw new IllegalArgumentException("Could not find state for " + identifier);
+            }
+            return projectState;
         }
     }
 
@@ -88,7 +107,9 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
             for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
                 Path identityPath = build.getIdentityPathForProject(descriptor.path());
                 ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
-                allProjects.put(identityPath, new ProjectPathEntry(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild()));
+                ProjectPathEntry projectState = new ProjectPathEntry(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
+                projectsByPath.put(identityPath, projectState);
+                projectsById.put(projectComponentIdentifier, projectState);
             }
         }
         pending.clear();
@@ -115,7 +136,7 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
         @Nullable
         @Override
         public ProjectState getParent() {
-            return projectIdentityPath.getParent() == null ? null : allProjects.get(projectIdentityPath.getParent());
+            return projectIdentityPath.getParent() == null ? null : projectsByPath.get(projectIdentityPath.getParent());
         }
 
         @Override
@@ -126,6 +147,18 @@ public class DefaultProjectPathRegistry implements ProjectStateRegistry {
         @Override
         public ProjectComponentIdentifier getComponentIdentifier() {
             return identifier;
+        }
+
+        @Override
+        public <T> void withMutableState(Runnable action) {
+            withMutableState(Factories.toFactory(action));
+        }
+
+        @Override
+        public <T> T withMutableState(Factory<? extends T> action) {
+            synchronized (this) {
+                return action.create();
+            }
         }
     }
 }

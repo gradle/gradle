@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
@@ -41,7 +42,12 @@ public interface ProjectStateRegistry {
     Collection<? extends ProjectState> getAllExplicitProjects();
 
     /**
-     * Locates the state object that owns a given project object.
+     * Locates the state object that owns the given project object.
      */
     ProjectState stateFor(Project project);
+
+    /**
+     * Locates the state object that owns the project with the given identifier.
+     */
+    ProjectState stateFor(ProjectComponentIdentifier identifier);
 }

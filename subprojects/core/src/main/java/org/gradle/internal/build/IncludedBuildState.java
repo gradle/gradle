@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.Pair;
 
 import java.util.List;
@@ -39,7 +38,6 @@ public interface IncludedBuildState extends BuildState {
 
     ProjectComponentIdentifier idForProjectInThisBuild(String path);
 
-    SettingsInternal getLoadedSettings();
     GradleInternal getConfiguredBuild();
     void finishBuild();
     void addTasks(Iterable<String> tasks);
