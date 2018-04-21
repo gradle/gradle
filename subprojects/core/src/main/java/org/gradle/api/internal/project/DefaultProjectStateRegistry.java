@@ -34,8 +34,8 @@ import java.util.Map;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Object lock = new Object();
-    private final Map<Path, ProjectPathEntry> projectsByPath = Maps.newLinkedHashMap();
-    private final Map<ProjectComponentIdentifier, ProjectPathEntry> projectsById = Maps.newLinkedHashMap();
+    private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
+    private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final List<BuildState> pending = new LinkedList<BuildState>();
 
     public void registerProjects(BuildState build) {
@@ -45,7 +45,16 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public Collection<ProjectPathEntry> getAllProjects() {
+    public void register(ProjectInternal project) {
+        synchronized (lock) {
+            ProjectStateImpl projectState = new ProjectStateImpl(project.getIdentityPath(), project.getName(), DefaultProjectComponentIdentifier.newProjectId(project), false);
+            projectsByPath.put(projectState.projectIdentityPath, projectState);
+            projectsById.put(projectState.identifier, projectState);
+        }
+    }
+
+    @Override
+    public Collection<ProjectStateImpl> getAllProjects() {
         synchronized (lock) {
             flushPending();
             return projectsByPath.values();
@@ -64,9 +73,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     private Collection<? extends ProjectState> filterProjectPaths(final boolean isAddedImplicitly) {
         synchronized (lock) {
-            Collection<ProjectPathEntry> allProjects = getAllProjects();
+            Collection<ProjectStateImpl> allProjects = getAllProjects();
             List<ProjectState> result = new ArrayList<ProjectState>(allProjects.size());
-            for (ProjectPathEntry entry : allProjects) {
+            for (ProjectStateImpl entry : allProjects) {
                 if (entry.isAddedImplicitly == isAddedImplicitly) {
                     result.add(entry);
                 }
@@ -79,7 +88,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     public ProjectState stateFor(Project project) {
         synchronized (lock) {
             flushPending();
-            ProjectPathEntry projectState = projectsByPath.get(((ProjectInternal) project).getIdentityPath());
+            ProjectStateImpl projectState = projectsByPath.get(((ProjectInternal) project).getIdentityPath());
             if (projectState == null) {
                 throw new IllegalArgumentException("Could not find state for " + project);
             }
@@ -91,7 +100,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     public ProjectState stateFor(ProjectComponentIdentifier identifier) {
         synchronized (lock) {
             flushPending();
-            ProjectPathEntry projectState = projectsById.get(identifier);
+            ProjectStateImpl projectState = projectsById.get(identifier);
             if (projectState == null) {
                 throw new IllegalArgumentException("Could not find state for " + identifier);
             }
@@ -104,7 +113,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
                 Path identityPath = build.getIdentityPathForProject(descriptor.path());
                 ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
-                ProjectPathEntry projectState = new ProjectPathEntry(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
+                ProjectStateImpl projectState = new ProjectStateImpl(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
                 projectsByPath.put(identityPath, projectState);
                 projectsById.put(projectComponentIdentifier, projectState);
             }
@@ -112,13 +121,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         pending.clear();
     }
 
-    private class ProjectPathEntry implements ProjectState {
+    private class ProjectStateImpl implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
         private final boolean isAddedImplicitly;
         private final Path projectIdentityPath;
 
-        ProjectPathEntry(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+        ProjectStateImpl(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
             this.projectIdentityPath = projectIdentityPath;
             this.projectName = projectName;
             this.identifier = identifier;

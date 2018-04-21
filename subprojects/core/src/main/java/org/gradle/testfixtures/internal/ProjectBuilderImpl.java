@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -74,6 +75,7 @@ public class ProjectBuilderImpl {
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
+        project.getServices().get(ProjectStateRegistry.class).register(project);
         return project;
     }
 
@@ -101,6 +103,8 @@ public class ProjectBuilderImpl {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
+
+        gradle.getServices().get(ProjectStateRegistry.class).register(project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
