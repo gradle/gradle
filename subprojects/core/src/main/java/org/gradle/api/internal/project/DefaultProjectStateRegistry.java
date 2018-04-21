@@ -28,7 +28,6 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,11 +35,16 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
-    private final List<BuildState> pending = new LinkedList<BuildState>();
 
     public void registerProjects(BuildState build) {
         synchronized (lock) {
-            pending.add(build);
+            for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
+                Path identityPath = build.getIdentityPathForProject(descriptor.path());
+                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
+                ProjectStateImpl projectState = new ProjectStateImpl(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
+                projectsByPath.put(identityPath, projectState);
+                projectsById.put(projectComponentIdentifier, projectState);
+            }
         }
     }
 
@@ -56,7 +60,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public Collection<ProjectStateImpl> getAllProjects() {
         synchronized (lock) {
-            flushPending();
             return projectsByPath.values();
         }
     }
@@ -87,7 +90,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public ProjectState stateFor(Project project) {
         synchronized (lock) {
-            flushPending();
             ProjectStateImpl projectState = projectsByPath.get(((ProjectInternal) project).getIdentityPath());
             if (projectState == null) {
                 throw new IllegalArgumentException("Could not find state for " + project);
@@ -99,26 +101,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public ProjectState stateFor(ProjectComponentIdentifier identifier) {
         synchronized (lock) {
-            flushPending();
             ProjectStateImpl projectState = projectsById.get(identifier);
             if (projectState == null) {
-                throw new IllegalArgumentException("Could not find state for " + identifier);
+                throw new IllegalArgumentException(identifier.getDisplayName() + " not found.");
             }
             return projectState;
         }
-    }
-
-    private void flushPending() {
-        for (BuildState build : pending) {
-            for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
-                Path identityPath = build.getIdentityPathForProject(descriptor.path());
-                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
-                ProjectStateImpl projectState = new ProjectStateImpl(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
-                projectsByPath.put(identityPath, projectState);
-                projectsById.put(projectComponentIdentifier, projectState);
-            }
-        }
-        pending.clear();
     }
 
     private class ProjectStateImpl implements ProjectState {

@@ -321,13 +321,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(AutoAppliedPluginHandler.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory,
-                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                                                FileLockManager fileLockManager,
-                                                                BuildOperationExecutor buildOperationExecutor,
-                                                                CachedClasspathTransformer cachedClasspathTransformer,
-                                                                CachingServiceLocator cachingServiceLocator,
-                                                                BuildStateRegistry includedBuildRegistry) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, NestedBuildFactory nestedBuildFactory, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry includedBuildRegistry) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
@@ -340,7 +334,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new BuildSrcBuildListenerFactory(
                     PluginsProjectConfigureActions.of(
                         BuildSrcProjectConfigurationAction.class,
-                        cachingServiceLocator))),
+                        cachingServiceLocator)),
+                includedBuildRegistry),
             nestedBuildFactory,
             includedBuildRegistry);
     }
