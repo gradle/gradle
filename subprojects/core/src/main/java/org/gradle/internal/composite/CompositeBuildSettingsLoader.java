@@ -61,7 +61,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         }
 
         // Lock-in explicitly included builds
-        includedBuildRegistry.validateExplicitIncludedBuilds(settings);
+        includedBuildRegistry.registerRootBuild(settings);
 
         return settings;
     }

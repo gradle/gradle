@@ -34,20 +34,28 @@ public interface BuildStateRegistry {
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
-     * Locates a build by {@link BuildIdentifier}, if present.
+     * Locates an included build by {@link BuildIdentifier}, if present.
      */
     @Nullable
     IncludedBuildState getBuild(BuildIdentifier buildIdentifier);
 
-    void validateExplicitIncludedBuilds(SettingsInternal settings);
+    /**
+     * Registers the root build of the build tree.
+     */
+    void registerRootBuild(SettingsInternal settings);
 
     /**
-     * Registers an included build.
+     * Registers an included build. An included build is-a child build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
-     * Registers a child build that is not an included build.
+     * Registers a child build that is not an included or implicit build.
+     */
+    NestedBuildState addNestedBuild(SettingsInternal settings);
+
+    /**
+     * Registers an implicit build. An implicit build is-a child build whose outputs are used by dependency resolution.
      */
     IncludedBuildState addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 }
