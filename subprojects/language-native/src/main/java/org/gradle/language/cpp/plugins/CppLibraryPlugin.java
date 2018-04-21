@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -56,7 +57,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.language.cpp.CppBinary.*;
+import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
+import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
 /**
  * <p>A plugin that produces a native library from C++ source.</p>
@@ -200,7 +203,12 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                         return files.iterator().next();
                     }
                 });
-                apiElements.getOutgoing().artifact(publicHeaders);
+                apiElements.getOutgoing().artifact(publicHeaders, new Action<ConfigurablePublishArtifact>() {
+                    @Override
+                    public void execute(ConfigurablePublishArtifact configurablePublishArtifact) {
+                        configurablePublishArtifact.builtBy(library.getPublicHeaderDirs().getBuildDependencies());
+                    }
+                });
 
                 project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
                     @Override
