@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 import org.gradle.StartParameter
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.composite.CompositeBuildContext
+import org.gradle.api.internal.project.DefaultProjectPathRegistry
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.plugin.management.internal.DefaultPluginRequests

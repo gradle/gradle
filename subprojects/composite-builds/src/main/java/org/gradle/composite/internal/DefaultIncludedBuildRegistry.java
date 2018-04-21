@@ -25,6 +25,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.project.DefaultProjectPathRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;

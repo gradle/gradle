@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
+import org.gradle.api.internal.project.DefaultProjectPathRegistry;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.build.BuildStateRegistry;

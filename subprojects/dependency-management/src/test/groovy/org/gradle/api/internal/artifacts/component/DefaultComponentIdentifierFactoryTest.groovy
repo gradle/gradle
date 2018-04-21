@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 

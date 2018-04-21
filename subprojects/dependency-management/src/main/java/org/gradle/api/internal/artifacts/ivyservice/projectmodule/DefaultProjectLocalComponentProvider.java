@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
