@@ -23,8 +23,8 @@ import org.gradle.internal.build.BuildState
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 
-class DefaultProjectPathRegistryTest extends ConcurrentSpec {
-    def registry = new DefaultProjectPathRegistry()
+class DefaultProjectStateRegistryTest extends ConcurrentSpec {
+    def registry = new DefaultProjectStateRegistry()
 
     def "one thread can access state at a time"() {
         given:

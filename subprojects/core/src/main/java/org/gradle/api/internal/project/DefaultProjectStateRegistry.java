@@ -32,7 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultProjectPathRegistry implements ProjectStateRegistry {
+public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Object lock = new Object();
     private final Map<Path, ProjectPathEntry> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectPathEntry> projectsById = Maps.newLinkedHashMap();
