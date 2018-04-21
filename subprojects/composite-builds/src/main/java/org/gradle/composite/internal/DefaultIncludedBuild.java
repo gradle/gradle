@@ -40,7 +40,7 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -52,7 +52,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);

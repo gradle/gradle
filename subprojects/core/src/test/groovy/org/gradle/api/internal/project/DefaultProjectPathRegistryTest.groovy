@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal
+package org.gradle.api.internal.project
 
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState

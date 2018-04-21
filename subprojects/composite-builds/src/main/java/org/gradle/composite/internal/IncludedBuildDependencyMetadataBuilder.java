@@ -39,7 +39,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
     public Map<ProjectComponentIdentifier, RegisteredProject> build(IncludedBuildState build) {
