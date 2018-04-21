@@ -25,7 +25,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.project.DefaultProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
@@ -45,14 +45,14 @@ import java.util.Set;
 
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
-    private final DefaultProjectStateRegistry projectRegistry;
+    private final ProjectStateRegistry projectRegistry;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
 
     // TODO: Locking around this state
     // TODO: use some kind of build identifier as the key
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, DefaultProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
         this.includedBuildFactory = includedBuildFactory;
         this.projectRegistry = projectRegistry;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
