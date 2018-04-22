@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.Pair;
+import org.gradle.internal.build.BuildStateRegistry;
 
 import java.util.Set;
 
 public interface CompositeBuildContext extends LocalComponentProvider, DependencySubstitutionRules {
     void addAvailableModules(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules);
     void registerSubstitution(Action<DependencySubstitution> substitutions);
-    void setIncludedBuildRegistry(BuildStateRegistry includedBuildRegistry);
+    void setIncludedBuildRegistry(BuildStateRegistry buildRegistry);
 }

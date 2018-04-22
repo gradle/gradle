@@ -58,16 +58,16 @@ public class BuildSourceBuilder {
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
-    private final BuildStateRegistry buildStateRegistry;
+    private final BuildStateRegistry buildRegistry;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildStateRegistry) {
+    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry) {
         this.nestedBuildFactory = nestedBuildFactory;
         this.classLoaderScope = classLoaderScope;
         this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.buildSrcBuildListenerFactory = buildSrcBuildListenerFactory;
-        this.buildStateRegistry = buildStateRegistry;
+        this.buildRegistry = buildRegistry;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle, File rootDir, StartParameter containingBuildParameters) {
@@ -121,7 +121,7 @@ public class BuildSourceBuilder {
             buildController.getGradle().rootProject(new Action<Project>() {
                 @Override
                 public void execute(Project rootProject) {
-                    buildStateRegistry.addNestedBuild(buildController.getGradle().getSettings());
+                    buildRegistry.addNestedBuild(buildController.getGradle().getSettings());
                 }
             });
             File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
