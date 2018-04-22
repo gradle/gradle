@@ -28,8 +28,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
@@ -85,15 +83,13 @@ public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
     private final IdeArtifactRegistry artifactRegistry;
-    private final ProjectStateRegistry projectPathRegistry;
     private DefaultXcodeProject xcodeProject;
 
     @Inject
-    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectPathRegistry) {
+    public XcodePlugin(GidGenerator gidGenerator, ObjectFactory objectFactory, IdeArtifactRegistry artifactRegistry) {
         this.gidGenerator = gidGenerator;
         this.objectFactory = objectFactory;
         this.artifactRegistry = artifactRegistry;
-        this.projectPathRegistry = projectPathRegistry;
     }
 
     @Override
@@ -161,7 +157,7 @@ public class XcodePlugin extends IdePlugin {
         projectFileTask.setXcodeProject(xcodeProject);
         projectFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.pbxproj"));
 
-        artifactRegistry.registerIdeArtifact(new XcodeProjectMetadata(xcodeProject, projectFileTask));
+        artifactRegistry.registerIdeProject(new XcodeProjectMetadata(xcodeProject, projectFileTask));
 
         return projectFileTask;
     }
@@ -176,7 +172,7 @@ public class XcodePlugin extends IdePlugin {
         GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
         workspaceFileTask.dependsOn(workspaceSettingsFileTask);
         workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
-        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeArtifacts(XcodeProjectMetadata.class));
+        workspaceFileTask.setXcodeProjectLocations(artifactRegistry.getIdeProjectFiles(XcodeProjectMetadata.class));
 
         return workspaceFileTask;
     }
@@ -453,12 +449,8 @@ public class XcodePlugin extends IdePlugin {
             @Override
             public boolean isSatisfiedBy(ComponentIdentifier id) {
                 if (id instanceof ProjectComponentIdentifier) {
-                    ProjectComponentIdentifier identifier = (ProjectComponentIdentifier) id;
-                    for (ProjectState project : projectPathRegistry.getAllImplicitProjects()) {
-                        if (identifier.equals(project.getComponentIdentifier())) {
-                            return true;
-                        }
-                    }
+                    // Include as binary when the target project is not included in the workspace
+                    return artifactRegistry.getIdeProject(XcodeProjectMetadata.class, (ProjectComponentIdentifier) id) == null;
                 }
                 return false;
             }

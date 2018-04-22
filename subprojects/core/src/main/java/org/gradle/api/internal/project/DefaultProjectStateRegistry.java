@@ -26,9 +26,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
@@ -41,7 +39,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
                 Path identityPath = build.getIdentityPathForProject(descriptor.path());
                 ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
-                ProjectStateImpl projectState = new ProjectStateImpl(identityPath, descriptor.getName(), projectComponentIdentifier, build.isImplicitBuild());
+                ProjectStateImpl projectState = new ProjectStateImpl(build, identityPath, descriptor.getName(), projectComponentIdentifier);
                 projectsByPath.put(identityPath, projectState);
                 projectsById.put(projectComponentIdentifier, projectState);
             }
@@ -49,9 +47,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void register(ProjectInternal project) {
+    public void register(BuildState owner, ProjectInternal project) {
         synchronized (lock) {
-            ProjectStateImpl projectState = new ProjectStateImpl(project.getIdentityPath(), project.getName(), DefaultProjectComponentIdentifier.newProjectId(project), false);
+            ProjectStateImpl projectState = new ProjectStateImpl(owner, project.getIdentityPath(), project.getName(), DefaultProjectComponentIdentifier.newProjectId(project));
             projectsByPath.put(projectState.projectIdentityPath, projectState);
             projectsById.put(projectState.identifier, projectState);
         }
@@ -61,29 +59,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     public Collection<ProjectStateImpl> getAllProjects() {
         synchronized (lock) {
             return projectsByPath.values();
-        }
-    }
-
-    @Override
-    public Collection<? extends ProjectState> getAllExplicitProjects() {
-        return filterProjectPaths(false);
-    }
-
-    @Override
-    public Collection<? extends ProjectState> getAllImplicitProjects() {
-        return filterProjectPaths(true);
-    }
-
-    private Collection<? extends ProjectState> filterProjectPaths(final boolean isAddedImplicitly) {
-        synchronized (lock) {
-            Collection<ProjectStateImpl> allProjects = getAllProjects();
-            List<ProjectState> result = new ArrayList<ProjectState>(allProjects.size());
-            for (ProjectStateImpl entry : allProjects) {
-                if (entry.isAddedImplicitly == isAddedImplicitly) {
-                    result.add(entry);
-                }
-            }
-            return result;
         }
     }
 
@@ -112,19 +87,24 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private class ProjectStateImpl implements ProjectState {
         private final String projectName;
         private final ProjectComponentIdentifier identifier;
-        private final boolean isAddedImplicitly;
+        private final BuildState owner;
         private final Path projectIdentityPath;
 
-        ProjectStateImpl(Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier, boolean isAddedImplicitly) {
+        ProjectStateImpl(BuildState owner, Path projectIdentityPath, String projectName, ProjectComponentIdentifier identifier) {
+            this.owner = owner;
             this.projectIdentityPath = projectIdentityPath;
             this.projectName = projectName;
             this.identifier = identifier;
-            this.isAddedImplicitly = isAddedImplicitly;
         }
 
         @Override
         public String toString() {
             return identifier.getDisplayName();
+        }
+
+        @Override
+        public BuildState getOwner() {
+            return owner;
         }
 
         @Nullable

@@ -37,7 +37,7 @@ public class ProjectDependencyBuilder {
     }
 
     public String determineTargetProjectName(ProjectComponentIdentifier id) {
-        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata.class, id);
+        EclipseProjectMetadata eclipseProject = ideArtifactRegistry.getIdeProject(EclipseProjectMetadata.class, id);
         return eclipseProject == null ? id.getProjectName() : eclipseProject.getName();
     }
 

@@ -350,7 +350,7 @@ public class IdeaProject implements IdeWorkspace {
 
     private void configureModulePaths(Project xmlProject) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {
                 // IDEA Module for project in current build: handled via `modules` model elements.

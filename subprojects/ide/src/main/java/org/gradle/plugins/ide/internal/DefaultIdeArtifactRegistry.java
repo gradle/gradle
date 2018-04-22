@@ -41,40 +41,46 @@ import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifie
 
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
-    private final ProjectStateRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectRegistry;
     private final DomainObjectContext domainObjectContext;
     private final BuildIdentity buildIdentity;
     private final FileOperations fileOperations;
 
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectPathRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
+    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
         this.store = store;
-        this.projectPathRegistry = projectPathRegistry;
+        this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
         this.domainObjectContext = domainObjectContext;
         this.buildIdentity = buildIdentity;
     }
 
     @Override
-    public void registerIdeArtifact(final IdeProjectMetadata ideProjectMetadata) {
+    public void registerIdeProject(final IdeProjectMetadata ideProjectMetadata) {
         ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
         store.put(projectId, ideProjectMetadata);
     }
 
     @Nullable
     @Override
-    public <T extends IdeProjectMetadata> T getIdeArtifactMetadata(Class<T> type, ProjectComponentIdentifier project) {
-        for (IdeProjectMetadata ideProjectMetadata : store.get(project)) {
-            if (type.isInstance(ideProjectMetadata)) {
-                return type.cast(ideProjectMetadata);
+    public <T extends IdeProjectMetadata> T getIdeProject(Class<T> type, ProjectComponentIdentifier project) {
+        ProjectState projectState = projectRegistry.stateFor(project);
+        if (!projectState.getOwner().isImplicitBuild()) {
+            for (IdeProjectMetadata ideProjectMetadata : store.get(project)) {
+                if (type.isInstance(ideProjectMetadata)) {
+                    return type.cast(ideProjectMetadata);
+                }
             }
         }
         return null;
     }
 
     @Override
-    public <T extends IdeProjectMetadata> List<Reference<T>> getIdeArtifactMetadata(Class<T> type) {
+    public <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type) {
         List<Reference<T>> result = Lists.newArrayList();
-        for (ProjectState project : projectPathRegistry.getAllExplicitProjects()) {
+        for (ProjectState project : projectRegistry.getAllProjects()) {
+            if (project.getOwner().isImplicitBuild()) {
+                continue;
+            }
             ProjectComponentIdentifier projectId = project.getComponentIdentifier();
             for (IdeProjectMetadata ideProjectMetadata : store.get(projectId)) {
                 if (type.isInstance(ideProjectMetadata)) {
@@ -93,12 +99,12 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     }
 
     @Override
-    public FileCollection getIdeArtifacts(final Class<? extends IdeProjectMetadata> type) {
+    public FileCollection getIdeProjectFiles(final Class<? extends IdeProjectMetadata> type) {
         return fileOperations.files(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
                 return CollectionUtils.collect(
-                    getIdeArtifactMetadata(type),
+                    getIdeProjects(type),
                     new Transformer<FileCollection, Reference<?>>() {
                         @Override
                         public FileCollection transform(Reference<?> result) {
