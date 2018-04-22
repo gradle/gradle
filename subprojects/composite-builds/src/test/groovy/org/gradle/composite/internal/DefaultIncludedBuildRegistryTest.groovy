@@ -18,7 +18,6 @@ package org.gradle.composite.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.composite.CompositeBuildContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
@@ -32,7 +31,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def nestedBuildFactory = Stub(NestedBuildFactory)
     def includedBuildFactory = Stub(IncludedBuildFactory)
-    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(CompositeBuildContext))
+    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder))
 
     def "is empty by default"() {
         expect:
