@@ -30,6 +30,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,7 +41,6 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -113,7 +113,14 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        return Path.ROOT.child(getName()).append(projectPath);
+        GradleInternal parentBuild = getLoadedSettings().getGradle().getParent();
+        Path rootPath;
+        if (parentBuild == null) {
+            rootPath = Path.ROOT.child(getName());
+        } else {
+            rootPath = parentBuild.getIdentityPath().child(getName());
+        }
+        return rootPath.append(projectPath);
     }
 
     @Override
