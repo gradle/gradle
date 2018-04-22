@@ -18,9 +18,12 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -36,6 +39,7 @@ import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -51,6 +55,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.util.Path;
 
 import java.io.File;
 
@@ -75,7 +80,7 @@ public class ProjectBuilderImpl {
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
-        project.getServices().get(ProjectStateRegistry.class).register(project);
+        project.getServices().get(ProjectStateRegistry.class).register(new TestRootBuild(), project);
         return project;
     }
 
@@ -104,7 +109,7 @@ public class ProjectBuilderImpl {
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
-        gradle.getServices().get(ProjectStateRegistry.class).register(project);
+        gradle.getServices().get(ProjectStateRegistry.class).register(new TestRootBuild(), project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
@@ -153,5 +158,27 @@ public class ProjectBuilderImpl {
             projectDir = FileUtils.canonicalize(projectDir);
         }
         return projectDir;
+    }
+
+    private static class TestRootBuild implements BuildState {
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return DefaultBuildIdentifier.ROOT;
+        }
+
+        @Override
+        public boolean isImplicitBuild() {
+            return false;
+        }
+
+        @Override
+        public SettingsInternal getLoadedSettings() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Path getIdentityPathForProject(Path projectPath) {
+            return projectPath;
+        }
     }
 }

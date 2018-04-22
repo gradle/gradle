@@ -76,7 +76,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState getBuild(final BuildIdentifier buildIdentifier) {
+    public IncludedBuildState getIncludedBuild(final BuildIdentifier buildIdentifier) {
         return CollectionUtils.findFirst(includedBuilds.values(), new Spec<IncludedBuildState>() {
             @Override
             public boolean isSatisfiedBy(IncludedBuildState includedBuild) {

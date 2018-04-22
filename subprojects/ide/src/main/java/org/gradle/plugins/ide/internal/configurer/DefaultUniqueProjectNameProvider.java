@@ -41,7 +41,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
     private synchronized Map<ProjectState, String> getDeduplicatedNames() {
         if (deduplicated == null) {
             HierarchicalElementDeduplicator<ProjectState> deduplicator = new HierarchicalElementDeduplicator<ProjectState>(new ProjectPathDeduplicationAdapter());
-            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllExplicitProjects());
+            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
         }
         return deduplicated;
     }

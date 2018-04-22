@@ -26,6 +26,32 @@ import org.gradle.util.Path
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def registry = new DefaultProjectStateRegistry()
 
+    def "adds projects for a build"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+
+        expect:
+        registry.allProjects.size() == 3
+
+        def root = registry.stateFor(project(":"))
+        root.name == "root"
+        root.componentIdentifier.projectPath == ":"
+        root.parent == null
+        def p1 = registry.stateFor(project("p1"))
+        p1.name == "p1"
+        p1.parent == root
+        p1.componentIdentifier.projectPath == ":p1"
+        def p2 = registry.stateFor(project("p2"))
+        p2.name == "p2"
+        p2.parent == root
+        p2.componentIdentifier.projectPath == ":p2"
+
+        registry.stateFor(root.componentIdentifier).is(root)
+        registry.stateFor(p1.componentIdentifier).is(p1)
+        registry.stateFor(p2.componentIdentifier).is(p2)
+    }
+
     def "one thread can access state at a time"() {
         given:
         def build = build("p1")
@@ -57,7 +83,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
     ProjectInternal project(String name) {
         def project = Stub(ProjectInternal)
-        project.identityPath >> Path.ROOT.child(name)
+        project.identityPath >> (name == ':' ? Path.ROOT : Path.ROOT.child(name))
         return project
     }
 
