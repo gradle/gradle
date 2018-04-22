@@ -42,6 +42,7 @@ dependencies {
 
     runtimeOnly(library("bouncycastle_provider"))
     runtimeOnly(project(":installationBeacon"))
+    runtimeOnly(project(":compositeBuilds"))
 
     testImplementation(library("nekohtml"))
 

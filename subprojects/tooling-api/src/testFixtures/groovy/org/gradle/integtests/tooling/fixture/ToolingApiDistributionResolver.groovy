@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.NestedBuildFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classpath.ClassPath
@@ -108,6 +109,7 @@ class ToolingApiDistributionResolver {
                 return new DefaultBuildIdentifier(":")
             }
         })
+        topLevelRegistry.add(NestedBuildFactory, {} as NestedBuildFactory)
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
