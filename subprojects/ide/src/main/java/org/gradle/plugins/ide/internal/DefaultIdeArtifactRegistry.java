@@ -65,6 +65,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     public <T extends IdeProjectMetadata> T getIdeProject(Class<T> type, ProjectComponentIdentifier project) {
         ProjectState projectState = projectRegistry.stateFor(project);
         if (!projectState.getOwner().isImplicitBuild()) {
+            // Do not include implicit builds in workspace
             for (IdeProjectMetadata ideProjectMetadata : store.get(project)) {
                 if (type.isInstance(ideProjectMetadata)) {
                     return type.cast(ideProjectMetadata);
@@ -79,6 +80,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         List<Reference<T>> result = Lists.newArrayList();
         for (ProjectState project : projectRegistry.getAllProjects()) {
             if (project.getOwner().isImplicitBuild()) {
+                // Do not include implicit builds in workspace
                 continue;
             }
             ProjectComponentIdentifier projectId = project.getComponentIdentifier();

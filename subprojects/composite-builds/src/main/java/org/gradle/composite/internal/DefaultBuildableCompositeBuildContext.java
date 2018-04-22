@@ -44,7 +44,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
-    private BuildStateRegistry includedBuildRegistry;
+    private BuildStateRegistry buildRegistry;
 
     public DefaultBuildableCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory, IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -90,7 +90,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
             // TODO: This shouldn't rely on the state of configuredBuilds to figure out whether or not we should configure this build again
             // This is to prevent a recursive loop through this when we're configuring the build
             configuredBuilds.add(buildIdentifier);
-            IncludedBuildState includedBuild = includedBuildRegistry.getIncludedBuild(buildIdentifier);
+            IncludedBuildState includedBuild = buildRegistry.getIncludedBuild(buildIdentifier);
             if (includedBuild != null) {
                 projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
                 registeredProject = projectMetadata.get(project);
@@ -103,7 +103,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     @Override
-    public void setIncludedBuildRegistry(BuildStateRegistry includedBuildRegistry) {
-        this.includedBuildRegistry = includedBuildRegistry;
+    public void setIncludedBuildRegistry(BuildStateRegistry buildRegistry) {
+        this.buildRegistry = buildRegistry;
     }
 }
