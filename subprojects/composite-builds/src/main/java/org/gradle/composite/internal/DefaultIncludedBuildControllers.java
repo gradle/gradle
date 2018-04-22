@@ -31,10 +31,10 @@ import java.util.Map;
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
-    private final BuildStateRegistry includedBuildRegistry;
+    private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry includedBuildRegistry) {
-        this.includedBuildRegistry = includedBuildRegistry;
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry) {
+        this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
     }
 
@@ -44,7 +44,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuildState build = includedBuildRegistry.getIncludedBuild(buildId);
+        IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(newBuildController);
@@ -77,7 +77,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
-        for (IncludedBuildState includedBuild : includedBuildRegistry.getIncludedBuilds()) {
+        for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
             includedBuild.finishBuild();
         }
     }

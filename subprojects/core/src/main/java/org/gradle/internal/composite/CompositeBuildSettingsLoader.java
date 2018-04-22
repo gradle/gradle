@@ -19,11 +19,11 @@ package org.gradle.internal.composite;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 
 import java.io.File;
@@ -32,12 +32,12 @@ import java.util.List;
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
     private final NestedBuildFactory nestedBuildFactory;
-    private final BuildStateRegistry includedBuildRegistry;
+    private final BuildStateRegistry buildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, BuildStateRegistry includedBuildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, BuildStateRegistry buildRegistry) {
         this.delegate = delegate;
         this.nestedBuildFactory = nestedBuildFactory;
-        this.includedBuildRegistry = includedBuildRegistry;
+        this.buildRegistry = buildRegistry;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         if (!includedBuilds.isEmpty()) {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
-                IncludedBuildState includedBuild = includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
+                IncludedBuildState includedBuild = buildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
                 includedBuildSpec.configurer.execute(includedBuild.getModel());
             }
         }
@@ -57,11 +57,11 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         // Add all included builds from the command-line
         for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
             // TODO: Allow builds to inject into explicitly included builds
-            includedBuildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
+            buildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
         }
 
         // Lock-in explicitly included builds
-        includedBuildRegistry.registerRootBuild(settings);
+        buildRegistry.registerRootBuild(settings);
 
         return settings;
     }
