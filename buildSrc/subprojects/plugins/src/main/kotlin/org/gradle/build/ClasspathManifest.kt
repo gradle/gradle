@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
@@ -40,7 +39,7 @@ import java.util.Properties
 @Suppress("unused")
 open class ClasspathManifest : DefaultTask() {
 
-    @get:Classpath
+    @get:Internal
     val input: Configuration = project.configurations["runtimeClasspath"]
 
     @get:Input
