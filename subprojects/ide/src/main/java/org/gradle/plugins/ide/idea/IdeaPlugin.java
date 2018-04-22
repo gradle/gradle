@@ -305,7 +305,7 @@ public class IdeaPlugin extends IdePlugin {
 
         });
 
-        artifactRegistry.registerIdeArtifact(new IdeaModuleMetadata(module, task));
+        artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module, task));
 
         addWorker(task);
     }
@@ -503,7 +503,7 @@ public class IdeaPlugin extends IdePlugin {
     private List<TaskDependency> allImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject) {
         List<TaskDependency> dependencies = Lists.newArrayList();
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {
                 // IDEA Module for project in current build: don't include any module that has been excluded from project

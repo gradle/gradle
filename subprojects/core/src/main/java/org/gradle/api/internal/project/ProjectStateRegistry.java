@@ -33,17 +33,7 @@ public interface ProjectStateRegistry {
     Collection<? extends ProjectState> getAllProjects();
 
     /**
-     * Returns all projects from all implicitly included builds in the build tree.
-     */
-    Collection<? extends ProjectState> getAllImplicitProjects();
-
-    /**
-     * Returns all projects from all explicitly included builds in the build tree.
-     */
-    Collection<? extends ProjectState> getAllExplicitProjects();
-
-    /**
-     * Locates the state object that owns the given project object.
+     * Locates the state object that owns the given public project model.
      */
     ProjectState stateFor(Project project);
 
@@ -52,7 +42,13 @@ public interface ProjectStateRegistry {
      */
     ProjectState stateFor(ProjectComponentIdentifier identifier);
 
-    void register(ProjectInternal project);
+    /**
+     * Registers a project.
+     */
+    void register(BuildState owner, ProjectInternal project);
 
-    void registerProjects(BuildState buildState);
+    /**
+     * Registers the projects of a build.
+     */
+    void registerProjects(BuildState build);
 }

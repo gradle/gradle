@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildState;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,6 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public interface ProjectState {
+    /**
+     * Returns the containing build of this project.
+     */
+    BuildState getOwner();
+
     /**
      * Returns the parent of this project in the project tree. Note that this isn't the same as {@link Project#getParent()}.
      */

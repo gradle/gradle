@@ -37,7 +37,7 @@ public interface BuildStateRegistry {
      * Locates an included build by {@link BuildIdentifier}, if present.
      */
     @Nullable
-    IncludedBuildState getBuild(BuildIdentifier buildIdentifier);
+    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**
      * Registers the root build of the build tree.

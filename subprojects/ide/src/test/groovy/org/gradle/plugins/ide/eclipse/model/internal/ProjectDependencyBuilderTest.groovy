@@ -34,7 +34,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         dependency.path == "/project-name"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
+        artifactRegistry.getIdeProject(_, _) >> null
     }
 
     def "should create dependency using eclipse projectName"() {
@@ -42,7 +42,7 @@ class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
         def projectMetadata = Stub(EclipseProjectMetadata) {
             getName() >> "foo"
         }
-        artifactRegistry.getIdeArtifactMetadata(EclipseProjectMetadata, projectId) >> projectMetadata
+        artifactRegistry.getIdeProject(EclipseProjectMetadata, projectId) >> projectMetadata
 
         when:
         def dependency = builder.build(projectId)

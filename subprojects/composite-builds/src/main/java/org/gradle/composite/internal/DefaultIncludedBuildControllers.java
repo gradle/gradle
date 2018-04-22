@@ -44,7 +44,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuildState build = includedBuildRegistry.getBuild(buildId);
+        IncludedBuildState build = includedBuildRegistry.getIncludedBuild(buildId);
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(newBuildController);
