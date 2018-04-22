@@ -38,7 +38,7 @@ import java.util.Set;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     // TODO: Synchronization
-    private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
+    private final Map<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = Maps.newHashMap();
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = Sets.newHashSet();
     private final Set<BuildIdentifier> configuredBuilds = Sets.newHashSet();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
@@ -53,8 +53,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = getRegisteredProject(project);
-        return registeredProject != null ? registeredProject.metaData : null;
+        return getRegisteredProject(project);
     }
 
     @Override
@@ -83,23 +82,23 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return !(availableModules.isEmpty() && substitutionRules.isEmpty());
     }
 
-    private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = projectMetadata.get(project);
+    private LocalComponentMetadata getRegisteredProject(ProjectComponentIdentifier project) {
+        LocalComponentMetadata metadata = projectMetadata.get(project);
         BuildIdentifier buildIdentifier = project.getBuild();
-        if (registeredProject == null && !configuredBuilds.contains(buildIdentifier)) {
+        if (metadata == null && !configuredBuilds.contains(buildIdentifier)) {
             // TODO: This shouldn't rely on the state of configuredBuilds to figure out whether or not we should configure this build again
             // This is to prevent a recursive loop through this when we're configuring the build
             configuredBuilds.add(buildIdentifier);
             IncludedBuildState includedBuild = buildRegistry.getIncludedBuild(buildIdentifier);
             if (includedBuild != null) {
                 projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
-                registeredProject = projectMetadata.get(project);
-                if (registeredProject == null) {
+                metadata = projectMetadata.get(project);
+                if (metadata == null) {
                     throw new IllegalStateException(project + " was not found.");
                 }
             }
         }
-        return registeredProject;
+        return metadata;
     }
 
     @Override

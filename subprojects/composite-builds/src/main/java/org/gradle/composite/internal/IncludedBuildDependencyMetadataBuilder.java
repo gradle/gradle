@@ -42,8 +42,8 @@ import java.util.Set;
 import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
-    public Map<ProjectComponentIdentifier, RegisteredProject> build(IncludedBuildState build) {
-        Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects = Maps.newHashMap();
+    public Map<ProjectComponentIdentifier, LocalComponentMetadata> build(IncludedBuildState build) {
+        Map<ProjectComponentIdentifier, LocalComponentMetadata> registeredProjects = Maps.newHashMap();
         Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
             registerProject(registeredProjects, build, (ProjectInternal) project);
@@ -51,14 +51,14 @@ public class IncludedBuildDependencyMetadataBuilder {
         return registeredProjects;
     }
 
-    private void registerProject(Map<ProjectComponentIdentifier, RegisteredProject> registeredProjects, IncludedBuildState build, ProjectInternal project) {
+    private void registerProject(Map<ProjectComponentIdentifier, LocalComponentMetadata> registeredProjects, IncludedBuildState build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
         ProjectComponentIdentifier componentIdentifier = build.idForProjectInThisBuild(project.getPath());
         LocalComponentMetadata compositeComponent = createCompositeCopy(build.getModel(), componentIdentifier, originalComponent);
-        registeredProjects.put(componentIdentifier, new RegisteredProject(compositeComponent));
+        registeredProjects.put(componentIdentifier, compositeComponent);
     }
 
     private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {

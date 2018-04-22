@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A provider of dependency resolution metadata for locally produced components.
@@ -27,6 +28,7 @@ import javax.annotation.Nullable;
  *
  * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type.</p>
  */
+@ThreadSafe
 public interface LocalComponentProvider {
     /**
      * @return The component metadata for the supplied identifier.

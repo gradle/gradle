@@ -24,7 +24,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildIdentity;
@@ -54,11 +53,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     // TODO: use some kind of build identifier as the key
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, CompositeBuildContext compositeBuildContext) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder) {
         this.includedBuildFactory = includedBuildFactory;
         this.projectRegistry = projectRegistry;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
-        compositeBuildContext.setIncludedBuildRegistry(this);
     }
 
     public boolean hasIncludedBuilds() {

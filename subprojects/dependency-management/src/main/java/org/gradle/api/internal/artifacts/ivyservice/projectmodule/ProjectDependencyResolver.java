@@ -94,37 +94,27 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public void resolve(DependencyMetadata dependency, ResolvedVersionConstraint versionConstraint, final BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
-            final ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            final ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
-            projectStateRegistry.stateFor(projectId).withMutableState(new Runnable() {
-                @Override
-                public void run() {
-                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
-                    if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(selector, projectId + " not found."));
-                    } else {
-                        result.resolved(componentMetaData);
-                    }
-                }
-            });
+            ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
+            ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
+            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
+            if (componentMetaData == null) {
+                result.failed(new ModuleVersionResolveException(selector, projectId + " not found."));
+            } else {
+                result.resolved(componentMetaData);
+            }
         }
     }
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, final BuildableComponentResolveResult result) {
         if (isProjectModule(identifier)) {
-            final ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
-            projectStateRegistry.stateFor(projectId).withMutableState(new Runnable() {
-                @Override
-                public void run() {
-                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
-                    if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
-                    } else {
-                        result.resolved(componentMetaData);
-                    }
-                }
-            });
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
+            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
+            if (componentMetaData == null) {
+                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
+            } else {
+                result.resolved(componentMetaData);
+            }
         }
     }
 
