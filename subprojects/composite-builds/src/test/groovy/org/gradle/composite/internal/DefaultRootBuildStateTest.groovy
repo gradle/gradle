@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec
+package org.gradle.composite.internal
 
 import org.gradle.BuildResult
+import org.gradle.api.Action
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.BuildRequestContext
@@ -25,17 +27,17 @@ import org.gradle.initialization.DefaultGradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
-class InProcessBuildActionExecuterTest extends Specification {
-    final GradleLauncherFactory factory = Mock()
+class DefaultRootBuildStateTest extends Specification {
+    def factory = Mock(GradleLauncherFactory)
     final DefaultGradleLauncher launcher = Mock()
     final BuildRequestContext buildRequestContext = Mock()
     final BuildActionParameters param = Mock()
@@ -48,11 +50,10 @@ class InProcessBuildActionExecuterTest extends Specification {
     final BuildOperationExecutor buildOperationExecutor = Mock()
     final WorkerLeaseService workerLeaseService = new TestWorkerLeaseService()
     final RootBuildLifecycleListener lifecycleListener = Mock()
-    BuildAction action = Mock() {
-        getStartParameter() >> startParameter
-    }
-    final ServiceRegistry sessionServices = Mock()
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(actionRunner)
+    def action = Mock(Action)
+    def sessionServices = Mock(ServiceRegistry)
+    def buildDefinition = Mock(BuildDefinition)
+    def build = new DefaultRootBuildState(buildDefinition, buildRequestContext, factory, listenerManager, sessionServices)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
@@ -66,21 +67,21 @@ class InProcessBuildActionExecuterTest extends Specification {
         _ * gradle.services >> sessionServices
     }
 
-    def "creates launcher and forwards action to action runner after notifying listeners"() {
+    def "creates launcher and runs action after notifying listeners"() {
         when:
-        def result = executer.execute(action, buildRequestContext, param, sessionServices)
+        def result = build.run(action)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
 
         then:
         1 * lifecycleListener.afterStart()
 
         then:
-        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             controller.result = '<result>'
         }
 
@@ -93,14 +94,14 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "can have null result"() {
         when:
-        def result = executer.execute(action, buildRequestContext, param, sessionServices)
+        def result = build.run(action)
 
         then:
         result == null
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
-        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
+        1 * action.execute(!null) >> { BuildController controller ->
             assert !controller.hasResult()
             controller.result = null
             assert controller.hasResult()
@@ -110,15 +111,15 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "runs build when requested by action"() {
         when:
-        def result = executer.execute(action, buildRequestContext, param, sessionServices)
+        def result = build.run(action)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
-        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             assert controller.run() == gradle
             controller.result = '<result>'
         }
@@ -127,15 +128,15 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "configures build when requested by action"() {
         when:
-        def result = executer.execute(action, buildRequestContext, param, sessionServices)
+        def result = build.run(action)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> gradle
-        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             assert controller.configure() == gradle
             controller.result = '<result>'
         }
@@ -144,20 +145,20 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "cannot request configuration after build has been run"() {
         given:
-        actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+        action.execute(!null) >> { BuildController controller ->
             controller.run()
             controller.configure()
         }
 
         when:
-        executer.execute(action, buildRequestContext, param, sessionServices)
+        build.run(action)
 
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
         1 * launcher.stop()
     }
@@ -166,15 +167,15 @@ class InProcessBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, param, sessionServices)
+        build.run(action)
 
         then:
         RuntimeException e = thrown()
         e == failure
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
-        1 * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller -> throw failure }
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
+        1 * action.execute(!null) >> { BuildController controller -> throw failure }
         1 * lifecycleListener.beforeComplete()
         1 * launcher.stop()
     }
@@ -183,16 +184,16 @@ class InProcessBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, param, sessionServices)
+        build.run(action)
 
         then:
         RuntimeException e = thrown()
         e == failure
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> { throw failure }
-        1 * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             controller.run()
         }
         1 * lifecycleListener.beforeComplete()
@@ -203,16 +204,16 @@ class InProcessBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, param, sessionServices)
+        build.run(action)
 
         then:
         RuntimeException e = thrown()
         e == failure
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> { throw failure }
-        1 * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             controller.configure()
         }
         1 * lifecycleListener.beforeComplete()
@@ -221,16 +222,16 @@ class InProcessBuildActionExecuterTest extends Specification {
 
     def "cannot run after configuration failure"() {
         when:
-        executer.execute(action, buildRequestContext, param, sessionServices)
+        build.run(action)
 
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, buildRequestContext, sessionServices) >> launcher
         1 * launcher.configuredBuild >> { throw new RuntimeException() }
-        1 * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+        1 * action.execute(!null) >> { BuildController controller ->
             try {
                 controller.configure()
             } catch (RuntimeException) {

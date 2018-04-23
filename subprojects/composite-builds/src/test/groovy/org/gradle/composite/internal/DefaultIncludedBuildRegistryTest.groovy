@@ -18,9 +18,15 @@ package org.gradle.composite.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.initialization.BuildRequestContext
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -31,12 +37,19 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def nestedBuildFactory = Stub(NestedBuildFactory)
     def includedBuildFactory = Stub(IncludedBuildFactory)
-    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder))
+    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(ServiceRegistry))
 
     def "is empty by default"() {
         expect:
         !registry.hasIncludedBuilds()
         registry.includedBuilds.empty
+    }
+
+    def "can add a root build"() {
+        expect:
+        def rootBuild = registry.addRootBuild(Stub(BuildDefinition), Stub(BuildRequestContext))
+        !rootBuild.implicitBuild
+        rootBuild.buildIdentifier == DefaultBuildIdentifier.ROOT
     }
 
     def "can add an explicit included build"() {
@@ -101,6 +114,12 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild]
+    }
+
+    def "can add a nested build"() {
+        expect:
+        def nestedBuild = registry.addNestedBuild(Stub(SettingsInternal))
+        nestedBuild.implicitBuild
     }
 
     def build(File rootDir) {

@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.service.ServiceRegistry;
 
 /**
@@ -29,9 +29,9 @@ public interface GradleLauncherFactory {
      * Creates a new {@link GradleLauncher} instance for a new build request.
      * Fails if a build is in progress.
      *
-     * @param startParameter The settings for the build.
+     * @param buildDefinition The settings for the build.
      * @param requestContext The context in which the build is running.
      * @param parent The parent service registry for this build.
      */
-    GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parent);
+    GradleLauncher newInstance(BuildDefinition buildDefinition, BuildRequestContext requestContext, ServiceRegistry parent);
 }
