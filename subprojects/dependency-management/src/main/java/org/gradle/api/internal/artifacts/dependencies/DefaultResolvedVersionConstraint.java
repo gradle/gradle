@@ -58,4 +58,19 @@ public class DefaultResolvedVersionConstraint extends DefaultImmutableVersionCon
     public VersionSelector getRejectedSelector() {
         return rejectedVersionsSelector;
     }
+
+    @Override
+    public boolean isRejectAll() {
+        return "".equals(getPreferredVersion())
+            && hasMatchAllSelector(getRejectedVersions());
+    }
+
+    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
+        for (String version : rejectedVersions) {
+            if ("+".equals(version)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

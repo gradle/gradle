@@ -20,4 +20,5 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 public interface ResolvedVersionConstraint extends ImmutableVersionConstraint {
     VersionSelector getPreferredSelector();
     VersionSelector getRejectedSelector();
+    boolean isRejectAll();
 }
