@@ -23,35 +23,35 @@ import org.gradle.nativeplatform.OperatingSystemFamily;
 /**
  * Represents a component with output files.
  *
- * @since 4.7
+ * @since 4.8
  */
 @Incubating
 public interface ComponentWithTargets {
     /**
      * Specifies the set of operating systems for the target machine.
      *
-     * @since 4.7
+     * @since 4.8
      */
     SetProperty<OperatingSystemFamily> getOperatingSystems();
 
     /**
      * Adds a operating system to the set for the target machine.
      *
-     * @since 4.7
+     * @since 4.8
      */
     void operatingSystem(OperatingSystemFamily operatingSystemFamily);
 
     /**
      * Builder for defining a target machine
      *
-     * @since 4.7
+     * @since 4.8
      */
     TargetMachine getTargets();
 
     /**
      * Target machine builder
      *
-     * @since 4.7
+     * @since 4.8
      *
      * TODO: Expand this for architecture and other target attributes.
      */
