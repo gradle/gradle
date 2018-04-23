@@ -39,6 +39,7 @@ testFixtures {
     from(':ide')
 }
 
-tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
+tasks.configureEachLater(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
     task.dependsOn(':platformPlay:integTestPrepare')
 }
+

@@ -62,6 +62,6 @@ task executableJar(type: Jar) {
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
-integTestTasks.all {
-    binaryDistributions.binZipRequired = true
+integTestTasks.configureEachLater { task ->
+    task.binaryDistributions.binZipRequired = true
 }
