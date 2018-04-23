@@ -70,7 +70,7 @@ subprojects {
 
         apply(plugin = "kotlin")
 
-        if (project.name != "plugins") {
+        if (!project.name.run { equals("plugins") || equals("uberPlugins") }) {
             apply(plugin = "org.gradle.kotlin.ktlint-convention")
         }
 
