@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -41,7 +40,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
     private final boolean partialUpdate;
-    private final Pattern updateModulePattern;
+    private final LockEntryFilter lockEntryFilter;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter) {
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver);
@@ -51,13 +50,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         this.partialUpdate = !lockedDependenciesToUpdate.isEmpty();
-        StringBuilder patternBuilder = new StringBuilder();
-        for (String module : lockedDependenciesToUpdate) {
-            for (String singleModule : module.split(",")) {
-                patternBuilder.append(singleModule).append(".+|");
-            }
-        }
-        updateModulePattern = Pattern.compile(patternBuilder.toString());
+        lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
         converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
     }
 
@@ -68,7 +61,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             if (lockedModules != null) {
                 Set<DependencyConstraint> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    if (updateModulePattern.matcher(module).matches()) {
+                    if (lockEntryFilter.filters(module)) {
                         continue;
                     }
                     try {

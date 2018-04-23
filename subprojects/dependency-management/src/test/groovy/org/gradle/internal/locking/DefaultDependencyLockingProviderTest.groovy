@@ -92,6 +92,40 @@ org:foo:1.0
         result.getLockedDependencies() == [new DefaultDependencyConstraint('org', 'bar', '1.3')] as Set
     }
 
+    def 'can filter lock entries using module update patterns'() {
+        given:
+        startParameter = Mock()
+        startParameter.isWriteDependencyLocks() >> true
+        startParameter.getLockedDependenciesToUpdate() >> ['org:*']
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        lockDir.file('conf.lockfile') << """org:bar:1.3
+org:foo:1.0
+"""
+        when:
+        def result = provider.loadLockState('conf')
+
+        then:
+        !result.mustValidateLockState()
+        result.getLockedDependencies() == [] as Set
+    }
+
+    def 'can filter lock entries using group update patterns'() {
+        given:
+        startParameter = Mock()
+        startParameter.isWriteDependencyLocks() >> true
+        startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter)
+        lockDir.file('conf.lockfile') << """org.bar:foo:1.3
+com:foo:1.0
+"""
+        when:
+        def result = provider.loadLockState('conf')
+
+        then:
+        !result.mustValidateLockState()
+        result.getLockedDependencies() == [new DefaultDependencyConstraint('com', 'foo', '1.0')] as Set
+    }
+
     def 'fails with invalid content in lock file'() {
         given:
         lockDir.file('conf.lockfile') << """invalid"""
