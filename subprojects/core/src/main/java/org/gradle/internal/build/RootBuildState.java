@@ -16,7 +16,7 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.internal.invocation.BuildController;
 
 /**
@@ -24,7 +24,7 @@ import org.gradle.internal.invocation.BuildController;
  */
 public interface RootBuildState extends BuildState {
     /**
-     * Runs a single invocation of this build, executing the given action. Should be called once only.
+     * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
      */
-    Object run(Action<? super BuildController> buildAction);
+    <T> T run(Transformer<T, ? super BuildController> buildAction);
 }

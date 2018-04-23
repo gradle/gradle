@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
@@ -38,11 +38,12 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
         RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter()), buildRequestContext);
-        return rootBuild.run(new Action<BuildController>() {
+        return rootBuild.run(new Transformer<Object, BuildController>() {
             @Override
-            public void execute(BuildController buildController) {
+            public Object transform(BuildController buildController) {
                 checkDeprecations(action.getStartParameter());
                 buildActionRunner.run(action, buildController);
+                return buildController.getResult();
             }
         });
     }

@@ -30,7 +30,7 @@ import java.util.Collection;
  */
 public interface BuildStateRegistry {
     /**
-     * Creates the root of the build tree.
+     * Creates the root build of the build tree.
      */
     RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext);
 
@@ -60,7 +60,7 @@ public interface BuildStateRegistry {
     /**
      * Registers a child build that is not an included or implicit build.
      */
-    NestedBuildState addNestedBuild(SettingsInternal settings);
+    NestedBuildState addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
      * Registers an implicit build. An implicit build is-a child build whose outputs are used by dependency resolution.
