@@ -25,12 +25,19 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
     def "worker daemons are reused across builds"() {
         withRunnableClassInBuildScript()
         buildFile << """
+            import org.gradle.workers.internal.WorkerDaemonFactory
+            
             task runInWorker1(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
             }
             
             task runInWorker2(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
+                doFirst {
+                    def all = services.get(WorkerDaemonFactory.class).clientsManager.allClients.size()
+                    def idle = services.get(WorkerDaemonFactory.class).clientsManager.idleClients.size()
+                    println "Existing worker daemons: \${idle} idle out of \${all} total"
+                }
             }
         """
 
