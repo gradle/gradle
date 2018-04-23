@@ -779,17 +779,20 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         apiDependency.name >> "api"
         apiDependency.transitive >> true
         apiDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "api")]
+        apiDependency.attributes >> ImmutableAttributes.EMPTY
 
         def runtimeDependency = Stub(ExternalDependency)
         runtimeDependency.group >> "com.acme"
         runtimeDependency.name >> "runtime"
         runtimeDependency.transitive >> true
         runtimeDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "runtime")]
+        runtimeDependency.attributes >> ImmutableAttributes.EMPTY
 
         def intransitiveDependency = Stub(ExternalDependency)
         intransitiveDependency.group >> "com.acme"
         intransitiveDependency.name >> "intransitive"
         intransitiveDependency.transitive >> false
+        intransitiveDependency.attributes >> ImmutableAttributes.EMPTY
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
