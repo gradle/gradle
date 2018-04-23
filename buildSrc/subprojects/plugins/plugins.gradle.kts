@@ -44,10 +44,6 @@ gradlePlugin {
             id = "gradlebuild.publish-public-libraries"
             implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
         }
-        "strictCompile" {
-            id = "gradlebuild.strict-compile"
-            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
-        }
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
