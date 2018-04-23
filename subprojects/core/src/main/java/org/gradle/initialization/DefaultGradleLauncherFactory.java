@@ -44,9 +44,9 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -92,7 +92,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     @Override
-    public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
+    public GradleLauncher newInstance(BuildDefinition buildDefinition, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         if (rootBuild != null) {
             throw new IllegalStateException("Cannot have a current build");
@@ -103,8 +103,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        // TODO: Push this up more so we can inject plugins into the root build as well.
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(startParameter);
         DefaultGradleLauncher launcher = doNewInstance(buildDefinition, null,
             requestContext.getCancellationToken(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,

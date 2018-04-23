@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NestedBuildFactory;
 
 import javax.annotation.Nullable;
@@ -28,6 +29,11 @@ import java.util.Collection;
  * A registry of all the builds present in a build tree.
  */
 public interface BuildStateRegistry {
+    /**
+     * Creates the root of the build tree.
+     */
+    RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext);
+
     /**
      * Returns all children of the root build.
      */
@@ -40,7 +46,9 @@ public interface BuildStateRegistry {
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**
-     * Registers the root build of the build tree.
+     * Notification that the settings have been loaded for the root build.
+     *
+     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
     void registerRootBuild(SettingsInternal settings);
 
