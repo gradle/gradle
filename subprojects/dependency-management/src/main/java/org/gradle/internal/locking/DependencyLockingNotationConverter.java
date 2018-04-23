@@ -36,18 +36,27 @@ class DependencyLockingNotationConverter {
         }
         DefaultDependencyConstraint constraint;
         if (updating) {
-            constraint = new DefaultDependencyConstraint(module.substring(0, groupNameSeparatorIndex),
-                module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
-                module.substring(nameVersionSeparatorIndex + 1));
-            constraint.because("dependency was locked to version '" + constraint.getVersion() + "' (update mode)");
+            constraint = createPreferConstraint(module, groupNameSeparatorIndex, nameVersionSeparatorIndex);
         } else {
-            constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
-                module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
-                module.substring(nameVersionSeparatorIndex + 1));
-            constraint.because("dependency was locked to version '" + constraint.getVersion() + "'");
+            constraint = createStrictConstraint(module, groupNameSeparatorIndex, nameVersionSeparatorIndex);
         }
+                 return constraint;
+    }
 
+    private DefaultDependencyConstraint createStrictConstraint(String module, int groupNameSeparatorIndex, int nameVersionSeparatorIndex) {
+        DefaultDependencyConstraint constraint;
+        constraint = DefaultDependencyConstraint.strictConstraint(module.substring(0, groupNameSeparatorIndex),
+            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+            module.substring(nameVersionSeparatorIndex + 1));
+        constraint.because("dependency was locked to version '" + constraint.getVersion() + "'");
+        return constraint;
+    }
 
+    private DefaultDependencyConstraint createPreferConstraint(String module, int groupNameSeparatorIndex, int nameVersionSeparatorIndex) {
+        DefaultDependencyConstraint constraint = new DefaultDependencyConstraint(module.substring(0, groupNameSeparatorIndex),
+            module.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+            module.substring(nameVersionSeparatorIndex + 1));
+        constraint.because("dependency was locked to version '" + constraint.getVersion() + "' (update mode)");
         return constraint;
     }
 
