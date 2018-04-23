@@ -53,7 +53,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         this.partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         StringBuilder patternBuilder = new StringBuilder();
         for (String module : lockedDependenciesToUpdate) {
-            patternBuilder.append(module).append(".+|");
+            for (String singleModule : module.split(",")) {
+                patternBuilder.append(singleModule).append(".+|");
+            }
         }
         updateModulePattern = Pattern.compile(patternBuilder.toString());
         converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
