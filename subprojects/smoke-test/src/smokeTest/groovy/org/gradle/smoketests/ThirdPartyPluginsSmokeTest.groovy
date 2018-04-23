@@ -62,7 +62,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':shadowJar').outcome == SUCCESS
 
         where:
-        version << ["1.2.4", "2.0.3"]
+        version << ["2.0.3"]
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
