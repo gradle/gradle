@@ -11,7 +11,7 @@ dependencies {
 // START SNIPPET test-config
 test {
     useTestNG {
-        groupByInstances true
+        groupByInstances = true
     }
 }
 // END SNIPPET test-config

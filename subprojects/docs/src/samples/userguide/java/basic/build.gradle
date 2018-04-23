@@ -18,18 +18,29 @@ dependencies {
 }
 // END SNIPPET java-dependency-mgmt
 
+// START SNIPPET java-basic-test-config
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+test {
+    useJUnit()
+
+    maxHeapSize = '1G'
+}
+// END SNIPPET java-basic-test-config
+
 // START SNIPPET practical-integ-test-source-set
 sourceSets {
     intTest {
-        java.srcDir file('src/intTest/java')
-        resources.srcDir file('src/intTest/resources')
-        compileClasspath += sourceSets.main.output + configurations.testRuntime
-        runtimeClasspath += output + compileClasspath
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
     }
 }
 
 configurations {
     intTestImplementation.extendsFrom implementation
+    intTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
 dependencies {
@@ -52,11 +63,10 @@ javadoc {
 }
 // END SNIPPET using-custom-doclet
 
-// START SNIPPET enabling-junit-platform
-test {
-    useJUnitPlatform()
-}
-// END SNIPPET enabling-junit-platform
+
+// START SNIPPET skip-tests-condition
+test.onlyIf { !project.hasProperty('mySkipTests') }
+// END SNIPPET skip-tests-condition
 
 // START SNIPPET java-compiler-options
 compileJava {
@@ -73,7 +83,7 @@ task integrationTest(type: Test) {
 
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
-    mustRunAfter test
+    shouldRunAfter test
 }
 
 check.dependsOn integrationTest

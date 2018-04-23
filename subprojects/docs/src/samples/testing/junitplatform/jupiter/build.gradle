@@ -11,6 +11,8 @@ dependencies {
 }
 // END SNIPPET jupiter-dependencies
 
+// START SNIPPET enabling-junit-platform
 test {
     useJUnitPlatform()
 }
+// END SNIPPET enabling-junit-platform
