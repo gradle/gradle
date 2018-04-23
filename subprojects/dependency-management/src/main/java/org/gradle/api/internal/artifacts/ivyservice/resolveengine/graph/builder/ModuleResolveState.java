@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -37,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolution state for a given module.
@@ -246,6 +248,16 @@ class ModuleResolveState implements CandidateModule {
             attributeMergingError = e;
         }
         return dependencyAttributes;
+    }
+
+    Set<EdgeState> getIncomingEdges() {
+        Set<EdgeState> incoming = Sets.newLinkedHashSet();
+        if (selected != null) {
+            for (NodeState nodeState : selected.getNodes()) {
+                incoming.addAll(nodeState.getIncomingEdges());
+            }
+        }
+        return incoming;
     }
 
 }
