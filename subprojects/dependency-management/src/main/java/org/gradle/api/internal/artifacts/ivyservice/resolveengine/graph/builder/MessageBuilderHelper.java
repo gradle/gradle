@@ -77,19 +77,8 @@ abstract class MessageBuilderHelper {
         }
     }
 
-    static Set<EdgeState> getIncomingEdges(ModuleResolveState module) {
-        Set<EdgeState> incoming = Sets.newLinkedHashSet();
-        ComponentState selected = module.getSelected();
-        if (selected != null) {
-            for (NodeState nodeState : selected.getNodes()) {
-                incoming.addAll(nodeState.getIncomingEdges());
-            }
-        }
-        return incoming;
-    }
-
     static String renderVersionConstraint(ResolvedVersionConstraint constraint) {
-        if (isRejectAll(constraint)) {
+        if (constraint.isRejectAll()) {
             return "rejects all versions";
         }
         VersionSelector preferredSelector = constraint.getPreferredSelector();
@@ -119,19 +108,5 @@ abstract class MessageBuilderHelper {
             }
         }
         return sb.toString();
-    }
-
-    static boolean isRejectAll(ResolvedVersionConstraint constraint) {
-        return "".equals(constraint.getPreferredVersion())
-            && hasMatchAllSelector(constraint.getRejectedVersions());
-    }
-
-    private static boolean hasMatchAllSelector(List<String> rejectedVersions) {
-        for (String version : rejectedVersions) {
-            if ("+".equals(version)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

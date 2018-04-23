@@ -27,7 +27,7 @@ public class RejectedModuleMessageBuilder {
     public String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
-            hasRejectAll |= MessageBuilderHelper.isRejectAll(candidate.getVersionConstraint());
+            hasRejectAll |= candidate.getVersionConstraint().isRejectAll();
         }
         StringBuilder sb = new StringBuilder();
         if (hasRejectAll) {
@@ -35,7 +35,7 @@ public class RejectedModuleMessageBuilder {
         } else {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints: \n");
         }
-        for (EdgeState incomingEdge : MessageBuilderHelper.getIncomingEdges(module)) {
+        for (EdgeState incomingEdge : module.getIncomingEdges()) {
             SelectorState selector = incomingEdge.getSelector();
             for (String path : MessageBuilderHelper.pathTo(incomingEdge)) {
                 sb.append("   ").append(path);

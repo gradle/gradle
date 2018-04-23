@@ -24,7 +24,6 @@ import org.gradle.internal.text.TreeFormatter;
 
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.MessageBuilderHelper.getIncomingEdges;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.MessageBuilderHelper.pathTo;
 
 class IncompatibleDependencyAttributesMessageBuilder {
@@ -36,7 +35,7 @@ class IncompatibleDependencyAttributesMessageBuilder {
         fmt.append(attribute.toString());
         fmt.append("' are requested");
         fmt.startChildren();
-        Set<EdgeState> incomingEdges = getIncomingEdges(module);
+        Set<EdgeState> incomingEdges = module.getIncomingEdges();
         incomingEdges.addAll(module.getUnattachedDependencies());
         for (EdgeState incomingEdge : incomingEdges) {
             SelectorState selector = incomingEdge.getSelector();
