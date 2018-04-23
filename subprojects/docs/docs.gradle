@@ -319,7 +319,7 @@ task dslHtml(type: Docbook2Xhtml) {
 
 task checkSectionIds(type: UserGuideSectionVerifier) {
     dependsOn userguideAsciidoc
-    docbookFiles = layout.files(
+    docbookFiles = files(
         fileTree(userguideSrcDir) { include "**/*.xml" },
         userguideAsciidoc.outputs.files
     )
@@ -349,7 +349,7 @@ task pdfUserguideDocbook(type: UserGuideTransformTask) {
 
 configure([userguideDocbook, pdfUserguideDocbook]) {
     // The master userguide.xml pulls these files in via xi:include, making them input
-    includes = layout.files(
+    includes = files(
         samplesDocbook,
         defaultImports.importsDestFile,
         fileTree(dir: userguideSrcDir, includes: ['*.xml']),
@@ -419,7 +419,7 @@ task javadocAll(type: Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
-    classpath = layout.files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
+    classpath = files(ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     PublicApi.includes.each {
         include it
     }
@@ -434,7 +434,7 @@ task javadocAll(type: Javadoc) {
 task checkstyleApi(type: Checkstyle) {
     source javadocAll.source
     configFile = new File(checkstyle.configDir, "checkstyle-api.xml")
-    classpath = layout.files()
+    classpath = files()
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 

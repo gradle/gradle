@@ -67,7 +67,7 @@ java.sourceSets["main"].output.dir(mapOf("builtBy" to reportResources), generate
 tasks {
     "jar"(Jar::class) {
         inputs.files(flamegraph)
-        from(layout.files(deferred{ flamegraph.map { zipTree(it) } }))
+        from(files(deferred{ flamegraph.map { zipTree(it) } }))
     }
 }
 
