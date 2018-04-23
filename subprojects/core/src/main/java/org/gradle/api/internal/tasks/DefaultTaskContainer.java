@@ -80,7 +80,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
-    private final Object lock = new Object();
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -513,17 +512,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                // We synchronize this to prevent multiple threads from attempting to create a task concurrently
-                synchronized (lock) {
-                    task = type.cast(findByNameWithoutRules(name));
-                    if (task == null) {
-                        task = createTask(name, type, NO_ARGS);
-                        statistics.lazyTaskRealized();
-                        add(task);
-                        if (configureAction != null) {
-                            configureAction.execute(task);
-                            configureAction = null;
-                        }
+                task = type.cast(findByNameWithoutRules(name));
+                if (task == null) {
+                    task = createTask(name, type, NO_ARGS);
+                    statistics.lazyTaskRealized();
+                    add(task);
+                    if (configureAction != null) {
+                        configureAction.execute(task);
+                        configureAction = null;
                     }
                 }
             }
@@ -541,10 +537,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                // We synchronize this to prevent multiple threads from attempting to create a task concurrently
-                synchronized (lock) {
-                    task = type.cast(getByName(name));
-                }
+                task = type.cast(getByName(name));
             }
             return task;
         }
