@@ -23,19 +23,20 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,15 +49,31 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final IncludedBuildFactory includedBuildFactory;
     private final ProjectStateRegistry projectRegistry;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
+    private final GradleLauncherFactory gradleLauncherFactory;
+    private final ListenerManager listenerManager;
+    private final ServiceRegistry rootServices;
 
     // TODO: Locking around this state
     // TODO: use some kind of build identifier as the key
+    private DefaultRootBuildState rootBuild;
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ProjectStateRegistry projectRegistry, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
         this.includedBuildFactory = includedBuildFactory;
         this.projectRegistry = projectRegistry;
         this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
+        this.gradleLauncherFactory = gradleLauncherFactory;
+        this.listenerManager = listenerManager;
+        this.rootServices = rootServices;
+    }
+
+    @Override
+    public RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext) {
+        if (rootBuild != null) {
+            throw new IllegalStateException("Root build already defined.");
+        }
+        rootBuild = new DefaultRootBuildState(buildDefinition, requestContext, gradleLauncherFactory, listenerManager, rootServices);
+        return rootBuild;
     }
 
     public boolean hasIncludedBuilds() {
@@ -141,7 +158,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public NestedBuildState addNestedBuild(SettingsInternal settings) {
-        NestedBuildImpl build = new NestedBuildImpl(settings);
+        DefaultNestedBuild build = new DefaultNestedBuild(settings);
         projectRegistry.registerProjects(build);
         return build;
     }
@@ -158,7 +175,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void registerRootBuildProjects(final SettingsInternal settings) {
-        BuildState rootBuild = new RootBuild(settings);
+        rootBuild.setSettings(settings);
         projectRegistry.registerProjects(rootBuild);
     }
 
@@ -167,59 +184,4 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         CompositeStoppable.stoppable(includedBuilds.values()).stop();
     }
 
-    private static class RootBuild implements BuildState {
-        private final SettingsInternal settings;
-
-        RootBuild(SettingsInternal settings) {
-            this.settings = settings;
-        }
-
-        @Override
-        public SettingsInternal getLoadedSettings() {
-            return settings;
-        }
-
-        @Override
-        public Path getIdentityPathForProject(Path path) {
-            return path;
-        }
-
-        @Override
-        public BuildIdentifier getBuildIdentifier() {
-            return DefaultBuildIdentifier.ROOT;
-        }
-
-        @Override
-        public boolean isImplicitBuild() {
-            return false;
-        }
-    }
-
-    private static class NestedBuildImpl implements NestedBuildState {
-        private final SettingsInternal settings;
-
-        NestedBuildImpl(SettingsInternal settings) {
-            this.settings = settings;
-        }
-
-        @Override
-        public BuildIdentifier getBuildIdentifier() {
-            return settings.getGradle().getServices().get(BuildIdentity.class).getCurrentBuild();
-        }
-
-        @Override
-        public boolean isImplicitBuild() {
-            return true;
-        }
-
-        @Override
-        public SettingsInternal getLoadedSettings() {
-            return settings;
-        }
-
-        @Override
-        public Path getIdentityPathForProject(Path projectPath) {
-            return settings.getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
-        }
-    }
 }

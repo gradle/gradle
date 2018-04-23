@@ -66,7 +66,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         }
 
         expect:
-        def launcher = factory.newInstance(startParameter, requestContext, buildTreeServices)
+        def launcher = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), requestContext, buildTreeServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
@@ -84,7 +84,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
             getEventConsumer() >> eventConsumer
         }
 
-        def parent = factory.newInstance(startParameter, requestContext, buildTreeServices)
+        def parent = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), requestContext, buildTreeServices)
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:

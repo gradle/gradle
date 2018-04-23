@@ -16,15 +16,15 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.GradleBuildController;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -35,23 +35,16 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        GradleLauncherFactory gradleLauncherFactory = contextServices.get(GradleLauncherFactory.class);
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
-        checkDeprecations(action.getStartParameter());
-        try {
-            RootBuildLifecycleListener buildLifecycleListener = contextServices.get(ListenerManager.class).getBroadcaster(RootBuildLifecycleListener.class);
-            buildLifecycleListener.afterStart();
-            try {
+    public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
+        RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter()), buildRequestContext);
+        return rootBuild.run(new Action<BuildController>() {
+            @Override
+            public void execute(BuildController buildController) {
+                checkDeprecations(action.getStartParameter());
                 buildActionRunner.run(action, buildController);
-                return buildController.getResult();
-            } finally {
-                buildLifecycleListener.beforeComplete();
             }
-        } finally {
-            buildController.stop();
-        }
+        });
     }
 
     private void checkDeprecations(StartParameterInternal startParameter) {
