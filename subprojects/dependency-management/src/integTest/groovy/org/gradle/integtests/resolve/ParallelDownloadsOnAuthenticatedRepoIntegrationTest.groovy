@@ -23,8 +23,8 @@ class ParallelDownloadsOnAuthenticatedRepoIntegrationTest extends ParallelDownlo
     String getAuthConfig() {
         """
         credentials {
-            username = '$USERNAME'
-            password = '$PASSWORD'
+            username '$USERNAME'
+            password '$PASSWORD'
         }
 
         authentication {
