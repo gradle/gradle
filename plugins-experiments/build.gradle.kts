@@ -85,4 +85,5 @@ dependencies {
         isTransitive = false
     }
     rulesetCompileOnly("com.github.shyiko.ktlint:ktlint-core:$ktlintVersion")
+    rulesetCompileOnly(futureKotlin("reflect"))
 }

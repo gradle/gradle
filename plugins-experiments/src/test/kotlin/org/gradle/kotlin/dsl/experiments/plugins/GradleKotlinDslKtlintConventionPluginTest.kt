@@ -30,6 +30,14 @@ class GradleKotlinDslKtlintConventionPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    fun `ktlint dependencies include kotlin-reflect`() {
+
+        assertThat(
+            build("dependencies", "--configuration", "ktlint").output,
+            containsString("org.jetbrains.kotlin:kotlin-reflect:$embeddedKotlinVersion"))
+    }
+
+    @Test
     fun `ktlint check tasks are cacheable`() {
 
         withFile("gradle.properties", "org.gradle.caching=true")

@@ -13,6 +13,11 @@ open class KotlinLibrary : Plugin<Project> {
         plugins.apply("kotlin")
         plugins.apply("org.gradle.kotlin.ktlint-convention")
 
+        // TODO: remove once the ktlint-convention plugin is upgraded
+        dependencies.add(
+            "ktlint",
+            "org.jetbrains.kotlin:kotlin-reflect")
+
         kotlin {
             experimental.coroutines = Coroutines.ENABLE
         }
