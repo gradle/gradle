@@ -18,7 +18,6 @@ package org.gradle.composite.internal
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildRequestContext
@@ -118,7 +117,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
     def "can add a nested build"() {
         expect:
-        def nestedBuild = registry.addNestedBuild(Stub(SettingsInternal))
+        def nestedBuild = registry.addNestedBuild(Stub(BuildDefinition), Stub(NestedBuildFactory))
         nestedBuild.implicitBuild
     }
 

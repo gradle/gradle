@@ -16,22 +16,55 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
 class DefaultNestedBuild implements NestedBuildState {
-    private final SettingsInternal settings;
+    private final BuildDefinition buildDefinition;
+    private final NestedBuildFactory nestedBuildFactory;
+    private final BuildStateListener buildStateListener;
+    private SettingsInternal settings;
 
-    DefaultNestedBuild(SettingsInternal settings) {
-        this.settings = settings;
+    DefaultNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory, BuildStateListener buildStateListener) {
+        this.buildDefinition = buildDefinition;
+        this.nestedBuildFactory = nestedBuildFactory;
+        this.buildStateListener = buildStateListener;
+    }
+
+    @Override
+    public <T> T run(Transformer<T, ? super BuildController> buildAction) {
+        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(buildDefinition);
+        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+        try {
+            final GradleInternal gradle = buildController.getGradle();
+            gradle.rootProject(new Action<Project>() {
+                @Override
+                public void execute(Project rootProject) {
+                    settings = gradle.getSettings();
+                    buildStateListener.projectsKnown(DefaultNestedBuild.this);
+                }
+            });
+            return buildAction.transform(buildController);
+        } finally {
+            buildController.stop();
+        }
     }
 
     @Override
     public BuildIdentifier getBuildIdentifier() {
-        return settings.getGradle().getServices().get(BuildIdentity.class).getCurrentBuild();
+        return getLoadedSettings().getGradle().getServices().get(BuildIdentity.class).getCurrentBuild();
     }
 
     @Override
@@ -41,11 +74,14 @@ class DefaultNestedBuild implements NestedBuildState {
 
     @Override
     public SettingsInternal getLoadedSettings() {
+        if (settings == null) {
+            throw new IllegalStateException("Settings not loaded yet.");
+        }
         return settings;
     }
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        return settings.getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
+        return getLoadedSettings().getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
     }
 }

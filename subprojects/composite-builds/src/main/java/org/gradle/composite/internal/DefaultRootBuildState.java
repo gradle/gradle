@@ -16,7 +16,7 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
@@ -49,15 +49,14 @@ class DefaultRootBuildState implements RootBuildState {
     }
 
     @Override
-    public Object run(Action<? super BuildController> buildAction) {
+    public <T> T run(Transformer<T, ? super BuildController> buildAction) {
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, requestContext, services);
-        GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+        final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
             try {
-                buildAction.execute(buildController);
-                return buildController.getResult();
+                return buildAction.transform(buildController);
             } finally {
                 buildLifecycleListener.beforeComplete();
             }

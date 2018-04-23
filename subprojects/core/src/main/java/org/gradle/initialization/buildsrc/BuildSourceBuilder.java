@@ -17,8 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
-import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -26,13 +25,12 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -115,45 +113,29 @@ public class BuildSourceBuilder {
         });
     }
 
-    private ClassPath buildBuildSrc(BuildDefinition buildDefinition) {
-        final BuildController buildController = createBuildController(buildDefinition);
-        try {
-            buildController.getGradle().rootProject(new Action<Project>() {
-                @Override
-                public void execute(Project rootProject) {
-                    buildRegistry.addNestedBuild(buildController.getGradle().getSettings());
+    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
+        NestedBuildState nestedBuild = buildRegistry.addNestedBuild(buildDefinition, nestedBuildFactory);
+        return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
+            @Override
+            public ClassPath transform(BuildController buildController) {
+                GradleInternal build = buildController.getGradle();
+                StartParameter startParameter = buildController.getGradle().getStartParameter();
+                if (build.getParent().findIdentityPath() == null) {
+                    // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build
+                    // Use the directory structure to do this. This means that the buildSrc build and its containing build may end up with different paths
+                    Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
+                    build.setIdentityPath(path);
                 }
-            });
-            File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
-            FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
-            try {
-                return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
-            } finally {
-                lock.close();
+                File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
+                FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
+                try {
+                    return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
+                } finally {
+                    lock.close();
+                }
             }
-        } finally {
-            buildController.stop();
-        }
+        });
     }
 
     private static final LockOptions LOCK_OPTIONS = mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation();
-
-    private BuildController createBuildController(BuildDefinition buildDefinition) {
-        GradleLauncher gradleLauncher = buildGradleLauncher(buildDefinition);
-        return new GradleBuildController(gradleLauncher);
-    }
-
-    private GradleLauncher buildGradleLauncher(BuildDefinition buildDefinition) {
-        // TODO: Migrate buildSrc builds to be more similar to other "included" builds.
-        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(buildDefinition);
-        StartParameter startParameter = buildDefinition.getStartParameter();
-        GradleInternal build = gradleLauncher.getGradle();
-        if (build.getParent().findIdentityPath() == null) {
-            // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build
-            // Use the directory structure to do this. This means that the buildSrc build and its containing build may end up with different paths
-            Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
-            build.setIdentityPath(path);
-        }
-        return gradleLauncher;
-    }
 }
