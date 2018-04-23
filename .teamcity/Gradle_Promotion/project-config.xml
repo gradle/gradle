@@ -6,7 +6,7 @@
     <param name="env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY" value="credentialsJSON:ed0db35e-2034-444c-a9b1-d966b9abe89b" spec="password display='normal'" />
     <param name="env.JAVA_HOME" value="%linux.java8.oracle.64bit%" />
     <param name="env.ORG_GRADLE_PROJECT_artifactoryUserName" value="bot-build-tool" />
-    <param name="env.ORG_GRADLE_PROJECT_artifactoryUserPassword" value="credentialsJSON:8afab591-735c-489b-a1b7-c4adea0e37a1" spec="password display='normal'" />
+    <param name="env.ORG_GRADLE_PROJECT_artifactoryUserPassword" value="credentialsJSON:2b7529cd-77cd-49f4-9416-9461f6ac9018" spec="password display='normal'" />
     <param name="env.ORG_GRADLE_PROJECT_gradleS3AccessKey" value="AKIAJUN6ZAPAEO3BC7AQ" />
     <param name="env.ORG_GRADLE_PROJECT_gradleS3SecretKey" value="credentialsJSON:0f1f842f-df6c-4db7-8271-f1f73c823aed" spec="password display='normal'" />
     <param name="env.ORG_GRADLE_PROJECT_infrastructureEmailPwd" value="credentialsJSON:ea637ef1-7607-40a4-be39-ef1aa8bc5af0" spec="password display='normal'" />
