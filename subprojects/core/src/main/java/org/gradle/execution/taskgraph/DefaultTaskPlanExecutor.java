@@ -59,7 +59,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
-            executor.stop();
+            executor.shutdownNow();
         }
     }
 

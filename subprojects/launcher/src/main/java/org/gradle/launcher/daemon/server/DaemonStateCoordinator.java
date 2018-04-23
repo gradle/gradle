@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -60,6 +61,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private volatile DefaultBuildCancellationToken cancellationToken;
 
     private final ManagedExecutor executor;
+    private Future currentRunningBuildFuture;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onCancelCommand;
@@ -221,7 +223,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while(true) {
+            while (true) {
                 try {
                     switch (state) {
                         case Idle:
@@ -250,6 +252,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
             cancellationToken.cancel();
+            currentRunningBuildFuture.cancel(true);
         } catch (Exception ex) {
             LOGGER.error("Cancel processing failed. Will continue.", ex);
         }
@@ -289,7 +292,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
-            executor.execute(new Runnable() {
+            currentRunningBuildFuture = executor.submit(new Runnable() {
                 public void run() {
                     try {
                         command.run();
