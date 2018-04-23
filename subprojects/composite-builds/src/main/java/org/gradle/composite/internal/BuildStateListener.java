@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.composite.internal;
 
-import org.gradle.api.Transformer;
-import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.build.BuildState;
 
-public interface NestedBuildState extends BuildState {
+interface BuildStateListener {
     /**
-     * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
+     * Called when the projects for the given build are known.
      */
-    <T> T run(Transformer<T, ? super BuildController> buildAction);
+    void projectsKnown(BuildState build);
 }
