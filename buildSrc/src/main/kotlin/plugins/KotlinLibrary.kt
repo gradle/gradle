@@ -2,6 +2,9 @@ package plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+
+import org.gradle.kotlin.dsl.withType
+
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -17,8 +20,8 @@ open class KotlinLibrary : Plugin<Project> {
             experimental.coroutines = Coroutines.ENABLE
         }
 
-        tasks.withType(KotlinCompile::class.java) {
-            it.kotlinOptions.apply {
+        tasks.withType<KotlinCompile> {
+            kotlinOptions.apply {
                 freeCompilerArgs = listOf(
                     "-Xjsr305=strict",
                     "-Xskip-runtime-version-check")

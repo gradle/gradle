@@ -51,7 +51,7 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    compile(gradleApi())
+    compileOnly(gradleKotlinDsl())
     compile(kotlin("gradle-plugin"))
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))

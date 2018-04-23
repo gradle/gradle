@@ -1,5 +1,7 @@
 package plugins
 
+import com.gradle.publish.PluginBundleExtension
+
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Named
 import org.gradle.api.Plugin
@@ -8,11 +10,14 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.WriteProperties
 
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.task
+import org.gradle.kotlin.dsl.the
+
 import org.gradle.language.jvm.tasks.ProcessResources
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
-
-import com.gradle.publish.PluginBundleExtension
 
 
 class KotlinDslPlugin(private val name: String) : Named {
@@ -47,7 +52,7 @@ open class KotlinDslPluginBundle : Plugin<Project> {
 
     private
     fun Project.testDependsOnCustomInstallation() =
-        tasks.getByName("test").dependsOn(rootProject.tasks.getByName("customInstallation"))
+        tasks["test"].dependsOn(rootProject.tasks["customInstallation"])
 
     private
     fun Project.configureGradlePluginDevelopmentPlugins() {
@@ -103,12 +108,12 @@ open class KotlinDslPluginBundle : Plugin<Project> {
             }
         }
 
-        val publishPluginsToTestRepository = tasks.create("publishPluginsToTestRepository").apply {
-            dependsOn("publishPluginMavenPublicationToTestRepository")
+        val publishPluginsToTestRepository = tasks.create("publishPluginsToTestRepository") {
+            it.dependsOn("publishPluginMavenPublicationToTestRepository")
         }
 
-        tasks.getByName("test").apply {
-            dependsOn(publishPluginsToTestRepository)
+        tasks.getByName("test") {
+            it.dependsOn(publishPluginsToTestRepository)
         }
 
         val writeFuturePluginVersions = createWriteFuturePluginVersionsTask()
@@ -128,8 +133,8 @@ open class KotlinDslPluginBundle : Plugin<Project> {
 
     private
     fun Project.createWriteFuturePluginVersionsTask(): WriteProperties {
-        val processTestResources = tasks.getByName("processTestResources") as ProcessResources
-        return tasks.create("writeFuturePluginVersions", WriteProperties::class.java).apply {
+        val processTestResources = tasks["processTestResources"] as ProcessResources
+        return task<WriteProperties>("writeFuturePluginVersions") {
             outputFile = processTestResources.futurePluginVersionsFile
             processTestResources.dependsOn(this)
         }
@@ -143,19 +148,19 @@ val ProcessResources.futurePluginVersionsFile
 
 private
 val Project.base
-    get() = convention.getPlugin(BasePluginConvention::class.java)
+    get() = the<BasePluginConvention>()
 
 
 private
 fun Project.publishing(action: PublishingExtension.() -> Unit) =
-    extensions.configure(PublishingExtension::class.java, action)
+    configure(action)
 
 
 private
 fun Project.gradlePlugin(action: GradlePluginDevelopmentExtension.() -> Unit) =
-    extensions.configure(GradlePluginDevelopmentExtension::class.java, action)
+    configure(action)
 
 
 private
 fun Project.pluginBundle(action: PluginBundleExtension.() -> Unit) =
-    extensions.configure(PluginBundleExtension::class.java, action)
+    configure(action)

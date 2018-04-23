@@ -12,6 +12,12 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
+import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
+
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 
@@ -24,47 +30,44 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
  */
 open class KotlinDslModule : Plugin<Project> {
 
-    override fun apply(project: Project) {
+    override fun apply(project: Project) = project.run {
 
-        project.run {
+        apply<KotlinLibrary>()
 
-            plugins.apply(KotlinLibrary::class.java)
-
-            // including all sources
-            val mainSourceSet = java.sourceSets.getByName("main")
-            afterEvaluate {
-                tasks.getByName("jar") {
-                    (it as Jar).run {
-                        from(mainSourceSet.allSource)
-                        manifest.attributes.apply {
-                            put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
-                            put("Implementation-Version", version)
-                        }
+        // including all sources
+        val mainSourceSet = java.sourceSets["main"]
+        afterEvaluate {
+            tasks.getByName("jar") {
+                (it as Jar).run {
+                    from(mainSourceSet.allSource)
+                    manifest.attributes.apply {
+                        put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
+                        put("Implementation-Version", version)
                     }
                 }
             }
-
-            // sets the Gradle Test Kit user home into custom installation build dir
-            if (hasProperty(kotlinDslDebugPropertyName) && findProperty(kotlinDslDebugPropertyName) != "false") {
-                tasks.withType(Test::class.java) { testTask ->
-                    testTask.systemProperty(
-                        "org.gradle.testkit.dir",
-                        "${rootProject.buildDir}/custom/test-kit-user-home")
-                }
-            }
-
-            withTestStrictClassLoading()
-            withTestWorkersMemoryLimits()
         }
+
+        // sets the Gradle Test Kit user home into custom installation build dir
+        if (hasProperty(kotlinDslDebugPropertyName) && findProperty(kotlinDslDebugPropertyName) != "false") {
+            tasks.withType<Test> {
+                systemProperty(
+                    "org.gradle.testkit.dir",
+                    "${rootProject.buildDir}/custom/test-kit-user-home")
+            }
+        }
+
+        withTestStrictClassLoading()
+        withTestWorkersMemoryLimits()
     }
 }
 
 
 internal
 fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
-    extensions.configure(KotlinProjectExtension::class.java, action)
+    configure(action)
 
 
 internal
 val Project.java
-    get() = convention.getPlugin(JavaPluginConvention::class.java)
+    get() = the<JavaPluginConvention>()

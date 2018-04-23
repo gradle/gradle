@@ -10,6 +10,12 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 
+import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.the
+
 
 /**
  * Configures a Gradle Kotlin DSL module for publication to artifactory.
@@ -21,43 +27,40 @@ import org.gradle.api.publish.maven.MavenPublication
  */
 open class PublicKotlinDslModule : Plugin<Project> {
 
-    override fun apply(project: Project) {
+    override fun apply(project: Project) = project.run {
 
-        project.run {
+        apply<KotlinDslModule>()
+        apply(plugin = "maven-publish")
+        apply(plugin = "com.jfrog.artifactory")
 
-            plugins.apply(KotlinDslModule::class.java)
-            plugins.apply("maven-publish")
-            plugins.apply("com.jfrog.artifactory")
-
-            // with a jar named after `base.archivesBaseName`
-            publishing {
-                publications.create("mavenJava", MavenPublication::class.java) {
-                    it.artifactId = base.archivesBaseName
-                    it.from(components.getByName("java"))
-                }
+        // with a jar named after `base.archivesBaseName`
+        publishing {
+            publications.create<MavenPublication>("mavenJava") {
+                artifactId = base.archivesBaseName
+                from(components.getByName("java"))
             }
-
-            tasks.getByName("artifactoryPublish") {
-                it.dependsOn("jar")
-            }
-
-            // classpath manifest
-            val generatedResourcesDir = file("$buildDir/generate-resources/main")
-            val generateClasspathManifest = tasks.create("generateClasspathManifest", GenerateClasspathManifest::class.java) {
-                it.outputDirectory = generatedResourcesDir
-            }
-            val mainSourceSet = java.sourceSets.getByName("main")
-            mainSourceSet.output.dir(
-                mapOf("builtBy" to generateClasspathManifest),
-                generatedResourcesDir)
         }
+
+        tasks.getByName("artifactoryPublish") {
+            it.dependsOn("jar")
+        }
+
+        // classpath manifest
+        val generatedResourcesDir = file("$buildDir/generate-resources/main")
+        val generateClasspathManifest = tasks.create<GenerateClasspathManifest>("generateClasspathManifest") {
+            outputDirectory = generatedResourcesDir
+        }
+        val mainSourceSet = java.sourceSets["main"]
+        mainSourceSet.output.dir(
+            mapOf("builtBy" to generateClasspathManifest),
+            generatedResourcesDir)
     }
 
     private
     val Project.base
-        get() = convention.getPlugin(BasePluginConvention::class.java)
+        get() = the<BasePluginConvention>()
 
     private
     fun Project.publishing(action: PublishingExtension.() -> Unit) =
-        extensions.configure(PublishingExtension::class.java, action)
+        configure(action)
 }
