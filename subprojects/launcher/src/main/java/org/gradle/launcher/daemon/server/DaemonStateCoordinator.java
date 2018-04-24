@@ -47,6 +47,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
     public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
+    private static final int CANCEL_TIMEOUT_SECONDS = 10;
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
@@ -67,7 +68,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final Runnable onCancelCommand;
 
     public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand) {
-        this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 10 * 1000L);
+        this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, CANCEL_TIMEOUT_SECONDS * 1000L);
     }
 
     DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand, long cancelTimeoutMs) {
