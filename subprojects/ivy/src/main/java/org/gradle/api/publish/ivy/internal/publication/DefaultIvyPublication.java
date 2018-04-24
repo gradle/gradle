@@ -110,6 +110,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private SoftwareComponentInternal component;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
+    private boolean populated;
+    private boolean artifactsOverridden;
 
     public DefaultIvyPublication(
         String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
@@ -190,7 +192,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
+        artifactsOverridden = false;
+    }
 
+    private void populateFromComponent() {
+        if (populated) {
+            return;
+        }
+        populated = true;
+        if (component == null) {
+            return;
+        }
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -202,7 +214,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             configurations.getByName("default").extend(conf);
 
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (!seenArtifacts.contains(publishArtifact)) {
+                if (!artifactsOverridden && !seenArtifacts.contains(publishArtifact)) {
                     seenArtifacts.add(publishArtifact);
                     artifact(publishArtifact).setConf(conf);
                 }
@@ -253,10 +265,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {
+        populateFromComponent();
         config.execute(configurations);
     }
 
     public IvyConfigurationContainer getConfigurations() {
+        populateFromComponent();
         return configurations;
     }
 
@@ -269,6 +283,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public void setArtifacts(Iterable<?> sources) {
+        artifactsOverridden = true;
         mainArtifacts.clear();
         for (Object source : sources) {
             artifact(source);
@@ -276,6 +291,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public DefaultIvyArtifactSet getArtifacts() {
+        populateFromComponent();
         return mainArtifacts;
     }
 
@@ -305,11 +321,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public FileCollection getPublishableFiles() {
+        populateFromComponent();
         return getPublishableArtifacts().getFiles();
     }
 
     @Override
     public PublicationArtifactSet<IvyArtifact> getPublishableArtifacts() {
+        populateFromComponent();
         return publishableArtifacts;
     }
 
@@ -343,10 +361,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     public Set<IvyDependencyInternal> getDependencies() {
+        populateFromComponent();
         return ivyDependencies;
     }
 
     public IvyNormalizedPublication asNormalisedPublication() {
+        populateFromComponent();
         DomainObjectSet<IvyArtifact> existingDerivedArtifacts = this.derivedArtifacts.matching(new Spec<IvyArtifact>() {
             @Override
             public boolean isSatisfiedBy(IvyArtifact artifact) {
