@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
@@ -15,10 +16,12 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
+    `kotlin-dsl` version "0.17.1" apply false
     id("org.gradle.kotlin.ktlint-convention") version "0.1.7"
 }
 
 apply(plugin = "kotlin")
+apply<KotlinDslCompilerPlugins>()
 
 gradlePlugin {
     (plugins) {

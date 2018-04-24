@@ -38,12 +38,11 @@ open class KotlinDslModule : Plugin<Project> {
         val mainSourceSet = java.sourceSets["main"]
         afterEvaluate {
             tasks.getByName("jar") {
-                (it as Jar).run {
-                    from(mainSourceSet.allSource)
-                    manifest.attributes.apply {
-                        put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
-                        put("Implementation-Version", version)
-                    }
+                this as Jar
+                from(mainSourceSet.allSource)
+                manifest.attributes.apply {
+                    put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
+                    put("Implementation-Version", version)
                 }
             }
         }

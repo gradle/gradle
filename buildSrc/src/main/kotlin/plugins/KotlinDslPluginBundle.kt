@@ -69,23 +69,25 @@ open class KotlinDslPluginBundle : Plugin<Project> {
                 mavenCoordinates.artifactId = base.archivesBaseName
             }
 
-            kotlinDslPlugins.all { plugin ->
+            kotlinDslPlugins.all {
+
+                val plugin = this
 
                 gradlePlugin {
                     plugins {
-                        it.create(plugin.name) {
-                            it.id = plugin.id
-                            it.implementationClass = plugin.implementationClass
+                        create(plugin.name) {
+                            id = plugin.id
+                            implementationClass = plugin.implementationClass
                         }
                     }
                 }
 
                 pluginBundle {
                     plugins {
-                        it.create(plugin.name) {
-                            it.id = plugin.id
-                            it.displayName = plugin.displayName
-                            it.description = plugin.displayName
+                        create(plugin.name) {
+                            id = plugin.id
+                            displayName = plugin.displayName
+                            description = plugin.displayName
                         }
                     }
                 }
@@ -101,26 +103,28 @@ open class KotlinDslPluginBundle : Plugin<Project> {
 
         publishing {
             repositories {
-                it.maven {
-                    it.name = "test"
-                    it.url = uri("$buildDir/repository")
+                maven {
+                    name = "test"
+                    url = uri("$buildDir/repository")
                 }
             }
         }
 
         val publishPluginsToTestRepository = tasks.create("publishPluginsToTestRepository") {
-            it.dependsOn("publishPluginMavenPublicationToTestRepository")
+            dependsOn("publishPluginMavenPublicationToTestRepository")
         }
 
         tasks.getByName("test") {
-            it.dependsOn(publishPluginsToTestRepository)
+            dependsOn(publishPluginsToTestRepository)
         }
 
         val writeFuturePluginVersions = createWriteFuturePluginVersionsTask()
 
         afterEvaluate {
 
-            kotlinDslPlugins.all { plugin ->
+            kotlinDslPlugins.all {
+
+                val plugin = this
 
                 publishPluginsToTestRepository
                     .dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")

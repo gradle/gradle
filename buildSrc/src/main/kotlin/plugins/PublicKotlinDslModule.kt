@@ -42,7 +42,7 @@ open class PublicKotlinDslModule : Plugin<Project> {
         }
 
         tasks.getByName("artifactoryPublish") {
-            it.dependsOn("jar")
+            dependsOn("jar")
         }
 
         // classpath manifest
