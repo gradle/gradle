@@ -34,7 +34,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
 @NonNullApi
-class DefaultTaskPlanExecutor implements TaskPlanExecutor {
+public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
