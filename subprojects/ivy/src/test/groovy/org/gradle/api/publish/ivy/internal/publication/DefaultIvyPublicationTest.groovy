@@ -35,7 +35,6 @@ import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -49,7 +48,7 @@ class DefaultIvyPublicationTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
-    def projectIdentity = Mock(IvyPublicationIdentity)
+    def projectIdentity = new DefaultIvyPublicationIdentity("organisation", "module", "revision")
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def attributesFactory = TestUtil.attributesFactory()
@@ -294,6 +293,31 @@ class DefaultIvyPublicationTest extends Specification {
 
         and:
         publication.publishableArtifacts.files.contains(ivyDescriptorFile)
+    }
+
+    def "publication coordinates are live"() {
+        when:
+        def publication = createPublication()
+
+        and:
+        publication.organisation = "organisation2"
+        publication.module = "module2"
+        publication.revision = "revision2"
+
+        then:
+        projectIdentity.organisation == "organisation2"
+        projectIdentity.module == "module2"
+        projectIdentity.revision == "revision2"
+
+        and:
+        publication.organisation== "organisation2"
+        publication.module == "module2"
+        publication.revision == "revision2"
+
+        and:
+        publication.identity.organisation == "organisation2"
+        publication.identity.module == "module2"
+        publication.identity.revision == "revision2"
     }
 
     def createPublication() {
