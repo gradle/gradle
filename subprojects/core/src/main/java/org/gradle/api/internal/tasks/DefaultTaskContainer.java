@@ -55,6 +55,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -287,6 +288,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return provider;
     }
 
+    @Override
+    public <T extends Task> Provider<T> createLater(String name, Class<T> type) {
+        return createLater(name, type, null);
+    }
+
+    @Override
+    public <T extends Task> Provider<T> createLater(String name) {
+        return Cast.uncheckedCast(createLater(name, DefaultTask.class));
+    }
+
     public <T extends Task> T replace(String name, Class<T> type) {
         T task = taskFactory.create(name, type);
         return addTask(task, true);
@@ -493,7 +504,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Action<? super T> configureAction;
         T task;
 
-        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
+        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
             this.configureAction = configureAction;
             statistics.lazyTask();
@@ -509,8 +520,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         task = createTask(name, type, NO_ARGS);
                         statistics.lazyTaskRealized();
                         add(task);
-                        configureAction.execute(task);
-                        configureAction = null;
+                        if (configureAction != null) {
+                            configureAction.execute(task);
+                            configureAction = null;
+                        }
                     }
                 }
             }
