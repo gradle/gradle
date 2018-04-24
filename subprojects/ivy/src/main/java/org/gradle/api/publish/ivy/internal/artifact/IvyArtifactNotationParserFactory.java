@@ -16,10 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
@@ -27,10 +25,16 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationConverter;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<Object, IvyArtifact>> {
     private final Instantiator instantiator;
@@ -67,19 +71,6 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         return parserBuilder.toComposite();
     }
 
-    private DefaultIvyArtifact createDefaultIvyArtifact(File file, String extension, String type, String classifier) {
-        DefaultIvyArtifact ivyArtifact = instantiator.newInstance(
-                DefaultIvyArtifact.class,
-                file, null, extension, type, classifier
-        );
-        new DslObject(ivyArtifact).getConventionMapping().map("name", new Callable<String>() {
-            public String call() throws Exception {
-                return publicationIdentity.getModule();
-            }
-        });
-        return ivyArtifact;
-    }
-
     private class ArchiveTaskNotationConverter extends TypedNotationConverter<AbstractArchiveTask, IvyArtifact> {
         private ArchiveTaskNotationConverter() {
             super(AbstractArchiveTask.class);
@@ -87,10 +78,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(AbstractArchiveTask archiveTask) {
-            DefaultIvyArtifact ivyArtifact = createDefaultIvyArtifact(
-                    archiveTask.getArchivePath(), archiveTask.getExtension(), archiveTask.getExtension(), archiveTask.getClassifier());
-            ivyArtifact.builtBy(archiveTask);
-            return ivyArtifact;
+            return instantiator.newInstance(ArchiveTaskBasedIvyArtifact.class, archiveTask, publicationIdentity);
         }
     }
 
@@ -101,10 +89,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         @Override
         protected IvyArtifact parseType(PublishArtifact publishArtifact) {
-            DefaultIvyArtifact ivyArtifact = createDefaultIvyArtifact(
-                    publishArtifact.getFile(), publishArtifact.getExtension(), publishArtifact.getType(), publishArtifact.getClassifier());
-            ivyArtifact.builtBy(publishArtifact.getBuildDependencies());
-            return ivyArtifact;
+            return instantiator.newInstance(PublishArtifactBasedIvyArtifact.class, publishArtifact, publicationIdentity);
         }
     }
 
@@ -117,16 +102,11 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
 
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
-            IvyArtifact ivyArtifact = parseFile(file);
+            IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity);
             if (notation instanceof TaskDependencyContainer) {
                 ivyArtifact.builtBy(notation);
             }
             result.converted(ivyArtifact);
-        }
-
-        protected IvyArtifact parseFile(File file) {
-            String extension = StringUtils.substringAfterLast(file.getName(), ".");
-            return createDefaultIvyArtifact(file, extension, extension, null);
         }
 
         @Override

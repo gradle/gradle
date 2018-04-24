@@ -37,8 +37,8 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.IvyArtifactNotationParserFactory;
+import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
@@ -149,7 +149,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     descriptorTask.setDestination(new File(buildDir, "publications/" + publicationName + "/ivy.xml"));
                 }
             });
-            publication.setIvyDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), "ivy", "xml", "ivy"));
+            publication.setIvyDescriptorArtifact(new SingleOutputTaskIvyArtifact(tasks.get(descriptorTaskName), "ivy",  "xml", "ivy", null));
         }
 
         private void createGenerateMetadataTask(ModelMap<Task> tasks, final IvyPublicationInternal publication, final List<Publication> publications, final File buildDir) {
@@ -169,13 +169,8 @@ public class IvyPublishPlugin implements Plugin<Project> {
                     generateTask.getOutputFile().set(new File(buildDir, "publications/" + publicationName + "/module.json"));
                 }
             });
-            publication.setGradleModuleDescriptorArtifact(createIvyArtifactForOutputFiles(tasks.get(descriptorTaskName), publication.getIdentity().getModule(), "module", "json"));
-        }
 
-        private IvyArtifact createIvyArtifactForOutputFiles(Task task, String name, String extension, String type) {
-            IvyArtifact artifact = new DefaultIvyArtifact(task.getOutputs().getFiles(), name, extension, type, null);
-            artifact.builtBy(task);
-            return artifact;
+            publication.setGradleModuleDescriptorArtifact(new SingleOutputTaskIvyArtifact(tasks.get(descriptorTaskName), publication.getIdentity().getModule(),  "module", "json", null));
         }
     }
 
