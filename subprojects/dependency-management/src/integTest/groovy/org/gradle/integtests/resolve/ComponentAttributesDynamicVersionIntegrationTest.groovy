@@ -145,6 +145,75 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
     }
 
+    @Unroll("selects the first version which matches the component-level attributes (requested=#requested) using dependency attributes")
+    def "selects the first version which matches the component-level attributes using dependency attributes"() {
+        given:
+        repository {
+            'org.test:module:1.3' {
+                attribute('quality', 'rc')
+            }
+            'org.test:module:1.2' {
+                attribute('quality', 'rc')
+            }
+            'org.test:module:1.1' {
+                attribute('quality', 'qa')
+            }
+            'org.test:module:1.0' {
+                attribute('quality', 'beta')
+            }
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+
+            configurations {
+                // This test also makes sure that configuration-level attributes are overwritten
+                // by dependency-level attributes. This should really belong to a different test
+                // but since integration tests are pretty slow we do both in one go, knowing that
+                // configuration-level already has its own test
+                conf.attributes.attribute(quality, 'boo')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+                conf('org.test:module:$requested') {
+                    attributes {
+                        attribute(quality, 'qa')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.test:module' {
+                expectVersionListing()
+            }
+            'org.test:module:1.3' {
+                expectGetMetadata()
+            }
+            'org.test:module:1.2' {
+                expectGetMetadata()
+            }
+            'org.test:module:1.1' {
+                expectResolve()
+            }
+        }
+
+        then:
+
+        run ':checkDeps'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:module:${requested}", 'org.test:module:1.1')
+            }
+        }
+
+        where:
+        requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
+    }
+
     static Closure<String> latestNotation() {
         { -> GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release" }
     }
