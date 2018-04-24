@@ -91,6 +91,7 @@ We would like to thank the following community members for making contributions 
 - [Andrew Potter](https://github.com/apottere) Update pluginManagement documentation to mention global configuration options (gradle/gradle#4999)
 - [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
 - [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
+- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
