@@ -63,7 +63,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -86,7 +85,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
@@ -728,18 +729,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!runningTasks.isEmpty()) {
             Set<String> candidateTaskOutputs = taskMutationInfo.outputPaths;
             Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
-            Pair<TaskInfo, String> overlap = firstRunningTaskWithOverlappingMutations(candidateTaskMutations);
-            if (overlap != null) {
+            if (hasTaskWithOverlappingMutations(candidateTaskMutations)) {
                 return false;
             }
         }
 
-        Pair<TaskInfo, String> overlap = firstTaskWithDestroyedIntermediateInput(taskInfo, candidateTaskDestroyables);
-        if (overlap != null) {
-            return false;
-        }
-
-        return true;
+        return !doesDestroyNotYetConsumedOutputOfAnotherTask(taskInfo, candidateTaskDestroyables);
     }
 
     private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
@@ -760,56 +755,60 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return builder.build();
     }
 
-    @Nullable
-    private Pair<TaskInfo, String> firstRunningTaskWithOverlappingMutations(Set<String> candidateTaskMutations) {
+    private boolean hasTaskWithOverlappingMutations(Set<String> candidateTaskMutations) {
         if (!candidateTaskMutations.isEmpty()) {
             for (TaskInfo runningTask : runningTasks) {
                 TaskMutationInfo taskMutationInfo = taskMutations.get(runningTask);
                 Iterable<String> runningTaskMutations = Iterables.concat(taskMutationInfo.outputPaths, taskMutationInfo.destroyablePaths);
-                String firstOverlap = findFirstOverlap(candidateTaskMutations, runningTaskMutations);
-                if (firstOverlap != null) {
-                    return Pair.of(runningTask, firstOverlap);
+                if (hasOverlap(candidateTaskMutations, runningTaskMutations)) {
+                    return true;
                 }
             }
         }
-
-        return null;
+        return false;
     }
 
-    @Nullable
-    private Pair<TaskInfo, String> firstTaskWithDestroyedIntermediateInput(final TaskInfo taskInfo, Set<String> destroyablePaths) {
+    private boolean doesDestroyNotYetConsumedOutputOfAnotherTask(TaskInfo destroyerTask, Set<String> destroyablePaths) {
         if (!destroyablePaths.isEmpty()) {
-            Iterator<TaskMutationInfo> iterator = taskMutations.values().iterator();
-            while (iterator.hasNext()) {
-                TaskMutationInfo taskMutationInfo = iterator.next();
-                if (taskMutationInfo.task.isComplete() && !taskMutationInfo.consumingTasks.isEmpty()) {
-                    String firstOverlap = findFirstOverlap(destroyablePaths, taskMutationInfo.outputPaths);
-                    if (firstOverlap != null) {
-                        for (TaskInfo consumingTask : taskMutationInfo.consumingTasks) {
-                            if (consumingTask != taskInfo && !isReachableFrom(consumingTask, taskInfo)) {
-                                return Pair.of(consumingTask, firstOverlap);
-                            }
-                        }
+            for (TaskMutationInfo producingTask : taskMutations.values()) {
+                if (!producingTask.task.isComplete()) {
+                    // We don't care about producing tasks that haven't finished yet
+                    continue;
+                }
+                if (producingTask.consumingTasks.isEmpty()) {
+                    // We don't care about tasks whose output is not consumed by anyone anymore
+                    continue;
+                }
+                if (!hasOverlap(destroyablePaths, producingTask.outputPaths)) {
+                    // No overlap no cry
+                    continue;
+                }
+                for (TaskInfo consumingTask : producingTask.consumingTasks) {
+                    if (doesConsumerDependOnDestroyer(consumingTask, destroyerTask)) {
+                        // If there's an explicit dependency from consuming task to destroyer,
+                        // then we accept that as the will of the user
+                        continue;
                     }
+                    return true;
                 }
             }
         }
-        return null;
+        return false;
     }
 
-    private boolean isReachableFrom(TaskInfo fromTask, TaskInfo toTask) {
-        Pair<TaskInfo, TaskInfo> taskPair = Pair.of(fromTask, toTask);
+    private boolean doesConsumerDependOnDestroyer(TaskInfo consumingTask, TaskInfo destroyerTask) {
+        if (consumingTask == destroyerTask) {
+            return true;
+        }
+        Pair<TaskInfo, TaskInfo> taskPair = Pair.of(consumingTask, destroyerTask);
         if (reachableCache.get(taskPair) != null) {
             return reachableCache.get(taskPair);
         }
 
         boolean reachable = false;
-        for (TaskInfo dependency : Iterables.concat(fromTask.getMustSuccessors(), fromTask.getDependencySuccessors())) {
+        for (TaskInfo dependency : Iterables.concat(consumingTask.getMustSuccessors(), consumingTask.getDependencySuccessors())) {
             if (!dependency.isComplete()) {
-                if (dependency == toTask) {
-                    reachable = true;
-                }
-                if (isReachableFrom(dependency, toTask)) {
+                if (doesConsumerDependOnDestroyer(dependency, destroyerTask)) {
                     reachable = true;
                 }
             }
@@ -819,17 +818,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return reachable;
     }
 
-    private static String findFirstOverlap(Iterable<String> paths1, Iterable<String> paths2) {
+    private static boolean hasOverlap(Iterable<String> paths1, Iterable<String> paths2) {
         for (String path1 : paths1) {
             for (String path2 : paths2) {
                 String overLappedPath = getOverLappedPath(path1, path2);
                 if (overLappedPath != null) {
-                    return overLappedPath;
+                    return true;
                 }
             }
         }
 
-        return null;
+        return false;
     }
 
     private static Set<String> getOutputPaths(Map<File, String> canonicalizedFileCache, TaskInfo task, FileCollection outputFiles, FileCollection localStateFiles) {
