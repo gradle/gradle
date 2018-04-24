@@ -32,15 +32,6 @@ apply(plugin = "kotlin")
 apply<KotlinDslCompilerPlugins>()
 apply<PrecompiledScriptPlugins>()
 
-gradlePlugin {
-    (plugins) {
-        "kotlinDslPluginBundle" {
-            id = "kotlin-dsl-plugin-bundle"
-            implementationClass = "plugins.KotlinDslPluginBundle"
-        }
-    }
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += listOf(
