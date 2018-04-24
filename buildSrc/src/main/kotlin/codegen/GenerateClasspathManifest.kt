@@ -16,9 +16,10 @@
 
 package codegen
 
+import accessors.base
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.plugins.BasePluginConvention
 
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -26,7 +27,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.the
 
 import java.io.File
 
@@ -66,10 +66,5 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     private
     fun moduleName(): String =
-        base.archivesBaseName
-
-    @get:Internal
-    private
-    val base
-        get() = project.the<BasePluginConvention>()
+        project.base.archivesBaseName
 }

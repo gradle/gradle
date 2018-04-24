@@ -1,19 +1,19 @@
 package plugins
 
+import accessors.base
+import accessors.publishing
+
 import com.gradle.publish.PluginBundleExtension
 
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.WriteProperties
 
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.task
-import org.gradle.kotlin.dsl.the
 
 import org.gradle.language.jvm.tasks.ProcessResources
 
@@ -148,16 +148,6 @@ open class KotlinDslPluginBundle : Plugin<Project> {
 
 val ProcessResources.futurePluginVersionsFile
     get() = destinationDir.resolve("future-plugin-versions.properties")
-
-
-private
-val Project.base
-    get() = the<BasePluginConvention>()
-
-
-private
-fun Project.publishing(action: PublishingExtension.() -> Unit) =
-    configure(action)
 
 
 private

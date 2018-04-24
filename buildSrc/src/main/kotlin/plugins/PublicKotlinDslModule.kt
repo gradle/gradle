@@ -1,20 +1,19 @@
 package plugins
 
+import accessors.base
+import accessors.java
+import accessors.publishing
+
 import codegen.GenerateClasspathManifest
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.api.plugins.BasePluginConvention
-
-import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.the
 
 
 /**
@@ -55,12 +54,4 @@ open class PublicKotlinDslModule : Plugin<Project> {
             mapOf("builtBy" to generateClasspathManifest),
             generatedResourcesDir)
     }
-
-    private
-    val Project.base
-        get() = the<BasePluginConvention>()
-
-    private
-    fun Project.publishing(action: PublishingExtension.() -> Unit) =
-        configure(action)
 }

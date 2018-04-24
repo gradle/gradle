@@ -1,5 +1,7 @@
 package plugins
 
+import accessors.java
+
 import build.kotlinDslDebugPropertyName
 import build.withTestStrictClassLoading
 import build.withTestWorkersMemoryLimits
@@ -7,15 +9,12 @@ import build.withTestWorkersMemoryLimits
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.api.plugins.JavaPluginConvention
-
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
@@ -65,8 +64,3 @@ open class KotlinDslModule : Plugin<Project> {
 internal
 fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
     configure(action)
-
-
-internal
-val Project.java
-    get() = the<JavaPluginConvention>()
