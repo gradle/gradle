@@ -37,7 +37,7 @@ open class PublicKotlinDslModule : Plugin<Project> {
         publishing {
             publications.create<MavenPublication>("mavenJava") {
                 artifactId = base.archivesBaseName
-                from(components.getByName("java"))
+                from(components["java"])
             }
         }
 

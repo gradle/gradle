@@ -25,6 +25,9 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.the
+
 import java.io.File
 
 
@@ -34,10 +37,10 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @get:InputFiles
-    val compileOnly = project.configurations.getByName("compileOnly")
+    val compileOnly = project.configurations["compileOnly"]
 
     @get:InputFiles
-    val runtime = project.configurations.getByName("runtime")
+    val runtime = project.configurations["runtime"]
 
     @get:Internal
     val outputFile by lazy {
@@ -67,7 +70,6 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     @get:Internal
     private
-    val base by lazy {
-        project.convention.getPlugin(BasePluginConvention::class.java)
-    }
+    val base
+        get() = project.the<BasePluginConvention>()
 }

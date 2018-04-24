@@ -1,3 +1,3 @@
 package build
 
-val kotlinDslDebugPropertyName = "org.gradle.kotlin.dsl.debug"
+const val kotlinDslDebugPropertyName = "org.gradle.kotlin.dsl.debug"
