@@ -363,7 +363,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -377,10 +377,16 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        Test test = project.getTasks().create(TEST_TASK_NAME, Test.class);
+
+        Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
+            @Override
+            public void execute(Test test) {
+                test.setDescription("Runs the unit tests.");
+                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            }
+        });
         project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
-        test.setDescription("Runs the unit tests.");
-        test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
     }
 
     private void configureConfigurations(Project project) {

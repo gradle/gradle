@@ -361,7 +361,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Javadoc.class, new Action<Javadoc>() {
+        project.getTasks().configureEachLater(Javadoc.class, new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -400,7 +400,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
             public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }
@@ -408,7 +408,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
             @Override
             public void execute(final TaskExecutionGraph taskExecutionGraph) {
-                project.getTasks().withType(Test.class, new Action<Test>() {
+                project.getTasks().configureEachLater(Test.class, new Action<Test>() {
 
                     @Override
                     public void execute(Test test) {
