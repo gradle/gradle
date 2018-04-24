@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -32,12 +33,12 @@ import org.gradle.internal.work.WorkerLeaseService;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
+@NonNullApi
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
-
 
     public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.executorFactory = executorFactory;
@@ -56,7 +57,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
-            taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
+            new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
@@ -67,13 +68,8 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
-            executor.execute(worker);
+            executor.execute(new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease));
         }
-    }
-
-    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
     }
 
     private static class TaskExecutorWorker implements Runnable {
@@ -87,6 +83,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             this.parentWorkerLease = parentWorkerLease;
         }
 
+        @Override
         public void run() {
             final AtomicLong busy = new AtomicLong(0);
             Timer totalTimer = Time.startTimer();
