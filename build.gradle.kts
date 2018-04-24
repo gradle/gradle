@@ -92,9 +92,8 @@ artifactory {
 
 fun buildTagFor(version: String): String =
     when (version.substringAfterLast('-')) {
-        "SNAPSHOT"                  -> "snapshot"
-        in Regex("""M\d+[a-z]*$""") -> "milestone"
-        else                        -> "release"
+        "SNAPSHOT" -> "snapshot"
+        else -> "release"
     }
 
 
@@ -176,9 +175,8 @@ idea {
 
 
 // --- Utility functions -----------------------------------------------
-operator fun Regex.contains(s: String) = matches(s)
-
-inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) =
+    tasks.creating(T::class, configuration)
 
 
 fun Project.createOpenTestReportTasks() {
