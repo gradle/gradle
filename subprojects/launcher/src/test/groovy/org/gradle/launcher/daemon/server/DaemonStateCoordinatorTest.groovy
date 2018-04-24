@@ -581,7 +581,11 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         1 * onStartCommand.run()
         1 * command.run() >> {
             instant.commandRunning
-            thread.blockUntil.never
+            try {
+                thread.blockUntil.never
+            } catch (InterruptedException ignore) {
+                thread.blockUntil.never
+            }
         }
         0 * _._
     }
