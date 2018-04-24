@@ -13,13 +13,13 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    repositories {
-        maven(url = build.kotlinRepo)
-    }
-
     val kotlinVersion: String by extra
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+
+    repositories {
+        gradlePluginPortal()
     }
 }
 
