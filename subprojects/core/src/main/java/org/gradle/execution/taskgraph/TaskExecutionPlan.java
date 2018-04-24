@@ -16,13 +16,13 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -30,10 +30,18 @@ import java.util.Set;
  * Represents a graph of dependent tasks, returned in execution order.
  */
 public interface TaskExecutionPlan extends Describable {
-    /**
-     * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
-     */
-    void awaitCompletion();
+    @Nullable
+    TaskInfo selectNextNode(WorkerLeaseRegistry.WorkerLease workerLease);
+
+    boolean allProjectsLocked();
+
+    ResourceLock getProjectLock(TaskInfo taskInfo);
+
+    void taskComplete(TaskInfo taskInfo);
+
+    void abortAllAndFail(Throwable t);
+
+    void abortExecution();
 
     /**
      * <p>Returns the dependencies of a task which are part of the execution plan.</p>
@@ -56,11 +64,9 @@ public interface TaskExecutionPlan extends Describable {
      */
     Set<Task> getFilteredTasks();
 
-    /**
-     * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
-     * can be executed.  If all tasks have been executed, returns false.
-     *
-     * @return true if there are more tasks waiting to execute, false if all tasks have executed.
-     */
-    boolean executeWithTask(WorkerLeaseRegistry.WorkerLease parentWorkerLease, Action<TaskInternal> taskExecution);
+    void rethrowFailures();
+
+    boolean allTasksComplete();
+
+    boolean hasWorkRemaining();
 }

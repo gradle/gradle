@@ -68,6 +68,7 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -76,6 +77,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -209,14 +211,25 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(ParallelismConfigurationManager parallelismConfigurationManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+    TaskPlanExecutor createTaskExecutorFactory(
+        ParallelismConfigurationManager parallelismConfigurationManager,
+        ExecutorFactory executorFactory,
+        WorkerLeaseService workerLeaseService,
+        BuildCancellationToken cancellationToken,
+        ResourceLockCoordinationService coordinationService) {
         int parallelThreads = parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount();
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
 
         // TODO: Make task plan executor respond to changes in parallelism configuration
-        return new DefaultTaskPlanExecutor(parallelismConfigurationManager.getParallelismConfiguration(), executorFactory, workerLeaseService);
+        return new DefaultTaskPlanExecutor(
+            parallelismConfigurationManager.getParallelismConfiguration(),
+            executorFactory,
+            workerLeaseService,
+            cancellationToken,
+            coordinationService
+        );
     }
 
 }

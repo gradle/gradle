@@ -31,7 +31,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
-    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService))
+    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationToken, coordinationService)
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
