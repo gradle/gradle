@@ -276,7 +276,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
+    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, @Nullable  Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }

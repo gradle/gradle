@@ -239,7 +239,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    <T extends Task> Provider<T> createLater(String name, Class<T> type, @Nullable Action<? super T> configurationAction);
+    <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
