@@ -38,7 +38,7 @@ open class KotlinDslPluginBundle : Plugin<Project> {
         kotlinDslPlugins = container(KotlinDslPlugin::class.java)
         extensions.add("kotlinDslPlugins", kotlinDslPlugins)
 
-        plugins.apply(KotlinDslModule::class.java)
+        plugins.apply("kotlin-dsl-module")
         plugins.apply("maven-publish")
         plugins.apply("java-gradle-plugin")
         plugins.apply("com.gradle.plugin-publish")

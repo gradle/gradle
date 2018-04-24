@@ -28,7 +28,7 @@ open class PublicKotlinDslModule : Plugin<Project> {
 
     override fun apply(project: Project) = project.run {
 
-        apply<KotlinDslModule>()
+        apply(plugin = "kotlin-dsl-module")
         apply(plugin = "maven-publish")
         apply(plugin = "com.jfrog.artifactory")
 

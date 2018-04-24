@@ -34,10 +34,6 @@ apply<PrecompiledScriptPlugins>()
 
 gradlePlugin {
     (plugins) {
-        "kotlinDslModule" {
-            id = "kotlin-dsl-module"
-            implementationClass = "plugins.KotlinDslModule"
-        }
         "publicKotlinDslModule" {
             id = "public-kotlin-dsl-module"
             implementationClass = "plugins.PublicKotlinDslModule"
