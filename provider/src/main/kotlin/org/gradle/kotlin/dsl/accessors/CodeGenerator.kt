@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.Project
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
 
@@ -34,12 +33,9 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
         }
     }
     conventions.mapNotNull(::typedAccessorSpec).filterNot { seen.hasConflict(it) }.forEach { spec ->
-        conventionAccessorFor(spec)?.let { conventionAccessor ->
-            action(conventionAccessor)
-            seen.add(spec)
-        }
+        conventionAccessorFor(spec)?.let(action)
     }
-    configurations.map(::accessorNameSpec).filterNot { seen.hasProjectConflict(it) }.forEach { spec ->
+    configurations.map(::accessorNameSpec).forEach { spec ->
         configurationAccessorFor(spec)?.let(action)
     }
 }
@@ -47,14 +43,12 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
 
 private
 data class SeenAccessorSpecs(private val seen: MutableList<TypedAccessorSpec> = mutableListOf()) {
+
     fun add(accessorSpec: TypedAccessorSpec) =
         seen.add(accessorSpec)
 
     fun hasConflict(accessorSpec: TypedAccessorSpec) =
         seen.any { it.targetTypeAccess == accessorSpec.targetTypeAccess && it.name == accessorSpec.name }
-
-    fun hasProjectConflict(nameSpec: AccessorNameSpec): Boolean =
-        seen.any { it.targetTypeAccess.type == Project::class.qualifiedName && it.name == nameSpec }
 }
 
 
