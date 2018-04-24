@@ -313,8 +313,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                                             ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
-                                                                            ComponentTypeRegistry componentTypeRegistry) {
-            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry);
+                                                                            ComponentTypeRegistry componentTypeRegistry, ImmutableAttributesFactory attributesFactory) {
+            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory);
 
         }
 

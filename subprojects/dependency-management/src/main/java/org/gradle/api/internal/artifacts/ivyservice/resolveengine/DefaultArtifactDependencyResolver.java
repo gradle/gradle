@@ -131,7 +131,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
             }
         }
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), resolveContext.getAttributes(), consumerSchema));
+        resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), resolveContext.getAttributes(), consumerSchema, attributesFactory));
         return new ComponentResolversChain(resolvers, artifactTypeRegistry);
     }
 
