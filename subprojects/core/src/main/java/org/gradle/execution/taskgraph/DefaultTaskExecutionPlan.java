@@ -140,7 +140,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
         for (Task task : sortedTasks) {
-            TaskInfo node = nodeFactory.createNode(task);
+            TaskInfo node = nodeFactory.getOrCreateNode(task);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
             } else if (filter.isSatisfiedBy(task)) {
@@ -179,25 +179,25 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task, task.getTaskDependencies());
                 for (Task dependsOnTask : dependsOnTasks) {
-                    TaskInfo targetNode = nodeFactory.createNode(dependsOnTask);
+                    TaskInfo targetNode = nodeFactory.getOrCreateNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task finalizerTask : context.getDependencies(task, task.getFinalizedBy())) {
-                    TaskInfo targetNode = nodeFactory.createNode(finalizerTask);
+                    TaskInfo targetNode = nodeFactory.getOrCreateNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
                 for (Task mustRunAfter : context.getDependencies(task, task.getMustRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.createNode(mustRunAfter);
+                    TaskInfo targetNode = nodeFactory.getOrCreateNode(mustRunAfter);
                     node.addMustSuccessor(targetNode);
                 }
                 for (Task shouldRunAfter : context.getDependencies(task, task.getShouldRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.createNode(shouldRunAfter);
+                    TaskInfo targetNode = nodeFactory.getOrCreateNode(shouldRunAfter);
                     node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
