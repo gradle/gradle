@@ -34,6 +34,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -81,7 +83,7 @@ class ResolveIvyFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured" () {
         when:
-        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal))
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -100,7 +102,7 @@ class ResolveIvyFactoryTest extends Specification {
         })
 
         when:
-        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor))
+        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal))
 
         then:
         assert resolver instanceof UserResolverChain

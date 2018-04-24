@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
@@ -78,14 +79,14 @@ public class DynamicVersionResolver {
         repositoryNames.add(repository.getName());
     }
 
-    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, BuildableComponentIdResolveResult result) {
+    public void resolve(ModuleDependencyMetadata dependency, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, AttributeContainer consumerAttributes, BuildableComponentIdResolveResult result) {
         ModuleComponentSelector requested = dependency.getSelector();
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
         List<Throwable> errors = new ArrayList<Throwable>();
 
         List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser));
+            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -223,10 +224,11 @@ public class DynamicVersionResolver {
         private final VersionSelector versionSelector;
         private final VersionSelector rejectedVersionSelector;
         private final VersionParser versionParser;
+        private final AttributeContainer consumerAttributes;
         private ModuleComponentIdentifier firstRejected = null;
 
 
-        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, VersionParser versionParser) {
+        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, VersionParser versionParser, AttributeContainer consumerAttributes) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.dependency = dependency;
             this.versionSelector = versionSelector;
@@ -234,6 +236,7 @@ public class DynamicVersionResolver {
             this.repository = repository;
             this.versionParser = versionParser;
             this.attemptCollector = new AttemptCollector();
+            this.consumerAttributes = consumerAttributes;
             versionListingResult = new VersionListResult(dependency, repository);
         }
 
@@ -259,7 +262,7 @@ public class DynamicVersionResolver {
 
         private void selectMatchingVersionAndResolve() {
             // TODO - reuse metaData if it was already fetched to select the component from the version list
-            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector, rejectedVersionSelector);
+            versionedComponentChooser.selectNewestMatchingComponent(candidates(), this, versionSelector, rejectedVersionSelector, consumerAttributes);
         }
 
         @Override
@@ -286,6 +289,11 @@ public class DynamicVersionResolver {
 
         @Override
         public void rejectedByRule(ModuleComponentIdentifier id) {
+            rejectedVersions.add(id.getVersion());
+        }
+
+        @Override
+        public void doesNotMatchConsumerAttributes(ModuleComponentIdentifier id) {
             rejectedVersions.add(id.getVersion());
         }
 

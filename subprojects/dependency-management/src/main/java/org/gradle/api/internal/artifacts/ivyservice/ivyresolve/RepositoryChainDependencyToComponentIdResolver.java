@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
@@ -40,11 +41,13 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final VersionSelectorScheme versionSelectorScheme;
+    private final AttributeContainer consumerAttributes;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionSelectorScheme versionSelectorScheme, VersionParser versionParser) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionSelectorScheme versionSelectorScheme, VersionParser versionParser, AttributeContainer consumerAttributes) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.versionSelectorScheme = versionSelectorScheme;
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, versionParser, metaDataFactory);
+        this.consumerAttributes = consumerAttributes;
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -63,7 +66,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
             VersionSelector preferredSelector = resolvedVersionConstraint.getPreferredSelector();
             VersionSelector rejectSelector = resolvedVersionConstraint.getRejectedSelector();
             if (preferredSelector.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, result);
+                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), preferredSelector, rejectSelector, consumerAttributes, result);
             } else {
                 String version = resolvedVersionConstraint.getPreferredVersion();
                 ModuleComponentIdentifier id = new DefaultModuleComponentIdentifier(module.getGroup(), module.getModule(), version);
