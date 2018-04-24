@@ -25,6 +25,8 @@ import org.gradle.kotlin.dsl.configure
 
 import org.gradle.kotlin.dsl.the
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+
 
 internal
 val Project.base
@@ -38,4 +40,9 @@ val Project.java
 
 internal
 fun Project.publishing(action: PublishingExtension.() -> Unit) =
+    configure(action)
+
+
+internal
+fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
     configure(action)

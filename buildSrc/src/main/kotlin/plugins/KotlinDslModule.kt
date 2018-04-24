@@ -13,11 +13,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withType
-
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
 
 /**
@@ -31,7 +28,7 @@ open class KotlinDslModule : Plugin<Project> {
 
     override fun apply(project: Project) = project.run {
 
-        apply<KotlinLibrary>()
+        apply(plugin = "kotlin-library")
 
         // including all sources
         val mainSourceSet = java.sourceSets["main"]
@@ -59,8 +56,3 @@ open class KotlinDslModule : Plugin<Project> {
         withTestWorkersMemoryLimits()
     }
 }
-
-
-internal
-fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
-    configure(action)

@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
@@ -22,13 +23,10 @@ plugins {
 
 apply(plugin = "kotlin")
 apply<KotlinDslCompilerPlugins>()
+apply<PrecompiledScriptPlugins>()
 
 gradlePlugin {
     (plugins) {
-        "kotlinLibrary" {
-            id = "kotlin-library"
-            implementationClass = "plugins.KotlinLibrary"
-        }
         "kotlinDslModule" {
             id = "kotlin-dsl-module"
             implementationClass = "plugins.KotlinDslModule"
@@ -46,7 +44,7 @@ gradlePlugin {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf(
+        freeCompilerArgs += listOf(
             "-Xjsr305=strict",
             "-Xskip-runtime-version-check"
         )
