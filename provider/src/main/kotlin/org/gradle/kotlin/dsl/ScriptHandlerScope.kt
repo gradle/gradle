@@ -36,6 +36,6 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
     /**
      * Adds a dependency to the script classpath.
      */
-    fun DependencyHandler.classpath(dependencyNotation: Any): Dependency =
+    fun DependencyHandler.classpath(dependencyNotation: Any): Dependency? =
         add(CLASSPATH_CONFIGURATION, dependencyNotation)
 }

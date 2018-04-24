@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-repo='dist-snapshots'
+repo='kotlin-dsl-snapshots-local'
 
 # .children[-2] selects the one before the last which is the all distro
 latestSnapshotPath=`

@@ -85,7 +85,7 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
     private
     fun classLoaderFor(location: File, scope: ClassLoaderScope) =
         scope
-            .local(DefaultClassPath(location))
+            .local(DefaultClassPath.of(location))
             .lock()
             .localClassLoader
 

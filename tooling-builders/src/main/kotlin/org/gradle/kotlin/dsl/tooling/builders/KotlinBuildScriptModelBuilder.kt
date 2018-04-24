@@ -141,7 +141,7 @@ private
 fun precompiledScriptPluginModelBuilder(enclosingSourceSet: SourceSet, modelRequestProject: Project): KotlinScriptTargetModelBuilder =
     KotlinScriptTargetModelBuilder(
         project = modelRequestProject,
-        scriptClassPath = DefaultClassPath(enclosingSourceSet.compileClasspath))
+        scriptClassPath = DefaultClassPath.of(enclosingSourceSet.compileClasspath))
 
 
 private

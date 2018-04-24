@@ -71,7 +71,7 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractIntegrationTest() 
 
     private
     fun isolatedClassLoaderFor(classPath: List<File>) =
-        DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath(classPath))
+        DefaultClassLoaderFactory().createIsolatedClassLoader(DefaultClassPath.of(classPath))
 
     private
     fun stop(loader: ClassLoader) {

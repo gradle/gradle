@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
+
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 
@@ -24,13 +25,14 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
+import org.gradle.internal.classloader.ClasspathUtil.getClasspath
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
-
 import org.gradle.kotlin.dsl.support.ProgressMonitor
-
-import org.gradle.kotlin.dsl.support.exportClassPathFromHierarchyOf
+import org.gradle.kotlin.dsl.support.minus
+import org.gradle.kotlin.dsl.support.root
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.util.GFileUtils.moveFile
@@ -86,7 +88,7 @@ class KotlinScriptClassPathProvider(
      * Generated extensions to the Gradle API.
      */
     val gradleApiExtensions: ClassPath by lazy {
-        DefaultClassPath(gradleKotlinDslExtensions())
+        DefaultClassPath.of(gradleKotlinDslExtensions())
     }
 
     /**
@@ -98,6 +100,16 @@ class KotlinScriptClassPathProvider(
 
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
         gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
+
+    private
+    fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
+        require(scope.isLocked) {
+            "$scope must be locked before it can be used to compute a classpath!"
+        }
+        val fullClassPath = getClasspath(scope.exportClassLoader)
+        val rootClassPath = getClasspath(scope.root.exportClassLoader)
+        return fullClassPath - rootClassPath
+    }
 
     private
     fun gradleKotlinDslExtensions(): File =

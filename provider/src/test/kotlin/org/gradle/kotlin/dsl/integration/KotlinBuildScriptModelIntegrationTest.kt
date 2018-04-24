@@ -11,6 +11,7 @@ import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -142,6 +143,27 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
                 not(hasItem(rootProjectDependency.name)),
                 hasItem(buildSrcDependency.name)))
         assertContainsBuildSrc(scriptPluginClassPath)
+        assertContainsGradleKotlinDslJars(scriptPluginClassPath)
+    }
+
+    @Ignore("See #110")
+    @Test
+    fun `can fetch classpath of script plugin with buildscript block`() {
+
+        val scriptPluginDependency =
+            withFile("script-plugin-dependency.jar")
+
+        val scriptPlugin = withFile("plugin.gradle.kts", """
+            buildscript {
+                dependencies { classpath(files("${scriptPluginDependency.name}")) }
+            }
+        """)
+
+        val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
+        assertThat(
+            scriptPluginClassPath.map { it.name },
+            hasItem(scriptPluginDependency.name))
+
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
 

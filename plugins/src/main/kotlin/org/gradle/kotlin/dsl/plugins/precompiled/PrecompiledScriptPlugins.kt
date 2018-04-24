@@ -109,9 +109,8 @@ fun Project.exposeScriptsAsGradlePlugins() {
         it.include("**/*.gradle.kts")
     }
 
-    val scriptPlugins = lazy {
+    val scriptPlugins =
         scriptSourceFiles.map(::ScriptPlugin)
-    }
 
     declareScriptPlugins(scriptPlugins)
 
@@ -130,10 +129,10 @@ val Project.gradlePlugin
 
 
 private
-fun Project.declareScriptPlugins(scriptPlugins: Lazy<List<ScriptPlugin>>) {
+fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 
     configure<GradlePluginDevelopmentExtension> {
-        for (scriptPlugin in scriptPlugins.value) {
+        for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {
                 it.id = scriptPlugin.id
                 it.implementationClass = scriptPlugin.implementationClass
@@ -144,20 +143,20 @@ fun Project.declareScriptPlugins(scriptPlugins: Lazy<List<ScriptPlugin>>) {
 
 
 private
-fun Project.generatePluginAdaptersFor(scriptPlugins: Lazy<List<ScriptPlugin>>, scriptSourceFiles: FileTree) {
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>, scriptSourceFiles: FileTree) {
 
     tasks {
 
         val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
-        val sourceSet = sourceSets["main"]
-        sourceSet.kotlin.srcDir(generatedSourcesDir)
+
+        sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
 
         val generateScriptPluginAdapters by creating {
             inputs.files(scriptSourceFiles)
             outputs.dir(generatedSourcesDir)
             doLast {
                 val outputDir = generatedSourcesDir.get().asFile
-                for (scriptPlugin in scriptPlugins.value) {
+                for (scriptPlugin in scriptPlugins) {
                     scriptPlugin.writeScriptPluginAdapterTo(outputDir)
                 }
             }
@@ -175,7 +174,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     val (packageDir, packageDeclaration) =
         packageName?.let { packageName ->
-            outputDir.mkdir(packageName.replace('.', '/')) to "package $packageName"
+            packageDir(outputDir, packageName) to "package $packageName"
         } ?: outputDir to ""
 
     val outputFile =
@@ -198,8 +197,13 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.replaceIndent())
+    """.replaceIndent().trim())
 }
+
+
+private
+fun packageDir(outputDir: File, packageName: String) =
+    outputDir.mkdir(packageName.replace('.', '/'))
 
 
 private

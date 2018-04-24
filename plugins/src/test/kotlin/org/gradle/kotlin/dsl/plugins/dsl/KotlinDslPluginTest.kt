@@ -146,7 +146,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             import java.io.File
 
             import org.gradle.testkit.runner.GradleRunner
-            import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
             import org.hamcrest.CoreMatchers.containsString
             import org.junit.Assert.assertThat
@@ -172,6 +171,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     // and:
                     System.setProperty("org.gradle.daemon.idletimeout", "1000")
                     System.setProperty("org.gradle.daemon.registry.base", "${escapedPathOf(customDaemonRegistry())}")
+                    File(projectRoot, "gradle.properties").writeText("org.gradle.jvmargs=-Xmx128m")
 
                     // and:
                     val runner = GradleRunner.create()
@@ -179,7 +179,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                         .withProjectDir(projectRoot)
                         .withPluginClasspath()
                         .forwardOutput()
-                    (runner as DefaultGradleRunner).withJvmArguments("-Xmx128m")
 
                     // when:
                     val result = runner.withArguments("help").build()

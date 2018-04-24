@@ -48,6 +48,7 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
         dependencies {
             ktlint(files(gradleKotlinDslKtlintRulesetJar()))
+            ktlint(kotlin("reflect"))
         }
 
         plugins.withId("kotlin") {

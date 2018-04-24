@@ -65,6 +65,34 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    @LeaksFileHandles
+    fun `given a script plugin with a buildscript block, it will be used to compute its classpath`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withFile("other.gradle.kts", """
+            buildscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        withBuildScript("""
+            apply(from = "other.gradle.kts")
+        """)
+
+        assert(
+            build("compute").output.contains("*42*"))
+    }
+
+    @Test
     fun `given a buildSrc dir, it will be added to the compilation classpath`() {
 
         withFile("buildSrc/src/main/groovy/build/DeepThought.groovy", """
@@ -146,7 +174,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""
             buildscript {
                 repositories {
-                    ivy { setUrl("${fixturesRepository.toURI()}") }
+                    ivy(url = "${fixturesRepository.toURI()}")
                     jcenter()
                 }
                 dependencies {
@@ -716,8 +744,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             """))
     }
 
-    @LeaksFileHandles
     @Test
+    @LeaksFileHandles
     fun `can cross configure buildscript`() {
 
         withClassJar("zero.jar", ZeroThought::class.java)

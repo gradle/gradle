@@ -71,8 +71,8 @@ fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
                     buildAccessorsJarFor(projectSchema, classPath, outputDir = baseDir)
                 }
         AccessorsClassPath(
-            DefaultClassPath(accessorsJar(cacheDir)),
-            DefaultClassPath(accessorsSourceDir(cacheDir)))
+            DefaultClassPath.of(accessorsJar(cacheDir)),
+            DefaultClassPath.of(accessorsSourceDir(cacheDir)))
     }
 
 

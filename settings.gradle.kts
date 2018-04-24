@@ -7,4 +7,5 @@ include(
     "plugins",
     "plugins-experiments",
     "test-fixtures",
-    "samples-tests")
+    "samples-tests",
+    "integ-tests")
