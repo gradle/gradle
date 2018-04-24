@@ -140,7 +140,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory);
         derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory);
         publishableArtifacts = new CompositePublicationArtifactSet<MavenArtifact>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
-        pom = instantiator.newInstance(DefaultMavenPom.class, this);
+        pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator);
         this.featurePreviews = featurePreviews;
     }
 

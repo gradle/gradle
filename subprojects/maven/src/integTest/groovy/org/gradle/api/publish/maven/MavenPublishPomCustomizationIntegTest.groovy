@@ -40,15 +40,97 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                 }
                 publications {
                     mavenCustom(MavenPublication) {
-                        pom.packaging "custom-packaging"
-                        pom.withXml {
-                            asNode().appendNode('description', "custom-description")
-
-                            def dependency = asNode().appendNode('dependencies').appendNode('dependency')
-                            dependency.appendNode('groupId', 'junit')
-                            dependency.appendNode('artifactId', 'junit')
-                            dependency.appendNode('version', '4.12')
-                            dependency.appendNode('scope', 'runtime')
+                        pom {
+                            packaging "custom-packaging"
+                            name "custom-name"
+                            description "custom-description"
+                            url "http://example.org/project"
+                            inceptionYear 2018
+                            organization {
+                                name "Example Organization"
+                                url "https://example.org"
+                            }
+                            licenses {
+                                license {
+                                    name "Eclipse Public License v2.0"
+                                    url "http://www.eclipse.org/legal/epl-v20.html"
+                                    distribution "inside artifact"
+                                    comments "Successor of EPL v1.0"
+                                }
+                            }
+                            developers {
+                                developer {
+                                    id "foo"
+                                    name "Foo Bar"
+                                    email "foo.bar@example.org"
+                                }
+                                developer {
+                                    id "baz"
+                                    name "Baz Qux"
+                                    email "baz.qux@example.org"
+                                    url "http://example.org/users/baz.qux"
+                                    organization "Example Organization"
+                                    organizationUrl "https://example.org"
+                                    roles "tester", "developer"
+                                    timezone "Europe/Berlin"
+                                    properties "user": "baz.qux"
+                                }
+                            }
+                            contributors {
+                                contributor {
+                                    name "John Doe"
+                                    email "john.doe@example.org"
+                                    url "http://example.org/users/john.doe"
+                                    organization "Example Organization"
+                                    organizationUrl "https://example.org"
+                                    roles "tester", "developer"
+                                    timezone "Europe/Berlin"
+                                    properties "user": "john.doe"
+                                }
+                            }
+                            scm {
+                                connection "scm:git:git://example.org/some-repo.git"
+                                developerConnection "scm:git:git://example.org/some-repo.git"
+                                url "https://example.org/some-repo"
+                                tag "v1.0"
+                            }
+                            issueManagement {
+                                system "Some Issue Tracker"
+                                url "https://issues.example.org/"
+                            }
+                            ciManagement {
+                                system "Some CI Server"
+                                url "https://ci.example.org/"
+                            }
+                            distributionManagement {
+                                relocation {
+                                    groupId "new-group"
+                                    artifactId "new-artifact-id"
+                                    version "42"
+                                    message "the answer to life, the universe and everything"
+                                }
+                            }
+                            mailingLists {
+                                mailingList {
+                                    name "Users"
+                                    subscribe "users-subscribe@lists.example.org"
+                                    unsubscribe "users-unsubscribe@lists.example.org"
+                                    post "users@lists.example.org"
+                                    archive "http://lists.example.org/users/"
+                                    otherArchives "http://archive.org/", "http://backup.example.org/"
+                                }
+                                mailingList {
+                                    name "Developers"
+                                    post "devs@lists.example.org"
+                                }
+                            }
+                            withXml {
+                                def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                                dependency.appendNode('groupId', 'junit')
+                                dependency.appendNode('artifactId', 'junit')
+                                dependency.appendNode('version', '4.12')
+                                dependency.appendNode('scope', 'runtime')
+                            }
                         }
                     }
                 }
@@ -60,9 +142,79 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         then:
         def module = mavenRepo.module('org.gradle.test', 'customizePom', '1.0')
         module.assertPublished()
-        module.parsedPom.description == 'custom-description'
-        module.parsedPom.packaging == 'custom-packaging'
-        module.parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.12")
+        def parsedPom = module.parsedPom
+        parsedPom.packaging == 'custom-packaging'
+        parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.12")
+
+        and:
+        parsedPom.name == 'custom-name'
+        parsedPom.description == 'custom-description'
+        parsedPom.url == 'http://example.org/project'
+        parsedPom.inceptionYear == '2018'
+        parsedPom.organization.name.text() == 'Example Organization'
+        parsedPom.organization.url.text() == 'https://example.org'
+        parsedPom.licenses.size() == 1
+        parsedPom.licenses[0].name.text() == 'Eclipse Public License v2.0'
+        parsedPom.licenses[0].url.text() == 'http://www.eclipse.org/legal/epl-v20.html'
+        parsedPom.licenses[0].distribution.text() == "inside artifact"
+        parsedPom.licenses[0].comments.text() == "Successor of EPL v1.0"
+
+        and:
+        parsedPom.developers.size() == 2
+        parsedPom.developers[0].id.text() == 'foo'
+        parsedPom.developers[0].name.text() == 'Foo Bar'
+        parsedPom.developers[0].email.text() == 'foo.bar@example.org'
+        parsedPom.developers[1].id.text() == 'baz'
+        parsedPom.developers[1].name.text() == 'Baz Qux'
+        parsedPom.developers[1].email.text() == 'baz.qux@example.org'
+        parsedPom.developers[1].url.text() == 'http://example.org/users/baz.qux'
+        parsedPom.developers[1].organization.text() == "Example Organization"
+        parsedPom.developers[1].organizationUrl.text() == "https://example.org"
+        parsedPom.developers[1].roles.role.collect { it.text() } == ["tester", "developer"]
+        parsedPom.developers[1].timezone.text() == "Europe/Berlin"
+        parsedPom.developers[1].properties.user.text() == "baz.qux"
+
+        and:
+        parsedPom.contributors.size() == 1
+        parsedPom.contributors[0].name.text() == "John Doe"
+        parsedPom.contributors[0].email.text() == "john.doe@example.org"
+        parsedPom.contributors[0].url.text() == "http://example.org/users/john.doe"
+        parsedPom.contributors[0].organization.text() == "Example Organization"
+        parsedPom.contributors[0].organizationUrl.text() == "https://example.org"
+        parsedPom.contributors[0].roles.role.collect { it.text() } == ["tester", "developer"]
+        parsedPom.contributors[0].timezone.text() == "Europe/Berlin"
+        parsedPom.contributors[0].properties.user.text() == "john.doe"
+
+        and:
+        parsedPom.scm.connection.text() == "scm:git:git://example.org/some-repo.git"
+        parsedPom.scm.developerConnection.text() == "scm:git:git://example.org/some-repo.git"
+        parsedPom.scm.url.text() == "https://example.org/some-repo"
+        parsedPom.scm.tag.text() == "v1.0"
+
+        and:
+        parsedPom.issueManagement.system.text() == "Some Issue Tracker"
+        parsedPom.issueManagement.url.text() == "https://issues.example.org/"
+
+        and:
+        parsedPom.ciManagement.system.text() == "Some CI Server"
+        parsedPom.ciManagement.url.text() == "https://ci.example.org/"
+
+        and:
+        parsedPom.distributionManagement.relocation[0].groupId.text() == "new-group"
+        parsedPom.distributionManagement.relocation[0].artifactId.text() == "new-artifact-id"
+        parsedPom.distributionManagement.relocation[0].version.text() == "42"
+        parsedPom.distributionManagement.relocation[0].message.text() == "the answer to life, the universe and everything"
+
+        and:
+        parsedPom.mailingLists.size() == 2
+        parsedPom.mailingLists[0].name.text() == "Users"
+        parsedPom.mailingLists[0].subscribe.text() == "users-subscribe@lists.example.org"
+        parsedPom.mailingLists[0].unsubscribe.text() == "users-unsubscribe@lists.example.org"
+        parsedPom.mailingLists[0].post.text() == "users@lists.example.org"
+        parsedPom.mailingLists[0].archive.text() == "http://lists.example.org/users/"
+        parsedPom.mailingLists[0].otherArchives.otherArchive.collect { it.text() } == ["http://archive.org/", "http://backup.example.org/"]
+        parsedPom.mailingLists[1].name.text() == "Developers"
+        parsedPom.mailingLists[1].post.text() == "devs@lists.example.org"
     }
 
     def "can generate pom file without publishing"() {

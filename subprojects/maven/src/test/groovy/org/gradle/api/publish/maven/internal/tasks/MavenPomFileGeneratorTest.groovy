@@ -21,6 +21,17 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import org.gradle.api.publish.maven.MavenPom
+import org.gradle.api.publish.maven.MavenPomCiManagement
+import org.gradle.api.publish.maven.MavenPomContributor
+import org.gradle.api.publish.maven.MavenPomDeveloper
+import org.gradle.api.publish.maven.MavenPomDistributionManagement
+import org.gradle.api.publish.maven.MavenPomIssueManagement
+import org.gradle.api.publish.maven.MavenPomLicense
+import org.gradle.api.publish.maven.MavenPomMailingList
+import org.gradle.api.publish.maven.MavenPomOrganization
+import org.gradle.api.publish.maven.MavenPomRelocation
+import org.gradle.api.publish.maven.MavenPomScm
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
 import org.gradle.test.fixtures.file.TestFile
@@ -56,13 +67,89 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    def "writes packaging"() {
+    def "does not require metadata to be configured"() {
+        given:
+        def mavenPom = Mock(MavenPom) {
+            getPackaging() >> "pom"
+            getLicenses() >> []
+            getDevelopers() >> []
+            getContributors() >> []
+            getMailingLists() >> []
+        }
+
         when:
-        generator.packaging = "pom"
+        generator.configureFrom(mavenPom)
 
         then:
         with (pom) {
             packaging == "pom"
+        }
+    }
+
+    def "writes metadata from configuration"() {
+        given:
+        def mavenPom = Mock(MavenPom) {
+            getPackaging() >> "pom"
+            getName() >> "my name"
+            getDescription() >> "my description"
+            getUrl() >> "http://example.org"
+            getInceptionYear() >> "2018"
+            getLicenses() >> [Mock(MavenPomLicense) {
+                getName() >> "GPL"
+                getUrl() >> "http://www.gnu.org/licenses/gpl.html"
+            }]
+            getOrganization() >> Mock(MavenPomOrganization) {
+                getName() >> "Some Org"
+            }
+            getDevelopers() >> [Mock(MavenPomDeveloper) {
+                getName() >> "Alice"
+                getRoles() >> []
+                getProperties() >> [:]
+            }]
+            getContributors() >> [Mock(MavenPomContributor) {
+                getName() >> "Bob"
+                getRoles() >> []
+                getProperties() >> [:]
+            }]
+            getScm() >> Mock(MavenPomScm) {
+                getConnection() >> "http://cvs.example.org"
+            }
+            getIssueManagement() >> Mock(MavenPomIssueManagement) {
+                getSystem() >> "Bugzilla"
+            }
+            getCiManagement() >> Mock(MavenPomCiManagement) {
+                getSystem() >> "Anthill"
+            }
+            getDistributionManagement() >> Mock(MavenPomDistributionManagement) {
+                getRelocation() >> Mock(MavenPomRelocation) {
+                    getGroupId() >> "org.example.new"
+                }
+            }
+            getMailingLists() >> [Mock(MavenPomMailingList) {
+                getName() >> "Users"
+            }]
+        }
+
+        when:
+        generator.configureFrom(mavenPom)
+
+        then:
+        with (pom) {
+            packaging == "pom"
+            name == "my name"
+            description == "my description"
+            inceptionYear == "2018"
+            url == "http://example.org"
+            licenses.license.name == "GPL"
+            licenses.license.url == "http://www.gnu.org/licenses/gpl.html"
+            organization.name == "Some Org"
+            developers.developer.name == "Alice"
+            contributors.contributor.name == "Bob"
+            scm.connection == "http://cvs.example.org"
+            issueManagement.system == "Bugzilla"
+            ciManagement.system == "Anthill"
+            distributionManagement.relocation.groupId == "org.example.new"
+            mailingLists.mailingList.name == "Users"
         }
     }
 
