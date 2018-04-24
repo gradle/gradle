@@ -49,8 +49,8 @@ import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
+import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
@@ -74,7 +74,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.google.common.io.Files.getFileExtension;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
@@ -343,10 +342,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, Factory<File> fileProvider) {
-        File file = fileProvider.create();
-        String type = getFileExtension(file.getName());
-        String extension = originalArtifact.getExtension() + "." + type;
-        IvyArtifact artifact = new DefaultIvyArtifact(file, originalArtifact.getName(), extension, type, originalArtifact.getClassifier());
+        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider);
         derivedArtifacts.add(artifact);
         return artifact;
     }
