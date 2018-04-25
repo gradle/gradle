@@ -24,10 +24,6 @@
 
 import accessors.java
 
-import build.kotlinDslDebugPropertyName
-import build.withTestStrictClassLoading
-import build.withTestWorkersMemoryLimits
-
 
 apply(plugin = "kotlin-library")
 
@@ -43,15 +39,3 @@ afterEvaluate {
         }
     }
 }
-
-// sets the Gradle Test Kit user home into custom installation build dir
-if (hasProperty(kotlinDslDebugPropertyName) && findProperty(kotlinDslDebugPropertyName) != "false") {
-    tasks.withType<Test> {
-        systemProperty(
-            "org.gradle.testkit.dir",
-            "${rootProject.buildDir}/custom/test-kit-user-home")
-    }
-}
-
-withTestStrictClassLoading()
-withTestWorkersMemoryLimits()

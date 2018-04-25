@@ -19,6 +19,10 @@ import accessors.kotlin
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+import build.withTestStrictClassLoading
+import build.withTestWorkersMemoryLimits
+
+
 apply(plugin = "kotlin")
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
 
@@ -33,3 +37,13 @@ tasks.withType<KotlinCompile> {
             "-Xskip-runtime-version-check")
     }
 }
+
+// sets the Gradle Test Kit user home to a known constant dir
+tasks.withType<Test> {
+    systemProperty(
+        "org.gradle.testkit.dir",
+        "$rootDir/.gradle/testKitGradleUserHome")
+}
+
+withTestStrictClassLoading()
+withTestWorkersMemoryLimits()
