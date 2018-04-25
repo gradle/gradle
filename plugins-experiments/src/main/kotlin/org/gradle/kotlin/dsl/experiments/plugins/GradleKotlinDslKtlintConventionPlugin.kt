@@ -97,12 +97,6 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
         tasksBySourceSets.forEach { (sourceSet, task) ->
 
             sourceSet.allSource.sourceDirectories.forEach { srcDir ->
-                task.inputs.property(
-                    "kt files from $srcDir",
-                    files(srcDir).asFileTree.matching {
-                        it.include("**/*.kt")
-                    }
-                )
                 reporters.forEach {
                     task.outputs.file("$buildDir/${it.reportPathFor(sourceSet)}")
                 }

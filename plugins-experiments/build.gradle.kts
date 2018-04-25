@@ -18,7 +18,7 @@ repositories {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.2.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.3.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
