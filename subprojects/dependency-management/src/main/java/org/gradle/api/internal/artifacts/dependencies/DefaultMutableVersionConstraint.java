@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
 import javax.annotation.Nullable;
@@ -56,7 +57,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         // When strict version is used, we need to parse the preferred selector early, in order to compute its complement.
         // Hopefully this shouldn't happen too often. If it happens to become a performance problem, we need to reconsider
         // how we compute the "reject" clause
-        DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
+        DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser());
         VersionSelector preferredSelector = versionSelectorScheme.parseSelector(prefer);
         VersionSelector rejectedSelector = versionSelectorScheme.complementForRejection(preferredSelector);
         this.rejects.clear();

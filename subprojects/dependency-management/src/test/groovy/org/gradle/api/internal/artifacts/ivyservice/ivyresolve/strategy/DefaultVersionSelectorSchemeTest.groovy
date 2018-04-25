@@ -20,7 +20,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultVersionSelectorSchemeTest extends Specification {
-    def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def matcher = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser())
 
     def "creates version range selector"() {
         expect:
