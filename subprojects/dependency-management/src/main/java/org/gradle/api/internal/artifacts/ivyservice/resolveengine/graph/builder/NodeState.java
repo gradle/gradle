@@ -55,8 +55,8 @@ class NodeState implements DependencyGraphNode {
 
     private final Long resultId;
     private final ComponentState component;
-    private final List<EdgeState> incomingEdges = Lists.newLinkedList();
-    private final List<EdgeState> outgoingEdges = Lists.newLinkedList();
+    private final List<EdgeState> incomingEdges = Lists.newArrayList();
+    private final List<EdgeState> outgoingEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
     private final ConfigurationMetadata metaData;
