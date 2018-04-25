@@ -28,7 +28,7 @@ class DefaultIncludedBuildTest extends Specification {
         def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Stub(BuildDefinition), false, Stub(NestedBuildFactory), Stub(WorkerLeaseRegistry.WorkerLease))
 
         expect:
-        def id = build.idForProjectInThisBuild(":a:b:c")
+        def id = build.idToReferenceProjectFromAnotherBuild(":a:b:c")
         id.build instanceof ForeignBuildIdentifier
         id.projectPath == ":a:b:c"
     }

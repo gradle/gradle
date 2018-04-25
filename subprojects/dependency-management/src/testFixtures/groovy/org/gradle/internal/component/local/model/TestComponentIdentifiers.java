@@ -34,6 +34,6 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentSelector newSelector(String buildName, String projectPath) {
-        return new DefaultProjectComponentSelector(buildName, projectPath);
+        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildName), projectPath);
     }
 }

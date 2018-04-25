@@ -22,13 +22,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModule
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 
@@ -67,7 +66,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
     def "can create component identifier for project dependency in same build"() {
         given:
         BuildIdentifier buildId = new DefaultBuildIdentifier("build")
-        ProjectComponentSelector selector = new DefaultProjectComponentSelector("build", ":a")
+        ProjectComponentSelector selector = new DefaultProjectComponentSelector(buildId, ":a")
 
         when:
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
@@ -77,20 +76,5 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
 
         and:
         componentIdentifier == new DefaultProjectComponentIdentifier(buildId, ':a')
-    }
-
-    def "can create component identifier for project dependency in different build"() {
-        given:
-        BuildIdentifier buildId = new DefaultBuildIdentifier("other")
-        ProjectComponentSelector selector = new DefaultProjectComponentSelector("build", ":a")
-
-        when:
-        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)
-
-        then:
-        buildIdentity.getCurrentBuild() >> buildId
-
-        and:
-        componentIdentifier == new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier("build"), ':a')
     }
 }
