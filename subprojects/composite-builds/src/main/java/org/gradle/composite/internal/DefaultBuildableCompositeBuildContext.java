@@ -16,35 +16,42 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     // TODO: Synchronization
-    private final Map<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = Maps.newHashMap();
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = Sets.newHashSet();
-    private final Set<BuildIdentifier> configuredBuilds = Sets.newHashSet();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
     private BuildStateRegistry buildRegistry;
+    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
+        @Override
+        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
+            return getRegisteredProject(projectIdentifier);
+        }
+    });
 
     public DefaultBuildableCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory, IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -53,7 +60,13 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
-        return getRegisteredProject(project);
+        try {
+            return projectMetadata.get(project);
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (UncheckedExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        }
     }
 
     @Override
@@ -83,22 +96,8 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     private LocalComponentMetadata getRegisteredProject(ProjectComponentIdentifier project) {
-        LocalComponentMetadata metadata = projectMetadata.get(project);
-        BuildIdentifier buildIdentifier = project.getBuild();
-        if (metadata == null && !configuredBuilds.contains(buildIdentifier)) {
-            // TODO: This shouldn't rely on the state of configuredBuilds to figure out whether or not we should configure this build again
-            // This is to prevent a recursive loop through this when we're configuring the build
-            configuredBuilds.add(buildIdentifier);
-            IncludedBuildState includedBuild = buildRegistry.getIncludedBuild(buildIdentifier);
-            if (includedBuild != null) {
-                projectMetadata.putAll(dependencyMetadataBuilder.build(includedBuild));
-                metadata = projectMetadata.get(project);
-                if (metadata == null) {
-                    throw new IllegalStateException(project + " was not found.");
-                }
-            }
-        }
-        return metadata;
+        IncludedBuildState includedBuild = buildRegistry.getIncludedBuild(project.getBuild());
+        return dependencyMetadataBuilder.build(includedBuild, project);
     }
 
     @Override
