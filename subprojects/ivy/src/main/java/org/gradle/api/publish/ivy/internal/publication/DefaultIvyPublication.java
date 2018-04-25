@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -51,6 +52,7 @@ import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
+import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
@@ -105,6 +107,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
+    private Task moduleDescriptorGenerator;
     private IvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
@@ -155,21 +158,35 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void setIvyDescriptorArtifact(IvyArtifact artifact) {
-        if (this.ivyDescriptorArtifact != null) {
-            metadataArtifacts.remove(this.ivyDescriptorArtifact);
+    public void setIvyDescriptorGenerator(Task descriptorGenerator) {
+        if (ivyDescriptorArtifact != null) {
+            metadataArtifacts.remove(ivyDescriptorArtifact);
         }
-        this.ivyDescriptorArtifact = artifact;
-        metadataArtifacts.add(artifact);
+        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, publicationIdentity, "xml", "ivy", null);
+        ivyDescriptorArtifact.setName("ivy");
+        metadataArtifacts.add(ivyDescriptorArtifact);
     }
 
     @Override
-    public void setGradleModuleDescriptorArtifact(IvyArtifact artifact) {
-        if (this.gradleModuleDescriptorArtifact != null) {
-            metadataArtifacts.remove(this.gradleModuleDescriptorArtifact);
+    public void setModuleDescriptorGenerator(Task descriptorGenerator) {
+        moduleDescriptorGenerator = descriptorGenerator;
+        if (gradleModuleDescriptorArtifact != null) {
+            metadataArtifacts.remove(gradleModuleDescriptorArtifact);
         }
-        this.gradleModuleDescriptorArtifact = artifact;
-        metadataArtifacts.add(artifact);
+        gradleModuleDescriptorArtifact = null;
+        updateModuleDescriptorArtifact();
+    }
+
+    private void updateModuleDescriptorArtifact() {
+        if (!canPublishModuleMetadata()) {
+            return;
+        }
+        if (moduleDescriptorGenerator == null) {
+            return;
+        }
+        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, publicationIdentity, "module", "json", null);
+        metadataArtifacts.add(gradleModuleDescriptorArtifact);
+        moduleDescriptorGenerator = null;
     }
 
     public void descriptor(Action<? super IvyModuleDescriptorSpec> configure) {
@@ -192,6 +209,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
         artifactsOverridden = false;
+        updateModuleDescriptorArtifact();
     }
 
     private void populateFromComponent() {
@@ -238,7 +256,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private List<UsageContext> getSortedUsageContexts() {
-        List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
+        List<UsageContext> usageContexts = Lists.newArrayList(component.getUsages());
         Collections.sort(usageContexts, USAGE_ORDERING);
         return usageContexts;
     }
@@ -363,7 +381,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        DomainObjectSet<IvyArtifact> existingDerivedArtifacts = this.derivedArtifacts.matching(new Spec<IvyArtifact>() {
+        DomainObjectSet<IvyArtifact> existingDerivedArtifacts = derivedArtifacts.matching(new Spec<IvyArtifact>() {
             @Override
             public boolean isSatisfiedBy(IvyArtifact artifact) {
                 return artifact.getFile().exists();
@@ -373,8 +391,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
     }
 
-    @Override
-    public boolean canPublishModuleMetadata() {
+    private boolean canPublishModuleMetadata() {
         if (getComponent() == null) {
             // Cannot yet publish module metadata without component
             return false;
