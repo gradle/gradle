@@ -17,18 +17,14 @@
 package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Finalize;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.w3c.dom.Document;
@@ -37,35 +33,35 @@ import org.w3c.dom.Node;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class MavenPluginPublishingRules extends RuleSource {
+class MavenPluginPublishPlugin implements Plugin<Project> {
 
-    @Mutate
-    public void addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
-        if (!pluginDevelopment.isAutomatedPublishing()) {
-            return;
-        }
-        SoftwareComponentContainer componentContainer = services.get(SoftwareComponentContainer.class);
-        SoftwareComponent component = componentContainer.getByName("java");
-
-        PublicationContainer publications = publishing.getPublications();
-        createMavenPluginPublication(component, publications);
+    @Override
+    public void apply(Project project) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+                if (!pluginDevelopment.isAutomatedPublishing()) {
+                    return;
+                }
+                PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+                SoftwareComponent mainComponent = project.getComponents().getByName("java");
+                MavenPublication mainPublication = addMainPublication(publishing, pluginDevelopment, mainComponent);
+                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+            }
+        });
     }
-    @Finalize
-    public void addMarkerPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
-        if (!pluginDevelopment.isAutomatedPublishing()) {
-            return;
-        }
 
-        PublicationContainer publications = publishing.getPublications();
-        NamedDomainObjectContainer<PluginDeclaration> declaredPlugins = pluginDevelopment.getPlugins();
-
-        for (PluginDeclaration declaration : declaredPlugins) {
-            createMavenMarkerPublication(declaration, (MavenPublication) publications.getByName("pluginMaven"), publications);
-        }
+    private MavenPublication addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, SoftwareComponent mainComponent) {
+        MavenPublication publication = publishing.getPublications().maybeCreate("pluginMaven", MavenPublication.class);
+        publication.from(mainComponent);
+        return publication;
     }
-    private void createMavenPluginPublication(SoftwareComponent component, PublicationContainer publications) {
-        MavenPublication publication = publications.maybeCreate("pluginMaven", MavenPublication.class);
-        publication.from(component);
+
+    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+        for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
+            createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications());
+        }
     }
 
     private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
