@@ -30,9 +30,11 @@ import java.util.List;
 
 public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final DependencyMetadata delegate;
+    private final boolean isTransitive;
 
     public ModuleDependencyMetadataWrapper(DependencyMetadata delegate) {
         this.delegate = delegate;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -79,7 +81,7 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override
