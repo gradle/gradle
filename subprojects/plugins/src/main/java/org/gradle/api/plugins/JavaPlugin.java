@@ -287,21 +287,30 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     private void configureJavaDoc(JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
 
-        SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        Javadoc javadoc = project.getTasks().create(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-        javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-        javadoc.setSource(mainSourceSet.getAllJava());
-        addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+        final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        project.getTasks().createLater(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
+            @Override
+            public void execute(Javadoc javadoc) {
+                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
+                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
+                javadoc.setSource(mainSourceSet.getAllJava());
+
+                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+            }
+        });
     }
 
-    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
-        jar.setDescription("Assembles a jar archive containing the main classes.");
-        jar.setGroup(BasePlugin.BUILD_GROUP);
-        jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-
+    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
+        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+            @Override
+            public void execute(Jar jar) {
+                jar.setDescription("Assembles a jar archive containing the main classes.");
+                jar.setGroup(BasePlugin.BUILD_GROUP);
+                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+            }
+        });
+        // TODO: Allow this to be added lazily
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);

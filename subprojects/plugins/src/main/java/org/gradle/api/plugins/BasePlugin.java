@@ -83,7 +83,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
-        project.getTasks().withType(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
+        project.getTasks().configureEachLater(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 ConventionMapping taskConventionMapping = task.getConventionMapping();
 
