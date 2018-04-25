@@ -184,6 +184,11 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
         $packageDeclaration
 
+        /**
+         * Precompiled [$scriptFileName][$compiledScriptTypeName] script plugin.
+         *
+         * @see $compiledScriptTypeName
+         */
         class $simplePluginAdapterClassName : org.gradle.api.Plugin<$targetType> {
             override fun apply(target: $targetType) {
                 try {
@@ -197,7 +202,7 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.replaceIndent().trim())
+    """.replaceIndent().trim() + "\n")
 }
 
 

@@ -90,8 +90,15 @@ class ScriptPluginTest : TestWithTempFiles() {
             outputDir.resolve("MyScriptPlugin.kt")
 
         assertThat(
-            firstNonBlankLineOf(expectedFile),
-            startsWith("class MyScriptPlugin "))
+            expectedFile.readText(),
+            startsWith("""
+                /**
+                 * Precompiled [my-script.gradle.kts][My_script_gradle] script plugin.
+                 *
+                 * @see My_script_gradle
+                 */
+                class MyScriptPlugin
+            """.trimIndent()))
     }
 
     private

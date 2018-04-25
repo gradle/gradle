@@ -33,7 +33,6 @@ import java.io.File
 internal
 data class ScriptPlugin(private val scriptFile: File) {
 
-    private
     val scriptFileName = scriptFile.name
 
     /**
