@@ -22,17 +22,17 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -70,7 +70,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return new DefaultDependencySubstitutions(VersionSelectionReasons.SELECTED_BY_RULE, projectSelectorNotationParser, moduleIdentifierFactory);
     }
 
-    public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuild build, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public static DefaultDependencySubstitutions forIncludedBuild(BuildIdentifier build, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
                 .toType(ComponentSelector.class)
                 .fromCharSequence(new CompositeProjectPathConverter(build))
@@ -187,9 +187,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private static class CompositeProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
-        private final IncludedBuild build;
+        private final BuildIdentifier build;
 
-        private CompositeProjectPathConverter(IncludedBuild build) {
+        private CompositeProjectPathConverter(BuildIdentifier build) {
             this.build = build;
         }
 

@@ -46,10 +46,9 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private static final Object MISSING_PROJECT = new Object();
-    private final LoadingCache<ProjectComponentIdentifier, Object> projects = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, Object>() {
+    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
         @Override
-        public Object load(ProjectComponentIdentifier projectIdentifier) {
+        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
             return getLocalComponentMetadata(projectIdentifier);
         }
     });
@@ -68,25 +67,23 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         }
         Object result;
         try {
-            result = projects.get(projectIdentifier);
+            return projects.get(projectIdentifier);
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
-        return result == MISSING_PROJECT ? null : (LocalComponentMetadata) result;
     }
 
     private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
         return projectIdentifier.getBuild().equals(thisBuild);
     }
 
-    private Object getLocalComponentMetadata(ProjectComponentIdentifier projectIdentifier) {
+    private LocalComponentMetadata getLocalComponentMetadata(ProjectComponentIdentifier projectIdentifier) {
         // TODO - the project model should be reachable from ProjectState without another lookup
         final ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
-            // This should be an error instead, and earlier validation should prevent an attempt to construct metadata for a project that doesn't exist
-            return MISSING_PROJECT;
+            throw new IllegalArgumentException(projectIdentifier + " not found.");
         }
         return projectStateRegistry.stateFor(project).withMutableState(new Factory<LocalComponentMetadata>() {
             @Nullable

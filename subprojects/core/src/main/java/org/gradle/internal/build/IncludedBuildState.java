@@ -36,7 +36,10 @@ public interface IncludedBuildState extends BuildState {
     List<Action<? super DependencySubstitutions>> getRegisteredDependencySubstitutions();
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
-    ProjectComponentIdentifier idForProjectInThisBuild(String path);
+    /**
+     * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build
+     */
+    ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(String path);
 
     GradleInternal getConfiguredBuild();
     void finishBuild();

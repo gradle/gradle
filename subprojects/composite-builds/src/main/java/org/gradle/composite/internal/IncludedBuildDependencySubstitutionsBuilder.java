@@ -50,7 +50,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {
-        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build.getModel(), moduleIdentifierFactory);
+        DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(build.getBuildIdentifier(), moduleIdentifierFactory);
         for (Action<? super DependencySubstitutions> action : build.getRegisteredDependencySubstitutions()) {
             action.execute(dependencySubstitutions);
         }

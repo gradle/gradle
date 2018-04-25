@@ -20,13 +20,10 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -41,11 +38,11 @@ public class IncludedBuildDependencyMetadataBuilder {
         LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
 
-        ProjectComponentIdentifier foreignIdentifier = build.idForProjectInThisBuild(projectIdentifier.getProjectPath());
-        return createCompositeCopy(build.getModel(), foreignIdentifier, originalComponent);
+        ProjectComponentIdentifier foreignIdentifier = build.idToReferenceProjectFromAnotherBuild(projectIdentifier.getProjectPath());
+        return createCompositeCopy(foreignIdentifier, originalComponent);
     }
 
-    private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
+    private LocalComponentMetadata createCompositeCopy(final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
         return originalComponentMetadata.copy(componentIdentifier, new Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata>() {
             @Override
             public LocalComponentArtifactMetadata transform(LocalComponentArtifactMetadata originalArtifact) {
@@ -56,10 +53,6 @@ public class IncludedBuildDependencyMetadataBuilder {
         }, new Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata>() {
             @Override
             public LocalOriginDependencyMetadata transform(LocalOriginDependencyMetadata originalDependency) {
-                if (originalDependency.getSelector() instanceof ProjectComponentSelector) {
-                    ProjectComponentSelector requested = (ProjectComponentSelector) originalDependency.getSelector();
-                    return originalDependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
-                }
                 return originalDependency;
             }
         });
