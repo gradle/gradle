@@ -43,6 +43,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             tasks.createLater("task2", SomeTask) {
                 println "Configure ${path}"
             }
+            tasks.createLater("task3", SomeTask)
         '''
 
         when:
@@ -52,6 +53,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task1")
         outputContains("Configure :task1")
         result.assertNotOutput(":task2")
+        result.assertNotOutput(":task3")
 
         when:
         run("task2")
@@ -60,6 +62,15 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task2")
         outputContains("Configure :task2")
         result.assertNotOutput(":task1")
+        result.assertNotOutput(":task3")
+
+        when:
+        run("task3")
+
+        then:
+        outputContains("Create :task3")
+        result.assertNotOutput(":task1")
+        result.assertNotOutput(":task2")
     }
 
     def "task is created and configured when referenced as a task dependency"() {
@@ -176,10 +187,13 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             tasks.createLater("task2", SomeOtherTask) {
                 println "Configure ${path}"
             }
+            tasks.createLater("task3")
             tasks.configureEachLater {
                 println "Received ${path}"
             }
-            tasks.create("other")
+            tasks.create("other") {
+                dependsOn "task3"
+            }
         '''
 
         when:
@@ -187,6 +201,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Received :other")
+        outputContains("Received :task3")
         result.assertNotOutput("task1")
         result.assertNotOutput("task2")
 
@@ -199,6 +214,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
+        result.assertNotOutput("task3")
     }
 
     def "build logic can configure each task of a given type only when required"() {
@@ -209,10 +225,13 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             tasks.createLater("task2", SomeOtherTask) {
                 println "Configure ${path}"
             }
+            tasks.createLater("task3", SomeOtherTask)
             tasks.configureEachLater(SomeTask) {
                 println "Received ${path}"
             }
-            tasks.create("other")
+            tasks.create("other") {
+                dependsOn "task3"
+            }
         '''
 
         when:

@@ -430,6 +430,42 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_)
+        result == task
+    }
+
+    void "can define task to create later given name and type"() {
+        when:
+        def provider = container.createLater("task", DefaultTask)
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+        !container.empty
+        !provider.present
+    }
+
+    void "can define task to create later given name"() {
+        def task = task("task")
+
+        when:
+        def provider = container.createLater("task")
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+
+        when:
+        def result = provider.get()
+
+        then:
+        1 * taskFactory.create("task", DefaultTask) >> task
         result == task
     }
 
