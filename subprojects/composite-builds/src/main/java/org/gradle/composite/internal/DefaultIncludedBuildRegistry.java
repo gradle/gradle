@@ -165,7 +165,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public NestedBuildState addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
-        DefaultNestedBuild build = new DefaultNestedBuild(buildDefinition, nestedBuildFactory, new BuildStateListener() {
+        if (buildDefinition.getName() == null) {
+            throw new UnsupportedOperationException("Not yet implemented."); // but should be
+        }
+        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, buildDefinition, nestedBuildFactory, new BuildStateListener() {
             @Override
             public void projectsKnown(BuildState build1) {
                 projectRegistry.registerProjects(build1);
@@ -183,13 +187,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             String buildName = buildDefinition.getBuildRootDir().getName();
-            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildName);
-
-            // Create a synthetic id for the build, if the id is already used
-            // Should instead use an id implementation that is backed by a file
-            for (int count = 1; builds.containsKey(buildIdentifier); count++) {
-                buildIdentifier = new DefaultBuildIdentifier(buildName + ":" + count);
-            }
+            BuildIdentifier buildIdentifier = idFor(buildName);
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, buildDefinition, isImplicit, nestedBuildFactory);
             includedBuilds.put(buildDefinition.getBuildRootDir(), includedBuild);
@@ -201,6 +199,17 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         // TODO: else, verify that the build definition is the same
         return includedBuild;
+    }
+
+    private BuildIdentifier idFor(String buildName) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildName);
+
+        // Create a synthetic id for the build, if the id is already used
+        // Should instead use a structured id implementation of some kind instead
+        for (int count = 1; builds.containsKey(buildIdentifier); count++) {
+            buildIdentifier = new DefaultBuildIdentifier(buildName + ":" + count);
+        }
+        return buildIdentifier;
     }
 
     @Override
