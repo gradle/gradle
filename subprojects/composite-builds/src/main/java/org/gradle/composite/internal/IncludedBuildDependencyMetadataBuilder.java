@@ -27,7 +27,6 @@ import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
 import java.util.Set;
@@ -49,11 +48,6 @@ public class IncludedBuildDependencyMetadataBuilder {
                 File artifactFile = originalArtifact.getFile();
                 Set<String> targetTasks = getArtifactTasks(originalArtifact);
                 return new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
-            }
-        }, new Transformer<LocalOriginDependencyMetadata, LocalOriginDependencyMetadata>() {
-            @Override
-            public LocalOriginDependencyMetadata transform(LocalOriginDependencyMetadata originalDependency) {
-                return originalDependency;
             }
         });
     }
