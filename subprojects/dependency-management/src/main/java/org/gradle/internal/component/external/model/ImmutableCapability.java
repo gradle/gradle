@@ -31,7 +31,7 @@ public class ImmutableCapability implements CapabilityInternal {
         this.version = version;
 
         // Pre-compute and cache hashCode, which is going to be computed in any case
-        this.hashCode = Objects.hashCode(group, name, version);
+        this.hashCode = Objects.hashCode(version, name, group);
 
         // Using a string instead of a plain ID here might look strange, but this turned out to be
         // the fastest of several experiments, including:
