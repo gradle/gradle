@@ -11,8 +11,8 @@
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
-    <artifact name="project1" type="jar" ext="jar" conf="compile"/>
     <artifact name="project1" type="source" ext="jar" conf="compile" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
+    <artifact name="project1" type="jar" ext="jar" conf="compile"/>
   </publications>
   <dependencies>
     <dependency org="junit" name="junit" rev="4.12" conf="compile-&gt;default"/>
