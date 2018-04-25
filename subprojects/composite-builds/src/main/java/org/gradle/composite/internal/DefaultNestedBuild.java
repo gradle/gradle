@@ -50,7 +50,7 @@ class DefaultNestedBuild implements NestedBuildState {
 
     @Override
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(buildDefinition);
+        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(buildDefinition, buildIdentifier);
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             final GradleInternal gradle = buildController.getGradle();

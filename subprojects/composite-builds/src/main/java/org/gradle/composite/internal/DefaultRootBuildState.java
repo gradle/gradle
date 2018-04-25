@@ -50,7 +50,7 @@ class DefaultRootBuildState implements RootBuildState {
 
     @Override
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, requestContext, services);
+        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, getBuildIdentifier(), requestContext, services);
         final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
