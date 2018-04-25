@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.NestedBuildFactory
@@ -66,7 +67,7 @@ class GradleBuildTest extends Specification {
 
         then:
 
-        1 * buildFactory.nestedBuildController(_) >> { BuildDefinition buildDefinition ->
+        1 * buildFactory.nestedBuildController(_, _) >> { BuildDefinition buildDefinition, BuildIdentifier buildIdentifier ->
             assert buildDefinition.startParameter == task.startParameter
             buildController
         }
@@ -83,7 +84,7 @@ class GradleBuildTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * buildFactory.nestedBuildController(_) >> buildController
+        1 * buildFactory.nestedBuildController(_, _) >> buildController
         1 * buildController.run() >> { throw failure }
         1 * buildController.stop()
     }

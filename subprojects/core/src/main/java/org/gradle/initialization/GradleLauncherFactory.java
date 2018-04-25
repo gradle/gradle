@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -23,6 +24,8 @@ import org.gradle.internal.service.ServiceRegistry;
  * org.gradle.StartParameter}.</p>
  *
  * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
+ *
+ * Note: you should be using {@link org.gradle.internal.build.BuildStateRegistry} instead of this interface to create builds.
  */
 public interface GradleLauncherFactory {
     /**
@@ -30,8 +33,9 @@ public interface GradleLauncherFactory {
      * Fails if a build is in progress.
      *
      * @param buildDefinition The settings for the build.
+     * @param buildIdentifier The identity of the build.
      * @param requestContext The context in which the build is running.
      * @param parent The parent service registry for this build.
      */
-    GradleLauncher newInstance(BuildDefinition buildDefinition, BuildRequestContext requestContext, ServiceRegistry parent);
+    GradleLauncher newInstance(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, BuildRequestContext requestContext, ServiceRegistry parent);
 }

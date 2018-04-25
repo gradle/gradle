@@ -16,6 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
@@ -49,6 +50,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
     final def buildProgressLogger = globalServices.get(BuildProgressLogger)
     final def factory = new DefaultGradleLauncherFactory(userHomeScopeServiceRegistry, buildProgressLogger, crossBuildSessionScopeServices)
+    def requestContext = Stub(BuildRequestContext)
 
     def cleanup() {
         buildTreeServices.close()
@@ -60,13 +62,11 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)
         def eventConsumer = Stub(BuildEventConsumer)
-        def requestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-            getEventConsumer() >> eventConsumer
-        }
+        requestContext.cancellationToken >> cancellationToken
+        requestContext.eventConsumer >> eventConsumer
 
         expect:
-        def launcher = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), requestContext, buildTreeServices)
+        def launcher = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), Stub(BuildIdentifier), requestContext, buildTreeServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
@@ -74,21 +74,32 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
+    def "makes build definition services available as build scoped services"() {
+
+        def identifier = Stub(BuildIdentifier)
+        def buildDefinition = BuildDefinition.fromStartParameter(startParameter)
+
+        expect:
+        def launcher = factory.newInstance(buildDefinition, identifier, requestContext, buildTreeServices)
+        launcher.gradle.parent == null
+        launcher.gradle.startParameter == startParameter
+        launcher.gradle.services.get(BuildDefinition) == buildDefinition
+        launcher.gradle.services.get(BuildIdentity).currentBuild == identifier
+    }
+
     def "reuses build context services for nested build"() {
         def cancellationToken = Stub(BuildCancellationToken)
         def clientMetaData = Stub(BuildClientMetaData)
         def eventConsumer = Stub(BuildEventConsumer)
-        def requestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-            getClient() >> clientMetaData
-            getEventConsumer() >> eventConsumer
-        }
+        requestContext.eventConsumer >> eventConsumer
+        requestContext.client >> clientMetaData
+        requestContext.cancellationToken >> cancellationToken
 
-        def parent = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), requestContext, buildTreeServices)
+        def parent = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), Stub(BuildIdentifier), requestContext, buildTreeServices)
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameterForBuild(startParameter, tmpDir.file("nested"), Stub(PluginRequests)))
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameterForBuild(startParameter, tmpDir.file("nested"), Stub(PluginRequests)), Stub(BuildIdentifier))
         launcher.gradle.parent == parent.gradle
 
         def request = launcher.gradle.services.get(BuildRequestMetaData)
