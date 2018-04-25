@@ -57,7 +57,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition, false, _) >> includedBuild
+        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition, false, _) >> includedBuild
 
         expect:
         def result = registry.addExplicitBuild(buildDefinition, nestedBuildFactory)
@@ -76,8 +76,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild2 = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition1, false, _) >> includedBuild1
-        includedBuildFactory.createBuild(buildDefinition2, false, _) >> includedBuild2
+        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition1, false, _) >> includedBuild1
+        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b2"), buildDefinition2, false, _) >> includedBuild2
 
         expect:
         registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
@@ -85,6 +85,38 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2]
+    }
+
+    def "can add multiple builds with same dir base name"() {
+        def dir1 = tmpDir.createDir("b1")
+        def dir2 = tmpDir.createDir("other/b1")
+        def dir3 = tmpDir.createDir("other2/b1")
+        def buildDefinition1 = build(dir1)
+        def buildDefinition2 = build(dir2)
+        def buildDefinition3 = build(dir3)
+        def includedBuild1 = Stub(IncludedBuildState)
+        def includedBuild2 = Stub(IncludedBuildState)
+        def includedBuild3 = Stub(IncludedBuildState)
+
+        def id1 = new DefaultBuildIdentifier("b1")
+        def id2 = new DefaultBuildIdentifier("b1:1")
+        def id3 = new DefaultBuildIdentifier("b1:2")
+        includedBuild1.buildIdentifier >> id1
+        includedBuild2.buildIdentifier >> id2
+        includedBuild3.buildIdentifier >> id3
+
+        given:
+        includedBuildFactory.createBuild(id1, buildDefinition1, false, _) >> includedBuild1
+        includedBuildFactory.createBuild(id2, buildDefinition2, false, _) >> includedBuild2
+        includedBuildFactory.createBuild(id3, buildDefinition3, false, _) >> includedBuild3
+
+        expect:
+        registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
+        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory)
+        registry.addExplicitBuild(buildDefinition3, nestedBuildFactory)
+
+        registry.hasIncludedBuilds()
+        registry.includedBuilds as List == [includedBuild1, includedBuild2, includedBuild3]
     }
 
     def "can add the same explicit included build multiple times"() {
@@ -96,7 +128,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
 
         expect:
-        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory) == includedBuild
+        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory) is includedBuild
     }
 
     def "can add an implicit included build"() {
@@ -105,7 +137,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
-        includedBuildFactory.createBuild(buildDefinition, true, _) >> includedBuild
+        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition, true, _) >> includedBuild
 
         expect:
         def result = registry.addImplicitBuild(buildDefinition, nestedBuildFactory)
@@ -116,9 +148,14 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def "can add a nested build"() {
+        given:
+        def buildDefinition = Stub(BuildDefinition)
+        buildDefinition.name >> "nested"
+
         expect:
-        def nestedBuild = registry.addNestedBuild(Stub(BuildDefinition), Stub(NestedBuildFactory))
+        def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
         nestedBuild.implicitBuild
+        nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
     }
 
     def build(File rootDir) {

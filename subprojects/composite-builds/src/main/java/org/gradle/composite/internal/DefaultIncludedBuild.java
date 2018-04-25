@@ -29,7 +29,6 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -57,6 +56,7 @@ import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifie
 public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
+    private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
     private final NestedBuildFactory gradleLauncherFactory;
@@ -70,7 +70,8 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.buildIdentifier = buildIdentifier;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.gradleLauncherFactory = launcherFactory;
@@ -108,7 +109,7 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     @Override
     public BuildIdentifier getBuildIdentifier() {
-        return new DefaultBuildIdentifier(getName());
+        return buildIdentifier;
     }
 
     @Override
