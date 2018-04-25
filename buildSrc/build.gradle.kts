@@ -15,7 +15,7 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.6"
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.7"
 }
 
 apply(plugin = "kotlin")
@@ -55,7 +55,7 @@ dependencies {
     compile(kotlin("gradle-plugin"))
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
-    compile("gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.4")
+    compile("gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.7")
     compile("com.gradle.publish:plugin-publish-plugin:0.9.10")
     compile("org.ow2.asm:asm-all:5.1")
     testCompile("junit:junit:4.12")
