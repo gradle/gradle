@@ -140,6 +140,8 @@
 
                         <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
                         <ul>
+                            <li><a href="/userguide/gradle_dsls.html">Gradle API and DSLs</a></li>
+                            <li><a href="https://gradle.github.io/kotlin-dsl-docs/api/">Kotlin DSL Reference</a></li>
                             <li><a href="/dsl/">Groovy DSL Reference</a></li>
                             <li><a href="/javadoc/">Gradle API Javadoc</a></li>
                             <li><a href="/userguide/feature_lifecycle.html">Gradle Feature Lifecycle</a></li>
