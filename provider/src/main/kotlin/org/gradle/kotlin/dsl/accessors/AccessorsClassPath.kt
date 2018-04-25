@@ -407,9 +407,9 @@ fun cacheKeyFor(projectSchema: ProjectSchema<String>): CacheKeySpec =
 
 private
 fun ProjectSchema<String>.toCacheKeyString(): String =
-    (extensions.entries.asSequence()
-        + conventions.entries.asSequence()
-        + mapEntry("configurations", configurations.sorted().joinToString(",")))
+    (extensions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
+        + conventions.associateBy { "${it.target}.${it.name}" }.mapValues { it.value.type }.asSequence()
+        + mapEntry("configuration", configurations.sorted().joinToString(",")))
         .map { "${it.key}=${it.value}" }
         .sorted()
         .joinToString(separator = ":")
