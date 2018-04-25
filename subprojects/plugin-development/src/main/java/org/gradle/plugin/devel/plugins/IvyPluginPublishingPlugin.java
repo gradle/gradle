@@ -17,19 +17,15 @@
 package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Finalize;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.w3c.dom.Attr;
@@ -39,35 +35,35 @@ import org.w3c.dom.Node;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class IvyPluginPublishingRules extends RuleSource {
+class IvyPluginPublishingPlugin implements Plugin<Project> {
 
-    @Mutate
-    public void addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
-        if (!pluginDevelopment.isAutomatedPublishing()) {
-            return;
-        }
-        SoftwareComponentContainer componentContainer = services.get(SoftwareComponentContainer.class);
-        SoftwareComponent component = componentContainer.getByName("java");
-
-        PublicationContainer publications = publishing.getPublications();
-        createIvyPluginPublication(component, publications);
+    @Override
+    public void apply(Project project) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+                if (!pluginDevelopment.isAutomatedPublishing()) {
+                    return;
+                }
+                PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+                SoftwareComponent mainComponent = project.getComponents().getByName("java");
+                IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
+                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+            }
+        });
     }
 
-    @Finalize
-    public void addMarkerPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
-        if (!pluginDevelopment.isAutomatedPublishing()) {
-            return;
-        }
-        PublicationContainer publications = publishing.getPublications();
-        NamedDomainObjectContainer<PluginDeclaration> declaredPlugins = pluginDevelopment.getPlugins();
-        for (PluginDeclaration declaration : declaredPlugins) {
-            createIvyMarkerPublication(declaration, (IvyPublication) publications.getByName("pluginIvy"), publications);
-        }
+    private IvyPublication addMainPublication(PublishingExtension publishing, SoftwareComponent mainComponent) {
+        IvyPublication publication = publishing.getPublications().maybeCreate("pluginIvy", IvyPublication.class);
+        publication.from(mainComponent);
+        return publication;
     }
 
-    private void createIvyPluginPublication(SoftwareComponent component, PublicationContainer publications) {
-        IvyPublication publication = publications.maybeCreate("pluginIvy", IvyPublication.class);
-        publication.from(component);
+    private void addMarkerPublications(IvyPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+        for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
+            createIvyMarkerPublication(declaration, mainPublication, publishing.getPublications());
+        }
     }
 
     private void createIvyMarkerPublication(PluginDeclaration declaration, final IvyPublication mainPublication, PublicationContainer publications) {

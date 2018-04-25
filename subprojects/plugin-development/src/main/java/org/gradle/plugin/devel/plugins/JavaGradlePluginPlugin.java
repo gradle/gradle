@@ -198,7 +198,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getPluginManager().withPlugin("ivy-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
-                project.getPluginManager().apply(IvyPluginPublishingRules.class);
+                project.getPluginManager().apply(IvyPluginPublishingPlugin.class);
             }
         });
     }
