@@ -32,7 +32,7 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
             seen.add(spec)
         }
     }
-    conventions.mapNotNull(::typedAccessorSpec).filterNot { seen.hasConflict(it) }.forEach { spec ->
+    conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
         conventionAccessorFor(spec)?.let(action)
     }
     configurations.map(::accessorNameSpec).forEach { spec ->
