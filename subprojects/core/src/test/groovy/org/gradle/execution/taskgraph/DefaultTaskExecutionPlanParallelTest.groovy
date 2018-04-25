@@ -66,10 +66,12 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     def parentWorkerLease = workerLeaseService.workerLease
     def gradle = Mock(GradleInternal)
+    def failureCollector = new TaskFailureCollector()
+    def workGraph = new WorkGraph(failureCollector)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        executionPlan = new DefaultTaskExecutionPlan(workGraph, cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal), failureCollector)
         parentWorkerLease.start()
     }
 
@@ -742,12 +744,12 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
         }
 
         then:
-        executionPlan.executionPlan[finalized].isSuccessful()
-        executionPlan.executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
+        executionPlan.workExecutionPlan.@executionPlan[finalized].isSuccessful()
+        executionPlan.workExecutionPlan.@executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
-        executionPlan.addToTaskGraph(Arrays.asList(tasks))
+        workGraph.addToTaskGraph(Arrays.asList(tasks))
         executionPlan.determineExecutionPlan()
     }
 

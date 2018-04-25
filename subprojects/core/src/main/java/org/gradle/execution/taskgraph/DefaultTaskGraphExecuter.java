@@ -42,12 +42,12 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -74,6 +74,8 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
+    private final TaskFailureCollector failureCollector = new TaskFailureCollector();
+    private final WorkGraph workGraph = new WorkGraph(failureCollector);
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
@@ -86,7 +88,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         this.buildOperationExecutor = buildOperationExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService, gradleInternal);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(workGraph, cancellationToken, coordinationService, workerLeaseService, gradleInternal, failureCollector);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
@@ -95,7 +97,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     public void useFilter(Spec<? super Task> filter) {
         this.filter = (Spec<? super Task>) (filter != null ? filter : Specs.SATISFIES_ALL);
-        taskExecutionPlan.useFilter(this.filter);
+        workGraph.useFilter(this.filter);
         taskGraphState = TaskGraphState.DIRTY;
     }
 
@@ -110,7 +112,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             requestedTasks.add(task);
         }
 
-        taskExecutionPlan.addToTaskGraph(taskSet);
+        workGraph.addToTaskGraph(taskSet);
         taskGraphState = TaskGraphState.DIRTY;
 
         LOGGER.debug("Timing: Creating the DAG took " + clock.getElapsed());
@@ -290,7 +292,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             This is too drastic a change for the stage in the release cycle were exposing this information
             was necessary, therefore the minimal change solution was implemented.
          */
-        return taskExecutionPlan.getFilteredTasks();
+        return workGraph.getFilteredTasks();
     }
 
 }
