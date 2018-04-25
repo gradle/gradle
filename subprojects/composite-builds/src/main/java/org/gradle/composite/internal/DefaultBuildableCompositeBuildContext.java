@@ -16,12 +16,8 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -30,43 +26,18 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     // TODO: Synchronization
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules = Sets.newHashSet();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
-    private BuildStateRegistry buildRegistry;
-    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projectMetadata = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
-        @Override
-        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
-            return getRegisteredProject(projectIdentifier);
-        }
-    });
 
-    public DefaultBuildableCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory, IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
+    public DefaultBuildableCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.dependencyMetadataBuilder = dependencyMetadataBuilder;
-    }
-
-    @Override
-    public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
-        try {
-            return projectMetadata.get(project);
-        } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        }
     }
 
     @Override
@@ -93,15 +64,5 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     @Override
     public boolean hasRules() {
         return !(availableModules.isEmpty() && substitutionRules.isEmpty());
-    }
-
-    private LocalComponentMetadata getRegisteredProject(ProjectComponentIdentifier project) {
-        IncludedBuildState includedBuild = buildRegistry.getIncludedBuild(project.getBuild());
-        return dependencyMetadataBuilder.build(includedBuild, project);
-    }
-
-    @Override
-    public void setIncludedBuildRegistry(BuildStateRegistry buildRegistry) {
-        this.buildRegistry = buildRegistry;
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -47,14 +48,15 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
         public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context, ProjectStateRegistry projectRegistry, Instantiator instantiator, WorkerLeaseService workerLeaseService, ImmutableModuleIdentifierFactory moduleIdentifierFactory, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry rootServices) {
             IncludedBuildFactory includedBuildFactory = new DefaultIncludedBuildFactory(instantiator, workerLeaseService);
             IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, moduleIdentifierFactory);
-            DefaultIncludedBuildRegistry registry = new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, rootServices);
-            // TODO - remove this dependency cycle
-            context.setIncludedBuildRegistry(registry);
-            return registry;
+            return new DefaultIncludedBuildRegistry(includedBuildFactory, projectRegistry, dependencySubstitutionsBuilder, gradleLauncherFactory, listenerManager, rootServices);
         }
 
         public CompositeBuildContext createCompositeBuildContext(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
-            return new DefaultBuildableCompositeBuildContext(moduleIdentifierFactory, new IncludedBuildDependencyMetadataBuilder());
+            return new DefaultBuildableCompositeBuildContext(moduleIdentifierFactory);
+        }
+
+        public LocalComponentProvider createLocalComponentProvider(BuildStateRegistry buildRegistry) {
+            return new LocalComponentInAnotherBuildProvider(buildRegistry, new IncludedBuildDependencyMetadataBuilder());
         }
 
         public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry) {
