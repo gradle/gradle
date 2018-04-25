@@ -15,41 +15,48 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.initialization.Settings
-
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateDefinition
-
+import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
+import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 
-import org.gradle.kotlin.dsl.support.serviceOf
-
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.ServiceRegistry
+
+import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.get
+import org.gradle.kotlin.dsl.support.internalError
+import org.gradle.kotlin.dsl.support.serviceOf
+
+import org.gradle.process.ExecResult
+import org.gradle.process.ExecSpec
+import org.gradle.process.JavaExecSpec
 import org.gradle.process.internal.ExecFactory
 
 import java.io.File
 import java.net.URI
+
+import kotlin.script.extensions.SamWithReceiverAnnotations
+import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
@@ -57,18 +64,48 @@ import java.net.URI
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = "settings\\.gradle\\.kts")
+    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
+abstract class KotlinSettingsScript(
+    private val host: KotlinScriptHost<Settings>
+) : SettingsScriptApi(host.target) {
 
-    private
-    val fileOperations = fileOperationsFor(settings)
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override fun getBuildscript(): ScriptHandler =
+        host.scriptHandler
+
+    override val fileOperations: DefaultFileOperations
+        get() = host.operations
+
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
+     */
+    override fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
+        host.applyObjectConfigurationAction(Action { it.configuration() })
+
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.applyObjectConfigurationAction(action)
+}
+
+
+/**
+ * Standard implementation of the API exposed to all types of [Settings] scripts,
+ * precompiled and otherwise.
+ */
+abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
+
+    protected
+    abstract val fileOperations: DefaultFileOperations
 
     /**
      * Logger for settings. You can use this in your settings file to write log messages.
      */
     @Suppress("unused")
-    val logger: Logger = Logging.getLogger(Settings::class.java)
+    val logger: Logger by lazy { Logging.getLogger(Settings::class.java) }
 
     /**
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
@@ -76,13 +113,13 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging: LoggingManager = settings.serviceOf()
+    val logging by lazy { settings.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
     @Suppress("unused")
-    val resources: ResourceHandler = fileOperations.resources
+    val resources: ResourceHandler by lazy { fileOperations.resources }
 
     /**
      * Returns the relative path from this script's target base directory to the given path.
@@ -368,33 +405,43 @@ abstract class KotlinSettingsScript(settings: Settings) : Settings by settings {
     /**
      * Configures the build script classpath for settings.
      *
-     * @see [Settings.buildscript]
+     * @see [Settings.getBuildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) = Unit
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        internalError()
 
     /**
      * Applies zero or more plugins or scripts.
      *
      * @param configuration the block to configure an {@link ObjectConfigurationAction} with before “executing” it
      */
-    inline
-    fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
+    open fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
         settings.apply({ it.configuration() })
 }
 
 
-private
-fun fileOperationsFor(settings: Settings): DefaultFileOperations {
-    val fileLookup = settings.serviceOf<FileLookup>()
+internal
+fun fileOperationsFor(settings: Settings): DefaultFileOperations =
+    fileOperationsFor(settings.gradle, settings.rootDir)
+
+
+internal
+fun fileOperationsFor(gradle: Gradle, baseDir: File?): DefaultFileOperations =
+    fileOperationsFor((gradle as GradleInternal).services, baseDir)
+
+
+internal
+fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): DefaultFileOperations {
+    val fileLookup = services.get<FileLookup>()
     return DefaultFileOperations(
-        fileLookup.getFileResolver(settings.rootDir),
+        baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver,
         null,
         null,
-        settings.serviceOf<Instantiator>(),
+        services.get<Instantiator>(),
         fileLookup,
-        settings.serviceOf<DirectoryFileTreeFactory>(),
-        settings.serviceOf<StreamHasher>(),
-        settings.serviceOf<FileHasher>(),
-        settings.serviceOf<ExecFactory>())
+        services.get<DirectoryFileTreeFactory>(),
+        services.get<StreamHasher>(),
+        services.get<FileHasher>(),
+        services.get<ExecFactory>())
 }

@@ -18,17 +18,19 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
  - [`hello-coroutines`](./hello-coroutines): demonstrates how to enable experimental support for [coroutines in Kotlin](https://kotlinlang.org/docs/reference/coroutines.html)
  - [`hello-js`](./hello-js): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin and targets JavaScript
+ - [`hello-kapt`](./hello-kapt): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin and uses [`kapt`](https://kotlinlang.org/docs/reference/kapt.html) (Kotlin Annotation Processing Tool)
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
  - [`kotlin-friendly-groovy-plugin`](./kotlin-friendly-groovy-plugin): demonstrates a Groovy Gradle plugin and its use from Kotlin-based build scripts
  - [`maven-plugin`](./maven-plugin): demonstrates how to configure the Gradle `maven` plugin
  - [`maven-publish`](./maven-publish): demonstrates how to configure the Gradle `maven-publish` plugin
  - [`model-rules`](./model-rules): demonstrates the use of model rules
- - [`modularity`](./modularity): demonstrates the use of `apply { from() }` to modularize build scripts
+ - [`modularity`](./modularity): demonstrates the use of `apply(from = "")` to modularize build scripts
  - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
  - [`multi-kotlin-project-config-injection`](./multi-kotlin-project-config-injection): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects in which all `KotlinCompile` tasks belonging to the subprojects are configured by the root project
  - [`multi-kotlin-project-with-buildSrc`](./multi-kotlin-project-with-buildSrc): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects with custom build logic in `buildSrc`
  - [`multi-project-with-buildSrc`](./multi-project-with-buildSrc): demonstrates a multi-project build with custom build logic in `buildSrc`, including a custom task
+ - [`precompiled-script-plugin`](./precompiled-script-plugin): demonstrates a Gradle plugin implemented as a precompiled script 
  - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
  - [`project-with-buildSrc`](./project-with-buildSrc): demonstrates a single-project build with custom build logic in `buildSrc`
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
@@ -42,13 +44,13 @@ _Note: Currently, these instructions only address working with IntelliJ IDEA. In
 
 ### Install IntelliJ IDEA
 
-Version 2017.1.3 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
+Version 2017.3.3 or better is required, and can be downloaded from https://www.jetbrains.com/idea.
 
 ### Install IDEA Kotlin Plugin
 
 _Note: the specific version of the Kotlin plugin matters._
 
-All the samples should work against the latest Kotlin plugin, _1.1.2_ at the time of this writing, from the _Stable_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
+All the samples should work against the latest Kotlin plugin, _1.2.20_ at the time of this writing, from the _Stable_ channel accessible via the _Tools_ > _Kotlin_ > _Configure Kotlin Plugin Updates_ action.
 
 Set up a sample project
 -----------------------

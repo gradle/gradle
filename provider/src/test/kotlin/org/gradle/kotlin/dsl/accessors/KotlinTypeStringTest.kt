@@ -1,11 +1,13 @@
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.api.reflect.TypeOf
 import org.gradle.api.reflect.TypeOf.typeOf
+
+import org.gradle.kotlin.dsl.typeOf
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+
 
 class KotlinTypeStringTest {
 
@@ -35,8 +37,8 @@ class KotlinTypeStringTest {
         assertPrimitiveTypeName<Double>(java.lang.Double.TYPE)
     }
 
-    private inline
-    fun <reified T> assertPrimitiveTypeName(primitiveTypeClass: Class<*>) {
+    private
+    inline fun <reified T> assertPrimitiveTypeName(primitiveTypeClass: Class<*>) {
         assertThat(
             kotlinTypeStringFor(typeOf(primitiveTypeClass)),
             equalTo(T::class.simpleName))
@@ -45,7 +47,3 @@ class KotlinTypeStringTest {
             equalTo(T::class.simpleName))
     }
 }
-
-inline
-fun <reified T> typeOf(): TypeOf<T> =
-    object : TypeOf<T>() {}

@@ -25,6 +25,7 @@ import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.PrintWriter
+import java.io.StringWriter
 
 import java.text.SimpleDateFormat
 
@@ -37,24 +38,46 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
 
+private
+const val offerTimeoutMillis = 50L
+
+
+private
+const val pollTimeoutMillis = 5_000L
+
+
 internal
 object ResolverEventLogger {
 
     fun log(event: ResolverEvent) {
-        require(consumer.isAlive)
-        q.offer(now() to event, 50, TimeUnit.MILLISECONDS)
+        q.offer(now() to event, offerTimeoutMillis, TimeUnit.MILLISECONDS)
+        ensureAliveConsumer()
     }
 
     private
     val q = ArrayBlockingQueue<Pair<Date, ResolverEvent>>(64)
 
     private
-    val consumer = thread {
-        // TODO: Don't leak this thread
+    val outputFile by lazy {
+        File(outputDir(), "resolver-${timestampForFileName()}.log")
+    }
+
+    private
+    var consumer: Thread? = null
+
+    private
+    fun ensureAliveConsumer() = synchronized(ResolverEventLogger) {
+        if (consumer?.isAlive != true) {
+            consumer = newConsumerThread()
+        }
+    }
+
+    private
+    fun newConsumerThread() = thread {
 
         val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 
-        bufferedWriter().use { writer ->
+        bufferedAppendWriter().use { writer ->
 
             fun write(timestamp: Date, e: ResolverEvent) {
                 try {
@@ -67,19 +90,15 @@ object ResolverEventLogger {
             }
 
             while (true) {
-                val (timestamp, event) = q.take()
+                val (timestamp, event) = q.poll(pollTimeoutMillis, TimeUnit.MILLISECONDS) ?: break
                 write(timestamp, event)
             }
         }
     }
 
     private
-    fun bufferedWriter() =
-        BufferedWriter(FileWriter(outputFile()))
-
-    private
-    fun outputFile() =
-        File(outputDir(), "resolver-${timestampForFileName()}.log")
+    fun bufferedAppendWriter() =
+        BufferedWriter(FileWriter(outputFile, true))
 
     private
     fun timestampForFileName() =
@@ -93,9 +112,9 @@ object ResolverEventLogger {
     fun logDirForOperatingSystem() =
         OperatingSystem.current().run {
             when {
-                isMacOsX  -> "Library/Logs/gradle-kotlin-dsl"
+                isMacOsX -> "Library/Logs/gradle-kotlin-dsl"
                 isWindows -> "Application Data/gradle-kotlin-dsl/log"
-                else      -> ".gradle-kotlin-dsl/log"
+                else -> ".gradle-kotlin-dsl/log"
             }
         }
 
@@ -119,7 +138,13 @@ object ResolverEventLogger {
                         "scriptFile" to scriptFile,
                         "response" to prettyPrint(response, indentation = 2)))
 
-            else                     ->
+            is ResolutionFailure ->
+                prettyPrint(
+                    "ResolutionFailure",
+                    sequenceOf(
+                        "scriptFile" to scriptFile,
+                        "failure" to stringForException(failure, indentation = 2)))
+            else ->
                 prettyPrintAny(this)
         }
     }
@@ -142,7 +167,8 @@ object ResolverEventLogger {
             sequenceOf(
                 "classPath" to compactStringFor(classPath),
                 "sourcePath" to compactStringFor(sourcePath),
-                "implicitImports" to compactStringFor(implicitImports, '.')),
+                "implicitImports" to compactStringFor(implicitImports, '.'),
+                "exceptions" to stringForExceptions(exceptions, indentation)),
             indentation)
     }
 
@@ -159,10 +185,26 @@ object ResolverEventLogger {
         }
 
     private
+    fun stringForExceptions(exceptions: List<Exception>, indentation: Int?) =
+        if (exceptions.isNotEmpty())
+            indentationStringFor(indentation).let {
+                exceptions.joinToString(prefix = "[\n$it\t", separator = ",\n$it\t", postfix = "]") { exception ->
+                    stringForException(exception, indentation)
+                }
+            }
+        else "NO ERROR"
+
+    private
+    fun stringForException(exception: Exception, indentation: Int?) =
+        indentationStringFor(indentation).let {
+            StringWriter().also { writer -> exception.printStackTrace(PrintWriter(writer)) }.toString()
+                .prependIndent(it)
+        }
+
+    private
     fun indentationStringFor(indentation: Int?) =
         when (indentation) {
             null, 1 -> "\t"
-            else    -> "\t\t"
+            else -> "\t\t"
         }
 }
-

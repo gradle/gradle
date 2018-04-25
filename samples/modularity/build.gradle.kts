@@ -1,4 +1,2 @@
-apply {
-    from("foo.gradle.kts")
-    from("bar.gradle.kts")
-}
+apply(from = "foo.gradle.kts")
+apply(from = "bar.gradle.kts")

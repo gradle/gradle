@@ -14,7 +14,6 @@ import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.junit.rules.TestName
 
 import java.io.File
@@ -30,7 +29,7 @@ open class AbstractIntegrationTest {
     @Rule val testName = TestName()
 
     @JvmField
-    @Rule val temporaryFolder = TemporaryFolder()
+    @Rule val temporaryFolder = ForcefullyDeletedTemporaryFolder()
 
     protected
     val projectRoot: File
@@ -77,8 +76,12 @@ open class AbstractIntegrationTest {
 
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
-        newFile(fileName).apply {
-            zipTo(this, classEntriesFor(*classes))
+        withZip(fileName, classEntriesFor(*classes))
+
+    protected
+    fun withZip(fileName: String, entries: Sequence<Pair<String, ByteArray>>): File =
+        newFile(fileName).also {
+            zipTo(it, entries)
         }
 
     protected
@@ -92,7 +95,7 @@ open class AbstractIntegrationTest {
         existing(fileName).let {
             when {
                 it.isFile -> it
-                else      -> newFile(fileName)
+                else -> newFile(fileName)
             }
         }
 
@@ -132,7 +135,7 @@ open class AbstractIntegrationTest {
         gradleRunnerFor(rootDir, *arguments)
             .build()
 
-    private
+    protected
     fun gradleRunnerForArguments(vararg arguments: String) =
         gradleRunnerFor(projectRoot, *arguments)
 }
@@ -165,9 +168,9 @@ fun customDaemonRegistry() =
 
 fun customInstallation() =
     customInstallationBuildDir.listFiles()?.let {
-        it.singleOrNull { it.name.startsWith("gradle") } ?:
-            throw IllegalStateException(
-                "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
+        it.singleOrNull { it.name.startsWith("gradle") } ?: throw IllegalStateException(
+            "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`."
+        )
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 

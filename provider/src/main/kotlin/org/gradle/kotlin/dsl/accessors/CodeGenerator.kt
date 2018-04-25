@@ -33,6 +33,7 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
     }
 }
 
+
 private
 fun extensionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
@@ -85,6 +86,7 @@ fun inaccessibleExtensionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAcc
     """
 }
 
+
 private
 fun conventionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
@@ -114,6 +116,7 @@ fun accessibleConventionAccessorFor(name: AccessorNameSpec, type: String): Strin
     """
 }
 
+
 private
 fun inaccessibleConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
@@ -135,6 +138,7 @@ fun inaccessibleConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAc
 
     """
 }
+
 
 private
 fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
@@ -241,9 +245,12 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
 internal
 data class AccessorNameSpec(val original: String) {
 
-    val kotlinIdentifier get() = original
+    val kotlinIdentifier
+        get() = original
+
     val stringLiteral by lazy { stringLiteralFor(original) }
 }
+
 
 private
 data class TypedAccessorSpec(val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
@@ -276,8 +283,8 @@ fun documentInaccessibilityReasons(name: AccessorNameSpec, typeAccess: TypeAcces
     }}"
 
 
-private inline
-fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
+private
+inline fun codeForAccessor(name: AccessorNameSpec, code: () -> String): String? =
     if (isLegalAccessorName(name.kotlinIdentifier)) code().replaceIndent()
     else null
 
@@ -300,4 +307,3 @@ fun isKotlinIdentifier(candidate: String): Boolean =
             && tokenEnd == candidate.length
             && tokenType == KtTokens.IDENTIFIER
     }
-

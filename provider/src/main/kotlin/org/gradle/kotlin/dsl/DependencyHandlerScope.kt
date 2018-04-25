@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
+
 /**
  * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
  *
@@ -70,7 +71,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
         version: String? = null,
         configuration: String? = null,
         classifier: String? = null,
-        ext: String? = null): ExternalModuleDependency =
+        ext: String? = null
+    ): ExternalModuleDependency =
         dependencies.create(group, name, version, configuration, classifier, ext).apply { add(this@invoke, this) }
 
     /**
@@ -96,7 +98,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
         configuration: String? = null,
         classifier: String? = null,
         ext: String? = null,
-        dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency =
         dependencies.add(this, create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
 
     /**
@@ -153,7 +156,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
         version: String? = null,
         configuration: String? = null,
         classifier: String? = null,
-        ext: String? = null): ExternalModuleDependency =
+        ext: String? = null
+    ): ExternalModuleDependency =
         create(group, name, version, configuration, classifier, ext).apply { add(this@invoke.name, this) }
 
     /**
@@ -179,7 +183,8 @@ class DependencyHandlerScope(val dependencies: DependencyHandler) : DependencyHa
         configuration: String? = null,
         classifier: String? = null,
         ext: String? = null,
-        dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ): ExternalModuleDependency =
         add(this.name, create(group, name, version, configuration, classifier, ext), dependencyConfiguration)
 
     /**

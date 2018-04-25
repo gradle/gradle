@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 
+
 class ResolverCoordinatorTest {
 
     @org.junit.Test
@@ -63,8 +64,7 @@ class ResolverCoordinatorTest {
 
     private
     fun ResolverAction.RequestNew.scriptDependencies() =
-        KotlinBuildScriptDependencies(emptyList(), emptyList(), emptyList(),
-                                                                             buildscriptBlockHash)
+        KotlinBuildScriptDependencies(emptyList(), emptyList(), emptyList(), buildscriptBlockHash)
 
     private
     fun environmentWithGetScriptSectionTokensReturning(vararg sections: Pair<String, Sequence<String>>) =
@@ -75,9 +75,9 @@ class ResolverCoordinatorTest {
         mapOf<String, Any?>("getScriptSectionTokens" to function)
 }
 
+
 private
-object EmptyScriptContents : kotlin.script.dependencies.ScriptContents
-{
+object EmptyScriptContents : kotlin.script.dependencies.ScriptContents {
     override val file: java.io.File? = null
     override val text: CharSequence? = ""
     override val annotations: Iterable<Annotation> = emptyList()

@@ -27,6 +27,7 @@ import org.gradle.api.tasks.TaskAction
 
 import java.io.File
 
+
 open class GenerateClasspathManifest : DefaultTask() {
 
     @get:OutputDirectory

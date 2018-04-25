@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -34,12 +35,42 @@ val ExtensionAware.extra: ExtraPropertiesExtension
     get() = extensions.extraProperties
 
 
-operator fun <T> ExtraPropertiesExtension.setValue(receiver: Any?, property: KProperty<*>, value: T) =
-    set(property.name, value)
+operator fun ExtraPropertiesExtension.provideDelegate(receiver: Any?, property: KProperty<*>): MutablePropertyDelegate =
+    if (property.returnType.isMarkedNullable) NullableExtraPropertyDelegate(this, property.name)
+    else NonNullExtraPropertyDelegate(this, property.name)
 
 
-operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KProperty<*>): T =
-    uncheckedCast(get(property.name))
+private
+class NonNullExtraPropertyDelegate(
+    private val extra: ExtraPropertiesExtension,
+    private val name: String
+) : MutablePropertyDelegate {
+
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
+        if (!extra.has(name)) cannotGetExtraProperty("does not exist")
+        else uncheckedCast(extra.get(name) ?: cannotGetExtraProperty("is null"))
+
+    override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
+        extra.set(property.name, value)
+
+    private
+    fun cannotGetExtraProperty(reason: String): Nothing =
+        throw InvalidUserCodeException("Cannot get non-null extra property '$name' as it $reason")
+}
+
+
+private
+class NullableExtraPropertyDelegate(
+    private val extra: ExtraPropertiesExtension,
+    private val name: String
+) : MutablePropertyDelegate {
+
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
+        uncheckedCast(if (extra.has(name)) extra.get(name) else null)
+
+    override fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T) =
+        extra.set(property.name, value)
+}
 
 
 /**
@@ -49,7 +80,7 @@ operator fun <T> ExtraPropertiesExtension.getValue(receiver: Any?, property: KPr
  * Usage: `val answer by extra { 42 }`
  */
 inline
-operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): ExtraPropertyDelegateProvider<T> =
+operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
     invoke(initialValueProvider())
 
 
@@ -58,25 +89,26 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValueProvider: () -> T):
  *
  * Usage: `val answer by extra(42)`
  */
-operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): ExtraPropertyDelegateProvider<T> =
-    ExtraPropertyDelegateProvider(this, initialValue)
+operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueExtraPropertyDelegateProvider<T> =
+    InitialValueExtraPropertyDelegateProvider(this, initialValue)
 
 
-class ExtraPropertyDelegateProvider<T>(
+class InitialValueExtraPropertyDelegateProvider<T>(
     val extra: ExtraPropertiesExtension,
-    val initialValue: T) {
+    val initialValue: T
+) {
 
-    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): ExtraPropertyDelegate<T> {
+    operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): InitialValueExtraPropertyDelegate<T> {
         extra.set(property.name, initialValue)
-        return ExtraPropertyDelegate(extra)
+        return InitialValueExtraPropertyDelegate(extra)
     }
 }
 
 
 /**
- * Enables typed access to extra properties.
+ * Enables typed access to extra properties with initial value.
  */
-class ExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
+class InitialValueExtraPropertyDelegate<T>(val extra: ExtraPropertiesExtension) {
 
     operator fun setValue(receiver: Any?, property: kotlin.reflect.KProperty<*>, value: T) =
         extra.set(property.name, value)

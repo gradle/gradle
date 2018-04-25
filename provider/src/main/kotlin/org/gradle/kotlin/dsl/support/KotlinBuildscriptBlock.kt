@@ -16,18 +16,20 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
-import org.gradle.kotlin.dsl.ScriptHandlerScope
-
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
+
+import org.gradle.kotlin.dsl.KotlinBuildScript
+import org.gradle.kotlin.dsl.KotlinInitScript
+import org.gradle.kotlin.dsl.KotlinSettingsScript
+import org.gradle.kotlin.dsl.ScriptHandlerScope
 
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(project) {
+abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
@@ -35,7 +37,7 @@ abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(proj
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        ScriptHandlerScope(project.buildscript).block()
+        buildscript.configureWith(block)
     }
 }
 
@@ -43,7 +45,7 @@ abstract class KotlinBuildscriptBlock(project: Project) : KotlinBuildScript(proj
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-abstract class KotlinSettingsBuildscriptBlock(settings: Settings) : KotlinSettingsScript(settings) {
+abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : KotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -51,6 +53,20 @@ abstract class KotlinSettingsBuildscriptBlock(settings: Settings) : KotlinSettin
      * @see [Settings.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        ScriptHandlerScope(settings.buildscript).block()
+        buildscript.configureWith(block)
+    }
+}
+
+
+/**
+ * Base class for `initscript` block evaluation on scripts targeting Gradle.
+ */
+abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : KotlinInitScript(host) {
+
+    /**
+     * Configures the classpath of the init script.
+     */
+    override fun initscript(block: ScriptHandlerScope.() -> Unit) {
+        initscript.configureWith(block)
     }
 }

@@ -38,7 +38,8 @@ interface KotlinFileCompiler {
 internal
 class ApiExtensionsJarGenerator(
     val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
-    val onProgress: () -> Unit = {}) {
+    val onProgress: () -> Unit = {}
+) {
 
     fun generate(outputFile: File, gradleJars: Collection<File> = emptyList()) {
         val tempDir = tempDirFor(outputFile)

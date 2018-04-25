@@ -19,7 +19,9 @@ package integration
 import org.gradle.api.Project
 import java.io.File
 
+
 fun Project.sampleDirs(): List<File> =
     samplesDir().listFiles()!!.filter { it.isDirectory }
+
 
 fun Project.samplesDir(): File = file("samples")

@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
 
+
 class BuildscriptBlockExtractionTest {
 
     @Test
@@ -105,4 +106,3 @@ class BuildscriptBlockExtractionTest {
         assertNull(extractBuildscriptBlockFrom(script))
     }
 }
-

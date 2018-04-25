@@ -8,9 +8,8 @@ buildscript {
 
     build.loadExtraPropertiesOf(project)
 
-    val kotlinRepo: String by extra
     repositories {
-        maven(url = kotlinRepo)
+        maven(url = build.kotlinRepo)
     }
 
     val kotlinVersion: String by extra
@@ -26,14 +25,21 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.14.2"
+    version = "0.16.3"
 }
 
-val publishedPluginsVersion by extra { "0.14.0" }
-val futurePluginsVersion = "0.14.1"
+val publishedPluginsVersion by extra { "0.16.2" }
+val futurePluginsVersion = "0.16.3"
 project(":plugins") {
     group = "org.gradle.kotlin"
     version = futurePluginsVersion
+}
+
+val publishedPluginsExperimentsVersion by extra { "0.1.5" }
+val futurePluginsExperimentsVersion = "0.1.6"
+project(":plugins-experiments") {
+    group = "org.gradle.kotlin"
+    version = futurePluginsExperimentsVersion
 }
 
 // --- Configure publications ------------------------------------------

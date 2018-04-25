@@ -9,6 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+
 @RunWith(Parameterized::class)
 class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest() {
 
@@ -99,5 +100,23 @@ class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest(
                 scriptFile = file("root/sub-project/build.gradle.kts"),
                 importedProjectRoot = folder("root")),
             equalTo(folder("root")))
+    }
+
+    @Test
+    fun `given a script file in buildSrc it should return the buildSrc project root`() {
+
+        withFolders {
+            "root" {
+                "buildSrc" {
+                    withFile("build.gradle.kts")
+                }
+            }
+        }
+
+        assertThat(
+            projectRootOf(
+                scriptFile = file("root/buildSrc/build.gradle.kts"),
+                importedProjectRoot = folder("root")),
+            equalTo(folder("root/buildSrc")))
     }
 }

@@ -46,8 +46,8 @@ operator fun ExtensionContainer.get(name: String): Any =
  * @throws [UnknownDomainObjectException] When the given extension is not found.
  * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified T : Any> ExtensionContainer.getByName(name: String) =
     getByName(name).let {
         it as? T

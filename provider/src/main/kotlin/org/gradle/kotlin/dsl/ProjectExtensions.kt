@@ -35,15 +35,16 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.ObjectConfigurationAction
-import org.gradle.api.plugins.PluginManager
+import org.gradle.api.plugins.PluginAware
 
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.PropertyState
 
 import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
+import org.gradle.kotlin.dsl.support.configureWith
 
 import java.io.File
 
@@ -51,41 +52,33 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 
+fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
+    project.buildscript.configureWith(action)
+
+
 /**
- * Sets the the default tasks of this project. These are used when no tasks names are provided when
+ * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
-inline
 @Suppress("nothing_to_inline")
+inline
 fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
 
 
 /**
- * Applies zero or more plugins or scripts.
- *
- * @param block code to configure an [ObjectConfigurationAction] before executing it
- *
- * @see [Project.apply]
- */
-inline
-fun Project.apply(crossinline block: ObjectConfigurationAction.() -> Unit) =
-    apply({ it.block() })
-
-
-/**
- * Applies the given plugin. Does nothing if the plugin has already been applied.
+ * Applies the plugin of the given type [T]. Does nothing if the plugin has already been applied.
  *
  * The given class should implement the [Plugin] interface, and be parameterized for a
  * compatible type of `this`.
  *
  * @param T the plugin type.
- * @see [PluginManager.apply]
+ * @see [PluginAware.apply]
  */
 inline
 fun <reified T : Plugin<Project>> Project.apply() =
-    pluginManager.apply(T::class.java)
+    (this as PluginAware).apply<T>()
 
 
 /**
@@ -97,21 +90,33 @@ fun <reified T : Plugin<Project>> Project.apply() =
  * @see [Convention.getPlugin]
  */
 inline
-fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) =
-    convention.findPlugin(T::class.java)?.let(configuration)
-        ?: convention.configure(T::class.java, configuration)
+fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
+    typeOf<T>().let { type ->
+        convention.findByType(type)?.let(configuration)
+            ?: convention.findPlugin<T>()?.let(configuration)
+            ?: convention.configure(type, configuration)
+    }
 
 
 /**
  * Returns the plugin convention or extension of the specified type.
  */
 inline
-fun <reified T : Any> Project.the() =
-    the(T::class)
+fun <reified T : Any> Project.the(): T =
+    typeOf<T>().let { type ->
+        convention.findByType(type)
+            ?: convention.findPlugin(T::class.java)
+            ?: convention.getByType(type)
+    }
 
 
-fun <T : Any> Project.the(extensionType: KClass<T>) =
-    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
+/**
+ * Returns the plugin convention or extension of the specified type.
+ */
+fun <T : Any> Project.the(extensionType: KClass<T>): T =
+    convention.findByType(extensionType.java)
+        ?: convention.findPlugin(extensionType.java)
+        ?: convention.getByType(extensionType.java)
 
 
 /**
@@ -129,8 +134,8 @@ fun <reified type : Task> Project.task(name: String, noinline configuration: typ
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
  */
-inline
 @Suppress("extension_shadowed_by_member")
+inline
 fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
@@ -180,10 +185,10 @@ fun Project.dependencies(configuration: DependencyHandlerScope.() -> Unit) =
 
 
 /**
- * Locates a [Project] property using [Project.findProperty].
+ * Locates a property on [Project].
  */
-operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
-    findProperty(property.name)
+operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
+    propertyDelegateFor(this, property)
 
 
 /**
@@ -195,6 +200,17 @@ operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
 inline
 fun <reified T> ObjectFactory.property(): Property<T> =
     property(T::class.java)
+
+
+/**
+ * Creates a [ListProperty] that holds values of the given type [T].
+ *
+ * @see [ObjectFactory.listProperty]
+ */
+@Incubating
+inline
+fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
+    listProperty(T::class.java)
 
 
 /**

@@ -2,9 +2,7 @@
 //   https://docs.gradle.org/3.3/userguide/custom_plugins.html#sec:maintaining_multiple_domain_objects
 // ported to Kotlin
 
-apply {
-    plugin<DocumentationPlugin>()
-}
+apply<DocumentationPlugin>()
 
 val books: NamedDomainObjectContainer<Book> by extensions
 

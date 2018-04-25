@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.samples
 
-
 import org.junit.Test
 import java.io.File
 import java.io.FileReader
@@ -10,6 +9,7 @@ import org.junit.Assert.assertThat
 import org.hamcrest.CoreMatchers.equalTo
 import java.io.Writer
 import javax.script.ScriptEngine
+
 
 class JavaScriptSampleTest : AbstractSampleTest("hello-js") {
 

@@ -20,8 +20,6 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
 import org.gradle.kotlin.dsl.concurrent.future
 
-import org.gradle.tooling.ProgressListener
-
 import java.io.File
 
 import java.net.URI
@@ -45,21 +43,30 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         script: ScriptContents,
         environment: Map<String, Any?>?,
         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-        previousDependencies: KotlinScriptExternalDependencies?) = future {
+        previousDependencies: KotlinScriptExternalDependencies?
+    ) = future {
 
         try {
+            log(ResolutionRequest(script.file, environment, previousDependencies))
             val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)
             when (action) {
+                is ResolverAction.Return -> {
+                    action.dependencies
+                }
                 is ResolverAction.ReturnPrevious -> {
-                    log(ResolvedToPrevious(script.file, environment, previousDependencies))
+                    log(ResolvedToPrevious(script.file, previousDependencies))
                     previousDependencies
                 }
-                is ResolverAction.RequestNew     -> {
-                    assembleDependenciesFrom(script.file, environment!!, action.buildscriptBlockHash)
+                is ResolverAction.RequestNew -> {
+                    assembleDependenciesFrom(
+                        script.file,
+                        environment!!,
+                        previousDependencies,
+                        action.buildscriptBlockHash)
                 }
             }
         } catch (e: Exception) {
-            log(ResolutionFailure(script.file, environment, e))
+            log(ResolutionFailure(script.file, e))
             previousDependencies
         }
     }
@@ -68,18 +75,30 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     suspend fun assembleDependenciesFrom(
         scriptFile: File?,
         environment: Environment,
-        buildscriptBlockHash: ByteArray?): KotlinScriptExternalDependencies {
+        previousDependencies: KotlinScriptExternalDependencies?,
+        buildscriptBlockHash: ByteArray?
+    ): KotlinScriptExternalDependencies {
 
         val request = modelRequestFrom(scriptFile, environment)
         log(SubmittedModelRequest(scriptFile, request))
 
-        val response = submit(request, progressLogger(scriptFile))
+        val response = fetchKotlinBuildScriptModelFor(request)
         log(ReceivedModelResponse(scriptFile, response))
 
-        val scriptDependencies = dependenciesFrom(response, buildscriptBlockHash)
-        log(ResolvedDependencies(scriptFile, scriptDependencies))
-
-        return scriptDependencies
+        return when {
+            response.exceptions.isEmpty() ->
+                dependenciesFrom(response, buildscriptBlockHash).also {
+                    log(ResolvedDependencies(scriptFile, it))
+                }
+            previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
+                previousDependencies.also {
+                    log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
+                }
+            else ->
+                dependenciesFrom(response, buildscriptBlockHash).also {
+                    log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
+                }
+        }
     }
 
     private
@@ -104,16 +123,6 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     }
 
     private
-    suspend fun submit(request: KotlinBuildScriptModelRequest, progressListener: ProgressListener): KotlinBuildScriptModel =
-        fetchKotlinBuildScriptModelFor(request) {
-            addProgressListener(progressListener)
-        }
-
-    private
-    fun progressLogger(scriptFile: File?) =
-        ProgressListener { log(ResolutionProgress(scriptFile, it.description)) }
-
-    private
     fun gradleInstallationFrom(environment: Environment): GradleInstallation =
         (environment["gradleHome"] as? File)?.let(GradleInstallation::Local)
             ?: (environment["gradleUri"] as? URI)?.let(GradleInstallation::Remote)
@@ -123,7 +132,8 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     private
     fun dependenciesFrom(
         response: KotlinBuildScriptModel,
-        hash: ByteArray?) =
+        hash: ByteArray?
+    ) =
 
         KotlinBuildScriptDependencies(
             response.classPath,
@@ -145,6 +155,7 @@ internal
 sealed class ResolverAction {
     object ReturnPrevious : ResolverAction()
     class RequestNew(val buildscriptBlockHash: ByteArray?) : ResolverAction()
+    class Return(val dependencies: KotlinScriptExternalDependencies?) : ResolverAction()
 }
 
 
@@ -157,23 +168,25 @@ object ResolverCoordinator {
     fun selectNextActionFor(
         script: ScriptContents,
         environment: Environment?,
-        previousDependencies: KotlinScriptExternalDependencies?): ResolverAction =
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): ResolverAction {
 
-        when (environment) {
-            null -> ResolverAction.ReturnPrevious
-            else -> {
-                val buildscriptBlockHash = buildscriptBlockHashFor(script, environment)
-                if (sameBuildscriptBlockHashAs(previousDependencies, buildscriptBlockHash)) {
-                    ResolverAction.ReturnPrevious
-                } else {
-                    ResolverAction.RequestNew(buildscriptBlockHash)
-                }
-            }
+        if (environment == null) {
+            return ResolverAction.ReturnPrevious
         }
+
+        val buildscriptBlockHash = buildscriptBlockHashFor(script, environment)
+        if (sameBuildscriptBlockHashAs(previousDependencies, buildscriptBlockHash)) {
+            return ResolverAction.ReturnPrevious
+        }
+
+        return ResolverAction.RequestNew(buildscriptBlockHash)
+    }
 
     private
     fun sameBuildscriptBlockHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } } ?: false
+        hash?.let { nonNullHash -> buildscriptBlockHashOf(previousDependencies)?.let { equals(it, nonNullHash) } }
+            ?: false
 
     private
     fun buildscriptBlockHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
@@ -213,25 +226,30 @@ class KotlinBuildScriptDependencies(
     override val classpath: Iterable<File>,
     override val sources: Iterable<File>,
     override val imports: Iterable<String>,
-    val buildscriptBlockHash: ByteArray?) : KotlinScriptExternalDependencies
+    val buildscriptBlockHash: ByteArray?
+) : KotlinScriptExternalDependencies
 
 
 internal
 fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
     // TODO:pm remove hardcoded reference to settings.gradle
+    // Using `DefaultScriptFileResolver()` here would do
+    // but that class is not available when this gets run inside IntelliJ
     fun isProjectRoot(dir: File) =
-        File(dir, "settings.gradle.kts").isFile || File(dir, "settings.gradle").isFile
+        File(dir, "settings.gradle.kts").isFile
+            || File(dir, "settings.gradle").isFile
+            || dir.name == "buildSrc"
 
     tailrec fun test(dir: File): File =
         when {
             dir == importedProjectRoot -> importedProjectRoot
-            isProjectRoot(dir)         -> dir
-            else                       -> {
+            isProjectRoot(dir) -> dir
+            else -> {
                 val parentDir = dir.parentFile
                 when (parentDir) {
                     null, dir -> scriptFile.parentFile // external project
-                    else      -> test(parentDir)
+                    else -> test(parentDir)
                 }
             }
         }

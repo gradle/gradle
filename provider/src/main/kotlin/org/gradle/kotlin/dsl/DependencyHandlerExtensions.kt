@@ -50,7 +50,8 @@ fun DependencyHandler.create(
     version: String? = null,
     configuration: String? = null,
     classifier: String? = null,
-    ext: String? = null): ExternalModuleDependency =
+    ext: String? = null
+): ExternalModuleDependency =
 
     create(
         mapOfNonNullValuesOf(
@@ -82,7 +83,8 @@ fun DependencyHandler.module(
     version: String? = null,
     configuration: String? = null,
     classifier: String? = null,
-    ext: String? = null): ClientModule =
+    ext: String? = null
+): ClientModule =
 
     module(
         mapOfNonNullValuesOf(
@@ -115,7 +117,8 @@ fun DependencyHandler.module(
     configuration: String? = null,
     classifier: String? = null,
     ext: String? = null,
-    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit
+): ClientModule =
 
     configureClientModule(
         module(
@@ -138,15 +141,17 @@ fun DependencyHandler.module(
  */
 fun DependencyHandler.module(
     notation: Any,
-    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit
+): ClientModule =
 
     configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
 
 
-private inline
-fun DependencyHandler.configureClientModule(
+private
+inline fun DependencyHandler.configureClientModule(
     module: ClientModule,
-    clientModuleConfiguration: ClientModuleScope.() -> Unit): ClientModule =
+    clientModuleConfiguration: ClientModuleScope.() -> Unit
+): ClientModule =
     module.apply {
         ClientModuleScope(this@configureClientModule, this@apply).clientModuleConfiguration()
     }
@@ -157,15 +162,19 @@ fun DependencyHandler.configureClientModule(
  */
 class ClientModuleScope(
     private val dependencyHandler: DependencyHandler,
-    val clientModule: ClientModule) : ClientModule by clientModule {
+    val clientModule: ClientModule
+) : ClientModule by clientModule {
 
-    fun module(group: String,
-               name: String,
-               version: String? = null,
-               configuration: String? = null,
-               classifier: String? = null,
-               ext: String? = null,
-               setup: ClientModuleScope.() -> Unit) {
+    fun module(
+        group: String,
+        name: String,
+        version: String? = null,
+        configuration: String? = null,
+        classifier: String? = null,
+        ext: String? = null,
+        setup: ClientModuleScope.() -> Unit
+    ) {
+
         clientModule.addDependency(
             dependencyHandler.module(group, name, version, configuration, classifier, ext, setup))
     }
@@ -202,7 +211,8 @@ class ClientModuleScope(
  */
 fun DependencyHandler.project(
     path: String,
-    configuration: String? = null): ProjectDependency =
+    configuration: String? = null
+): ProjectDependency =
 
     uncheckedCast(
         project(
@@ -222,7 +232,8 @@ inline
 fun DependencyHandler.add(
     configuration: String,
     dependencyNotation: String,
-    dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+    dependencyConfiguration: ExternalModuleDependency.() -> Unit
+): ExternalModuleDependency =
 
     add(configuration, create(dependencyNotation) as ExternalModuleDependency, dependencyConfiguration)
 
@@ -239,7 +250,8 @@ inline
 fun <T : ModuleDependency> DependencyHandler.add(
     configuration: String,
     dependency: T,
-    dependencyConfiguration: T.() -> Unit): T =
+    dependencyConfiguration: T.() -> Unit
+): T =
 
     dependency.apply {
         dependencyConfiguration()
@@ -271,4 +283,3 @@ fun <T : ModuleDependency> DependencyHandler.add(
  */
 fun <T : ModuleDependency> T.exclude(group: String? = null, module: String? = null): T =
     uncheckedCast(exclude(excludeMapFor(group, module)))
-

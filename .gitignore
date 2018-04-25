@@ -6,6 +6,7 @@
 .idea
 *.iml
 local.properties
+out/
 
 # mr (see .mrconfig)
 wiki

@@ -34,7 +34,7 @@ import java.util.*
 
 
 private
-val embeddedRepositoryCacheKeyVersion = 1
+const val embeddedRepositoryCacheKeyVersion = 2
 
 
 private
@@ -42,7 +42,8 @@ data class EmbeddedModule(
     val group: String,
     val name: String,
     val version: String,
-    val dependencies: List<EmbeddedModule> = emptyList()) {
+    val dependencies: List<EmbeddedModule> = emptyList()
+) {
 
     val notation = "$group:$name:$version"
     val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
@@ -58,34 +59,43 @@ val embeddedModules: List<EmbeddedModule> by lazy {
     // TODO:pm could be generated at build time
     val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
     val stdlib = embeddedKotlin("stdlib", listOf(annotations))
-    val stdlibJre7 = embeddedKotlin("stdlib-jre7", listOf(stdlib))
-    val stdlibJre8 = embeddedKotlin("stdlib-jre8", listOf(stdlibJre7))
+    val stdlibJdk7 = embeddedKotlin("stdlib-jdk7", listOf(stdlib))
+    val stdlibJdk8 = embeddedKotlin("stdlib-jdk8", listOf(stdlibJdk7))
     val reflect = embeddedKotlin("reflect", listOf(stdlib))
     val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
+    val scriptRuntime = embeddedKotlin("script-runtime")
+    val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
     listOf(
         annotations,
-        stdlib, stdlibJre7, stdlibJre8,
+        stdlib, stdlibJdk7, stdlibJdk8,
         reflect,
-        compilerEmbeddable)
+        compilerEmbeddable,
+        scriptRuntime,
+        samWithReceiverCompilerPlugin)
 }
 
 
 class EmbeddedKotlinProvider constructor(
     private val cacheRepository: CacheRepository,
-    private val moduleRegistry: ModuleRegistry) {
+    private val moduleRegistry: ModuleRegistry
+) {
 
     fun addRepositoryTo(repositories: RepositoryHandler) {
 
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
             repo.url = embeddedKotlinRepositoryURI()
+            repo.metadataSources { sources ->
+                sources.artifact()
+            }
         }
     }
 
     fun addDependenciesTo(
         dependencies: DependencyHandler,
         configuration: String,
-        vararg kotlinModules: String) {
+        vararg kotlinModules: String
+    ) {
 
         embeddedKotlinModulesFor(kotlinModules).forEach { embeddedKotlinModule ->
             dependencies.add(configuration, clientModuleFor(dependencies, embeddedKotlinModule))

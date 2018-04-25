@@ -21,8 +21,8 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.extra
 
 
-internal inline
-fun <reified T : Any> ExtensionAware.getOrCreateSingletonProperty(crossinline create: () -> T): T =
+internal
+inline fun <reified T : Any> ExtensionAware.getOrCreateSingletonProperty(crossinline create: () -> T): T =
     extra.run {
         val property = T::class.qualifiedName!!
         if (has(property)) get(property) as T

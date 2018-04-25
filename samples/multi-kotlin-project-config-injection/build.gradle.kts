@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     base
-    kotlin("jvm") version "1.2.0" apply false
+    kotlin("jvm") version "1.2.31" apply false
 }
 
 allprojects {

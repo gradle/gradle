@@ -24,3 +24,8 @@ import kotlin.reflect.KClass
 fun illegalElementType(container: NamedDomainObjectCollection<*>, name: String, expectedType: KClass<*>, actualType: KClass<*>) =
     IllegalStateException(
         "Element '$name' of type '${actualType.java.name}' from container '$container' cannot be cast to '${expectedType.qualifiedName}'.")
+
+
+internal
+fun internalError(): Nothing =
+    throw InternalError("This should not happen, please report at https://github.com/gradle/kotlin-dsl/issues/new")

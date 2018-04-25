@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import java.io.Closeable
 
+
 interface ProgressMonitor : Closeable {
     fun onProgress()
 }

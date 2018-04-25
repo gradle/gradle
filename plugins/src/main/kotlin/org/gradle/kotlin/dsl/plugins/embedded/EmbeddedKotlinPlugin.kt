@@ -34,7 +34,8 @@ import javax.inject.Inject
  * and pins them to the embedded Kotlin version.
  */
 open class EmbeddedKotlinPlugin @Inject internal constructor(
-    private val embeddedKotlin: EmbeddedKotlinProvider) : Plugin<Project> {
+    private val embeddedKotlin: EmbeddedKotlinProvider
+) : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.run {
@@ -47,14 +48,14 @@ open class EmbeddedKotlinPlugin @Inject internal constructor(
             embeddedKotlin.addDependenciesTo(
                 dependencies,
                 embeddedKotlinConfiguration.name,
-                "stdlib-jre8", "reflect")
+                "stdlib-jdk8", "reflect")
 
             listOf("compileOnly", "testCompileOnly").forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
 
             configurations.all {
-                embeddedKotlin.pinDependenciesOn(it, "stdlib-jre8", "reflect", "compiler-embeddable")
+                embeddedKotlin.pinDependenciesOn(it, "stdlib-jdk8", "reflect", "compiler-embeddable")
             }
         }
     }

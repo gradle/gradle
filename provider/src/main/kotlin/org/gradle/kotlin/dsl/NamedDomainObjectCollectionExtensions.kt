@@ -31,7 +31,8 @@ import kotlin.reflect.KProperty
  * `tasks { val jar by getting }`
  */
 inline
-val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U get() = this
+val <T : Any, U : NamedDomainObjectCollection<in T>> U.getting: U
+    get() = this
 
 
 /**
@@ -46,7 +47,8 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
 
 class NamedDomainObjectCollectionDelegateProvider<T>(
     val collection: NamedDomainObjectCollection<T>,
-    val configuration: T.() -> Unit) {
+    val configuration: T.() -> Unit
+) {
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): NamedDomainObjectCollection<T> =
         collection.apply {

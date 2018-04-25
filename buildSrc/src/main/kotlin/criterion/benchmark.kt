@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+
 /**
  * A small, criterion-like benchmarking framework.
  */
 package criterion
+
 
 fun benchmark(config: BenchmarkConfig, experiment: () -> Unit): BenchmarkResult {
     warmUp(config, experiment)
@@ -25,7 +27,9 @@ fun benchmark(config: BenchmarkConfig, experiment: () -> Unit): BenchmarkResult 
     return BenchmarkResult(observations)
 }
 
+
 data class BenchmarkConfig(val warmUpRuns: Int, val observationRuns: Int)
+
 
 class BenchmarkResult(observations: List<Duration>) : Result<Duration>(observations) {
 
@@ -36,12 +40,14 @@ class BenchmarkResult(observations: List<Duration>) : Result<Duration>(observati
         get() = Duration(this)
 }
 
+
 private
 fun warmUp(config: BenchmarkConfig, experiment: () -> Unit) {
     for (i in 1..config.warmUpRuns) {
         experiment()
     }
 }
+
 
 private
 fun collectObservations(config: BenchmarkConfig, experiment: () -> Unit): List<Duration> =

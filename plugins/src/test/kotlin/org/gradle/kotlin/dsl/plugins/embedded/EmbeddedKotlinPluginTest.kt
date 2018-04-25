@@ -16,7 +16,7 @@
 package org.gradle.kotlin.dsl.plugins.embedded
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.plugins.AbstractPluginTest
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -56,7 +56,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             tasks {
                 "assertions" {
                     doLast {
-                        val requiredLibs = listOf("kotlin-stdlib-jre8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
+                        val requiredLibs = listOf("kotlin-stdlib-jdk8-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
                         listOf("compileOnly", "testCompileOnly").forEach { configuration ->
                             require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
                                 "Embedded Kotlin libraries not found in ${'$'}configuration"
@@ -241,10 +241,29 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
         }
     }
 
+    @Test
+    fun `can be used with GRADLE_METADATA feature preview enabled`() {
+
+        withSettings("""enableFeaturePreview("GRADLE_METADATA")""")
+
+        withBuildScript("""
+
+            plugins {
+                `embedded-kotlin`
+            }
+
+        """)
+
+        withFile("src/main/kotlin/source.kt", """var foo = "bar"""")
+
+        val result = buildWithPlugin("assemble")
+
+        assertThat(result.outcomeOf(":compileKotlin"), equalTo(TaskOutcome.SUCCESS))
+    }
+
     private
     fun dependencyDeclarationsFor(configuration: String, modules: List<String>, version: String? = null) =
         modules.map {
             "$configuration(\"org.jetbrains.kotlin:kotlin-$it:${version ?: embeddedKotlinVersion}\")"
         }.joinToString("\n")
 }
-

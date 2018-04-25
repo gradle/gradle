@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 
 import org.jetbrains.kotlin.codegen.CompilationException
@@ -35,20 +34,25 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
+import org.jetbrains.kotlin.config.addKotlinSourceRoot
+import org.jetbrains.kotlin.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.*
-import org.jetbrains.kotlin.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+import org.jetbrains.kotlin.name.NameUtils
 
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
@@ -61,16 +65,16 @@ fun compileKotlinScriptToDirectory(
     scriptFile: File,
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
-    classLoader: ClassLoader,
-    messageCollector: MessageCollector): Class<*> {
+    messageCollector: LoggingMessageCollector
+): String =
 
     withRootDisposable { rootDisposable ->
 
         withCompilationExceptionHandler(messageCollector) {
 
-            val sourceFiles = listOf(scriptFile)
-            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, true)
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                addKotlinSourceRoot(scriptFile.canonicalPath)
+                put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName("buildscript")
                 addScriptDefinition(scriptDef)
@@ -79,11 +83,13 @@ fun compileKotlinScriptToDirectory(
             val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
-            return compileScript(environment, classLoader)
-                ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
+
+            compileBunchOfSources(environment)
+                || throw ScriptCompilationException(messageCollector.errors)
+
+            NameUtils.getScriptNameForFile(scriptFile.name).asString()
         }
     }
-}
 
 
 private
@@ -104,7 +110,8 @@ fun compileToJar(
     outputJar: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_JAR, outputJar, sourceFiles, logger, classPath)
 
@@ -114,7 +121,8 @@ fun compileToDirectory(
     outputDirectory: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File> = emptyList()): Boolean =
+    classPath: Iterable<File> = emptyList()
+): Boolean =
 
     compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFiles, logger, classPath)
 
@@ -125,11 +133,13 @@ fun compileTo(
     output: File,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File>): Boolean {
+    classPath: Iterable<File>
+): Boolean {
 
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, sourceFiles).apply {
+            val configuration = compilerConfigurationFor(messageCollector).apply {
+                addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(outputConfigurationKey, output)
                 setModuleName(output.nameWithoutExtension)
                 classPath.forEach { addJvmClasspathRoot(it) }
@@ -147,8 +157,8 @@ val kotlinStdlibJar: File
     get() = PathUtil.getResourcePathForClass(Unit::class.java)
 
 
-private inline
-fun <T> withRootDisposable(action: (Disposable) -> T): T {
+private
+inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
         return action(rootDisposable)
@@ -158,8 +168,8 @@ fun <T> withRootDisposable(action: (Disposable) -> T): T {
 }
 
 
-private inline
-fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
+private
+inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
     val messageCollector = messageCollectorFor(log)
     withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
@@ -167,8 +177,8 @@ fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T
 }
 
 
-private inline
-fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+private
+inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
     try {
         return action()
     } catch (ex: CompilationException) {
@@ -183,10 +193,9 @@ fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, acti
 
 
 private
-fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFiles: Iterable<File>): CompilerConfiguration =
+fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
-        addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-        put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
 
@@ -208,44 +217,112 @@ fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposabl
 
 
 internal
-fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): MessageCollector =
+fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): LoggingMessageCollector =
+    LoggingMessageCollector(log, pathTranslation)
 
-    object : MessageCollector {
 
-        var errors = 0
+internal
+data class ScriptCompilationError(val message: String, val location: CompilerMessageLocation?)
 
-        override fun hasErrors() = errors > 0
 
-        override fun clear() { errors = 0 }
+internal
+data class ScriptCompilationException(val errors: List<ScriptCompilationError>) : RuntimeException() {
 
-        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+    init {
+        require(errors.isNotEmpty())
+    }
 
-            fun msg() =
-                location?.run {
-                    path.let(pathTranslation).let { path ->
-                        when {
-                            line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
-                            else -> "$path: $message"
-                        }
+    val firstErrorLine
+        get() = errors.firstNotNullResult { it.location?.line }
+
+    override val message: String
+        get() = (
+            listOf("Script compilation $errorPlural:")
+                + indentedErrorMessages()
+                + "${errors.size} $errorPlural")
+            .joinToString("\n\n")
+
+    private
+    fun indentedErrorMessages() =
+        errors.map(::errorMessage).map(::prependIndent)
+
+    private
+    fun errorMessage(error: ScriptCompilationError): String =
+        error.location?.let { location ->
+            errorAt(location, error.message)
+        } ?: error.message
+
+    private
+    fun errorAt(location: CompilerMessageLocation, message: String): String {
+        val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
+        return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
+            "^ $message".lines().joinToString(
+                prefix = columnIndent,
+                separator = "\n$columnIndent  $indent")
+    }
+
+    private
+    fun lineNumber(location: CompilerMessageLocation) =
+        location.line.toString().padStart(maxLineNumberStringLength, '0')
+
+    private
+    fun prependIndent(it: String) = it.prependIndent(indent)
+
+    private
+    val errorPlural
+        get() = if (errors.size > 1) "errors" else "error"
+
+    private
+    val maxLineNumberStringLength: Int by lazy {
+        errors.mapNotNull { it.location?.line }.max().toString().length
+    }
+}
+
+
+private
+const val indent = "  "
+
+
+internal
+class LoggingMessageCollector(
+    private val log: Logger,
+    private val pathTranslation: (String) -> String
+) : MessageCollector {
+
+    val errors = arrayListOf<ScriptCompilationError>()
+
+    override fun hasErrors() = errors.isNotEmpty()
+
+    override fun clear() = errors.clear()
+
+    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+
+        fun msg() =
+            location?.run {
+                path.let(pathTranslation).let { path ->
+                    when {
+                        line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
+                        else -> "$path: $message"
                     }
-                } ?: message
-
-            fun taggedMsg() =
-                "${severity.presentableName[0]}: ${msg()}"
-
-            when (severity) {
-                CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
-                    errors++
-                    log.error { taggedMsg() }
                 }
-                in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-                CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
-                CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
-                CompilerMessageSeverity.INFO -> log.info { msg() }
-                else -> log.debug { taggedMsg() }
+            } ?: message
+
+        fun taggedMsg() =
+            "${severity.presentableName[0]}: ${msg()}"
+
+        when (severity) {
+            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
+                errors += ScriptCompilationError(message, location)
+                log.error { taggedMsg() }
             }
+            in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
+            CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.INFO -> log.info { msg() }
+            else -> log.debug { taggedMsg() }
         }
     }
+}
 
 
 internal

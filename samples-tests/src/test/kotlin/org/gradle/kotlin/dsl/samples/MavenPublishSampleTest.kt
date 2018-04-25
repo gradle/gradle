@@ -5,6 +5,7 @@ import org.junit.Test
 import java.io.File
 import java.util.jar.JarFile
 
+
 class MavenPublishSampleTest : AbstractSampleTest("maven-publish") {
 
     @Test

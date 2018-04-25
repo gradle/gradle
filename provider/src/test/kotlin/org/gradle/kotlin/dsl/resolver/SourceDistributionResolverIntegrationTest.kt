@@ -84,7 +84,7 @@ class SourceDistributionResolverIntegrationTest : AbstractIntegrationTest() {
         "resources-sftp/src/main/java", "resources-sftp/src/main/resources",
         "scala/src/main/java", "scala/src/main/resources", "signing/src/main/java", "signing/src/main/resources",
         "test-kit/src/main/java", "testing-base/src/main/java", "testing-base/src/main/resources",
-        "testing-jvm/src/main/java", "testing-jvm/src/main/resources",
+        "testing-junit-platform/src/main/java", "testing-jvm/src/main/java", "testing-jvm/src/main/resources",
         "testing-native/src/main/java", "testing-native/src/main/resources",
         "tooling-api/src/main/java", "tooling-api-builders/src/main/java", "tooling-api-builders/src/main/resources",
         "version-control/src/main/java", "version-control/src/main/resources",

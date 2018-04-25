@@ -45,6 +45,15 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     }
 
     override fun sourceDirs(): Collection<File> =
+        try {
+            collectSourceDirs()
+        } catch (ex: Exception) {
+            project.logger.warn("Unexpected exception while resolving Gradle distribution sources: ${ex.message}", ex)
+            emptyList()
+        }
+
+    private
+    fun collectSourceDirs() =
         withSourceRepository {
             registerTransforms()
             transientConfigurationForSourcesDownload().files
@@ -92,6 +101,9 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         val repoName = repositoryNameFor(gradleVersion)
         name = "Gradle $repoName"
         setUrl("https://services.gradle.org/$repoName")
+        metadataSources { sources ->
+            sources.artifact()
+        }
         layout("pattern") {
             val layout = it as IvyPatternRepositoryLayout
             if (isSnapshot(gradleVersion)) {

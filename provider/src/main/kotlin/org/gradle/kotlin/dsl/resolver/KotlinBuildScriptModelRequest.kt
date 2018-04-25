@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.concurrent.tapi
-import org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory
+import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.ModelBuilder
@@ -44,7 +44,8 @@ data class KotlinBuildScriptModelRequest(
     val gradleUserHome: java.io.File? = null,
     val javaHome: java.io.File? = null,
     val options: List<String> = emptyList(),
-    val jvmOptions: List<String> = emptyList())
+    val jvmOptions: List<String> = emptyList()
+)
 
 
 internal
@@ -54,8 +55,8 @@ typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() ->
 internal
 suspend fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilderCustomization = {}): KotlinBuildScriptModel
-{
+    modelBuilderCustomization: ModelBuilderCustomization = {}
+): KotlinBuildScriptModel {
 
     val connection = projectConnectionFor(request)
     try {
@@ -78,17 +79,17 @@ fun org.gradle.tooling.ProjectConnection.modelBuilderFor(request: KotlinBuildScr
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
         request.scriptFile?.let {
-            withArguments(request.options + "-P${kotlinBuildScriptModelTarget}=${it.canonicalPath}")
+            withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
         } ?: withArguments(request.options)
     }
 
 
 private
 val modelSpecificJvmOptions =
-    listOf("-D${KotlinScriptPluginFactory.Companion.modeSystemPropertyName}=${KotlinScriptPluginFactory.Companion.classPathMode}")
+    listOf("-D${KotlinDslProviderMode.systemPropertyName}=${KotlinDslProviderMode.classPathMode}")
 
 
-val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
+const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
 internal
@@ -106,10 +107,9 @@ private
 fun applyGradleInstallationTo(connector: org.gradle.tooling.GradleConnector, request: KotlinBuildScriptModelRequest): org.gradle.tooling.GradleConnector =
     request.gradleInstallation.run {
         when (this) {
-            is GradleInstallation.Local   -> connector.useInstallation(dir)
-            is GradleInstallation.Remote  -> connector.useDistribution(uri)
+            is GradleInstallation.Local -> connector.useInstallation(dir)
+            is GradleInstallation.Remote -> connector.useDistribution(uri)
             is GradleInstallation.Version -> connector.useGradleVersion(number)
-            GradleInstallation.Wrapper    -> connector.useBuildDistribution()
+            GradleInstallation.Wrapper -> connector.useBuildDistribution()
         }
     }
-

@@ -14,7 +14,7 @@ dependencies {
     compileOnly(gradleApi())
 
     compile(project(":tooling-models"))
-    compile(futureKotlin("stdlib-jre8"))
+    compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("compiler-embeddable"))
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
@@ -22,6 +22,7 @@ dependencies {
     }
 
     testCompile(project(":test-fixtures"))
+    testCompile("com.squareup.okhttp3:mockwebserver:3.9.1")
 }
 
 
@@ -32,8 +33,9 @@ java.sourceSets["main"].kotlin {
     srcDir(apiExtensionsOutputDir)
 }
 
+val publishedPluginsVersion: String by rootProject.extra
+
 val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtensions> {
-    val publishedPluginsVersion: String by rootProject.extra
     outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     kotlinDslPluginsVersion = publishedPluginsVersion

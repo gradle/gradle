@@ -1,17 +1,25 @@
 package org.gradle.kotlin.dsl.integration
 
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+
 import org.gradle.api.JavaVersion
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
+import org.gradle.kotlin.dsl.fixtures.LightThought
+import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.canPublishBuildScan
+import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.rootProjectDir
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
+
+import org.jetbrains.kotlin.preprocessor.convertLineSeparators
 
 import org.junit.Assert.assertNotEquals
 import org.junit.Assume.assumeTrue
@@ -19,9 +27,11 @@ import org.junit.Test
 
 import java.io.File
 
+
 class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
     @Test
+    @LeaksFileHandles
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
         checkBuildscriptBlockIsUsedToComputeRuntimeClasspathAfter({ it })
     }
@@ -149,7 +159,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             tasks.withType<fixtures.ThePluginTask> {
                 from = "new value"
                 doLast {
-                    println(configure { "*[" + it + "]*" })
+                    println(transform { "*[" + it + "]*" })
                 }
             }
         """)
@@ -179,7 +189,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 }
             }
 
-            apply { plugin("kotlin") }
+            apply(plugin = "kotlin")
 
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
@@ -358,38 +368,6 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `optional null extra property requested as a non nullable type throws NPE`() {
-
-        withBuildScript("""
-            val myTask = task("myTask") {
-
-                val foo: Int? by extra { null }
-
-                doLast {
-                    println("Optional extra property value: ${'$'}foo")
-                }
-            }
-
-            val foo: Int by myTask.extra
-
-            afterEvaluate {
-                try {
-                    println("myTask.foo = ${'$'}foo")
-                    require(false, { "Should not happen as `foo`, requested as a Int is effectively null" })
-                } catch (ex: NullPointerException) {
-                    // expected
-                }
-            }
-        """)
-
-        assertThat(
-            build("myTask").output,
-            allOf(
-                containsString("Optional extra property value: null"),
-                not(containsString("myTask.foo"))))
-    }
-
-    @Test
     fun `build with groovy settings and kotlin-dsl build script succeeds`() {
 
         withFile("settings.gradle", """
@@ -408,13 +386,13 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `build script can use jre8 extensions`() {
+    fun `build script can use jdk8 extensions`() {
 
         assumeJavaLessThan9()
 
         withBuildScript("""
 
-            // without kotlin-stdlib-jre8 we get:
+            // without kotlin-stdlib-jdk8 we get:
             // > Retrieving groups by name is not supported on this platform.
 
             val regex = Regex("(?<bla>.*)")
@@ -456,7 +434,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         withSettings("""
-            apply { from("common.gradle.kts") }
+            apply(from = "common.gradle.kts")
         """)
 
         assertThat(
@@ -467,7 +445,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         withSettings("")
         withBuildScript("""
-            apply { from("common.gradle.kts") }
+            apply(from = "common.gradle.kts")
         """)
 
         assertThat(
@@ -496,7 +474,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         withSettings("""
-            apply { plugin(my.SettingsPlugin::class.java) }
+            apply<my.SettingsPlugin>()
         """)
 
         assertThat(
@@ -540,7 +518,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         withBuildScript("""
             buildscript {
-              rootProject.apply { from(rootProject.file("gradle/dependencies.gradle.kts")) }
+              rootProject.apply(from = rootProject.file("gradle/dependencies.gradle.kts"))
             }
             buildScan {
                 setLicenseAgreementUrl("https://gradle.com/terms-of-service")
@@ -549,6 +527,316 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
         withFile("gradle/dependencies.gradle.kts")
         canPublishBuildScan()
+    }
+
+    @Test
+    fun `can use shorthand notation for bound callable references with inline functions in build scripts`() {
+
+        withBuildScript("""
+            fun foo(it: Any) = true
+
+            // The inline modifier is important. This does not fail when this is no inline function.
+            inline fun bar(f: (Any) -> Boolean) = print("*" + f(Unit) + "*")
+
+            bar(::foo)
+        """)
+
+        assertThat(
+            build().output,
+            containsString("*true*"))
+    }
+
+    @Test
+    fun `script compilation error message`() {
+
+        val buildFile =
+            withBuildScript("foo")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                FAILURE: Build failed with an exception.
+
+                * Where:
+                Build file '${buildFile.canonicalPath}' line: 1
+
+                * What went wrong:
+                Script compilation error:
+
+                  Line 1: foo
+                          ^ Unresolved reference: foo
+
+                1 error
+            """.replaceIndent())
+        )
+    }
+
+    @Test
+    fun `multiline script compilation error message`() {
+
+        withBuildScript("publishing { }")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                * What went wrong:
+                Script compilation errors:
+
+                  Line 1: publishing { }
+                          ^ Expression 'publishing' cannot be invoked as a function. The function 'invoke()' is not found
+
+                  Line 1: publishing { }
+                          ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:${' '}
+                              public val PluginDependenciesSpec.publishing: PluginDependencySpec defined in org.gradle.kotlin.dsl
+
+                2 errors
+            """.replaceIndent()))
+    }
+
+    @Test
+    fun `multiple script compilation errors message`() {
+        val buildFile = withBuildScript("println(foo)\n\n\n\n\nprintln(\"foo\").bar.bazar\n\n\n\nprintln(cathedral)")
+
+        assertThat(
+            buildFailureOutput().convertLineSeparators(),
+            containsString("""
+                FAILURE: Build failed with an exception.
+
+                * Where:
+                Build file '${buildFile.canonicalPath}' line: 1
+
+                * What went wrong:
+                Script compilation errors:
+
+                  Line 01: println(foo)
+                                   ^ Unresolved reference: foo
+
+                  Line 06: println("foo").bar.bazar
+                                          ^ Unresolved reference: bar
+
+                  Line 10: println(cathedral)
+                                   ^ Unresolved reference: cathedral
+
+                3 errors
+            """.replaceIndent()))
+    }
+
+    @Test
+    fun `given a remote buildscript, file paths are resolved relative to root project dir`() {
+
+        val remoteScript = """
+
+            apply(from = "./gradle/answer.gradle.kts")
+
+        """
+
+        withFile("gradle/answer.gradle.kts", """
+
+            val answer by extra { "42" }
+
+        """)
+
+        MockWebServer().use { server ->
+
+            server.enqueue(MockResponse().setBody(remoteScript))
+            server.start()
+
+            val remoteScriptUrl = server.url("/remote.gradle.kts")
+
+            withBuildScript("""
+                apply(from = "$remoteScriptUrl")
+                val answer: String by extra
+                println("*" + answer + "*")
+            """)
+
+            assert(build().output.contains("*42*"))
+        }
+    }
+
+    @Test
+    fun `given a script from a jar, file paths are resolved relative to root project dir`() {
+
+        val scriptFromJar = """
+
+            apply(from = "./gradle/answer.gradle.kts")
+
+        """
+
+        withZip(
+            "fixture.jar",
+            sequenceOf("common.gradle.kts" to scriptFromJar.toByteArray()))
+
+        withFile("gradle/answer.gradle.kts", """
+
+            val answer by extra { "42" }
+
+        """)
+
+        withBuildScript("""
+            buildscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+
+            apply(from = project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
+
+            val answer: String by extra
+            println("*" + answer + "*")
+        """)
+
+        assert(build().output.contains("*42*"))
+    }
+
+    @Test
+    fun `script handler belongs to the current script`() {
+
+        val init = withFile("some.init.gradle.kts", """
+            println("init: ${'$'}{initscript.sourceFile}")
+        """)
+
+        val settings = withSettings("""
+            println("settings: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        val other = withFile("other.gradle.kts", """
+            println("other: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        val main = withBuildScript("""
+            apply(from = "other.gradle.kts")
+            println("main: ${'$'}{buildscript.sourceFile}")
+        """)
+
+        assertThat(
+            build("-I", init.absolutePath, "help", "-q").output,
+            containsMultiLineString("""
+                init: ${init.absolutePath}
+                settings: ${settings.absolutePath}
+                other: ${other.absolutePath}
+                main: ${main.absolutePath}
+            """))
+    }
+
+    @LeaksFileHandles
+    @Test
+    fun `can cross configure buildscript`() {
+
+        withClassJar("zero.jar", ZeroThought::class.java)
+        withClassJar("light.jar", LightThought::class.java)
+        withClassJar("deep.jar", DeepThought::class.java)
+
+        val init = withFile("some.init.gradle.kts", """
+            projectsLoaded {
+                rootProject.buildscript {
+                    dependencies {
+                        classpath(files("zero.jar"))
+                    }
+                }
+            }
+        """)
+
+        withSettings("""
+            include("sub")
+            gradle.projectsLoaded {
+                rootProject.buildscript {
+                    dependencies {
+                        classpath(files("light.jar"))
+                    }
+                }
+            }
+        """)
+
+        withBuildScript("""
+            project(":sub") {
+                buildscript {
+                    dependencies {
+                        classpath(files("../deep.jar"))
+                    }
+                }
+            }
+        """)
+
+        withFile("sub/build.gradle.kts", """
+            task("think") {
+                doLast {
+                    val zero = ${ZeroThought::class.qualifiedName}()
+                    val light = ${LightThought::class.qualifiedName}()
+                    val deep = ${DeepThought::class.qualifiedName}()
+                    println("*" + zero.compute() + "*")
+                    println("*" + light.compute() + "*")
+                    println("*" + deep.compute() + "*")
+                }
+            }
+        """)
+
+        assertThat(
+            build("-I", init.absolutePath, ":sub:think").output,
+            containsMultiLineString("""
+                *0*
+                *23*
+                *42*
+            """))
+    }
+
+    @Test
+    fun `given generic extension types they can be accessed and configured`() {
+
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                `kotlin-dsl`
+                `java-gradle-plugin`
+            }
+
+            gradlePlugin {
+                (plugins) {
+                    "my" {
+                        id = "my"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/my/MyPlugin.kt", """
+            package my
+
+            import org.gradle.api.*
+            import org.gradle.kotlin.dsl.*
+
+            class Book(val name: String)
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
+                    extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))
+                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class.java))
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my")
+            }
+
+            configure<MutableMap<String, String>> {
+                put("bazar", "cathedral")
+            }
+            require(the<MutableMap<String, String>>() == mapOf("foo" to "bar", "bazar" to "cathedral"))
+
+            configure<MutableMap<String, Int>> {
+                put("zero", 0)
+            }
+            require(the<MutableMap<String, Int>>() == mapOf("deep" to 42, "zero" to 0))
+
+            require(the<MutableMap<*, *>>() == mapOf("foo" to "bar", "bazar" to "cathedral"))
+
+            configure<NamedDomainObjectContainer<my.Book>> {
+                create("The Dosadi experiment")
+            }
+            require(the<NamedDomainObjectContainer<my.Book>>().size == 1)
+        """)
+
+        build("help")
     }
 
     private
@@ -560,4 +848,3 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
     val fixturesRepository: File
         get() = File(rootProjectDir, "fixtures/repository").absoluteFile
 }
-

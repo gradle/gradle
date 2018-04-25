@@ -31,4 +31,3 @@ fun Project.withParallelTests() {
         test.logger.info("${test.path} will run with maxParallelForks=${test.maxParallelForks}.")
     }
 }
-
