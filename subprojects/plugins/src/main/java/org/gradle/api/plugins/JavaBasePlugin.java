@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -378,23 +377,31 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuildNeeded(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BUILD_TASK_NAME);
+        project.getTasks().createLater(BUILD_NEEDED_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task buildTask) {
+                buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
+                buildTask.setGroup(BasePlugin.BUILD_GROUP);
+                buildTask.dependsOn(BUILD_TASK_NAME);
+            }
+        });
     }
 
     private void configureBuildDependents(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BUILD_TASK_NAME);
-        buildTask.doFirst(new Action<Task>() {
+        project.getTasks().createLater(BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
             @Override
-            public void execute(Task task) {
-                if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
-                    task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
-                }
+            public void execute(Task buildTask) {
+                buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
+                buildTask.setGroup(BasePlugin.BUILD_GROUP);
+                buildTask.dependsOn(BUILD_TASK_NAME);
+                buildTask.doFirst(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
+                            task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+                        }
+                    }
+                });
             }
         });
     }
