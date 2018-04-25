@@ -35,7 +35,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +86,7 @@ public class BuildSourceBuilder {
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
         buildSrcStartParameter.setSearchUpwards(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
-        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, buildSrcDir, DefaultPluginRequests.EMPTY);
+        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir);
         assert buildSrcStartParameter.getBuildFile() == null;
 
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {

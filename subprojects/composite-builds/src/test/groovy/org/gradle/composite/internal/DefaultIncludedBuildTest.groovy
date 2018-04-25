@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier
 import org.gradle.initialization.NestedBuildFactory
@@ -24,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def "creates a foreign id for projects"() {
-        def build = new DefaultIncludedBuild(Stub(BuildDefinition), false, Stub(NestedBuildFactory), Stub(WorkerLeaseRegistry.WorkerLease))
+        def build = new DefaultIncludedBuild(Stub(BuildIdentifier), Stub(BuildDefinition), false, Stub(NestedBuildFactory), Stub(WorkerLeaseRegistry.WorkerLease))
 
         expect:
         def id = build.idForProjectInThisBuild(":a:b:c")

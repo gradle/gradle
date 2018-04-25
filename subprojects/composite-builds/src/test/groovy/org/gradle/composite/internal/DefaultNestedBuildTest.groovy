@@ -35,13 +35,16 @@ class DefaultNestedBuildTest extends Specification {
     def action = Mock(Transformer)
     def sessionServices = Mock(ServiceRegistry)
     def buildDefinition = Mock(BuildDefinition)
-    def build = new DefaultNestedBuild(buildDefinition, factory, Stub(BuildStateListener))
+    DefaultNestedBuild build
 
     def setup() {
+        _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
+
+        build = new DefaultNestedBuild(buildDefinition, factory, Stub(BuildStateListener))
     }
 
     def "creates launcher and runs action after notifying listeners"() {
