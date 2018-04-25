@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -56,6 +57,7 @@ import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
+import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
@@ -118,6 +120,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private MavenArtifact pomArtifact;
     private MavenArtifact moduleMetadataArtifact;
+    private Task moduleDescriptorGenerator;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
     private boolean alias;
@@ -166,22 +169,36 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void setPomArtifact(MavenArtifact artifact) {
-        if (this.pomArtifact != null) {
-            metadataArtifacts.remove(this.pomArtifact);
+    public void setPomGenerator(Task pomGenerator) {
+        if (pomArtifact != null) {
+            metadataArtifacts.remove(pomArtifact);
         }
-        this.pomArtifact = artifact;
-        metadataArtifacts.add(artifact);
+        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, "pom", null);
+        metadataArtifacts.add(pomArtifact);
     }
 
     @Override
-    public void setGradleModuleMetadataArtifact(MavenArtifact artifact) {
-        if (this.moduleMetadataArtifact != null) {
-            metadataArtifacts.remove(this.moduleMetadataArtifact);
+    public void setModuleDescriptorGenerator(Task descriptorGenerator) {
+        moduleDescriptorGenerator = descriptorGenerator;
+        if (moduleMetadataArtifact != null) {
+            metadataArtifacts.remove(moduleMetadataArtifact);
         }
-        this.moduleMetadataArtifact = artifact;
-        metadataArtifacts.add(artifact);
+        moduleMetadataArtifact = null;
+        updateModuleDescriptorArtifact();
     }
+
+    private void updateModuleDescriptorArtifact() {
+        if (!canPublishModuleMetadata()) {
+            return;
+        }
+        if (moduleDescriptorGenerator == null) {
+            return;
+        }
+        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null);
+        metadataArtifacts.add(moduleMetadataArtifact);
+        moduleDescriptorGenerator = null;
+    }
+
 
     public void pom(Action<? super MavenPom> configure) {
         configure.execute(pom);
@@ -203,6 +220,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         this.component = (SoftwareComponentInternal) component;
         artifactsOverridden = false;
+        updateModuleDescriptorArtifact();
     }
 
     private void populateFromComponent() {
@@ -468,8 +486,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.isPublishWithOriginalFileName = true;
     }
 
-    @Override
-    public boolean canPublishModuleMetadata() {
+    private boolean canPublishModuleMetadata() {
         if (getComponent() == null) {
             // Cannot yet publish module metadata without component
             return false;
