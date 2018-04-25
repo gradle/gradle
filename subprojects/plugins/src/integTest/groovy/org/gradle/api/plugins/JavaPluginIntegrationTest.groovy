@@ -76,4 +76,37 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Gradle now uses separate output directories for each JVM language, but this build assumes a single directory for all classes from a source set.")
     }
+
+    // TODO: This isn't done yet, we still realize many tasks
+    // Eventually, this should only realize "help"
+    def "does not realize all possible tasks"() {
+        buildFile << """
+            apply plugin: 'java'
+            
+            def configuredTasks = []
+            tasks.configureEachLater {
+                configuredTasks << it
+            }
+            
+            gradle.buildFinished {
+                assert configuredTasks.size() == 7
+                def configuredTaskPaths = configuredTasks*.path
+                // This should be the only task configured
+                assert ":help" in configuredTaskPaths
+                // These tasks are referenced directly by name
+                assert ":assemble" in configuredTaskPaths
+                assert ":buildDependents" in configuredTaskPaths
+                assert ":buildNeeded" in configuredTaskPaths
+                assert ":check" in configuredTaskPaths
+                
+                // This task needs to be able to register publications lazily
+                assert ":jar" in configuredTaskPaths
+                
+                // This task is eagerly configured with configureEachLater
+                assert ":test" in configuredTaskPaths
+            }
+        """
+        expect:
+        succeeds("help")
+    }
 }

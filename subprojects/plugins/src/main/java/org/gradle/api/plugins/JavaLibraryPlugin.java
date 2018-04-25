@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
 
@@ -69,7 +70,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
-        final JavaCompile javaCompile = (JavaCompile) project.getTasks().getByPath(COMPILE_JAVA_TASK_NAME);
+        final Provider<JavaCompile> javaCompile = project.getTasks().getByNameLater(JavaCompile.class, COMPILE_JAVA_TASK_NAME);
 
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
@@ -78,7 +79,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         variant.artifact(new JavaPlugin.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
-                return javaCompile.getDestinationDir();
+                return javaCompile.get().getDestinationDir();
             }
         });
 
