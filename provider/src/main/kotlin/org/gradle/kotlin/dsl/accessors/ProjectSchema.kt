@@ -86,30 +86,29 @@ data class ExtensionConventionSchema(
 
 private
 fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSchema {
+
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    if (target is ExtensionAware) {
-        accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
-            val schemaEntry = ProjectSchemaEntry(targetType, schema.name, schema.publicType)
-            extensions.add(schemaEntry)
-            if (!schema.isDeferredConfigurable) {
-                targetSchemaFor(target.extensions.getByName(schema.name), schema.publicType).let { nestedSchema ->
-                    extensions += nestedSchema.extensions
-                    conventions += nestedSchema.conventions
+
+    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
+        if (target is ExtensionAware) {
+            accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
+                extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
+                if (!schema.isDeferredConfigurable) {
+                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
                 }
             }
         }
-    }
-    if (target is HasConvention) {
-        accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
-            val schemaEntry = ProjectSchemaEntry<TypeOf<*>>(targetType, name, type)
-            conventions.add(schemaEntry)
-            targetSchemaFor(target.convention.getPluginByName(name), type).let { nestedSchema ->
-                extensions += nestedSchema.extensions
-                conventions += nestedSchema.conventions
+        if (target is HasConvention) {
+            accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
+                conventions.add(ProjectSchemaEntry(targetType, name, type))
+                collectSchemaOf(target.convention.getPluginByName(name), type)
             }
         }
     }
+
+    collectSchemaOf(target, targetType)
+
     return ExtensionConventionSchema(extensions.distinct(), conventions.distinct())
 }
 
