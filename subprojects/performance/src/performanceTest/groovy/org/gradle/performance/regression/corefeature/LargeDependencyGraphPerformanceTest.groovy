@@ -23,6 +23,8 @@ import spock.lang.Unroll
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
+    public static final String MIN_MEMORY = "-Xms512m"
+    public static final String MAX_MEMORY = "-Xmx512m"
 
     def setup() {
         runner.minimumVersion = '4.6'
@@ -34,7 +36,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ["-PnoExcludes"]
 
         when:
@@ -51,7 +53,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
