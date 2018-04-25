@@ -158,6 +158,22 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
     }
 
+    def "can add multiple nested builds with same name"() {
+        given:
+        def buildDefinition = Stub(BuildDefinition)
+        buildDefinition.name >> "nested"
+
+        expect:
+        def nestedBuild1 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
+
+        def nestedBuild2 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
+
+        def nestedBuild3 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
+    }
+
     def build(File rootDir) {
         return BuildDefinition.fromStartParameterForBuild(StartParameter.newInstance(), rootDir, DefaultPluginRequests.EMPTY)
     }
