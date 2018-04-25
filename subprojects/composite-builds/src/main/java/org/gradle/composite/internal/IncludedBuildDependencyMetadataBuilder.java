@@ -16,17 +16,14 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -36,29 +33,16 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
-import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
-
 public class IncludedBuildDependencyMetadataBuilder {
-    public Map<ProjectComponentIdentifier, LocalComponentMetadata> build(IncludedBuildState build) {
-        Map<ProjectComponentIdentifier, LocalComponentMetadata> registeredProjects = Maps.newHashMap();
-        Gradle gradle = build.getConfiguredBuild();
-        for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(registeredProjects, build, (ProjectInternal) project);
-        }
-        return registeredProjects;
-    }
+    public LocalComponentMetadata build(IncludedBuildState build, ProjectComponentIdentifier projectIdentifier) {
+        GradleInternal gradle = build.getConfiguredBuild();
+        LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
+        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
 
-    private void registerProject(Map<ProjectComponentIdentifier, LocalComponentMetadata> registeredProjects, IncludedBuildState build, ProjectInternal project) {
-        LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-
-        ProjectComponentIdentifier componentIdentifier = build.idForProjectInThisBuild(project.getPath());
-        LocalComponentMetadata compositeComponent = createCompositeCopy(build.getModel(), componentIdentifier, originalComponent);
-        registeredProjects.put(componentIdentifier, compositeComponent);
+        ProjectComponentIdentifier foreignIdentifier = build.idForProjectInThisBuild(projectIdentifier.getProjectPath());
+        return createCompositeCopy(build.getModel(), foreignIdentifier, originalComponent);
     }
 
     private LocalComponentMetadata createCompositeCopy(final IncludedBuild build, final ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
