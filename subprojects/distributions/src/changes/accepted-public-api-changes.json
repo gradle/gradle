@@ -12,6 +12,16 @@
             "type": "org.gradle.nativeplatform.OperatingSystemFamily",
             "member": "Constructor org.gradle.nativeplatform.OperatingSystemFamily()",
             "acceptation": "OperatingSystemFamily is now an abstract class"
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionParser()",
+            "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
+            "acceptation": "Injected service"
         }
     ]
 }

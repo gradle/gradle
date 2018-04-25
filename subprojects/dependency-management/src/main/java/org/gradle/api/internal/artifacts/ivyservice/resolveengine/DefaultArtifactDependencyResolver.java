@@ -30,6 +30,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
@@ -68,8 +70,19 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final BuildOperationExecutor buildOperationExecutor;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final ImmutableAttributesFactory attributesFactory;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionParser versionParser;
 
-    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor, List<ResolverProviderFactory> resolverFactories, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory, VersionComparator versionComparator, ModuleExclusions moduleExclusions, ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory) {
+    public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
+                                             List<ResolverProviderFactory> resolverFactories,
+                                             ResolveIvyFactory ivyFactory,
+                                             DependencyDescriptorFactory dependencyDescriptorFactory,
+                                             VersionComparator versionComparator,
+                                             ModuleExclusions moduleExclusions,
+                                             ComponentSelectorConverter componentSelectorConverter,
+                                             ImmutableAttributesFactory attributesFactory,
+                                             VersionSelectorScheme versionSelectorScheme,
+                                             VersionParser versionParser) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -78,6 +91,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.buildOperationExecutor = buildOperationExecutor;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
+        this.versionSelectorScheme = versionSelectorScheme;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -104,7 +119,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         DependencySubstitutionApplicator applicator =
             new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(resolutionStrategy.getDependencySubstitutionRule()));
 
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme);
     }
 
     private ComponentResolversChain createResolvers(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler, ArtifactTypeRegistry artifactTypeRegistry) {
@@ -131,10 +146,10 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                 conflictResolver = new StrictConflictResolver();
                 break;
             case latest:
-                conflictResolver = new LatestModuleConflictResolver(versionComparator);
+                conflictResolver = new LatestModuleConflictResolver(versionComparator, versionParser);
                 break;
             case preferProjectModules:
-                conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator));
+                conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator, versionParser));
                 break;
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);

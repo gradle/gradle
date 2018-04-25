@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -37,9 +38,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     private final ComponentSelectionRulesProcessor rulesProcessor = new ComponentSelectionRulesProcessor();
     private final VersionComparator versionComparator;
     private final ComponentSelectionRulesInternal componentSelectionRules;
+    private final VersionParser versionParser;
 
-    DefaultVersionedComponentChooser(VersionComparator versionComparator, ComponentSelectionRulesInternal componentSelectionRules) {
+    DefaultVersionedComponentChooser(VersionComparator versionComparator, VersionParser versionParser, ComponentSelectionRulesInternal componentSelectionRules) {
         this.versionComparator = versionComparator;
+        this.versionParser = versionParser;
         this.componentSelectionRules = componentSelectionRules;
     }
 
@@ -48,7 +51,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             return two == null ? one : two;
         }
 
-        int comparison = versionComparator.compare(new VersionInfo(one.getModuleVersionId().getVersion()), new VersionInfo(two.getModuleVersionId().getVersion()));
+        int comparison = versionComparator.compare(new VersionInfo(versionParser.transform(one.getModuleVersionId().getVersion())), new VersionInfo(versionParser.transform(two.getModuleVersionId().getVersion())));
 
         if (comparison == 0) {
             if (isMissingModuleDescriptor(one) && !isMissingModuleDescriptor(two)) {

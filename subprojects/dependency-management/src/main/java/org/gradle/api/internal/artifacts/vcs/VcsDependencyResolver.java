@@ -73,8 +73,9 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final NestedBuildFactory nestedBuildFactory;
     private final File baseWorkingDir;
     private final Map<String, VersionRef> selectedVersionCache = new HashMap<String, VersionRef>();
+    private final VersionParser versionParser;
 
-    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory) {
+    public VcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory, VersionParser versionParser) {
         this.baseWorkingDir = vcsWorkingDirRoot.getDir();
         this.projectDependencyResolver = projectDependencyResolver;
         this.localComponentRegistry = localComponentRegistry;
@@ -84,6 +85,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         this.versionComparator = versionComparator;
         this.buildRegistry = buildRegistry;
         this.nestedBuildFactory = nestedBuildFactory;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -172,7 +174,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
         Version bestVersion = null;
         VersionRef bestCandidate = null;
         for (VersionRef candidate : versions) {
-            Version candidateVersion = VersionParser.INSTANCE.transform(candidate.getVersion());
+            Version candidateVersion = versionParser.transform(candidate.getVersion());
             if (versionSelector.accept(candidateVersion)) {
                 if (bestCandidate == null || versionComparator.asVersionComparator().compare(candidateVersion, bestVersion) > 0) {
                     bestVersion = candidateVersion;

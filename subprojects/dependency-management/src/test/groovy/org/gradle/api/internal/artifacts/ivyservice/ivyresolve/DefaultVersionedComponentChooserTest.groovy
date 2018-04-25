@@ -34,11 +34,12 @@ import org.gradle.internal.rules.SpecRuleAction
 import spock.lang.Specification
 
 class DefaultVersionedComponentChooserTest extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionParser = new VersionParser()
+    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     def versionComparator = new DefaultVersionComparator()
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
 
-    def chooser = new DefaultVersionedComponentChooser(versionComparator, componentSelectionRules)
+    def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules)
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ComponentResolveMetadata) {
@@ -333,6 +334,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def version(String version) {
-        return VersionParser.INSTANCE.transform(version)
+        return versionParser.transform(version)
     }
 }

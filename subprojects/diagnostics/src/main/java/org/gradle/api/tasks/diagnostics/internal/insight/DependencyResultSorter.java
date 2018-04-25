@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.util.CollectionUtils;
@@ -31,23 +32,25 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 import java.util.Comparator;
 
-public class DependencyResultSorter {
+public abstract class DependencyResultSorter {
     /**
      * sorts by group:name:version mostly.
      * If requested matches selected then it will override the version comparison
      * so that the dependency that was selected is more prominent.
      */
-    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
-        return CollectionUtils.sort(input, new DependencyComparator(versionSelectorScheme, versionComparator));
+    public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+        return CollectionUtils.sort(input, new DependencyComparator(versionSelectorScheme, versionComparator, versionParser));
     }
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
         private final VersionSelectorScheme versionSelectorScheme;
         private final VersionComparator versionComparator;
+        private final VersionParser versionParser;
 
-        private DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator) {
+        private DependencyComparator(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
             this.versionSelectorScheme = versionSelectorScheme;
             this.versionComparator = versionComparator;
+            this.versionParser = versionParser;
         }
 
         @Override
@@ -193,7 +196,7 @@ public class DependencyResultSorter {
         }
 
         private int compareVersions(String left, String right) {
-            return versionComparator.compare(new VersionInfo(left), new VersionInfo(right));
+            return versionComparator.compare(new VersionInfo(versionParser.transform(left)), new VersionInfo(versionParser.transform(right)));
         }
 
         private boolean isLeftAndRightFromProjectComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
