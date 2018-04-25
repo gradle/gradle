@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
@@ -35,17 +34,14 @@ class DefaultNestedBuild implements NestedBuildState {
     private final BuildDefinition buildDefinition;
     private final NestedBuildFactory nestedBuildFactory;
     private final BuildStateListener buildStateListener;
-    private final DefaultBuildIdentifier buildIdentifier;
+    private final BuildIdentifier buildIdentifier;
     private SettingsInternal settings;
 
-    DefaultNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory, BuildStateListener buildStateListener) {
+    DefaultNestedBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory, BuildStateListener buildStateListener) {
+        this.buildIdentifier = buildIdentifier;
         this.buildDefinition = buildDefinition;
         this.nestedBuildFactory = nestedBuildFactory;
         this.buildStateListener = buildStateListener;
-        if (buildDefinition.getName() == null) {
-            throw new UnsupportedOperationException("Not yet implemented."); // but should be
-        }
-        this.buildIdentifier = new DefaultBuildIdentifier(buildDefinition.getName());
     }
 
     @Override
