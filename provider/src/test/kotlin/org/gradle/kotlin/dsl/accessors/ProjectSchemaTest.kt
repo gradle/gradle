@@ -175,5 +175,5 @@ class ProjectSchemaTest : TestWithClassPath() {
 
     private
     fun <T> ProjectSchema<T>.extension(name: String) =
-        extensions.first { it.name == name }
+        extensions.single { it.name == name }
 }
