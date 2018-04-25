@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -29,8 +30,9 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 
 public class TestSelectorState implements ResolvableSelectorState {
 
+    private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
-    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR);
+    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(VERSION_COMPARATOR, VERSION_PARSER);
 
     private final DependencyToComponentIdResolver resolver;
     private ResolvedVersionConstraint versionConstraint;

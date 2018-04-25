@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
 public class VersionInfo implements Versioned {
     private final Version version;
 
-    public VersionInfo(String version) {
-        this.version = VersionParser.INSTANCE.transform(version);
+    public VersionInfo(Version version) {
+        this.version = version;
     }
 
     public Version getVersion() {

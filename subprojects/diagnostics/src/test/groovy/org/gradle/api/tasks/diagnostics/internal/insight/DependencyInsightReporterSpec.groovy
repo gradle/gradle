@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
@@ -34,14 +35,15 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
 
 class DependencyInsightReporterSpec extends Specification {
-    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    def versionParser = new VersionParser()
+    def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     def versionComparator = new DefaultVersionComparator()
 
     def "sorts dependencies"() {
         def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0"), dep("a", "z", "1.0"), dep("a", "x", "2.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
         sorted.size() == 5
@@ -66,7 +68,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", forced()), dep("a", "x", "1.5", "2.0", forced()), dep("b", "a", "5.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
         sorted.size() == 4
@@ -88,7 +90,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", conflict()), dep("a", "x", "2.0", "2.0", conflict()), dep("b", "a", "5.0", "5.0", forced())]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator);
+        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
         sorted.size() == 3

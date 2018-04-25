@@ -107,8 +107,8 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
     private final Version lowerBoundVersion;
     private final Comparator<Version> comparator;
 
-    public VersionRangeSelector(String selector, Comparator<Version> comparator) {
-        super(selector);
+    public VersionRangeSelector(String selector, Comparator<Version> comparator, VersionParser versionParser) {
+        super(versionParser, selector);
         this.comparator = comparator;
 
         Matcher matcher;
@@ -145,8 +145,8 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
                 }
             }
         }
-        lowerBoundVersion = lowerBound == null ? null : VersionParser.INSTANCE.transform(lowerBound);
-        upperBoundVersion = upperBound == null ? null : VersionParser.INSTANCE.transform(upperBound);
+        lowerBoundVersion = lowerBound == null ? null : versionParser.transform(lowerBound);
+        upperBoundVersion = upperBound == null ? null : versionParser.transform(upperBound);
     }
 
     public boolean isDynamic() {
@@ -316,6 +316,6 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         if (lower != null && lower.equals(upper) && !lowerInc) {
             return null;
         }
-        return new VersionRangeSelector(sb.toString(), comparator);
+        return new VersionRangeSelector(sb.toString(), comparator, versionParser);
     }
 }
