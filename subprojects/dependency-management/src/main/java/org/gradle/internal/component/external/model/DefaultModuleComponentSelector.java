@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -31,6 +32,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String module;
     private final ImmutableVersionConstraint versionConstraint;
     private final ImmutableAttributes attributes;
+    private final int hashCode;
 
     private DefaultModuleComponentSelector(String group, String module, ImmutableVersionConstraint version, ImmutableAttributes attributes) {
         assert group != null : "group cannot be null";
@@ -41,6 +43,11 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         this.module = module;
         this.versionConstraint = version;
         this.attributes = attributes;
+        // Pre-compute the hashcode for this selector as it's going to be used anyway
+        // and computed several times because it's used as a key in a hash map
+        // see CachingDependencySubstitutionApplicator
+        // order of members here matter and tries to reduce collisions
+        this.hashCode = Objects.hashCode(version, module, attributes, group);
     }
 
     public String getDisplayName() {
@@ -124,11 +131,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     @Override
     public int hashCode() {
-        int result = group.hashCode();
-        result = 31 * result + module.hashCode();
-        result = 31 * result + versionConstraint.hashCode();
-        result = 31 * result + attributes.hashCode();
-        return result;
+        return hashCode;
     }
 
     @Override

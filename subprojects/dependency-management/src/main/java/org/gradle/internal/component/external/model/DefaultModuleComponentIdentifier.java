@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.DisplayName;
@@ -23,6 +24,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     private final String group;
     private final String module;
     private final String version;
+    private final int hashCode;
 
     public DefaultModuleComponentIdentifier(String group, String module, String version) {
         assert group != null : "group cannot be null";
@@ -31,6 +33,9 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         this.group = group;
         this.module = module;
         this.version = version;
+        // Cache hashcode because it's being used several times, in particular
+        // in in-memory component metadata cache
+        this.hashCode = Objects.hashCode(version, module, group);
     }
 
     public String getDisplayName() {
@@ -86,10 +91,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     @Override
     public int hashCode() {
-        int result = group.hashCode();
-        result = 31 * result + module.hashCode();
-        result = 31 * result + version.hashCode();
-        return result;
+        return hashCode;
     }
 
     @Override
