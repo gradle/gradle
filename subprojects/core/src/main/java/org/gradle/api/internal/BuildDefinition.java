@@ -24,16 +24,31 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class BuildDefinition {
+    @Nullable
+    private final String name;
+    @Nullable
     private final File buildRootDir;
     private final StartParameter startParameter;
     private final PluginRequests injectedSettingsPlugins;
 
-    public BuildDefinition(@Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
+    private BuildDefinition(@Nullable String name, @Nullable File buildRootDir, StartParameter startParameter, PluginRequests injectedSettingsPlugins) {
+        this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;
         this.injectedSettingsPlugins = injectedSettingsPlugins;
     }
 
+    /**
+     * Returns a name to use for this build. Use {@code null} to have a name assigned.
+     */
+    @Nullable
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Returns the root directory for this build, when known.
+     */
     @Nullable
     public File getBuildRootDir() {
         return buildRootDir;
@@ -47,23 +62,31 @@ public class BuildDefinition {
         return injectedSettingsPlugins;
     }
 
+    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, String name, File buildRootDir) {
+        return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), DefaultPluginRequests.EMPTY);
+    }
+
     public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, File buildRootDir, PluginRequests pluginRequests) {
+        return new BuildDefinition(null, buildRootDir, configure(startParameter, buildRootDir), pluginRequests);
+    }
+
+    private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.setSearchUpwards(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
-        return new BuildDefinition(buildRootDir, includedBuildStartParam, pluginRequests);
+        return includedBuildStartParam;
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter) {
-        return new BuildDefinition(null, startParameter, DefaultPluginRequests.EMPTY);
+        return new BuildDefinition(null, null, startParameter, DefaultPluginRequests.EMPTY);
     }
 
     /**
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(buildRootDir, startParameter.newInstance(), injectedSettingsPlugins);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins);
     }
 }
