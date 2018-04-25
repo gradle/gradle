@@ -20,21 +20,22 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 
 import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     private final Task generator;
-    private final String name;
+    private final IvyPublicationIdentity identity;
     private final String extension;
     private final String type;
     private final String classifier;
     private final DefaultTaskDependency buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(Task generator, String name, String extension, String type, String classifier) {
+    public SingleOutputTaskIvyArtifact(Task generator, IvyPublicationIdentity identity, String extension, String type, String classifier) {
         this.generator = generator;
-        this.name = name;
+        this.identity = identity;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
@@ -43,7 +44,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected String getDefaultName() {
-        return name;
+        return identity.getModule();
     }
 
     @Override

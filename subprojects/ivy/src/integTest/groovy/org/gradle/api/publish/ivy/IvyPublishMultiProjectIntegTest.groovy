@@ -100,9 +100,9 @@ project(":project3") {
         then:
         failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
-  - Ivy publication 'extra' with coordinates extra.org:extra-module-2:extra
+  - Ivy publication 'ivy' with coordinates org.gradle.test:project3:3.0
   - Ivy publication 'extraComponent' with coordinates extra.org:extra-module:extra
-  - Ivy publication 'ivy' with coordinates org.gradle.test:project3:3.0"""
+  - Ivy publication 'extra' with coordinates extra.org:extra-module-2:extra"""
     }
 
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
