@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;
@@ -45,7 +44,7 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
 
         final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
-        final BuildIdentifier targetBuild = new DefaultBuildIdentifier(ref.getBuildName());
+        final BuildIdentifier targetBuild = ref.getBuildIdentifier();
 
         includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
 
