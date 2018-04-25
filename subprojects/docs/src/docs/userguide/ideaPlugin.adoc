@@ -56,13 +56,19 @@ The IDEA plugin also adds a `cleanIdea` task to the project. This task deletes t
 The IDEA plugin adds the tasks shown below to a project. Notice that the `clean` task does not depend on the `cleanIdeaWorkspace` task. This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
 
 [[ideatasks]]
-`idea` — depends on: `ideaProject`, `ideaModule`, `ideaWorkspace`::
+`idea`::
+_Depends on_: `ideaProject`, `ideaModule`, `ideaWorkspace`
++  
 Generates all IDEA configuration files
 
-`openIdea` — depends on: `idea`::
+`openIdea`::
+_Depends on_: `idea`
++
 Generates all IDEA configuration files and opens the project in IDEA
 
-`cleanIdea` — type: api:org.gradle.api.tasks.Delete[], depends on: `cleanIdeaProject`, `cleanIdeaModule`::
+`cleanIdea` — type: api:org.gradle.api.tasks.Delete[]::
+_Depends on_: `cleanIdeaProject`, `cleanIdeaModule`
++
 Removes all IDEA configuration files
 
 `cleanIdeaProject` — type: api:org.gradle.api.tasks.Delete[]::
