@@ -29,6 +29,11 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Provides the metadata for a local component consumed from a build that is not the producing build.
+ *
+ * Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away, but in the meantime this class provides the mapping.
+ */
 public class LocalComponentInAnotherBuildProvider implements LocalComponentProvider {
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
     private final BuildStateRegistry buildRegistry;

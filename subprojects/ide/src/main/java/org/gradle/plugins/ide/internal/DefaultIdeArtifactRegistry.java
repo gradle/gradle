@@ -55,7 +55,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     }
 
     @Override
-    public void registerIdeProject(final IdeProjectMetadata ideProjectMetadata) {
+    public void registerIdeProject(IdeProjectMetadata ideProjectMetadata) {
         ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
         store.put(projectId, ideProjectMetadata);
     }
