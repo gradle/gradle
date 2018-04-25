@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
@@ -103,14 +104,16 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
     }
 
-    private static class TaskExecutorWorker implements Runnable {
+    @VisibleForTesting
+    static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final WorkerLease parentWorkerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+        @VisibleForTesting
+        TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.parentWorkerLease = parentWorkerLease;
@@ -156,7 +159,8 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
          *
          * @return true if there are more tasks waiting to execute, false if all tasks have executed.
          */
-        private boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
+        @VisibleForTesting
+        boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
             final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
             final AtomicBoolean workRemaining = new AtomicBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {

@@ -31,6 +31,7 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.execution.taskgraph.DefaultTaskExecutionPlanParallelTest.Async
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -61,6 +62,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root
+    DefaultTaskPlanExecutor taskPlanExecutor
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
@@ -70,6 +72,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        taskPlanExecutor = new DefaultTaskPlanExecutor(new ParallelismConfigurationManagerFixture(true, 1).parallelismConfiguration, executorFactory, workerLeaseService, cancellationHandler, coordinationService)
         parentWorkerLease.start()
     }
 
@@ -765,10 +768,11 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     BlockingQueue<TaskInternal> taskWorker() {
         def tasks = Queues.newLinkedBlockingQueue()
+        def worker = new DefaultTaskPlanExecutor.TaskExecutorWorker(executionPlan, null, parentWorkerLease, cancellationHandler, coordinationService)
         start {
             def moreTasks = true
             while(moreTasks) {
-                moreTasks = executionPlan.executeWithTask(parentWorkerLease, new Action<TaskInternal>() {
+                moreTasks = worker.executeWithTask(parentWorkerLease, new Action<TaskInternal>() {
                     @Override
                     void execute(TaskInternal task) {
                         operation."${task.path}" {
