@@ -44,6 +44,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final ModuleComponentIdentifier componentId;
     private final ExternalDependencyDescriptor dependencyDescriptor;
     private final String reason;
+    private final boolean isTransitive;
 
     private boolean alwaysUseAttributeMatching;
 
@@ -52,6 +53,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
         this.reason = reason;
+        this.isTransitive = dependencyDescriptor.isTransitive();
     }
 
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
@@ -144,7 +146,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     @Override
     public boolean isTransitive() {
-        return dependencyDescriptor.isTransitive();
+        return isTransitive;
     }
 
     @Override
