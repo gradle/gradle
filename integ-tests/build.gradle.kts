@@ -57,5 +57,4 @@ tasks {
     processTestResources.dependsOn(writeFuturePluginVersions)
 }
 
-withTestWorkersMemoryLimits()
 withParallelTests()

@@ -19,8 +19,7 @@ import accessors.kotlin
 import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-import build.withTestStrictClassLoading
-import build.withTestWorkersMemoryLimits
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 
 
 apply(plugin = "kotlin")
@@ -30,20 +29,29 @@ kotlin {
     experimental.coroutines = Coroutines.ENABLE
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.apply {
-        freeCompilerArgs += listOf(
-            "-Xjsr305=strict",
-            "-Xskip-runtime-version-check")
+tasks {
+
+    withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs += listOf(
+                "-Xjsr305=strict",
+                "-Xskip-runtime-version-check")
+        }
+    }
+
+    withType<Test> {
+
+        // sets the Gradle Test Kit user home to a known constant dir
+        systemProperty(
+            "org.gradle.testkit.dir",
+            "$rootDir/.gradle/testKitGradleUserHome")
+
+        // enables stricter ClassLoaderScope behaviour
+        systemProperty(
+            DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
+            true)
+
+        // sets the memory limits for test workers
+        jvmArgs("-Xms64m", "-Xmx128m")
     }
 }
-
-// sets the Gradle Test Kit user home to a known constant dir
-tasks.withType<Test> {
-    systemProperty(
-        "org.gradle.testkit.dir",
-        "$rootDir/.gradle/testKitGradleUserHome")
-}
-
-withTestStrictClassLoading()
-withTestWorkersMemoryLimits()
