@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 import org.gradle.api.Transformer
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.invocation.BuildController
@@ -47,6 +48,11 @@ class DefaultNestedBuildTest extends Specification {
         build = new DefaultNestedBuild(buildDefinition, factory, Stub(BuildStateListener))
     }
 
+    def "has identifier"() {
+        expect:
+        build.buildIdentifier == new DefaultBuildIdentifier("nested")
+    }
+
     def "creates launcher and runs action after notifying listeners"() {
         when:
         def result = build.run(action)
@@ -55,7 +61,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.nestedInstance(buildDefinition) >> launcher
+        1 * factory.nestedInstance(buildDefinition, build.buildIdentifier) >> launcher
 
         then:
         1 * action.transform(!null) >> { BuildController controller ->
@@ -74,7 +80,7 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * factory.nestedInstance(buildDefinition) >> launcher
+        1 * factory.nestedInstance(buildDefinition, build.buildIdentifier) >> launcher
         1 * action.transform(!null) >> { BuildController controller ->
             return null
         }

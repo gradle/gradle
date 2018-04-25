@@ -190,7 +190,8 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
-            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance());
+            // Use a defensive copy of the build definition, as it may be mutated during build execution
+            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance(), buildIdentifier);
         }
         return gradleLauncher;
     }
