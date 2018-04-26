@@ -48,15 +48,20 @@ open class PublishPublicLibrariesPlugin : Plugin<Project> {
         configureUploadArchivesTask(generatePom)
 
         artifacts {
-            add(generatePom.publishRuntime.name, tasks["jar"])
-            add(generatePom.publishRuntime.name, sourceJar)
-            add(generatePom.publishRuntime.name, DefaultPublishArtifact(base.archivesBaseName,
-                "pom",
-                "pom",
-                null,
-                Date(),
-                generatePom.pomFile,
-                generatePom))
+
+            generatePom.publishRuntime.name.let { publishRuntime ->
+                add(publishRuntime, tasks["jar"])
+                add(publishRuntime, sourceJar)
+                add(publishRuntime,
+                    DefaultPublishArtifact(
+                        base.archivesBaseName,
+                        "pom",
+                        "pom",
+                        null,
+                        Date(),
+                        generatePom.pomFile,
+                        generatePom))
+            }
         }
     }
 
