@@ -32,10 +32,6 @@ gradlePlugin {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "jsoup" {
-            id = "gradlebuild.jsoup"
-            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
-        }
         "performanceTest" {
             id = "gradlebuild.performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
