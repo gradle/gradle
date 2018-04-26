@@ -24,6 +24,49 @@ This chapter describes best practices for writing your build script in a meaning
 The third-party link:https://github.com/nebula-plugins/gradle-lint-plugin[Gradle lint plugin] helps with enforcing a desired code style in a build script if you are looking for appropriate linting automation.
 ====
 
+[[sec:avoid_imperative_logic_in_scripts]]
+=== Avoiding imperative logic in scripts
+
+The Gradle runtime does not enforce a specific style for build logic.
+For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code.
+Let's talk about some concrete examples.
+
+* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. api:org.gradle.api.Project#dependencies(groovy.lang.Closure)[] or api:org.gradle.api.Project#repositories(groovy.lang.Closure)[]) or DSLs exposed by plugins
+* _Imperative code:_ Conditional logic or very complex task action implementations
+
+The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain.
+Imperative logic should live in binary plugins and which in turn is applied to the build script.
+As a side product, you automatically enable your team to link:https://guides.gradle.org/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
+
+The following sample build shows a negative example of using conditional logic directly in the build script.
+While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability.
+By moving the code into a class link:https://guides.gradle.org/testing-gradle-plugins/[testability] also becomes a valid option.
+
+++++
+<sample id="conditionalLogicDont" dir="userguide/bestPractices/conditionalLogic/dont" title="A build script using conditional logic to create a task">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+Let's compare the build script with the same logic implemented as a binary plugin.
+The code might look more involved at first but clearly looks more like typical application code.
+This particular plugin class lives in the <<sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
+
+++++
+<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do/buildSrc/src/main/java/com/enterprise" title="A binary plugin implementing imperative logic">
+    <sourcefile file="ReleasePlugin.java"/>
+</sample>
+++++
+
+Now that the build logic has been translated into a plugin, you can apply it in the build script.
+The build script has been shrunk from 8 lines of code to a one liner.
+
+++++
+<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do" title="A build script applying a plugin that encapsulates imperative logic">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
 [[sec:avoiding_gradle_internal_apis]]
 === Avoiding Gradle internal APIs
 
@@ -134,49 +177,6 @@ The code for resolving the dependencies should be moved into the task action to 
 
 ++++
 <sample id="logicDuringExecutionPhase" dir="userguide/bestPractices/logicDuringConfiguration/do" title="Executing logic during execution phase is preferred">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
-
-[[sec:avoid_imperative_logic_in_scripts]]
-=== Avoiding imperative logic in scripts
-
-The Gradle runtime does not enforce a specific style for build logic.
-For that very reason, it's easy to end up with a build script that mixes declarative DSL elements with imperative, procedural code.
-Let's talk about some concrete examples.
-
-* _Declarative code:_ Built-in, language-agnostic DSL elements (e.g. api:org.gradle.api.Project#dependencies(groovy.lang.Closure)[] or api:org.gradle.api.Project#repositories(groovy.lang.Closure)[]) or DSLs exposed by plugins
-* _Imperative code:_ Conditional logic or very complex task action implementations
-
-The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain.
-Imperative logic should live in binary plugins and which in turn is applied to the build script.
-As a side product, you automatically enable your team to link:https://guides.gradle.org/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
-
-The following sample build shows a negative example of using conditional logic directly in the build script.
-While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability.
-By moving the code into a class link:https://guides.gradle.org/testing-gradle-plugins/[testability] also becomes a valid option.
-
-++++
-<sample id="conditionalLogicDont" dir="userguide/bestPractices/conditionalLogic/dont" title="A build script using conditional logic to create a task">
-    <sourcefile file="build.gradle"/>
-</sample>
-++++
-
-Let's compare the build script with the same logic implemented as a binary plugin.
-The code might look more involved at first but clearly looks more like typical application code.
-This particular plugin class lives in the <<sec:build_sources,`buildSrc` directory>> which makes it available to the build script automatically.
-
-++++
-<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do/buildSrc/src/main/java/com/enterprise" title="A binary plugin implementing imperative logic">
-    <sourcefile file="ReleasePlugin.java"/>
-</sample>
-++++
-
-Now that the build logic has been translated into a plugin, you can apply it in the build script.
-The build script has been shrunk from 8 lines of code to a one liner.
-
-++++
-<sample id="conditionalLogicDo" dir="userguide/bestPractices/conditionalLogic/do" title="A build script applying a plugin that encapsulates imperative logic">
     <sourcefile file="build.gradle"/>
 </sample>
 ++++
