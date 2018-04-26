@@ -22,18 +22,18 @@ The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.
 
 ### Signing Publications
 
-The Signing plugin now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
+The [Signing Plugin](userguide/signing_plugin.html) now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
 
     publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-            }
+      publications {
+        mavenJava(MavenPublication) {
+          from components.java
         }
+      }
     }
 
     signing {
-        sign publishing.publications
+      sign publishing.publications
     }
 
 ### Customizing the generated POM
@@ -73,7 +73,7 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
 
 ### Configuration-wide dependency excludes are now published
 
-The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
+The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
 ## Promoted features
 
