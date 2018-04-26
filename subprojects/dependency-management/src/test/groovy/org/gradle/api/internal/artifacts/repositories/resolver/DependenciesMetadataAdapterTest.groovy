@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -199,7 +200,7 @@ class DependenciesMetadataAdapterTest extends Specification {
 
     class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
         TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
-            super(TestUtil.attributesFactory(), dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class))
+            super(TestUtil.attributesFactory(), dependenciesMetadata, DirectInstantiator.INSTANCE, DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
         }
 
         @Override
