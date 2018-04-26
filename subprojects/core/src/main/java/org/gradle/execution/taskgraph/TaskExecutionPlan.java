@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
-import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
@@ -32,10 +31,6 @@ import java.util.Set;
 public interface TaskExecutionPlan extends Describable {
     @Nullable
     TaskInfo selectNextNode(WorkerLeaseRegistry.WorkerLease workerLease);
-
-    boolean allProjectsLocked();
-
-    ResourceLock getProjectLock(TaskInfo taskInfo);
 
     void taskComplete(TaskInfo taskInfo);
 

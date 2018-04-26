@@ -17,9 +17,9 @@
 package org.gradle.execution.taskgraph
 
 import com.google.common.collect.Queues
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.Transformer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
@@ -31,11 +31,11 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import org.gradle.execution.taskgraph.DefaultTaskExecutionPlanParallelTest.Async
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -48,6 +48,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
@@ -768,25 +770,59 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     BlockingQueue<TaskInternal> taskWorker() {
         def tasks = Queues.newLinkedBlockingQueue()
-        def worker = new DefaultTaskPlanExecutor.TaskExecutorWorker(executionPlan, null, parentWorkerLease, cancellationHandler, coordinationService)
         start {
-            def moreTasks = true
-            while(moreTasks) {
-                moreTasks = worker.executeWithTask(parentWorkerLease, new Action<TaskInternal>() {
+            def moreTasks = new AtomicBoolean(true)
+            while (moreTasks.get()) {
+                def nextNode = new AtomicReference<TaskInfo>()
+                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
-                    void execute(TaskInternal task) {
-                        operation."${task.path}" {
-                            tasks.add(task)
-                            if (task instanceof Async) {
-                                workerLeaseService.withoutProjectLock {
-                                    thread.blockUntil."complete${task.path}"
-                                }
-                            } else {
-                                thread.blockUntil."complete${task.path}"
+                    ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                        moreTasks.set(executionPlan.hasWorkRemaining())
+                        if (!moreTasks.get()) {
+                            return ResourceLockState.Disposition.FINISHED
+                        }
+                        if (moreTasks.get()) {
+                            try {
+                                nextNode.set(executionPlan.selectNextNode(parentWorkerLease))
+                            } catch (Throwable t) {
+                                executionPlan.abortAllAndFail(t)
+                                moreTasks.set(false)
                             }
                         }
+                        if (nextNode.get() == null && moreTasks.get()) {
+                            return ResourceLockState.Disposition.RETRY
+                        }
+                        return ResourceLockState.Disposition.FINISHED
                     }
                 })
+                def node = nextNode.get()
+                if (node != null && !node.complete) {
+                    def task = node.task
+                    operation."${task.path}" {
+                        tasks.add(task)
+                        if (task instanceof Async) {
+                            workerLeaseService.withoutProjectLock {
+                                thread.blockUntil."complete${task.path}"
+                            }
+                            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                                @Override
+                                ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                                    executionPlan.taskComplete(node)
+                                    return ResourceLockState.Disposition.FINISHED
+                                }
+                            })
+                        } else {
+                            thread.blockUntil."complete${task.path}"
+                            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                                @Override
+                                ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                                    executionPlan.taskComplete(node)
+                                    return ResourceLockState.Disposition.FINISHED
+                                }
+                            })
+                        }
+                    }
+                }
             }
         }
         return tasks

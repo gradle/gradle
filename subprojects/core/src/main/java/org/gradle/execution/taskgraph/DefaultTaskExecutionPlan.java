@@ -532,6 +532,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         });
     }
 
+    @Override
     public List<Task> getTasks() {
         return new ArrayList<Task>(executionPlan.keySet());
     }
@@ -552,6 +553,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     @Override
     @Nullable
     public TaskInfo selectNextNode(WorkerLeaseRegistry.WorkerLease workerLease) {
+        if (allProjectsLocked()) {
+            return null;
+        }
+
         Iterator<TaskInfo> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
             TaskInfo taskInfo = iterator.next();
@@ -559,17 +564,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 ResourceLock projectLock = getProjectLock(taskInfo);
                 TaskMutationInfo taskMutationInfo = getResolvedTaskMutationInfo(taskInfo);
 
-                // TODO: convert output file checks to a resource lock
                 if (!projectLock.tryLock()) {
                     continue;
                 }
                 if (!workerLease.tryLock()) {
-                    projectLock.unlock();
                     continue;
                 }
+                // TODO: convert output file checks to a resource lock
                 if (!canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
-                    projectLock.unlock();
-                    workerLease.unlock();
                     continue;
                 }
 
@@ -619,8 +621,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return dependenciesComplete;
     }
 
-    @Override
-    public boolean allProjectsLocked() {
+    private boolean allProjectsLocked() {
         for (ResourceLock lock : projectLocks.values()) {
             if (!lock.isLocked()) {
                 return false;
@@ -629,8 +630,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return true;
     }
 
-    @Override
-    public ResourceLock getProjectLock(TaskInfo taskInfo) {
+    private ResourceLock getProjectLock(TaskInfo taskInfo) {
         return projectLocks.get(taskInfo.getTask().getProject());
     }
 
@@ -831,13 +831,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public void taskComplete(TaskInfo taskInfo) {
-        enforceFinalizerTasks(taskInfo);
-        if (taskInfo.isFailed()) {
-            handleFailure(taskInfo);
-        }
+        try {
+            enforceFinalizerTasks(taskInfo);
+            if (taskInfo.isFailed()) {
+                handleFailure(taskInfo);
+            }
 
-        taskInfo.finishExecution();
-        recordTaskCompleted(taskInfo);
+            taskInfo.finishExecution();
+            recordTaskCompleted(taskInfo);
+        } finally {
+            getProjectLock(taskInfo).unlock();
+        }
     }
 
     private static void enforceFinalizerTasks(TaskInfo taskInfo) {

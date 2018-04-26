@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
@@ -104,16 +103,14 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
     }
 
-    @VisibleForTesting
-    static class TaskExecutorWorker implements Runnable {
+    private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final WorkerLease parentWorkerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        @VisibleForTesting
-        TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.parentWorkerLease = parentWorkerLease;
@@ -159,8 +156,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
          *
          * @return true if there are more tasks waiting to execute, false if all tasks have executed.
          */
-        @VisibleForTesting
-        boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
+        private boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
             final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
             final AtomicBoolean workRemaining = new AtomicBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -173,10 +169,6 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                     workRemaining.set(taskExecutionPlan.hasWorkRemaining());
                     if (!workRemaining.get()) {
                         return FINISHED;
-                    }
-
-                    if (taskExecutionPlan.allProjectsLocked()) {
-                        return RETRY;
                     }
 
                     try {
@@ -217,10 +209,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                         if (!selectedTask.isComplete()) {
                             taskExecutionPlan.taskComplete(selectedTask);
                         }
-//                            workerLease.unlock();
-//                            taskExecutionPlan.getProjectLock(selectedTask).unlock();
-//                            return ResourceLockState.Disposition.FINISHED;
-                        return unlock(workerLease, taskExecutionPlan.getProjectLock(selectedTask)).transform(state);
+                        return unlock(workerLease).transform(state);
                     }
                 });
             }
