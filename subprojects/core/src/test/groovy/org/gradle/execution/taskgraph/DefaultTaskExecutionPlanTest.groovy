@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -60,7 +59,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        executionPlan = new DefaultTaskExecutionPlan(coordinationService, workerLeaseService, Mock(GradleInternal))
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
@@ -617,7 +616,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executedTasks
 
         then:
         RuntimeException e = thrown()
@@ -896,12 +895,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         def tasks = []
         def moreTasks = true
         while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInternal>() {
-                @Override
-                void execute(TaskInternal task) {
-                    tasks << task
+            def nextNode = executionPlan.selectNextNode(workerLease)
+            if (nextNode != null) {
+                if (!nextNode.isComplete()) {
+                    tasks << nextNode.task
+                    executionPlan.taskComplete(nextNode)
                 }
-            })
+            }
+            moreTasks = executionPlan.hasWorkRemaining()
         }
         return tasks
     }

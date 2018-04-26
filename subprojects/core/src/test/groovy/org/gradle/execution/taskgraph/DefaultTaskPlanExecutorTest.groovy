@@ -21,9 +21,11 @@ import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -31,11 +33,14 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
-    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationToken, coordinationService)
+    def cancellationHandler = Mock(BuildCancellationToken)
+    def coordinationService = new DefaultResourceLockCoordinationService()
+    def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)
         def project = Mock(Project)
+        def node = Mock(TaskInfo)
         def task = Mock(TaskInternal)
         def state = Mock(TaskStateInternal)
         project.gradle >> gradle
@@ -47,12 +52,12 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
-        1 * taskPlan.executeWithTask(_,_) >> { lease, Action action ->
-            action.execute(task)
-            return true
+        1 * coordinationService.withStateLock(_) >> { transformer ->
+            transformer.transform(null)
         }
+        1 * taskPlan.selectNextNode(_) >> node
         1 * worker.execute(task)
-        1 * taskPlan.executeWithTask(_,_) >> false
+        1 * taskPlan.selectNextNode(_) >> null
         1 * taskPlan.awaitCompletion()
     }
 

@@ -36,7 +36,7 @@ public interface TaskExecutionPlan extends Describable {
 
     void abortAllAndFail(Throwable t);
 
-    void abortExecution();
+    void cancelExecution();
 
     /**
      * <p>Returns the dependencies of a task which are part of the execution plan.</p>
@@ -64,4 +64,5 @@ public interface TaskExecutionPlan extends Describable {
     boolean allTasksComplete();
 
     boolean hasWorkRemaining();
+
 }

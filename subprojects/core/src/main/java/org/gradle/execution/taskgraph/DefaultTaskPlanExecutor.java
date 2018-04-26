@@ -163,7 +163,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                     if (cancellationToken.isCancellationRequested()) {
-                        taskExecutionPlan.abortExecution();
+                        taskExecutionPlan.cancelExecution();
                     }
 
                     workRemaining.set(taskExecutionPlan.hasWorkRemaining());

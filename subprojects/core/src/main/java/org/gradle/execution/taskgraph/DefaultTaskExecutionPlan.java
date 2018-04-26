@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -43,7 +44,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
@@ -88,6 +88,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISH
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
  */
+@NonNullApi
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
@@ -112,7 +113,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
+    public DefaultTaskExecutionPlan(ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
         this.coordinationService = coordinationService;
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
@@ -271,8 +272,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public void determineExecutionPlan() {
         List<TaskInfoInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskInfo, TaskInfoInVisitingSegment>() {
-            int index;
+            private int index;
 
+            @Override
             public TaskInfoInVisitingSegment apply(TaskInfo taskInfo) {
                 return new TaskInfoInVisitingSegment(taskInfo, index++);
             }
@@ -422,6 +424,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(final HashMultimap<TaskInfo, Integer> visitingNodes, final TaskInfoInVisitingSegment taskNodeWithVisitingSegment) {
         TaskInfo taskNode = taskNodeWithVisitingSegment.taskInfo;
         Iterables.removeIf(taskNode.getShouldSuccessors(), new Predicate<TaskInfo>() {
+            @Override
             public boolean apply(TaskInfo input) {
                 return visitingNodes.containsEntry(input, taskNodeWithVisitingSegment.visitingSegment);
             }
@@ -451,8 +454,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
         Set<TaskInfo> precedingTasks = getAllPrecedingTasks(finalizer);
         Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, TaskInfo>() {
+            @Override
             public Integer transform(final TaskInfo dependsOnTask) {
                 return Iterables.indexOf(nodeQueue, new Predicate<TaskInfoInVisitingSegment>() {
+                    @Override
                     public boolean apply(TaskInfoInVisitingSegment taskInfoInVisitingSegment) {
                         return taskInfoInVisitingSegment.taskInfo.equals(dependsOnTask);
                     }
@@ -485,6 +490,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void onOrderingCycle() {
         CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
+            @Override
             public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
                 connectedNodes.addAll(node.getMustSuccessors());
@@ -495,10 +501,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Collections.sort(firstCycle);
 
         DirectedGraphRenderer<TaskInfo> graphRenderer = new DirectedGraphRenderer<TaskInfo>(new GraphNodeRenderer<TaskInfo>() {
+            @Override
             public void renderTo(TaskInfo node, StyledTextOutput output) {
                 output.withStyle(StyledTextOutput.Style.Identifier).text(node.getTask().getIdentityPath());
             }
         }, new DirectedGraph<TaskInfo, Object>() {
+            @Override
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
                 for (TaskInfo dependency : firstCycle) {
                     if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency)) {
@@ -780,6 +788,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", plural, task, singular);
     }
 
+    @Nullable
     private static String getOverLappedPath(String firstPath, String secondPath) {
         if (firstPath.equals(secondPath)) {
             return firstPath;
@@ -825,7 +834,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private static boolean canRemoveTaskMutation(TaskMutationInfo taskMutationInfo) {
+    private static boolean canRemoveTaskMutation(@Nullable TaskMutationInfo taskMutationInfo) {
         return taskMutationInfo != null && taskMutationInfo.task.isComplete() && taskMutationInfo.consumingTasks.isEmpty();
     }
 
@@ -896,25 +905,31 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    @Override
-    public void abortExecution() {
-        abortExecution(false);
+    private boolean abortExecution() {
+        return abortExecution(false);
     }
 
-    private void abortExecution(boolean abortAll) {
+    @Override
+    public void cancelExecution() {
+        tasksCancelled = abortExecution() || tasksCancelled;
+    }
+
+    private boolean abortExecution(boolean abortAll) {
+        boolean aborted = false;
         for (TaskInfo taskInfo : executionPlan.values()) {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (taskInfo.isRequired()) {
                 taskInfo.skipExecution();
-                tasksCancelled = true;
+                aborted = true;
             }
 
             // If abortAll is set, also stop enforced tasks.
             if (abortAll && taskInfo.isReady()) {
                 taskInfo.abortExecution();
-                tasksCancelled = true;
+                aborted = true;
             }
         }
+        return aborted;
     }
 
     @Override
@@ -974,6 +989,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private static class RethrowingFailureHandler implements TaskFailureHandler {
+        @Override
         public void onTaskFailure(Task task) {
             task.getState().rethrowFailure();
         }
