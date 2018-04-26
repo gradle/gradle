@@ -44,6 +44,7 @@ class TaskInfoFactoryTest extends Specification {
         node.mustSuccessors.empty
         node.dependencySuccessors.empty
         node.shouldSuccessors.empty
+        node.finalizingSuccessors.empty
         node.finalizers.empty
     }
 

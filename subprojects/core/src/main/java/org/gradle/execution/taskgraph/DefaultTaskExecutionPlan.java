@@ -86,7 +86,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
-import static org.gradle.internal.resources.ResourceLockState.Disposition.*;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
@@ -256,7 +258,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (!finalizerNode.isInKnownState()) {
                 finalizerNode.mustNotRun();
             }
-            finalizerNode.addMustSuccessor(node);
         }
     }
 
@@ -422,6 +423,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void addAllSuccessorsInReverseOrder(TaskInfo taskNode, ArrayList<TaskInfo> dependsOnTasks) {
         addAllReversed(dependsOnTasks, taskNode.getDependencySuccessors());
         addAllReversed(dependsOnTasks, taskNode.getMustSuccessors());
+        addAllReversed(dependsOnTasks, taskNode.getFinalizingSuccessors());
         addAllReversed(dependsOnTasks, taskNode.getShouldSuccessors());
     }
 
@@ -475,6 +477,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         // Consider every task that must run before the finalizer
         candidateTasks.addAll(finalizer.getDependencySuccessors());
         candidateTasks.addAll(finalizer.getMustSuccessors());
+        candidateTasks.addAll(finalizer.getFinalizingSuccessors());
         candidateTasks.addAll(finalizer.getShouldSuccessors());
 
         // For each candidate task, add it to the preceding tasks.
@@ -494,6 +497,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
                 connectedNodes.addAll(node.getMustSuccessors());
+                connectedNodes.addAll(node.getFinalizingSuccessors());
             }
         });
         graphWalker.add(entryTasks);
@@ -507,7 +511,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }, new DirectedGraph<TaskInfo, Object>() {
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
                 for (TaskInfo dependency : firstCycle) {
-                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency)) {
+                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency) || node.getFinalizingSuccessors().contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
@@ -804,7 +808,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
 
         boolean reachable = false;
-        for (TaskInfo dependency : Iterables.concat(fromTask.getMustSuccessors(), fromTask.getDependencySuccessors())) {
+        for (TaskInfo dependency : Iterables.concat(fromTask.getMustSuccessors(), fromTask.getFinalizingSuccessors(), fromTask.getDependencySuccessors())) {
             if (!dependency.isComplete()) {
                 if (dependency == toTask) {
                     reachable = true;
