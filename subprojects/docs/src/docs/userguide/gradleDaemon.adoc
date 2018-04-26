@@ -188,7 +188,7 @@ If it is suspected that the Daemon process has become unstable, it can simply be
 [[sec:tools_and_ides]]
 === Tools & IDEs
 
-The Gradle Tooling API (see <<embedding>>), that is used by IDEs and other tools to integrate with Gradle, _always_ use the Gradle Daemon to execute builds. If you are executing Gradle builds from within you're IDE you are using the Gradle Daemon and do not need to enable it for your environment.
+The Gradle Tooling API (see <<embedding>>), that is used by IDEs and other tools to integrate with Gradle, _always_ use the Gradle Daemon to execute builds. If you are executing Gradle builds from within your IDE you are using the Gradle Daemon and do not need to enable it for your environment.
 
 [[sec:how_does_the_gradle_daemon_make_builds_faster]]
 === How does the Gradle Daemon make builds faster?
