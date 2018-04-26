@@ -16,15 +16,15 @@ plugins {
 }
 
 
-val kotlinDslPlugins = container(KotlinDslPlugin::class.java)
-extensions.add("kotlinDslPlugins", kotlinDslPlugins)
-
-
 pluginBundle {
     tags = listOf("Kotlin", "DSL")
     website = "https://github.com/gradle/kotlin-dsl"
     vcsUrl = "https://github.com/gradle/kotlin-dsl"
 }
+
+
+val kotlinDslPlugins = container(KotlinDslPlugin::class.java)
+extensions.add("kotlinDslPlugins", kotlinDslPlugins)
 
 
 afterEvaluate {
