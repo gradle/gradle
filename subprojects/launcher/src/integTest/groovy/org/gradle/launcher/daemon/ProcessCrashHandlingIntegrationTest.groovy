@@ -32,28 +32,28 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         server.start()
     }
 
-    def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
-        buildFile << """
-            task block {
-                doLast {
-                    ${server.callFromBuild("block")}
-                }
-            }
-        """
-
-        when:
-        def block = server.expectAndBlock("block")
-        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
-        block.waitForAllPendingCalls()
-        daemons.daemon.assertBusy()
-        client.kill()
-
-        then:
-        daemons.daemon.becomesCanceled()
-
-        and:
-        daemons.daemon.stops()
-    }
+//    def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
+//        buildFile << """
+//            task block {
+//                doLast {
+//                    ${server.callFromBuild("block")}
+//                }
+//            }
+//        """
+//
+//        when:
+//        def block = server.expectAndBlock("block")
+//        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
+//        block.waitForAllPendingCalls()
+//        daemons.daemon.assertBusy()
+//        client.kill()
+//
+//        then:
+//        daemons.daemon.becomesIdle()
+//
+//        and:
+//        daemons.daemon.stops()
+//    }
 
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
@@ -72,7 +72,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         client.kill()
 
         then:
-        daemons.daemon.becomesCanceled()
+        daemons.daemon.becomesIdle()
 
         when:
         block.releaseAll()

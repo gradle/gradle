@@ -31,6 +31,7 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -46,6 +47,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
     public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
+    private static final int CANCEL_TIMEOUT_SECONDS = 10;
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private final Lock lock = new ReentrantLock();
@@ -60,12 +62,13 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private volatile DefaultBuildCancellationToken cancellationToken;
 
     private final ManagedExecutor executor;
+    private Future currentRunningBuildFuture;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
     private final Runnable onCancelCommand;
 
     public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand) {
-        this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 10 * 1000L);
+        this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, CANCEL_TIMEOUT_SECONDS * 1000L);
     }
 
     DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand, long cancelTimeoutMs) {
@@ -221,7 +224,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
         lock.lock();
         try {
-            while(true) {
+            while (true) {
                 try {
                     switch (state) {
                         case Idle:
@@ -250,6 +253,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
             cancellationToken.cancel();
+            currentRunningBuildFuture.cancel(true);
         } catch (Exception ex) {
             LOGGER.error("Cancel processing failed. Will continue.", ex);
         }
@@ -289,7 +293,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
-            executor.execute(new Runnable() {
+            currentRunningBuildFuture = executor.submit(new Runnable() {
                 public void run() {
                     try {
                         command.run();

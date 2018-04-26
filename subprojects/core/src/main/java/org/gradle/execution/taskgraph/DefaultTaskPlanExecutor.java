@@ -30,14 +30,15 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
+    private static final int TASK_EXECUTION_TIMEOUT_SECONDS = 5;
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
-
 
     public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
         this.executorFactory = executorFactory;
@@ -59,7 +60,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
-            executor.stop();
+            executor.stop(TASK_EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }
     }
 
