@@ -51,7 +51,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
-    private final FileCollection linkLibraries;
+    private final Configuration linkLibraries;
     private final FileCollection runtimeLibraries;
     private final CppPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
@@ -146,6 +146,10 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
     @Override
     public FileCollection getLinkLibraries() {
+        return linkLibraries;
+    }
+
+    public Configuration getLinkConfiguration() {
         return linkLibraries;
     }
 

@@ -16,26 +16,34 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.language.AbstractNativeDependenciesIntegrationTest
+import org.gradle.language.AbstractNativeUnitTestComponentDependenciesIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
+class XCTestWithApplicationDependenciesIntegrationTest extends AbstractNativeUnitTestComponentDependenciesIntegrationTest {
     @Override
-    protected void makeComponentWithLibrary() {
+    protected void makeTestSuiteAndComponentWithLibrary() {
         buildFile << """
             apply plugin: 'xctest'
+            apply plugin: 'swift-application'
             project(':lib') {
                 apply plugin: 'swift-library'
             }
 """
-        file("src/test/swift/Test.swift") << """
+        file("src/main/swift/App.swift") << """
             import Lib
-            import XCTest
-
-            class Test {
+            
+            class App {
                 var util = Util()
+            }
+"""
+        file("src/test/swift/Test.swift") << """
+            @testable import Root
+            import XCTest
+                        
+            class Test {
+                var app = App()
             }
 """
         file("lib/src/main/swift/Util.swift") << """
@@ -46,18 +54,13 @@ class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegr
     }
 
     @Override
-    protected String getComponentUnderTestDsl() {
-        return "xctest"
+    protected String getProductionComponentDsl() {
+        return "application"
     }
 
     @Override
-    protected String getAssembleDevBinaryTask() {
-        return ":installTest"
-    }
-
-    @Override
-    protected List<String> getAssembleDevBinaryTasks() {
-        return [":compileTestSwift", ":linkTest"]
+    protected List<String> getRunTestTasks() {
+        return [":compileDebugSwift", ":relocateMainForTest", ":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 
     @Override
