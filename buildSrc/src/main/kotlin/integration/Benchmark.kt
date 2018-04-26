@@ -126,13 +126,13 @@ open class Benchmark : DefaultTask() {
 
         val baselineConfig = BenchmarkRunConfig("baseline", sampleName, sampleDir, config)
         val baseline = benchmarkWith(
-            connectorFor(temporaryCopyFor(baselineConfig)),
+            connectorFor(baselineConfig),
             baselineConfig)
         println("\tbaseline: ${format(baseline)}")
 
         val latestConfig = BenchmarkRunConfig("latest", sampleName, sampleDir, config)
         val latest = benchmarkWith(
-            connectorFor(temporaryCopyFor(latestConfig)).useInstallation(latestInstallation!!),
+            connectorFor(latestConfig).useInstallation(latestInstallation!!),
             latestConfig)
         println("\tlatest:   ${format(latest)}")
 
@@ -210,6 +210,15 @@ open class Benchmark : DefaultTask() {
             }
         }
     }
+
+    private
+    fun connectorFor(config: BenchmarkRunConfig) =
+        connectorFor(temporaryCopyFor(config))
+            .useGradleUserHomeDir(gradleUserHomeDirFor(config))
+
+    private
+    fun gradleUserHomeDirFor(config: BenchmarkRunConfig) =
+        temporaryDir.resolve("${config.name}-gradle-user-home")
 
     private
     fun temporaryCopyFor(config: BenchmarkRunConfig) =
