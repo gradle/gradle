@@ -30,7 +30,8 @@ public class ImmutableCapability implements CapabilityInternal {
         this.name = name;
         this.version = version;
 
-        // Pre-compute and cache hashCode, which is going to be computed in any case
+        // Do NOT change the order of members used in hash code here, it's been empirically
+        // tested to reduce the number of collisions on a large dependency graph (performance test)
         this.hashCode = Objects.hashCode(version, name, group);
 
         // Using a string instead of a plain ID here might look strange, but this turned out to be

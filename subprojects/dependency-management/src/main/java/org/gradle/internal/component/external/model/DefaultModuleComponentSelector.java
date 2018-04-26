@@ -43,10 +43,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         this.module = module;
         this.versionConstraint = version;
         this.attributes = attributes;
-        // Pre-compute the hashcode for this selector as it's going to be used anyway
-        // and computed several times because it's used as a key in a hash map
-        // see CachingDependencySubstitutionApplicator
-        // order of members here matter and tries to reduce collisions
+        // Do NOT change the order of members used in hash code here, it's been empirically
+        // tested to reduce the number of collisions on a large dependency graph (performance test)
         this.hashCode = Objects.hashCode(version, module, attributes, group);
     }
 
