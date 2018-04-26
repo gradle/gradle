@@ -40,10 +40,6 @@ gradlePlugin {
             id = "gradlebuild.performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
         }
-        "publishPublicLibraries" {
-            id = "gradlebuild.publish-public-libraries"
-            implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
-        }
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"
             implementationClass = "org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompilePlugin"
