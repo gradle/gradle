@@ -33,56 +33,14 @@ subprojects {
 
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
 
-        apply { plugin("groovy") }
-
-        dependencies {
-            compile(localGroovy())
-            testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
-            testCompile("cglib:cglib:3.2.6")
-            testCompile("org.objenesis:objenesis:2.4")
-            constraints {
-                compile("org.codehaus.groovy:groovy-all:2.4.12")
-            }
-        }
-
-        fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
-            options.isFork = true
-            options.encoding = "utf-8"
-            options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-            val vendor = System.getProperty("java.vendor")
-            task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
-        }
-
-        tasks.withType<GroovyCompile> {
-            groovyOptions.encoding = "utf-8"
-            configureCompileTask(this, options)
-        }
-
-        val compileGroovy: GroovyCompile by tasks
-
-        configurations {
-            "apiElements" {
-                outgoing.variants["classes"].artifact(mapOf(
-                    "file" to compileGroovy.destinationDir,
-                    "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-                    "builtBy" to compileGroovy
-                ))
-            }
-        }
+        applyGroovyProjectConventions()
     }
+
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
 
-        apply {
-            plugin("kotlin")
-            plugin("org.gradle.kotlin.ktlint-convention")
-        }
-
-        tasks.withType<KotlinCompile> {
-            kotlinOptions {
-                freeCompilerArgs += listOf("-Xjsr305=strict")
-            }
-        }
+        applyKotlinProjectConventions()
     }
+
     apply {
         plugin("idea")
         plugin("eclipse")
@@ -183,4 +141,57 @@ tasks {
 
     val build by getting
     build.dependsOn(checkSameDaemonArgs)
+}
+
+fun Project.applyGroovyProjectConventions() {
+    apply { plugin("groovy") }
+
+    dependencies {
+        compile(localGroovy())
+        testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
+        testCompile("cglib:cglib:3.2.6")
+        testCompile("org.objenesis:objenesis:2.4")
+        constraints {
+            compile("org.codehaus.groovy:groovy-all:2.4.12")
+        }
+    }
+
+    fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
+        options.isFork = true
+        options.encoding = "utf-8"
+        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+        val vendor = System.getProperty("java.vendor")
+        task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
+    }
+
+    tasks.withType<GroovyCompile> {
+        groovyOptions.encoding = "utf-8"
+        configureCompileTask(this, options)
+    }
+
+    val compileGroovy: GroovyCompile by tasks
+
+    configurations {
+        "apiElements" {
+            outgoing.variants["classes"].artifact(
+                mapOf(
+                    "file" to compileGroovy.destinationDir,
+                    "type" to ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+                    "builtBy" to compileGroovy
+                ))
+        }
+    }
+}
+
+fun Project.applyKotlinProjectConventions() {
+    apply {
+        plugin("kotlin")
+        plugin("org.gradle.kotlin.ktlint-convention")
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs += listOf("-Xjsr305=strict")
+        }
+    }
 }
