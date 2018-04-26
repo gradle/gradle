@@ -31,7 +31,6 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
-import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -64,8 +63,6 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root
-    DefaultTaskPlanExecutor taskPlanExecutor
-    def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = new DefaultResourceLockCoordinationService()
     def workerLeaseService = new DefaultWorkerLeaseService(coordinationService, new ParallelismConfigurationManagerFixture(true, 1))
     def parentWorkerLease = workerLeaseService.workerLease
@@ -73,8 +70,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(coordinationService, workerLeaseService, Mock(GradleInternal))
-        taskPlanExecutor = new DefaultTaskPlanExecutor(new ParallelismConfigurationManagerFixture(true, 1).parallelismConfiguration, executorFactory, workerLeaseService, cancellationHandler, coordinationService)
+        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, Mock(GradleInternal))
         parentWorkerLease.start()
     }
 

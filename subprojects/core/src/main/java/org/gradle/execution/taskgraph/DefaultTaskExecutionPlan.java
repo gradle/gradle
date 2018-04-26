@@ -54,8 +54,6 @@ import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -82,8 +80,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
-
 /**
  * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
  * methods.
@@ -107,14 +103,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<TaskInfo, TaskInfo>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<TaskInfo> dependenciesCompleteCache = Sets.newHashSet();
-    private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(ResourceLockCoordinationService coordinationService, WorkerLeaseService workerLeaseService, GradleInternal gradle) {
-        this.coordinationService = coordinationService;
+    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
     }
@@ -523,23 +517,17 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void clear() {
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                nodeFactory.clear();
-                entryTasks.clear();
-                executionPlan.clear();
-                executionQueue.clear();
-                projectLocks.clear();
-                failureCollector.clearFailures();
-                taskMutations.clear();
-                canonicalizedFileCache.clear();
-                reachableCache.clear();
-                dependenciesCompleteCache.clear();
-                runningTasks.clear();
-                return FINISHED;
-            }
-        });
+        nodeFactory.clear();
+        entryTasks.clear();
+        executionPlan.clear();
+        executionQueue.clear();
+        projectLocks.clear();
+        failureCollector.clearFailures();
+        taskMutations.clear();
+        canonicalizedFileCache.clear();
+        reachableCache.clear();
+        dependenciesCompleteCache.clear();
+        runningTasks.clear();
     }
 
     @Override

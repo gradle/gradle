@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -48,6 +49,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -68,6 +70,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     private final TaskPlanExecutor taskPlanExecutor;
+    private final ResourceLockCoordinationService coordinationService;
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
     private final Factory<? extends TaskExecuter> taskExecuter;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
@@ -83,9 +86,10 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.coordinationService = coordinationService;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(coordinationService, workerLeaseService, gradleInternal);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal);
     }
 
     public void useFailureHandler(TaskFailureHandler handler) {
@@ -129,7 +133,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
-            taskExecutionPlan.clear();
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    taskExecutionPlan.clear();
+                    return ResourceLockState.Disposition.FINISHED;
+                }
+            });
         }
     }
 
