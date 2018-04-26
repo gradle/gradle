@@ -23,8 +23,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -44,13 +46,13 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
+import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
@@ -166,10 +168,6 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                         final ProductionSwiftComponent mainComponent = project.getComponents().withType(ProductionSwiftComponent.class).findByName("main");
                         if (mainComponent != null) {
                             testComponent.getTestedComponent().set(mainComponent);
-
-                            // Test configuration extends main configuration
-                            testComponent.getImplementationDependencies().extendsFrom(mainComponent.getImplementationDependencies());
-                            project.getDependencies().add(binary.getImportPathConfiguration().getName(), project);
                         }
                     }
                 }
@@ -319,23 +317,33 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                     testExecutable.getSourceCompatibility().set(testedBinary.getSourceCompatibility());
                 }
 
-                // Configure test suite link task from tested component compiled objects
-                final AbstractLinkTask linkTest = testExecutable.getLinkTask().get();
+                // Setup the dependency on the main binary
+                // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
 
+                // Inherit implementation dependencies
+                testExecutable.getImplementationDependencies().extendsFrom(((DefaultSwiftBinary) testedBinary).getImplementationDependencies());
+
+                // Configure test binary to compile against binary under test
+                Dependency compileDependency = project.getDependencies().create(project.files(testedBinary.getModuleFile()));
+                testExecutable.getImportPathConfiguration().getDependencies().add(compileDependency);
+
+                // Configure test binary to link against tested component compiled objects
+                FileCollection testableObjects;
                 if (testedComponent instanceof SwiftApplication) {
                     final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
                     unexportMainSymbol.source(testedBinary.getObjects());
-                    linkTest.source(testedBinary.getObjects().filter(new Spec<File>() {
+                    testableObjects = testedBinary.getObjects().filter(new Spec<File>() {
                         @Override
                         public boolean isSatisfiedBy(File objectFile) {
                             return !objectFile.equals(unexportMainSymbol.getMainObject());
                         }
-                    }));
-
-                    linkTest.source(unexportMainSymbol.getObjects());
+                    });
+                    testableObjects = testableObjects.plus(unexportMainSymbol.getObjects());
                 } else {
-                    linkTest.source(testedBinary.getObjects());
+                    testableObjects = testedBinary.getObjects();
                 }
+                Dependency linkDependency = project.getDependencies().create(testableObjects);
+                testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
             }
         });
     }

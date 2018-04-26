@@ -16,22 +16,34 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.language.AbstractNativeDependenciesIntegrationTest
+import org.gradle.language.AbstractNativeUnitTestComponentDependenciesIntegrationTest
 
-class CppUnitTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
+class CppUnitTestWithLibraryDependenciesIntegrationTest extends AbstractNativeUnitTestComponentDependenciesIntegrationTest {
     @Override
-    protected void makeComponentWithLibrary() {
+    protected void makeTestSuiteAndComponentWithLibrary() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
+            apply plugin: 'cpp-library'
             project(':lib') {
                 apply plugin: 'cpp-library'
             }
 """
-        file("src/test/cpp/main.cpp") << """
+        file("src/main/headers/main_lib.h") << """
+            extern int some_func();
+"""
+        file("src/main/cpp/main_lib.cpp") << """
             #include <lib.h>
+            #include <main_lib.h>
             
-            int main() { 
+            int some_func() { 
                 lib_func();
+                return 0; 
+            }
+"""
+        file("src/test/cpp/main.cpp") << """
+            #include <main_lib.h>            
+            int main() { 
+                some_func();
                 return 0; 
             }
 """
@@ -51,18 +63,13 @@ class CppUnitTestDependenciesIntegrationTest extends AbstractNativeDependenciesI
     }
 
     @Override
-    protected String getComponentUnderTestDsl() {
-        return "unitTest"
+    protected String getProductionComponentDsl() {
+        return "library"
     }
 
     @Override
-    protected String getAssembleDevBinaryTask() {
-        return ":installTest"
-    }
-
-    @Override
-    protected List<String> getAssembleDevBinaryTasks() {
-        return [":compileTestCpp", ":linkTest"]
+    protected List<String> getRunTestTasks() {
+        return [":compileDebugCpp", ":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
     }
 
     @Override

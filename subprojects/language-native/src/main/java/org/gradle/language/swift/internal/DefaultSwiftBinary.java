@@ -63,7 +63,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final boolean testable;
     private final FileCollection source;
     private final FileCollection compileModules;
-    private final FileCollection linkLibs;
+    private final Configuration linkLibs;
     private final Configuration runtimeLibs;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
@@ -155,6 +155,10 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
     @Override
     public FileCollection getLinkLibraries() {
+        return linkLibs;
+    }
+
+    public Configuration getLinkConfiguration() {
         return linkLibs;
     }
 
