@@ -74,7 +74,20 @@ assert custom.string == "22"
 task test
 '''
         then:
+        executer.expectDeprecationWarning()
         succeeds('test')
+    }
+
+    def "DeferredConfigurable is deprecated"() {
+        when:
+        buildFile << '''
+apply plugin: CustomPlugin
+
+'''
+        then:
+        executer.expectDeprecationWarning()
+        succeeds('help')
+        outputContains("@DeferredConfigurable has been deprecated and is scheduled to be removed in Gradle 5.0")
     }
 
     def "configure actions on deferred configurable extension are not applied if extension is not referenced"() {
@@ -89,6 +102,7 @@ custom {
 task test
 '''
         then:
+        executer.expectDeprecationWarning()
         succeeds('test')
     }
 
@@ -103,6 +117,7 @@ assert custom.string == "22"
 task test
 '''
         then:
+        executer.expectDeprecationWarning()
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
                 .assertHasCause("deferred configuration failure")
@@ -118,6 +133,7 @@ print custom.string
 task test
 '''
         then:
+        executer.expectDeprecationWarning()
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
                 .assertHasCause("broken configuration in plugin")
@@ -140,6 +156,7 @@ afterEvaluate {
 }
 '''
         then:
+        executer.expectDeprecationWarning()
         fails 'test'
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
                 .assertHasCause("task configuration failure")
@@ -165,6 +182,7 @@ custom {
 task test
 '''
         then:
+        executer.expectDeprecationWarning()
         fails('test')
         failure.assertHasDescription("A problem occurred evaluating root project 'customProject'.")
                 .assertHasCause("Cannot configure the 'custom' extension after it has been accessed.")
