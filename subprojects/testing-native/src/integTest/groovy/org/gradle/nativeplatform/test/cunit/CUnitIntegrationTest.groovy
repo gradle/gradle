@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.test.cunit
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
@@ -373,8 +372,6 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    // RunTestExecutable is not incremental yet
-    @NotYetImplemented
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()

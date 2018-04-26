@@ -21,7 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
 class SwiftXCTestWithSharedLibraryLinkageIntegrationTest extends AbstractSwiftXCTestWithComponentIntegrationTest {
     @Override
-    protected String[] getTaskToAssembleComponentUnderTest() {
+    protected String[] getTasksToAssembleComponentUnderTest() {
         return [":linkDebug"]
     }
 

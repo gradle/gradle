@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,37 +17,48 @@
 package org.gradle.nativeplatform.test.cpp.plugins
 
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
-class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
+// cpp-unit-test + cpp-application don't work together on Windows yet
+@Requires(TestPrecondition.NOT_WINDOWS)
+class CppUnitTestWithApplicationIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
         buildFile << """
             apply plugin: 'cpp-unit-test'
+            apply plugin: 'cpp-application'
         """
     }
 
     @Override
     protected void writeTests() {
-        file("src/test/headers/tests.h") << """
-            extern int test();
-        """
-        file("src/test/cpp/test.cpp") << """
-            #include <tests.h>
-            int test() {
+        file("src/main/cpp/app.cpp") << """
+            #include <app.h>
+            int app() {
                 return 0;
             }
+            int main() {
+                return app();
+            }
         """
-        file("src/test/cpp/test_main.cpp") << """
+        file("src/main/headers/app.h") << """
+            extern int app();
+        """
+        file("src/test/headers/tests.h") << """
+        """
+        file("src/test/cpp/test_app.cpp") << """
+            #include <app.h>
             #include <tests.h>
             int main() {
-                return test();
+                return app();
             }
         """
     }
 
     @Override
     protected void changeTestImplementation() {
-        file("src/test/cpp/test.cpp") << """
+        file("src/test/cpp/test_app.cpp") << """
             void test_func() { }
         """
     }
@@ -57,28 +68,18 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractNativeUnitTestI
         // Ok
     }
 
-    def "test fails when test executable returns non-zero status"() {
-        buildFile << """
-            apply plugin: 'cpp-unit-test'
-        """
-
-        file("src/test/cpp/test.cpp") << """
-int main() {
-    return 1;
-}
-"""
-
-        when:
-        fails("check")
-
-        then:
-        result.assertTasksExecuted(tasksToBuildAndRunUnitTest)
-        failure.assertHasDescription("Execution failed for task ':runTest'.")
-        failure.assertHasCause("There were failing tests. See the results at:")
-    }
-
     @Override
     String[] getTasksToBuildAndRunUnitTest() {
         return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+    }
+
+    @Override
+    protected String[] getTasksToCompileComponentUnderTest() {
+        return [":compileDebugCpp", ":relocateMainForTest"]
+    }
+
+    @Override
+    protected String[] getTasksToAssembleComponentUnderTest() {
+        return [":linkDebug", ":installDebug"]
     }
 }

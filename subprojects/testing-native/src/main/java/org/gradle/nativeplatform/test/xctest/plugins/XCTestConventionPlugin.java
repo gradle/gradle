@@ -32,7 +32,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
@@ -330,15 +329,10 @@ public class XCTestConventionPlugin implements Plugin<ProjectInternal> {
                 // Configure test binary to link against tested component compiled objects
                 FileCollection testableObjects;
                 if (testedComponent instanceof SwiftApplication) {
-                    final UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                    unexportMainSymbol.source(testedBinary.getObjects());
-                    testableObjects = testedBinary.getObjects().filter(new Spec<File>() {
-                        @Override
-                        public boolean isSatisfiedBy(File objectFile) {
-                            return !objectFile.equals(unexportMainSymbol.getMainObject());
-                        }
-                    });
-                    testableObjects = testableObjects.plus(unexportMainSymbol.getObjects());
+                    UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                    unexportMainSymbol.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                    unexportMainSymbol.getObjects().from(testedBinary.getObjects());
+                    testableObjects = unexportMainSymbol.getRelocatedObjects();
                 } else {
                     testableObjects = testedBinary.getObjects();
                 }
