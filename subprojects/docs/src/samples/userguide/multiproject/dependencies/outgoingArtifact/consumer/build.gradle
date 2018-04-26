@@ -1,0 +1,8 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    runtime project(':producer')
+    testImplementation 'junit:junit:4.12'
+}
