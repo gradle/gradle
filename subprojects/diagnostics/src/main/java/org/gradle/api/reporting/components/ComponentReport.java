@@ -18,14 +18,14 @@ package org.gradle.api.reporting.components;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -66,7 +66,8 @@ public class ComponentReport extends DefaultTask {
 
     @TaskAction
     public void report() {
-        Project project = getProject();
+        ProjectInternal project = (ProjectInternal) getProject();
+        project.prepareForRuleBasedPlugins();
 
         StyledTextOutput textOutput = getTextOutputFactory().create(ComponentReport.class);
         ComponentReportRenderer renderer = new ComponentReportRenderer(getFileResolver(), getBinaryRenderer());

@@ -137,7 +137,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             }
             final Named named = (Named) provider;
             pending.put(named.getName(), provider);
-            whenKnown.execute(new ProviderBackedElementInfo<T>(named.getName(), provider));
+            deferredElementKnown(named.getName(), provider);
         }
     }
 
@@ -150,9 +150,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
         if (pending != null) {
             for (Map.Entry<String, Provider<? extends T>> entry : pending.entrySet()) {
-                whenKnown.execute(new ProviderBackedElementInfo<T>(entry.getKey(), entry.getValue()));
+                deferredElementKnown(entry.getKey(), entry.getValue());
             }
         }
+    }
+
+    protected final void deferredElementKnown(String name, Provider<? extends T> provider) {
+        whenKnown.execute(new ProviderBackedElementInfo<T>(name, provider));
     }
 
     @Override
