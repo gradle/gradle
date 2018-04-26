@@ -17,25 +17,23 @@
 package org.gradle.language.swift.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.Directory;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecSpec;
-import org.gradle.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Set;
 
 /**
  * Unexports the <code>main</code> entry point symbol in an object file, so the object file can be linked with an executable.
@@ -43,21 +41,30 @@ import java.util.Set;
  * @since 4.4
  */
 @Incubating
-public class UnexportMainSymbol extends SourceTask {
-    private File mainObjectFile;
+@CacheableTask
+public class UnexportMainSymbol extends DefaultTask {
+    private final ConfigurableFileCollection source = getProject().files();
     private final DirectoryProperty outputDirectory = newOutputDirectory();
 
-    public UnexportMainSymbol() {
-        outputDirectory.set(getTemporaryDir());
+    /**
+     * The object files to relocate.
+     *
+     * @since 4.5
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @SkipWhenEmpty
+    public ConfigurableFileCollection getObjects() {
+        return source;
     }
 
     /**
      * Collection of modified object files.
      *
-     * @since 4.5
+     * @since 4.8
      */
     @Internal
-    public FileCollection getObjects() {
+    public FileCollection getRelocatedObjects() {
         return outputDirectory.getAsFileTree();
     }
 
@@ -67,67 +74,32 @@ public class UnexportMainSymbol extends SourceTask {
      * @since 4.5
      */
     @OutputDirectory
-    public Provider<Directory> getOutputDirectory() {
+    public DirectoryProperty getOutputDirectory() {
         return outputDirectory;
-    }
-
-    /**
-     * Object file that may contain a main symbol.
-     */
-    @Nullable
-    @Optional
-    @InputFile
-    public File getMainObject() {
-        if (mainObjectFile == null) {
-            mainObjectFile = findMainObject();
-        }
-        return mainObjectFile;
     }
 
     @TaskAction
     public void unexport() {
-        final File mainObjectFile = getMainObject();
-        if (mainObjectFile != null) {
-            final File relocatedMainObject = outputDirectory.file(mainObjectFile.getName()).get().getAsFile();
+        for (final File file: source) {
+            final File relocatedObject = outputDirectory.file(file.getName()).get().getAsFile();
             getProject().exec(new Action<ExecSpec>() {
                 @Override
                 public void execute(ExecSpec execSpec) {
+                    // TODO: should use target platform to make this decision
                     if (OperatingSystem.current().isMacOsX()) {
                         execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
-                        execSpec.args(mainObjectFile);
-                        execSpec.args("-o", relocatedMainObject);
+                        execSpec.args(file);
+                        execSpec.args("-o", relocatedObject);
                         execSpec.args("-r"); // relink, produce another object file
                         execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
                     } else if (OperatingSystem.current().isLinux()) {
                         execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
                         execSpec.args("-L", "main"); // hide main symbol
-                        execSpec.args(mainObjectFile);
-                        execSpec.args(relocatedMainObject);
+                        execSpec.args(file);
+                        execSpec.args(relocatedObject);
                     } else {
-                        throw new IllegalStateException("Do not know how to hide a main symbol on " + OperatingSystem.current());
+                        throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
                     }
-                }
-            });
-            setDidWork(true);
-        } else {
-            setDidWork(getProject().delete(outputDirectory));
-        }
-    }
-
-    private File findMainObject() {
-        Set<File> objectFiles = getSource().getFiles();
-        if (objectFiles.isEmpty()) {
-            // no objects means no main symbol
-            return null;
-        } else if (objectFiles.size() == 1) {
-            // a single object file may contain a main symbol
-            return objectFiles.iterator().next();
-        } else {
-            // otherwise, we assume the main symbol is in an object called 'main.o'
-            return CollectionUtils.findFirst(objectFiles, new Spec<File>() {
-                @Override
-                public boolean isSatisfiedBy(File objectFile) {
-                    return objectFile.getName().equalsIgnoreCase("main.o");
                 }
             });
         }
