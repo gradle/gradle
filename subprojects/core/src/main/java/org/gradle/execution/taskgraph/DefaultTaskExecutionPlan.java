@@ -251,7 +251,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (!finalizerNode.isInKnownState()) {
                 finalizerNode.mustNotRun();
             }
-            finalizerNode.addMustSuccessor(node);
         }
     }
 
@@ -418,6 +417,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void addAllSuccessorsInReverseOrder(TaskInfo taskNode, ArrayList<TaskInfo> dependsOnTasks) {
         addAllReversed(dependsOnTasks, taskNode.getDependencySuccessors());
         addAllReversed(dependsOnTasks, taskNode.getMustSuccessors());
+        addAllReversed(dependsOnTasks, taskNode.getFinalizingSuccessors());
         addAllReversed(dependsOnTasks, taskNode.getShouldSuccessors());
     }
 
@@ -474,6 +474,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         // Consider every task that must run before the finalizer
         candidateTasks.addAll(finalizer.getDependencySuccessors());
         candidateTasks.addAll(finalizer.getMustSuccessors());
+        candidateTasks.addAll(finalizer.getFinalizingSuccessors());
         candidateTasks.addAll(finalizer.getShouldSuccessors());
 
         // For each candidate task, add it to the preceding tasks.
@@ -494,6 +495,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
                 connectedNodes.addAll(node.getDependencySuccessors());
                 connectedNodes.addAll(node.getMustSuccessors());
+                connectedNodes.addAll(node.getFinalizingSuccessors());
             }
         });
         graphWalker.add(entryTasks);
@@ -509,7 +511,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             @Override
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
                 for (TaskInfo dependency : firstCycle) {
-                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency)) {
+                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency) || node.getFinalizingSuccessors().contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
@@ -752,7 +754,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
 
         boolean reachable = false;
-        for (TaskInfo dependency : Iterables.concat(consumingTask.getMustSuccessors(), consumingTask.getDependencySuccessors())) {
+        for (TaskInfo dependency : Iterables.concat(consumingTask.getMustSuccessors(), consumingTask.getFinalizingSuccessors(), consumingTask.getDependencySuccessors())) {
             if (!dependency.isComplete()) {
                 if (doesConsumerDependOnDestroyer(dependency, destroyerTask)) {
                     reachable = true;

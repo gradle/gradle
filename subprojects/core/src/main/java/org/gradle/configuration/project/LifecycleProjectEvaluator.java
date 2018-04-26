@@ -46,7 +46,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         if (state.getExecuted() || state.getExecuting()) {
             return;
         }
-
         buildOperationExecutor.run(new ConfigureProject(project, state));
     }
 

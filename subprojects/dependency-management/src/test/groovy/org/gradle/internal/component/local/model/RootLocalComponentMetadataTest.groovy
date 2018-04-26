@@ -30,8 +30,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'locking constraints are attached to a configuration and not its children'() {
         given:
         def constraint = new DefaultDependencyConstraint('org', 'foo', '1.1')
-        dependencyLockingHandler.findLockConstraint("conf") >> new DefaultDependencyLockingState([constraint] as Set)
-        dependencyLockingHandler.findLockConstraint("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
         addConfiguration('conf').enableLocking()
         addConfiguration('child', ['conf']).enableLocking()
 

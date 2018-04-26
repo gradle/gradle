@@ -83,6 +83,11 @@ TBD - previously this was broken, and plugins may accidentally rely on this beha
 
 Previously, `Signature.setFile()` could be used to replace the file used for publishing a `Signature`. However, the actual signature file was still being generated at its default location. Therefore, `Signature.setFile()` is now deprecated and will be removed in a future release.
 
+### Parsing of `exclusions` in Maven POM now accepts implicit wildcards
+
+Previously, a Maven POM with an `exclusion` missing either the `groupId` or the `artifactId` was ignored by Gradle.
+This is no longer the case and thus may cause modules to be excluded from a dependency graph that were previously included.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

@@ -30,13 +30,13 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
+import org.gradle.kotlin.dsl.*
 import java.io.File
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
-import org.gradle.kotlin.dsl.getValue
 
 
 class DistributionTestingPlugin : Plugin<Project> {
@@ -92,15 +92,14 @@ class DistributionTestingPlugin : Plugin<Project> {
         fun dirWorkaround(directory: () -> File): Provider<Directory> =
             layout.directoryProperty(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
 
-        // TODO Refactor to not reach into tasks of another project
-        val intTestImage: Sync by project.tasks
-        val toolingApiShadedJar: Zip by project.rootProject.project(":toolingApi").tasks
-
         gradleInstallationForTest.apply {
+            // TODO Refactor to not reach into tasks of another project
+            val intTestImage: Sync by project.tasks
+            val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
             gradleUserHomeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
-            gradleHomeDir.set(dirWorkaround({ intTestImage.destinationDir }))
-            toolingApiShadedJarDir.set(dirWorkaround({ toolingApiShadedJar.destinationDir }))
+            gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
+            toolingApiShadedJarDir.set(dirWorkaround { toolingApiShadedJar.jarFile.get().asFile.parentFile })
         }
 
         libsRepository.dir.set(layout.projectDirectory.dir("build/repo"))

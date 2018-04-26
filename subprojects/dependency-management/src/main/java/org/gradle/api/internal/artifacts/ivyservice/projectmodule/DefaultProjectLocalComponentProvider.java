@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalCompone
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -38,18 +39,20 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import javax.annotation.Nullable;
 import java.util.concurrent.ExecutionException;
 
-import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
-
+/**
+ * Provides the metadata for a component consumed from the same build that produces it.
+ *
+ * Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
+ */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final ProjectStateRegistry projectStateRegistry;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildIdentifier thisBuild;
-    private static final Object MISSING_PROJECT = new Object();
-    private final LoadingCache<ProjectComponentIdentifier, Object> projects = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, Object>() {
+    private final LoadingCache<ProjectComponentIdentifier, LocalComponentMetadata> projects = CacheBuilder.newBuilder().build(new CacheLoader<ProjectComponentIdentifier, LocalComponentMetadata>() {
         @Override
-        public Object load(ProjectComponentIdentifier projectIdentifier) {
+        public LocalComponentMetadata load(ProjectComponentIdentifier projectIdentifier) {
             return getLocalComponentMetadata(projectIdentifier);
         }
     });
@@ -68,39 +71,38 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         }
         Object result;
         try {
-            result = projects.get(projectIdentifier);
+            return projects.get(projectIdentifier);
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (UncheckedExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
-        return result == MISSING_PROJECT ? null : (LocalComponentMetadata) result;
     }
 
     private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
         return projectIdentifier.getBuild().equals(thisBuild);
     }
 
-    private Object getLocalComponentMetadata(ProjectComponentIdentifier projectIdentifier) {
+    private LocalComponentMetadata getLocalComponentMetadata(ProjectComponentIdentifier projectIdentifier) {
         // TODO - the project model should be reachable from ProjectState without another lookup
         final ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
-            // This should be an error instead, and earlier validation should prevent an attempt to construct metadata for a project that doesn't exist
-            return MISSING_PROJECT;
+            throw new IllegalArgumentException(projectIdentifier + " not found.");
         }
-        return projectStateRegistry.stateFor(project).withMutableState(new Factory<LocalComponentMetadata>() {
+        final ProjectState projectState = projectStateRegistry.stateFor(project);
+        return projectState.withMutableState(new Factory<LocalComponentMetadata>() {
             @Nullable
             @Override
             public LocalComponentMetadata create() {
-                return getLocalComponentMetadata(project);
+                return getLocalComponentMetadata(projectState, project);
             }
         });
     }
 
-    private LocalComponentMetadata getLocalComponentMetadata(ProjectInternal project) {
+    private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ProjectComponentIdentifier componentIdentifier = newProjectId(project);
+        ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
         for (ConfigurationInternal configuration : project.getConfigurations().withType(ConfigurationInternal.class)) {
             metadataBuilder.addConfiguration(metaData, configuration);

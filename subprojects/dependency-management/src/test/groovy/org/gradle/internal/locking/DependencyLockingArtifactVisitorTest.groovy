@@ -48,7 +48,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.hasLockState() >> true
+        1 * lockState.mustValidateLockState() >> true
         1 * lockState.lockedDependencies >> Collections.emptySet()
         0 * _
     }
@@ -60,7 +60,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * rootNode.metadata >> metadata
         1 * metadata.dependencyLockingState >> lockState
-        1 * lockState.hasLockState() >> false
+        1 * lockState.mustValidateLockState() >> false
         0 * _
     }
 
@@ -167,7 +167,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     private startWithoutLockState() {
         rootNode.metadata >> metadata
         metadata.dependencyLockingState >> lockState
-        lockState.hasLockState() >> false
+        lockState.mustValidateLockState() >> false
 
         visitor.startArtifacts(rootNode)
     }
@@ -175,7 +175,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     private startWithState(List<DependencyConstraint> constraints) {
         rootNode.metadata >> metadata
         metadata.dependencyLockingState >> lockState
-        lockState.hasLockState() >> true
+        lockState.mustValidateLockState() >> true
         lockState.lockedDependencies >> constraints
 
         visitor.startArtifacts(rootNode)

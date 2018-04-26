@@ -55,7 +55,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     }
 
     @Override
-    public void registerIdeProject(final IdeProjectMetadata ideProjectMetadata) {
+    public void registerIdeProject(IdeProjectMetadata ideProjectMetadata) {
         ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
         store.put(projectId, ideProjectMetadata);
     }
@@ -168,7 +168,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
                     for (Task task : get().getGeneratorTasks()) {
-                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild().getName(), task.getPath()));
+                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild(), task.getPath()));
                     }
                 }
             };

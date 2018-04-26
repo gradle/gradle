@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildIdentity;
 
@@ -91,11 +90,6 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         } else {
             return ":" + build.getName() + projectPath;
         }
-    }
-
-    public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
-        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
-        return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
 
     public static ProjectComponentIdentifier newProjectId(BuildIdentifier buildIdentifier, String projectPath) {

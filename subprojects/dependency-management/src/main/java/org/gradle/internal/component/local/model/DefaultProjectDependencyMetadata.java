@@ -32,10 +32,12 @@ import java.util.List;
 public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     private final ProjectComponentSelector selector;
     private final DependencyMetadata delegate;
+    private final boolean isTransitive;
 
     public DefaultProjectDependencyMetadata(ProjectComponentSelector selector, DependencyMetadata delegate) {
         this.selector = selector;
         this.delegate = delegate;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -73,7 +75,7 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override

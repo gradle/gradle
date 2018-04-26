@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 public abstract class AbstractVersionVersionSelector extends AbstractVersionSelector {
-    protected AbstractVersionVersionSelector(String selector) {
+    protected final VersionParser versionParser;
+
+    protected AbstractVersionVersionSelector(VersionParser versionParser, String selector) {
         super(selector);
+        this.versionParser = versionParser;
     }
 
     @Override
     public boolean accept(String candidate) {
-        return accept(VersionParser.INSTANCE.transform(candidate));
+        return accept(versionParser.transform(candidate));
     }
 }

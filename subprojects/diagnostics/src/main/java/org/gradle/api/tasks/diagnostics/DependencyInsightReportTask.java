@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
@@ -52,7 +53,11 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * Generates a report that attempts to answer questions like:
@@ -160,6 +165,11 @@ public class DependencyInsightReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         final Configuration configuration = getConfiguration();
@@ -194,7 +204,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             return;
         }
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, getVersionSelectorScheme(), getVersionComparator());
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
 
         NodeRenderer nodeRenderer = new NodeRenderer() {
             public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {

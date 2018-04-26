@@ -16,24 +16,24 @@
 
 
 package org.gradle.api.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final Sample quickstart = new Sample(temporaryFolder, "maven-publish/quickstart")
-    @Rule public final Sample javaProject = new Sample(temporaryFolder, "maven-publish/javaProject")
-    @Rule public final Sample pomCustomization = new Sample(temporaryFolder, "maven-publish/pomCustomization")
-    @Rule public final Sample multiPublish = new Sample(temporaryFolder, "maven-publish/multiple-publications")
+class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
+    @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
+    @UsesSample("maven-publish/quickstart")
     def quickstartPublish() {
         given:
-        sample quickstart
+        sample sampleProject
 
         and:
-        def fileRepo = maven(quickstart.dir.file("build/repo"))
+        def fileRepo = maven(sampleProject.dir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
 
         when:
@@ -45,16 +45,17 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         pom.scopes.isEmpty()
     }
 
+    @UsesSample("maven-publish/quickstart")
     def quickstartPublishLocal() {
         given:
         executer.beforeExecute m2
         def localModule = m2.mavenRepo().module("org.gradle.sample", "quickstart", "1.0")
 
         and:
-        sample quickstart
+        sample sampleProject
 
         and:
-        def fileRepo = maven(quickstart.dir.file("build/repo"))
+        def fileRepo = maven(sampleProject.dir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "quickstart", "1.0")
 
         when:
@@ -65,12 +66,13 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         localModule.assertPublishedAsJavaModule()
     }
 
+    @UsesSample("maven-publish/javaProject")
     def javaProject() {
         given:
-        sample javaProject
+        sample sampleProject
 
         and:
-        def fileRepo = maven(javaProject.dir.file("build/repo"))
+        def fileRepo = maven(sampleProject.dir.file("build/repos/releases"))
         def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0")
 
         when:
@@ -83,12 +85,13 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
 
+    @UsesSample("maven-publish/pomCustomization")
     def pomCustomization() {
         given:
-        sample pomCustomization
+        sample sampleProject
 
         and:
-        def fileRepo = maven(pomCustomization.dir.file("build/repo"))
+        def fileRepo = maven(sampleProject.dir.file("build/repo"))
         def module = fileRepo.module("org.gradle.sample", "pomCustomization", "1.0")
 
         when:
@@ -99,12 +102,13 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         module.parsedPom.description == "A demonstration of maven POM customization"
     }
 
+    @UsesSample("maven-publish/multiple-publications")
     def multiplePublications() {
         given:
-        sample multiPublish
+        sample sampleProject
 
         and:
-        def fileRepo = maven(multiPublish.dir.file("build/repo"))
+        def fileRepo = maven(sampleProject.dir.file("build/repo"))
         def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1")
         def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2")
         def project2impl = fileRepo.module("org.gradle.sample.impl", "project2-impl", "2.3")
@@ -125,9 +129,69 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         verifyPomFile(project2impl, "output/project2-impl.pom.xml")
     }
 
+    @UsesSample("maven-publish/conditional-publishing")
+    def conditionalPublishing() {
+        given:
+        sample sampleProject
+
+        and:
+        def artifactId = "maven-conditional-publishing"
+        def version = "1.0"
+        def externalRepo = maven(sampleProject.dir.file("build/repos/external"))
+        def binary = externalRepo.module("org.gradle.sample", artifactId, version)
+        def internalRepo = maven(sampleProject.dir.file("build/repos/internal"))
+        def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version)
+        def localRepo = maven(temporaryFolder.createDir("m2_repo"))
+        def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        args "-Dmaven.repo.local=${localRepo.rootDir.getAbsolutePath()}"
+        succeeds "publish", "publishToMavenLocal"
+
+        then:
+        executed ":publishBinaryAndSourcesPublicationToInternalRepository", ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToMavenLocal"
+        skipped ":publishBinaryAndSourcesPublicationToExternalRepository", ":publishBinaryPublicationToInternalRepository", ":publishBinaryPublicationToMavenLocal"
+
+        and:
+        binary.assertPublishedAsJavaModule()
+        binaryAndSourcesInRepo.assertPublished()
+        binaryAndSourcesInRepo.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "${artifactId}-${version}.pom"
+        binaryAndSourcesLocal.assertPublished()
+    }
+
+    @UsesSample("maven-publish/conditional-publishing")
+    def shorthandPublishToExternalRepository() {
+        given:
+        sample sampleProject
+
+        when:
+        succeeds "publishToExternalRepository"
+
+        then:
+        executed ":publishBinaryPublicationToExternalRepository"
+        skipped ":publishBinaryAndSourcesPublicationToExternalRepository"
+        notExecuted ":publishBinaryPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToInternalRepository"
+    }
+
+    @UsesSample("maven-publish/conditional-publishing")
+    def shorthandPublishForDevelopment() {
+        given:
+        sample sampleProject
+        def localRepo = temporaryFolder.createDir("m2_repo")
+
+        when:
+        args "-Dmaven.repo.local=${localRepo.getAbsolutePath()}"
+        succeeds "publishForDevelopment"
+
+        then:
+        executed ":publishBinaryAndSourcesPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToMavenLocal"
+        skipped ":publishBinaryPublicationToInternalRepository", ":publishBinaryPublicationToMavenLocal"
+        notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
+    }
+
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(multiPublish.dir.file(outputFileName))
+        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))
     }
 
     String getExpectedPomOutput(File outputFile) {

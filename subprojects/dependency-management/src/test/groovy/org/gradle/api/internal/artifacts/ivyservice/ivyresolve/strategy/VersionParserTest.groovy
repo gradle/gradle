@@ -17,10 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import spock.lang.Specification
+import spock.lang.Subject
 
 import static org.gradle.util.Matchers.strictlyEqual
 
 class VersionParserTest extends Specification {
+
+    @Subject
+    VersionParser versionParser = new VersionParser()
+
     def "parsed version is equal when source string is equal"() {
         def v = parse("1.2.b")
         def equal = parse("1.2.b")
@@ -116,6 +121,6 @@ class VersionParserTest extends Specification {
     }
 
     def parse(String v) {
-        return VersionParser.INSTANCE.transform(v)
+        return versionParser.transform(v)
     }
 }

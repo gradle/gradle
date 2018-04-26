@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -33,9 +34,9 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
 
     IvyModuleDescriptorSpecInternal getDescriptor();
 
-    void setIvyDescriptorArtifact(IvyArtifact descriptorFile);
+    void setIvyDescriptorGenerator(Task descriptorGenerator);
 
-    void setGradleModuleDescriptorArtifact(IvyArtifact descriptorFile);
+    void setModuleDescriptorGenerator(Task descriptorGenerator);
 
     /**
      * @deprecated Kept to not break third-party plugins
@@ -48,6 +49,4 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     Set<IvyExcludeRule> getGlobalExcludes();
 
     IvyNormalizedPublication asNormalisedPublication();
-
-    boolean canPublishModuleMetadata();
 }

@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -30,7 +31,10 @@ import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertSame
+import static org.junit.Assert.assertThat
 
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
 
@@ -57,7 +61,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());
         assertFalse(dependencyMetaData.isForce());
-        assertEquals(new DefaultProjectComponentSelector(":", ":"), dependencyMetaData.getSelector());
+        assertEquals(new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, ":"), dependencyMetaData.getSelector());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 
