@@ -203,8 +203,8 @@ open class Benchmark : DefaultTask() {
                 println("Environment variable not present. Falling back to `git rev-parse`")
                 val stdout = ByteArrayOutputStream()
                 project.exec {
-                    it.commandLine("git", "rev-parse", "HEAD")
-                    it.standardOutput = stdout
+                    commandLine("git", "rev-parse", "HEAD")
+                    standardOutput = stdout
                 }
                 String(stdout.toByteArray()).trim()
             }

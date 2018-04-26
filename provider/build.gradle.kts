@@ -39,7 +39,6 @@ val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtension
     outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     kotlinDslPluginsVersion = publishedPluginsVersion
-    kotlinDslRepository = kotlinRepo
 }
 
 val generateExtensions by tasks.creating {

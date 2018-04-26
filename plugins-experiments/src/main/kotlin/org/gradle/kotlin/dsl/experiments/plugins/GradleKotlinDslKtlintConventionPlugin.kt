@@ -96,7 +96,7 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
         tasksBySourceSets.forEach { (sourceSet, task) ->
 
-            sourceSet.allSource.sourceDirectories.forEach { srcDir ->
+            sourceSet.allSource.sourceDirectories.forEach { _ ->
                 reporters.forEach {
                     task.outputs.file("$buildDir/${it.reportPathFor(sourceSet)}")
                 }

@@ -1,11 +1,20 @@
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 buildscript {
 
     val kotlinVersion = file("../kotlin-version.txt").readText().trim()
 
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.7"
+
     dependencies {
         classpath(kotlin("gradle-plugin", version = kotlinVersion))
+        classpath(pluginsExperiments)
+    }
+
+    project.dependencies {
+        "compile"(pluginsExperiments)
     }
 
     configure(listOf(repositories, project.repositories)) {
@@ -15,35 +24,17 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.7"
+    `kotlin-dsl` version "0.17.2" apply false
 }
 
+apply(plugin = "org.gradle.kotlin.ktlint-convention")
 apply(plugin = "kotlin")
-
-gradlePlugin {
-    (plugins) {
-        "kotlinLibrary" {
-            id = "kotlin-library"
-            implementationClass = "plugins.KotlinLibrary"
-        }
-        "kotlinDslModule" {
-            id = "kotlin-dsl-module"
-            implementationClass = "plugins.KotlinDslModule"
-        }
-        "publicKotlinDslModule" {
-            id = "public-kotlin-dsl-module"
-            implementationClass = "plugins.PublicKotlinDslModule"
-        }
-        "kotlinDslPluginBundle" {
-            id = "kotlin-dsl-plugin-bundle"
-            implementationClass = "plugins.KotlinDslPluginBundle"
-        }
-    }
-}
+apply<KotlinDslCompilerPlugins>()
+apply<PrecompiledScriptPlugins>()
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs = listOf(
+        freeCompilerArgs += listOf(
             "-Xjsr305=strict",
             "-Xskip-runtime-version-check"
         )
@@ -51,13 +42,15 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    compile(gradleApi())
+    compileOnly(gradleKotlinDsl())
+
     compile(kotlin("gradle-plugin"))
     compile(kotlin("stdlib-jdk8"))
     compile(kotlin("reflect"))
-    compile("gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.7")
+
     compile("com.gradle.publish:plugin-publish-plugin:0.9.10")
     compile("org.ow2.asm:asm-all:5.1")
+
     testCompile("junit:junit:4.12")
     testCompile(gradleTestKit())
 }

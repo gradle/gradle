@@ -16,14 +16,18 @@
 
 package codegen
 
+import accessors.base
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.plugins.BasePluginConvention
 
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getValue
 
 import java.io.File
 
@@ -34,10 +38,10 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @get:InputFiles
-    val compileOnly = project.configurations.getByName("compileOnly")
+    val compileOnly by project.configurations
 
     @get:InputFiles
-    val runtime = project.configurations.getByName("runtime")
+    val runtime by project.configurations
 
     @get:Internal
     val outputFile by lazy {
@@ -63,11 +67,5 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     private
     fun moduleName(): String =
-        base.archivesBaseName
-
-    @get:Internal
-    private
-    val base by lazy {
-        project.convention.getPlugin(BasePluginConvention::class.java)
-    }
+        project.base.archivesBaseName
 }
