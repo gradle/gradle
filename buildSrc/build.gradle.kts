@@ -23,7 +23,7 @@ import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 plugins {
-    `kotlin-dsl`
+    `kotlin-dsl` version "0.17.2"
     id("org.gradle.kotlin.ktlint-convention") version "0.1.7" apply false
 }
 
@@ -68,10 +68,9 @@ subprojects {
     }
     if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
 
-        apply(plugin = "kotlin")
-
-        if (!project.name.run { equals("plugins") || equals("uberPlugins") }) {
-            apply(plugin = "org.gradle.kotlin.ktlint-convention")
+        apply {
+            plugin("kotlin")
+            plugin("org.gradle.kotlin.ktlint-convention")
         }
 
         tasks.withType<KotlinCompile> {
