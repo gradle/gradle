@@ -284,13 +284,12 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
-
-        final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         project.getTasks().createLater(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
             @Override
             public void execute(Javadoc javadoc) {
+                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
