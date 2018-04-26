@@ -25,7 +25,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -34,7 +34,11 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def worker = Mock(Action)
     def executorFactory = Mock(ExecutorFactory)
     def cancellationHandler = Mock(BuildCancellationToken)
-    def coordinationService = new DefaultResourceLockCoordinationService()
+    def coordinationService = Stub(ResourceLockCoordinationService) {
+        withStateLock(_) >> { transformer ->
+            transformer[0].transform(null)
+        }
+    }
     def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
 
     def "executes tasks until no further tasks remain"() {
@@ -52,20 +56,24 @@ class DefaultTaskPlanExecutorTest extends Specification {
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
-        1 * coordinationService.withStateLock(_) >> { transformer ->
-            transformer.transform(null)
-        }
+        1 * cancellationHandler.isCancellationRequested() >> false
+        1 * taskPlan.hasWorkRemaining() >> true
         1 * taskPlan.selectNextNode(_) >> node
+        1 * node.task >> task
         1 * worker.execute(task)
-        1 * taskPlan.selectNextNode(_) >> null
-        1 * taskPlan.awaitCompletion()
+
+        then:
+        1 * cancellationHandler.isCancellationRequested() >> false
+        1 * taskPlan.hasWorkRemaining() >> false
+        1 * taskPlan.allTasksComplete() >> true
+        1 * taskPlan.rethrowFailures()
     }
 
     def "rethrows task execution failure"() {
         def failure = new RuntimeException()
 
         given:
-        _ * taskPlan.awaitCompletion() >> { throw failure }
+        _ * taskPlan.rethrowFailures() >> { throw failure }
 
         when:
         executor.process(taskPlan, worker)
@@ -74,5 +82,38 @@ class DefaultTaskPlanExecutorTest extends Specification {
         def e = thrown(RuntimeException)
         e == failure
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * taskPlan.allTasksComplete() >> true
+    }
+
+    def "execution is canceled when cancellation requested"() {
+        def gradle = Mock(Gradle)
+        def project = Mock(Project)
+        def node = Mock(TaskInfo)
+        def task = Mock(TaskInternal)
+        def state = Mock(TaskStateInternal)
+        project.gradle >> gradle
+        task.project >> project
+        task.state >> state
+
+        when:
+        executor.process(taskPlan, worker)
+
+        then:
+        1 * taskPlan.getDisplayName() >> "task plan"
+        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
+        1 * cancellationHandler.isCancellationRequested() >> false
+        1 * taskPlan.hasWorkRemaining() >> true
+        1 * taskPlan.selectNextNode(_) >> node
+        1 * node.task >> task
+        1 * worker.execute(task)
+        1 * taskPlan.taskComplete(node)
+
+        then:
+        1 * cancellationHandler.isCancellationRequested() >> true
+        1 * taskPlan.cancelExecution()
+        1 * taskPlan.hasWorkRemaining() >> false
+        1 * taskPlan.allTasksComplete() >> true
+        1 * taskPlan.rethrowFailures()
+        0 * taskPlan._
     }
 }
