@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.jsoup
+package gradlebuild
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.tasks.Copy
+import org.gradle.plugins.jsoup.JsoupCopyExtension
 
-import org.gradle.kotlin.dsl.*
-
-
-class JsoupPlugin : Plugin<Project> {
-
-    // TODO Is this used anywhere?
-    override fun apply(project: Project): Unit = project.run {
-        tasks.withType<Copy> {
-            extensions.create<JsoupCopyExtension>("jsoup", this)
-        }
-    }
+tasks.withType<Copy> {
+    extensions.create<JsoupCopyExtension>("jsoup", this)
 }
