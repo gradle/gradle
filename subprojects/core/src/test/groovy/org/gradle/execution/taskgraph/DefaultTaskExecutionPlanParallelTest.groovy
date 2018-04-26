@@ -804,23 +804,16 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
                             workerLeaseService.withoutProjectLock {
                                 thread.blockUntil."complete${task.path}"
                             }
-                            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                                @Override
-                                ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                                    executionPlan.taskComplete(node)
-                                    return ResourceLockState.Disposition.FINISHED
-                                }
-                            })
                         } else {
                             thread.blockUntil."complete${task.path}"
-                            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
-                                @Override
-                                ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                                    executionPlan.taskComplete(node)
-                                    return ResourceLockState.Disposition.FINISHED
-                                }
-                            })
                         }
+                        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                            @Override
+                            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                                executionPlan.taskComplete(node)
+                                return ResourceLockState.Disposition.FINISHED
+                            }
+                        })
                     }
                 }
             }
