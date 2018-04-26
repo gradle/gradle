@@ -70,7 +70,7 @@ public class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec 
         sample javaProject
 
         and:
-        def fileRepo = maven(javaProject.dir.file("build/repo"))
+        def fileRepo = maven(javaProject.dir.file("build/repos/releases"))
         def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0")
 
         when:
