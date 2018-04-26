@@ -35,7 +35,6 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -44,8 +43,6 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.model.Model;
-import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -386,13 +383,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
                 dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
             }
-        }
-    }
-
-    static class Rules extends RuleSource {
-        @Model
-        public GradlePluginDevelopmentExtension gradlePluginDevelopmentExtension(ExtensionContainer extensionContainer) {
-            return extensionContainer.getByType(GradlePluginDevelopmentExtension.class);
         }
     }
 
