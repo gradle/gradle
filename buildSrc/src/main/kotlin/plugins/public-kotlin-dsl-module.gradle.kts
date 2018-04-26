@@ -34,10 +34,12 @@ apply(plugin = "maven-publish")
 apply(plugin = "com.jfrog.artifactory")
 
 // with a jar named after `base.archivesBaseName`
-publishing {
-    publications.create<MavenPublication>("mavenJava") {
-        artifactId = base.archivesBaseName
-        from(components["java"])
+afterEvaluate {
+    publishing {
+        publications.create<MavenPublication>("mavenJava") {
+            artifactId = base.archivesBaseName
+            from(components["java"])
+        }
     }
 }
 
