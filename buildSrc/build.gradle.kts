@@ -28,9 +28,13 @@ plugins {
 }
 
 subprojects {
+
     apply { plugin("java-library") }
+
     if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+
         apply { plugin("groovy") }
+
         dependencies {
             compile(localGroovy())
             testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
