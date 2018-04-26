@@ -182,6 +182,7 @@
                                     <li><a href="/userguide/inspecting_dependencies.html">Inspecting Dependencies</a></li>
                                     <li><a href="/userguide/managing_dependency_configurations.html">Managing Dependency Configurations</a></li>
                                     <li><a href="/userguide/managing_transitive_dependencies.html">Managing Transitive Dependencies</a></li>
+                                    <li><a href="/userguide/dependency_locking.html">Dependency Locking</a></li>
                                     <li><a href="/userguide/troubleshooting_dependency_resolution.html">Troubleshooting Dependency Resolution</a></li>
                                     <li><p></p></li>
                                     <li><a href="/userguide/customizing_dependency_resolution_behavior.html">Customizing Dependency Resolution Behavior</a></li>
