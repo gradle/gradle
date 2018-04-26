@@ -27,6 +27,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getValue
 
 import java.io.File
 
@@ -37,10 +38,10 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @get:InputFiles
-    val compileOnly = project.configurations["compileOnly"]
+    val compileOnly by project.configurations
 
     @get:InputFiles
-    val runtime = project.configurations["runtime"]
+    val runtime by project.configurations
 
     @get:Internal
     val outputFile by lazy {

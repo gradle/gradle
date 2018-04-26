@@ -47,10 +47,10 @@ tasks.getByName("artifactoryPublish") {
 
 // classpath manifest
 val generatedResourcesDir = file("$buildDir/generate-resources/main")
-val generateClasspathManifest = tasks.create<GenerateClasspathManifest>("generateClasspathManifest") {
+val generateClasspathManifest by tasks.creating(GenerateClasspathManifest::class) {
     outputDirectory = generatedResourcesDir
 }
-val mainSourceSet = java.sourceSets["main"]
-mainSourceSet.output.dir(
+val main by java.sourceSets
+main.output.dir(
     mapOf("builtBy" to generateClasspathManifest),
     generatedResourcesDir)

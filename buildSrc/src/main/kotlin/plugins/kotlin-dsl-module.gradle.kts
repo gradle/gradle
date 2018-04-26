@@ -28,11 +28,11 @@ import accessors.java
 apply(plugin = "kotlin-library")
 
 // including all sources
-val mainSourceSet = java.sourceSets["main"]
+val main by java.sourceSets
 afterEvaluate {
     tasks.getByName("jar") {
         this as Jar
-        from(mainSourceSet.allSource)
+        from(main.allSource)
         manifest.attributes.apply {
             put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
             put("Implementation-Version", version)
