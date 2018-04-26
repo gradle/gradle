@@ -206,9 +206,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        if (!selectedTask.isComplete()) {
-                            taskExecutionPlan.taskComplete(selectedTask);
-                        }
+                        taskExecutionPlan.taskComplete(selectedTask);
                         return unlock(workerLease).transform(state);
                     }
                 });

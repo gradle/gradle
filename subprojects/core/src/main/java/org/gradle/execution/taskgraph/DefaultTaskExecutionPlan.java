@@ -586,10 +586,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         projectLock.unlock();
                         continue;
                     }
-                } catch (RuntimeException e) {
+                } catch (Throwable t) {
                     workerLease.unlock();
                     projectLock.unlock();
-                    throw e;
+                    throw UncheckedException.throwAsUncheckedException(t);
                 }
 
                 if (taskInfo.allDependenciesSuccessful()) {
@@ -850,13 +850,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     @Override
     public void taskComplete(TaskInfo taskInfo) {
         try {
-            enforceFinalizerTasks(taskInfo);
-            if (taskInfo.isFailed()) {
-                handleFailure(taskInfo);
-            }
+            if (!taskInfo.isComplete()) {
+                enforceFinalizerTasks(taskInfo);
+                if (taskInfo.isFailed()) {
+                    handleFailure(taskInfo);
+                }
 
-            taskInfo.finishExecution();
-            recordTaskCompleted(taskInfo);
+                taskInfo.finishExecution();
+                recordTaskCompleted(taskInfo);
+            }
         } finally {
             getProjectLock(taskInfo).unlock();
         }
