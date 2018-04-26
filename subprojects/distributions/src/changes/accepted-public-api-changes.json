@@ -22,6 +22,14 @@
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
             "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Class org.gradle.api.tasks.JavaExec",
+            "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
+            "changes": [
+                "org.gradle.api.execution.Cancellable"
+            ]
         }
     ]
 }

@@ -40,6 +40,7 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.execution.CancellableTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -68,6 +69,7 @@ import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -105,7 +107,8 @@ public class TaskExecutionServices {
                                     PathToFileResolver resolver,
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraph taskExecutionGraph,
-                                    BuildInvocationScopeId buildInvocationScopeId
+                                    BuildInvocationScopeId buildInvocationScopeId,
+                                    BuildCancellationToken buildCancellationToken
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -119,6 +122,7 @@ public class TaskExecutionServices {
             asyncWorkTracker,
             buildInvocationScopeId
         );
+        executer = new CancellableTaskExecuter(executer, buildCancellationToken);
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {
             executer = new SkipCachedTaskExecuter(

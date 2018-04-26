@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.process.internal;
 
-import org.gradle.api.NonExtensible;
-import org.gradle.process.ExecResult;
-import org.gradle.process.JavaExecSpec;
+package org.gradle.api.execution;
 
-@NonExtensible
-public interface JavaExecAction extends JavaExecSpec {
-    ExecResult execute();
+import org.gradle.api.Incubating;
 
-    void cancel();
+/**
+ * Indicates that a task is cancellable.
+ * @since 4.8
+ */
+@Incubating
+public interface Cancellable {
+    /**
+     * When Ctrl-C is pressed during the task execution, this method of that task will be invoked.
+     */
+    void onCancel();
 }
