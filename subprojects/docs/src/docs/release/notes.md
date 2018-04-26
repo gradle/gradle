@@ -36,6 +36,41 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
         sign publishing.publications
     }
 
+### Customizing the generated POM
+
+The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedicated, type safe DSL to customize the POM generated as part of a Maven publication. The following sample demonstrates some of the new properties and methods. Please see the [DSL Reference](dsl/org.gradle.api.publish.maven.MavenPom.html) for the complete documentation.
+
+    publishing {
+      publications {
+        mavenJava(MavenPublication) {
+          from components.java
+          pom {
+            name 'Demo'
+            description 'A demonstration of Maven POM customization'
+            url 'http://www.example.com/project'
+            licenses {
+              license {
+                name 'The Apache License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              }
+            }
+            developers {
+              developer {
+                id 'johnd'
+                name 'John Doe'
+                email 'john.doe@example.com'
+              }
+            }
+            scm {
+              connection 'scm:svn:http://subversion.example.com/svn/project/trunk/'
+              developerConnection 'scm:svn:https://subversion.example.com/svn/project/trunk/'
+              url 'http://subversion.example.com/svn/project/trunk/'
+            }
+          }
+        }
+      }
+    }
+
 ### Configuration-wide dependency excludes are now published
 
 The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
