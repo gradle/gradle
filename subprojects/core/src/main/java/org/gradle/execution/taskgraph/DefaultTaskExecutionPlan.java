@@ -576,11 +576,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     continue;
                 }
                 if (!workerLease.tryLock()) {
+                    projectLock.unlock();
                     continue;
                 }
-                // TODO: convert output file checks to a resource lock
-                if (!canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
-                    continue;
+                try {
+                    // TODO: convert output file checks to a resource lock
+                    if (!canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
+                        workerLease.unlock();
+                        projectLock.unlock();
+                        continue;
+                    }
+                } catch (RuntimeException e) {
+                    workerLease.unlock();
+                    projectLock.unlock();
+                    throw e;
                 }
 
                 if (taskInfo.allDependenciesSuccessful()) {

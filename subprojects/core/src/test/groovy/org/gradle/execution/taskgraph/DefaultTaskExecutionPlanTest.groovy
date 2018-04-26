@@ -616,7 +616,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executedTasks
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -624,18 +624,18 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks when build is cancelled"() {
-        2 * cancellationHandler.cancellationRequested >>> [false, true]
         Task a = task("a")
         Task b = task("b")
 
         when:
         addToGraphAndPopulate([a, b])
+        executionPlan.cancelExecution()
 
         then:
-        executedTasks == [a]
+        executedTasks == []
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         BuildCancelledException e = thrown()
@@ -654,7 +654,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -681,7 +681,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -701,7 +701,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, b]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -722,7 +722,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, b]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -746,7 +746,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, c]
 
         when:
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
 
         then:
         RuntimeException e = thrown()
