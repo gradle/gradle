@@ -1,11 +1,9 @@
 import accessors.base
+import accessors.gradlePlugin
+import accessors.pluginBundle
 import accessors.publishing
 
 import plugins.futurePluginVersionsFile
-import plugins.KotlinDslPlugin
-
-import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
-import com.gradle.publish.PluginBundleExtension
 
 
 plugins {
@@ -23,38 +21,10 @@ pluginBundle {
 }
 
 
-val kotlinDslPlugins = container(KotlinDslPlugin::class.java)
-extensions.add("kotlinDslPlugins", kotlinDslPlugins)
-
-
 afterEvaluate {
 
     pluginBundle {
         mavenCoordinates.artifactId = base.archivesBaseName
-    }
-
-    kotlinDslPlugins.all {
-
-        val plugin = this
-
-        gradlePlugin {
-            plugins {
-                create(plugin.name) {
-                    id = plugin.id
-                    implementationClass = plugin.implementationClass
-                }
-            }
-        }
-
-        pluginBundle {
-            plugins {
-                create(plugin.name) {
-                    id = plugin.id
-                    displayName = plugin.displayName
-                    description = plugin.displayName
-                }
-            }
-        }
     }
 }
 
@@ -93,15 +63,17 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
     afterEvaluate {
 
-        kotlinDslPlugins.all {
+        gradlePlugin {
+            plugins.all {
 
-            val plugin = this
+                val plugin = this
 
-            publishPluginsToTestRepository
-                .dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+                publishPluginsToTestRepository
+                    .dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
 
-            writeFuturePluginVersions
-                .property(plugin.id, version)
+                writeFuturePluginVersions
+                    .property(plugin.id, version)
+            }
         }
     }
 }
@@ -114,11 +86,3 @@ fun Project.createWriteFuturePluginVersionsTask(): WriteProperties {
         processTestResources.dependsOn(this)
     }
 }
-
-
-fun Project.gradlePlugin(action: GradlePluginDevelopmentExtension.() -> Unit) =
-    configure(action)
-
-
-fun Project.pluginBundle(action: PluginBundleExtension.() -> Unit) =
-    configure(action)

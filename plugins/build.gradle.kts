@@ -1,4 +1,5 @@
 import build.futureKotlin
+import plugins.bundledGradlePlugin
 
 plugins {
     id("kotlin-dsl-plugin-bundle")
@@ -21,15 +22,14 @@ dependencies {
 
 // plugins ------------------------------------------------------------
 
-kotlinDslPlugins {
-    create("embeddedKotlin") {
-        displayName = "Embedded Kotlin Gradle Plugin"
-        id = "org.gradle.kotlin.embedded-kotlin"
-        implementationClass = "org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin"
-    }
-    create("kotlinDsl") {
-        displayName = "Gradle Kotlin DSL Plugin"
-        id = "org.gradle.kotlin.kotlin-dsl"
-        implementationClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin"
-    }
-}
+bundledGradlePlugin(
+    name = "embeddedKotlin",
+    shortDescription = "Embedded Kotlin Gradle Plugin",
+    pluginId = "org.gradle.kotlin.embedded-kotlin",
+    pluginClass = "org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin")
+
+bundledGradlePlugin(
+    name = "kotlinDsl",
+    shortDescription = "Gradle Kotlin DSL Plugin",
+    pluginId = "org.gradle.kotlin.kotlin-dsl",
+    pluginClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin")

@@ -16,17 +16,33 @@
 
 package plugins
 
-import org.gradle.api.Named
+import accessors.gradlePlugin
+import accessors.pluginBundle
+
+import org.gradle.api.Project
 import org.gradle.language.jvm.tasks.ProcessResources
-
-
-class KotlinDslPlugin(private val name: String) : Named {
-    override fun getName() = name
-    lateinit var displayName: String
-    lateinit var id: String
-    lateinit var implementationClass: String
-}
 
 
 val ProcessResources.futurePluginVersionsFile
     get() = destinationDir.resolve("future-plugin-versions.properties")
+
+
+fun Project.bundledGradlePlugin(name: String, shortDescription: String, pluginId: String, pluginClass: String) {
+    gradlePlugin {
+        plugins {
+            create(name) {
+                id = pluginId
+                implementationClass = pluginClass
+            }
+        }
+    }
+    pluginBundle {
+        plugins {
+            create(name) {
+                id = pluginId
+                displayName = shortDescription
+                description = shortDescription
+            }
+        }
+    }
+}

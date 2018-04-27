@@ -21,9 +21,12 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.PublishingExtension
-import org.gradle.kotlin.dsl.configure
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
+
+import com.gradle.publish.PluginBundleExtension
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 
@@ -45,4 +48,14 @@ fun Project.publishing(action: PublishingExtension.() -> Unit) =
 
 internal
 fun Project.kotlin(action: KotlinProjectExtension.() -> Unit) =
+    configure(action)
+
+
+internal
+fun Project.gradlePlugin(action: GradlePluginDevelopmentExtension.() -> Unit) =
+    configure(action)
+
+
+internal
+fun Project.pluginBundle(action: PluginBundleExtension.() -> Unit) =
     configure(action)

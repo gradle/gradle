@@ -1,4 +1,5 @@
 import build.futureKotlin
+import plugins.bundledGradlePlugin
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.hash.Hashing
 
@@ -27,13 +28,11 @@ dependencies {
 
 // plugins ------------------------------------------------------------
 
-kotlinDslPlugins {
-    create("ktlintConvention") {
-        displayName = "Gradle Kotlin DSL ktlint convention plugin (experimental)"
-        id = "org.gradle.kotlin.ktlint-convention"
-        implementationClass = "org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin"
-    }
-}
+bundledGradlePlugin(
+    name = "ktlintConvention",
+    shortDescription = "Gradle Kotlin DSL ktlint convention plugin (experimental)",
+    pluginId = "org.gradle.kotlin.ktlint-convention",
+    pluginClass = "org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin")
 
 
 // default versions ---------------------------------------------------
