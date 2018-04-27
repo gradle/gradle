@@ -91,7 +91,7 @@ For optimal readability and maintainability follow these rules:
 * The task type should be the only key-value pair that belongs within the parentheses after the task name.
 * Tasks without a specialized type should not explicitly declare api:org.gradle.api.DefaultTask[]. The type is automatically implied.
 * Any other configuration logic for a task should be defined as part of api:org.gradle.api.Project#task(java.lang.String,groovy.lang.Closure)[] if possible.
-* Task actions should only be declared with the methods api:org.gradle.api.Task#doFirst(org.gradle.api.Action)[] or api:org.gradle.api.Task#doLast(org.gradle.api.Action)[].
+* <<sec:hello_world,Task actions>> should only be declared with the methods api:org.gradle.api.Task#doFirst(org.gradle.api.Action)[] or api:org.gradle.api.Task#doLast(org.gradle.api.Action)[].
 * api:org.gradle.api.Task#doLast(org.gradle.api.Action)[] should be used if the task only defines a single action.
 * A task should <<sec:improving_task_discoverability,define a group and description>>.
 
