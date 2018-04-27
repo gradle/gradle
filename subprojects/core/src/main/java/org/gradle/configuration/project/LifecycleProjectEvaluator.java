@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -27,6 +28,8 @@ import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
@@ -70,23 +73,36 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         }
     }
 
-    private void notifyAfterEvaluate(ProjectEvaluationListener listener, ProjectInternal project, ProjectStateInternal state) {
-        try {
-            listener.afterEvaluate(project, state);
-        } catch (Exception e) {
-            if (state.hasFailure()) {
-                // Just log this failure, and pass the existing failure out in the project state
-                boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-                String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
-                if (logStackTraces) {
-                    LOGGER.error(infoMessage, e);
-                } else {
-                    LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
-                }
+    private void notifyAfterEvaluate(ProjectEvaluationListener firstBatch, final ProjectInternal project, final ProjectStateInternal state) {
+        @Nullable ProjectEvaluationListener nextBatch = firstBatch;
+        do {
+            try {
+                nextBatch = project.stepEvaluationListener(nextBatch, new Action<ProjectEvaluationListener>() {
+                    @Override
+                    public void execute(ProjectEvaluationListener listener) {
+                        listener.afterEvaluate(project, state);
+                    }
+                });
+            } catch (Exception e) {
+                onAfterEvaluateFailure(e, project, state);
                 return;
             }
-            addConfigurationFailure(project, state, e);
+        } while (nextBatch != null);
+    }
+
+    private void onAfterEvaluateFailure(Exception e, ProjectInternal project, ProjectStateInternal state) {
+        if (state.hasFailure()) {
+            // Just log this failure, and pass the existing failure out in the project state
+            boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+            String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
+            if (logStackTraces) {
+                LOGGER.error(infoMessage, e);
+            } else {
+                LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
+            }
+            return;
         }
+        addConfigurationFailure(project, state, e);
     }
 
     private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
