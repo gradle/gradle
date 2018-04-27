@@ -126,14 +126,15 @@ A typical Gradle project with a settings file look as such:
 ----
 
 [[sec:build_sources]]
-=== Use `buildSrc` project to abstract imperative logic
+=== Use `buildSrc` to abstract imperative logic
 
 Complex build logic is usually a good candidate for being encapsulated either as custom task or binary plugin.
 Custom task and plugin implementations should not live in the build script.
-It is very convenient to use `buildSrc` project for that purpose as long as the code is does not need to be shared among multiple, independent projects.
+It is very convenient to use `buildSrc` for that purpose as long as the code does not need to be shared among multiple, independent projects.
 
-The directory `buildSrc` is treated as a special project. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
-For multi-project builds there can be only one `buildSrc` directory, which has to be in the root project directory.
+The directory `buildSrc` is treated as an <<composite_build_intro,included build>>. Upon discovery of the directory, Gradle automatically compiles and tests this code and puts it in the classpath of your build script.
+For multi-project builds there can be only one `buildSrc` directory, which has to sit in the root project directory.
+`buildSrc` should be preferred over <<sec:script_plugins,script plugins>> as it is easier to maintain, refactor and test the code.
 
 `buildSrc` uses the same <<javalayout,source code conventions>> applicable to Java and Groovy projects.
 It also provides direct access to the Gradle API. Additional dependencies can be declared in a dedicated `build.gradle` under `buildSrc`.
@@ -145,19 +146,26 @@ It also provides direct access to the Gradle API. Additional dependencies can be
 ++++
 
 A typical project including `buildSrc` has the following layout.
+Any code under `buildSrc` should use a package similar to application code.
+Optionally, the `buildSrc` directory can host a build script if additional configuration is needed (e.g. to apply plugins or to declare dependencies).
 
 ----
 .
 ├── build.gradle
 ├── buildSrc
+│   ├── build.gradle
 │   └── src
 │       ├── main
 │       │   └── java
-│       │       ├── Deploy.java
-│       │       └── DeploymentPlugin.java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
 │       └── test
 │           └── java
-│               └── DeploymentPluginTest.java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
 └── settings.gradle
 ----
 
