@@ -20,9 +20,7 @@ publishing {
 }
 
 // START SNIPPET generate
-model {
-    tasks.generatePomFileForMavenCustomPublication {
-        destination = file("$buildDir/generated-pom.xml")
-    }
+generatePomFileForMavenCustomPublication {
+    destination = file("$buildDir/generated-pom.xml")
 }
 // END SNIPPET generate

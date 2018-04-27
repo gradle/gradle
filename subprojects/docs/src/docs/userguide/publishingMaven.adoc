@@ -295,14 +295,7 @@ The task for generating the POM file is of type api:org.gradle.api.publish.maven
 </sample>
 ++++
 
-All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
-
-[NOTE]
-====
-The “`maven-publish`” plugin leverages some experimental support for late plugin configuration, and any `GenerateMavenPom` tasks will not be constructed until the publishing extension is configured. The simplest way to ensure that the publishing plugin is configured when you attempt to access the `GenerateMavenPom` task is to place the access inside a `model` block, as the example above demonstrates.
-
-The same applies to any attempt to access publication-specific tasks like api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[]. These tasks should be referenced from within a `model` block.
-====
+All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom`.
 
 [[publishing_maven:complete_example]]
 === Complete example

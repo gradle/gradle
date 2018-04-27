@@ -89,6 +89,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.parsedIvy.description == "A demonstration of ivy descriptor customization"
+        sampleProject.dir.file("build/generated-ivy.xml").assertExists()
     }
 
     @UsesSample("ivy-publish/multiple-publications")
