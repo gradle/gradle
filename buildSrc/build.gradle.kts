@@ -24,7 +24,7 @@ buildscript {
 
 plugins {
     `java-gradle-plugin`
-    `kotlin-dsl` version "0.17.2" apply false
+    `kotlin-dsl` apply false
 }
 
 apply(plugin = "org.gradle.kotlin.ktlint-convention")
