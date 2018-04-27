@@ -284,24 +284,32 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
+        project.getTasks().createLater(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
+            @Override
+            public void execute(Javadoc javadoc) {
+                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
+                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
+                javadoc.setSource(mainSourceSet.getAllJava());
 
-        SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        Javadoc javadoc = project.getTasks().create(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-        javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-        javadoc.setSource(mainSourceSet.getAllJava());
-        addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+            }
+        });
     }
 
-    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
-        jar.setDescription("Assembles a jar archive containing the main classes.");
-        jar.setGroup(BasePlugin.BUILD_GROUP);
-        jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-
+    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
+        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+            @Override
+            public void execute(Jar jar) {
+                jar.setDescription("Assembles a jar archive containing the main classes.");
+                jar.setGroup(BasePlugin.BUILD_GROUP);
+                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+            }
+        });
+        // TODO: Allow this to be added lazily
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
@@ -363,7 +371,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -377,10 +385,16 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        Test test = project.getTasks().create(TEST_TASK_NAME, Test.class);
+
+        Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
+            @Override
+            public void execute(Test test) {
+                test.setDescription("Runs the unit tests.");
+                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            }
+        });
         project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
-        test.setDescription("Runs the unit tests.");
-        test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
     }
 
     private void configureConfigurations(Project project) {

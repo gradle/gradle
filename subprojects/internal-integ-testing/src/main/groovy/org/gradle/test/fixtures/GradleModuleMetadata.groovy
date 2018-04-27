@@ -34,7 +34,7 @@ class GradleModuleMetadata {
             JsonReader reader = new JsonReader(r)
             values = readObject(reader)
         }
-        assert values.formatVersion == '0.3'
+        assert values.formatVersion == '0.4'
         assert values.createdBy.gradle.version == GradleVersion.current().version
         assert values.createdBy.gradle.buildId
         variants = (values.variants ?: []).collect { new Variant(it.name, it) }
@@ -128,6 +128,10 @@ class GradleModuleMetadata {
         return values
     }
 
+    static Map<String, String> normalizeForTests(Map<String, ?> attributes) {
+        attributes?.collectEntries { k, v -> [k, v?.toString()] }
+    }
+
     static class Variant {
         final String name
         private final Map<String, Object> values
@@ -154,7 +158,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.prefers, it.version?.rejects ?: [], exclusions, it.reason)
+                    new Dependency(it.group, it.module, it.version?.prefers, it.version?.rejects ?: [], exclusions, it.reason, normalizeForTests(it.attributes))
                 }
             }
             dependencies
@@ -171,7 +175,7 @@ class GradleModuleMetadata {
         List<DependencyConstraint> getDependencyConstraints() {
             if (dependencyConstraints == null) {
                 dependencyConstraints = (values.dependencyConstraints ?: []).collect {
-                    new DependencyConstraint(it.group, it.module, it.version.prefers, it.version.rejects ?: [], it.reason)
+                    new DependencyConstraint(it.group, it.module, it.version.prefers, it.version.rejects ?: [], it.reason, normalizeForTests(it.attributes))
                 }
             }
             dependencyConstraints
@@ -282,6 +286,24 @@ class GradleModuleMetadata {
                 assert find()?.reason == reason
                 this
             }
+
+            DependencyView hasAttribute(String attribute) {
+                assert find()?.attributes?.containsKey(attribute)
+                this
+            }
+
+            DependencyView hasAttribute(String attribute, Object value) {
+                String expected = value?.toString()
+                assert find()?.attributes[attribute] == expected
+                this
+            }
+
+            DependencyView hasAttributes(Map<String, Object> fullAttributeSet) {
+                Map<String, String> expectedAttributes = normalizeForTests(fullAttributeSet)
+                def actualAttributes = find()?.attributes
+                assert actualAttributes == expectedAttributes
+                this
+            }
         }
 
         class DependencyConstraintView {
@@ -317,6 +339,25 @@ class GradleModuleMetadata {
                 assert find()?.reason == reason
                 this
             }
+
+
+            DependencyConstraintView hasAttribute(String attribute) {
+                assert find()?.attributes?.containsKey(attribute)
+                this
+            }
+
+            DependencyConstraintView hasAttribute(String attribute, Object value) {
+                String expected = value?.toString()
+                assert find()?.attributes[attribute] == expected
+                this
+            }
+
+            DependencyConstraintView hasAttributes(Map<String, Object> fullAttributeSet) {
+                Map<String, String> expectedAttributes = normalizeForTests(fullAttributeSet)
+                def actualAttributes = find()?.attributes
+                assert actualAttributes == expectedAttributes
+                this
+            }
         }
     }
 
@@ -326,13 +367,15 @@ class GradleModuleMetadata {
         final String version
         final List<String> rejectsVersion
         final String reason
+        final Map<String, String> attributes
 
-        Coords(String group, String module, String version, List<String> rejectsVersion = [], String reason = null) {
+        Coords(String group, String module, String version, List<String> rejectsVersion = [], String reason = null, Map<String, String> attributes = [:]) {
             this.group = group
             this.module = module
             this.version = version
             this.rejectsVersion = rejectsVersion
             this.reason = reason
+            this.attributes = attributes
         }
 
         String getCoords() {
@@ -359,8 +402,8 @@ class GradleModuleMetadata {
 
     static class Dependency extends Coords {
         final List<String> excludes
-        Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes, String reason) {
-            super(group, module, version, rejectedVersions, reason)
+        Dependency(String group, String module, String version, List<String> rejectedVersions, List<String> excludes, String reason, Map<String, String> attributes) {
+            super(group, module, version, rejectedVersions, reason, attributes)
             this.excludes = excludes*.toString()
         }
 
@@ -374,8 +417,8 @@ class GradleModuleMetadata {
     }
 
     static class DependencyConstraint extends Coords {
-        DependencyConstraint(String group, String module, String version, List<String> rejectedVersions, String reason) {
-            super(group, module, version, rejectedVersions, reason)
+        DependencyConstraint(String group, String module, String version, List<String> rejectedVersions, String reason, Map<String, String> attributes) {
+            super(group, module, version, rejectedVersions, reason, attributes)
         }
     }
 

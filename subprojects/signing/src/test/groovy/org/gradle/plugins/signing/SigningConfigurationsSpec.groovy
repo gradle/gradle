@@ -75,4 +75,14 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         then:
         signingTasks[0].getSignatureType() instanceof ArmoredSignatureType
     }
+
+    def "sign task has description"() {
+        when:
+        signing {
+            sign configurations.produced
+        }
+
+        then:
+        signProduced.description == "Signs all artifacts in the 'produced' configuration."
+    }
 }

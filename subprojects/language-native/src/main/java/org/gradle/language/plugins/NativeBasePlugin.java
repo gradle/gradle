@@ -17,6 +17,7 @@
 package org.gradle.language.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,6 +30,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.component.ComponentWithVariants;
+import org.gradle.api.component.PublishableComponent;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -46,7 +48,6 @@ import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ProductionComponent;
-import org.gradle.api.component.PublishableComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
@@ -68,6 +69,7 @@ import org.gradle.nativeplatform.tasks.StripSymbols;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
@@ -374,34 +376,54 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     public void execute(final PublicationAwareComponent component) {
                         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
                             @Override
-                            public void execute(PublishingExtension publishing) {
+                            public void execute(final PublishingExtension publishing) {
                                 final ComponentWithVariants mainVariant = component.getMainPublication();
                                 publishing.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
                                     @Override
-                                    public void execute(MavenPublication publication) {
-                                        // TODO - should track changes to these properties
-                                        publication.setGroupId(project.getGroup().toString());
-                                        publication.setArtifactId(component.getBaseName().get());
-                                        publication.setVersion(project.getVersion().toString());
-                                        publication.from(mainVariant);
-                                        ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-                                    }
-                                });
-                                for (final SoftwareComponent child : mainVariant.getVariants()) {
-                                    if (child instanceof PublishableComponent) {
-                                        final ModuleVersionIdentifier coordinates = ((PublishableComponent)child).getCoordinates();
-                                        publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                    public void execute(final MavenPublication publication) {
+                                        // TODO - use Providers to track changes to these properties instead of afterEvaluate
+                                        project.afterEvaluate(new Action<Project>() {
                                             @Override
-                                            public void execute(MavenPublication publication) {
-                                                // TODO - should track changes to these properties
-                                                publication.setGroupId(coordinates.getGroup());
-                                                publication.setArtifactId(coordinates.getName());
-                                                publication.setVersion(coordinates.getVersion());
-                                                publication.from(child);
+                                            public void execute(Project project) {
+                                                publication.setGroupId(project.getGroup().toString());
+                                                publication.setArtifactId(component.getBaseName().get());
+                                                publication.setVersion(project.getVersion().toString());
+                                                publication.from(mainVariant);
                                                 ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+
                                             }
                                         });
                                     }
+                                });
+                                Set<? extends SoftwareComponent> variants = mainVariant.getVariants();
+                                if (variants instanceof DomainObjectSet) {
+                                    ((DomainObjectSet<? extends SoftwareComponent>) variants).all(new Action<SoftwareComponent>() {
+                                        @Override
+                                        public void execute(final SoftwareComponent child) {
+                                            addPublicationFromVariant(child, publishing);
+                                        }
+                                    });
+                                } else {
+                                    for (SoftwareComponent variant : variants) {
+                                        addPublicationFromVariant(variant, publishing);
+                                    }
+                                }
+                            }
+
+                            private void addPublicationFromVariant(final SoftwareComponent child, PublishingExtension publishing) {
+                                if (child instanceof PublishableComponent) {
+                                    final ModuleVersionIdentifier coordinates = ((PublishableComponent)child).getCoordinates();
+                                    publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
+                                        @Override
+                                        public void execute(MavenPublication publication) {
+                                            // TODO - use Providers to track changes to these properties
+                                            publication.setGroupId(coordinates.getGroup());
+                                            publication.setArtifactId(coordinates.getName());
+                                            publication.setVersion(coordinates.getVersion());
+                                            publication.from(child);
+                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                        }
+                                    });
                                 }
                             }
                         });

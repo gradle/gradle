@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
@@ -31,9 +32,9 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     MavenPomInternal getPom();
 
-    void setPomArtifact(MavenArtifact artifact);
+    void setPomGenerator(Task pomGenerator);
 
-    void setGradleModuleMetadataArtifact(MavenArtifact artifact);
+    void setModuleDescriptorGenerator(Task moduleMetadataGenerator);
 
     /**
      * @deprecated Kept to not break third-party plugins
@@ -62,7 +63,5 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
      * This method enables this behaviour for the current publication.
      */
     void publishWithOriginalFileName();
-
-    boolean canPublishModuleMetadata();
 }
 

@@ -55,12 +55,13 @@ class NodeState implements DependencyGraphNode {
 
     private final Long resultId;
     private final ComponentState component;
-    private final List<EdgeState> incomingEdges = Lists.newLinkedList();
-    private final List<EdgeState> outgoingEdges = Lists.newLinkedList();
+    private final List<EdgeState> incomingEdges = Lists.newArrayList();
+    private final List<EdgeState> outgoingEdges = Lists.newArrayList();
     private final ResolvedConfigurationIdentifier id;
 
     private final ConfigurationMetadata metaData;
     private final ResolveState resolveState;
+    private final boolean isTransitive;
     private ModuleExclusion previousTraversalExclusions;
 
     NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
@@ -69,6 +70,7 @@ class NodeState implements DependencyGraphNode {
         this.component = component;
         this.resolveState = resolveState;
         this.metaData = md;
+        this.isTransitive = metaData.isTransitive();
         component.addConfiguration(this);
     }
 
@@ -130,7 +132,7 @@ class NodeState implements DependencyGraphNode {
     }
 
     public boolean isTransitive() {
-        return metaData.isTransitive();
+        return isTransitive;
     }
 
     /**

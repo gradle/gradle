@@ -16,15 +16,21 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import accessors.base
 import accessors.java
+import accessors.reporting
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.BasePluginConvention
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.gradlebuild.packaging.ShadedJar
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.CleanUpDaemons
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -36,7 +42,7 @@ import kotlin.collections.set
 class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.withType<DistributionTest> {
+        tasks.configureEachLater(DistributionTest::class.java) {
             dependsOn(":toolingApi:toolingApiShadedJar")
             dependsOn(":cleanUpCaches")
             finalizedBy(":cleanUpDaemons")
@@ -44,56 +50,62 @@ class DistributionTestingPlugin : Plugin<Project> {
 
             setJvmArgsOfTestJvm()
             setSystemPropertiesOfTestJVM(project)
-            configureGradleTestEnvironment(this)
-            setDedicatedTestOutputDirectoryPerTask(this)
-            addSetUpAndTearDownActions(this)
+            configureGradleTestEnvironment(rootProject.providers, rootProject.layout, rootProject.base)
+            setDedicatedTestOutputDirectoryPerTask(java, reporting)
+            addSetUpAndTearDownActions(gradle)
         }
     }
 
     private
-    fun Project.addSetUpAndTearDownActions(distributionTest: DistributionTest) {
+    fun DistributionTest.addSetUpAndTearDownActions(gradle: Gradle) {
         lateinit var daemonListener: Any
 
         // TODO Why don't we register with the test listener of the test task
         // We would not need to do late configuration and need to add a global listener
         // We now add multiple global listeners stepping on each other
-        distributionTest.doFirst {
+        doFirst {
             // TODO Refactor to not reach into tasks of another project
-            val cleanUpDaemons: CleanUpDaemons by rootProject.tasks
+            val cleanUpDaemons: CleanUpDaemons by gradle.rootProject.tasks
             daemonListener = cleanUpDaemons.newDaemonListener()
             gradle.addListener(daemonListener)
         }
 
         // TODO Remove once we go to task specific listeners.
-        distributionTest.doLast {
+        doLast {
             gradle.removeListener(daemonListener)
         }
     }
 
     private
-    fun Project.setDedicatedTestOutputDirectoryPerTask(distributionTest: DistributionTest) {
-        distributionTest.reports.junitXml.destination = java.testResultsDir.resolve(distributionTest.name)
-        // TODO Confirm that this is not needed
-        afterEvaluate {
-            distributionTest.reports.html.destination = file("${the<ReportingExtension>().baseDir}/${distributionTest.name}")
+    fun DistributionTest.setDedicatedTestOutputDirectoryPerTask(java: JavaPluginConvention, reporting: ReportingExtension) {
+        reports.junitXml.destination = File(java.testResultsDir, name)
+        val htmlDirectory = reporting.baseDirectory.dir(this.name)
+        project.afterEvaluate {
+            // TODO: Replace this with a Provider
+            reports.html.destination = htmlDirectory.get().asFile
         }
     }
 
     private
-    fun Project.configureGradleTestEnvironment(distributionTest: DistributionTest): Unit = distributionTest.run {
-        gradleInstallationForTest.run {
-            val intTestImage: Sync by tasks
-            val toolingApiShadedJar: Zip by rootProject.project(":toolingApi").tasks
-            gradleHomeDir.set(dir { intTestImage.destinationDir })
-            gradleUserHomeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
-            daemonRegistry.set(rootProject.layout.buildDirectory.dir("daemon"))
-            toolingApiShadedJarDir.set(dir { toolingApiShadedJar.destinationDir })
+    fun DistributionTest.configureGradleTestEnvironment(providers: ProviderFactory, layout: ProjectLayout, basePluginConvention: BasePluginConvention) {
+        // TODO: Replace this with something in the Gradle API to make this transition easier
+        fun dirWorkaround(directory: () -> File): Provider<Directory> =
+            layout.directoryProperty(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
+
+        gradleInstallationForTest.apply {
+            // TODO Refactor to not reach into tasks of another project
+            val intTestImage: Sync by project.tasks
+            val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
+            gradleUserHomeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
+            daemonRegistry.set(layout.buildDirectory.dir("daemon"))
+            gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
+            toolingApiShadedJarDir.set(dirWorkaround { toolingApiShadedJar.jarFile.get().asFile.parentFile })
         }
 
-        libsRepository.dir.set(rootProject.layout.projectDirectory.dir("build/repo"))
+        libsRepository.dir.set(layout.projectDirectory.dir("build/repo"))
 
-        binaryDistributions.run {
-            distsDir.set(dir { rootProject.the<BasePluginConvention>().distsDir })
+        binaryDistributions.apply {
+            distsDir.set(dirWorkaround({ basePluginConvention.distsDir }))
             distZipVersion = project.version.toString()
         }
     }
@@ -131,10 +143,6 @@ class DistributionTestingPlugin : Plugin<Project> {
         mirrors.forEach { mirror ->
             systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
         }
-    }
-
-    fun Project.dir(directory: () -> File): Provider<Directory> {
-        return layout.buildDirectory.dir(provider { directory().absolutePath })
     }
 
     fun collectMirrorUrls(): Map<String, String> =

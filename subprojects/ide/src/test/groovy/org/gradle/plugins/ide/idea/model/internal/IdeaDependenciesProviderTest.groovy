@@ -31,7 +31,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final dependenciesProvider = new IdeaDependenciesProvider(artifactRegistry)
 
     def setup() {
-        _ * artifactRegistry.getIdeArtifactMetadata(_, _) >> { Class c, def m ->
+        _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
             return Stub(c)
         }
     }

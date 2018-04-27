@@ -55,6 +55,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -79,7 +80,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
-    private final Object lock = new Object();
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -275,7 +275,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, Action<? super T> configurationAction) {
+    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, @Nullable  Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
@@ -285,6 +285,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             provider.get();
         }
         return provider;
+    }
+
+    @Override
+    public <T extends Task> Provider<T> createLater(String name, Class<T> type) {
+        return createLater(name, type, null);
+    }
+
+    @Override
+    public <T extends Task> Provider<T> createLater(String name) {
+        return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
@@ -493,7 +503,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Action<? super T> configureAction;
         T task;
 
-        public TaskCreatingProvider(Class<T> type, String name, Action<? super T> configureAction) {
+        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
             this.configureAction = configureAction;
             statistics.lazyTask();
@@ -502,13 +512,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                // We synchronize this to prevent multiple threads from attempting to create a task concurrently
-                synchronized (lock) {
-                    task = type.cast(findByNameWithoutRules(name));
-                    if (task == null) {
-                        task = createTask(name, type, NO_ARGS);
-                        statistics.lazyTaskRealized();
-                        add(task);
+                task = type.cast(findByNameWithoutRules(name));
+                if (task == null) {
+                    task = createTask(name, type, NO_ARGS);
+                    statistics.lazyTaskRealized();
+                    add(task);
+                    if (configureAction != null) {
                         configureAction.execute(task);
                         configureAction = null;
                     }
@@ -528,10 +537,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                // We synchronize this to prevent multiple threads from attempting to create a task concurrently
-                synchronized (lock) {
-                    task = type.cast(getByName(name));
-                }
+                task = type.cast(getByName(name));
             }
             return task;
         }

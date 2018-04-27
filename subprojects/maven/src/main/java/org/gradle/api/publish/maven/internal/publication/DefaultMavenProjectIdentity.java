@@ -16,12 +16,18 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 public class DefaultMavenProjectIdentity implements MavenProjectIdentity {
+    private Module delegate;
     private String groupId;
     private String artifactId;
     private String version;
+
+    public DefaultMavenProjectIdentity(Module delegate) {
+        this.delegate = delegate;
+    }
 
     public DefaultMavenProjectIdentity(String groupId, String artifactId, String version) {
         this.groupId = groupId;
@@ -30,7 +36,7 @@ public class DefaultMavenProjectIdentity implements MavenProjectIdentity {
     }
 
     public String getGroupId() {
-        return groupId;
+        return groupId != null ? groupId : (delegate != null ? delegate.getGroup() : null);
     }
 
     public void setGroupId(String groupId) {
@@ -38,7 +44,7 @@ public class DefaultMavenProjectIdentity implements MavenProjectIdentity {
     }
 
     public String getArtifactId() {
-        return artifactId;
+        return artifactId != null ? artifactId : (delegate != null ? delegate.getName() : null);
     }
 
     public void setArtifactId(String artifactId) {
@@ -46,7 +52,7 @@ public class DefaultMavenProjectIdentity implements MavenProjectIdentity {
     }
 
     public String getVersion() {
-        return version;
+        return version != null ? version : (delegate != null ? delegate.getVersion() : null);
     }
 
     public void setVersion(String version) {

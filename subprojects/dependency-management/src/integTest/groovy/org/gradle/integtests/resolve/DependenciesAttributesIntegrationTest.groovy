@@ -456,9 +456,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot choose between 'org:test' and 'org:test:1.0' because they require a different value for attribute 'custom':
-  - Dependency 'org:test' wants value 'c1'
-  - Constraint 'org:test:1.0' wants value 'c2'""")
+        failure.assertHasCause("""Cannot select a variant of 'org:test' because different values for attribute 'custom' are requested:
+  - Dependency path ':test:unspecified' wants 'org:test' with attribute custom = c1
+  - Constraint path ':test:unspecified' wants 'org:test:1.0' with attribute custom = c2""")
     }
 
     @RequiredFeatures(
@@ -803,6 +803,170 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
         'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives (using published metadata)")
+    def "Attribute value on dependency only affects selection of this dependency (using published metadata)"() {
+        given:
+        repository {
+            def modules = ['direct', 'transitive', 'leaf']
+            modules.eachWithIndex { module, idx ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        if (idx < modules.size() - 1) {
+                            ['api', 'runtime'].each { name ->
+                                variant(name) {
+                                    dependsOn("org:${modules[idx + 1]}${appendix}:1.0") {
+                                        if (module == 'direct') {
+                                            attributes.custom = "${appendix == 'A' ? transitiveAttributeValueA : transitiveAttributeValueB}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        variant('api') {
+                            attribute('custom', 'c1')
+                        }
+                        variant('runtime') {
+                            attribute('custom', 'c2')
+                        }
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationAttributeValue')
+
+            dependencies {                
+                conf('org:directA:1.0')
+                conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            ['direct', 'transitive', 'leaf'].each { module ->
+                ['A', 'B'].each { appendix ->
+                    "org:${module}${appendix}:1.0" {
+                        expectResolve()
+                    }
+                }
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:directA:1.0') {
+                    configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    module('org:transitiveA:1.0') {
+                        configuration = expectedTransitiveVariantA
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantA", custom: transitiveAttributeValueA])
+                        module('org:leafA:1.0') {
+                            configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                        }
+                    }
+                }
+                module('org:directB:1.0') {
+                    configuration = expectedDirectVariant
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    module('org:transitiveB:1.0') {
+                        configuration = expectedTransitiveVariantB
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantB", custom: transitiveAttributeValueB])
+                        module('org:leafB:1.0') {
+                            configuration = expectedLeafVariant
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        configurationAttributeValue | transitiveAttributeValueA | transitiveAttributeValueB | expectedDirectVariant | expectedTransitiveVariantA | expectedTransitiveVariantB | expectedLeafVariant
+        'c1'                        | 'c1'                      | 'c1'                      | 'api'                 | 'api'                      | 'api'                      | 'api'
+        'c1'                        | 'c2'                      | 'c2'                      | 'api'                 | 'runtime'                  | 'runtime'                  | 'api'
+        'c2'                        | 'c2'                      | 'c2'                      | 'runtime'             | 'runtime'                  | 'runtime'                  | 'runtime'
+        'c2'                        | 'c1'                      | 'c1'                      | 'runtime'             | 'api'                      | 'api'                      | 'runtime'
+
+        'c1'                        | 'c1'                      | 'c2'                      | 'api'                 | 'api'                      | 'runtime'                  | 'api'
+        'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
+        'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
+        'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "fails when 2 transitive dependencies requires a different attribute value"() {
+        given:
+        repository {
+            'org:directA:1.0' {
+                variant('api') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c1')
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c1')
+                    }
+                }
+            }
+            'org:directB:1.0' {
+                variant('api') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c2')
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:transitive:1.0') {
+                        attribute('custom', 'c2')
+                    }
+                }
+            }
+            'org:transitive:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+               conf('org:directA:1.0')
+               conf('org:directB:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:directA:1.0' {
+                expectGetMetadata()
+            }
+            'org:directB:1.0' {
+                expectGetMetadata()
+            }
+            'org:transitive:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot select a variant of 'org:transitive' because different values for attribute 'custom' are requested:
+  - Dependency path ':test:unspecified' --> 'org:directA:1.0' wants 'org:transitive:1.0' with attribute custom = c1
+  - Dependency path ':test:unspecified' --> 'org:directB:1.0' wants 'org:transitive:1.0' with attribute custom = c2""")
     }
 
     static Closure<String> defaultStatus() {

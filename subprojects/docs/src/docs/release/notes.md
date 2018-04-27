@@ -32,9 +32,9 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
         sign publishing.publications
     }
 
-### Published Ivy descriptors now contain configuration-wide dependency exclusions
+### Configuration-wide dependency excludes are now published
 
-The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor.
+The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
 ## Promoted features
 
@@ -88,13 +88,20 @@ TBD - previously this was broken, and plugins may accidentally rely on this beha
 
 Previously, `Signature.setFile()` could be used to replace the file used for publishing a `Signature`. However, the actual signature file was still being generated at its default location. Therefore, `Signature.setFile()` is now deprecated and will be removed in a future release.
 
+### Parsing of `exclusions` in Maven POM now accepts implicit wildcards
+
+Previously, a Maven POM with an `exclusion` missing either the `groupId` or the `artifactId` was ignored by Gradle.
+This is no longer the case and thus may cause modules to be excluded from a dependency graph that were previously included.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
+- [Andrew Potter](https://github.com/apottere) Update pluginManagement documentation to mention global configuration options (gradle/gradle#4999)
 - [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
 - [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
+- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)

@@ -155,7 +155,7 @@ dependencies {
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the version constraints: \n" +
             "   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '1.+'\n" +
             "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.1'\n" +
-            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version 1.0")
+            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version '1.0'")
     }
 
     def 'fails when lock file entry not resolved'() {
@@ -299,7 +299,7 @@ dependencies {
         failure.assertHasCause("Cannot find a version of 'org:foo' that satisfies the version constraints: \n" +
             "   Dependency path ':depLock:unspecified' --> 'org:foo' prefers '[1.0, 1.1]'\n" +
             "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.1'\n" +
-            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version 1.0")
+            "   Constraint path ':depLock:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version '1.0'")
 //        failure.assertHasCause("Dependency lock out of date:\n" +
 //            "\tLock file contained 'org:bar:1.0' but it is not part of the resolved modules\n" +
 //            "\tLock file expected 'org:foo:1.0' but resolution result was 'org:foo:1.1'")
@@ -403,5 +403,219 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+    }
+
+    def 'includes transitive dependencies in the lock file'() {
+        def dep = mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+    }
+
+    def 'updates part of the lockfile'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+    }
+
+    def 'updates part of the lockfile using wildcard'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:f*'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+    }
+
+    def 'updates but ignores irrelevant modules'() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:[1.0,2.0)'
+    lockedConf 'org:foo:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo,org:baz'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.1'])
+    }
+
+    def 'updates multiple parts of the lockfile'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'buz', '1.0').publish()
+        mavenRepo.module('org', 'buz', '1.1').publish()
+        def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
+        def bar11 = mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'baz', '1.0').dependsOn(bar10).publish()
+        mavenRepo.module('org', 'baz', '1.1').dependsOn(bar11).publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0', 'org:baz:1.0', 'org:buz:1.0'])
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:baz:[1.0,2.0)'
+    lockedConf 'org:buz:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo,org:baz'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1', 'org:baz:1.1', 'org:buz:1.0'])
+    }
+
+    def 'writes a new lock file if update done without lockfile present'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 }

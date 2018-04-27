@@ -117,12 +117,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     CrossVersionPerformanceResults performMeasurements() {
-        profiler = Profiler.create()
-        try {
-            new Measurement().run()
-        } finally {
-            CompositeStoppable.stoppable(profiler).stop()
-        }
+        new Measurement().run()
     }
 
     static {
@@ -175,7 +170,15 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             def testId = experiment.displayName
             def scenarioSelector = new TestScenarioSelector()
             Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experiment.projectName].toSet(), resultStore))
+            profiler = Profiler.create()
+            try {
+                doRun(testId)
+            } finally {
+                CompositeStoppable.stoppable(profiler).stop()
+            }
+        }
 
+        private CrossVersionPerformanceResults doRun(String testId) {
             def testProjectLocator = new TestProjectLocator()
             def projectDir = testProjectLocator.findProjectDir(experiment.projectName)
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()

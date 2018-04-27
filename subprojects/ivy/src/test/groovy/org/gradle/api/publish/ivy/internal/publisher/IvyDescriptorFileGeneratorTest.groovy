@@ -15,11 +15,12 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
+
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
+import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
@@ -131,8 +132,9 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
     def "writes supplied publication artifacts"() {
         when:
-        def artifact1 = new DefaultIvyArtifact(null, "artifact1", "ext1", "type1", "classy")
-        def artifact2 = new DefaultIvyArtifact(null, null, "", null, null)
+        def artifact1 = new FileBasedIvyArtifact(new File("foo.txt"), new DefaultIvyPublicationIdentity("org", "module", "rev"))
+        artifact1.classifier = "classy"
+        def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""))
         artifact2.setConf("runtime")
         generator.addArtifact(artifact1)
         generator.addArtifact(artifact2)
@@ -143,15 +145,15 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         with (ivyXml) {
             publications.artifact.size() == 2
             with (publications[0].artifact[0]) {
-                it.@name == "artifact1"
-                it.@type == "type1"
-                it.@ext == "ext1"
+                it.@name == "module"
+                it.@type == "txt"
+                it.@ext == "txt"
                 it."@m:classifier" == "classy"
                 it.@conf.isEmpty()
             }
             with (publications[0].artifact[1]) {
-                it.@name.isEmpty()
-                it.@type.isEmpty()
+                it.@name == ""
+                it.@type == ""
                 it.@ext == ""
                 it."@m:classifier".isEmpty()
                 it.@conf == "runtime"

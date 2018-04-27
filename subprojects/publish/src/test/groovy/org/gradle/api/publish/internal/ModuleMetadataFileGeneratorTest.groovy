@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -40,7 +39,10 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataFileGeneratorTest extends Specification {
 
@@ -214,12 +216,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d1.name >> "m1"
         d1.version >> "v1"
         d1.transitive >> true
+        d1.attributes >> ImmutableAttributes.EMPTY
 
         def d2 = Stub(ExternalDependency)
         d2.group >> "g2"
         d2.name >> "m2"
         d2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])
         d2.transitive >> false
+        d2.attributes >> ImmutableAttributes.EMPTY
 
         def d3 = Stub(ExternalDependency)
         d3.group >> "g3"
@@ -227,18 +231,21 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d3.versionConstraint >> prefers("v3")
         d3.transitive >> true
         d3.excludeRules >> [new DefaultExcludeRule("g4", "m4"), new DefaultExcludeRule(null, "m5"), new DefaultExcludeRule("g5", null)]
+        d3.attributes >> ImmutableAttributes.EMPTY
 
         def d4 = Stub(ExternalDependency)
         d4.group >> "g4"
         d4.name >> "m4"
         d4.versionConstraint >> prefers('')
         d4.transitive >> true
+        d4.attributes >> ImmutableAttributes.EMPTY
 
         def d5 = Stub(ExternalDependency)
         d5.group >> "g5"
         d5.name >> "m5"
         d5.versionConstraint >> prefersAndRejects('', ['1.0'])
         d5.transitive >> true
+        d5.attributes >> ImmutableAttributes.EMPTY
 
         def d6 = Stub(ExternalDependency)
         d6.group >> "g6"
@@ -246,6 +253,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d6.versionConstraint >> prefers('1.0')
         d6.transitive >> true
         d6.reason >> 'custom reason'
+        d6.attributes >> ImmutableAttributes.EMPTY
+
+        def d7 = Stub(ExternalDependency)
+        d7.group >> "g7"
+        d7.name >> "m7"
+        d7.versionConstraint >> prefers('1.0')
+        d7.transitive >> true
+        d7.attributes >> attributes(foo: 'foo', bar: 'baz')
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -255,7 +270,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
-        v2.dependencies >> [d2, d3, d4, d5, d6]
+        v2.dependencies >> [d2, d3, d4, d5, d6, d7]
 
         component.usages >> [v1, v2]
 
@@ -357,6 +372,17 @@ class ModuleMetadataFileGeneratorTest extends Specification {
             "prefers": "1.0"
           },
           "reason": "custom reason"
+        },
+        {
+          "group": "g7",
+          "module": "m7",
+          "version": {
+            "prefers": "1.0"
+          },
+          "attributes": {
+            "bar": "baz",
+            "foo": "foo"
+          }
         }
       ]
     }
@@ -374,16 +400,25 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         dc1.group >> "g1"
         dc1.name >> "m1"
         dc1.versionConstraint >> prefers("v1")
+        dc1.attributes >> ImmutableAttributes.EMPTY
 
         def dc2 = Stub(DependencyConstraint)
         dc2.group >> "g2"
         dc2.name >> "m2"
         dc2.versionConstraint >> prefersAndRejects("v2", ["v3", "v4"])
+        dc2.attributes >> ImmutableAttributes.EMPTY
 
         def dc3 = Stub(DependencyConstraint)
         dc3.group >> "g3"
         dc3.name >> "m3"
         dc3.versionConstraint >> prefers("v3")
+        dc3.attributes >> ImmutableAttributes.EMPTY
+
+        def dc4 = Stub(DependencyConstraint)
+        dc4.group >> "g4"
+        dc4.name >> "m4"
+        dc4.versionConstraint >> prefers("v4")
+        dc4.attributes >> attributes(quality: 'awesome', channel: 'canary')
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -392,7 +427,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
-        v2.dependencyConstraints >> [dc2, dc3]
+        v2.dependencyConstraints >> [dc2, dc3, dc4]
 
         component.usages >> [v1, v2]
 
@@ -453,6 +488,17 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "version": {
             "prefers": "v3"
           }
+        },
+        {
+          "group": "g4",
+          "module": "m4",
+          "version": {
+            "prefers": "v4"
+          },
+          "attributes": {
+            "channel": "canary",
+            "quality": "awesome"
+          }
         }
       ]
     }
@@ -477,7 +523,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
-        v2.attributes >> attributes()
+        v2.attributes >> attributes([:])
 
         component.usages >> [v1, v2]
 
@@ -722,21 +768,112 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5035")
+    def "writes file for component with configuration excludes"() {
+        def writer = new StringWriter()
+        def component = Stub(TestComponent)
+        def publication = publication(component, id)
+
+        def apiDependency = Stub(ExternalDependency)
+        apiDependency.group >> "com.acme"
+        apiDependency.name >> "api"
+        apiDependency.transitive >> true
+        apiDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "api")]
+        apiDependency.attributes >> ImmutableAttributes.EMPTY
+
+        def runtimeDependency = Stub(ExternalDependency)
+        runtimeDependency.group >> "com.acme"
+        runtimeDependency.name >> "runtime"
+        runtimeDependency.transitive >> true
+        runtimeDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "runtime")]
+        runtimeDependency.attributes >> ImmutableAttributes.EMPTY
+
+        def intransitiveDependency = Stub(ExternalDependency)
+        intransitiveDependency.group >> "com.acme"
+        intransitiveDependency.name >> "intransitive"
+        intransitiveDependency.transitive >> false
+        intransitiveDependency.attributes >> ImmutableAttributes.EMPTY
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.dependencies >> [apiDependency]
+        v1.globalExcludes >> [new DefaultExcludeRule("org.example.api", null)]
+
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.dependencies >> [runtimeDependency, intransitiveDependency]
+        v2.globalExcludes >> [new DefaultExcludeRule("org.example.runtime", null)]
+
+        component.usages >> [v1, v2]
+
+        when:
+        generator.generateTo(publication, [publication], writer)
+
+        then:
+        writer.toString().contains """
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {},
+      "dependencies": [
+        {
+          "group": "com.acme",
+          "module": "api",
+          "version": {},
+          "excludes": [
+            {
+              "group": "org.example.api",
+              "module": "*"
+            },
+            {
+              "group": "com.example.bad",
+              "module": "api"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "v2",
+      "attributes": {},
+      "dependencies": [
+        {
+          "group": "com.acme",
+          "module": "runtime",
+          "version": {},
+          "excludes": [
+            {
+              "group": "org.example.runtime",
+              "module": "*"
+            },
+            {
+              "group": "com.example.bad",
+              "module": "runtime"
+            }
+          ]
+        },
+        {
+          "group": "com.acme",
+          "module": "intransitive",
+          "version": {},
+          "excludes": [
+            {
+              "group": "*",
+              "module": "*"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+"""
+    }
+
     def publication(SoftwareComponentInternal component, ModuleVersionIdentifier coords) {
         def publication = Stub(PublicationInternal)
         publication.component >> component
         publication.coordinates >> coords
         return publication
-    }
-
-    def attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
     }
 
     interface TestComponent extends ComponentWithVariants, SoftwareComponentInternal {

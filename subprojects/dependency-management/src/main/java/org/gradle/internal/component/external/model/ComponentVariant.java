@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
@@ -45,6 +46,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         ImmutableList<ExcludeMetadata> getExcludes();
 
         String getReason();
+
+        ImmutableAttributes getAttributes();
     }
 
     interface DependencyConstraint {
@@ -55,6 +58,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         VersionConstraint getVersionConstraint();
 
         String getReason();
+
+        ImmutableAttributes getAttributes();
     }
 
     interface File {

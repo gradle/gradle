@@ -27,6 +27,7 @@ task crossVersionTests(type: org.gradle.gradlebuild.test.integrationtests.Integr
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }

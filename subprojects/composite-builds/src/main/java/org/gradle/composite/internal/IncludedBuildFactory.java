@@ -16,9 +16,11 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.IncludedBuildState;
 
 public interface IncludedBuildFactory {
-    IncludedBuildInternal createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState createBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory);
 }

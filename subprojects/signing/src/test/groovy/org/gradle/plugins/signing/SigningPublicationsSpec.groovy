@@ -73,4 +73,13 @@ class SigningPublicationsSpec extends SigningProjectSpec {
         signTasks.isEmpty()
     }
 
+    def "sign task has description"() {
+        when:
+        signing {
+            sign publishing.publications
+        }
+
+        then:
+        signMavenPublication.description == "Signs all artifacts in the 'maven' publication."
+    }
 }

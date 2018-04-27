@@ -19,6 +19,8 @@ package org.gradle.composite.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -29,10 +31,10 @@ import java.util.Map;
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
     private final Map<BuildIdentifier, IncludedBuildController> buildControllers = Maps.newHashMap();
     private final ManagedExecutor executorService;
-    private final IncludedBuildRegistry includedBuildRegistry;
+    private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, IncludedBuildRegistry includedBuildRegistry) {
-        this.includedBuildRegistry = includedBuildRegistry;
+    DefaultIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry) {
+        this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
     }
 
@@ -42,7 +44,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             return buildController;
         }
 
-        IncludedBuildInternal build = includedBuildRegistry.getBuild(buildId);
+        IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
         DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
         executorService.submit(newBuildController);
@@ -75,7 +77,7 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
             buildController.stopTaskExecution();
         }
         buildControllers.clear();
-        for (IncludedBuildInternal includedBuild : includedBuildRegistry.getIncludedBuilds()) {
+        for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
             includedBuild.finishBuild();
         }
     }

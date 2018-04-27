@@ -16,48 +16,44 @@
 package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.ProjectPathRegistry;
-import org.gradle.util.Path;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 
 import java.util.Map;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final ProjectPathRegistry projectRegistry;
-    private Map<Path, String> deduplicated;
+    private final ProjectStateRegistry projectRegistry;
+    private Map<ProjectState, String> deduplicated;
 
-    public DefaultUniqueProjectNameProvider(ProjectPathRegistry projectRegistry) {
+    public DefaultUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
     @Override
     public String getUniqueName(Project project) {
-        String uniqueName = getDeduplicatedNames().get(((ProjectInternal) project).getIdentityPath());
+        String uniqueName = getDeduplicatedNames().get(projectRegistry.stateFor(project));
         if (uniqueName != null) {
             return uniqueName;
         }
         return project.getName();
     }
 
-    private synchronized Map<Path, String> getDeduplicatedNames() {
+    private synchronized Map<ProjectState, String> getDeduplicatedNames() {
         if (deduplicated == null) {
-            HierarchicalElementDeduplicator<Path> deduplicator = new HierarchicalElementDeduplicator<Path>(new ProjectPathDeduplicationAdapter());
-            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjectPaths());
+            HierarchicalElementDeduplicator<ProjectState> deduplicator = new HierarchicalElementDeduplicator<ProjectState>(new ProjectPathDeduplicationAdapter());
+            this.deduplicated = deduplicator.deduplicate(projectRegistry.getAllProjects());
         }
         return deduplicated;
     }
 
-    private class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<Path> {
+    private class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<ProjectState> {
         @Override
-        public String getName(Path element) {
-            if (element == Path.ROOT) {
-                return projectRegistry.getProjectName(element);
-            }
+        public String getName(ProjectState element) {
             return element.getName();
         }
 
         @Override
-        public Path getParent(Path element) {
+        public ProjectState getParent(ProjectState element) {
             return element.getParent();
         }
     }

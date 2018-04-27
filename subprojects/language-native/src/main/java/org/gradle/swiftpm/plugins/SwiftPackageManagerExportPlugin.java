@@ -78,12 +78,14 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
     private final VcsResolver vcsResolver;
     private final VersionSelectorScheme versionSelectorScheme;
     private final ProjectDependencyPublicationResolver publicationResolver;
+    private final VersionParser versionParser;
 
     @Inject
-    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme, ProjectDependencyPublicationResolver publicationResolver) {
+    public SwiftPackageManagerExportPlugin(VcsResolver vcsResolver, VersionSelectorScheme versionSelectorScheme, ProjectDependencyPublicationResolver publicationResolver, VersionParser versionParser) {
         this.vcsResolver = vcsResolver;
         this.versionSelectorScheme = versionSelectorScheme;
         this.publicationResolver = publicationResolver;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -247,7 +249,7 @@ public class SwiftPackageManagerExportPlugin implements Plugin<Project> {
                 // TODO - take care of this in the selector parser
                 if (prefix.endsWith(".")) {
                     String versionString = prefix.substring(0, prefix.length() - 1);
-                    Version version = VersionParser.INSTANCE.transform(versionString);
+                    Version version = versionParser.transform(versionString);
                     if (version.getNumericParts().length == 1) {
                         Long part1 = version.getNumericParts()[0];
                         return new VersionDependency(gitSpec.getUrl(), part1 + ".0.0");

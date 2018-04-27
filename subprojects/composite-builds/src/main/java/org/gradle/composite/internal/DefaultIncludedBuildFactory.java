@@ -17,8 +17,10 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -43,8 +45,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     }
 
     @Override
-    public IncludedBuildInternal createBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildState createBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {
         validateBuildDirectory(buildDefinition.getBuildRootDir());
-        return instantiator.newInstance(DefaultIncludedBuild.class, buildDefinition, nestedBuildFactory, workerLeaseService.getCurrentWorkerLease());
+        return instantiator.newInstance(DefaultIncludedBuild.class, buildIdentifier, buildDefinition, isImplicit, nestedBuildFactory, workerLeaseService.getCurrentWorkerLease());
     }
 }

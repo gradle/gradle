@@ -282,8 +282,12 @@ class ModuleVersionSpec {
                         new FileSpec("${module.module}-${module.version}-$it.name.${it.ext}", it.url)
                     }
                     variant.dependsOn.each {
-                        def args = it.split(':') as List
-                        dependsOn(*args)
+                        if (it instanceof VariantSpec.DependencySpec) {
+                            dependsOn(it.group, it.name, it.version, it.configuration)
+                        } else {
+                            def args = it.split(':') as List
+                            dependsOn(*args)
+                        }
                     }
                     capabilities = variant.capabilities.collect {
                         new CapabilitySpec(group: it.group, name: it.name, version:it.version)

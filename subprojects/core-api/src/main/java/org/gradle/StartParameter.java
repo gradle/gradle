@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.emptyList;
+
 /**
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
  * Gradle.
@@ -97,6 +99,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean noBuildScan;
     private boolean interactive;
     private boolean writeDependencyLocks;
+    private List<String> lockedDependenciesToUpdate = emptyList();
 
     /**
      * {@inheritDoc}
@@ -257,6 +260,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.interactive = interactive;
         p.writeDependencyLocks = writeDependencyLocks;
+        p.lockedDependenciesToUpdate = new ArrayList<String>(lockedDependenciesToUpdate);
         return p;
     }
 
@@ -339,7 +343,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setTaskNames(@Nullable Iterable<String> taskNames) {
         if (taskNames == null) {
-            this.taskRequests = Collections.emptyList();
+            this.taskRequests = emptyList();
         } else {
             this.taskRequests = Arrays.<TaskExecutionRequest>asList(new DefaultTaskExecutionRequest(taskNames));
         }
@@ -885,5 +889,32 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public boolean isWriteDependencyLocks() {
         return writeDependencyLocks;
+    }
+
+    /**
+     * Indicates that specified dependencies are to be allowed to update their version.
+     * Implicitly activates dependency locking persistence.
+     *
+     * @param lockedDependenciesToUpdate the modules to update
+     * @see #isWriteDependencyLocks()
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
+        this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
+        this.writeDependencyLocks = true;
+    }
+
+    /**
+     * Returns the list of modules that are to be allowed to update their version compared to the lockfile.
+     *
+     * @return a list of modules allowed to have a version update
+     *
+     * @since 4.8
+     */
+    @Incubating
+    public List<String> getLockedDependenciesToUpdate() {
+        return lockedDependenciesToUpdate;
     }
 }

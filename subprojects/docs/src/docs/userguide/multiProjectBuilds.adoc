@@ -317,87 +317,6 @@ We can show where this hack doesn't work if we now switch to the `consumer` dir 
 
 The problem is that the two “`action`” tasks are unrelated. If you execute the build from the “`messages`” project Gradle executes them both because they have the same name and they are down the hierarchy. In the last example only one “`action`” task was down the hierarchy and therefore it was the only task that was executed. We need something better than this hack.
 
-[[ssub:declaring_dependencies]]
-===== Declaring dependencies
-
-
-++++
-<sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true" title="Declaring dependencies">
-                    <layout>
-                        build.gradle
-                        settings.gradle
-                        consumer/build.gradle
-                        producer/build.gradle
-                    </layout>
-                    <sourcefile file="build.gradle"/>
-                    <sourcefile file="settings.gradle"/>
-                    <sourcefile file="consumer/build.gradle"/>
-                    <sourcefile file="producer/build.gradle"/>
-                    <output args="-q action"/>
-                </sample>
-++++
-
-Running this from the `consumer` directory gives:
-
-++++
-<sample id="multiprojectMessagesDependenciesSubBuild" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages/consumer" title="Declaring dependencies">
-                    <output args="-q action"/>
-                </sample>
-++++
-
-This is now working better because we have declared that the “`action`” task in the “`consumer`” project has an _execution dependency_ on the “`action`” task in the “`producer`” project.
-
-[[ssub:the_nature_of_cross_project_task_dependencies]]
-===== The nature of cross project task dependencies
-
-Of course, task dependencies across different projects are not limited to tasks with the same name. Let's change the naming of our tasks and execute the build.
-
-++++
-<sample id="multiprojectMessagesTaskDependencies" dir="userguide/multiproject/dependencies/messagesTaskDependencies/messages" title="Cross project task dependencies">
-                    <sourcefile file="consumer/build.gradle"/>
-                    <sourcefile file="producer/build.gradle"/>
-                    <output args="-q consume"/>
-                </sample>
-++++
-
-
-[[sub:configuration_time_dependencies]]
-==== Configuration time dependencies
-
-Let's see one more example with our producer-consumer build before we enter _Java_ land. We add a property to the “`producer`” project and create a configuration time dependency from “`consumer`” to “`producer`”.
-
-++++
-<sample id="multiprojectMessagesConfigDependenciesBroken" dir="userguide/multiproject/dependencies/messagesConfigDependenciesBroken/messages" title="Configuration time dependencies">
-                <sourcefile file="consumer/build.gradle"/>
-                <sourcefile file="producer/build.gradle"/>
-                <output args="-q consume"/>
-            </sample>
-++++
-
-The default _evaluation_ order of projects is alphanumeric (for the same nesting level). Therefore the “`consumer`” project is evaluated before the “`producer`” project and the “`producerMessage`” value is set _after_ it is read by the “`consumer`” project. Gradle offers a solution for this.
-
-++++
-<sample id="multiprojectMessagesConfigDependencies" dir="userguide/multiproject/dependencies/messagesConfigDependencies/messages" title="Configuration time dependencies - evaluationDependsOn">
-                <sourcefile file="consumer/build.gradle"/>
-                <output args="-q consume"/>
-            </sample>
-++++
-
-The use of the “`evaluationDependsOn`” command results in the evaluation of the “`producer`” project _before_ the “`consumer`” project is evaluated. This example is a bit contrived to show the mechanism. In _this_ case there would be an easier solution by reading the key property at execution time.
-
-++++
-<sample id="multiprojectMessagesConfigDependenciesAltSolution" dir="userguide/multiproject/dependencies/messagesConfigDependenciesAltSolution/messages" title="Configuration time dependencies">
-                <sourcefile file="consumer/build.gradle"/>
-                <output args="-q consume"/>
-            </sample>
-++++
-
-Configuration dependencies are very different from execution dependencies. Configuration dependencies are between projects whereas execution dependencies are always resolved to task dependencies. Also note that all projects are always configured, even when you start the build from a subproject. The default configuration order is top down, which is usually what is needed.
-
-To change the default configuration order to “bottom up”, use the “`evaluationDependsOnChildren()`” method instead.
-
-On the same nesting level the configuration order depends on the alphanumeric position. The most common use case is to have multi-project builds that share a common lifecycle (e.g. all projects use the Java plugin). If you declare with `dependsOn` an _execution dependency_ between different projects, the default behavior of this method is to also create a _configuration_ dependency between the two projects. Therefore it is likely that you don't have to define configuration dependencies explicitly.
-
 [[sub:real_life_examples]]
 ==== Real life examples
 
@@ -472,12 +391,6 @@ If you come from Maven land you might be perfectly happy with this. If you come 
 
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
 
-
-[[disable_dependency_projects]]
-==== Disabling the build of dependency projects
-
-Sometimes you don't want depended on projects to be built when doing a partial build. To disable the build of the depended on projects you can run Gradle with the `-a` option.
-
 [[sec:parallel_execution]]
 === Parallel project execution
 
@@ -531,15 +444,6 @@ Assume you are working on a single project, the “`:api`” project. You have b
         </sample>
 ++++
 
-While you are working in a typical development cycle repeatedly building and testing changes to the “`:api`” project (knowing that you are only changing files in this one project), you may not want to even suffer the expense of building “`:shared:compile`” to see what has changed in the “`:shared`” project. Adding the “`-a`” option will cause Gradle to use cached jars to resolve any project lib dependencies and not try to re-build the depended on projects.
-
-++++
-<sample id="multitestingBuildDashA" dir="userguide/multiproject/dependencies/java" title="Partial Build and Test Single Project">
-            <test args=":shared:assemble"/>
-            <output args="-a :api:build"/>
-        </sample>
-++++
-
 If you have just gotten the latest version of source from your version control system which included changes in other projects that “`:api`” depends on, you might want to not only build all the projects you depend on, but test them as well. The `buildNeeded` task also tests all the projects from the project lib dependencies of the testRuntime configuration.
 
 ++++
@@ -562,17 +466,3 @@ Finally, you may want to build and test everything in all projects. Any task you
 === Multi Project and buildSrc
 
 <<sec:build_sources>> tells us that we can place build logic to be compiled and tested in the special `buildSrc` directory. In a multi project build, there can only be one `buildSrc` directory which must be located in the root directory.
-
-[[sec:property_and_method_inheritance]]
-=== Property and method inheritance
-
-Properties and methods declared in a project are inherited to all its subprojects. This is an alternative to configuration injection. But we think that the model of inheritance does not reflect the problem space of multi-project builds very well. In a future edition of this user guide we might write more about this.
-
-Method inheritance might be interesting to use as Gradle's _Configuration Injection_ does not support methods yet (but will in a future release).
-
-You might be wondering why we have implemented a feature we obviously don't like that much. One reason is that it is offered by other tools and we want to have the check mark in a feature comparison :). And we like to offer our users a choice.
-
-[[sec:multiproject_summary]]
-=== Summary
-
-Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message for this chapter is that multi-project builds with Gradle are usually _not_ difficult. There are five elements you need to remember: `allprojects`, `subprojects`, `evaluationDependsOn`, `evaluationDependsOnChildren` and project lib dependencies.footnote:[So we are well in the range of the http://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two[7 plus 2 Rule] :)] With those elements, and keeping in mind that Gradle has a distinct configuration and execution phase, you already have a lot of flexibility. But when you enter steep territory Gradle does not become an obstacle and usually accompanies and carries you to the top of the mountain.

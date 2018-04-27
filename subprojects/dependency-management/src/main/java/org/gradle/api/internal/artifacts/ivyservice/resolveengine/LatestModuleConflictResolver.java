@@ -29,9 +29,11 @@ import java.util.Map;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
     private final Comparator<Version> versionComparator;
+    private final VersionParser versionParser;
 
-    LatestModuleConflictResolver(VersionComparator versionComparator) {
+    LatestModuleConflictResolver(VersionComparator versionComparator, VersionParser versionParser) {
         this.versionComparator = versionComparator.asVersionComparator();
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -40,7 +42,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         Version baseVersion = null;
         Map<Version, T> matches = new LinkedHashMap<Version, T>();
         for (T candidate : details.getCandidates()) {
-            Version version = VersionParser.INSTANCE.transform(candidate.getVersion());
+            Version version = versionParser.transform(candidate.getVersion());
             if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
                 matches.clear();
                 baseVersion = version.getBaseVersion();

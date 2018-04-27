@@ -17,10 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeMergingException;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 
@@ -31,6 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolution state for a given module.
@@ -43,13 +51,17 @@ class ModuleResolveState implements CandidateModule {
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<ModuleVersionIdentifier, ComponentState>();
     private final List<SelectorState> selectors = Lists.newLinkedList();
     private final VariantNameBuilder variantNameBuilder;
+    private final ImmutableAttributesFactory attributesFactory;
     private ComponentState selected;
+    private ImmutableAttributes mergedAttributes = ImmutableAttributes.EMPTY;
+    private AttributeMergingException attributeMergingError;
 
-    ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver, VariantNameBuilder variantNameBuilder) {
+    ModuleResolveState(IdGenerator<Long> idGenerator, ModuleIdentifier id, ComponentMetaDataResolver metaDataResolver, VariantNameBuilder variantNameBuilder, ImmutableAttributesFactory attributesFactory) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
         this.variantNameBuilder = variantNameBuilder;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -207,9 +219,45 @@ class ModuleResolveState implements CandidateModule {
 
     public void addSelector(SelectorState selector) {
         selectors.add(selector);
+        mergedAttributes = appendAttributes(mergedAttributes, selector);
     }
 
     public List<SelectorState> getSelectors() {
         return selectors;
     }
+
+    List<EdgeState> getUnattachedDependencies() {
+        return unattachedDependencies;
+    }
+
+    ImmutableAttributes getMergedSelectorAttributes() {
+        if (attributeMergingError != null) {
+            throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
+        }
+        return mergedAttributes;
+    }
+
+    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
+        try {
+            ComponentSelector selector = selectorState.getDependencyMetadata().getSelector();
+            if (selector instanceof ModuleComponentSelector) {
+                ImmutableAttributes attributes = ((AttributeContainerInternal) ((ModuleComponentSelector) selector).getAttributes()).asImmutable();
+                dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
+            }
+        } catch (AttributeMergingException e) {
+            attributeMergingError = e;
+        }
+        return dependencyAttributes;
+    }
+
+    Set<EdgeState> getIncomingEdges() {
+        Set<EdgeState> incoming = Sets.newLinkedHashSet();
+        if (selected != null) {
+            for (NodeState nodeState : selected.getNodes()) {
+                incoming.addAll(nodeState.getIncomingEdges());
+            }
+        }
+        return incoming;
+    }
+
 }

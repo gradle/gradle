@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -23,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
@@ -53,25 +53,35 @@ public class PublishingPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
+    private final ProjectPublicationRegistry projectPublicationRegistry;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry projectPublicationRegistry) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
+        this.projectPublicationRegistry = projectPublicationRegistry;
     }
 
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-
-        // TODO Registering an extension should register it with the model registry as well
-        project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
         Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
         publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
         publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
+        extension.getPublications().all(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                PublicationInternal internalPublication = (PublicationInternal) publication;
+                projectPublicationRegistry.registerPublication(project.getPath(), internalPublication);
+            }
+        });
     }
 
+    /**
+     * These bindings are only here for backwards compatibility, as some users might depend on the extensions being available in the model.
+     */
     static class Rules extends RuleSource {
         @Model
         PublishingExtension publishing(ExtensionContainer extensions) {
@@ -84,16 +94,13 @@ public class PublishingPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
-            for (Publication publication : extension.getPublications()) {
-                PublicationInternal internalPublication = (PublicationInternal) publication;
-                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), internalPublication);
-            }
+        void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension) {
+            //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
         }
 
         @Mutate
-        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
-            //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
+        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, PublishingExtension extension) {
+            //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
         }
     }
 

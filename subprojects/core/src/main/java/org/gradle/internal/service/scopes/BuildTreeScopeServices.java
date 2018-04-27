@@ -18,9 +18,9 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.execution.ProjectStateAccess;
 import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
@@ -44,15 +44,15 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected ProjectStateAccess createProjectStateAccess() {
-        return new ProjectStateAccess();
-    }
-
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {
         ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(listenerManager));
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
         }
         return exceptionAnalyser;
+    }
+
+    public DefaultProjectStateRegistry createProjectPathRegistry() {
+        return new DefaultProjectStateRegistry();
     }
 }

@@ -75,7 +75,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         @Override
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
             if (configurationLocked) {
-                dependencyLockingState = dependencyLockingProvider.findLockConstraint(getName());
+                dependencyLockingState = dependencyLockingProvider.loadLockState(getName());
                 for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
                         dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes());
