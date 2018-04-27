@@ -85,33 +85,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
 
-    @UsesSample("maven-publish/pomCustomization")
-    def pomCustomization() {
-        given:
-        sample sampleProject
-
-        and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "pomCustomization", "1.0")
-
-        when:
-        succeeds "publish"
-
-        then:
-        module.assertPublishedAsPomModule()
-        module.parsedPom.name == "Demo"
-        module.parsedPom.description == "A demonstration of Maven POM customization"
-        module.parsedPom.url == "http://www.example.com/project"
-        module.parsedPom.licenses[0].name.text() == "The Apache License, Version 2.0"
-        module.parsedPom.licenses[0].url.text() == "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        module.parsedPom.developers[0].id.text() == "johnd"
-        module.parsedPom.developers[0].name.text() == "John Doe"
-        module.parsedPom.developers[0].email.text() == "john.doe@example.com"
-        module.parsedPom.scm.connection.text() == 'scm:svn:http://subversion.example.com/svn/project/trunk/'
-        module.parsedPom.scm.developerConnection.text() == 'scm:svn:https://subversion.example.com/svn/project/trunk/'
-        module.parsedPom.scm.url.text() == 'http://subversion.example.com/svn/project/trunk/'
-    }
-
     @UsesSample("maven-publish/multiple-publications")
     def multiplePublications() {
         given:

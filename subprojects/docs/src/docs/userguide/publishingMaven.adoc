@@ -151,7 +151,7 @@ The only Unicode values that are explicitly prohibited are '```\```', '```/```' 
 The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The “`maven-publish`” plugin provides a DSL for that purpose. Please see api:org.gradle.api.publish.maven.MavenPom[] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
 ++++
-<sample dir="maven-publish/pomCustomization" id="publishing_maven:pom_customization" title="Customizing the POM file">
+<sample dir="signing/maven-publish" id="publishing_maven:pom_customization" title="Customizing the POM file">
     <sourcefile file="build.gradle" snippet="pom-customization"/>
 </sample>
 ++++
@@ -265,7 +265,7 @@ Moreover, you may want to define your own shorthand tasks to fit your workflow. 
 [[publishing_maven:signing]]
 === Signing artifacts
 
-The <<signing_plugin, Signing plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
+The <<signing_plugin, Signing Plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
 
 ++++
 <sample dir="signing/maven-publish" id="publishingMavenSignPublication" title="Signing a publication">
@@ -289,10 +289,10 @@ At times it is useful to generate a Maven POM file for a module without actually
 The task for generating the POM file is of type api:org.gradle.api.publish.maven.tasks.GenerateMavenPom[], and it is given a name based on the name of the publication: “`generatePomFileFor«_PUBNAME_»Publication`”. So in the example below, where the publication is named “`mavenCustom`”, the task will be named “`generatePomFileForMavenCustomPublication`”.
 
 ++++
-<sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
-            <sourcefile file="build.gradle" snippet="generate"/>
-            <output args="generatePomFileForMavenCustomPublication"/>
-        </sample>
+<sample dir="maven-publish/pomGeneration" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
+    <sourcefile file="build.gradle" snippet="generate"/>
+    <output args="generatePomFileForMavenCustomPublication"/>
+</sample>
 ++++
 
 All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
@@ -303,3 +303,23 @@ The “`maven-publish`” plugin leverages some experimental support for late pl
 
 The same applies to any attempt to access publication-specific tasks like api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[]. These tasks should be referenced from within a `model` block.
 ====
+
+[[publishing_maven:complete_example]]
+=== Complete example
+
+The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
+
+++++
+<sample dir="signing/maven-publish" id="publishing_maven:complete_example:sample" title="Publishing a Java library">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The result is that the following artifacts will be published:
+
+* The POM: `my-library-1.0.pom`
+* The primary JAR artifact for the Java component: `my-library-1.0.jar`
+* The sources JAR artifact that has been explicitly configured: `my-library-1.0-sources.jar`
+* The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
+
+The <<signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
