@@ -27,6 +27,17 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractIntegrat
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
+    @UsesSample('userguide/bestPractices/taskDefinition')
+    def "can execute tasks"() {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds 'allDocs'
+
+        then:
+        outputContains('Generating all documentation...')
+    }
+
     @UsesSample('userguide/bestPractices/taskGroupDescription')
     def "can render a task's group and description in tasks report"() {
         executer.inDirectory(sample.dir)
