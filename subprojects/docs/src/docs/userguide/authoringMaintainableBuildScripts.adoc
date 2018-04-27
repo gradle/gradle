@@ -95,6 +95,13 @@ For optimal readability and maintainability follow these rules:
 * api:org.gradle.api.Task#doLast(org.gradle.api.Action)[] should be used if the task only defines a single action.
 * A task should <<sec:improving_task_discoverability,define a group and description>>.
 
+++++
+<sample id="taskDefinition" dir="userguide/bestPractices/taskDefinition" title="Definition of tasks following best practices">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+
 [[sec:improving_task_discoverability]]
 === Improving task discoverability
 
