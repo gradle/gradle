@@ -1,6 +1,6 @@
 package com.enterprise;
 
-import org.gradle.api.tasks.DefaultTask;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
