@@ -20,9 +20,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-)
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if attribute is #mutation via component metadata rule")
@@ -42,7 +39,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                     attribute(quality)
                 }
                 components {
-                    withModule('org.test:module') {
+                    withModule('org.test:module') {                        
                         attributes {
                             attribute quality, ${fixApplied ? '"qa"' : '"canary"'}
                         }
@@ -72,7 +69,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching configuration of org.test:module:1.0:")
+            failure.assertHasCause("Unable to find a matching ${variantTerm()} of org.test:module:1.0:")
             failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
         }
 
@@ -84,6 +81,9 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         mutation << ['not added', 'added']
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
     @Unroll
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
@@ -127,7 +127,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Cannot choose between the following configurations of org.test:module:1.0:")
+            failure.assertHasCause("Cannot choose between the following variants of org.test:module:1.0:")
             failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
             failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
         }
@@ -196,6 +196,9 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
     @Unroll
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:
@@ -248,7 +251,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching configuration of org.test:module:1.0:")
+            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
             failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
         }
 
@@ -296,10 +299,40 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         run ':checkDeps'
+        def expectedVariant = testedVariant() // Cannot inline because of Groovy bug
+
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org.test:module:1.0:api')
+                module("org.test:module:1.0:${expectedVariant}")
             }
         }
+    }
+
+    static String testedVariant() {
+        def variant
+        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            variant = 'api'
+        } else {
+            if (GradleMetadataResolveRunner.useIvy()) {
+                variant = 'default'
+            } else {
+                if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
+                    variant = 'compile'
+                } else {
+                    variant = 'default'
+                }
+            }
+        }
+        variant
+    }
+
+    static String variantTerm() {
+        if (GradleMetadataResolveRunner.gradleMetadataEnabled) {
+            return "variant"
+        }
+        if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled && !GradleMetadataResolveRunner.useIvy()) {
+            return "variant"
+        }
+        return "configuration"
     }
 }

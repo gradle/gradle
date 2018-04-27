@@ -165,7 +165,9 @@ org:middle:1.0 FAILED
         then:
         output.contains """
 org:leaf:1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:top:1.0
      \\--- conf
 """
@@ -200,8 +202,9 @@ org:leaf:1.0
         then:
         output.contains """org:leaf:1.0
    variant "runtime" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         usage = dummy
+         usage             = dummy
    ]
 \\--- org:top:1.0
      \\--- conf

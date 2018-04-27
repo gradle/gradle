@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,7 +64,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     private final ModuleVersionIdentifier moduleVersionId;
     private final String status;
     private final AttributesSchemaInternal attributesSchema;
-    private ImmutableList<ConfigurationMetadata> consumableConfigurations;
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> consumableConfigurations;
 
     public DefaultLocalComponentMetadata(ModuleVersionIdentifier moduleVersionId, ComponentIdentifier componentId, String status, AttributesSchemaInternal attributesSchema) {
         this.moduleVersionId = moduleVersionId;
@@ -219,15 +220,21 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
      * For a local project component, the `variantsForGraphTraversal` are any _consumable_ configurations that have attributes defined.
      */
     @Override
-    public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+    public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
         if (consumableConfigurations == null) {
             ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<ConfigurationMetadata>();
+            boolean hasAtLeastOneConsumableConfiguration = false;
             for (DefaultLocalConfigurationMetadata configuration : allConfigurations.values()) {
                 if (configuration.isCanBeConsumed() && !configuration.getAttributes().isEmpty()) {
+                    hasAtLeastOneConsumableConfiguration = true;
                     builder.add(configuration);
                 }
             }
-            consumableConfigurations = builder.build();
+            if (hasAtLeastOneConsumableConfiguration) {
+                consumableConfigurations = Optional.<ImmutableList<? extends ConfigurationMetadata>>of(builder.build());
+            } else {
+                consumableConfigurations = Optional.absent();
+            }
         }
         return consumableConfigurations;
     }
