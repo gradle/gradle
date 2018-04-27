@@ -15,16 +15,27 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import org.gradle.util.DeprecationLogger;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 
+/**
+ * @deprecated Use {@link org.gradle.api.file.ProjectLayout#files(Object...)} or {@link org.gradle.api.file.ProjectLayout#configurableFiles(Object...)}
+ */
+@Deprecated
 public class SimpleFileCollection extends FileCollectionAdapter implements Serializable {
     public SimpleFileCollection(File... files) {
-        super(new ListBackedFileSet(files));
+        this(new ListBackedFileSet(files));
     }
 
     public SimpleFileCollection(Collection<File> files) {
-        super(new ListBackedFileSet(files));
+        this(new ListBackedFileSet(files));
+    }
+
+    private SimpleFileCollection(MinimalFileSet fileSet) {
+        super(fileSet);
+        DeprecationLogger.nagUserOfDiscontinuedApi("SimpleFileCollection type", "Please use Project.files() instead.");
     }
 }

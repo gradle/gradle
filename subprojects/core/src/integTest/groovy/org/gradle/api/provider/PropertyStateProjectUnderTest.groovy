@@ -81,7 +81,7 @@ class PropertyStateProjectUnderTest {
 
             class MyTask extends DefaultTask {
                 private final Property<Boolean> enabled = project.objects.property(Boolean)
-                private final ConfigurableFileCollection outputFiles = project.files()
+                private final ConfigurableFileCollection outputFiles = project.layout.configurableFiles()
 
                 @Input
                 boolean getEnabled() {
@@ -219,7 +219,7 @@ class PropertyStateProjectUnderTest {
 
                 MyExtension(Project project) {
                     enabled = project.objects.property(Boolean)
-                    outputFiles = project.files()
+                    outputFiles = project.layout.configurableFiles()
                 }
 
                 Boolean getEnabled() {

@@ -22,7 +22,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.os.OperatingSystem;
@@ -35,7 +35,11 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.EnumMap;
 
 public class JavaInstallationProbe {
@@ -143,7 +147,7 @@ public class JavaInstallationProbe {
         exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
         exec.setWorkingDir(workingDir);
-        exec.setClasspath(new SimpleFileCollection(workingDir));
+        exec.setClasspath(ImmutableFileCollection.of(workingDir));
         try {
             writeProbe(workingDir);
             exec.setMain(JavaProbe.CLASSNAME);

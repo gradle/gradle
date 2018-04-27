@@ -55,7 +55,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert project.test.extensions.getByType(JacocoTaskExtension) != null
                     assert project.jacocoTestReport instanceof JacocoReport
-                    assert project.jacocoTestReport.sourceDirectories*.absolutePath == project.files("src/main/java")*.absolutePath
+                    assert project.jacocoTestReport.sourceDirectories*.absolutePath == project.layout.files("src/main/java")*.absolutePath
                     assert project.jacocoTestReport.classDirectories == project.sourceSets.main.output
                 }
             }
