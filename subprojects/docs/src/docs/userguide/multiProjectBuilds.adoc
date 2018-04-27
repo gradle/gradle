@@ -414,7 +414,7 @@ The consuming project is supposed to be able to read the properties file at runt
 </sample>
 ++++
 
-In the example above, the consumer now declares a dependency on the outputs of the producer project.
+In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
 
 [[sec:parallel_execution]]
 === Parallel project execution
