@@ -17,7 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.execution.Cancellable;
+import org.gradle.api.internal.tasks.execution.Cancellable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
