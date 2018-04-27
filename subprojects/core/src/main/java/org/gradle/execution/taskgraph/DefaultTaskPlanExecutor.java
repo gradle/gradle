@@ -172,7 +172,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                     }
 
                     try {
-                        selected.set(taskExecutionPlan.selectNextNode(workerLease));
+                        selected.set(taskExecutionPlan.selectNextTask(workerLease));
                     } catch (Throwable t) {
                         taskExecutionPlan.abortAllAndFail(t);
                         workRemaining.set(false);

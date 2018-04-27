@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public interface TaskExecutionPlan extends Describable {
     @Nullable
-    TaskInfo selectNextNode(WorkerLeaseRegistry.WorkerLease workerLease);
+    TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease);
 
     void taskComplete(TaskInfo taskInfo);
 

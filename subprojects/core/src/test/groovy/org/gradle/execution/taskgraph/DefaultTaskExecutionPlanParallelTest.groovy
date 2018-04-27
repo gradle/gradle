@@ -779,7 +779,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
                         }
                         if (moreTasks.get()) {
                             try {
-                                nextNode.set(executionPlan.selectNextNode(parentWorkerLease))
+                                nextNode.set(executionPlan.selectNextTask(parentWorkerLease))
                             } catch (Throwable t) {
                                 executionPlan.abortAllAndFail(t)
                                 moreTasks.set(false)

@@ -878,7 +878,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         def tasks = []
         def moreTasks = true
         while (moreTasks) {
-            def nextNode = executionPlan.selectNextNode(workerLease)
+            def nextNode = executionPlan.selectNextTask(workerLease)
             if (nextNode != null) {
                 if (!nextNode.isComplete()) {
                     tasks << nextNode.task

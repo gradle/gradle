@@ -550,7 +550,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     @Nullable
-    public TaskInfo selectNextNode(WorkerLeaseRegistry.WorkerLease workerLease) {
+    public TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease) {
         if (allProjectsLocked()) {
             return null;
         }
