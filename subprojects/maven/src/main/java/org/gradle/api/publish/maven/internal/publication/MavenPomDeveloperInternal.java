@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven;
+package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.publish.maven.MavenPomDeveloper;
 
-/**
- * The CI management system of a Maven publication.
- *
- * @since 4.8
- * @see MavenPom
- */
-@Incubating
-@HasInternalProtocol
-public interface MavenPomCiManagement {
+import java.util.Map;
+import java.util.Set;
 
-    /**
-     * Sets the name of this CI management system.
-     */
-    void setSystem(String system);
+public interface MavenPomDeveloperInternal extends MavenPomDeveloper {
 
-    /**
-     * Sets the URL of this CI management system.
-     */
-    void setUrl(String url);
+    String getId();
+
+    String getName();
+
+    String getEmail();
+
+    String getUrl();
+
+    String getOrganization();
+
+    String getOrganizationUrl();
+
+    Set<String> getRoles();
+
+    String getTimezone();
+
+    Map<String, String> getProperties();
 
 }

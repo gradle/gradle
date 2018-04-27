@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A license of a Maven publication.
@@ -26,12 +27,8 @@ import org.gradle.api.Incubating;
  * @see MavenPomLicenseSpec
  */
 @Incubating
+@HasInternalProtocol
 public interface MavenPomLicense {
-
-    /**
-     * Returns the name of this license.
-     */
-    String getName();
 
     /**
      * Sets the name of this license.
@@ -39,29 +36,14 @@ public interface MavenPomLicense {
     void setName(String name);
 
     /**
-     * Returns the URL of this license.
-     */
-    String getUrl();
-
-    /**
      * Sets the URL of this license.
      */
     void setUrl(String url);
 
     /**
-     * Returns the distribution of this license.
-     */
-    String getDistribution();
-
-    /**
      * Sets the distribution of this license.
      */
     void setDistribution(String distribution);
-
-    /**
-     * Returns the comments of this license.
-     */
-    String getComments();
 
     /**
      * Sets the comments of this license.

@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The distribution management configuration of a Maven publication.
@@ -28,16 +29,12 @@ import org.gradle.api.Incubating;
  * @see MavenPom
  */
 @Incubating
+@HasInternalProtocol
 public interface MavenPomDistributionManagement {
 
     /**
      * Configures the relocation information.
      */
     void relocation(Action<? super MavenPomRelocation> action);
-
-    /**
-     * Returns the relocation information.
-     */
-    MavenPomRelocation getRelocation();
 
 }

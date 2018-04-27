@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomOrganization;
-
-public class DefaultMavenPomOrganization implements MavenPomOrganization {
+public class DefaultMavenPomOrganization implements MavenPomOrganizationInternal {
 
     private String name;
     private String url;

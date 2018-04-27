@@ -39,13 +39,7 @@
                 <td>organizationUrl</td>
             </tr>
             <tr>
-                <td>roles</td>
-            </tr>
-            <tr>
                 <td>timezone</td>
-            </tr>
-            <tr>
-                <td>properties</td>
             </tr>
         </table>
     </section>

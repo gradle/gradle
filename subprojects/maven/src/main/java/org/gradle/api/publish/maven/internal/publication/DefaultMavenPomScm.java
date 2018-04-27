@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomScm;
-
-public class DefaultMavenPomScm implements MavenPomScm {
+public class DefaultMavenPomScm implements MavenPomScmInternal {
 
     private String connection;
     private String developerConnection;

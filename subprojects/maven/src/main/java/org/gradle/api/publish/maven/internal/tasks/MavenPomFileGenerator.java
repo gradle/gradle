@@ -38,18 +38,18 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
-import org.gradle.api.publish.maven.MavenPom;
-import org.gradle.api.publish.maven.MavenPomCiManagement;
-import org.gradle.api.publish.maven.MavenPomContributor;
-import org.gradle.api.publish.maven.MavenPomDeveloper;
-import org.gradle.api.publish.maven.MavenPomDistributionManagement;
-import org.gradle.api.publish.maven.MavenPomIssueManagement;
-import org.gradle.api.publish.maven.MavenPomLicense;
-import org.gradle.api.publish.maven.MavenPomMailingList;
-import org.gradle.api.publish.maven.MavenPomOrganization;
-import org.gradle.api.publish.maven.MavenPomRelocation;
-import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomCiManagementInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomContributorInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomDeveloperInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomIssueManagementInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomLicenseInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomMailingListInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomOrganizationInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomRelocationInternal;
+import org.gradle.api.publish.maven.internal.publication.MavenPomScmInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.GUtil;
@@ -77,7 +77,7 @@ public class MavenPomFileGenerator {
         model.setVersion(identity.getVersion());
     }
 
-    public MavenPomFileGenerator configureFrom(MavenPom pom) {
+    public MavenPomFileGenerator configureFrom(MavenPomInternal pom) {
         model.setPackaging(pom.getPackaging());
         model.setName(pom.getName());
         model.setDescription(pom.getDescription());
@@ -98,29 +98,29 @@ public class MavenPomFileGenerator {
         if (pom.getDistributionManagement() != null) {
             model.setDistributionManagement(convertDistributionManagement(pom.getDistributionManagement()));
         }
-        for (MavenPomLicense license : pom.getLicenses()) {
+        for (MavenPomLicenseInternal license : pom.getLicenses()) {
             model.addLicense(convertLicense(license));
         }
-        for (MavenPomDeveloper developer : pom.getDevelopers()) {
+        for (MavenPomDeveloperInternal developer : pom.getDevelopers()) {
             model.addDeveloper(convertDeveloper(developer));
         }
-        for (MavenPomContributor contributor : pom.getContributors()) {
+        for (MavenPomContributorInternal contributor : pom.getContributors()) {
             model.addContributor(convertContributor(contributor));
         }
-        for (MavenPomMailingList mailingList : pom.getMailingLists()) {
+        for (MavenPomMailingListInternal mailingList : pom.getMailingLists()) {
             model.addMailingList(convertMailingList(mailingList));
         }
         return this;
     }
 
-    private Organization convertOrganization(MavenPomOrganization source) {
+    private Organization convertOrganization(MavenPomOrganizationInternal source) {
         Organization target = new Organization();
         target.setName(source.getName());
         target.setUrl(source.getUrl());
         return target;
     }
 
-    private License convertLicense(MavenPomLicense source) {
+    private License convertLicense(MavenPomLicenseInternal source) {
         License target = new License();
         target.setName(source.getName());
         target.setUrl(source.getUrl());
@@ -129,7 +129,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Developer convertDeveloper(MavenPomDeveloper source) {
+    private Developer convertDeveloper(MavenPomDeveloperInternal source) {
         Developer target = new Developer();
         target.setId(source.getId());
         target.setName(source.getName());
@@ -145,7 +145,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Contributor convertContributor(MavenPomContributor source) {
+    private Contributor convertContributor(MavenPomContributorInternal source) {
         Contributor target = new Contributor();
         target.setName(source.getName());
         target.setEmail(source.getEmail());
@@ -160,7 +160,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Scm convertScm(MavenPomScm source) {
+    private Scm convertScm(MavenPomScmInternal source) {
         Scm target = new Scm();
         target.setConnection(source.getConnection());
         target.setDeveloperConnection(source.getDeveloperConnection());
@@ -169,21 +169,21 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private IssueManagement convertIssueManagement(MavenPomIssueManagement source) {
+    private IssueManagement convertIssueManagement(MavenPomIssueManagementInternal source) {
         IssueManagement target = new IssueManagement();
         target.setSystem(source.getSystem());
         target.setUrl(source.getUrl());
         return target;
     }
 
-    private CiManagement convertCiManagement(MavenPomCiManagement source) {
+    private CiManagement convertCiManagement(MavenPomCiManagementInternal source) {
         CiManagement target = new CiManagement();
         target.setSystem(source.getSystem());
         target.setUrl(source.getUrl());
         return target;
     }
 
-    private DistributionManagement convertDistributionManagement(MavenPomDistributionManagement source) {
+    private DistributionManagement convertDistributionManagement(MavenPomDistributionManagementInternal source) {
         DistributionManagement target = new DistributionManagement();
         if (source.getRelocation() != null) {
             target.setRelocation(convertRelocation(source.getRelocation()));
@@ -191,7 +191,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Relocation convertRelocation(MavenPomRelocation source) {
+    private Relocation convertRelocation(MavenPomRelocationInternal source) {
         Relocation target = new Relocation();
         target.setGroupId(source.getGroupId());
         target.setArtifactId(source.getArtifactId());
@@ -200,7 +200,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private MailingList convertMailingList(MavenPomMailingList source) {
+    private MailingList convertMailingList(MavenPomMailingListInternal source) {
         MailingList target = new MailingList();
         target.setName(source.getName());
         target.setSubscribe(source.getSubscribe());

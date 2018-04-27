@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomRelocation;
-
-public class DefaultMavenPomRelocation implements MavenPomRelocation {
+public class DefaultMavenPomRelocation implements MavenPomRelocationInternal {
 
     private String groupId;
     private String artifactId;
@@ -64,4 +62,5 @@ public class DefaultMavenPomRelocation implements MavenPomRelocation {
     public void setMessage(String message) {
         this.message = message;
     }
+
 }

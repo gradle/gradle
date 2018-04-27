@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomCiManagement;
-import org.gradle.api.publish.maven.MavenPomIssueManagement;
-
-public class DefaultMavenPomProjectManagement implements MavenPomCiManagement, MavenPomIssueManagement {
+public class DefaultMavenPomProjectManagement implements MavenPomCiManagementInternal, MavenPomIssueManagementInternal {
 
     private String system;
     private String url;

@@ -21,8 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.util.List;
-
 /**
  * The POM for a Maven publication.
  *
@@ -51,25 +49,11 @@ public interface MavenPom {
     void setPackaging(String packaging);
 
     /**
-     * Returns the name for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    String getName();
-
-    /**
      * Sets the name for the publication represented by this POM.
      *
      * @since 4.8
      */
     void setName(String name);
-
-    /**
-     * Returns the description for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    String getDescription();
 
     /**
      * Sets the description for the publication represented by this POM.
@@ -79,32 +63,11 @@ public interface MavenPom {
     void setDescription(String description);
 
     /**
-     * Returns the URL for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    String getUrl();
-
-    /**
      * Sets the URL for the publication represented by this POM.
      *
      * @since 4.8
      */
     void setUrl(String url);
-
-    /**
-     * Returns the year of the inception for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    String getInceptionYear();
-
-    /**
-     * Sets the year of the inception for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    void setInceptionYear(int inceptionYear);
 
     /**
      * Sets the year of the inception for the publication represented by this POM.
@@ -114,11 +77,11 @@ public interface MavenPom {
     void setInceptionYear(String inceptionYear);
 
     /**
-     * Returns the licenses for the publication represented by this POM.
+     * Sets the year of the inception for the publication represented by this POM.
      *
      * @since 4.8
      */
-    List<MavenPomLicense> getLicenses();
+    void setInceptionYear(int inceptionYear);
 
     /**
      * Configures the licenses for the publication represented by this POM.
@@ -128,25 +91,11 @@ public interface MavenPom {
     void licenses(Action<? super MavenPomLicenseSpec> action);
 
     /**
-     * Returns the organization for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    MavenPomOrganization getOrganization();
-
-    /**
      * Configures the organization for the publication represented by this POM.
      *
      * @since 4.8
      */
     void organization(Action<? super MavenPomOrganization> action);
-
-    /**
-     * Returns the developers for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    List<MavenPomDeveloper> getDevelopers();
 
     /**
      * Configures the developers for the publication represented by this POM.
@@ -156,25 +105,11 @@ public interface MavenPom {
     void developers(Action<? super MavenPomDeveloperSpec> action);
 
     /**
-     * Returns the contributors for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    List<MavenPomContributor> getContributors();
-
-    /**
      * Configures the contributors for the publication represented by this POM.
      *
      * @since 4.8
      */
     void contributors(Action<? super MavenPomContributorSpec> action);
-
-    /**
-     * Returns the SCM (source control management) for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    MavenPomScm getScm();
 
     /**
      * Configures the SCM (source control management) for the publication represented by this POM.
@@ -184,25 +119,11 @@ public interface MavenPom {
     void scm(Action<? super MavenPomScm> action);
 
     /**
-     * Returns the issue management for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    MavenPomIssueManagement getIssueManagement();
-
-    /**
      * Configures the issue management for the publication represented by this POM.
      *
      * @since 4.8
      */
     void issueManagement(Action<? super MavenPomIssueManagement> action);
-
-    /**
-     * Returns the CI management for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    MavenPomCiManagement getCiManagement();
 
     /**
      * Configures the CI management for the publication represented by this POM.
@@ -212,25 +133,11 @@ public interface MavenPom {
     void ciManagement(Action<? super MavenPomCiManagement> action);
 
     /**
-     * Returns the distribution management for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    MavenPomDistributionManagement getDistributionManagement();
-
-    /**
      * Configures the distribution management for the publication represented by this POM.
      *
      * @since 4.8
      */
     void distributionManagement(Action<? super MavenPomDistributionManagement> action);
-
-    /**
-     * Returns the mailing lists for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    List<MavenPomMailingList> getMailingLists();
 
     /**
      * Configures the mailing lists for the publication represented by this POM.

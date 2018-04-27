@@ -17,13 +17,13 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
-import org.gradle.api.publish.maven.MavenPomDistributionManagement;
 import org.gradle.api.publish.maven.MavenPomRelocation;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagement {
+public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
+
     private final Instantiator instantiator;
-    private MavenPomRelocation relocation;
+    private MavenPomRelocationInternal relocation;
 
     public DefaultMavenPomDistributionManagement(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -38,7 +38,8 @@ public class DefaultMavenPomDistributionManagement implements MavenPomDistributi
     }
 
     @Override
-    public MavenPomRelocation getRelocation() {
+    public MavenPomRelocationInternal getRelocation() {
         return relocation;
     }
+
 }

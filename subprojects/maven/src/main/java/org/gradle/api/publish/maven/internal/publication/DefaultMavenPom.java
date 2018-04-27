@@ -52,15 +52,15 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private String description;
     private String url;
     private String inceptionYear;
-    private final List<MavenPomLicense> licenses = new ArrayList<MavenPomLicense>();
-    private MavenPomOrganization organization;
-    private final List<MavenPomDeveloper> developers = new ArrayList<MavenPomDeveloper>();
-    private final List<MavenPomContributor> contributors = new ArrayList<MavenPomContributor>();
-    private MavenPomScm scm;
-    private MavenPomIssueManagement issueManagement;
-    private MavenPomCiManagement ciManagement;
-    private MavenPomDistributionManagement distributionManagement;
-    private final List<MavenPomMailingList> mailingLists = new ArrayList<MavenPomMailingList>();
+    private final List<MavenPomLicenseInternal> licenses = new ArrayList<MavenPomLicenseInternal>();
+    private MavenPomOrganizationInternal organization;
+    private final List<MavenPomDeveloperInternal> developers = new ArrayList<MavenPomDeveloperInternal>();
+    private final List<MavenPomContributorInternal> contributors = new ArrayList<MavenPomContributorInternal>();
+    private MavenPomScmInternal scm;
+    private MavenPomIssueManagementInternal issueManagement;
+    private MavenPomCiManagementInternal ciManagement;
+    private MavenPomDistributionManagementInternal distributionManagement;
+    private final List<MavenPomMailingListInternal> mailingLists = new ArrayList<MavenPomMailingListInternal>();
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator) {
         this.mavenPublication = mavenPublication;
@@ -142,7 +142,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomLicense> getLicenses() {
+    public List<MavenPomLicenseInternal> getLicenses() {
         return licenses;
     }
 
@@ -155,7 +155,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public MavenPomOrganization getOrganization() {
+    public MavenPomOrganizationInternal getOrganization() {
         return organization;
     }
 
@@ -170,7 +170,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomDeveloper> getDevelopers() {
+    public List<MavenPomDeveloperInternal> getDevelopers() {
         return developers;
     }
 
@@ -185,12 +185,12 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomContributor> getContributors() {
+    public List<MavenPomContributorInternal> getContributors() {
         return contributors;
     }
 
     @Override
-    public MavenPomScm getScm() {
+    public MavenPomScmInternal getScm() {
         return scm;
     }
 
@@ -211,7 +211,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public MavenPomIssueManagement getIssueManagement() {
+    public MavenPomIssueManagementInternal getIssueManagement() {
         return issueManagement;
     }
 
@@ -224,7 +224,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public MavenPomCiManagement getCiManagement() {
+    public MavenPomCiManagementInternal getCiManagement() {
         return ciManagement;
     }
 
@@ -237,7 +237,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public MavenPomDistributionManagement getDistributionManagement() {
+    public MavenPomDistributionManagementInternal getDistributionManagement() {
         return distributionManagement;
     }
 
@@ -252,7 +252,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomMailingList> getMailingLists() {
+    public List<MavenPomMailingListInternal> getMailingLists() {
         return mailingLists;
     }
 

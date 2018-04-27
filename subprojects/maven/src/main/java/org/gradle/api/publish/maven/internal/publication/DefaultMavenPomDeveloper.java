@@ -16,16 +16,13 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomContributor;
-import org.gradle.api.publish.maven.MavenPomDeveloper;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomContributor {
+public class DefaultMavenPomDeveloper implements MavenPomDeveloperInternal, MavenPomContributorInternal {
 
     private String id;
     private String name;

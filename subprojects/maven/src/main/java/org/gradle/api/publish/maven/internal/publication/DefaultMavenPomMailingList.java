@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomMailingList;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultMavenPomMailingList implements MavenPomMailingList {
+public class DefaultMavenPomMailingList implements MavenPomMailingListInternal {
 
     private String name;
     private String subscribe;

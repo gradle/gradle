@@ -21,19 +21,19 @@ import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
-import org.gradle.api.publish.maven.MavenPom
-import org.gradle.api.publish.maven.MavenPomCiManagement
-import org.gradle.api.publish.maven.MavenPomContributor
-import org.gradle.api.publish.maven.MavenPomDeveloper
-import org.gradle.api.publish.maven.MavenPomDistributionManagement
-import org.gradle.api.publish.maven.MavenPomIssueManagement
-import org.gradle.api.publish.maven.MavenPomLicense
-import org.gradle.api.publish.maven.MavenPomMailingList
-import org.gradle.api.publish.maven.MavenPomOrganization
-import org.gradle.api.publish.maven.MavenPomRelocation
-import org.gradle.api.publish.maven.MavenPomScm
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
+import org.gradle.api.publish.maven.internal.publication.MavenPomCiManagementInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomContributorInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomDeveloperInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomIssueManagementInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomLicenseInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomMailingListInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomOrganizationInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomRelocationInternal
+import org.gradle.api.publish.maven.internal.publication.MavenPomScmInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
@@ -69,7 +69,7 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "does not require metadata to be configured"() {
         given:
-        def mavenPom = Mock(MavenPom) {
+        def mavenPom = Mock(MavenPomInternal) {
             getPackaging() >> "pom"
             getLicenses() >> []
             getDevelopers() >> []
@@ -88,44 +88,44 @@ class MavenPomFileGeneratorTest extends Specification {
 
     def "writes metadata from configuration"() {
         given:
-        def mavenPom = Mock(MavenPom) {
+        def mavenPom = Mock(MavenPomInternal) {
             getPackaging() >> "pom"
             getName() >> "my name"
             getDescription() >> "my description"
             getUrl() >> "http://example.org"
             getInceptionYear() >> "2018"
-            getLicenses() >> [Mock(MavenPomLicense) {
+            getLicenses() >> [Mock(MavenPomLicenseInternal) {
                 getName() >> "GPL"
                 getUrl() >> "http://www.gnu.org/licenses/gpl.html"
             }]
-            getOrganization() >> Mock(MavenPomOrganization) {
+            getOrganization() >> Mock(MavenPomOrganizationInternal) {
                 getName() >> "Some Org"
             }
-            getDevelopers() >> [Mock(MavenPomDeveloper) {
+            getDevelopers() >> [Mock(MavenPomDeveloperInternal) {
                 getName() >> "Alice"
                 getRoles() >> []
                 getProperties() >> [:]
             }]
-            getContributors() >> [Mock(MavenPomContributor) {
+            getContributors() >> [Mock(MavenPomContributorInternal) {
                 getName() >> "Bob"
                 getRoles() >> []
                 getProperties() >> [:]
             }]
-            getScm() >> Mock(MavenPomScm) {
+            getScm() >> Mock(MavenPomScmInternal) {
                 getConnection() >> "http://cvs.example.org"
             }
-            getIssueManagement() >> Mock(MavenPomIssueManagement) {
+            getIssueManagement() >> Mock(MavenPomIssueManagementInternal) {
                 getSystem() >> "Bugzilla"
             }
-            getCiManagement() >> Mock(MavenPomCiManagement) {
+            getCiManagement() >> Mock(MavenPomCiManagementInternal) {
                 getSystem() >> "Anthill"
             }
-            getDistributionManagement() >> Mock(MavenPomDistributionManagement) {
-                getRelocation() >> Mock(MavenPomRelocation) {
+            getDistributionManagement() >> Mock(MavenPomDistributionManagementInternal) {
+                getRelocation() >> Mock(MavenPomRelocationInternal) {
                     getGroupId() >> "org.example.new"
                 }
             }
-            getMailingLists() >> [Mock(MavenPomMailingList) {
+            getMailingLists() >> [Mock(MavenPomMailingListInternal) {
                 getName() >> "Users"
             }]
         }

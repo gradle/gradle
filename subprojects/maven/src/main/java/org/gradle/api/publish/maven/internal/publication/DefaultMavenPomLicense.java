@@ -16,9 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import org.gradle.api.publish.maven.MavenPomLicense;
-
-public class DefaultMavenPomLicense implements MavenPomLicense {
+public class DefaultMavenPomLicense implements MavenPomLicenseInternal {
 
     private String name;
     private String url;

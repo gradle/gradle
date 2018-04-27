@@ -17,9 +17,9 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A contributor of a Maven publication.
@@ -29,12 +29,8 @@ import java.util.Set;
  * @see MavenPomContributorSpec
  */
 @Incubating
+@HasInternalProtocol
 public interface MavenPomContributor {
-
-    /**
-     * Returns the name of this contributor.
-     */
-    String getName();
 
     /**
      * Sets the name of this contributor.
@@ -42,19 +38,9 @@ public interface MavenPomContributor {
     void setName(String name);
 
     /**
-     * Returns the email of this contributor.
-     */
-    String getEmail();
-
-    /**
      * Sets the email
      */
     void setEmail(String email);
-
-    /**
-     * Returns the URL of this contributor.
-     */
-    String getUrl();
 
     /**
      * Sets the URL of this contributor.
@@ -62,19 +48,9 @@ public interface MavenPomContributor {
     void setUrl(String url);
 
     /**
-     * Returns the organization name of this contributor.
-     */
-    String getOrganization();
-
-    /**
      * Sets the organization name of this contributor.
      */
     void setOrganization(String organization);
-
-    /**
-     * Returns the organization's URL of this contributor.
-     */
-    String getOrganizationUrl();
 
     /**
      * Sets the organization's URL of this contributor.
@@ -82,29 +58,14 @@ public interface MavenPomContributor {
     void setOrganizationUrl(String organizationUrl);
 
     /**
-     * Returns the roles of this contributor.
-     */
-    Set<String> getRoles();
-
-    /**
      * Adds the specified roles to this contributor.
      */
     void roles(String... roles);
 
     /**
-     * Returns the timezone of this contributor.
-     */
-    String getTimezone();
-
-    /**
      * Sets the timezone of this contributor.
      */
     void setTimezone(String timezone);
-
-    /**
-     * Returns the properties of this contributor.
-     */
-    Map<String, String> getProperties();
 
     /**
      * Adds the specified properties to this contributor.
