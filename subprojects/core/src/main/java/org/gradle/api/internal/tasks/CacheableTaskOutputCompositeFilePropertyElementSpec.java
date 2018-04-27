@@ -18,11 +18,10 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.PathNormalizationStrategy;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 
 import java.io.File;
-import java.util.Collections;
 
 class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTaskOutputFilePropertySpec {
     private final CompositeTaskOutputPropertySpec parentProperty;
@@ -33,7 +32,7 @@ class CacheableTaskOutputCompositeFilePropertyElementSpec implements CacheableTa
     public CacheableTaskOutputCompositeFilePropertyElementSpec(CompositeTaskOutputPropertySpec parentProperty, String propertySuffix, File file) {
         this.parentProperty = parentProperty;
         this.propertySuffix = propertySuffix;
-        this.files = new SimpleFileCollection(Collections.singleton(file));
+        this.files = ImmutableFileCollection.of(file);
         this.file = file;
     }
 

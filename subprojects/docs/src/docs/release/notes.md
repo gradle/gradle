@@ -65,6 +65,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 `Signature.getToSignArtifact()` should have been an internal API and is now deprecated without a replacement.
 
+### `SimpleFileCollection`
+
+The internal `SimpleFileCollection` implementation of `FileCollection` has been deprecated.
+You should use `Project.files()` instead.
+
 ## Potential breaking changes
 
 ### Changed behaviour for missing init scripts

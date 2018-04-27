@@ -15,22 +15,23 @@
  */
 package org.gradle.language.base.internal.tasks;
 
-import org.gradle.api.file.FileCollection;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
+import java.util.Collection;
 
 public abstract class StaleClassCleaner {
     private File destinationDir;
-    FileCollection source;
+    Collection<File> source;
 
     public abstract void execute();
 
-    public FileCollection getSource() {
+    public Collection<File> getSource() {
         return source;
     }
 
-    public void setSource(FileCollection source) {
-        this.source = source;
+    public void setSource(Collection<File> source) {
+        this.source = ImmutableSet.copyOf(source);
     }
 
     public void setDestinationDir(File destinationDir) {
