@@ -28,7 +28,7 @@
             "member": "Class org.gradle.api.tasks.JavaExec",
             "acceptation": "<ADD YOUR CUSTOM REASON HERE>",
             "changes": [
-                "org.gradle.api.execution.Cancellable"
+                "org.gradle.api.internal.tasks.execution.Cancellable"
             ]
         }
     ]
