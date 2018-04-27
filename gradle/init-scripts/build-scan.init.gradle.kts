@@ -1,7 +1,7 @@
 /*
  * This is an init script for internal usage at Gradle Inc.
  */
-if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
+if ("disableScanPlugin" !in gradle.startParameter.systemPropertiesArgs) {
     rootProject {
         pluginManager.withPlugin("com.gradle.build-scan") {
             extensions["buildScan"].withGroovyBuilder {
