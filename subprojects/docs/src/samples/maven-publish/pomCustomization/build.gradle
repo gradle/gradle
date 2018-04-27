@@ -4,16 +4,35 @@ group = 'org.gradle.sample'
 version = '1.0'
 
 publishing {
-// START SNIPPET pom-modification
+// START SNIPPET pom-customization
     publications {
         mavenCustom(MavenPublication) {
-            pom.withXml {
-                asNode().appendNode('description',
-                                    'A demonstration of maven POM customization')
+            pom {
+                name = 'Demo'
+                description = 'A demonstration of Maven POM customization'
+                url = 'http://www.example.com/project'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'johnd'
+                        name = 'John Doe'
+                        email = 'john.doe@example.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:svn:http://subversion.example.com/svn/project/trunk/'
+                    developerConnection = 'scm:svn:https://subversion.example.com/svn/project/trunk/'
+                    url = 'http://subversion.example.com/svn/project/trunk/'
+                }
             }
         }
     }
-// END SNIPPET pom-modification
+// END SNIPPET pom-customization
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
@@ -28,5 +47,3 @@ model {
     }
 }
 // END SNIPPET generate
-
-
