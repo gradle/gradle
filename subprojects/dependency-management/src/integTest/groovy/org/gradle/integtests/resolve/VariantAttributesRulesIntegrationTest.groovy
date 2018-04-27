@@ -164,19 +164,19 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                             // is target to the metadata rule, which explains we find the "format" attribute here
                             expectedTargetVariant = expectedVariant
                             artifact group: 'org', module: 'moduleB', version: '1.0', classifier: 'variant1'
-                            expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy()?'integration':'release']
+                            expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                         } else {
                             if (GradleMetadataResolveRunner.useIvy()) {
                                 // Ivy doesn't derive any variant
                                 expectedTargetVariant = 'default+customVariant'
-                                expectedAttributes = [:]
+                                expectedAttributes = ['org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                             } else {
                                 // for Maven, we derive variants for compile/runtime. Variants are then used during selection, and are subject
                                 // to metadata rules. In this case, we have multiple variants (default, runtime, compile), but only the "compile"
                                 // one is target of the rule (see #getVariantToTest())
                                 expectedTargetVariant = 'compile'
                                 // the format attribute is added by the rule
-                                expectedAttributes = [format: 'custom']
+                                expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                                 if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
                                     // when experimental resolve is on, the "compile" configuration is mapped to the "java-api" usage
                                     expectedAttributes['org.gradle.usage'] = 'java-api'
@@ -384,7 +384,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     @RequiredFeatures(
         // published attributes are only available in Gradle metadata
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     def "published variant metadata can be overwritten"() {
         given:

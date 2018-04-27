@@ -239,12 +239,12 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching configuration of org:test:1.0:
-  - Configuration 'api':
+        failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
+  - Variant 'api':
       - Required custom 'c2' and found incompatible value 'c1'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-  - Configuration 'runtime':
+  - Variant 'runtime':
       - Required custom 'c2' and found compatible value 'c2'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
       - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'""")
@@ -403,12 +403,12 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching configuration of org:test:1.0:
-  - Configuration 'api':
+        failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
+  - Variant 'api':
       - Required custom 'c2' and found incompatible value 'c1'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-  - Configuration 'runtime':
+  - Variant 'runtime':
       - Required custom 'c2' and found compatible value 'c2'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
       - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'""")

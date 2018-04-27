@@ -75,7 +75,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching configuration of org.test:module:1.0:")
+            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
             failure.assertThatCause(containsNormalizedString("Required quality '$requested' and found incompatible value 'qa'"))
         }
 

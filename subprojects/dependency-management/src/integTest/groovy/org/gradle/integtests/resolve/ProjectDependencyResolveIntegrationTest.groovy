@@ -179,7 +179,7 @@ project(":b") {
                     variant('runtime')
                     module('org.other:externalA:1.2') {
                         byReason('also check dependency reasons')
-                        variant('default')
+                        variant('default', ['org.gradle.status': 'release'])
                     }
                 }
             }
@@ -533,7 +533,7 @@ project('c') {
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
     // project dependencies that are “built” by built in plugins like the Java plugin's created jars
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can use zip files as project dependencies"() {
         given:
         file("settings.gradle") << "include 'a'; include 'b'"

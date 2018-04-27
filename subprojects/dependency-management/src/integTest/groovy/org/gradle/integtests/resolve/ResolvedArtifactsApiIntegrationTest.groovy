@@ -689,10 +689,10 @@ ${showFailuresTask(expression)}
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("""Unable to find a matching configuration of project :a:
-  - Configuration 'compile': Required volume '11' and found incompatible value '8'.""")
-        failure.assertHasCause("""Unable to find a matching configuration of project :b:
-  - Configuration 'compile': Required volume '11' and found incompatible value '9'.""")
+        failure.assertHasCause("""Unable to find a matching variant of project :a:
+  - Variant 'compile': Required volume '11' and found incompatible value '8'.""")
+        failure.assertHasCause("""Unable to find a matching variant of project :b:
+  - Variant 'compile': Required volume '11' and found incompatible value '9'.""")
 
         where:
         expression                                                    | _
