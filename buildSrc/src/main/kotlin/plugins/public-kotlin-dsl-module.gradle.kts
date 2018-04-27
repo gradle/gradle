@@ -29,9 +29,11 @@ import codegen.GenerateClasspathManifest
  *  - contain a classpath manifest
  */
 
-apply(plugin = "kotlin-dsl-module")
-apply(plugin = "maven-publish")
-apply(plugin = "com.jfrog.artifactory")
+plugins {
+    id("kotlin-dsl-module")
+    `maven-publish`
+    id("com.jfrog.artifactory")
+}
 
 // with a jar named after `base.archivesBaseName`
 afterEvaluate {

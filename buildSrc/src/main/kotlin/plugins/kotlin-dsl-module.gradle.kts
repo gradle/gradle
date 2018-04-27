@@ -24,8 +24,9 @@
 
 import accessors.java
 
-
-apply(plugin = "kotlin-library")
+plugins {
+    id("kotlin-library")
+}
 
 // including all sources
 val main by java.sourceSets

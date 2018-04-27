@@ -21,9 +21,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 
-
-apply(plugin = "kotlin")
-apply(plugin = "org.gradle.kotlin.ktlint-convention")
+plugins {
+    kotlin("jvm")
+    id("org.gradle.kotlin.ktlint-convention")
+}
 
 kotlin {
     experimental.coroutines = Coroutines.ENABLE
