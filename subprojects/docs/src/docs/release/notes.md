@@ -12,9 +12,13 @@ In previous versions of Gradle, the native compile task include path was a singl
 In Gradle 4.8, system header include directories can now be accessed separately via the `systemIncludes` property. 
 On GCC-compatible toolchains, the system header include directories specified with `systemIncludes` will be specified on the command line using the ["-isystem" argument](https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html), which marks them for special treatment by the compiler.   
 
-### Upgradation of CodeNarc
+### CodeNarc upgrade
 
-The default version of `CodeNarc` is `1.1` now.
+The default version of CodeNarc used by the [`codenarc plugin`](userguide/codenarc_plugin.html) is [`1.1`](https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-11-jan-2018).
+
+### Ant upgrade
+
+The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.11.html).
 
 ### Signing Publications
 
