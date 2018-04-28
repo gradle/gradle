@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -173,6 +174,11 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().getByName(ASSEMBLE_TASK_NAME).dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+        project.getTasks().configureLater(ASSEMBLE_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            }
+        });
     }
 }

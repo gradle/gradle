@@ -364,10 +364,20 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        project.getTasks().configureLater(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, true,
+                    JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
+        project.getTasks().configureLater(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, false,
+                    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
@@ -386,15 +396,19 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
+        final Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
             @Override
             public void execute(Test test) {
                 test.setDescription("Runs the unit tests.");
                 test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
             }
         });
-        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
-
+        project.getTasks().configureLater(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(test);
+            }
+        });
     }
 
     private void configureConfigurations(Project project) {

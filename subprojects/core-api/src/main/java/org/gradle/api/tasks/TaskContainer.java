@@ -74,6 +74,18 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
 
     /**
+     * Configures the named element in this collection using the given action. Actions are run in the order added.
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param name Name of the element to be configured
+     * @param action A {@link Action} that can configure the element when required.
+     * @since 4.8
+     */
+    @Incubating
+    void configureLater(String name, Action<? super Task> action);
+
+    /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
      * to control how the task is created. The following options are available:</p>
      *
