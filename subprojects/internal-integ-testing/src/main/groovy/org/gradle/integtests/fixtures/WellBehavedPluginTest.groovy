@@ -122,16 +122,13 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
                     return
                 }
                 
-                assert configuredTasks.size() == 3
+                assert configuredTasks.size() == 2
 
                 // This should be the only task configured
                 assert ":help" in configuredTaskPaths
                 
                 // This task needs to be able to register publications lazily
                 assert ":jar" in configuredTaskPaths
-                
-                // This task is eagerly configured with configureEachLater
-                assert ":test" in configuredTaskPaths
             }
         """
         expect:

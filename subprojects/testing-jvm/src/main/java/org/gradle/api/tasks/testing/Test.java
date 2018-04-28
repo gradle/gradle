@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.specs.Spec;
@@ -50,9 +49,11 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -435,6 +436,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     public boolean getDebug() {
+        checkBackwardsCompatibilitySystemPropertyDebugFlag();
         return forkOptions.getDebug();
     }
 
@@ -577,6 +579,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         JavaVersion javaVersion = getJavaVersion();
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
+        }
+
+        if (getDebug()) {
+            getLogger().info("Running tests for remote debugging.");
         }
 
         try {
@@ -1034,7 +1040,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
+    @SkipWhenEmpty
     public FileTree getCandidateClassFiles() {
+        checkBackwardsCompatibilitySystemPropertySingleTest();
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
 
@@ -1056,5 +1064,44 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
+    }
+
+    private void checkBackwardsCompatibilitySystemPropertyDebugFlag() {
+        String debugProp = getTaskPrefixedProperty("debug", "Use --debug-jvm to enable remote debugging of tests");
+        if (debugProp != null) {
+            setDebug(true);
+        }
+    }
+
+    private void checkBackwardsCompatibilitySystemPropertySingleTest() {
+        String singleTest = getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead");
+        if (singleTest != null) {
+            setIncludes(Collections.singletonList("**/" + singleTest + "*.class"));
+        }
+    }
+
+    /**
+     * This returns the value of a system property named
+     * ${path}.${propertyName} or ${name}.${propertyName}
+     * which would look like:
+     * :subproject:test.debug or test.debug
+     */
+    @Nullable
+    private String getTaskPrefixedProperty(String propertyName, String replacement) {
+        String suffix = '.' + propertyName;
+        String value = getPrefixedProperty(getPath() + suffix, replacement);
+        if (value == null) {
+            return getPrefixedProperty(getName() + suffix, replacement);
+        }
+        return value;
+    }
+
+    @Nullable
+    private String getPrefixedProperty(String propertyName, String replacement) {
+        String value = System.getProperty(propertyName);
+        if (value != null) {
+            SingleMessageLogger.nagUserOfDeprecated("System property '" + propertyName + "'", replacement);
+        }
+        return value;
     }
 }
