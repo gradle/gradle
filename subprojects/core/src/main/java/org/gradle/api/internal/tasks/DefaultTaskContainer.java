@@ -325,6 +325,18 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return new TaskLookupProvider<T>(type, name);
     }
 
+    @Override
+    public void configureLater(final String name, final Action<? super Task> action) {
+        configureEachLater(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (task.getName().equals(name)) {
+                    action.execute(task);
+                }
+            }
+        });
+    }
+
     public Task resolveTask(String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
