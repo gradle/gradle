@@ -16,6 +16,10 @@ On GCC-compatible toolchains, the system header include directories specified wi
 
 The default version of CodeNarc used by the [`codenarc plugin`](userguide/codenarc_plugin.html) is [`1.1`](https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-11-jan-2018).
 
+### Ant upgrade
+
+The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.11.html).
+
 ### Signing Publications
 
 The Signing plugin now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
