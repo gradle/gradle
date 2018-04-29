@@ -536,7 +536,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Cancellabl
      */
     @Incubating
     @Override
-    public void onCancel() {
+    public void cancel() {
         javaExecHandleBuilder.cancel();
     }
 }

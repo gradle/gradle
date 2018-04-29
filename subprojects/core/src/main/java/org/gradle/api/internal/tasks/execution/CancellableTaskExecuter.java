@@ -37,7 +37,7 @@ public class CancellableTaskExecuter implements TaskExecuter {
             Runnable onCancel = new Runnable() {
                 @Override
                 public void run() {
-                    Cancellable.class.cast(task).onCancel();
+                    Cancellable.class.cast(task).cancel();
                 }
             };
             buildCancellationToken.addCallback(onCancel);

@@ -39,7 +39,7 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
                     new java.util.concurrent.CountDownLatch(1).await()
                 }
 
-                void onCancel() {
+                void cancel() {
                     taskExecutionThread.interrupt()
                 }
             }

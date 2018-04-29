@@ -23,5 +23,5 @@ public interface Cancellable {
     /**
      * When Ctrl-C is pressed during the task execution, this method of that task will be invoked.
      */
-    void onCancel();
+    void cancel();
 }
