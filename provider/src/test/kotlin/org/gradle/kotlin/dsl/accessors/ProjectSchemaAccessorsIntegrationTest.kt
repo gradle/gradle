@@ -436,6 +436,31 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         build("help")
     }
 
+    @Test
+    fun `can access source sets conventions registered by declared plugins via jit accessors`() {
+
+        withBuildScript("""
+            plugins {
+                groovy
+            }
+
+            java.sourceSets["main"].groovy {
+                groovy.srcDir("some/path")
+            }
+
+            val main by java.sourceSets
+            main.groovy.groovy {
+                srcDir("another/path")
+            }
+
+            val configured = main.groovy.groovy.srcDirs.map { it.relativeTo(rootDir).path }
+            val expected =  listOf(file("src/main/groovy"), file("some/path"), file("another/path")).map { it.relativeTo(rootDir).path }
+            require(configured == expected)
+        """)
+
+        build("help")
+    }
+
     private
     fun setOfAutomaticAccessorsFor(plugins: Set<String>): File {
         val script = "plugins {\n${plugins.joinToString(separator = "\n")}\n}"
