@@ -26,13 +26,11 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matchers
 
-import static org.junit.Assume.assumeThat
 import static org.junit.Assume.assumeTrue
 
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec {
-    def toolChain = null
+    AvailableToolChains.InstalledToolChain toolChain = null
 
     def setup() {
         buildFile << """
@@ -139,7 +137,13 @@ rootProject.name = "${rootProjectName}"
     // TODO: Use @RequiresInstalledToolChain instead once Xcode test are sorted out
     void assumeSwiftCompilerVersion(SwiftVersion swiftVersion) {
         assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
-        assumeThat(toolChain.version.major, Matchers.equalTo(swiftVersion.version))
+        assumeTrue(toolChain.version.major == swiftVersion.version)
+    }
+
+    // TODO: Use @RequiresInstalledToolChain instead once Xcode test are sorted out
+    void assumeSwiftCompilerSupportsLanguageVersion(SwiftVersion swiftVersion) {
+        assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
+        assumeTrue(toolChain.version.major >= swiftVersion.version)
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {
