@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -298,11 +300,13 @@ fun accessorNameSpec(originalName: String) =
 
 private
 fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
-    when (schemaEntry.target) {
-        is TypeAccessibility.Accessible ->
-            TypedAccessorSpec(schemaEntry.target, accessorNameSpec(schemaEntry.name), schemaEntry.type)
-        is TypeAccessibility.Inaccessible ->
-            null
+    schemaEntry.target.run {
+        when (this) {
+            is TypeAccessibility.Accessible ->
+                TypedAccessorSpec(this, accessorNameSpec(schemaEntry.name), schemaEntry.type)
+            is TypeAccessibility.Inaccessible ->
+                null
+        }
     }
 
 

@@ -1,5 +1,8 @@
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
+
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
 import org.hamcrest.CoreMatchers.equalTo

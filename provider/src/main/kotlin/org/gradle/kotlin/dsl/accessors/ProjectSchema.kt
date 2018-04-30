@@ -19,42 +19,15 @@ package org.gradle.kotlin.dsl.accessors
 import groovy.json.JsonOutput.toJson
 
 import org.gradle.api.Project
-import org.gradle.api.internal.HasConvention
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionsSchema
-
 import org.gradle.api.reflect.TypeOf
-import org.gradle.kotlin.dsl.getPluginByName
+
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.io.File
-import java.io.Serializable
-
-
-internal
-data class ProjectSchema<out T>(
-    val extensions: List<ProjectSchemaEntry<T>>,
-    val conventions: List<ProjectSchemaEntry<T>>,
-    val configurations: List<String>
-) : Serializable {
-
-    fun <U> map(f: (T) -> U) =
-        ProjectSchema(
-            extensions.map { it.map(f) },
-            conventions.map { it.map(f) },
-            configurations.toList())
-}
-
-
-internal
-data class ProjectSchemaEntry<out T>(
-    val target: T,
-    val name: String,
-    val type: T
-) : Serializable {
-
-    fun <U> map(f: (T) -> U) =
-        ProjectSchemaEntry(f(target), name, f(type))
-}
 
 
 internal
@@ -69,78 +42,12 @@ fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> 
 
 internal
 fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
-    targetSchemaFor(project, TypeOf.typeOf(Project::class.java)).let { targetSchema ->
-        ProjectSchema(
-            targetSchema.extensions,
-            targetSchema.conventions,
-            accessibleConfigurations(project.configurations.names.toList()))
-    }
-
-
-private
-data class ExtensionConventionSchema(
-    val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val conventions: List<ProjectSchemaEntry<TypeOf<*>>>
-)
-
-
-private
-fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSchema {
-
-    val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-
-    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
-        if (target is ExtensionAware) {
-            accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
-                extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                if (!schema.isDeferredConfigurable) {
-                    collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
-                }
-            }
-        }
-        if (target is HasConvention) {
-            accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
-                conventions.add(ProjectSchemaEntry(targetType, name, type))
-                collectSchemaOf(target.convention.getPluginByName(name), type)
-            }
-        }
-    }
-
-    collectSchemaOf(target, targetType)
-
-    return ExtensionConventionSchema(extensions.distinct(), conventions.distinct())
-}
-
-
-private
-fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
-    extensionsSchema.filter { isPublic(it.name) }
-
-
-private
-fun accessibleConventionsSchema(plugins: Map<String, Any>) =
-    plugins.filterKeys(::isPublic).mapValues { TypeOf.typeOf(it.value::class.java) }
-
-
-internal
-fun accessibleConfigurations(configurations: List<String>) =
-    configurations.filter(::isPublic)
-
-
-internal
-fun isPublic(name: String): Boolean =
-    !name.startsWith("_")
+    project.serviceOf<ProjectSchemaProvider>().schemaFor(project)
 
 
 internal
 fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
     toJson(multiProjectStringSchema)
-
-
-internal
-fun ProjectSchema<TypeOf<*>>.withKotlinTypeStrings() =
-    map(::kotlinTypeStringFor)
 
 
 @Suppress("unchecked_cast")
@@ -174,46 +81,3 @@ fun loadSchemaEntryListFrom(extensions: Any?): List<ProjectSchemaEntry<String>> 
             } ?: emptyList()
         else -> emptyList()
     }
-
-
-internal
-fun kotlinTypeStringFor(type: TypeOf<*>): String =
-    type.run {
-        when {
-            isArray ->
-                "Array<${kotlinTypeStringFor(componentType!!)}>"
-            isParameterized ->
-                "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
-            isWildcard ->
-                upperBound?.let(::kotlinTypeStringFor) ?: "Any"
-            else ->
-                toString().let { primitiveTypeStrings[it] ?: it }
-        }
-    }
-
-
-private
-val primitiveTypeStrings =
-    mapOf(
-        "java.lang.Object" to "Any",
-        "java.lang.String" to "String",
-        "java.lang.Character" to "Char",
-        "char" to "Char",
-        "java.lang.Boolean" to "Boolean",
-        "boolean" to "Boolean",
-        "java.lang.Byte" to "Byte",
-        "byte" to "Byte",
-        "java.lang.Short" to "Short",
-        "short" to "Short",
-        "java.lang.Integer" to "Int",
-        "int" to "Int",
-        "java.lang.Long" to "Long",
-        "long" to "Long",
-        "java.lang.Float" to "Float",
-        "float" to "Float",
-        "java.lang.Double" to "Double",
-        "double" to "Double")
-
-
-internal
-val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()

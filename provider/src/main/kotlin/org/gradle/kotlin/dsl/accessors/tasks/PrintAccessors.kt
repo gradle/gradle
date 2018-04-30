@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.forEachAccessor
 import org.gradle.kotlin.dsl.accessors.schemaFor
-import org.gradle.kotlin.dsl.accessors.withKotlinTypeStrings
+import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 
 
 open class PrintAccessors : DefaultTask() {
