@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -91,8 +92,9 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 continue;
             }
 
-            if (doesNotMatchAttributes(metadataProvider, consumerAttributes)) {
-                result.doesNotMatchConsumerAttributes(candidateId);
+            RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
+            if (maybeRejectByAttributes != null) {
+                result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
             } else if (isRejectedByConstraint(candidateId, rejectedVersionSelector)) {
                 // Mark this version as rejected
                 result.rejectedByConstraint(candidateId);
@@ -116,18 +118,20 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         result.noMatchFound();
     }
 
-    private boolean doesNotMatchAttributes(MetadataProvider provider, ImmutableAttributes consumerAttributes) {
+    private RejectedByAttributesVersion tryRejectByAttributes(ModuleComponentIdentifier id, MetadataProvider provider, ImmutableAttributes consumerAttributes) {
         if (consumerAttributes.isEmpty()) {
-            return false;
+            return null;
         }
 
         // At this point, we need the component metadata, because it may declare attributes that are needed for matching
         if (provider.resolve()) {
             AttributeContainerInternal attributes = (AttributeContainerInternal) provider.getMetaData().getAttributes();
             boolean matching = attributesSchema.matcher().isMatching(attributes, consumerAttributes);
-            return !matching;
+            if (!matching) {
+                return new RejectedByAttributesVersion(id, attributesSchema.matcher().describeMatching(attributes, consumerAttributes));
+            }
         }
-        return false;
+        return null;
     }
 
     /**

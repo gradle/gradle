@@ -39,6 +39,8 @@ import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
@@ -113,7 +115,7 @@ public class DynamicVersionResolver {
 
     private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
         Set<String> unmatchedVersions = new LinkedHashSet<String>();
-        Set<String> rejectedVersions = new LinkedHashSet<String>();
+        Set<RejectedVersion> rejectedVersions = new LinkedHashSet<RejectedVersion>();
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.applyTo(result, unmatchedVersions, rejectedVersions);
         }
@@ -221,7 +223,7 @@ public class DynamicVersionResolver {
         private final BuildableModuleComponentMetaDataResolveResult resolvedVersionMetadata = new DefaultBuildableModuleComponentMetaDataResolveResult();
         private final Map<String, CandidateResult> candidateComponents = new LinkedHashMap<String, CandidateResult>();
         private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
-        private final Set<String> rejectedVersions = Sets.newLinkedHashSet();
+        private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
         private final VersionListResult versionListingResult;
         private final ModuleComponentRepository repository;
         private final AttemptCollector attemptCollector;
@@ -300,12 +302,12 @@ public class DynamicVersionResolver {
 
         @Override
         public void rejectedByRule(ModuleComponentIdentifier id) {
-            rejectedVersions.add(id.getVersion());
+            rejectedVersions.add(new RejectedVersion(id));
         }
 
         @Override
-        public void doesNotMatchConsumerAttributes(ModuleComponentIdentifier id) {
-            rejectedVersions.add(id.getVersion());
+        public void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion) {
+            rejectedVersions.add(rejectedVersion);
         }
 
         @Override
@@ -313,7 +315,7 @@ public class DynamicVersionResolver {
             if (firstRejected == null) {
                 firstRejected = id;
             }
-            rejectedVersions.add(id.getVersion());
+            rejectedVersions.add(new RejectedVersion(id));
         }
 
         private List<CandidateResult> candidates() {
@@ -329,7 +331,7 @@ public class DynamicVersionResolver {
             return candidates;
         }
 
-        protected void applyTo(BuildableComponentIdResolveResult target, Set<String> unmatchedVersions, Set<String> rejectedVersions) {
+        protected void applyTo(BuildableComponentIdResolveResult target, Set<String> unmatchedVersions, Set<RejectedVersion> rejectedVersions) {
             versionListingResult.applyTo(target);
             attemptCollector.applyTo(target);
             unmatchedVersions.addAll(this.unmatchedVersions);

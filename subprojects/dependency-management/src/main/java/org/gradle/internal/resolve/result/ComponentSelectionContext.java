@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedByAttributesVersion;
 
 /**
  * The result of resolving some dynamic version selector to a particular component id.
@@ -55,6 +56,7 @@ public interface ComponentSelectionContext {
 
     /**
      * Adds a candidate that matched the provided selector, but was rejected because it didn't match the consumer attributes.
+     * @param rejectedVersion a version rejected by attribute matching
      */
-    void doesNotMatchConsumerAttributes(ModuleComponentIdentifier id);
+    void doesNotMatchConsumerAttributes(RejectedByAttributesVersion rejectedVersion);
 }

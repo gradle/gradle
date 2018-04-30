@@ -16,6 +16,8 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -58,6 +60,31 @@ public class ComponentAttributeMatcher {
             }
         }
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<AttributeMatcher.MatchingDescription> describeMatching(AttributeSelectionSchema schema, AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+        if (requested.isEmpty() || candidate.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ImmutableAttributes requestedAttributes = requested.asImmutable();
+        ImmutableAttributes candidateAttributes = candidate.asImmutable();
+
+        ImmutableSet<Attribute<?>> attributes = requestedAttributes.keySet();
+        List<AttributeMatcher.MatchingDescription> result = Lists.newArrayListWithCapacity(attributes.size());
+        for (Attribute<?> attribute : attributes) {
+            AttributeValue<?> requestedValue = requestedAttributes.findEntry(attribute);
+            AttributeValue<?> candidateValue = candidateAttributes.findEntry(attribute.getName());
+            if (candidateValue.isPresent()) {
+                Object coercedValue = candidateValue.coerce(attribute);
+                boolean match = schema.matchValue(attribute, requestedValue.get(), coercedValue);
+                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, match));
+            } else {
+                result.add(new AttributeMatcher.MatchingDescription(attribute, requestedValue, candidateValue, false));
+            }
+        }
+        return result;
     }
 
     /**

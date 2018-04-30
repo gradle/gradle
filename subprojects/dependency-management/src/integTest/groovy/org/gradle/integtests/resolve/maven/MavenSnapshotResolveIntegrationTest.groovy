@@ -735,9 +735,9 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasCause("""Could not find group:projectA:1.0-SNAPSHOT.
 Searched in the following locations:
-    ${projectA.metaData.uri}
-    ${projectA.pom.uri}
-    ${projectA.artifact.uri}
+  - ${projectA.metaData.uri}
+  - ${projectA.pom.uri}
+  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -1030,8 +1030,8 @@ task retrieve(type: Sync) {
         then:
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
-    ${projectA.pom.uri}
-    ${projectA.artifact.uri}
+  - ${projectA.pom.uri}
+  - ${projectA.artifact.uri}
 Required by:
 """)
     }

@@ -156,8 +156,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyR
 
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
-Versions that do not match:
-    1.3
+Versions that do not match: 1.3
 Searched in the following locations:
 '''
 
@@ -307,8 +306,8 @@ Searched in the following locations:
         then:
         failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
 Versions that do not match:
-    1.3
-    1.2
+  - 1.3
+  - 1.2
 Searched in the following locations:
 '''
 
