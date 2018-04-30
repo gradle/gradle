@@ -62,4 +62,34 @@ dependencies {
         outputDoesNotContain('foo')
 
     }
+
+    def 'does not lock dependencies missing a version'() {
+        def flatRepo = testDirectory.file('repo')
+        flatRepo.createFile('my-dep-1.0.jar')
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    flatDir {
+        dirs 'repo'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf name: 'my-dep-1.0'
+}
+"""
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        outputContains('my-dep-1.0')
+        lockfileFixture.verifyLockfile('lockedConf', [])
+    }
 }

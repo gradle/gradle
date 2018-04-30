@@ -75,10 +75,12 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
         ComponentIdentifier identifier = node.getOwner().getComponentId();
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
-            if (allResolvedModules.add(id) && dependencyLockingState.mustValidateLockState()) {
-                String displayName = id.getDisplayName();
-                if (!lockingConstraints.remove(displayName)) {
-                    extraModules.add(displayName);
+            if (!id.getVersion().isEmpty()) {
+                if (allResolvedModules.add(id) && dependencyLockingState.mustValidateLockState()) {
+                    String displayName = id.getDisplayName();
+                    if (!lockingConstraints.remove(displayName)) {
+                        extraModules.add(displayName);
+                    }
                 }
             }
         }
