@@ -72,7 +72,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      */
     @Incubating
     <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
-    
+
     /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
      * to control how the task is created. The following options are available:</p>
