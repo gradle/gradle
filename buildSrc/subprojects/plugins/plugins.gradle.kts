@@ -1,8 +1,13 @@
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+
 plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
+apply {
+    plugin("org.gradle.kotlin.kotlin-dsl")
+    plugin<PrecompiledScriptPlugins>()
+}
 
 dependencies {
     implementation(project(":binaryCompatibility"))
@@ -27,25 +32,9 @@ gradlePlugin {
             id = "gradlebuild.build-types"
             implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
         }
-        "jsoup" {
-            id = "gradlebuild.jsoup"
-            implementationClass = "org.gradle.plugins.jsoup.JsoupPlugin"
-        }
         "performanceTest" {
             id = "gradlebuild.performance-test"
             implementationClass = "org.gradle.plugins.performance.PerformanceTestPlugin"
-        }
-        "publishPublicLibraries" {
-            id = "gradlebuild.publish-public-libraries"
-            implementationClass = "org.gradle.plugins.publish.PublishPublicLibrariesPlugin"
-        }
-       "resumeBuild" {
-            id = "gradlebuild.resume-build"
-            implementationClass = "org.gradle.gradlebuild.tools.ResumeBuildPlugin"
-        }
-        "strictCompile" {
-            id = "gradlebuild.strict-compile"
-            implementationClass = "org.gradle.plugins.strictcompile.StrictCompilePlugin"
         }
         "unitTestAndCompile" {
             id = "gradlebuild.unittest-and-compile"

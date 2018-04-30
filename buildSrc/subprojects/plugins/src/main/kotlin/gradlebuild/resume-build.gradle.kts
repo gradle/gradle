@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.jsoup
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.tasks.Copy
+package gradlebuild
 
-import org.gradle.kotlin.dsl.*
-
-
-class JsoupPlugin : Plugin<Project> {
-
-    // TODO Is this used anywhere?
-    override fun apply(project: Project): Unit = project.run {
-        tasks.withType<Copy> {
-            extensions.create<JsoupCopyExtension>("jsoup", this)
-        }
+val resumeTask = project.property("resume")
+if (resumeTask != null) {
+    gradle.taskGraph.whenReady {
+        val allTasks = allTasks
+        val resumeIndex = allTasks.indexOfFirst { it.path == resumeTask }
+        if (resumeIndex < 0) throw GradleException("Can't resume from $resumeTask because no such task is scheduled for execution")
+        allTasks.subList(0, resumeIndex).forEach { it.enabled = false }
     }
 }

@@ -1,8 +1,13 @@
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+
 plugins {
     `java-gradle-plugin`
 }
 
-apply { plugin("org.gradle.kotlin.kotlin-dsl") }
+apply {
+    plugin("org.gradle.kotlin.kotlin-dsl")
+    plugin<PrecompiledScriptPlugins>()
+}
 
 dependencies {
     implementation(project(":binaryCompatibility"))
@@ -11,13 +16,4 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":profiling"))
     implementation(project(":plugins"))
-}
-
-gradlePlugin {
-    (plugins) {
-        "javaProjects" {
-            id = "gradlebuild.java-projects"
-            implementationClass = "org.gradle.gradlebuild.uberplugins.JavaProjectsPlugin"
-        }
-    }
 }

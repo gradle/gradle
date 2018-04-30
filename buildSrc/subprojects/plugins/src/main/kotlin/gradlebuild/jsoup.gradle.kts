@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.strictcompile
+package gradlebuild
 
+import org.gradle.plugins.jsoup.JsoupCopyExtension
 
-/**
- * Strict compilation options honored by [gradlebuild.Strict_compile_gradle].
- */
-open class StrictCompileExtension {
-
-    var ignoreDeprecations = false
+tasks.withType<Copy> {
+    extensions.create<JsoupCopyExtension>("jsoup", this)
 }
