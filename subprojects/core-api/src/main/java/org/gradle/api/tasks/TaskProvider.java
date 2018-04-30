@@ -22,7 +22,8 @@ import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 
 /**
- * TODO: Docs
+ * Providers a task of the given type.
+ * 
  * @param <T> Task type
  * @since 4.8
  */
