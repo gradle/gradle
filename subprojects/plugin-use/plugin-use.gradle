@@ -40,3 +40,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
     policy = WhenNotEmpty.REPORT
 }
+
+testFixtures {
+    from(":resourcesHttp")
+}
