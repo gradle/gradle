@@ -453,8 +453,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 srcDir("another/path")
             }
 
-            val configured = main.groovy.groovy.srcDirs.map { it.relativeTo(rootDir).path }
-            val expected =  listOf(file("src/main/groovy"), file("some/path"), file("another/path")).map { it.relativeTo(rootDir).path }
+            val configured = main.groovy.groovy.srcDirs
+            val expected = linkedSetOf(file("src/main/groovy"), file("some/path"), file("another/path"))
             require(configured == expected)
         """)
 
