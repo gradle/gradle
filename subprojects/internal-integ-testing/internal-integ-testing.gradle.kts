@@ -23,6 +23,7 @@ dependencies {
     compile(project(":cli"))
     compile(project(":launcher"))
     compile(project(":native"))
+    compile(project(":resourcesHttp"))
     compile(testLibrary("jetty"))
     compile("org.littleshoot:littleproxy:1.1.0-beta1")
     compile(library("gcs"))
