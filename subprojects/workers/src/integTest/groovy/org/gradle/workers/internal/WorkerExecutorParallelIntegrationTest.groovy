@@ -815,7 +815,7 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
                 def isolationMode = IsolationMode.NONE
                 def additionalForkOptions = {}
                 def runnableClass = TestParallelRunnable.class
-                def additionalClasspath = project.layout.files()
+                def additionalClasspath = project.files()
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {

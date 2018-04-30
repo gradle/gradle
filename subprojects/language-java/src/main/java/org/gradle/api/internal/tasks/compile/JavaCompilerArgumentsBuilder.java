@@ -259,7 +259,7 @@ public class JavaCompilerArgumentsBuilder {
             return;
         }
 
-        for (File file : spec.getSourceFiles()) {
+        for (File file : spec.getSource()) {
             args.add(file.getPath());
         }
     }

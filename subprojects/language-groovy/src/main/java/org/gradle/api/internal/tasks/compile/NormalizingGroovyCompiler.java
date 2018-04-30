@@ -16,19 +16,19 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -61,9 +61,8 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                 return '.' + extension;
             }
         });
-        Collection<File> filtered = Collections2.filter(spec.getSourceFiles(), new Predicate<File>() {
-            @Override
-            public boolean apply(File element) {
+        FileCollection filtered = spec.getSource().filter(new Spec<File>() {
+            public boolean isSatisfiedBy(File element) {
                 for (String fileExtension : fileExtensions) {
                     if (hasExtension(element, fileExtension)) {
                         return true;
@@ -73,7 +72,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
             }
         });
 
-        spec.setSourceFiles(filtered);
+        spec.setSource(new SimpleFileCollection(filtered.getFiles()));
     }
 
     private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
@@ -99,7 +98,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
-        for (File file : spec.getSourceFiles()) {
+        for (File file : spec.getSource()) {
             builder.append('\n');
             builder.append(file);
         }

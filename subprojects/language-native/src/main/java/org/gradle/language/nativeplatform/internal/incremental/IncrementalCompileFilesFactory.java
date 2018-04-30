@@ -55,7 +55,7 @@ public class IncrementalCompileFilesFactory {
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
-    public IncementalCompileSourceProcessor files(CompilationState previousCompileState) {
+    public IncementalCompileSourceProcessor filesFor(CompilationState previousCompileState) {
         return new DefaultIncementalCompileSourceProcessor(previousCompileState);
     }
 

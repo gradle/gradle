@@ -305,7 +305,7 @@ task useDirProvider {
                 @InputFile
                 final RegularFileProperty inputFile = newInputFile()
                 @InputFiles
-                final ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
+                final ConfigurableFileCollection inputFiles = project.files()
                 @OutputFile
                 final RegularFileProperty outputFile = newOutputFile()
                 
@@ -594,7 +594,7 @@ class SomeTask extends DefaultTask {
             class ConsumerTask extends DefaultTask {
             
                 @InputFiles
-                ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
+                FileCollection inputFiles = project.files()
                 
                 @Optional
                 @OutputFile

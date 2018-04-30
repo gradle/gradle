@@ -54,7 +54,7 @@ public class ScalaPlugin implements Plugin<Project> {
                 scalaDoc.getConventionMapping().map("classpath", new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {
-                        ConfigurableFileCollection files = project.getLayout().configurableFiles();
+                        ConfigurableFileCollection files = project.files();
                         files.from(main.getOutput());
                         files.from(main.getCompileClasspath());
                         return files;

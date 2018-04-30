@@ -93,7 +93,7 @@ public class GroovyCompile extends AbstractCompile {
 
     private DefaultGroovyJavaJointCompileSpec createSpec() {
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions).create();
-        spec.setSourceFiles(getSource().getFiles());
+        spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());

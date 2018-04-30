@@ -18,17 +18,13 @@ package org.gradle.play.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
@@ -136,7 +132,7 @@ public class PlayPluginConfigurations {
                     files.add(artifact.getFile());
                 }
             }
-            return ImmutableFileCollection.of(files.build());
+            return new SimpleFileCollection(files.build());
         }
 
         @Override

@@ -16,11 +16,11 @@
 
 package org.gradle.play.internal.run;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.ClasspathSnapshotter;
 import org.gradle.api.internal.changedetection.state.InputPathNormalizationStrategy;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
@@ -30,6 +30,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
+import java.util.Set;
 
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
@@ -67,11 +68,9 @@ public class PlayApplicationRunner {
         }
 
         private FileCollection collectApplicationClasspath(PlayRunSpec runSpec) {
-            ImmutableSet<File> applicationClasspath = ImmutableSet.<File>builder()
-                .addAll(runSpec.getChangingClasspath())
-                .add(runSpec.getApplicationJar())
-                .build();
-            return ImmutableFileCollection.of(applicationClasspath);
+            Set<File> applicationClasspath = Sets.newLinkedHashSet(runSpec.getChangingClasspath());
+            applicationClasspath.add(runSpec.getApplicationJar());
+            return new SimpleFileCollection(applicationClasspath);
         }
 
         @Override
