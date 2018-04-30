@@ -15,9 +15,11 @@
  */
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
 
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -306,6 +308,95 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 module("org.test:module:1.0:${expectedVariant}")
             }
         }
+    }
+
+    /**
+     * This test simulates what should be the new, better way of doing latest.release.
+     * Here, we set a value on the consuming configuration, which mandates a release status.
+     * This means that we will evict versions which are "integration", even during dynamic
+     * version selection. The nice thing is that it uses attribute matching now, and we prove
+     * that it integrates well with the legacy "status" API thanks to the Maven use case:
+     * since Maven doesn't have a "status" but infers it from the version instead, we can show
+     * that we can provide a status to Maven dependencies and still use attribute matching
+     * to use the right version.
+     */
+    @Unroll
+    def "can select the latest.#status version having release status"() {
+        given:
+        def versions = [
+            '1': 'release',
+            '2': 'milestone',
+            '3': 'integration',
+            '4': 'release',
+            '5': 'integration'
+        ]
+        repository {
+            versions.each { String version, String s ->
+                "org:test:$version" {
+                    // Gradle metadata
+                    attribute(ProjectInternal.STATUS_ATTRIBUTE.name, s)
+                    // Ivy metadata
+                    withModule(IvyHttpModule) {
+                        withStatus s
+                    }
+                    // Maven will use component metadata rules
+                }
+            }
+        }
+        buildFile << """
+            configurations {
+                conf {
+                   attributes.attribute(org.gradle.api.internal.project.ProjectInternal.STATUS_ATTRIBUTE, '$status')
+                }
+            }
+            dependencies {
+                conf 'org:test:[1,)'
+                components {
+                    withModule('org:test') { mod ->
+                        if (${!GradleMetadataResolveRunner.useIvy()}) {
+                            // this is just a hack to get the configuration from the test context
+                            def release = 'release'
+                            def integration = 'integration'
+                            def milestone = 'milestone'
+                            def versions = $versions
+                            // Maven doesn't publish a status, but we can patch it!
+                            status = "\${versions[mod.id.version as int]}"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+                versions.each { key, value ->
+                    def version = key as int
+                    "$version" {
+                        if (version > selected) {
+                            expectGetMetadata()
+                        } else if (version == selected) {
+                            expectResolve()
+                        }
+                    }
+                }
+            }
+        }
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:test:[1,)', "org:test:$selected")
+            }
+        }
+
+        where:
+        status        | selected
+        'release'     | 4
+        'integration' | 5
+        'milestone'   | 2
     }
 
     static String testedVariant() {
