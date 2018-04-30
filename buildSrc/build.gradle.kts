@@ -156,17 +156,17 @@ fun Project.applyGroovyProjectConventions() {
         }
     }
 
-    fun configureCompileTask(task: AbstractCompile, options: CompileOptions) {
-        options.isFork = true
-        options.encoding = "utf-8"
-        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val vendor = System.getProperty("java.vendor")
-        task.inputs.property("javaInstallation", "${vendor} ${JavaVersion.current()}")
-    }
-
     tasks.withType<GroovyCompile> {
-        groovyOptions.encoding = "utf-8"
-        configureCompileTask(this, options)
+        groovyOptions.apply {
+            encoding = "utf-8"
+        }
+        options.apply {
+            isFork = true
+            encoding = "utf-8"
+            compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+        }
+        val vendor = System.getProperty("java.vendor")
+        inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
     }
 
     val compileGroovy: GroovyCompile by tasks
