@@ -6,6 +6,25 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Locking of dynamic dependencies
+
+Gradle now provides a mechanism for locking dynamic versions.
+It enables builds to become reproducible even when declaring dependencies using version ranges.
+
+You first enable locking on configurations:
+
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
+You then run a build, telling Gradle to persiste lock state:
+
+    gradle test --write-locks
+
+From this point onwards, all configurations that have a lock state will fail to resolve if changes are made to their dependencies.
+
+Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
+
 ### Better control over system include path for native compilation
 
 In previous versions of Gradle, the native compile task include path was a single monolithic collection of files that was accessible through the `includes` property on the compile task.
