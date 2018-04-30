@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public interface JvmLanguageCompileSpec extends CompileSpec {
@@ -35,9 +36,17 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setDestinationDir(File destinationDir);
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
     FileCollection getSource();
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
     void setSource(FileCollection source);
+
+    Collection<File> getSourceFiles();
+
+    void setSourceFiles(Collection<File> sourceFiles);
 
     @Deprecated
     Iterable<File> getClasspath();

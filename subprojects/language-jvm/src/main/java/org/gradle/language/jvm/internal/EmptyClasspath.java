@@ -17,7 +17,7 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.jvm.Classpath;
@@ -26,7 +26,7 @@ import org.gradle.jvm.Classpath;
 public class EmptyClasspath implements Classpath {
     @Override
     public FileCollection getFiles() {
-        return new SimpleFileCollection();
+        return ImmutableFileCollection.of();
     }
 
     @Override

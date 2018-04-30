@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.tasks.StaleClassCleaner
 import spock.lang.Specification
-import org.gradle.api.tasks.WorkResult
-import org.gradle.api.file.FileCollection
 
 class CleaningJavaCompilerTest extends Specification {
     private final org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
@@ -34,13 +33,13 @@ class CleaningJavaCompilerTest extends Specification {
             return cleaner
         }
     }
-    
+
     def cleansStaleClassesAndThenInvokesCompiler() {
         WorkResult result = Mock()
         File destDir = new File('dest')
-        FileCollection source = Mock()
         _ * spec.destinationDir >> destDir
-        _ * spec.source >> source
+        def files = [new File('src')] as Set
+        _ * spec.sourceFiles >> files
 
         when:
         def r = compiler.execute(spec)
@@ -50,7 +49,7 @@ class CleaningJavaCompilerTest extends Specification {
 
         and:
         1 * cleaner.setDestinationDir(destDir)
-        1 * cleaner.setSource(source)
+        1 * cleaner.setSource(files)
 
         and:
         1 * cleaner.execute()
