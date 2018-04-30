@@ -3,6 +3,7 @@ package configurations
 import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import model.CIBuildModel
+import model.OS
 import model.PerformanceTestType
 import model.Stage
 
@@ -41,7 +42,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                     gradleParameters
                     + listOf("clean distributed${type.taskId}s -x prepareSamples --baselines %performance.baselines% ${type.extraParameters} -PtimestampedVersion -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -PteamCityUsername=%TC_USERNAME% -PteamCityPassword=%teamcity.password.restbot% -Porg.gradle.performance.buildTypeId=${IndividualPerformanceScenarioWorkers(model).id} -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
                             buildScanTag("PerformanceTest"))
-                            + model.parentBuildCache.gradleParameters()
+                            + model.parentBuildCache.gradleParameters(OS.linux)
                     ).joinToString(separator = " ")
         }
         script {

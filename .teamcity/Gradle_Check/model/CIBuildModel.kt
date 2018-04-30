@@ -157,21 +157,24 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
 }
 
 interface BuildCache {
-    fun gradleParameters(): List<String>
+    fun gradleParameters(os: OS): List<String>
 }
 
 data class RemoteBuildCache(val url: String, val username: String = "%gradle.cache.remote.username%", val password: String = "%gradle.cache.remote.password%") : BuildCache {
-    override fun gradleParameters(): List<String> {
+    override fun gradleParameters(os: OS): List<String> {
         return listOf("--build-cache",
-                """"-Dgradle.cache.remote.url=$url"""",
-                """"-Dgradle.cache.remote.username=$username"""",
-                """"-Dgradle.cache.remote.password=$password""""
+                os.escapeKeyValuePair("-Dgradle.cache.remote.url", url),
+                os.escapeKeyValuePair("-Dgradle.cache.remote.username", username),
+                os.escapeKeyValuePair("-Dgradle.cache.remote.password", password)
         )
     }
 }
 
+private
+fun OS.escapeKeyValuePair(key: String, value: String) = if (this == OS.windows) """$key="$value"""" else """"$key=$value""""
+
 object NoBuildCache : BuildCache {
-    override fun gradleParameters(): List<String> {
+    override fun gradleParameters(os: OS): List<String> {
         return emptyList()
     }
 }

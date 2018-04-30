@@ -3,6 +3,7 @@ package configurations
 import jetbrains.buildServer.configs.kotlin.v2017_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2017_2.buildSteps.script
 import model.CIBuildModel
+import model.OS
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, init = {
     uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkersLinux"
@@ -41,7 +42,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
                     gradleParameters.map { if (it == "--daemon") "--no-daemon" else it }
                     + listOf("""clean %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -x performanceReport -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""",
                             buildScanTag("IndividualPerformanceScenarioWorkers"))
-                            + model.parentBuildCache.gradleParameters()
+                            + model.parentBuildCache.gradleParameters(OS.linux)
                     ).joinToString(separator = " ")
         }
         script {

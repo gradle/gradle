@@ -123,7 +123,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             tasks = "clean $gradleTasks"
             gradleParams = (
                     listOf(gradleParameterString) +
-                            buildType.buildCache.gradleParameters() +
+                            buildType.buildCache.gradleParameters(os) +
                             listOf(extraParameters) +
                             buildScanTags.map { buildScanTag(it) }
                     ).joinToString(separator = " ")
