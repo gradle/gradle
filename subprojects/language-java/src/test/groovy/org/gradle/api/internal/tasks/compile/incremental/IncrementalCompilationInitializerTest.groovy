@@ -63,7 +63,7 @@ class IncrementalCompilationInitializerTest extends Specification {
         initializer.initializeCompilation(compileSpec, new RecompilationSpec())
 
         then:
-        1 * compileSpec.setSource { it.files.empty }
+        1 * compileSpec.setSourceFiles { it.files.empty }
     }
 
     def "configures empty classes when aggregated types empty"() {
