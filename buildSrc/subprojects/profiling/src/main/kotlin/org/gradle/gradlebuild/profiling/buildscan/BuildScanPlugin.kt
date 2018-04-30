@@ -28,7 +28,6 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
-import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 
 
@@ -102,48 +101,43 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.extractVcsData() {
 
-        fun Project.run(vararg args: String): String {
-            val process = ProcessBuilder(args.toList())
-                .directory(rootDir)
-                .start()
-            assert(process.waitFor() == 0)
-            return process.inputStream.bufferedReader().use { it.readText().trim() }
-        }
-
-        fun execAsync(action: () -> Unit) {
-            val latch = CountDownLatch(1)
-            thread(start = true) {
-                try {
-                    action()
-                } catch (e: Exception) {
-                    rootProject.logger.warn("Build scan user data async exec failed", e)
-                } finally {
-                    latch.countDown()
-                }
+        fun async(action: () -> Unit) = thread {
+            try {
+                action()
+            } catch (e: Exception) {
+                rootProject.logger.warn("Build scan user data async exec failed", e)
             }
         }
 
-        execAsync {
-            val commitId = run("git", "rev-parse", "--verify", "HEAD")
-            setCommitId(commitId)
-            val status = run("git", "status", "--porcelain")
-            if (status.isNotEmpty()) {
-                buildScan {
-                    tag("dirty")
-                    value("Git Status", status)
-                }
-            }
-        }
+        awaitAll(
 
-        execAsync {
-            val branchName = run("git", "rev-parse", "--abbrev-ref", "HEAD")
-            if (branchName.isNotEmpty() && branchName != "HEAD") {
-                buildScan {
-                    tag(branchName)
-                    value("Git Branch Name", branchName)
+            async {
+                system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
+                    setCommitId(commitId)
                 }
-            }
-        }
+            },
+
+            async {
+                system("git", "status", "--porcelain").let { status ->
+                    if (status.isNotEmpty()) {
+                        buildScan {
+                            tag("dirty")
+                            value("Git Status", status)
+                        }
+                    }
+                }
+            },
+
+            async {
+                system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
+                    if (branchName.isNotEmpty() && branchName != "HEAD") {
+                        buildScan {
+                            tag(branchName)
+                            value("Git Branch Name", branchName)
+                        }
+                    }
+                }
+            })
     }
 
     private
@@ -193,6 +187,20 @@ open class BuildScanPlugin : Plugin<Project> {
             link("Source", "https://github.com/gradle/gradle/commit/" + commitId)
         }
 }
+
+
+fun Project.system(vararg args: String): String =
+    ProcessBuilder(args.toList())
+        .directory(rootDir)
+        .start()
+        .run {
+            assert(waitFor() == 0)
+            inputStream.bufferedReader().use { it.readText().trim() }
+        }
+
+
+fun awaitAll(vararg threads: Thread) =
+    threads.forEach(Thread::join)
 
 
 fun Project.buildScan(configure: BuildScanExtension.() -> Unit): Unit =
