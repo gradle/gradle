@@ -46,7 +46,7 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     Collection<File> getSourceFiles();
 
-    void setSourceFiles(Collection<File> sourceFiles);
+    void setSourceFiles(Iterable<File> sourceFiles);
 
     @Deprecated
     Iterable<File> getClasspath();
