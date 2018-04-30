@@ -312,7 +312,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "can include/exclude source files"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.sourceFiles = [file1, file2]
+        spec.source = ImmutableFileCollection.of(file1, file2)
 
         when:
         builder.includeSourceFiles(true)
@@ -330,7 +330,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "does not include source files by default"() {
         def file1 = new File("/src/Person.java")
         def file2 = new File("Computer.java")
-        spec.sourceFiles = [file1, file2]
+        spec.source = ImmutableFileCollection.of(file1, file2)
 
         expect:
         builder.build() == defaultOptions

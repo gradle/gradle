@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.file.collections
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
-import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.provider.Provider
 import org.gradle.util.UsesNativeServices
@@ -34,22 +32,18 @@ import java.util.concurrent.Callable
 @UsesNativeServices
 class ImmutableFileCollectionTest extends Specification {
     def 'can create empty collection'() {
-        ImmutableFileCollection collection1 = ImmutableFileCollection.of()
-        ImmutableFileCollection collection2 = ImmutableFileCollection.of(new File[0])
+        ImmutableFileCollection files = ImmutableFileCollection.of()
 
         expect:
-        collection1.files.size() == 0
-        collection2.files.size() == 0
+        files.files.size() == 0
     }
 
     def 'empty collections are fixed instance'() {
         ImmutableFileCollection collection1 = ImmutableFileCollection.of()
         ImmutableFileCollection collection2 = ImmutableFileCollection.of()
-        ImmutableFileCollection collection3 = ImmutableFileCollection.of(new File[0])
 
         expect:
         collection1.is(collection2)
-        collection1.is(collection3)
     }
 
     def 'resolves specified files using FileResolver'() {
@@ -161,24 +155,10 @@ class ImmutableFileCollectionTest extends Specification {
         'closure'          | ({ [ 'abc', 'def' ] } as Object[])
         'collection(list)' | [ 'abc', 'def' ]
         'array'            | ([ 'abc', 'def' ] as Object[])
-        'FileCollection'   | fileCollectionOf(new File('1'), new File('2'))
+        'FileCollection'   | new SimpleFileCollection(new File('1'), new File('2'))
         'Callable'         | (({ [ 'abc', 'def' ] } as Callable<Object>) as Object[])
         'Provider'         | providerReturning(['abc', 'def'])
         'nested objects'   | ({[{['abc', { ['def'] as String[] }]}]} as Object[])
-    }
-
-    private FileCollection fileCollectionOf(final File... files) {
-        return new AbstractFileCollection() {
-            @Override
-            String getDisplayName() {
-                return 'test file collection'
-            }
-
-            @Override
-            Set<File> getFiles() {
-                return ImmutableSet.copyOf(files)
-            }
-        }
     }
 
     private Provider<Object> providerReturning(Object result) {

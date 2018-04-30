@@ -192,7 +192,7 @@ task check {
             apply plugin: "java"
 
             task echoDefaultEncoding(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
+                classpath = project.files(compileJava)
                 main "echo.EchoEncoding"
             }
         """, expectedEncoding

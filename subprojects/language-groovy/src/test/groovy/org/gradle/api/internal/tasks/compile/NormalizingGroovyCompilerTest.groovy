@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.util.TestUtil
@@ -29,7 +30,7 @@ class NormalizingGroovyCompilerTest extends Specification {
     def setup() {
         spec.compileClasspath = [new File('Dep1.jar'), new File('Dep2.jar'), new File('Dep3.jar')]
         spec.groovyClasspath = spec.compileClasspath
-        spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
+        spec.source = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
         spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.groovyCompileOptions = new GroovyCompileOptions()
@@ -41,7 +42,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.sourceFiles == files('Person1.java', 'Person2.groovy')
+            assert spec.source.files == files('Person1.java', 'Person2.groovy').files
         }
     }
 
@@ -53,7 +54,7 @@ class NormalizingGroovyCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.sourceFiles == files('package.html')
+            assert spec.source.files == files('package.html').files
         }
     }
 
@@ -90,6 +91,6 @@ class NormalizingGroovyCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        paths.collect { new File(it) } as Set
+        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
     }
 }

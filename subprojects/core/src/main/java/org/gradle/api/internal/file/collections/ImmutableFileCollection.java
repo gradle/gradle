@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -39,22 +38,11 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         }
     };
 
-    public static ImmutableFileCollection of() {
-        return EMPTY;
-    }
-
     public static ImmutableFileCollection of(File... files) {
         if (files.length == 0) {
             return EMPTY;
         }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
-    }
-
-    public static ImmutableFileCollection of(Iterable<File> files) {
-        if (Iterables.isEmpty(files)) {
-            return EMPTY;
-        }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+        return new FileOnlyImmutableFileCollection(files);
     }
 
     public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object... paths) {
@@ -80,8 +68,8 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
         private final ImmutableSet<File> files;
 
-        FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
-            this.files = files;
+        FileOnlyImmutableFileCollection(File... files) {
+            this.files = ImmutableSet.copyOf(files);
         }
 
         @Override

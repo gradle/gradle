@@ -27,10 +27,10 @@ class NormalizingJavaCompilerTest extends Specification {
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
-        spec.sourceFiles = files("Source1.java", "Source2.java", "Source3.java")
+        spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.compileClasspath = [new File("Dep1.jar"), new File("Dep2.jar"), new File("Dep3.jar")]
         def compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.annotationProcessorPath = ImmutableFileCollection.of(new File("processor.jar"))
+        compileOptions.annotationProcessorPath = files("processor.jar")
         spec.compileOptions = compileOptions
     }
 
@@ -42,21 +42,21 @@ class NormalizingJavaCompilerTest extends Specification {
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.sourceFiles == old(spec.sourceFiles)
+            assert spec.source.files == old(spec.source.files)
             workResult
         }
         result == workResult
     }
 
     def "silently excludes source files not ending in .java"() {
-        spec.sourceFiles = files("House.scala", "Person1.java", "package.html", "Person2.java")
+        spec.source = files("House.scala", "Person1.java", "package.html", "Person2.java")
 
         when:
         compiler.execute(spec)
 
         then:
         1 * target.execute(spec) >> {
-            assert spec.sourceFiles == files("Person1.java", "Person2.java")
+            assert spec.source.files == files("Person1.java", "Person2.java").files
         }
     }
 
@@ -114,6 +114,6 @@ class NormalizingJavaCompilerTest extends Specification {
     }
 
     private files(String... paths) {
-        paths.collect { new File(it) } as Set
+        ImmutableFileCollection.of(paths.collect { new File(it) } as File[])
     }
 }
