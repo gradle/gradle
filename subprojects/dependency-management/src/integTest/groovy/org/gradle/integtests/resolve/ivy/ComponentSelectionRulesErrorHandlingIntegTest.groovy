@@ -259,7 +259,7 @@ dependencies {
         fails ":checkDeps"
         failure.assertHasCause("""Could not find any matches for org.utils:api:+ as no versions of org.utils:api are available.
 Searched in the following locations:
-    ${versionListingURI('org.utils', 'api')}
+  - ${versionListingURI('org.utils', 'api')}
 ${triedMetadata('org.utils', 'api', '2.1', !GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled(), false)}
 Required by:
 """)

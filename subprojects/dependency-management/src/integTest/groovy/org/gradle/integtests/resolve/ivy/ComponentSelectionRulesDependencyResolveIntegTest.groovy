@@ -212,14 +212,14 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         and:
         failureHasCause("""Could not find any version that matches org.utils:api:1.+.
 Versions that do not match:
-    2.1
-    2.0
+  - 2.1
+  - 2.0
 Versions rejected by component selection rules:
-    1.2
-    1.1
-    1.0
+  - 1.2
+  - 1.1
+  - 1.0
 Searched in the following locations:
-    ${versionListingURI('org.utils', 'api')}
+  - ${versionListingURI('org.utils', 'api')}
 ${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
 ${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
 ${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
@@ -241,14 +241,13 @@ Required by:
         // TODO - this failure and the previous failure should report the same urls (whatever that happens to be)
         failureHasCause("""Could not find any version that matches org.utils:api:1.+.
 Versions that do not match:
-    2.1
-    2.0
+  - 2.1
+  - 2.0
 Versions rejected by component selection rules:
-    1.2
-    1.1
-    1.0
-Searched in the following locations:
-    ${versionListingURI('org.utils', 'api')}
+  - 1.2
+  - 1.1
+  - 1.0
+Searched in the following locations: ${versionListingURI('org.utils', 'api')}
 Required by:
 """)
     }

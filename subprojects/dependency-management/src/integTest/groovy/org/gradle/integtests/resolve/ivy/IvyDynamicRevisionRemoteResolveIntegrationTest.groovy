@@ -949,11 +949,10 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-Searched in the following locations:
-    ${dirListRepo1.uri}
+  - 3.0
+  - 1.2
+  - 1.1
+Searched in the following locations: ${dirListRepo1.uri}
 Required by:
 """)
 
@@ -972,13 +971,13 @@ Required by:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-    4.4
+  - 3.0
+  - 1.2
+  - 1.1
+  - 4.4
 Searched in the following locations:
-    ${dirListRepo1.uri}
-    ${dirListRepo2.uri}
+  - ${dirListRepo1.uri}
+  - ${dirListRepo2.uri}
 Required by:
 """)
 
@@ -991,13 +990,13 @@ Required by:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
 Versions that do not match:
-    3.0
-    1.2
-    1.1
-    4.4
+  - 3.0
+  - 1.2
+  - 1.1
+  - 4.4
 Searched in the following locations:
-    ${dirListRepo1.uri}
-    ${dirListRepo2.uri}
+  - ${dirListRepo1.uri}
+  - ${dirListRepo2.uri}
 Required by:
 """)
 
@@ -1032,8 +1031,7 @@ dependencies {
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
-Searched in the following locations:
-    ${directoryList.uri}
+Searched in the following locations: ${directoryList.uri}
 Required by:
 """)
 
@@ -1044,8 +1042,7 @@ Required by:
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
-Searched in the following locations:
-    ${directoryList.uri}
+Searched in the following locations: ${directoryList.uri}
 Required by:
 """)
 
@@ -1134,9 +1131,9 @@ dependencies {
         fails "checkDeps"
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.release as no versions of group:projectA are available.
 Searched in the following locations:
-    ${directoryList.uri}
-    ${projectA.ivy.uri}
-    ${projectA.jar.uri}
+  - ${directoryList.uri}
+  - ${projectA.ivy.uri}
+  - ${projectA.jar.uri}
 Required by:
 """)
 

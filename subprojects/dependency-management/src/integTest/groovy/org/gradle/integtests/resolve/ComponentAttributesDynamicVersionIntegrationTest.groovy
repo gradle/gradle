@@ -214,6 +214,110 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
         requested << ["[1.0,)", latestNotation(), "1.+", "1+", "+"]
     }
 
+    def "reasonable error message whenever a dynamic version doesn't match any version because of single attribute mismatch"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                attribute('color', 'red')
+            }
+            'org:test:1.1' {
+                attribute('color', 'blue')
+            }
+        }
+
+        buildFile << """
+            def color = Attribute.of("color", String)
+
+            configurations {
+                conf.attributes.attribute(color, 'green')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(color)
+                }
+                conf 'org:test:[1.0,)'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+                '1.1' {
+                    expectGetMetadata()
+                }
+                '1.0' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).
+Versions rejected by attribute matching:
+  - 1.1: Attribute 'color' didn't match. Requested 'green', was: 'blue'
+  - 1.0: Attribute 'color' didn't match. Requested 'green', was: 'red'
+""")
+    }
+
+    def "reasonable error message whenever a dynamic version doesn't match any version because of multiple attributes"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                attribute('color', 'red')
+                attribute('shape', 'square')
+            }
+            'org:test:1.1' {
+                attribute('color', 'blue')
+                attribute('shape', 'circle')
+            }
+        }
+
+        buildFile << """
+            def color = Attribute.of("color", String)
+            def shape = Attribute.of("shape", String)
+
+            configurations {
+                conf.attributes.attribute(color, 'green')
+                conf.attributes.attribute(shape, 'circle')
+            }
+            
+            dependencies {
+                attributesSchema {
+                    attribute(color)
+                    attribute(shape)
+                }
+                conf 'org:test:[1.0,)'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+                '1.1' {
+                    expectGetMetadata()
+                }
+                '1.0' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).
+Versions rejected by attribute matching:
+  - 1.1:
+      - Attribute 'color' didn't match. Requested 'green', was: 'blue'
+      - Attribute 'shape' matched. Requested 'circle', was: 'circle'
+  - 1.0:
+      - Attribute 'color' didn't match. Requested 'green', was: 'red'
+      - Attribute 'shape' didn't match. Requested 'circle', was: 'square'""")
+    }
+
     static Closure<String> latestNotation() {
         { -> GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release" }
     }

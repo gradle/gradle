@@ -253,8 +253,8 @@ if (project.hasProperty('nocache')) {
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${module.ivy.uri}
-    ${module.jar.uri}""")
+  - ${module.ivy.uri}
+  - ${module.jar.uri}""")
 
         when:
         server.resetExpectations()
@@ -265,8 +265,8 @@ Searched in the following locations:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${module.ivy.uri}
-    ${module.jar.uri}""")
+  - ${module.ivy.uri}
+  - ${module.jar.uri}""")
     }
 
     def "reports failure to resolve missing artifacts"() {
@@ -426,7 +426,7 @@ Searched in the following locations:
     private publishModule() {
         module.configuration("sources")
         module.configuration("javadoc")
-        // use uncommon classifiers that are different from those used by maven, 
+        // use uncommon classifiers that are different from those used by maven,
         // in order to prove that artifact names don't matter
         module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
         module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
