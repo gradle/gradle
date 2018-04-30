@@ -1,10 +1,12 @@
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
+
 plugins {
     `java-gradle-plugin`
 }
 
 apply {
     plugin("org.gradle.kotlin.kotlin-dsl")
-    plugin<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+    plugin<PrecompiledScriptPlugins>()
 }
 
 dependencies {
