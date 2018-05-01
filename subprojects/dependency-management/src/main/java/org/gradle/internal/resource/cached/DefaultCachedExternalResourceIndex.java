@@ -39,7 +39,8 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
     }
 
     private DefaultCachedExternalResource createEntry(File artifactFile, ExternalResourceMetaData externalResourceMetaData) {
-        return new DefaultCachedExternalResource(artifactFile, timeProvider.getCurrentTime(), externalResourceMetaData);
+        return new DefaultCachedExternalResource(artifactFile, timeProvider.getCurrentTime(), externalResourceMetaData,
+            artifactFile.lastModified(), artifactFile.length());
     }
 
     public void store(final K key, final File artifactFile, ExternalResourceMetaData externalResourceMetaData) {
@@ -57,8 +58,12 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
         @Override
         public CachedExternalResource read(Decoder decoder) throws Exception {
             File cachedFile = null;
+            long cachedFileLastModified = -1;
+            long cachedFileSize = -1;
             if (decoder.readBoolean()) {
                 cachedFile = new File(decoder.readString());
+                cachedFileLastModified = decoder.readLong();
+                cachedFileSize = decoder.readLong();
             }
             long cachedAt = decoder.readLong();
             ExternalResourceMetaData metaData = null;
@@ -77,7 +82,8 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
                 }
                 metaData = new DefaultExternalResourceMetaData(uri, lastModified, contentLength, contentType, etag, sha1);
             }
-            return new DefaultCachedExternalResource(cachedFile, cachedAt, metaData);
+            return new DefaultCachedExternalResource(cachedFile, cachedAt, metaData,
+                cachedFileLastModified, cachedFileSize);
         }
 
         @Override
@@ -85,6 +91,8 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
             encoder.writeBoolean(value.getCachedFile() != null);
             if (value.getCachedFile() != null) {
                 encoder.writeString(value.getCachedFile().getAbsolutePath());
+                encoder.writeLong(value.getCachedFileLastModified());
+                encoder.writeLong(value.getCachedFileSize());
             }
             encoder.writeLong(value.getCachedAt());
             ExternalResourceMetaData metaData = value.getExternalResourceMetaData();
