@@ -105,13 +105,14 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
                 // Is the cached version still current?
                 if (cached != null) {
-                    boolean isUnchanged =  ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                            cached.getExternalResourceMetaData(),
+                    boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
+                        cached.getExternalResourceMetaData(),
                         new Factory<ExternalResourceMetaData>() {
                             public ExternalResourceMetaData create() {
                                 return remoteMetaData;
                             }
-                        });
+                        }
+                    );
 
                     if (isUnchanged) {
                         LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());

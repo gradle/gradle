@@ -43,4 +43,9 @@ public class DefaultCachedExternalResource extends AbstractCachedItem implements
     public Date getExternalLastModified() {
         return externalResourceMetaData != null ? externalResourceMetaData.getLastModified() : null;
     }
+
+    public long getContentLength() {
+        return isMissing() ? -1 : getCachedFile().length();
+    }
+
 }

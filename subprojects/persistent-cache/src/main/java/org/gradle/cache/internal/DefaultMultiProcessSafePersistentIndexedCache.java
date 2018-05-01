@@ -45,7 +45,6 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
             return fileAccess.readFile(new Factory<V>() {
                 public V create() {
                     return cache.get(key);
-
                 }
             });
         } catch (FileIntegrityViolationException e) {
