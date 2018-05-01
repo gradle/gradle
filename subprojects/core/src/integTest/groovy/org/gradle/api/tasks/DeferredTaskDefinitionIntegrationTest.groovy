@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
@@ -250,5 +251,24 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5148")
+    def "can get a task by name with a filtered collection"() {
+        buildFile <<'''
+            tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            
+            tasks.create("other") {
+                dependsOn tasks.withType(SomeTask).getByName("task1")
+            }
+        '''
+
+        when:
+        run "other"
+
+        then:
+        outputContains("Create :task1")
     }
 }

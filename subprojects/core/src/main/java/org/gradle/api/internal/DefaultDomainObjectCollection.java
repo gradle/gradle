@@ -47,7 +47,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final CollectionEventRegister<T> eventRegister;
     private final ElementSource<T> store;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
-    private List<ProviderInternal<? extends T>> pending;
 
     protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
         this(type, store, new BroadcastingCollectionEventRegister<T>(type));
@@ -57,6 +56,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
+        this.store.onFlush(new Action<ProviderInternal<? extends T>>() {
+            @Override
+            public void execute(ProviderInternal<? extends T> provider) {
+                doAdd(provider.get());
+            }
+        });
     }
 
     protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
@@ -92,7 +97,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {
-        return filteredStore(filter, new FlushingElementSource(filter));
+        return filteredStore(filter, store);
     }
 
     protected <S extends T> ElementSource<S> filteredStore(CollectionFilter<S> filter, ElementSource<T> elementSource) {
@@ -116,37 +121,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public Iterator<T> iterator() {
-        flushPending();
-        return iteratorNoFlush();
+        return new IteratorImpl(store.iterator());
     }
 
     Iterator<T> iteratorNoFlush() {
         if (store.constantTimeIsEmpty()) {
             return Iterators.emptyIterator();
         }
-        return new IteratorImpl(store.iterator());
-    }
 
-    private void flushPending() {
-        if (pending != null) {
-            for (ProviderInternal<? extends T> provider : pending) {
-                doAdd(provider.get());
-            }
-            pending.clear();
-        }
-    }
-
-    private void flushPending(Class<?> type) {
-        if (pending != null) {
-            ListIterator<ProviderInternal<? extends T>> iterator = pending.listIterator();
-            while (iterator.hasNext()) {
-                ProviderInternal<? extends T> provider = iterator.next();
-                if (provider.getType() == null || type.isAssignableFrom(provider.getType())) {
-                    doAdd(provider.get());
-                    iterator.remove();
-                }
-            }
-        }
+        return new IteratorImpl(store.iteratorNoFlush());
     }
 
     public void all(Action<? super T> action) {
@@ -257,10 +240,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             doAdd(provider.get());
             return;
         }
-        if (pending == null) {
-            pending = new ArrayList<ProviderInternal<? extends T>>();
-        }
-        pending.add(providerInternal);
+        store.addPending(providerInternal);
     }
 
     protected void didAdd(T toAdd) {
@@ -290,7 +270,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean contains(Object o) {
-        flushPending();
         return getStore().contains(o);
     }
 
@@ -299,7 +278,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public boolean isEmpty() {
-        return getStore().isEmpty() && (pending == null || pending.isEmpty());
+        return getStore().isEmpty();
     }
 
     public boolean remove(Object o) {
@@ -349,12 +328,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     public int size() {
-        return store.size() + (pending == null ? 0 : pending.size());
+        return store.size();
     }
 
     @Override
     public int estimatedSize() {
-        return store.estimatedSize() + (pending == null ? 0 : pending.size());
+        return store.estimatedSize();
     }
 
     public Collection<T> findAll(Closure cl) {
@@ -433,7 +412,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
             // Any elements previously added should not be visible to the action
-            flushPending(filter.getType());
+            store.flushPending(filter.getType());
             delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
         }
 
@@ -445,65 +424,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public void registerRemoveAction(Class<? extends S> type, Action<? super S> removeAction) {
             delegate.registerRemoveAction(filter.getType(), Actions.filter(removeAction, filter));
-        }
-    }
-
-    private class FlushingElementSource implements ElementSource<T> {
-        private final CollectionFilter<?> filter;
-
-        FlushingElementSource(CollectionFilter<?> filter) {
-            this.filter = filter;
-        }
-
-        @Override
-        public int estimatedSize() {
-            return DefaultDomainObjectCollection.this.estimatedSize();
-        }
-
-        @Override
-        public int size() {
-            return DefaultDomainObjectCollection.this.size();
-        }
-
-        @Override
-        public boolean contains(Object element) {
-            return DefaultDomainObjectCollection.this.contains(element);
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> elements) {
-            return DefaultDomainObjectCollection.this.containsAll(elements);
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return DefaultDomainObjectCollection.this.isEmpty();
-        }
-
-        @Override
-        public boolean constantTimeIsEmpty() {
-            return store.constantTimeIsEmpty();
-        }
-
-        @Override
-        public Iterator<T> iterator() {
-            flushPending(filter.getType());
-            return iteratorNoFlush();
-        }
-
-        @Override
-        public boolean add(T element) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
         }
     }
 }

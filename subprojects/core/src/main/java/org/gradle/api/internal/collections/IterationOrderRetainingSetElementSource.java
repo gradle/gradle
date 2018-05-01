@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderInternal;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -23,39 +26,48 @@ import java.util.Set;
 
 public class IterationOrderRetainingSetElementSource<T> implements ElementSource<T> {
     private final Set<T> values = new LinkedHashSet<T>();
+    private final PendingSource<T> pending = new DefaultPendingSource<T>();
 
     @Override
     public boolean isEmpty() {
-        return values.isEmpty();
+        return values.isEmpty() && pending.isEmpty();
     }
 
     @Override
     public boolean constantTimeIsEmpty() {
-        return values.isEmpty();
+        return values.isEmpty() && pending.isEmpty();
     }
 
     @Override
     public int size() {
-        return values.size();
+        return values.size() + pending.size();
     }
 
     @Override
     public int estimatedSize() {
-        return values.size();
+        return values.size() + pending.size();
     }
 
     @Override
     public Iterator<T> iterator() {
+        pending.flushPending();
+        return values.iterator();
+    }
+
+    @Override
+    public Iterator<T> iteratorNoFlush() {
         return values.iterator();
     }
 
     @Override
     public boolean contains(Object element) {
+        pending.flushPending();
         return values.contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
+        pending.flushPending();
         return values.containsAll(elements);
     }
 
@@ -71,6 +83,32 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public void clear() {
+        pending.clear();
         values.clear();
+    }
+
+    @Override
+    public void flushPending() {
+        pending.flushPending();
+    }
+
+    @Override
+    public void flushPending(Class<?> type) {
+        pending.flushPending(type);
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends T> provider) {
+        pending.addPending(provider);
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends T> provider) {
+        pending.removePending(provider);
+    }
+
+    @Override
+    public void onFlush(Action<ProviderInternal<? extends T>> action) {
+        pending.onFlush(action);
     }
 }
