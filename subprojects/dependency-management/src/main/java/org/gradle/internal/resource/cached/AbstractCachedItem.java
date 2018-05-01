@@ -22,23 +22,15 @@ import java.io.Serializable;
 public abstract class AbstractCachedItem implements CachedItem, Serializable {
     private final File cachedFile;
     private final long cachedAt;
-    private final long cachedFileLastModified;
-    private final long cachedFileSize;
 
-    public AbstractCachedItem(File cachedFile, long cachedAt,
-        long cachedFileLastModified, long cachedFileSize) {
+    public AbstractCachedItem(File cachedFile, long cachedAt) {
         this.cachedFile = cachedFile;
         this.cachedAt = cachedAt;
-        this.cachedFileLastModified = cachedFileLastModified;
-        this.cachedFileSize = cachedFileSize;
     }
 
     public AbstractCachedItem(long cachedAt) {
         this.cachedAt = cachedAt;
-
         this.cachedFile = null;
-        this.cachedFileLastModified = -1;
-        this.cachedFileSize = -1;
     }
 
     public boolean isMissing() {
@@ -51,26 +43,6 @@ public abstract class AbstractCachedItem implements CachedItem, Serializable {
 
     public long getCachedAt() {
         return cachedAt;
-    }
-
-    public long getCachedFileLastModified() {
-        return cachedFileLastModified;
-    }
-
-    public long getCachedFileSize() {
-        return cachedFileSize;
-    }
-
-    public boolean isLocalFileUnchanged() {
-        if (isMissing()) {
-            return getCachedFile() == null
-                && getCachedFileLastModified() == -1
-                && getCachedFileSize() == -1;
-        }
-
-        return getCachedFile() != null
-            && getCachedFileLastModified() == getCachedFile().lastModified()
-            && getCachedFileSize() == getCachedFile().length();
     }
 
 }

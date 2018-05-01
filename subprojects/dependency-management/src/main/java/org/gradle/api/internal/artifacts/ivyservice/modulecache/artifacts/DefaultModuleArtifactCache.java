@@ -55,16 +55,16 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     }
 
     public void store(final ArtifactAtRepositoryKey key, final File artifactFile, BigInteger moduleDescriptorHash,
-        long cachedFileLastModified, long cachedFileSize) {
+        long cachedFileLastModified) {
         assertArtifactFileNotNull(artifactFile);
         assertKeyNotNull(key);
-        storeInternal(key, createEntry(artifactFile, moduleDescriptorHash, cachedFileLastModified, cachedFileSize));
+        storeInternal(key, createEntry(artifactFile, moduleDescriptorHash, cachedFileLastModified));
     }
 
     private DefaultCachedArtifact createEntry(File artifactFile, BigInteger moduleDescriptorHash,
-        long cachedFileLastModified, long cachedFileSize) {
+        long cachedFileLastModified) {
         return new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash,
-            cachedFileLastModified, cachedFileSize);
+            cachedFileLastModified);
     }
 
     public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
@@ -131,7 +131,6 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             if (!value.isMissing()) {
                 encoder.writeString(value.getCachedFile().getPath());
                 encoder.writeLong(value.getCachedFileLastModified());
-                encoder.writeLong(value.getCachedFileSize());
             } else {
                 encoder.writeSmallInt(value.attemptedLocations().size());
                 for (String location : value.attemptedLocations()) {
@@ -148,8 +147,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
             if (!isMissing) {
                 File file = new File(decoder.readString());
                 long cachedFileLastModified = decoder.readLong();
-                long cachedFileSize = decoder.readLong();
-                return new DefaultCachedArtifact(file, createTimestamp, hash, cachedFileLastModified, cachedFileSize);
+                return new DefaultCachedArtifact(file, createTimestamp, hash, cachedFileLastModified);
             } else {
                 int size = decoder.readSmallInt();
                 List<String> attempted = new ArrayList<String>(size);

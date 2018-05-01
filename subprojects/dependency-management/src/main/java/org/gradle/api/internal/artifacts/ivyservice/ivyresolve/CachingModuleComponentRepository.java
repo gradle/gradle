@@ -340,9 +340,17 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
+                    boolean isLocalFileModified = !cached.isLocalFileUnchanged();
+                    if (cachedArtifactFile != null && isLocalFileModified) {
+                        boolean ret = cachedArtifactFile.delete();
+                        LOGGER.info("Cached resource {} has been modified. "
+                                + "(cachedLastModified: {}, actualLastModified: {}) "
+                                + " successfully deleted: {}", cachedArtifactFile.getAbsolutePath(),
+                            cached.getCachedFileLastModified(), cached.getCachedFile().lastModified(), ret);
+                    }
 
                     if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule,
-                        descriptorHash.equals(cached.getDescriptorHash()), !cached.isLocalFileUnchanged())) {
+                        descriptorHash.equals(cached.getDescriptorHash()), isLocalFileModified)) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
                     }
@@ -430,7 +438,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (failure == null) {
                 File artifactFile = result.getResult();
                 moduleArtifactCache.store(artifactCacheKey(artifact.getId()), artifactFile,
-                    cachingModuleSource.getDescriptorHash(), artifactFile.lastModified(), artifactFile.length());
+                    cachingModuleSource.getDescriptorHash(), artifactFile.lastModified());
             } else if (failure instanceof ArtifactNotFoundException) {
                 moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }

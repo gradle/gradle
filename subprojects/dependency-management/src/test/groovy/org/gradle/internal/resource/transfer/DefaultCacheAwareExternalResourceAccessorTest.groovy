@@ -199,7 +199,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
         cached.cachedFile >> cachedFile
-        1 * cached.isLocalFileUnchanged() >> true
         0 * _._
 
         and:
@@ -401,7 +400,6 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         1 * remoteResource.withContentIfPresent(_) >> { ExternalResource.ContentAction a ->
             a.execute(new ByteArrayInputStream(), remoteMetaData)
         }
-        1 * cached.isLocalFileUnchanged() >> true
         0 * _._
 
         and:

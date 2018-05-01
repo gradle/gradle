@@ -43,26 +43,4 @@ public interface CachedItem {
      * @return The timestamp of when this cache entry was created.
      */
     long getCachedAt();
-
-    /**
-     * The expected last modified date of the cached file, not the external source.
-     *
-     * @return The last modified date, -1 if {@link #isMissing()}
-     */
-    long getCachedFileLastModified();
-
-    /**
-     * The expected content length of the cached file, not the external source.
-     *
-     * @return The content length of the cached file, -1 if {@link #isMissing()}
-     */
-    long getCachedFileSize();
-
-    /**
-     * The expected content length of the cached file, not the external source.
-     *
-     * @return The content length of the cached file, -1 if {@link #isMissing()}
-     */
-    boolean isLocalFileUnchanged();
-
 }

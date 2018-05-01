@@ -27,18 +27,21 @@ import org.gradle.internal.resource.cached.AbstractCachedItem;
 public class DefaultCachedArtifact extends AbstractCachedItem implements CachedArtifact, Serializable {
     private final BigInteger descriptorHash;
     private final List<String> attemptedLocations;
+    private final long cachedFileLastModified;
 
     public DefaultCachedArtifact(File cachedFile, long cachedAt, BigInteger descriptorHash,
-        long cachedFileLastModified, long cachedFileSize) {
-        super(cachedFile, cachedAt, cachedFileLastModified, cachedFileSize);
+        long cachedFileLastModified) {
+        super(cachedFile, cachedAt);
         this.descriptorHash = descriptorHash;
         this.attemptedLocations = Collections.emptyList();
+        this.cachedFileLastModified = cachedFileLastModified;
     }
 
     public DefaultCachedArtifact(List<String> attemptedLocations, long cachedAt, BigInteger descriptorHash) {
         super(cachedAt);
         this.attemptedLocations = attemptedLocations;
         this.descriptorHash = descriptorHash;
+        this.cachedFileLastModified = -1;
     }
 
     public BigInteger getDescriptorHash() {
@@ -47,5 +50,19 @@ public class DefaultCachedArtifact extends AbstractCachedItem implements CachedA
 
     public List<String> attemptedLocations() {
         return attemptedLocations;
+    }
+
+    public long getCachedFileLastModified() {
+        return cachedFileLastModified;
+    }
+
+    public boolean isLocalFileUnchanged() {
+        if (isMissing()) {
+            return getCachedFile() == null
+                && getCachedFileLastModified() == -1;
+        }
+
+        return getCachedFile() != null
+            && getCachedFileLastModified() == getCachedFile().lastModified();
     }
 }

@@ -26,8 +26,8 @@ public class DefaultCachedExternalResource extends AbstractCachedItem implements
     private final ExternalResourceMetaData externalResourceMetaData;
 
     public DefaultCachedExternalResource(File cachedFile, long cachedAt,
-        ExternalResourceMetaData externalResourceMetaData, long cachedFileLastModified, long cachedFileSize) {
-        super(cachedFile, cachedAt, cachedFileLastModified, cachedFileSize);
+        ExternalResourceMetaData externalResourceMetaData) {
+        super(cachedFile, cachedAt);
         this.externalResourceMetaData = externalResourceMetaData;
     }
 

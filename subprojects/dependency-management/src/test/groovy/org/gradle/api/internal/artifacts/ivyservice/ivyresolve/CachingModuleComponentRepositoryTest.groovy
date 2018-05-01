@@ -90,7 +90,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         repo.remoteAccess.resolveArtifact(artifact, moduleSource, result)
 
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash, file.lastModified(), file.length())
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash, file.lastModified())
         0 * moduleDescriptorCache._
 
         where:
