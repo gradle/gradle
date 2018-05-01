@@ -89,15 +89,10 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
             }
             
             gradle.buildFinished {
-                assert configuredTasks.size() == 7
+                assert configuredTasks.size() == 3
                 def configuredTaskPaths = configuredTasks*.path
                 // This should be the only task configured
                 assert ":help" in configuredTaskPaths
-                // These tasks are referenced directly by name
-                assert ":assemble" in configuredTaskPaths
-                assert ":buildDependents" in configuredTaskPaths
-                assert ":buildNeeded" in configuredTaskPaths
-                assert ":check" in configuredTaskPaths
                 
                 // This task needs to be able to register publications lazily
                 assert ":jar" in configuredTaskPaths

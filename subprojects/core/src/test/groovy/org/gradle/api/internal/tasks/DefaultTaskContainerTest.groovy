@@ -591,6 +591,39 @@ class DefaultTaskContainerTest extends Specification {
         0 * action._
     }
 
+    void "can configure a task by type and name without triggering creation or configuration"() {
+        def action = Mock(Action)
+        def deferredAction = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def provider = container.getByNameLater(Task, "task")
+        and:
+        provider.configure(deferredAction)
+        then:
+        !provider.present
+
+        and:
+        0 * _
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+        1 * taskFactory.create("task", DefaultTask) >> task
+        then:
+        1 * deferredAction.execute(task)
+        then:
+        1 * action.execute(task)
+        then:
+        0 * action._
+        0 * deferredAction._
+    }
+
     void "can locate task that already exists by type and name without triggering creation or configuration"() {
         def task = task("task")
 
