@@ -16,12 +16,13 @@
 
 package org.gradle.internal.tasks.execution
 
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Unroll
 
-class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
+class CancellableTaskIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client
 
@@ -54,19 +55,20 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
         """
 
         expect:
-        taskIsCancellable()
+        assertTaskIsCancellable()
 
         where:
         scenario << ['swallowed', 'not swallowed']
     }
 
     @Unroll
-    def "task gets rerun after cancellation when interrupt exception is #scenario"() {
+    def "task gets rerun after cancellation when interrupt exception is #scenario and buildcache = #buildCacheEnabled"() {
         given:
         file('outputFile') << ''
         buildFile << """
             import org.gradle.api.execution.Cancellable
 
+            @CacheableTask
             class MyCancellableTask extends DefaultTask implements Cancellable {
                 volatile Thread taskExecutionThread
                 
@@ -96,14 +98,23 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
         """
 
         expect:
-        cancellableTaskGetsRerun()
+        assertCancellableTaskGetsRerun(buildCacheEnabled)
 
         where:
-        scenario << ['swallowed', 'not swallowed']
+        scenario        | buildCacheEnabled
+        'swallowed'     | true
+        'swallowed'     | false
+        'not swallowed' | true
+        'not swallowed' | false
     }
 
-    private void startBuild() {
-        client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
+    private void startBuild(boolean buildCacheEnabled = false) {
+        executer.withArgument('--debug').withTasks('block')
+        if (buildCacheEnabled) {
+            executer.withBuildCacheEnabled()
+        }
+
+        client = new DaemonClientFixture(executer.start())
         waitFor(START_UP_MESSAGE)
         daemons.daemon.assertBusy()
     }
@@ -114,17 +125,17 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.assertIdle()
     }
 
-    private void cancellableTaskGetsRerun() {
-        startBuild()
+    private void assertCancellableTaskGetsRerun(boolean buildCacheEnabled) {
+        startBuild(buildCacheEnabled)
         cancelBuild()
 
-        startBuild()
+        startBuild(buildCacheEnabled)
         cancelBuild()
 
         assert daemons.daemons.size() == 1
     }
 
-    private void taskIsCancellable() {
+    private void assertTaskIsCancellable() {
         startBuild()
         cancelBuild()
 
