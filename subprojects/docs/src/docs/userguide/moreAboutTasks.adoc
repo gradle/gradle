@@ -1009,6 +1009,31 @@ Many Gradle plug-ins define their own lifecycle tasks to make it convenient to d
 
 Unless a lifecycle task has actions, its outcome is determined by its dependencies. If any of the task's dependencies are executed, the lifecycle task will be considered executed. If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
 
+[[sec:task_cancellation]]
+=== Task cancellation
+
+Since Gradle 4.8, if you want your custom task to get notification upon cancellation (e.g. Ctrl-C pressed), you can make it implement `@api:org.gradle.api.execution.Cancellable[]` interface.
+This can make long-running task more responsive and robust.
+
+[source,groovy]
+----
+import org.gradle.api.execution.Cancellable
+
+class MyLongRunningTask extends DefaultTask implements Cancellable {
+    @TaskAction
+    void run() {
+        // Some long-running work
+    }
+
+    @Override
+    void cancel() {
+        println 'I can exit gracefully!'
+    }
+}
+----
+
+Currently, cancellation mechanism is only supported in tasks.
+
 [[sec:the_idea_behind_gradle_tasks]]
 === Summary
 

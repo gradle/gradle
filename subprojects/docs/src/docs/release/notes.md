@@ -40,6 +40,25 @@ The Signing plugin now supports signing all artifacts of a publication, e.g. whe
 
 The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### Customize task cancellation behavior
+
+The new [`Cancellable` API](userguide/more_about_tasks.html#sec:task_cancellation) enables you to register cancellation callbacks to Gradle. 
+In this way, when Ctrl-C is pressed during task execution, the running task can exit gracefully:
+
+    import org.gradle.api.execution.Cancellable
+
+    class MyLongRunningTask extends DefaultTask implements Cancellable {
+        @TaskAction
+        void run() {
+            // Some long-running work
+        }
+        
+        @Override
+        void cancel() {
+            println 'I can exit gracefully!'
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
