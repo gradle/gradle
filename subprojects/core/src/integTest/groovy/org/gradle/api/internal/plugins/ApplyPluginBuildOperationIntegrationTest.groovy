@@ -44,16 +44,10 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             "org.gradle.api.plugins.BasePlugin",
             "org.gradle.language.base.plugins.LifecycleBasePlugin",
             "org.gradle.api.plugins.ReportingBasePlugin",
-            "org.gradle.language.base.plugins.LanguageBasePlugin",
-            "org.gradle.platform.base.plugins.ComponentBasePlugin",
-            "org.gradle.platform.base.plugins.BinaryBasePlugin",
         ]
         plugins.details*.pluginId == [
             "org.gradle.help-tasks",
             "org.gradle.java",
-            null,
-            null,
-            null,
             null,
             null,
             null,

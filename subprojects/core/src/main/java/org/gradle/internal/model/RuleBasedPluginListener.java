@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins;
+package org.gradle.internal.model;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.buildinit.tasks.internal.TaskConfiguration;
 
 /**
- * The wrapper plugin.
+ * This listener is notified when a rule based plugin is applied to a project.
+ * Listeners can react to this by activating compatibility layers that are otherwise not necessary.
  */
-public class WrapperPlugin implements Plugin<Project> {
-    public void apply(Project project) {
-        TaskConfiguration.addWrapperPlaceholder((ProjectInternal) project);
-    }
+public interface RuleBasedPluginListener {
+
+    void prepareForRuleBasedPlugins(Project project);
 }

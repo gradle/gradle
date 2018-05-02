@@ -69,7 +69,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
-task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 """
         executer.withTasks('wrapper').run()
@@ -87,7 +87,7 @@ task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.ver
     def "tooling api searches up from the project directory to find the wrapper properties"() {
         projectDir.file('settings.gradle') << "include 'child'"
         projectDir.file('build.gradle') << """
-task wrapper(type: Wrapper) { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
 allprojects {
     task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
 }

@@ -36,14 +36,9 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.java.DefaultJavaSourceSet;
-import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
-import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
@@ -55,24 +50,10 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.Classpath;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelRegistrations;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
-import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.SingleMessageLogger;
 import org.gradle.util.WrapUtil;
 
@@ -96,42 +77,39 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;
-    private final JavaToolChain javaToolChain;
-    private final ITaskFactory taskFactory;
-    private final ModelRegistry modelRegistry;
     private final ObjectFactory objectFactory;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory, ModelRegistry modelRegistry, ObjectFactory objectFactory) {
+    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory) {
         this.instantiator = instantiator;
-        this.javaToolChain = javaToolChain;
-        this.taskFactory = taskFactory;
-        this.modelRegistry = modelRegistry;
         this.objectFactory = objectFactory;
     }
 
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        project.getPluginManager().apply(LanguageBasePlugin.class);
-        project.getPluginManager().apply(BinaryBasePlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
 
+        configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
-        BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
-
-        modelRegistry.register(ModelRegistrations.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
-            .descriptor("JavaBasePlugin.apply()")
-            .hidden(true)
-            .build());
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
         configureSchema(project);
+        bridgeToSoftwareModelIfNecessary(project);
+    }
+
+    private void bridgeToSoftwareModelIfNecessary(ProjectInternal project) {
+        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                project.getPluginManager().apply(JavaBasePluginRules.class);
+            }
+        });
     }
 
     private void configureSchema(ProjectInternal project) {
@@ -151,7 +129,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
     }
 
-    private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
+    private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
         final List<ClassDirectoryBinarySpecInternal> binaries = Lists.newArrayList();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
@@ -164,29 +142,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
                 SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project);
 
-                Provider<ProcessResources> resourcesTask = createProcessResourcesTaskForBinary(sourceSet, sourceSet.getResources(), project);
-                Provider<JavaCompile> compileTask = createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
-                Provider<Task> classesTask = createBinaryLifecycleTask(sourceSet, project);
-
-                DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
-
-                Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, binaryId.child("resources"), sourceSet.getResources());
-
-                binary.addSourceSet(javaSourceSet);
-                binary.addSourceSet(resourceSet);
-
-                attachTasksToBinary(binary, compileTask, resourcesTask, classesTask);
-                binaries.add(binary);
+                createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
+                createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                createClassesTask(sourceSet, project);
             }
         });
-        return new BridgedBinaries(binaries);
     }
 
-    private Provider<JavaCompile> createCompileJavaTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        return target.getTasks().createLater(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
+    private void createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+        target.getTasks().createLater(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
                 compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
@@ -208,8 +172,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<ProcessResources> createProcessResourcesTaskForBinary(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
-        return target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
+    private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
+        target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
             @Override
             public void execute(ProcessResources resourcesTask) {
                 resourcesTask.setDescription("Processes " + resourceSet + ".");
@@ -223,7 +187,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private Provider<Task> createBinaryLifecycleTask(final SourceSet sourceSet, Project target) {
+    private void createClassesTask(final SourceSet sourceSet, Project target) {
         Provider<Task> classesTask = target.getTasks().createLater(sourceSet.getClassesTaskName(), new Action<Task>() {
             @Override
             public void execute(Task classesTask) {
@@ -235,14 +199,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
         sourceSet.compiledBy(classesTask);
-        return classesTask;
-    }
-
-    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, Provider<? extends Task> compileTask, Provider<? extends Task> resourcesTask, Provider<? extends Task> classesTask) {
-        binary.getTasks().addLater(compileTask);
-        binary.getTasks().addLater(resourcesTask);
-        binary.getTasks().addLater(classesTask);
-        binary.builtBy(classesTask);
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
@@ -493,30 +449,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
         test.workingDir(project.getProjectDir());
-    }
-
-    static class BridgedBinaries {
-        final List<ClassDirectoryBinarySpecInternal> binaries;
-
-        public BridgedBinaries(List<ClassDirectoryBinarySpecInternal> binaries) {
-            this.binaries = binaries;
-        }
-    }
-
-    static class Rules extends RuleSource {
-        @Mutate
-        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, BridgedBinaries bridgedBinaries) {
-            for (ClassDirectoryBinarySpecInternal binary : bridgedBinaries.binaries) {
-                projectSourceSet.addAll(binary.getInputs());
-            }
-        }
-
-        @Mutate
-        void attachBridgedBinaries(BinaryContainer binaries, BridgedBinaries bridgedBinaries) {
-            for (BinarySpecInternal binary : bridgedBinaries.binaries) {
-                binaries.put(binary.getProjectScopedName(), binary);
-            }
-        }
     }
 
     static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage> {
