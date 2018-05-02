@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
@@ -31,12 +32,13 @@ import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
+    private final BuildCancellationToken buildCancellationToken;
+    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input;
     private StreamsHandler inputHandler = DEFAULT_STDIN;
     private String displayName;
-    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     private boolean ignoreExitValue;
     private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
@@ -44,8 +46,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     protected boolean daemon;
     private Executor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
+    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
+        this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
         standardOutput = SafeStreams.systemOut();
         errorOutput = SafeStreams.systemErr();
@@ -133,7 +136,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
-                effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor);
+                effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
