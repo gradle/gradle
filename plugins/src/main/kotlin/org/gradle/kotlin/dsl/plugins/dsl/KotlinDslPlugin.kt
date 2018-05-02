@@ -26,7 +26,7 @@ import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  * The `kotlin-dsl` plugin.
  *
  * - Applies the `embedded-kotlin` plugin
- * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testRuntimeOnly` configurations
+ * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations
  * - Configures the Kotlin DSL compiler plugins
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
@@ -38,7 +38,7 @@ open class KotlinDslPlugin : Plugin<Project> {
 
             applyEmbeddedKotlinPlugin()
             applyKotlinDslCompilerPlugins()
-            addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
+            addGradleKotlinDslDependencyTo("compileOnly", "testImplementation")
         }
     }
 
