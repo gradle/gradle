@@ -46,8 +46,10 @@ class InetAddresses {
 
     private void analyzeNetworkInterfaces() throws SocketException {
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            analyzeNetworkInterface(interfaces.nextElement());
+        if (interfaces != null) {
+            while (interfaces.hasMoreElements()) {
+                analyzeNetworkInterface(interfaces.nextElement());
+            }   
         }
     }
 
@@ -102,8 +104,10 @@ class InetAddresses {
     private void useMulticastFallback() throws SocketException {
         logger.debug("No multicast interfaces, using fallbacks");
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-        while (networkInterfaces.hasMoreElements()) {
-            multicastInterfaces.add(networkInterfaces.nextElement());
+        if (networkInterfaces != null) {
+            while (networkInterfaces.hasMoreElements()) {
+                multicastInterfaces.add(networkInterfaces.nextElement());
+            }
         }
     }
 
