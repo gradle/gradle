@@ -104,6 +104,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 `Signature.getToSignArtifact()` should have been an internal API and is now deprecated without a replacement.
 
+### Use of single test selection system property
+
+The [use of a system property](userguide/java_testing.html#sec:single_test_execution_via_system_properties) to select which tests to execute is deprecated.  The built-in `--tests` filter has long replaced this functionality.
+
+### Use of remote debugging test system property
+
+The use of a system property (`-Dtest.debug`) to enable remote debugging of test processes is deprecated.  The built-in `--debug-jvm` flag has long replaced this functionality.
+
 ## Potential breaking changes
 
 ### Changed behaviour for missing init scripts
