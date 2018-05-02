@@ -225,10 +225,10 @@ class PropertyAccessorTypeTest extends Specification {
         }
 
         try {
-            bean.notString
+            bean.stillNotBoolean
             assert false
         } catch (MissingPropertyException e) {
-            assert e.property == "notString"
+            assert e.property == "stillNotBoolean"
         }
 
         PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
