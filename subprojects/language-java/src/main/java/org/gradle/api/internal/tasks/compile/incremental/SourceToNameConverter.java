@@ -18,10 +18,13 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
 public class SourceToNameConverter {
+
+    private static final Pattern SOURCE_EXTENSION = Pattern.compile("\\.java$");
 
     private CompilationSourceDirs sourceDirs;
 
@@ -32,11 +35,11 @@ public class SourceToNameConverter {
     public String getClassName(File javaSourceClass) {
         List<File> dirs = sourceDirs.getSourceRoots();
         for (File sourceDir : dirs) {
-            if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
-                String relativePath = javaSourceClass.getAbsolutePath().substring(sourceDir.getAbsolutePath().length() + 1);
-                if (!relativePath.startsWith("..")) {
-                    return relativePath.replaceAll("/", ".").replaceAll("\\.java$", "");
-                }
+            String javaSourceClassAbsolutePath = javaSourceClass.getAbsolutePath();
+            String sourceDirAbsolutePath = sourceDir.getAbsolutePath();
+            if (javaSourceClassAbsolutePath.startsWith(sourceDirAbsolutePath)) {
+                String relativePath = javaSourceClassAbsolutePath.substring(sourceDirAbsolutePath.length() + 1);
+                return SOURCE_EXTENSION.matcher(relativePath).replaceFirst("").replace(File.separatorChar, '.');
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",
