@@ -17,7 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import java.util.Map;
 
@@ -29,52 +30,51 @@ import java.util.Map;
  * @see MavenPomDeveloperSpec
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomDeveloper {
 
     /**
-     * Sets the unique ID of this developer in the SCM.
+     * The unique ID of this developer in the SCM.
      */
-    void setId(String id);
+    Property<String> getId();
 
     /**
-     * Sets the name of this contributor.
+     * The name of this developer.
      */
-    void setName(String name);
+    Property<String> getName();
 
     /**
-     * Sets the email
+     * The email
      */
-    void setEmail(String email);
+    Property<String> getEmail();
 
     /**
-     * Sets the URL of this contributor.
+     * The URL of this developer.
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
     /**
-     * Sets the organization name of this contributor.
+     * The organization name of this developer.
      */
-    void setOrganization(String organization);
+    Property<String> getOrganization();
 
     /**
-     * Sets the organization's URL of this contributor.
+     * The organization's URL of this developer.
      */
-    void setOrganizationUrl(String organizationUrl);
+    Property<String> getOrganizationUrl();
 
     /**
-     * Adds the specified roles to this contributor.
+     * The roles of this developer.
      */
-    void roles(String... roles);
+    SetProperty<String> getRoles();
 
     /**
-     * Sets the timezone of this contributor.
+     * The timezone of this developer.
      */
-    void setTimezone(String timezone);
+    Property<String> getTimezone();
 
     /**
-     * Adds the specified properties to this contributor.
+     * The properties of this developer.
      */
-    void properties(Map<String, String> properties);
+    Property<Map<String, String>> getProperties();
 
 }

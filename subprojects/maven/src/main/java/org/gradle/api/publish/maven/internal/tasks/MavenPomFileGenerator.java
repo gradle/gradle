@@ -36,20 +36,21 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.MavenDependency;
+import org.gradle.api.publish.maven.MavenPomCiManagement;
+import org.gradle.api.publish.maven.MavenPomContributor;
+import org.gradle.api.publish.maven.MavenPomDeveloper;
+import org.gradle.api.publish.maven.MavenPomIssueManagement;
+import org.gradle.api.publish.maven.MavenPomLicense;
+import org.gradle.api.publish.maven.MavenPomMailingList;
+import org.gradle.api.publish.maven.MavenPomOrganization;
+import org.gradle.api.publish.maven.MavenPomRelocation;
+import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomCiManagementInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomContributorInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomDeveloperInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomIssueManagementInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomLicenseInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomMailingListInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomOrganizationInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomRelocationInternal;
-import org.gradle.api.publish.maven.internal.publication.MavenPomScmInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.GUtil;
@@ -58,6 +59,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 public class MavenPomFileGenerator {
@@ -79,10 +82,10 @@ public class MavenPomFileGenerator {
 
     public MavenPomFileGenerator configureFrom(MavenPomInternal pom) {
         model.setPackaging(pom.getPackaging());
-        model.setName(pom.getName());
-        model.setDescription(pom.getDescription());
-        model.setUrl(pom.getUrl());
-        model.setInceptionYear(pom.getInceptionYear());
+        model.setName(pom.getName().getOrNull());
+        model.setDescription(pom.getDescription().getOrNull());
+        model.setUrl(pom.getUrl().getOrNull());
+        model.setInceptionYear(pom.getInceptionYear().getOrNull());
         if (pom.getOrganization() != null) {
             model.setOrganization(convertOrganization(pom.getOrganization()));
         }
@@ -98,88 +101,90 @@ public class MavenPomFileGenerator {
         if (pom.getDistributionManagement() != null) {
             model.setDistributionManagement(convertDistributionManagement(pom.getDistributionManagement()));
         }
-        for (MavenPomLicenseInternal license : pom.getLicenses()) {
+        for (MavenPomLicense license : pom.getLicenses()) {
             model.addLicense(convertLicense(license));
         }
-        for (MavenPomDeveloperInternal developer : pom.getDevelopers()) {
+        for (MavenPomDeveloper developer : pom.getDevelopers()) {
             model.addDeveloper(convertDeveloper(developer));
         }
-        for (MavenPomContributorInternal contributor : pom.getContributors()) {
+        for (MavenPomContributor contributor : pom.getContributors()) {
             model.addContributor(convertContributor(contributor));
         }
-        for (MavenPomMailingListInternal mailingList : pom.getMailingLists()) {
+        for (MavenPomMailingList mailingList : pom.getMailingLists()) {
             model.addMailingList(convertMailingList(mailingList));
         }
         return this;
     }
 
-    private Organization convertOrganization(MavenPomOrganizationInternal source) {
+    private Organization convertOrganization(MavenPomOrganization source) {
         Organization target = new Organization();
-        target.setName(source.getName());
-        target.setUrl(source.getUrl());
+        target.setName(source.getName().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
         return target;
     }
 
-    private License convertLicense(MavenPomLicenseInternal source) {
+    private License convertLicense(MavenPomLicense source) {
         License target = new License();
-        target.setName(source.getName());
-        target.setUrl(source.getUrl());
-        target.setDistribution(source.getDistribution());
-        target.setComments(source.getComments());
+        target.setName(source.getName().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
+        target.setDistribution(source.getDistribution().getOrNull());
+        target.setComments(source.getComments().getOrNull());
         return target;
     }
 
-    private Developer convertDeveloper(MavenPomDeveloperInternal source) {
+    private Developer convertDeveloper(MavenPomDeveloper source) {
         Developer target = new Developer();
-        target.setId(source.getId());
-        target.setName(source.getName());
-        target.setEmail(source.getEmail());
-        target.setUrl(source.getUrl());
-        target.setOrganization(source.getOrganization());
-        target.setOrganizationUrl(source.getOrganizationUrl());
-        target.setRoles(new ArrayList<String>(source.getRoles()));
-        target.setTimezone(source.getTimezone());
-        Properties properties = new Properties();
-        properties.putAll(source.getProperties());
-        target.setProperties(properties);
+        target.setId(source.getId().getOrNull());
+        target.setName(source.getName().getOrNull());
+        target.setEmail(source.getEmail().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
+        target.setOrganization(source.getOrganization().getOrNull());
+        target.setOrganizationUrl(source.getOrganizationUrl().getOrNull());
+        target.setRoles(new ArrayList<String>(source.getRoles().get()));
+        target.setTimezone(source.getTimezone().getOrNull());
+        target.setProperties(convertProperties(source.getProperties()));
         return target;
     }
 
-    private Contributor convertContributor(MavenPomContributorInternal source) {
+    private Contributor convertContributor(MavenPomContributor source) {
         Contributor target = new Contributor();
-        target.setName(source.getName());
-        target.setEmail(source.getEmail());
-        target.setUrl(source.getUrl());
-        target.setOrganization(source.getOrganization());
-        target.setOrganizationUrl(source.getOrganizationUrl());
-        target.setRoles(new ArrayList<String>(source.getRoles()));
-        target.setTimezone(source.getTimezone());
-        Properties properties = new Properties();
-        properties.putAll(source.getProperties());
-        target.setProperties(properties);
+        target.setName(source.getName().getOrNull());
+        target.setEmail(source.getEmail().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
+        target.setOrganization(source.getOrganization().getOrNull());
+        target.setOrganizationUrl(source.getOrganizationUrl().getOrNull());
+        target.setRoles(new ArrayList<String>(source.getRoles().get()));
+        target.setTimezone(source.getTimezone().getOrNull());
+        target.setProperties(convertProperties(source.getProperties()));
         return target;
     }
 
-    private Scm convertScm(MavenPomScmInternal source) {
+    private Properties convertProperties(Property<Map<String, String>> source) {
+        Properties target = new Properties();
+        target.putAll(source.getOrElse(Collections.<String, String>emptyMap()));
+        return target;
+    }
+
+    private Scm convertScm(MavenPomScm source) {
         Scm target = new Scm();
-        target.setConnection(source.getConnection());
-        target.setDeveloperConnection(source.getDeveloperConnection());
-        target.setUrl(source.getUrl());
-        target.setTag(source.getTag());
+        target.setConnection(source.getConnection().getOrNull());
+        target.setDeveloperConnection(source.getDeveloperConnection().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
+        target.setTag(source.getTag().getOrNull());
         return target;
     }
 
-    private IssueManagement convertIssueManagement(MavenPomIssueManagementInternal source) {
+    private IssueManagement convertIssueManagement(MavenPomIssueManagement source) {
         IssueManagement target = new IssueManagement();
-        target.setSystem(source.getSystem());
-        target.setUrl(source.getUrl());
+        target.setSystem(source.getSystem().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
         return target;
     }
 
-    private CiManagement convertCiManagement(MavenPomCiManagementInternal source) {
+    private CiManagement convertCiManagement(MavenPomCiManagement source) {
         CiManagement target = new CiManagement();
-        target.setSystem(source.getSystem());
-        target.setUrl(source.getUrl());
+        target.setSystem(source.getSystem().getOrNull());
+        target.setUrl(source.getUrl().getOrNull());
         return target;
     }
 
@@ -191,23 +196,23 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Relocation convertRelocation(MavenPomRelocationInternal source) {
+    private Relocation convertRelocation(MavenPomRelocation source) {
         Relocation target = new Relocation();
-        target.setGroupId(source.getGroupId());
-        target.setArtifactId(source.getArtifactId());
-        target.setVersion(source.getVersion());
-        target.setMessage(source.getMessage());
+        target.setGroupId(source.getGroupId().getOrNull());
+        target.setArtifactId(source.getArtifactId().getOrNull());
+        target.setVersion(source.getVersion().getOrNull());
+        target.setMessage(source.getMessage().getOrNull());
         return target;
     }
 
-    private MailingList convertMailingList(MavenPomMailingListInternal source) {
+    private MailingList convertMailingList(MavenPomMailingList source) {
         MailingList target = new MailingList();
-        target.setName(source.getName());
-        target.setSubscribe(source.getSubscribe());
-        target.setUnsubscribe(source.getUnsubscribe());
-        target.setPost(source.getPost());
-        target.setArchive(source.getArchive());
-        target.setOtherArchives(source.getOtherArchives());
+        target.setName(source.getName().getOrNull());
+        target.setSubscribe(source.getSubscribe().getOrNull());
+        target.setUnsubscribe(source.getUnsubscribe().getOrNull());
+        target.setPost(source.getPost().getOrNull());
+        target.setArchive(source.getArchive().getOrNull());
+        target.setOtherArchives(new ArrayList<String>(source.getOtherArchives().get()));
         return target;
     }
 

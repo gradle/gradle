@@ -16,28 +16,28 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-public class DefaultMavenPomOrganization implements MavenPomOrganizationInternal {
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.publish.maven.MavenPomOrganization;
 
-    private String name;
-    private String url;
+public class DefaultMavenPomOrganization implements MavenPomOrganization {
+
+    private final Property<String> name;
+    private final Property<String> url;
+
+    public DefaultMavenPomOrganization(ObjectFactory objectFactory) {
+        name = objectFactory.property(String.class);
+        url = objectFactory.property(String.class);
+    }
 
     @Override
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
-    @Override
-    public void setUrl(String url) {
-        this.url = url;
-    }
 }

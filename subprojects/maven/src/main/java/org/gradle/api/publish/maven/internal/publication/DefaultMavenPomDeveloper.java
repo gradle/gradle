@@ -16,111 +16,81 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.publish.maven.MavenPomContributor;
+import org.gradle.api.publish.maven.MavenPomDeveloper;
+
 import java.util.Map;
-import java.util.Set;
 
-public class DefaultMavenPomDeveloper implements MavenPomDeveloperInternal, MavenPomContributorInternal {
+public class DefaultMavenPomDeveloper implements MavenPomDeveloper, MavenPomContributor {
 
-    private String id;
-    private String name;
-    private String email;
-    private String url;
-    private String organization;
-    private String organizationUrl;
-    private final Set<String> roles = new LinkedHashSet<String>();
-    private String timezone;
-    private final Map<String, String> properties = new LinkedHashMap<String, String>();
+    private final Property<String> id;
+    private final Property<String> name;
+    private final Property<String> email;
+    private final Property<String> url;
+    private final Property<String> organization;
+    private final Property<String> organizationUrl;
+    private final SetProperty<String> roles;
+    private final Property<String> timezone;
+    private final Property<Map<String, String>> properties;
+
+    public DefaultMavenPomDeveloper(ObjectFactory objectFactory) {
+        id = objectFactory.property(String.class);
+        name = objectFactory.property(String.class);
+        email = objectFactory.property(String.class);
+        url = objectFactory.property(String.class);
+        organization = objectFactory.property(String.class);
+        organizationUrl = objectFactory.property(String.class);
+        roles = objectFactory.setProperty(String.class);
+        timezone = objectFactory.property(String.class);
+        properties = (Property) objectFactory.property(Map.class);
+    }
 
     @Override
-    public String getId() {
+    public Property<String> getId() {
         return id;
     }
 
     @Override
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getEmail() {
+    public Property<String> getEmail() {
         return email;
     }
 
     @Override
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    @Override
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
     @Override
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    @Override
-    public String getOrganization() {
+    public Property<String> getOrganization() {
         return organization;
     }
 
     @Override
-    public void setOrganization(String organization) {
-        this.organization = organization;
-    }
-
-    @Override
-    public String getOrganizationUrl() {
+    public Property<String> getOrganizationUrl() {
         return organizationUrl;
     }
 
     @Override
-    public void setOrganizationUrl(String organizationUrl) {
-        this.organizationUrl = organizationUrl;
-    }
-
-    @Override
-    public void roles(String... roles) {
-        this.roles.addAll(Arrays.asList(roles));
-    }
-
-    @Override
-    public Set<String> getRoles() {
+    public SetProperty<String> getRoles() {
         return roles;
     }
 
     @Override
-    public String getTimezone() {
+    public Property<String> getTimezone() {
         return timezone;
     }
 
     @Override
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    @Override
-    public void properties(Map<String, String> properties) {
-        this.properties.putAll(properties);
-    }
-
-    @Override
-    public Map<String, String> getProperties() {
+    public Property<Map<String, String>> getProperties() {
         return properties;
     }
+
 }

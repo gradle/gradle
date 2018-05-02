@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -28,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  * descriptor after it has been generated according to the publication data.
  * However, the preferred way to customize the project information to be published
  * is to use the dedicated properties exposed by this class, e.g.
- * {@link #setDescription(String)}. Please refer to the official
+ * {@link #getDescription()}. Please refer to the official
  * <a href="https://maven.apache.org/pom.html">POM Reference</a> for detailed
  * information about the individual properties.
  *
@@ -49,39 +50,32 @@ public interface MavenPom {
     void setPackaging(String packaging);
 
     /**
-     * Sets the name for the publication represented by this POM.
+     * The name for the publication represented by this POM.
      *
      * @since 4.8
      */
-    void setName(String name);
+    Property<String> getName();
 
     /**
-     * Sets the description for the publication represented by this POM.
+     * The description for the publication represented by this POM.
      *
      * @since 4.8
      */
-    void setDescription(String description);
+    Property<String> getDescription();
 
     /**
-     * Sets the URL for the publication represented by this POM.
+     * The URL for the publication represented by this POM.
      *
      * @since 4.8
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
     /**
-     * Sets the year of the inception for the publication represented by this POM.
+     * The year of the inception for the publication represented by this POM.
      *
      * @since 4.8
      */
-    void setInceptionYear(String inceptionYear);
-
-    /**
-     * Sets the year of the inception for the publication represented by this POM.
-     *
-     * @since 4.8
-     */
-    void setInceptionYear(int inceptionYear);
+    Property<String> getInceptionYear();
 
     /**
      * Configures the licenses for the publication represented by this POM.

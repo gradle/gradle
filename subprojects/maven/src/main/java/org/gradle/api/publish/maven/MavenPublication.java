@@ -51,7 +51,7 @@ import org.gradle.internal.HasInternalProtocol;
  * You can also completely replace the set of published artifacts using {@link #setArtifacts(Iterable)}.
  * Together, these methods give you full control over what artifacts will be published.
  * </p><p>
- * To customize the metadata published in the generated POM, set properties, e.g. {@link MavenPom#setDescription(String)}, on the POM returned via the {@link #getPom()}
+ * To customize the metadata published in the generated POM, set properties, e.g. {@link MavenPom#getDescription()}, on the POM returned via the {@link #getPom()}
  * method or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
  * As a last resort, it is possible to modify the generated POM using the {@link MavenPom#withXml(org.gradle.api.Action)} method.
  * </p>
@@ -71,26 +71,26 @@ import org.gradle.internal.HasInternalProtocol;
  *       from components.java
  *       artifact sourceJar
  *       pom {
- *         name 'Demo'
- *         description 'A demonstration of Maven POM customization'
- *         url 'http://www.example.com/project'
+ *         name = "Demo"
+ *         description = "A demonstration of Maven POM customization"
+ *         url = "http://www.example.com/project"
  *         licenses {
  *           license {
- *             name 'The Apache License, Version 2.0'
- *             url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+ *             name = "The Apache License, Version 2.0"
+ *             url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
  *           }
  *         }
  *         developers {
  *           developer {
- *             id 'johnd'
- *             name 'John Doe'
- *             email 'john.doe@example.com'
+ *             id = "johnd"
+ *             name = "John Doe"
+ *             email = "john.doe@example.com"
  *           }
  *         }
  *         scm {
- *           connection 'scm:svn:http://subversion.example.com/svn/project/trunk/'
- *           developerConnection 'scm:svn:https://subversion.example.com/svn/project/trunk/'
- *           url 'http://subversion.example.com/svn/project/trunk/'
+ *           connection = "scm:svn:http://subversion.example.com/svn/project/trunk/"
+ *           developerConnection = "scm:svn:https://subversion.example.com/svn/project/trunk/"
+ *           url = "http://subversion.example.com/svn/project/trunk/"
  *         }
  *       }
  *     }

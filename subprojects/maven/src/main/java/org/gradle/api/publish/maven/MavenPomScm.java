@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
 
 /**
  * The SCM (source control management) of a Maven publication.
@@ -26,27 +26,26 @@ import org.gradle.internal.HasInternalProtocol;
  * @see MavenPom
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomScm {
 
     /**
-     * Sets the connection URL of this SCM.
+     * The connection URL of this SCM.
      */
-    void setConnection(String connection);
+    Property<String> getConnection();
 
     /**
-     * Sets the developer connection URL of this SCM.
+     * The developer connection URL of this SCM.
      */
-    void setDeveloperConnection(String developerConnection);
+    Property<String> getDeveloperConnection();
 
     /**
-     * Sets the browsable repository URL of this SCM.
+     * The browsable repository URL of this SCM.
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
     /**
-     * Sets the tag of current code in this SCM.
+     * The tag of current code in this SCM.
      */
-    void setTag(String tag);
+    Property<String> getTag();
 
 }

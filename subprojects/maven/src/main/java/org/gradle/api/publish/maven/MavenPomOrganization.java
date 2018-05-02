@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
 
 /**
  * The organization of a Maven publication.
@@ -26,17 +26,16 @@ import org.gradle.internal.HasInternalProtocol;
  * @see MavenPom
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomOrganization {
 
     /**
-     * Sets the name of this organization.
+     * The name of this organization.
      */
-    void setName(String name);
+    Property<String> getName();
 
     /**
-     * Sets the URL of this organization.
+     * The URL of this organization.
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
 }

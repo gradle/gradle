@@ -41,6 +41,12 @@
             <tr>
                 <td>timezone</td>
             </tr>
+            <tr>
+                <td>roles</td>
+            </tr>
+            <tr>
+                <td>properties</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -51,12 +57,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>roles</td>
-            </tr>
-            <tr>
-                <td>properties</td>
-            </tr>
         </table>
     </section>
 </section>

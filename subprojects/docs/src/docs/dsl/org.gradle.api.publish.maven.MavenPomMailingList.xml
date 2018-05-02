@@ -38,6 +38,9 @@
             <tr>
                 <td>archive</td>
             </tr>
+            <tr>
+                <td>otherArchives</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -48,9 +51,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>otherArchives</td>
-            </tr>
         </table>
     </section>
 </section>

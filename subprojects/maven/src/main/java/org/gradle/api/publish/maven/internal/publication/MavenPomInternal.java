@@ -20,6 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.MavenPomCiManagement;
+import org.gradle.api.publish.maven.MavenPomContributor;
+import org.gradle.api.publish.maven.MavenPomDeveloper;
+import org.gradle.api.publish.maven.MavenPomIssueManagement;
+import org.gradle.api.publish.maven.MavenPomLicense;
+import org.gradle.api.publish.maven.MavenPomMailingList;
+import org.gradle.api.publish.maven.MavenPomOrganization;
+import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
@@ -28,31 +36,23 @@ import java.util.Set;
 
 public interface MavenPomInternal extends MavenPom {
 
-    String getName();
+    List<MavenPomLicense> getLicenses();
 
-    String getDescription();
+    MavenPomOrganization getOrganization();
 
-    String getUrl();
+    List<MavenPomDeveloper> getDevelopers();
 
-    String getInceptionYear();
+    List<MavenPomContributor> getContributors();
 
-    List<MavenPomLicenseInternal> getLicenses();
+    MavenPomScm getScm();
 
-    MavenPomOrganizationInternal getOrganization();
+    MavenPomIssueManagement getIssueManagement();
 
-    List<MavenPomDeveloperInternal> getDevelopers();
-
-    List<MavenPomContributorInternal> getContributors();
-
-    MavenPomScmInternal getScm();
-
-    MavenPomIssueManagementInternal getIssueManagement();
-
-    MavenPomCiManagementInternal getCiManagement();
+    MavenPomCiManagement getCiManagement();
 
     MavenPomDistributionManagementInternal getDistributionManagement();
 
-    List<MavenPomMailingListInternal> getMailingLists();
+    List<MavenPomMailingList> getMailingLists();
 
     MavenProjectIdentity getProjectIdentity();
 

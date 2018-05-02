@@ -16,50 +16,42 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-public class DefaultMavenPomScm implements MavenPomScmInternal {
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.publish.maven.MavenPomScm;
 
-    private String connection;
-    private String developerConnection;
-    private String url;
-    private String tag;
+public class DefaultMavenPomScm implements MavenPomScm {
+
+    private final Property<String> connection;
+    private final Property<String> developerConnection;
+    private final Property<String> url;
+    private final Property<String> tag;
+
+    public DefaultMavenPomScm(ObjectFactory objectFactory) {
+        connection = objectFactory.property(String.class);
+        developerConnection = objectFactory.property(String.class);
+        url = objectFactory.property(String.class);
+        tag = objectFactory.property(String.class);
+    }
 
     @Override
-    public String getConnection() {
+    public Property<String> getConnection() {
         return connection;
     }
 
     @Override
-    public void setConnection(String connection) {
-        this.connection = connection;
-    }
-
-    @Override
-    public String getDeveloperConnection() {
+    public Property<String> getDeveloperConnection() {
         return developerConnection;
     }
 
     @Override
-    public void setDeveloperConnection(String developerConnection) {
-        this.developerConnection = developerConnection;
-    }
-
-    @Override
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
     @Override
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    @Override
-    public String getTag() {
+    public Property<String> getTag() {
         return tag;
     }
 
-    @Override
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
 }

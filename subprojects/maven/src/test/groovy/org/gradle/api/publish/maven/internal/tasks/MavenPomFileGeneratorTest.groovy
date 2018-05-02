@@ -20,23 +20,23 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.provider.Property
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomLicense
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomMailingList
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomOrganization
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectManagement
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomRelocation
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
-import org.gradle.api.publish.maven.internal.publication.MavenPomCiManagementInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomContributorInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomDeveloperInternal
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomIssueManagementInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomLicenseInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomMailingListInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomOrganizationInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomRelocationInternal
-import org.gradle.api.publish.maven.internal.publication.MavenPomScmInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
+import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -47,6 +47,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def projectIdentity = new DefaultMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
+    def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -71,6 +72,10 @@ class MavenPomFileGeneratorTest extends Specification {
         given:
         def mavenPom = Mock(MavenPomInternal) {
             getPackaging() >> "pom"
+            getName() >> objectFactory.property(String)
+            getDescription() >> objectFactory.property(String)
+            getUrl() >> objectFactory.property(String)
+            getInceptionYear() >> objectFactory.property(String)
             getLicenses() >> []
             getDevelopers() >> []
             getContributors() >> []
@@ -90,44 +95,40 @@ class MavenPomFileGeneratorTest extends Specification {
         given:
         def mavenPom = Mock(MavenPomInternal) {
             getPackaging() >> "pom"
-            getName() >> "my name"
-            getDescription() >> "my description"
-            getUrl() >> "http://example.org"
-            getInceptionYear() >> "2018"
-            getLicenses() >> [Mock(MavenPomLicenseInternal) {
-                getName() >> "GPL"
-                getUrl() >> "http://www.gnu.org/licenses/gpl.html"
-            }]
-            getOrganization() >> Mock(MavenPomOrganizationInternal) {
-                getName() >> "Some Org"
-            }
-            getDevelopers() >> [Mock(MavenPomDeveloperInternal) {
-                getName() >> "Alice"
-                getRoles() >> []
-                getProperties() >> [:]
-            }]
-            getContributors() >> [Mock(MavenPomContributorInternal) {
-                getName() >> "Bob"
-                getRoles() >> []
-                getProperties() >> [:]
-            }]
-            getScm() >> Mock(MavenPomScmInternal) {
-                getConnection() >> "http://cvs.example.org"
-            }
-            getIssueManagement() >> Mock(MavenPomIssueManagementInternal) {
-                getSystem() >> "Bugzilla"
-            }
-            getCiManagement() >> Mock(MavenPomCiManagementInternal) {
-                getSystem() >> "Anthill"
-            }
+            getName() >> propertyWithValue("my name")
+            getDescription() >> propertyWithValue("my description")
+            getUrl() >> propertyWithValue("http://example.org")
+            getInceptionYear() >> propertyWithValue("2018")
+            getLicenses() >> [new DefaultMavenPomLicense(objectFactory) {{
+                getName().set("GPL")
+                getUrl().set("http://www.gnu.org/licenses/gpl.html")
+            }}]
+            getOrganization() >> new DefaultMavenPomOrganization(objectFactory) {{
+                getName().set("Some Org")
+            }}
+            getDevelopers() >> [new DefaultMavenPomDeveloper(objectFactory) {{
+                getName().set("Alice")
+            }}]
+            getContributors() >> [new DefaultMavenPomDeveloper(objectFactory) {{
+                getName().set("Bob")
+            }}]
+            getScm() >> new DefaultMavenPomScm(objectFactory) {{
+                getConnection().set("http://cvs.example.org")
+            }}
+            getIssueManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
+                getSystem().set("Bugzilla")
+            }}
+            getCiManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
+                getSystem().set("Anthill")
+            }}
             getDistributionManagement() >> Mock(MavenPomDistributionManagementInternal) {
-                getRelocation() >> Mock(MavenPomRelocationInternal) {
-                    getGroupId() >> "org.example.new"
-                }
+                getRelocation() >> new DefaultMavenPomRelocation(objectFactory) {{
+                    getGroupId().set("org.example.new")
+                }}
             }
-            getMailingLists() >> [Mock(MavenPomMailingListInternal) {
-                getName() >> "Users"
-            }]
+            getMailingLists() >> [new DefaultMavenPomMailingList(objectFactory) {{
+                getName().set("Users")
+            }}]
         }
 
         when:
@@ -151,6 +152,12 @@ class MavenPomFileGeneratorTest extends Specification {
             distributionManagement.relocation.groupId == "org.example.new"
             mailingLists.mailingList.name == "Users"
         }
+    }
+
+    private <T> Property<T> propertyWithValue(T value) {
+        def property = objectFactory.property(T)
+        property.set(value)
+        return property
     }
 
     def "encodes coordinates for XML and unicode"() {

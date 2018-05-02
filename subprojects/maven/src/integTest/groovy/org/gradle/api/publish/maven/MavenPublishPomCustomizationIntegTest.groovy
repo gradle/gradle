@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+
 /**
  * Tests maven POM customization
  */
@@ -41,87 +42,87 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                 publications {
                     mavenCustom(MavenPublication) {
                         pom {
-                            packaging "custom-packaging"
-                            name "custom-name"
-                            description "custom-description"
-                            url "http://example.org/project"
-                            inceptionYear 2018
+                            packaging = "custom-packaging"
+                            name = "custom-name"
+                            description = "custom-description"
+                            url = "http://example.org/project"
+                            inceptionYear = "2018"
                             organization {
-                                name "Example Organization"
-                                url "https://example.org"
+                                name = "Example Organization"
+                                url = "https://example.org"
                             }
                             licenses {
                                 license {
-                                    name "Eclipse Public License v2.0"
-                                    url "http://www.eclipse.org/legal/epl-v20.html"
-                                    distribution "inside artifact"
-                                    comments "Successor of EPL v1.0"
+                                    name = "Eclipse Public License v2.0"
+                                    url = "http://www.eclipse.org/legal/epl-v20.html"
+                                    distribution = "inside artifact"
+                                    comments = "Successor of EPL v1.0"
                                 }
                             }
                             developers {
                                 developer {
-                                    id "foo"
-                                    name "Foo Bar"
-                                    email "foo.bar@example.org"
+                                    id = "foo"
+                                    name = "Foo Bar"
+                                    email = "foo.bar@example.org"
                                 }
                                 developer {
-                                    id "baz"
-                                    name "Baz Qux"
-                                    email "baz.qux@example.org"
-                                    url "http://example.org/users/baz.qux"
-                                    organization "Example Organization"
-                                    organizationUrl "https://example.org"
-                                    roles "tester", "developer"
-                                    timezone "Europe/Berlin"
-                                    properties "user": "baz.qux"
+                                    id = "baz"
+                                    name = "Baz Qux"
+                                    email = "baz.qux@example.org"
+                                    url = "http://example.org/users/baz.qux"
+                                    organization = "Example Organization"
+                                    organizationUrl = "https://example.org"
+                                    roles = ["tester", "developer"]
+                                    timezone = "Europe/Berlin"
+                                    properties = ["user": "baz.qux"]
                                 }
                             }
                             contributors {
                                 contributor {
-                                    name "John Doe"
-                                    email "john.doe@example.org"
-                                    url "http://example.org/users/john.doe"
-                                    organization "Example Organization"
-                                    organizationUrl "https://example.org"
-                                    roles "tester", "developer"
-                                    timezone "Europe/Berlin"
-                                    properties "user": "john.doe"
+                                    name = "John Doe"
+                                    email = "john.doe@example.org"
+                                    url = "http://example.org/users/john.doe"
+                                    organization = "Example Organization"
+                                    organizationUrl = "https://example.org"
+                                    roles = ["tester", "developer"]
+                                    timezone = "Europe/Berlin"
+                                    properties = ["user": "john.doe"]
                                 }
                             }
                             scm {
-                                connection "scm:git:git://example.org/some-repo.git"
-                                developerConnection "scm:git:git://example.org/some-repo.git"
-                                url "https://example.org/some-repo"
-                                tag "v1.0"
+                                connection = "scm:git:git://example.org/some-repo.git"
+                                developerConnection = "scm:git:git://example.org/some-repo.git"
+                                url = "https://example.org/some-repo"
+                                tag = "v1.0"
                             }
                             issueManagement {
-                                system "Some Issue Tracker"
-                                url "https://issues.example.org/"
+                                system = "Some Issue Tracker"
+                                url = "https://issues.example.org/"
                             }
                             ciManagement {
-                                system "Some CI Server"
-                                url "https://ci.example.org/"
+                                system = "Some CI Server"
+                                url = "https://ci.example.org/"
                             }
                             distributionManagement {
                                 relocation {
-                                    groupId "new-group"
-                                    artifactId "new-artifact-id"
-                                    version "42"
-                                    message "the answer to life, the universe and everything"
+                                    groupId = "new-group"
+                                    artifactId = "new-artifact-id"
+                                    version = "42"
+                                    message = "the answer to life, the universe and everything"
                                 }
                             }
                             mailingLists {
                                 mailingList {
-                                    name "Users"
-                                    subscribe "users-subscribe@lists.example.org"
-                                    unsubscribe "users-unsubscribe@lists.example.org"
-                                    post "users@lists.example.org"
-                                    archive "http://lists.example.org/users/"
-                                    otherArchives "http://archive.org/", "http://backup.example.org/"
+                                    name = "Users"
+                                    subscribe = "users-subscribe@lists.example.org"
+                                    unsubscribe = "users-unsubscribe@lists.example.org"
+                                    post = "users@lists.example.org"
+                                    archive = "http://lists.example.org/users/"
+                                    otherArchives = ["http://archive.org/", "http://backup.example.org/"]
                                 }
                                 mailingList {
-                                    name "Developers"
-                                    post "devs@lists.example.org"
+                                    name = "Developers"
+                                    post = "devs@lists.example.org"
                                 }
                             }
                             withXml {

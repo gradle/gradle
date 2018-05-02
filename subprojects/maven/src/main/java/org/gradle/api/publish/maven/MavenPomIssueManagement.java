@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
 
 /**
  * The issue management system of a Maven publication.
@@ -26,17 +26,16 @@ import org.gradle.internal.HasInternalProtocol;
  * @see MavenPom
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomIssueManagement {
 
     /**
-     * Sets the name of this issue management system.
+     * The name of this issue management system.
      */
-    void setSystem(String system);
+    Property<String> getSystem();
 
     /**
-     * Sets the URL of this issue management system.
+     * The URL of this issue management system.
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
 }

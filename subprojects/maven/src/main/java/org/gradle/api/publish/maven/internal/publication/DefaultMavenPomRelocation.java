@@ -16,51 +16,42 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-public class DefaultMavenPomRelocation implements MavenPomRelocationInternal {
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.publish.maven.MavenPomRelocation;
 
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private String message;
+public class DefaultMavenPomRelocation implements MavenPomRelocation {
+
+    private final Property<String> groupId;
+    private final Property<String> artifactId;
+    private final Property<String> version;
+    private final Property<String> message;
+
+    public DefaultMavenPomRelocation(ObjectFactory objectFactory) {
+        groupId = objectFactory.property(String.class);
+        artifactId = objectFactory.property(String.class);
+        version = objectFactory.property(String.class);
+        message = objectFactory.property(String.class);
+    }
 
     @Override
-    public String getGroupId() {
+    public Property<String> getGroupId() {
         return groupId;
     }
 
     @Override
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    @Override
-    public String getArtifactId() {
+    public Property<String> getArtifactId() {
         return artifactId;
     }
 
     @Override
-    public void setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
-    }
-
-    @Override
-    public String getVersion() {
+    public Property<String> getVersion() {
         return version;
     }
 
     @Override
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    @Override
-    public String getMessage() {
+    public Property<String> getMessage() {
         return message;
-    }
-
-    @Override
-    public void setMessage(String message) {
-        this.message = message;
     }
 
 }

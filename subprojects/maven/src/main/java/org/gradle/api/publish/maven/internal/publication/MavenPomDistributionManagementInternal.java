@@ -17,9 +17,10 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.publish.maven.MavenPomDistributionManagement;
+import org.gradle.api.publish.maven.MavenPomRelocation;
 
 public interface MavenPomDistributionManagementInternal extends MavenPomDistributionManagement {
 
-    MavenPomRelocationInternal getRelocation();
+    MavenPomRelocation getRelocation();
 
 }

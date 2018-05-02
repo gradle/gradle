@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
 
 /**
  * The relocation information of a Maven publication that has been moved
@@ -25,29 +25,29 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 4.8
  * @see MavenPom
+ * @see MavenPomDistributionManagement
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomRelocation {
 
     /**
-     * Sets the new group ID of the artifact.
+     * The new group ID of the artifact.
      */
-    void setGroupId(String groupId);
+    Property<String> getGroupId();
 
     /**
-     * Sets the new artifact ID of the artifact.
+     * The new artifact ID of the artifact.
      */
-    void setArtifactId(String artifactId);
+    Property<String> getArtifactId();
 
     /**
-     * Sets the new version of the artifact.
+     * The new version of the artifact.
      */
-    void setVersion(String version);
+    Property<String> getVersion();
 
     /**
-     * Sets the message to show the user for this relocation.
+     * The message to show the user for this relocation.
      */
-    void setMessage(String message);
+    Property<String> getMessage();
 
 }

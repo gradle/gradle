@@ -19,6 +19,8 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
@@ -47,24 +49,30 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private final MutableActionSet<XmlProvider> xmlAction = new MutableActionSet<XmlProvider>();
     private final MavenPublicationInternal mavenPublication;
     private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private String packaging;
-    private String name;
-    private String description;
-    private String url;
-    private String inceptionYear;
-    private final List<MavenPomLicenseInternal> licenses = new ArrayList<MavenPomLicenseInternal>();
-    private MavenPomOrganizationInternal organization;
-    private final List<MavenPomDeveloperInternal> developers = new ArrayList<MavenPomDeveloperInternal>();
-    private final List<MavenPomContributorInternal> contributors = new ArrayList<MavenPomContributorInternal>();
-    private MavenPomScmInternal scm;
-    private MavenPomIssueManagementInternal issueManagement;
-    private MavenPomCiManagementInternal ciManagement;
+    private Property<String> name;
+    private Property<String> description;
+    private Property<String> url;
+    private Property<String> inceptionYear;
+    private final List<MavenPomLicense> licenses = new ArrayList<MavenPomLicense>();
+    private MavenPomOrganization organization;
+    private final List<MavenPomDeveloper> developers = new ArrayList<MavenPomDeveloper>();
+    private final List<MavenPomContributor> contributors = new ArrayList<MavenPomContributor>();
+    private MavenPomScm scm;
+    private MavenPomIssueManagement issueManagement;
+    private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
-    private final List<MavenPomMailingListInternal> mailingLists = new ArrayList<MavenPomMailingListInternal>();
+    private final List<MavenPomMailingList> mailingLists = new ArrayList<MavenPomMailingList>();
 
-    public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator) {
+    public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.mavenPublication = mavenPublication;
         this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
+        this.name = objectFactory.property(String.class);
+        this.description = objectFactory.property(String.class);
+        this.url = objectFactory.property(String.class);
+        this.inceptionYear = objectFactory.property(String.class);
     }
 
     public void withXml(Action<? super XmlProvider> action) {
@@ -87,48 +95,23 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getDescription() {
+    public Property<String> getDescription() {
         return description;
     }
 
     @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
     @Override
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    @Override
-    public String getInceptionYear() {
+    public Property<String> getInceptionYear() {
         return inceptionYear;
-    }
-
-    @Override
-    public void setInceptionYear(int inceptionYear) {
-        setInceptionYear(String.valueOf(inceptionYear));
-    }
-
-    @Override
-    public void setInceptionYear(String inceptionYear) {
-        this.inceptionYear = inceptionYear;
     }
 
     @Override
@@ -142,20 +125,20 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomLicenseInternal> getLicenses() {
+    public List<MavenPomLicense> getLicenses() {
         return licenses;
     }
 
     @Override
     public void organization(Action<? super MavenPomOrganization> action) {
         if (organization == null) {
-            organization = instantiator.newInstance(DefaultMavenPomOrganization.class);
+            organization = instantiator.newInstance(DefaultMavenPomOrganization.class, objectFactory);
         }
         action.execute(organization);
     }
 
     @Override
-    public MavenPomOrganizationInternal getOrganization() {
+    public MavenPomOrganization getOrganization() {
         return organization;
     }
 
@@ -170,7 +153,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomDeveloperInternal> getDevelopers() {
+    public List<MavenPomDeveloper> getDevelopers() {
         return developers;
     }
 
@@ -185,19 +168,19 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomContributorInternal> getContributors() {
+    public List<MavenPomContributor> getContributors() {
         return contributors;
     }
 
     @Override
-    public MavenPomScmInternal getScm() {
+    public MavenPomScm getScm() {
         return scm;
     }
 
     @Override
     public void scm(Action<? super MavenPomScm> action) {
         if (scm == null) {
-            scm = instantiator.newInstance(DefaultMavenPomScm.class);
+            scm = instantiator.newInstance(DefaultMavenPomScm.class, objectFactory);
         }
         action.execute(scm);
     }
@@ -205,33 +188,33 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     @Override
     public void issueManagement(Action<? super MavenPomIssueManagement> action) {
         if (issueManagement == null) {
-            issueManagement = instantiator.newInstance(DefaultMavenPomProjectManagement.class);
+            issueManagement = instantiator.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
         }
         action.execute(issueManagement);
     }
 
     @Override
-    public MavenPomIssueManagementInternal getIssueManagement() {
+    public MavenPomIssueManagement getIssueManagement() {
         return issueManagement;
     }
 
     @Override
     public void ciManagement(Action<? super MavenPomCiManagement> action) {
         if (ciManagement == null) {
-            ciManagement = instantiator.newInstance(DefaultMavenPomProjectManagement.class);
+            ciManagement = instantiator.newInstance(DefaultMavenPomProjectManagement.class, objectFactory);
         }
         action.execute(ciManagement);
     }
 
     @Override
-    public MavenPomCiManagementInternal getCiManagement() {
+    public MavenPomCiManagement getCiManagement() {
         return ciManagement;
     }
 
     @Override
     public void distributionManagement(Action<? super MavenPomDistributionManagement> action) {
         if (distributionManagement == null) {
-            distributionManagement = instantiator.newInstance(DefaultMavenPomDistributionManagement.class, instantiator);
+            distributionManagement = instantiator.newInstance(DefaultMavenPomDistributionManagement.class, instantiator, objectFactory);
         }
         action.execute(distributionManagement);
     }
@@ -252,7 +235,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
-    public List<MavenPomMailingListInternal> getMailingLists() {
+    public List<MavenPomMailingList> getMailingLists() {
         return mailingLists;
     }
 
@@ -280,7 +263,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
-        T item = instantiator.newInstance(clazz);
+        T item = instantiator.newInstance(clazz, objectFactory);
         action.execute(item);
         items.add(item);
     }

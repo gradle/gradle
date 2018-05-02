@@ -16,50 +16,42 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-public class DefaultMavenPomLicense implements MavenPomLicenseInternal {
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.publish.maven.MavenPomLicense;
 
-    private String name;
-    private String url;
-    private String distribution;
-    private String comments;
+public class DefaultMavenPomLicense implements MavenPomLicense {
+
+    private final Property<String> name;
+    private final Property<String> url;
+    private final Property<String> distribution;
+    private final Property<String> comments;
+
+    public DefaultMavenPomLicense(ObjectFactory objectFactory) {
+        name = objectFactory.property(String.class);
+        url = objectFactory.property(String.class);
+        distribution = objectFactory.property(String.class);
+        comments = objectFactory.property(String.class);
+    }
 
     @Override
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getUrl() {
+    public Property<String> getUrl() {
         return url;
     }
 
     @Override
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    @Override
-    public String getDistribution() {
+    public Property<String> getDistribution() {
         return distribution;
     }
 
     @Override
-    public void setDistribution(String distribution) {
-        this.distribution = distribution;
-    }
-
-    @Override
-    public String getComments() {
+    public Property<String> getComments() {
         return comments;
     }
 
-    @Override
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
 }

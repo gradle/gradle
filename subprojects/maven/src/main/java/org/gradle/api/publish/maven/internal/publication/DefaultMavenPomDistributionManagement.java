@@ -17,28 +17,31 @@
 package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.maven.MavenPomRelocation;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultMavenPomDistributionManagement implements MavenPomDistributionManagementInternal {
 
     private final Instantiator instantiator;
-    private MavenPomRelocationInternal relocation;
+    private final ObjectFactory objectFactory;
+    private MavenPomRelocation relocation;
 
-    public DefaultMavenPomDistributionManagement(Instantiator instantiator) {
+    public DefaultMavenPomDistributionManagement(Instantiator instantiator, ObjectFactory objectFactory) {
         this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
     public void relocation(Action<? super MavenPomRelocation> action) {
         if (relocation == null) {
-            relocation = instantiator.newInstance(DefaultMavenPomRelocation.class);
+            relocation = instantiator.newInstance(DefaultMavenPomRelocation.class, objectFactory);
         }
         action.execute(relocation);
     }
 
     @Override
-    public MavenPomRelocationInternal getRelocation() {
+    public MavenPomRelocation getRelocation() {
         return relocation;
     }
 

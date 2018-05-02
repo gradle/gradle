@@ -17,7 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 /**
  * A mailing list of a Maven publication.
@@ -27,37 +28,36 @@ import org.gradle.internal.HasInternalProtocol;
  * @see MavenPomMailingListSpec
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomMailingList {
 
     /**
-     * Sets the name of this mailing list.
+     * The name of this mailing list.
      */
-    void setName(String name);
+    Property<String> getName();
 
     /**
-     * Sets the email address or link that can be used to subscribe to this mailing list.
+     * The email address or link that can be used to subscribe to this mailing list.
      */
-    void setSubscribe(String subscribe);
+    Property<String> getSubscribe();
 
     /**
-     * Sets the email address or link that can be used to subscribe to this mailing list.
+     * The email address or link that can be used to subscribe to this mailing list.
      */
-    void setUnsubscribe(String unsubscribe);
+    Property<String> getUnsubscribe();
 
     /**
-     * Sets the email address or link that can be used to post to this mailing list.
+     * The email address or link that can be used to post to this mailing list.
      */
-    void setPost(String post);
+    Property<String> getPost();
 
     /**
-     * Sets the URL where you can browse the archive of this mailing list.
+     * The URL where you can browse the archive of this mailing list.
      */
-    void setArchive(String archive);
+    Property<String> getArchive();
 
     /**
-     * Adds alternate URLs where you can browse the archive of this mailing list.
+     * The alternate URLs where you can browse the archive of this mailing list.
      */
-    void otherArchives(String... otherArchive);
+    SetProperty<String> getOtherArchives();
 
 }

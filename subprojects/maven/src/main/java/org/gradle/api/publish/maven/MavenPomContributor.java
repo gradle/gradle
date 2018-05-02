@@ -17,7 +17,8 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import java.util.Map;
 
@@ -29,47 +30,46 @@ import java.util.Map;
  * @see MavenPomContributorSpec
  */
 @Incubating
-@HasInternalProtocol
 public interface MavenPomContributor {
 
     /**
-     * Sets the name of this contributor.
+     * The name of this contributor.
      */
-    void setName(String name);
+    Property<String> getName();
 
     /**
-     * Sets the email
+     * The email
      */
-    void setEmail(String email);
+    Property<String> getEmail();
 
     /**
-     * Sets the URL of this contributor.
+     * The URL of this contributor.
      */
-    void setUrl(String url);
+    Property<String> getUrl();
 
     /**
-     * Sets the organization name of this contributor.
+     * The organization name of this contributor.
      */
-    void setOrganization(String organization);
+    Property<String> getOrganization();
 
     /**
-     * Sets the organization's URL of this contributor.
+     * The organization's URL of this contributor.
      */
-    void setOrganizationUrl(String organizationUrl);
+    Property<String> getOrganizationUrl();
 
     /**
-     * Adds the specified roles to this contributor.
+     * The roles of this contributor.
      */
-    void roles(String... roles);
+    SetProperty<String> getRoles();
 
     /**
-     * Sets the timezone of this contributor.
+     * The timezone of this contributor.
      */
-    void setTimezone(String timezone);
+    Property<String> getTimezone();
 
     /**
-     * Adds the specified properties to this contributor.
+     * The properties of this contributor.
      */
-    void properties(Map<String, String> properties);
+    Property<Map<String, String>> getProperties();
 
 }

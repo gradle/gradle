@@ -45,26 +45,26 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
         mavenJava(MavenPublication) {
           from components.java
           pom {
-            name 'Demo'
-            description 'A demonstration of Maven POM customization'
-            url 'http://www.example.com/project'
+            name = "Demo"
+            description = "A demonstration of Maven POM customization"
+            url = "http://www.example.com/project"
             licenses {
               license {
-                name 'The Apache License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
               }
             }
             developers {
               developer {
-                id 'johnd'
-                name 'John Doe'
-                email 'john.doe@example.com'
+                id = "johnd"
+                name = "John Doe"
+                email = "john.doe@example.com"
               }
             }
             scm {
-              connection 'scm:svn:http://subversion.example.com/svn/project/trunk/'
-              developerConnection 'scm:svn:https://subversion.example.com/svn/project/trunk/'
-              url 'http://subversion.example.com/svn/project/trunk/'
+              connection = "scm:svn:http://subversion.example.com/svn/project/trunk/"
+              developerConnection = "scm:svn:https://subversion.example.com/svn/project/trunk/"
+              url = "http://subversion.example.com/svn/project/trunk/"
             }
           }
         }

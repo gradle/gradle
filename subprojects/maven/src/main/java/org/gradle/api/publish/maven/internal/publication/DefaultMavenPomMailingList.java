@@ -16,76 +16,56 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.publish.maven.MavenPomMailingList;
 
-public class DefaultMavenPomMailingList implements MavenPomMailingListInternal {
+public class DefaultMavenPomMailingList implements MavenPomMailingList {
 
-    private String name;
-    private String subscribe;
-    private String unsubscribe;
-    private String post;
-    private String archive;
-    private final List<String> otherArchives = new ArrayList<String>();
+    private final Property<String> name;
+    private final Property<String> subscribe;
+    private final Property<String> unsubscribe;
+    private final Property<String> post;
+    private final Property<String> archive;
+    private final SetProperty<String> otherArchives;
+
+    public DefaultMavenPomMailingList(ObjectFactory objectFactory) {
+        name = objectFactory.property(String.class);
+        subscribe = objectFactory.property(String.class);
+        unsubscribe = objectFactory.property(String.class);
+        post = objectFactory.property(String.class);
+        archive = objectFactory.property(String.class);
+        otherArchives = objectFactory.setProperty(String.class);
+    }
 
     @Override
-    public String getName() {
+    public Property<String> getName() {
         return name;
     }
 
     @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getSubscribe() {
+    public Property<String> getSubscribe() {
         return subscribe;
     }
 
     @Override
-    public void setSubscribe(String subscribe) {
-        this.subscribe = subscribe;
-    }
-
-    @Override
-    public String getUnsubscribe() {
+    public Property<String> getUnsubscribe() {
         return unsubscribe;
     }
 
     @Override
-    public void setUnsubscribe(String unsubscribe) {
-        this.unsubscribe = unsubscribe;
-    }
-
-    @Override
-    public String getPost() {
+    public Property<String> getPost() {
         return post;
     }
 
     @Override
-    public void setPost(String post) {
-        this.post = post;
-    }
-
-    @Override
-    public void setArchive(String archive) {
-        this.archive = archive;
-    }
-
-    @Override
-    public String getArchive() {
+    public Property<String> getArchive() {
         return archive;
     }
 
     @Override
-    public void otherArchives(String... otherArchive) {
-        this.otherArchives.addAll(Arrays.asList(otherArchive));
-    }
-
-    @Override
-    public List<String> getOtherArchives() {
+    public SetProperty<String> getOtherArchives() {
         return otherArchives;
     }
 
