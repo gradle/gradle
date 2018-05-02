@@ -62,7 +62,6 @@ changeBuildType("Gradle_Check_Quick_Java8_Oracle_Linux_toolingApiBuilders") {
     }
     steps {
         update<GradleBuildStep>(1) {
-            gradleParams = """-PmaxParallelForks=%maxParallelForks% -s --daemon --continue -I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts" -Djava7Home=%linux.jdk.for.gradle.compile% --build-cache "-Dgradle.cache.remote.url=%gradle.cache.remote.url%" "-Dgradle.cache.remote.username=%gradle.cache.remote.username%" '-Dgradle.cache.remote.password=%gradle.cache.remote.password%' "-PtestJavaHome=%linux.java8.oracle.64bit%" "-Dscan.tag.FunctionalTest" "-Dscan.value.coverageOs=linux" "-Dscan.value.coverageJvmVendor=oracle" "-Dscan.value.coverageJvmVersion=java8" "-Dscan.tag.Check" "-Dscan.tag.QuickFeedbackLinuxOnly""""
         }
     }
 }
