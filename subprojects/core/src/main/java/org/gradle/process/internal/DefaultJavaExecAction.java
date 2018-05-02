@@ -25,23 +25,16 @@ import java.util.concurrent.Executor;
  * Use {@link ExecActionFactory} or {@link DslExecActionFactory} instead.
  */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
-    private ExecHandle execHandle;
-
     public DefaultJavaExecAction(FileResolver fileResolver, Executor executor) {
         super(fileResolver, executor);
     }
 
     public ExecResult execute() {
-        execHandle = build();
+        ExecHandle execHandle = build();
         ExecResult execResult = execHandle.start().waitForFinish();
         if (!isIgnoreExitValue()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
-    }
-
-    @Override
-    public void cancel() {
-        execHandle.abort();
     }
 }

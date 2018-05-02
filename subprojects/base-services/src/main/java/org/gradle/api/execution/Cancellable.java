@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.api.execution;
+
+import org.gradle.api.Incubating;
 
 /**
- * Indicates that a task is cancellable.
+ * Indicates that an operation is cancellable.
+ *
+ * @since 4.8
  */
+@Incubating
 public interface Cancellable {
     /**
-     * When Ctrl-C is pressed during the task execution, this method of that task will be invoked.
+     * Invoked when cancellation is performed (e.g. Ctrl-C is pressed during the task execution).
      */
     void cancel();
 }

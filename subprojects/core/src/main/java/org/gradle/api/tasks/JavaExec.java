@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.internal.tasks.execution.Cancellable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
@@ -59,7 +57,7 @@ import java.util.Map;
  * gradle someJavaExecTask --debug-jvm
  * </pre>
  */
-public class JavaExec extends ConventionTask implements JavaExecSpec, Cancellable {
+public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
@@ -529,14 +527,5 @@ public class JavaExec extends ConventionTask implements JavaExecSpec, Cancellabl
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Incubating
-    @Override
-    public void cancel() {
-        javaExecHandleBuilder.cancel();
     }
 }

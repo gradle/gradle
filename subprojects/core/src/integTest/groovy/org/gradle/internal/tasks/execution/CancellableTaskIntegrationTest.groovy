@@ -19,24 +19,30 @@ package org.gradle.internal.tasks.execution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import spock.lang.Unroll
 
 class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
-
     private static final String START_UP_MESSAGE = "Cancellable task started!"
+    private DaemonClientFixture client
 
-    def "custom cancellable task can work"() {
+    @Unroll
+    def "custom cancellable task can work when interrupt exception is #scenario"() {
         given:
         buildFile << """
-            import org.gradle.api.internal.tasks.execution.Cancellable
+            import org.gradle.api.execution.Cancellable
 
             class MyCancellableTask extends DefaultTask implements Cancellable {
-                Thread taskExecutionThread
+                volatile Thread taskExecutionThread
 
                 @TaskAction
                 void run() {
                     println '$START_UP_MESSAGE'
                     taskExecutionThread = Thread.currentThread()
-                    new java.util.concurrent.CountDownLatch(1).await()
+                    try {
+                        new java.util.concurrent.CountDownLatch(1).await()
+                    } catch (InterruptedException e) {
+                        ${scenario == 'swallowed' ? '' : 'throw e'}
+                    }
                 }
 
                 void cancel() {
@@ -49,47 +55,85 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec {
 
         expect:
         taskIsCancellable()
+
+        where:
+        scenario << ['swallowed', 'not swallowed']
     }
 
-    void taskIsCancellable() {
-        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
+    @Unroll
+    def "task gets rerun after cancellation when interrupt exception is #scenario"() {
+        given:
+        file('outputFile') << ''
+        buildFile << """
+            import org.gradle.api.execution.Cancellable
+
+            class MyCancellableTask extends DefaultTask implements Cancellable {
+                volatile Thread taskExecutionThread
+                
+                @Input
+                String getInput(){ "input" }
+
+                @OutputFile
+                File getOutputFile(){ new java.io.File(project.rootDir, 'outputFile') }
+
+                @TaskAction
+                void run() {
+                    println '$START_UP_MESSAGE'
+                    taskExecutionThread = Thread.currentThread()
+                    try {
+                        new java.util.concurrent.CountDownLatch(1).await()
+                    } catch (InterruptedException e) {
+                        ${scenario == 'swallowed' ? '' : 'throw e'}
+                    }
+                }
+
+                void cancel() {
+                    taskExecutionThread.interrupt()
+                }
+            }
+
+            task block(type: MyCancellableTask)
+        """
+
+        expect:
+        cancellableTaskGetsRerun()
+
+        where:
+        scenario << ['swallowed', 'not swallowed']
+    }
+
+    private void startBuild() {
+        client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         waitFor(START_UP_MESSAGE)
         daemons.daemon.assertBusy()
+    }
 
+    private void cancelBuild() {
         client.kill()
-        waitFor('BUILD FAILED in')
+        waitFor('Build cancelled')
         daemons.daemon.assertIdle()
+    }
+
+    private void cancellableTaskGetsRerun() {
+        startBuild()
+        cancelBuild()
+
+        startBuild()
+        cancelBuild()
+
+        assert daemons.daemons.size() == 1
+    }
+
+    private void taskIsCancellable() {
+        startBuild()
+        cancelBuild()
 
         def build = executer.withTasks("tasks").withArguments("--debug").start()
         build.waitForFinish()
         assert daemons.daemons.size() == 1
     }
 
-    def 'daemon is not killed when ctrl-c is pressed during JavaExec task execution'() {
-        given:
-        buildFile << """
-            apply plugin: 'java'
-
-            task block(type: JavaExec) {
-                classpath = sourceSets.main.output
-                main = 'Block'
-            }
-        """
-
-        file('src/main/java/Block.java') << """
-            public class Block {
-                public static void main(String[] args) throws InterruptedException {
-                    System.out.println("$START_UP_MESSAGE");
-                    new java.util.concurrent.CountDownLatch(1).await();
-                }
-            }
-        """
-
-        expect:
-        taskIsCancellable()
-    }
-
-    void waitFor(String output) {
+    private void waitFor(String output) {
         ConcurrentTestUtil.poll {
             assert daemons.daemon.log.contains(output)
         }

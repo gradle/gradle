@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.execution.Cancellable;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -32,17 +33,21 @@ public class CancellableTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(final TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+    public void execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
         if (task instanceof Cancellable) {
             Runnable onCancel = new Runnable() {
                 @Override
                 public void run() {
+                    state.cancel();
                     Cancellable.class.cast(task).cancel();
                 }
             };
             buildCancellationToken.addCallback(onCancel);
-            delegate.execute(task, state, context);
-            buildCancellationToken.removeCallback(onCancel);
+            try {
+                delegate.execute(task, state, context);
+            } finally {
+                buildCancellationToken.removeCallback(onCancel);
+            }
         } else {
             delegate.execute(task, state, context);
         }
