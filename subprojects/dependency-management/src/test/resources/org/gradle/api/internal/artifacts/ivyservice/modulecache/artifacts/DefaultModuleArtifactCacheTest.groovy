@@ -47,7 +47,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "storing null artifactFile not supported"() {
         when:
-        index.store(key, null, 0)
+        index.store(key, null, BigInteger.ZERO, -1)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -56,7 +56,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "artifact key must be provided"() {
         when:
-        index.store(null, Mock(File), 0)
+        index.store(null, Mock(File), BigInteger.ZERO, 1)
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "key cannot be null"
@@ -68,7 +68,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier));
         def testFile = folder.createFile("aTestFile");
         when:
-        index.store(key, testFile, BigInteger.TEN)
+        index.store(key, testFile, BigInteger.TEN, testFile.lastModified())
 
         then:
         1 * cacheLockingManager.useCache("store into artifact resolution cache \'cacheFile\'", _) >> {descr, action -> action.run()}

@@ -184,7 +184,7 @@ public class DefaultCachePolicySpec extends Specification {
             }
         })
         def artifactIdentifier = new DefaultArtifactIdentifier(moduleIdentifier('group', 'name', 'version'), 'artifact', 'type', 'ext', 'classifier')
-        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true, true)
+        cachePolicy.mustRefreshArtifact(artifactIdentifier, null, 0, true, true, false)
     }
 
     def "can use cacheFor to control missing module and artifact timeout"() {
@@ -214,9 +214,9 @@ public class DefaultCachePolicySpec extends Specification {
 
     def "must refresh artifact for changing modules when moduledescriptorhash not in sync"() {
         expect:
-        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, true)
-        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, false)
-        cachePolicy.mustRefreshArtifact(null, null, 1000, true, false)
+        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, true, false)
+        !cachePolicy.mustRefreshArtifact(null, null, 1000, false, false, false)
+        cachePolicy.mustRefreshArtifact(null, null, 1000, true, false, false)
     }
 
     def "provides a copy"() {
@@ -316,10 +316,10 @@ public class DefaultCachePolicySpec extends Specification {
     }
 
     private def hasMissingArtifactTimeout(int timeout) {
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, false, false);
-        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, false, false)
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout, false, false, false);
+        assert !cachePolicy.mustRefreshArtifact(null, null, timeout - 1, false, false, false)
         if (timeout != FOREVER) {
-            assert cachePolicy.mustRefreshArtifact(null, null, timeout + 1, false, false)
+            assert cachePolicy.mustRefreshArtifact(null, null, timeout + 1, false, false, false)
         }
         true
     }

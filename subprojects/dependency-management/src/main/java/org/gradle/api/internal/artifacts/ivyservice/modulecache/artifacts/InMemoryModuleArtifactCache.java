@@ -33,8 +33,10 @@ public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
     }
 
     @Override
-    public void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash) {
-        inMemoryCache.put(key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash));
+    public void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash,
+        long cachedFileLastModified) {
+        inMemoryCache.put(key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash,
+            cachedFileLastModified));
     }
 
     @Override

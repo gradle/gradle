@@ -35,7 +35,8 @@ public interface CachePolicy {
 
     boolean mustRefreshModuleArtifacts(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
-    boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis,
+        boolean belongsToChangingModule, boolean moduleDescriptorInSync, boolean isLocalFileChanged);
 
     void setOffline();
 

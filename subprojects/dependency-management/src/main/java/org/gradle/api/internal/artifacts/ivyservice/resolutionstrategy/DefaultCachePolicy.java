@@ -224,9 +224,9 @@ public class DefaultCachePolicy implements CachePolicy {
         return mustRefreshModule(moduleVersionId, new DefaultResolvedModuleVersion(moduleVersionId), ageMillis, belongsToChangingModule);
     }
 
-    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync) {
+    public boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync, boolean isLocalFileModified) {
         CachedArtifactResolutionControl artifactResolutionControl = new CachedArtifactResolutionControl(artifactIdentifier, cachedArtifactFile, ageMillis, belongsToChangingModule);
-        if(belongsToChangingModule && !moduleDescriptorInSync){
+        if((belongsToChangingModule && !moduleDescriptorInSync) || isLocalFileModified) {
             return true;
         }
         for (Action<? super ArtifactResolutionControl> rule : artifactCacheRules) {

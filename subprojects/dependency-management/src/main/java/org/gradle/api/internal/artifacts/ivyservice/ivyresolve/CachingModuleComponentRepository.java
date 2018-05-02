@@ -330,7 +330,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 final boolean isChangingModule = moduleSource.isChangingModule();
                 ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) artifact).toArtifactIdentifier();
                 if (cached.isMissing()) {
-                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age,
+                        isChangingModule, descriptorHash.equals(cached.getDescriptorHash()), false)) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
                         for (String location : cached.attemptedLocations()) {
                             result.attempted(location);
@@ -339,7 +340,18 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
-                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                    boolean isLocalFileModified = !cached.isLocalFileUnchanged();
+
+                    if (cachedArtifactFile != null && isLocalFileModified) {
+                        boolean ret = cachedArtifactFile.delete();
+                        LOGGER.info("Cached resource {} has been modified. "
+                                + "(cachedLastModified: {}, actualLastModified: {}) "
+                                + " successfully deleted: {}", cachedArtifactFile.getAbsolutePath(),
+                            cached.getCachedFileLastModified(), cachedArtifactFile.lastModified(), ret);
+                    }
+
+                    if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule,
+                        descriptorHash.equals(cached.getDescriptorHash()), isLocalFileModified)) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
                     }
@@ -425,7 +437,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
             ArtifactResolveException failure = result.getFailure();
             if (failure == null) {
-                moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
+                File artifactFile = result.getResult();
+                moduleArtifactCache.store(artifactCacheKey(artifact.getId()), artifactFile,
+                    cachingModuleSource.getDescriptorHash(), artifactFile.lastModified());
             } else if (failure instanceof ArtifactNotFoundException) {
                 moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
