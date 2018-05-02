@@ -15,11 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import java.util.Set;
 
@@ -46,5 +50,17 @@ abstract class AttributeDesugaring {
             }
         }
         return mutable.asImmutable();
+    }
+
+    static ComponentSelector desugarSelector(ComponentSelector selector, ImmutableAttributesFactory attributesFactory) {
+        if (selector instanceof ModuleComponentSelector) {
+            ModuleComponentSelector module = (ModuleComponentSelector) selector;
+            AttributeContainer moduleAttributes = module.getAttributes();
+            if (!moduleAttributes.isEmpty()) {
+                ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
+                return DefaultModuleComponentSelector.newSelector(module.getGroup(), module.getModule(), module.getVersionConstraint(), desugar(attributes, attributesFactory));
+            }
+        }
+        return selector;
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -159,6 +160,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
+    @Issue("gradle/gradle#5232")
     def "can declare typed attributes without failing serialization"() {
         given:
         repository {
@@ -212,6 +214,58 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         attributeValue | expectedVariant | expectedAttributes
         'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', lifecycle: 'c1']
         'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', lifecycle: 'c2']
+    }
+
+    @RequiredFeatures(
+        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    @Issue("gradle/gradle#5232")
+    def "Serializes and reads back failed resolution when failure comes from an unmatched typed attribute"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                attribute('lifecycle', 'some')
+            }
+        }
+
+        buildFile << """
+            interface Lifecycle extends Named {}
+            
+            def LIFECYCLE_ATTRIBUTE = Attribute.of('lifecycle', Lifecycle)
+            dependencies.attributesSchema.attribute(LIFECYCLE_ATTRIBUTE)
+            
+            dependencies {
+                conf('org:test:[1.0,)') {
+                    attributes {
+                        attribute(LIFECYCLE_ATTRIBUTE, objects.named(Lifecycle, 'other'))
+                    }
+                }
+            }
+            
+            configurations.conf.incoming.afterResolve {
+                // afterResolve will trigger the problem when reading
+                it.resolutionResult.allComponents {
+                    println "Success for \${it.id}"
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+            }
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).""")
+
+        and:
+        outputContains("Success for project :")
     }
 
     @RequiredFeatures(

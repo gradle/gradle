@@ -178,7 +178,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ComponentSelector getRequested() {
-        return dependencyState.getRequested();
+        return AttributeDesugaring.desugarSelector(dependencyState.getRequested(), from.getAttributesFactory());
     }
 
     @Override
