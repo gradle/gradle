@@ -17,13 +17,90 @@
 
 INTRO_TBC
 
+
+=== One API and two DSLs
+
+- implemented in Java, provides a Java API
+- allows plugins to be written using any JVM language on top of the Java API
+- provides Kotlin and Groovy DSLs for build scripts
+- plugins can also be written using Kotlin DSL pre-compiled scripts
+
+
+=== Kotlin and Groovy
+
+Kotlin the language is statically typed and has null safety built-int.
+Groovy on the other hand is highly dynamic by nature.
+// TODO add pros for each language
+
+
+=== Gradle extensible model
+
+TBC
+
+
 === The Kotlin DSL
 
 TBC
 
+==== DSL Facilities
+
+* `Action<T>` -> `T.() -> Unit`
+* Gradle API extensions
+** `Class<T>` -> `KClass<T>`
+
+==== Properties
+
+* Gradle properties
+* Project properties
+* Extra properties
+
+==== Gradle live collections
+
+* NamedDomainObjectCollection DSL patterns
+
+==== Gradle extensible model
+
+- extensions
+- conventions
+
+==== Kotlin language features
+
+TBC
+
+
 === The Groovy DSL
 
 TBC
+
+==== DSL Facilities
+
+- `Action<T>` -> `Closure<?>`
+- dynamic setters on `Property<T>`
+
+==== Properties
+
+* Gradle properties
+* Project properties
+* Extra properties
+
+==== Gradle live collections
+
+* NamedDomainObjectCollection DSL patterns
+
+==== Gradle extensible model
+
+- extensions
+- conventions
+
+==== Groovy language features
+
+TBC
+
+
+=== DSLs interoperability
+
+TBC
+
 
 [[sec:gradle-dsls_next_steps]]
 === Next steps
