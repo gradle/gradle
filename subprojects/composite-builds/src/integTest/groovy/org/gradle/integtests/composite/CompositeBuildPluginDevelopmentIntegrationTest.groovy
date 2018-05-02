@@ -16,9 +16,12 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.Matchers
 import spock.lang.Ignore
+import spock.lang.Issue
+
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -71,6 +74,42 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":jar"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/5234")
+    def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency"() {
+        given:
+        def buildB = singleProjectBuild("buildB") {
+            buildFile << """
+                apply plugin: 'java'
+                version "2.0"
+            """
+        }
+        def buildscriptRepo = """
+            buildscript {
+                repositories {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+            }
+        """
+        buildA.buildFile << buildscriptRepo
+        buildB.buildFile << buildscriptRepo
+        applyPlugin(buildA)
+        applyPlugin(buildB)
+        includeBuild pluginBuild
+        includeBuild buildB
+        includeBuild pluginDependencyA
+        dependency(buildA, "org.test:buildB:2.0")
+        dependency(pluginBuild, "org.test:pluginDependencyA:1.0")
+
+        when:
+        execute(buildA, "assemble")
+
+        then:
+        executed ":pluginBuild:jar", ":pluginDependencyA:jar", ":buildB:jar", ":jar"
     }
 
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
