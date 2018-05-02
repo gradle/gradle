@@ -54,6 +54,7 @@ import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.resources.ResourceDeadlockException;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -550,7 +551,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     @Nullable
-    public TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease) {
+    public TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
         if (allProjectsLocked()) {
             return null;
         }
@@ -562,24 +563,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 ResourceLock projectLock = getProjectLock(taskInfo);
                 TaskMutationInfo taskMutationInfo = getResolvedTaskMutationInfo(taskInfo);
 
-                if (!projectLock.tryLock()) {
+                // TODO: convert output file checks to a resource lock
+                if (!projectLock.tryLock() || !workerLease.tryLock() || !canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
+                    resourceLockState.releaseLocks();
                     continue;
-                }
-                if (!workerLease.tryLock()) {
-                    projectLock.unlock();
-                    continue;
-                }
-                try {
-                    // TODO: convert output file checks to a resource lock
-                    if (!canRunWithCurrentlyExecutedTasks(taskInfo, taskMutationInfo)) {
-                        workerLease.unlock();
-                        projectLock.unlock();
-                        continue;
-                    }
-                } catch (Throwable t) {
-                    workerLease.unlock();
-                    projectLock.unlock();
-                    throw UncheckedException.throwAsUncheckedException(t);
                 }
 
                 if (taskInfo.allDependenciesSuccessful()) {

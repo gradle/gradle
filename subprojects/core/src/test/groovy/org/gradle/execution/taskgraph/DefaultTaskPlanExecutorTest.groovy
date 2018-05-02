@@ -26,6 +26,7 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.resources.ResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
@@ -36,7 +37,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
     def cancellationHandler = Mock(BuildCancellationToken)
     def coordinationService = Stub(ResourceLockCoordinationService) {
         withStateLock(_) >> { transformer ->
-            transformer[0].transform(null)
+            transformer[0].transform(Stub(ResourceLockState))
         }
     }
     def executor = new DefaultTaskPlanExecutor(new DefaultParallelismConfiguration(false, 1), executorFactory, Stub(WorkerLeaseService), cancellationHandler, coordinationService)
@@ -58,7 +59,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_) >> node
+        1 * taskPlan.selectNextTask(_, _) >> node
         1 * node.task >> task
         1 * worker.execute(task)
 
@@ -103,7 +104,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_) >> node
+        1 * taskPlan.selectNextTask(_, _) >> node
         1 * node.task >> task
         1 * worker.execute(task)
         1 * taskPlan.taskComplete(node)

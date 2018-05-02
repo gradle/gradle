@@ -172,8 +172,9 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                     }
 
                     try {
-                        selected.set(taskExecutionPlan.selectNextTask(workerLease));
+                        selected.set(taskExecutionPlan.selectNextTask(workerLease, resourceLockState));
                     } catch (Throwable t) {
+                        resourceLockState.releaseLocks();
                         taskExecutionPlan.abortAllAndFail(t);
                         workRemaining.set(false);
                     }

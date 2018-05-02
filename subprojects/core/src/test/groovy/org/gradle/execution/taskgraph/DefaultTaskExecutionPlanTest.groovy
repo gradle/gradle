@@ -32,6 +32,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.internal.resources.ResourceLock
+import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -878,7 +879,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         def tasks = []
         def moreTasks = true
         while (moreTasks) {
-            def nextNode = executionPlan.selectNextTask(workerLease)
+            def nextNode = executionPlan.selectNextTask(workerLease, Mock(ResourceLockState))
             if (nextNode != null) {
                 if (!nextNode.isComplete()) {
                     tasks << nextNode.task
