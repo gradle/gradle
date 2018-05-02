@@ -115,13 +115,16 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec implements Di
         }
 
         client = new DaemonClientFixture(executer.start())
-        waitFor(START_UP_MESSAGE)
+        waitForDaemonLog(START_UP_MESSAGE)
         daemons.daemon.assertBusy()
     }
 
     private void cancelBuild() {
         client.kill()
-        waitFor('Build cancelled')
+        waitForDaemonLog('Build cancelled')
+        assert !client.gradleHandle.standardOutput.contains('Build cancelled')
+        assert !client.gradleHandle.standardOutput.contains('BUILD SUCCESS')
+        assert !client.gradleHandle.standardOutput.contains('BUILD FAILED')
         daemons.daemon.assertIdle()
     }
 
@@ -144,7 +147,7 @@ class CancellableTaskIntegrationTest extends DaemonIntegrationSpec implements Di
         assert daemons.daemons.size() == 1
     }
 
-    private void waitFor(String output) {
+    private void waitForDaemonLog(String output) {
         ConcurrentTestUtil.poll {
             assert daemons.daemon.log.contains(output)
         }
