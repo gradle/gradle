@@ -101,7 +101,7 @@ open class BuildScanPlugin : Plugin<Project> {
     private
     fun Project.extractVcsData() {
 
-        fun async(action: () -> Unit) = thread {
+        fun fork(action: () -> Unit) = thread {
             try {
                 action()
             } catch (e: Exception) {
@@ -111,13 +111,13 @@ open class BuildScanPlugin : Plugin<Project> {
 
         val threads = listOf(
 
-            async {
+            fork {
                 system("git", "rev-parse", "--verify", "HEAD").let { commitId ->
                     setCommitId(commitId)
                 }
             },
 
-            async {
+            fork {
                 system("git", "status", "--porcelain").let { status ->
                     if (status.isNotEmpty()) {
                         buildScan {
@@ -128,7 +128,7 @@ open class BuildScanPlugin : Plugin<Project> {
                 }
             },
 
-            async {
+            fork {
                 system("git", "rev-parse", "--abbrev-ref", "HEAD").let { branchName ->
                     if (branchName.isNotEmpty() && branchName != "HEAD") {
                         buildScan {
