@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.CachingClassDependenciesAnalyzer;
@@ -43,8 +44,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.language.base.internal.compile.Compiler;
 
-import java.util.List;
-
 public class IncrementalCompilerFactory {
 
     private final FileOperations fileOperations;
@@ -61,17 +60,17 @@ public class IncrementalCompilerFactory {
         this.generalCompileCaches = generalCompileCaches;
     }
 
-    public Compiler<JavaCompileSpec> makeIncremental(final CleaningJavaCompiler cleaningJavaCompiler, String compileDisplayName, IncrementalTaskInputsInternal inputs, List<Object> source, final FileTree sourceTree, FileCollection annotationProcessorClasspath) {
+    public Compiler<JavaCompileSpec> makeIncremental(CleaningJavaCompiler cleaningJavaCompiler, String compileDisplayName, IncrementalTaskInputsInternal inputs, FileTree sources, FileCollection annotationProcessorClasspath) {
         CompileCaches compileCaches = createCompileCaches(compileDisplayName);
-        Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sourceTree);
+        Compiler<JavaCompileSpec> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(), compileCaches.getClassAnalysisCache());
         JarSnapshotter jarSnapshotter = new CachingJarSnapshotter(streamHasher, fileHasher, analyzer, compileCaches.getJarSnapshotCache());
         JarClasspathSnapshotMaker jarClasspathSnapshotMaker = new JarClasspathSnapshotMaker(compileCaches.getLocalJarClasspathSnapshotStore(), new JarClasspathSnapshotFactory(jarSnapshotter), new ClasspathJarFinder(fileOperations));
-        CompilationSourceDirs sourceDirs = new CompilationSourceDirs(source);
+        CompilationSourceDirs sourceDirs = new CompilationSourceDirs((FileTreeInternal) sources);
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
-        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sourceTree);
+        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sources);
         IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath, annotationProcessorDetector, rebuildAllCompiler);
         return incrementalSupport.prepareCompiler(inputs);
     }
