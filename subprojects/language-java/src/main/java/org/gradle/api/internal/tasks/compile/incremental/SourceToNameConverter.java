@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.compile.incremental;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
 public class SourceToNameConverter {
 
-    private static final Pattern SOURCE_EXTENSION = Pattern.compile("\\.java$");
+    private static final String JAVA_EXTENSION = ".java";
+    private static final int JAVA_EXTENSION_LENGTH = JAVA_EXTENSION.length();
 
     private CompilationSourceDirs sourceDirs;
 
@@ -33,13 +33,15 @@ public class SourceToNameConverter {
     }
 
     public String getClassName(File javaSourceClass) {
-        List<File> dirs = sourceDirs.getSourceRoots();
-        for (File sourceDir : dirs) {
+        List<String> dirs = sourceDirs.getSourceRoots();
+        for (String sourceDirAbsolutePath : dirs) {
             String javaSourceClassAbsolutePath = javaSourceClass.getAbsolutePath();
-            String sourceDirAbsolutePath = sourceDir.getAbsolutePath();
-            if (javaSourceClassAbsolutePath.startsWith(sourceDirAbsolutePath) && (javaSourceClassAbsolutePath.charAt(sourceDirAbsolutePath.length()) == File.separatorChar)) {
-                String relativePath = javaSourceClassAbsolutePath.substring(sourceDirAbsolutePath.length() + 1);
-                return SOURCE_EXTENSION.matcher(relativePath).replaceFirst("").replace(File.separatorChar, '.');
+            if (javaSourceClassAbsolutePath.startsWith(sourceDirAbsolutePath)) {
+                int startIndex = sourceDirAbsolutePath.length();
+                int endIndexWithoutExtension = javaSourceClassAbsolutePath.endsWith(JAVA_EXTENSION) ? javaSourceClassAbsolutePath.length() - JAVA_EXTENSION_LENGTH : javaSourceClassAbsolutePath.length();
+                int anonymousInnerClassStartIndex = javaSourceClassAbsolutePath.indexOf('$', startIndex);
+                String relativePath = javaSourceClassAbsolutePath.substring(startIndex, Math.max(anonymousInnerClassStartIndex, endIndexWithoutExtension));
+                return relativePath.replace(File.separatorChar, '.');
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",

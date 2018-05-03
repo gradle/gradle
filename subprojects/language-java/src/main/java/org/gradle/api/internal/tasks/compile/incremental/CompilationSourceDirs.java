@@ -39,14 +39,14 @@ public class CompilationSourceDirs {
     private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
 
     private final FileTreeInternal sources;
-    private List<File> sourceRoots;
+    private List<String> sourceRoots;
     private boolean canInferSourceRoots;
 
     public CompilationSourceDirs(FileTreeInternal sources) {
         this.sources = sources;
     }
 
-    public List<File> getSourceRoots() {
+    public List<String> getSourceRoots() {
         if (sourceRoots == null) {
             resolveRoots();
         }
@@ -69,7 +69,7 @@ public class CompilationSourceDirs {
 
     private static class SourceRootVisitor implements FileCollectionVisitor {
         private boolean canInferSourceRoots = true;
-        private List<File> sourceRoots = Lists.newArrayList();
+        private List<String> sourceRoots = Lists.newArrayList();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -83,7 +83,7 @@ public class CompilationSourceDirs {
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            sourceRoots.add(directoryTree.getDir());
+            sourceRoots.add(absolutePath(directoryTree.getDir()));
         }
 
         private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
@@ -95,8 +95,12 @@ public class CompilationSourceDirs {
             return canInferSourceRoots;
         }
 
-        public List<File> getSourceRoots() {
+        public List<String> getSourceRoots() {
             return sourceRoots;
+        }
+
+        private String absolutePath(File source) {
+            return source.getAbsolutePath() + File.separatorChar;
         }
     }
 }
