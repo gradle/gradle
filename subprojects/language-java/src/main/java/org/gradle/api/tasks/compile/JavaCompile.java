@@ -73,6 +73,10 @@ public class JavaCompile extends AbstractCompile {
         CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
         this.compileOptions = compileOptions;
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+
+        // this mimics the behavior of the Ant javac task (and therefore AntJavaCompiler),
+        // which silently excludes files not ending in .java
+        include("**/*.java");
     }
 
     /**
@@ -121,6 +125,7 @@ public class JavaCompile extends AbstractCompile {
             getPath(),
             (IncrementalTaskInputsInternal) inputs,
             source,
+            getSource(),
             getEffectiveAnnotationProcessorPath()
         );
         performCompilation(spec, incrementalCompiler);
@@ -136,8 +141,10 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
+        spec.setSourceFiles(getSource());
         performCompilation(spec, createCompiler(spec));
     }
 
@@ -159,7 +166,6 @@ public class JavaCompile extends AbstractCompile {
 
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
-        spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());

@@ -27,6 +27,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import java.util.Collection;
 
@@ -35,17 +36,19 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
     private final IncrementalTaskInputs inputs;
     private final PreviousCompilation previousCompilation;
     private final CleaningJavaCompiler cleaningCompiler;
+    private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final RecompilationSpecProvider recompilationSpecProvider;
-    private final IncrementalCompilationInitializer incrementalCompilationInitilizer;
+    private final IncrementalCompilationInitializer incrementalCompilationInitializer;
     private final JarClasspathSnapshotProvider jarClasspathSnapshotProvider;
 
     public SelectiveCompiler(IncrementalTaskInputs inputs, PreviousCompilation previousCompilation, CleaningJavaCompiler cleaningCompiler,
-                             RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarClasspathSnapshotProvider jarClasspathSnapshotProvider) {
+                             Compiler<JavaCompileSpec> rebuildAllCompiler, RecompilationSpecProvider recompilationSpecProvider, IncrementalCompilationInitializer compilationInitializer, JarClasspathSnapshotProvider jarClasspathSnapshotProvider) {
         this.inputs = inputs;
         this.previousCompilation = previousCompilation;
         this.cleaningCompiler = cleaningCompiler;
+        this.rebuildAllCompiler = rebuildAllCompiler;
         this.recompilationSpecProvider = recompilationSpecProvider;
-        this.incrementalCompilationInitilizer = compilationInitializer;
+        this.incrementalCompilationInitializer = compilationInitializer;
         this.jarClasspathSnapshotProvider = jarClasspathSnapshotProvider;
     }
 
@@ -58,10 +61,10 @@ class SelectiveCompiler implements org.gradle.language.base.internal.compile.Com
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
-            return cleaningCompiler.execute(spec);
+            return rebuildAllCompiler.execute(spec);
         }
 
-        incrementalCompilationInitilizer.initializeCompilation(spec, recompilationSpec);
+        incrementalCompilationInitializer.initializeCompilation(spec, recompilationSpec);
 
         if (spec.getSourceFiles().isEmpty() && spec.getClasses().isEmpty()) {
             LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
