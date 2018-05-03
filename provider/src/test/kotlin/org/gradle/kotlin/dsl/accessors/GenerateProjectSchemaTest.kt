@@ -180,6 +180,5 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
         conventions = javaProjectSchema.conventions + listOf(
             ProjectSchemaEntry(
                 "org.gradle.api.tasks.SourceSet",
-                "kotlin", "" +
-                "org.jetbrains.kotlin.gradle.internal.KotlinSourceSetImpl")),
+                "kotlin", "org.jetbrains.kotlin.gradle.internal.KotlinSourceSetImpl")),
         configurations = (javaProjectSchema.configurations + listOf("embeddedKotlin", "kapt", "kaptTest")).sorted())
