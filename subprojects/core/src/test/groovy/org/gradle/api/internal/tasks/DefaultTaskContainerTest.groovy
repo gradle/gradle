@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
@@ -36,10 +36,8 @@ import static java.util.Collections.singletonMap
 class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
-    def modelRegistry = new DefaultModelRegistry(null, null)
-    private project = Mock(ProjectInternal, name: "<project>") {
-        getModelRegistry() >> modelRegistry
-    }
+    def modelRegistry = Mock(ModelRegistry)
+    private project = Mock(ProjectInternal, name: "<project>")
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, new TaskStatistics()).create()

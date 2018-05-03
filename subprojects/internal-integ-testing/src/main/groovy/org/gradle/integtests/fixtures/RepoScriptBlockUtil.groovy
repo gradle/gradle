@@ -81,6 +81,15 @@ class RepoScriptBlockUtil {
         """
     }
 
+    static String mavenCentralRepositoryMirrorUrl() {
+        def url = MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+        if (url.endsWith('/')) {
+            url
+        } else {
+            url + '/'
+        }
+    }
+
     static String jcenterRepositoryDefinition() {
         MirroredRepository.JCENTER.repositoryDefinition
     }

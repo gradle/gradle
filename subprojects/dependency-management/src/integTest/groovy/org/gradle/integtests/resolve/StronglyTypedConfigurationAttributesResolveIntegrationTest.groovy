@@ -389,14 +389,14 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Configuration 'foo2':
+  - Variant 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'.
-  - Configuration 'foo3':
+  - Variant 'foo3':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'."""
     }

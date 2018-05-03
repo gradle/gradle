@@ -34,6 +34,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -77,6 +78,10 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
+
+    void addRuleBasedPluginListener(RuleBasedPluginListener listener);
+
+    void prepareForRuleBasedPlugins();
 
     FileResolver getFileResolver();
 

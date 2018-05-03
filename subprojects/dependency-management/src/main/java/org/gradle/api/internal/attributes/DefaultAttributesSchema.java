@@ -149,6 +149,10 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
             return componentAttributeMatcher.match(effectiveSchema, candidates, requested, fallback);
         }
+
+        public List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested) {
+            return componentAttributeMatcher.describeMatching(effectiveSchema, candidate, requested);
+        }
     }
 
     private class MergedSchema implements AttributeSelectionSchema {

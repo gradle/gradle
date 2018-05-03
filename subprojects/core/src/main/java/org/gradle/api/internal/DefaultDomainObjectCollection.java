@@ -120,14 +120,14 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return iteratorNoFlush();
     }
 
-    protected Iterator<T> iteratorNoFlush() {
+    Iterator<T> iteratorNoFlush() {
         if (store.constantTimeIsEmpty()) {
             return Iterators.emptyIterator();
         }
         return new IteratorImpl(store.iterator());
     }
 
-    protected void flushPending() {
+    private void flushPending() {
         if (pending != null) {
             for (ProviderInternal<? extends T> provider : pending) {
                 doAdd(provider.get());

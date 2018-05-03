@@ -24,19 +24,15 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
 
 import javax.inject.Inject;
 
@@ -77,31 +73,16 @@ public class PublishingPlugin implements Plugin<Project> {
                 projectPublicationRegistry.registerPublication(project.getPath(), internalPublication);
             }
         });
+        bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
     }
 
-    /**
-     * These bindings are only here for backwards compatibility, as some users might depend on the extensions being available in the model.
-     */
-    static class Rules extends RuleSource {
-        @Model
-        PublishingExtension publishing(ExtensionContainer extensions) {
-            return extensions.getByType(PublishingExtension.class);
-        }
-
-        @Model
-        ProjectPublicationRegistry projectPublicationRegistry(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ProjectPublicationRegistry.class);
-        }
-
-        @Mutate
-        void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension) {
-            //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
-        }
-
-        @Mutate
-        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, PublishingExtension extension) {
-            //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
-        }
+    private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
+        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                project.getPluginManager().apply(PublishingPluginRules.class);
+            }
+        });
     }
 
 }

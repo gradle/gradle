@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -55,6 +56,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
     private final VersionSelectorScheme versionSelectorScheme;
+    private final ImmutableAttributesFactory attributesFactory;
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
@@ -69,6 +71,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.versionSelectorScheme = versionSelectorScheme;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionConstraint = resolveVersionConstraint(dependencyMetadata.getSelector());
+        this.attributesFactory = resolveState.getAttributesFactory();
         targetModule.addSelector(this);
     }
 
@@ -91,7 +94,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public ComponentSelector getRequested() {
-        return dependencyState.getRequested();
+        return selectorWithDesugaredAttributes(dependencyState.getRequested());
     }
 
     public ModuleResolveState getTargetModule() {
@@ -209,4 +212,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
     }
 
+    private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
+        return AttributeDesugaring.desugarSelector(selector, attributesFactory);
+    }
 }

@@ -18,12 +18,12 @@ package org.gradle.api.reporting.model;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
-import org.gradle.api.tasks.options.Option;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelNode;
@@ -86,7 +86,9 @@ public class ModelReport extends DefaultTask {
 
     @TaskAction
     public void report() {
-        Project project = getProject();
+        ProjectInternal project = (ProjectInternal) getProject();
+        project.prepareForRuleBasedPlugins();
+
         StyledTextOutput textOutput = getTextOutputFactory().create(ModelReport.class);
         ModelNodeRenderer renderer = new ModelNodeRenderer(isShowHidden(), getFormat());
 

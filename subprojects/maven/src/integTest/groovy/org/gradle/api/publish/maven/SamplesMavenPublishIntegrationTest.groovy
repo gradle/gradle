@@ -189,6 +189,26 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
     }
 
+    @UsesSample("maven-publish/publish-artifact")
+    def publishesRpmArtifact() {
+        given:
+        sample sampleProject
+        def artifactId = "publish-artifact"
+        def version = "1.0"
+        def repo = maven(sampleProject.dir.file("build/repo"))
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":rpm", ":publish"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.rpm", "${artifactId}-${version}.pom"
+    }
+
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))

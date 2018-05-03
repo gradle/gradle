@@ -72,7 +72,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         run "dependencyInsight", "--dependency", "unknown"
 
         then:
-        output.contains """
+        outputContains """
 No dependencies matching given input were found in configuration ':compileClasspath'
 """
     }
@@ -102,7 +102,7 @@ No dependencies matching given input were found in configuration ':compileClassp
         run "dependencyInsight", "--dependency", "unknown", "--configuration", "conf"
 
         then:
-        output.contains """
+        outputContains """
 No dependencies matching given input were found in configuration ':conf'
 """
     }
@@ -136,9 +136,11 @@ No dependencies matching given input were found in configuration ':conf'
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 +--- org:middle:1.0
 |    \\--- org:top:1.0
 |         \\--- conf
@@ -185,14 +187,18 @@ org:leaf2:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:2.5 (conflict resolution)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:toplevel3:1.0
      \\--- conf
 
 org:leaf2:1.0 -> 2.5
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 +--- org:middle1:1.0
 |    \\--- org:toplevel:1.0
 |         \\--- conf
@@ -201,7 +207,9 @@ org:leaf2:1.0 -> 2.5
           \\--- conf
 
 org:leaf2:1.5 -> 2.5
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:toplevel2:1.0
      \\--- conf
 """
@@ -236,14 +244,18 @@ org:leaf2:1.5 -> 2.5
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.0 (forced)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -285,21 +297,27 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -336,14 +354,18 @@ org:leaf:latest.integration -> 1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.0 (selected by rule)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -392,23 +414,33 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org.test:bar:2.0 (why not?)
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:bar:1.0 -> org.test:bar:2.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 
 org:baz:1.0 (selected by rule)
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 
 org:foo:2.0 (because I am in control)
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:foo:1.0 -> 2.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 """
     }
@@ -445,11 +477,15 @@ org:foo:1.0 -> 2.0
         run "insight"
 
         then:
-        output.contains """org:bar:1.0 (foo superceded by bar)
-   variant "default"
+        outputContains """org:bar:1.0 (foo superceded by bar)
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:foo:1.0 -> org:bar:1.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 """
     }
@@ -486,17 +522,23 @@ org:foo:1.0 -> org:bar:1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:new-leaf:77 (selected by rule)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:leaf:1.0 -> org:new-leaf:77
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:foo:2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -534,19 +576,27 @@ org:leaf:2.0 -> org:new-leaf:77
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:bar:2.0 (I am not sure I want to explain)
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:bar:1.0 -> 2.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 
 org:foo:2.0 (I want to)
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:foo:1.0 -> 2.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- conf
 """
     }
@@ -580,22 +630,30 @@ org:foo:1.0 -> 2.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.6
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 
 org:leaf:1.+ -> 1.6
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,1.9] -> 1.6
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:latest.integration -> 1.6
-   variant "default"
+   variant "default" [
+      org.gradle.status = integration (not requested)
+   ]
 \\--- org:top:1.0
      \\--- conf
 """
@@ -630,14 +688,18 @@ org:leaf:latest.integration -> 1.6
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:2.0 (forced)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 
 org:leaf:1.0 -> 2.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:foo:1.0
      \\--- conf
 """
@@ -673,17 +735,23 @@ org:leaf:1.0 -> 2.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.5 (forced)
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 
 org:leaf:1.0 -> 1.5
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.5
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -720,15 +788,19 @@ org:leaf:2.0 -> 1.5
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.0 (forced)
-   variant "default+runtime"
+   variant "default+runtime" [
+      org.gradle.status = release (not requested)
+   ]
 +--- conf
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "default+runtime"
+   variant "default+runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -765,7 +837,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No dependencies matching given input were found")
+        outputContains("No dependencies matching given input were found")
     }
 
     def "informs that nothing matches the input dependency"() {
@@ -792,7 +864,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains("No dependencies matching given input were found")
+        outputContains("No dependencies matching given input were found")
     }
 
     def "marks modules that can't be resolved as 'FAILED'"() {
@@ -819,7 +891,7 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:middle:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
@@ -855,7 +927,7 @@ org:middle:1.0 FAILED
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:middle:2.0 (forced) FAILED
 
 org:middle:1.0 -> 2.0 FAILED
@@ -890,7 +962,7 @@ org:middle:1.0 -> 2.0 FAILED
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:middle:2.0 FAILED
 \\--- conf
 
@@ -929,7 +1001,7 @@ org:middle:1.0 -> 2.0 FAILED
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:middle:2.0+ (selected by rule) FAILED
 
 org:middle:1.0 -> 2.0+ FAILED
@@ -968,7 +1040,7 @@ org:middle:1.0 -> 2.0+ FAILED
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.5 (conflict resolution)
 
 org:leaf:1.0 -> 1.5
@@ -1013,7 +1085,7 @@ org:leaf:[1.5,1.9] -> 1.5
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
@@ -1053,9 +1125,11 @@ org:leaf:[1.5,2.0] FAILED
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:leaf1:1.0
      +--- conf
      \\--- org:leaf2:1.0 (*)
@@ -1091,7 +1165,7 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 project :
    variant "compile+runtimeElements"
 \\--- project :impl
@@ -1134,9 +1208,11 @@ project :
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- org:leaf1:1.0
      \\--- project :impl
           \\--- compile
@@ -1178,7 +1254,7 @@ org:leaf2:1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 project :impl
    variant "runtimeElements" [
       org.gradle.usage = java-runtime-jars (not requested)
@@ -1225,11 +1301,12 @@ project :impl
         run "dependencyInsight", "--dependency", "leaf4"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf4:1.0
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- project :impl
      \\--- compileClasspath
@@ -1256,11 +1333,12 @@ org:leaf4:1.0
         run "dependencyInsight", "--dependency", "leaf1"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf1:1.0
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1269,11 +1347,12 @@ org:leaf1:1.0
         run "dependencyInsight", "--dependency", "leaf2"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:1.0
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1317,7 +1396,7 @@ org:leaf2:1.0
         run "dependencyInsight", "--dependency", ":api"
 
         then:
-        output.contains """
+        outputContains """
 project :api
    variant "apiElements" [
       org.gradle.usage = java-api
@@ -1364,11 +1443,12 @@ project :api
         run "dependencyInsight", "--dependency", "leaf3"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf3:1.0
    variant "runtime" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- org:leaf2:1.0
      +--- project :api
@@ -1408,11 +1488,15 @@ org:leaf3:1.0
 
         then:
         result.groupedOutput.task(":dependencyInsight").output.contains("""foo:bar:2.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- compile
 
 foo:foo:1.0
-   variant "default"
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
 \\--- compile
 """)
     }
@@ -1449,16 +1533,18 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        output.contains """org:foo:$selected (via constraint)
+        outputContains """org:foo:$selected (via constraint)
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 
 org:foo -> $selected
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1502,16 +1588,18 @@ org:foo -> $selected
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        output.contains """org:foo:$selected (via constraint, $reason)
+        outputContains """org:foo:$selected (via constraint, $reason)
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 
 org:foo -> $selected
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1552,16 +1640,18 @@ org:foo -> $selected
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        output.contains """org:foo:$selected ($reason)
+        outputContains """org:foo:$selected ($reason)
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 
 org:foo:$displayVersion -> $selected
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1599,16 +1689,18 @@ org:foo:$displayVersion -> $selected
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        output.contains """org:leaf:1.0 (via constraint)
+        outputContains """org:leaf:1.0 (via constraint)
    variant "compile" [
-      org.gradle.usage = java-api
+      org.gradle.status = release (not requested)
+      org.gradle.usage  = java-api
    ]
 \\--- org:bom:1.0
      \\--- compileClasspath
 
 org:leaf -> 1.0
    variant "compile" [
-      org.gradle.usage = java-api
+      org.gradle.status = release (not requested)
+      org.gradle.usage  = java-api
    ]
 \\--- compileClasspath
 """
@@ -1642,10 +1734,11 @@ org:leaf -> 1.0
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        output.contains """org.test:leaf:1.0 (first reason)
+        outputContains """org.test:leaf:1.0 (first reason)
    variant "default" [
+      org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
-         org.gradle.usage = java-api
+         org.gradle.usage  = java-api
    ]
 \\--- org.test:a:1.0
      \\--- compileClasspath"""
@@ -1680,9 +1773,11 @@ org:leaf -> 1.0
         run "insight"
 
         then:
-        output.contains """
+        outputContains """
 org:leaf2:1.0
-   variant "runtime"
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
 +--- org:middle:1.0
 |    \\--- org:top:1.0
 |         \\--- conf

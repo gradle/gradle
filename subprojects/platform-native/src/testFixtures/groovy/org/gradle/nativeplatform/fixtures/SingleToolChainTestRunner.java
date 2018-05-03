@@ -33,7 +33,8 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
 
         for (AvailableToolChains.ToolChainCandidate toolChain : toolChains) {
             if (!toolChain.isAvailable()) {
-                throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
+                //throw new RuntimeException(String.format("Tool chain %s is not available.", toolChain.getDisplayName()));
+                continue;
             }
             if (canUseToolChain(toolChain)) {
                 add(new ToolChainExecution(toolChain));

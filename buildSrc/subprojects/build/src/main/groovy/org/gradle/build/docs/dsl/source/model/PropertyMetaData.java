@@ -55,6 +55,10 @@ public class PropertyMetaData extends AbstractLanguageElement implements Seriali
         return setter != null;
     }
 
+    public boolean isReadable() {
+        return getter != null;
+    }
+
     public ClassMetaData getOwnerClass() {
         return ownerClass;
     }

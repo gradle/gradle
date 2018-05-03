@@ -104,8 +104,16 @@ For each custom artifact, it is possible to specify the `extension` and `classif
 Configure custom artifacts as follows:
 
 ++++
-<sample dir="maven-publish/javaProject" id="publishing_maven:publish-custom-artifact" title="Adding additional artifact to a MavenPublication">
+<sample dir="maven-publish/javaProject" id="publishing_maven:publish-custom-artifact" title="Adding an additional archive artifact to a MavenPublication">
     <sourcefile file="build.gradle" snippet="publish-custom-artifact"/>
+</sample>
+++++
+
+In addition, instances of api:org.gradle.api.artifacts.PublishArtifact[] can be added to a publication. For example, let's assume you have a custom `rpm` task that produces an RPM package of your application and writes it to `rpmFile`. The following sample demonstrates how to create a `PublishArtifact` using the `artifacts.add()` method and add it to a publication:
+
+++++
+<sample dir="maven-publish/publish-artifact" id="publishing_maven:publish-artifact" title="Adding an additional custom artifact to a MavenPublication">
+    <sourcefile file="build.gradle" snippet="custom-artifact"/>
 </sample>
 ++++
 

@@ -189,10 +189,10 @@ task showMissing { doLast { println configurations.missing.files } }
         and:
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
-    ${repo1MetaData.uri}
-    ${repo1DirList.uri}
-    ${repo2MetaData.uri}
-    ${repo2DirLib.uri}
+  - ${repo1MetaData.uri}
+  - ${repo1DirList.uri}
+  - ${repo2MetaData.uri}
+  - ${repo2DirLib.uri}
 Required by:
 """)
 
@@ -209,10 +209,10 @@ Required by:
         and:
         failure.assertHasCause("""Could not find any matches for group:projectA:latest.integration as no versions of group:projectA are available.
 Searched in the following locations:
-    ${repo1MetaData.uri}
-    ${repo1DirList.uri}
-    ${repo2MetaData.uri}
-    ${repo2DirLib.uri}
+  - ${repo1MetaData.uri}
+  - ${repo1DirList.uri}
+  - ${repo2MetaData.uri}
+  - ${repo2DirLib.uri}
 Required by:
 """)
 
@@ -410,10 +410,10 @@ Required by:
         and:
         failure.assertHasCause("""Could not find group:projectA:1.0.
 Searched in the following locations:
-    ${repo1Module.pom.uri}
-    ${repo1Module.artifact.uri}
-    ${repo2Module.pom.uri}
-    ${repo2Module.artifact.uri}
+  - ${repo1Module.pom.uri}
+  - ${repo1Module.artifact.uri}
+  - ${repo2Module.pom.uri}
+  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
@@ -428,10 +428,10 @@ Required by:
 
         failure.assertHasCause("""Could not find group:projectA:1.0.
 Searched in the following locations:
-    ${repo1Module.pom.uri}
-    ${repo1Module.artifact.uri}
-    ${repo2Module.pom.uri}
-    ${repo2Module.artifact.uri}
+  - ${repo1Module.pom.uri}
+  - ${repo1Module.artifact.uri}
+  - ${repo2Module.pom.uri}
+  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
@@ -505,12 +505,12 @@ Required by:
         fails 'retrieve'
         failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
 Searched in the following locations:
-    ${repo1Module.rootMetaData.uri}
-    ${repo1Module.pom.uri}
-    ${repo1Module.artifact.uri}
-    ${repo2Module.rootMetaData.uri}
-    ${repo2Module.pom.uri}
-    ${repo2Module.artifact.uri}
+  - ${repo1Module.rootMetaData.uri}
+  - ${repo1Module.pom.uri}
+  - ${repo1Module.artifact.uri}
+  - ${repo2Module.rootMetaData.uri}
+  - ${repo2Module.pom.uri}
+  - ${repo2Module.artifact.uri}
 Required by:
 """)
 
@@ -527,12 +527,12 @@ Required by:
         fails 'retrieve'
         failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
 Searched in the following locations:
-    ${repo1Module.rootMetaData.uri}
-    ${repo1Module.pom.uri}
-    ${repo1Module.artifact.uri}
-    ${repo2Module.rootMetaData.uri}
-    ${repo2Module.pom.uri}
-    ${repo2Module.artifact.uri}
+  - ${repo1Module.rootMetaData.uri}
+  - ${repo1Module.pom.uri}
+  - ${repo1Module.artifact.uri}
+  - ${repo2Module.rootMetaData.uri}
+  - ${repo2Module.pom.uri}
+  - ${repo2Module.artifact.uri}
 Required by:
 """)
 

@@ -212,8 +212,8 @@ if (project.hasProperty('nocache')) {
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${module.pom.uri}
-    ${module.artifact.uri}""")
+  - ${module.pom.uri}
+  - ${module.artifact.uri}""")
 
         when:
         server.resetExpectations()
@@ -224,8 +224,8 @@ Searched in the following locations:
         fails("verify")
         failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
 Searched in the following locations:
-    ${module.pom.uri}
-    ${module.artifact.uri}""")
+  - ${module.pom.uri}
+  - ${module.artifact.uri}""")
     }
 
     def "resolve and caches missing artifacts of existing component"() {

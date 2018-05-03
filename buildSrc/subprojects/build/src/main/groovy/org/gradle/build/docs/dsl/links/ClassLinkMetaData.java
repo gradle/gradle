@@ -121,8 +121,8 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         methods.put(method.getOverrideSignature(), new BlockLinkMetaData(method.getName(), method.getOverrideSignature()));
     }
 
-    public void addGetterMethod(String propertyName, MethodMetaData method) {
-        methods.put(method.getOverrideSignature(), new GetterLinkMetaData(propertyName, method.getName(), method.getOverrideSignature()));
+    public void addPropertyAccessorMethod(String propertyName, MethodMetaData getterOrSetter) {
+        methods.put(getterOrSetter.getOverrideSignature(), new PropertyLinkMetaData(propertyName, getterOrSetter.getName(), getterOrSetter.getOverrideSignature()));
     }
 
     public void attach(ClassMetaDataRepository<ClassLinkMetaData> linkMetaDataClassMetaDataRepository) {
@@ -164,10 +164,10 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         }
     }
 
-    private static class GetterLinkMetaData extends MethodLinkMetaData {
+    private static class PropertyLinkMetaData extends MethodLinkMetaData {
         private final String propertyName;
 
-        private GetterLinkMetaData(String propertyName, String methodName, String signature) {
+        private PropertyLinkMetaData(String propertyName, String methodName, String signature) {
             super(methodName, signature, LinkMetaData.Style.Dsldoc);
             this.propertyName = propertyName;
         }

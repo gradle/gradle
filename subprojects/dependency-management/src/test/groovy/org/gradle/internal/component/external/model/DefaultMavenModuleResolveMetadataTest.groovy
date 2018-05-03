@@ -20,10 +20,12 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.model.ModuleSource
@@ -73,14 +75,15 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         runtime.artifacts.is(runtime.artifacts)
     }
 
-    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+    def "each configuration contains a single variant containing the status attribute and the artifacts of the configuration"() {
         when:
         def runtime = metadata.getConfiguration("runtime")
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
-        runtime.variants.first().artifacts == runtime.artifacts
+        def firstVariant = runtime.variants.first()
+        assertHasOnlyStatusAttribute(firstVariant.attributes)
+        firstVariant.artifacts == runtime.artifacts
     }
 
     def "artifacts include union of those inherited from other configurations"() {
@@ -142,18 +145,20 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
         def immutableMetadata = metadata.asImmutable()
         def compileConf = immutableMetadata.getConfiguration("compile")
         def runtimeConf = immutableMetadata.getConfiguration("runtime")
-        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal()
+        def variantsForGraphTraversal = immutableMetadata.getVariantsForGraphTraversal().orNull()
 
         then:
-        compileConf.attributes.empty
-        runtimeConf.attributes.empty
-        isJavaLibrary ? variantsForGraphTraversal.size() == 2 : variantsForGraphTraversal.empty
+        assertHasOnlyStatusAttribute(compileConf.attributes)
+        assertHasOnlyStatusAttribute(runtimeConf.attributes)
 
         if (isJavaLibrary) {
+            assert variantsForGraphTraversal.size() == 2
             assert variantsForGraphTraversal[0].name == "compile"
             assert variantsForGraphTraversal[0].attributes.getAttribute(stringUsageAttribute) == "java-api"
             assert variantsForGraphTraversal[1].name == "runtime"
             assert variantsForGraphTraversal[1].attributes.getAttribute(stringUsageAttribute) == "java-runtime"
+        } else {
+            assert !variantsForGraphTraversal
         }
 
         where:
@@ -171,6 +176,11 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
     def dependency(String org, String module, String version, String scope) {
         def selector = newSelector(org, module, new DefaultMutableVersionConstraint(version))
         dependencies.add(new MavenDependencyDescriptor(MavenScope.valueOf(scope), false, selector, null, []))
+    }
+
+    private void assertHasOnlyStatusAttribute(AttributeContainer attributes) {
+        assert attributes.keySet().size() == 1
+        assert attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE) == 'integration'
     }
 
 }

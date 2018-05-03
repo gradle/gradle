@@ -154,25 +154,6 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.mapAttributesFor(variant) == attrs
     }
 
-    def "does not apply mapping when variant already defines some attributes"() {
-        def attrs = attributesFactory.of(Attribute.of("attr", String), "value")
-        def variant = Stub(VariantResolveMetadata)
-        def artifact = Stub(ComponentArtifactMetadata)
-        def artifactName = Stub(IvyArtifactName)
-
-        given:
-        variant.attributes >> attrs
-        variant.artifacts >> [artifact]
-        artifact.name >> artifactName
-        artifactName.extension >> "jar"
-        artifactName.type >> "jar"
-
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
-
-        expect:
-        registry.mapAttributesFor(variant) == concat(attrs, ["artifactType": "jar"])
-    }
-
     def concat(ImmutableAttributes source, Map<String, String> attrs) {
         def result = source
         attrs.each { key, value ->
