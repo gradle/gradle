@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 
@@ -90,7 +91,18 @@ fun accessibleExtensionsSchema(extensionsSchema: ExtensionsSchema) =
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
-    plugins.filterKeys(::isPublic).mapValues { TypeOf.typeOf(it.value::class.java) }
+    plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+
+
+private
+fun inferPublicTypeOfConvention(instance: Any) =
+    if (instance is HasPublicType) instance.publicType
+    else TypeOf.typeOf(instance::class.java.undecorated)
+
+
+private
+val Class<*>.undecorated
+    get() = takeIf { it.name.endsWith("_Decorated") }?.superclass ?: this
 
 
 private
