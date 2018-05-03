@@ -89,6 +89,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * It can be an empty collection to indicate that tasks should be run.
      * @return this
      */
     @Incubating
@@ -98,6 +99,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * It can be an empty collection to indicate that tasks should be run.
      * @return this
      */
     @Incubating
@@ -106,7 +108,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
     /**
      * Runs all the actions in their respective build phases, blocking until build is finished.
      *
-     * <p>If no tasks are defined, project default tasks will be executed.
+     * <p>If no tasks are defined, Gradle will just configure the build. Otherwise, Gradle will run tasks.
      *
      * <p>Results of each action are sent to their respective result handlers. If one of the actions fails, the build is interrupted.
      *
@@ -126,7 +128,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Starts executing the build, passing the build result to the given handler when complete and individual action results to the respective handler when complete.
      * This method returns immediately, and the result is later passed to the given handler's {@link ResultHandler#onComplete(Object)} method.
      *
-     * <p>If no tasks are defined, project default tasks will be executed.
+     * <p>If no tasks are defined, Gradle will just configure the build. Otherwise, Gradle will run tasks.
      *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)} method is called with the appropriate exception. See
      * {@link #run()} for a description of the various exceptions that the operation may fail with.

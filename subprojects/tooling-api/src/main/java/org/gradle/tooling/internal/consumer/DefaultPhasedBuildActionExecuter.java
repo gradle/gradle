@@ -26,8 +26,10 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter> implements PhasedBuildActionExecuter {
     private final PhasedBuildAction phasedBuildAction;
@@ -47,13 +49,13 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
 
     @Override
     public PhasedBuildActionExecuter forTasks(String... tasks) {
-        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        operationParamsBuilder.setTasks(tasks != null ? Arrays.asList(tasks) : null);
         return getThis();
     }
 
     @Override
     public PhasedBuildActionExecuter forTasks(Iterable<String> tasks) {
-        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        operationParamsBuilder.setTasks(tasks != null ? CollectionUtils.toList(tasks) : null);
         return getThis();
     }
 

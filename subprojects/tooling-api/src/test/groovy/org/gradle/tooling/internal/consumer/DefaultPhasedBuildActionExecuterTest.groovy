@@ -181,4 +181,18 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
             return null
         }
     }
+
+    def "forTasks sets empty list correctly"() {
+        when:
+        executer.forTasks([])
+
+        then:
+        executer.operationParamsBuilder.tasks == []
+
+        when:
+        executer.forTasks(Collections.emptySet())
+
+        then:
+        executer.operationParamsBuilder.tasks == []
+    }
 }

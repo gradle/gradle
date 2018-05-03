@@ -23,7 +23,6 @@ import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -194,6 +193,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { connection ->
             connection.phasedAction().projectsEvaluated(new CustomProjectsEvaluatedAction(["hello"]), projectsEvaluatedHandler)
                 .build()
+                .forTasks([])
                 .setStandardOutput(stdOut)
                 .run()
         }
@@ -225,7 +225,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         stdOut.toString().contains("bye")
     }
 
-    @Ignore("Work in progress. See ClientProvidedPhasedActionRunner")
     @TargetGradleVersion(">=4.8")
     def "default tasks are not run if no tasks are specified"() {
         PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()

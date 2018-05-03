@@ -57,15 +57,14 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         addBuildListener(phasedAction, buildController);
 
         try {
-            // We don't know if the model builders invoked in the projects evaluated action will add tasks to the graph or not
-            // so we have to execute build until Build stage before finishing it.
-            // TODO: try to figure out a way to finish the build earlier if possible (no tasks passed by the client and no tasks added by the model builder)
-            // FIXME: default tasks are run even if user defines no task. (see "PhasedBuildActionCrossVersionSpec#default tasks are not run if no tasks are specified")
-            buildController.run();
+            if (clientProvidedPhasedAction.isRunTasks()) {
+                buildController.run();
+            } else {
+                buildController.configure();
+            }
         } catch (RuntimeException e) {
             // Failures in BuildActions in a PhasedAction will be wrapped inside other runtime exceptions by the build itself.
             // This adapter unwraps the expected exception so it is in the correct format and client will receive it correctly.
-            // TODO: instead of unwrap this exception here, introduce API in org.gradle.internal.invocation.BuildController to catch these partial exceptions and set as a build result failure directly
             RuntimeException unwrappedException = new PhasedActionExceptionTransformer().transform(e);
             if (unwrappedException == null) {
                 throw e;

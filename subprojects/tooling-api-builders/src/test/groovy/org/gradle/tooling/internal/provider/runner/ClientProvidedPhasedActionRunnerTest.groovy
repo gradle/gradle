@@ -42,7 +42,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
     def startParameter = Stub(StartParameterInternal)
     def serializedAction = Stub(SerializedPayload)
     def clientSubscriptions = Stub(BuildClientSubscriptions)
-    def clientProvidedPhasedAction = new ClientProvidedPhasedAction(startParameter, serializedAction, clientSubscriptions)
+    def clientProvidedPhasedAction = new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions)
 
     def projectsLoadedAction = Mock(InternalBuildActionVersion2)
     def projectsEvaluatedAction = Mock(InternalBuildActionVersion2)
@@ -191,5 +191,23 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
                 it.result == nullSerialized
         })
         0 * buildEventConsumer.dispatch(_)
+    }
+
+    def "run tasks if defined"() {
+        when:
+        runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions), buildController)
+
+        then:
+        0 * buildController.configure()
+        1 * buildController.run()
+    }
+
+    def "configure instead of run if no tasks are defined"() {
+        when:
+        runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, false, clientSubscriptions), buildController)
+
+        then:
+        1 * buildController.configure()
+        0 * buildController.run()
     }
 }
