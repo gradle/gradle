@@ -653,6 +653,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             taskMutationInfo.hasOutputs = taskProperties.hasDeclaredOutputs();
             taskMutationInfo.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
             taskMutationInfo.resolved = true;
+
+            if (!taskMutationInfo.destroyablePaths.isEmpty()) {
+                if (taskMutationInfo.hasOutputs) {
+                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
+                }
+                if (taskMutationInfo.hasFileInputs) {
+                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
+                }
+                if (taskMutationInfo.hasLocalState) {
+                    throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
+                }
+            }
         }
         return taskMutationInfo;
     }
@@ -716,18 +728,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean canRunWithCurrentlyExecutedTasks(TaskInfo taskInfo, TaskMutationInfo taskMutationInfo) {
         Set<String> candidateTaskDestroyables = taskMutationInfo.destroyablePaths;
-
-        if (!candidateTaskDestroyables.isEmpty()) {
-            if (taskMutationInfo.hasOutputs) {
-                throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
-            }
-            if (taskMutationInfo.hasFileInputs) {
-                throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
-            }
-            if (taskMutationInfo.hasLocalState) {
-                throw new IllegalStateException("Task " + taskInfo.getTask().getIdentityPath() + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
-            }
-        }
 
         if (!runningTasks.isEmpty()) {
             Set<String> candidateTaskOutputs = taskMutationInfo.outputPaths;
