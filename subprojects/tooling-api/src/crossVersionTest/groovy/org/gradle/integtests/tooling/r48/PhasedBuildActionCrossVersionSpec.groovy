@@ -84,7 +84,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             
             class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
                 boolean canBuild(String modelName) {
-                    return modelName == '${CustomProjectsEvaluatedModel.name}' || modelName == '${CustomBuildFinishedModel.name}'
+                    return modelName == '${CustomProjectsLoadedModel.name}' || modelName == '${CustomBuildFinishedModel.name}'
                 }
                 
                 Class<CustomParameter> getParameterType() {
@@ -92,8 +92,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
                 
                 Object buildAll(String modelName, Project project) {
-                    if (modelName == '${CustomProjectsEvaluatedModel.name}') {
-                        return new DefaultCustomModel('configuration');
+                    if (modelName == '${CustomProjectsLoadedModel.name}') {
+                        return new DefaultCustomModel('loading');
                     }
                     if (modelName == '${CustomBuildFinishedModel.name}') {
                         return new DefaultCustomModel('build');
@@ -102,12 +102,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 }
                 
                 Object buildAll(String modelName, CustomParameter parameter, Project project) {
-                    if (modelName == '${CustomProjectsEvaluatedModel.name}') {
+                    if (modelName == '${CustomProjectsLoadedModel.name}') {
                         StartParameter startParameter = project.getGradle().getStartParameter();
                         Set<String> tasks = new HashSet(startParameter.getTaskNames());
                         tasks.addAll(parameter.getTasks());
                         startParameter.setTaskNames(tasks);
-                        return new DefaultCustomModel('configurationWithTasks');
+                        return new DefaultCustomModel('loadingWithTasks');
                     }
                     return null
                 }
@@ -118,13 +118,11 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=4.8")
     def "can run phased action"() {
         PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
-        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
         PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .projectsEvaluated(new CustomProjectsEvaluatedAction(null), projectsEvaluatedHandler)
+            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
                 .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
@@ -132,20 +130,17 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         projectsLoadedHandler.getResult() == "loading"
-        projectsEvaluatedHandler.getResult() == "configuration"
         buildFinishedHandler.getResult() == "build"
     }
 
     @TargetGradleVersion(">=4.8")
     def "failures are received and future actions not run"() {
         PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
-        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
         PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .projectsEvaluated(new FailAction(), projectsEvaluatedHandler)
+            connection.phasedAction().projectsLoaded(new FailAction(), projectsLoadedHandler)
                 .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
@@ -156,8 +151,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.message == "The supplied phased action failed with an exception."
         e.cause instanceof RuntimeException
         e.cause.message == "actionFailure"
-        projectsLoadedHandler.getResult() == "loading"
-        projectsEvaluatedHandler.getResult() == null
+        projectsLoadedHandler.getResult() == null
         buildFinishedHandler.getResult() == null
     }
 
@@ -170,6 +164,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         withConnection { connection ->
             connection.phasedAction().projectsLoaded(new FailAction(), projectsLoadedHandler)
                 .build()
+                .forTasks(["hello"])
                 .addProgressListener(new ProgressListener() {
                     @Override
                     void statusChanged(ProgressEvent event) {
@@ -181,17 +176,17 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildActionFailureException)
-        !events.contains("Configure project")
+        !events.contains("hello")
     }
 
     @TargetGradleVersion(">=4.8")
     def "can modify task graph in projects evaluated action"() {
-        PhasedResultHandlerCollector projectsEvaluatedHandler = new PhasedResultHandlerCollector()
+        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsEvaluated(new CustomProjectsEvaluatedAction(["hello"]), projectsEvaluatedHandler)
+            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(["hello"]), projectsLoadedHandler)
                 .build()
                 .forTasks([])
                 .setStandardOutput(stdOut)
@@ -199,7 +194,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        projectsEvaluatedHandler.getResult() == "configurationWithTasks"
+        projectsLoadedHandler.getResult() == "loadingWithTasks"
         stdOut.toString().contains("hello")
     }
 

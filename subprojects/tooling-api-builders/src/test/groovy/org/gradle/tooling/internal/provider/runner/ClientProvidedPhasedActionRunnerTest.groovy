@@ -45,11 +45,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
     def clientProvidedPhasedAction = new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions)
 
     def projectsLoadedAction = Mock(InternalBuildActionVersion2)
-    def projectsEvaluatedAction = Mock(InternalBuildActionVersion2)
     def buildFinishedAction = Mock(InternalBuildActionVersion2)
     def phasedAction = Mock(InternalPhasedAction) {
         getProjectsLoadedAction() >> projectsLoadedAction
-        getProjectsEvaluatedAction() >> projectsEvaluatedAction
         getBuildFinishedAction() >> buildFinishedAction
     }
 
@@ -89,21 +87,17 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         def serializedResult1 = Mock(SerializedPayload)
         def result2 = 'result2'
         def serializedResult2 = Mock(SerializedPayload)
-        def result3 = 'result3'
-        def serializedResult3 = Mock(SerializedPayload)
 
         given:
         payloadSerializer.serialize(result1) >> serializedResult1
         payloadSerializer.serialize(result2) >> serializedResult2
-        payloadSerializer.serialize(result3) >> serializedResult3
 
         when:
         runner.run(clientProvidedPhasedAction, buildController)
 
         then:
         1 * projectsLoadedAction.execute(_) >> result1
-        1 * projectsEvaluatedAction.execute(_) >> result2
-        1 * buildFinishedAction.execute(_) >> result3
+        1 * buildFinishedAction.execute(_) >> result2
         1 * buildController.setResult({
             it instanceof BuildActionResult &&
                 it.failure == null &&
@@ -116,13 +110,8 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         })
         1 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
-                it.phase == PhasedActionResult.Phase.PROJECTS_EVALUATED &&
-                it.result == serializedResult2
-        })
-        1 * buildEventConsumer.dispatch({
-            it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.BUILD_FINISHED &&
-                it.result == serializedResult3
+                it.result == serializedResult2
         })
     }
 
@@ -137,7 +126,6 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
         then:
         1 * projectsLoadedAction.execute(_) >> { throw new RuntimeException() }
-        0 * projectsEvaluatedAction.execute(_)
         0 * buildFinishedAction.execute(_)
         1 * buildController.setResult(_) >> { args ->
             def it = args[0]
@@ -149,10 +137,6 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
                 it.phase == PhasedActionResult.Phase.PROJECTS_LOADED
-        })
-        0 * buildEventConsumer.dispatch({
-            it instanceof PhasedBuildActionResult &&
-                it.phase == PhasedActionResult.Phase.PROJECTS_EVALUATED
         })
         0 * buildEventConsumer.dispatch({
             it instanceof PhasedBuildActionResult &&
@@ -183,7 +167,6 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         then:
         noExceptionThrown()
         1 * phasedAction.getProjectsLoadedAction() >> null
-        1 * phasedAction.getProjectsEvaluatedAction() >> null
         1 * phasedAction.getBuildFinishedAction() >> null
         1 * buildController.setResult({
             it instanceof BuildActionResult &&

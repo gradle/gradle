@@ -18,6 +18,6 @@ package org.gradle.integtests.tooling.r48;
 
 import java.io.Serializable;
 
-public interface CustomProjectsEvaluatedModel extends Serializable {
+public interface CustomProjectsLoadedModel extends Serializable {
     String getValue();
 }

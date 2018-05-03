@@ -39,7 +39,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
         /**
          * Executes the given action after projects are loaded and sends its result to the given result handler.
          *
-         * <p>Models contributed by project plugins won't be available at this point.
+         * <p>Action will be executed after projects are loaded and Gradle will configure projects as necessary for the models requested.
          *
          * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
          *
@@ -50,19 +50,6 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
          */
         <T> Builder projectsLoaded(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
-
-        /**
-         * Executes the given action after projects are evaluated and sends its result to the given result handler.
-         *
-         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
-         *
-         * @param buildAction The action to run in the specified build phase.
-         * @param handler The handler to supply the result of the given action to.
-         * @param <T> The returning type of the action.
-         * @return The builder.
-         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
-         */
-        <T> Builder projectsEvaluated(BuildAction<T> buildAction, PhasedResultHandler<? super T> handler) throws IllegalArgumentException;
 
         /**
          * Executes the given action after tasks are run and sends its result to the given result handler.
@@ -86,7 +73,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
     }
 
     /**
-     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
+     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsLoadedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * It can be an empty collection to indicate that tasks should be run.
@@ -96,7 +83,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
     PhasedBuildActionExecuter forTasks(String... tasks);
 
     /**
-     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsEvaluatedAction.
+     * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsLoadedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
      * It can be an empty collection to indicate that tasks should be run.

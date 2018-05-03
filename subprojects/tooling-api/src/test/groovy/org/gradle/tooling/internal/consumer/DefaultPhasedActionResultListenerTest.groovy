@@ -23,29 +23,25 @@ import org.gradle.tooling.internal.protocol.PhasedActionResult
 class DefaultPhasedActionResultListenerTest extends Specification {
 
     def projectsLoadedHandler = Mock(PhasedResultHandler)
-    def projectsEvaluatedHandler = Mock(PhasedResultHandler)
     def buildFinishedHandler = Mock(PhasedResultHandler)
-    def listener = new DefaultPhasedActionResultListener(projectsLoadedHandler, projectsEvaluatedHandler, buildFinishedHandler)
+    def listener = new DefaultPhasedActionResultListener(projectsLoadedHandler, buildFinishedHandler)
 
     def "right handler is called"() {
         when:
         listener.onResult(new ProjectsLoadedResult<String>('result1'))
-        listener.onResult(new ProjectsEvaluatedResult<String>('result2'))
-        listener.onResult(new BuildFinishedResult<String>('result3'))
+        listener.onResult(new BuildFinishedResult<String>('result2'))
 
         then:
         1 * projectsLoadedHandler.onComplete('result1')
-        1 * projectsEvaluatedHandler.onComplete('result2')
-        1 * buildFinishedHandler.onComplete('result3')
+        1 * buildFinishedHandler.onComplete('result2')
     }
 
     def "null handler is not called"() {
-        def emptyListener = new DefaultPhasedActionResultListener(null, null, null)
+        def emptyListener = new DefaultPhasedActionResultListener(null, null)
 
         when:
         emptyListener.onResult(new ProjectsLoadedResult<String>('result1'))
-        emptyListener.onResult(new ProjectsEvaluatedResult<String>('result2'))
-        emptyListener.onResult(new BuildFinishedResult<String>('result3'))
+        emptyListener.onResult(new BuildFinishedResult<String>('result2'))
 
         then:
         noExceptionThrown()
@@ -74,12 +70,6 @@ class DefaultPhasedActionResultListenerTest extends Specification {
     class ProjectsLoadedResult<T> extends Result<T> {
         ProjectsLoadedResult(T result) {
             super(result, PhasedActionResult.Phase.PROJECTS_LOADED)
-        }
-    }
-
-    class ProjectsEvaluatedResult<T> extends Result<T> {
-        ProjectsEvaluatedResult(T result) {
-            super(result, PhasedActionResult.Phase.PROJECTS_EVALUATED)
         }
     }
 

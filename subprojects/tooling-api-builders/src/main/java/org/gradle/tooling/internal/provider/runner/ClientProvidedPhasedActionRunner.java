@@ -81,13 +81,8 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         final GradleInternal gradleInternal = buildController.getGradle();
         gradleInternal.addBuildListener(new BuildAdapter() {
             @Override
-            public void projectsLoaded(Gradle gradle) {
-                run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
-            }
-
-            @Override
             public void projectsEvaluated(Gradle gradle) {
-                run(phasedAction.getProjectsEvaluatedAction(), PhasedActionResult.Phase.PROJECTS_EVALUATED);
+                run(phasedAction.getProjectsLoadedAction(), PhasedActionResult.Phase.PROJECTS_LOADED);
             }
 
             @Override

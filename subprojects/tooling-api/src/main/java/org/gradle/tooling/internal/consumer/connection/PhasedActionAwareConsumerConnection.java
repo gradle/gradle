@@ -50,7 +50,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
         InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
         PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
-            getHandler(phasedBuildAction.getProjectsEvaluatedAction()), getHandler(phasedBuildAction.getBuildFinishedAction()));
+            getHandler(phasedBuildAction.getBuildFinishedAction()));
         InternalPhasedAction internalPhasedAction = getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
         try {
             connection.run(internalPhasedAction, listener, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
@@ -66,7 +66,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
 
     private static InternalPhasedAction getPhasedAction(PhasedBuildAction phasedBuildAction, File rootDir, VersionDetails versionDetails) {
         return new InternalPhasedActionAdapter(getAction(phasedBuildAction.getProjectsLoadedAction(), rootDir, versionDetails),
-            getAction(phasedBuildAction.getProjectsEvaluatedAction(), rootDir, versionDetails), getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
+            getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
     }
 
     @Nullable
