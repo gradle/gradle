@@ -89,6 +89,8 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         println "use wrapper from $wrapperVersion to build using $executionVersion"
 
         buildFile << """
+//for old Gradle versions that didn't have a built-in wrapper task
+tasks.maybeCreate('wrapper', Wrapper) 
 
 wrapper {
     gradleVersion = '$executionVersion.version.version'
