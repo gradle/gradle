@@ -437,6 +437,61 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `convention accessors honor HasPublicType`() {
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `java-gradle-plugin`
+                `kotlin-dsl`
+            }
+            gradlePlugin {
+                (plugins) {
+                    "my-plugin" {
+                        id = "my-plugin"
+                        implementationClass = "plugins.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
+            package plugins
+
+            import org.gradle.api.*
+            import org.gradle.api.plugins.*
+            import org.gradle.api.reflect.*
+            import org.gradle.kotlin.dsl.*
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    convention.plugins.put("myConvention", MyPrivateConventionImpl())
+                }
+            }
+
+            interface MyConvention
+
+            private
+            class MyPrivateConventionImpl : MyConvention, HasPublicType {
+                override fun getPublicType(): TypeOf<*> = typeOf<MyConvention>()
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            myConvention {
+                println("Type of `myConvention` receiver is " + typeOf(this@myConvention))
+            }
+        """)
+
+        val result = build("help")
+        assertThat(result.output, containsString("Type of `myConvention` receiver is MyConvention"))
+    }
+
+    @Test
     fun `can access source sets conventions registered by declared plugins via jit accessors`() {
 
         withBuildScript("""
