@@ -116,7 +116,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
         PluginRegistry parentRegistry;
         if (project.getParent() == null) {
-            parentRegistry = rootRegistry;
+            parentRegistry = rootRegistry.createChild(project.getBaseClassLoaderScope());
         } else {
             parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
         }
