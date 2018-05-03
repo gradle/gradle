@@ -212,7 +212,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CleanupActionFactory(buildOperationExecutor);
     }
 
-    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
-        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
+    protected ExecFactory createExecFactory(FileResolver fileResolver) {
+        BuildCancellationToken buildCancellationToken = (BuildCancellationToken) find(BuildCancellationToken.class);
+        if (buildCancellationToken == null) {
+            return new DefaultExecActionFactory(fileResolver);
+        } else {
+            return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
+        }
     }
 }
