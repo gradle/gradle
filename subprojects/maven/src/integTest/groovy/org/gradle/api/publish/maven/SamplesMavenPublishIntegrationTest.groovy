@@ -206,6 +206,28 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         parsedPom.name == "Example"
     }
 
+    @UsesSample("maven-publish/distribution")
+    def publishesDistributionArchives() {
+        given:
+        sample sampleProject
+
+        and:
+        def repo = maven(sampleProject.dir.file("build/repo"))
+        def artifactId = "distribution"
+        def version = "1.0"
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":customDistTar", ":distZip"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "${artifactId}-${version}.pom"
+    }
+
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))
