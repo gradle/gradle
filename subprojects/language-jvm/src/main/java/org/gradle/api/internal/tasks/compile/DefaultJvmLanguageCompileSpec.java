@@ -85,7 +85,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public void setSourceFiles(Collection<File> sourceFiles) {
+    public void setSourceFiles(Iterable<File> sourceFiles) {
         this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
     }
 
