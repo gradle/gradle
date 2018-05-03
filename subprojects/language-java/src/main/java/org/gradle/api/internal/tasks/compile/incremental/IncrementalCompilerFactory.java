@@ -68,7 +68,7 @@ public class IncrementalCompilerFactory {
         SourceToNameConverter sourceToNameConverter = new SourceToNameConverter(sourceDirs);
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
-        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations);
+        IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sourceToNameConverter);
         IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorClasspath, annotationProcessorDetector);
         return incrementalSupport.prepareCompiler(inputs);
     }
@@ -78,18 +78,22 @@ public class IncrementalCompilerFactory {
         final LocalJarClasspathSnapshotStore localJarClasspathSnapshotStore = generalCompileCaches.createLocalJarClasspathSnapshotStore(path);
         final AnnotationProcessorPathStore annotationProcessorPathStore = generalCompileCaches.createAnnotationProcessorPathStore(path);
         return new CompileCaches() {
+            @Override
             public ClassAnalysisCache getClassAnalysisCache() {
                 return generalCompileCaches.getClassAnalysisCache();
             }
 
+            @Override
             public JarSnapshotCache getJarSnapshotCache() {
                 return generalCompileCaches.getJarSnapshotCache();
             }
 
+            @Override
             public LocalJarClasspathSnapshotStore getLocalJarClasspathSnapshotStore() {
                 return localJarClasspathSnapshotStore;
             }
 
+            @Override
             public LocalClassSetAnalysisStore getLocalClassSetAnalysisStore() {
                 return localClassSetAnalysisStore;
             }

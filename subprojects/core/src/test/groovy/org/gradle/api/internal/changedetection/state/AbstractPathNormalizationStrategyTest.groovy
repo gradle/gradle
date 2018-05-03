@@ -40,7 +40,7 @@ class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
         createFile("dir/resources/b/input-2.txt") << "input #2"
         file("empty-dir").mkdirs()
 
-        files = project.files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources", "missing-file", "empty-dir")
+        files = project.getLayout().files("dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources", "missing-file", "empty-dir")
     }
 
     private def createFile(String path) {
