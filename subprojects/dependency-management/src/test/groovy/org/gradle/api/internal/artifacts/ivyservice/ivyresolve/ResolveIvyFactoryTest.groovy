@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.Lists
+import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -45,6 +46,7 @@ import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
+import org.gradle.internal.Factory
 
 class ResolveIvyFactoryTest extends Specification {
     @Subject ResolveIvyFactory resolveIvyFactory
@@ -125,6 +127,8 @@ class ResolveIvyFactoryTest extends Specification {
         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
         ImmutableMetadataSources metadataSources = Stub()
+        MetadataArtifactProvider metadataArtifactProvider = Stub()
+        Factory<ComponentMetadataVersionLister> versionListerFactory = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [
@@ -136,7 +140,8 @@ class ResolveIvyFactoryTest extends Specification {
                 artifactFileStore,
                 moduleIdentifierFactory,
                 metadataSources,
-                Stub(MetadataArtifactProvider)
+                metadataArtifactProvider,
+                versionListerFactory
             ]
         ) {
             appendId(_) >> { }

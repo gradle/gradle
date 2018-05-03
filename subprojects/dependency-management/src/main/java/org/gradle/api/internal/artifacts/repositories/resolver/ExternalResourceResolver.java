@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ComponentMetadataListerDetails;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -34,6 +36,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
@@ -99,6 +102,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
 
+    private final Factory<ComponentMetadataVersionLister> providedVersionListerFactory;
+
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
 
@@ -110,7 +115,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        ImmutableMetadataSources metadataSources,
-                                       MetadataArtifactProvider metadataArtifactProvider) {
+                                       MetadataArtifactProvider metadataArtifactProvider,
+                                       Factory<ComponentMetadataVersionLister> providedVersionListerFactory) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -120,6 +126,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataSources = metadataSources;
         this.metadataArtifactProvider = metadataArtifactProvider;
+        this.providedVersionListerFactory = providedVersionListerFactory;
     }
 
     public String getId() {
@@ -164,6 +171,12 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private void doListModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         ModuleIdentifier module = moduleIdentifierFactory.module(dependency.getSelector().getGroup(), dependency.getSelector().getModule());
 
+        tryListingViaRule(module, result);
+
+        if (result.hasResult() && result.isAuthoritative()) {
+            return;
+        }
+
         // TODO: Provide an abstraction for accessing resources within the same module (maven-metadata, directory listing, etc)
         // That way we can avoid passing `ivyPatterns` and `artifactPatterns` around everywhere
         ResourceVersionLister versionLister = new ResourceVersionLister(repository);
@@ -179,6 +192,17 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         result.listed(ImmutableSet.<String>of());
+    }
+
+    /**
+     * If the repository provides a rule to create a list of versions of a module, use it.
+     * It's assumed that the result of such a call is authoritative.
+     */
+    private void tryListingViaRule(ModuleIdentifier module, BuildableModuleVersionListingResolveResult result) {
+        ComponentMetadataVersionLister versionLister = providedVersionListerFactory == null ? null : providedVersionListerFactory.create();
+        if (versionLister != null) {
+            versionLister.execute(new DefaultComponentVersionsLister(module, result));
+        }
     }
 
     private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {
@@ -494,6 +518,27 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         @Override
         public void applyTo(ResourceAwareResolveResult target) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class DefaultComponentVersionsLister implements ComponentMetadataListerDetails {
+
+        private final ModuleIdentifier id;
+        private final BuildableModuleVersionListingResolveResult result;
+
+        private DefaultComponentVersionsLister(ModuleIdentifier id, BuildableModuleVersionListingResolveResult result) {
+            this.id = id;
+            this.result = result;
+        }
+
+        @Override
+        public ModuleIdentifier getModuleIdentifier() {
+            return id;
+        }
+
+        @Override
+        public void listed(List<String> versions) {
+            result.listed(versions);
         }
     }
 }

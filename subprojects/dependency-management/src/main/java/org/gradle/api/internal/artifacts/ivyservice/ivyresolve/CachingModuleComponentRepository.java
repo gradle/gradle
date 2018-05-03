@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -128,6 +129,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     public ComponentMetadataSupplier createMetadataSupplier() {
         return delegate.createMetadataSupplier();
+    }
+
+    @Override
+    public ComponentMetadataVersionLister createVersionLister() {
+        return delegate.createVersionLister();
     }
 
     @Override

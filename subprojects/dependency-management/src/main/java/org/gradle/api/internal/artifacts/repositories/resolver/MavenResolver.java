@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
@@ -69,7 +71,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,
-                         MavenMetadataLoader mavenMetadataLoader) {
+                         MavenMetadataLoader mavenMetadataLoader,
+                         Factory<ComponentMetadataVersionLister> versionListerFactory) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -77,7 +80,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             artifactFileStore,
             moduleIdentifierFactory,
             metadataSources,
-            metadataArtifactProvider);
+            metadataArtifactProvider,
+            versionListerFactory);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
@@ -199,6 +203,11 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     public ComponentMetadataSupplier createMetadataSupplier() {
+        return null;
+    }
+
+    @Override
+    public ComponentMetadataVersionLister createVersionLister() {
         return null;
     }
 

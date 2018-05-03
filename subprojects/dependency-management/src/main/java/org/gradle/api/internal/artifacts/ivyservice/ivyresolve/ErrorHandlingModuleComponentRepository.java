@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -84,6 +85,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     public ComponentMetadataSupplier createMetadataSupplier() {
         return delegate.createMetadataSupplier();
+    }
+
+    @Override
+    public ComponentMetadataVersionLister createVersionLister() {
+        return delegate.createVersionLister();
     }
 
     @Override
