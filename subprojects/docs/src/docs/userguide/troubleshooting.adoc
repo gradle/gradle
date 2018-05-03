@@ -136,7 +136,7 @@ Additional logs from the <<gradle_daemon,Gradle Daemon>> can be found under `GRA
 
 ==== Task executed when it should have been UP-TO-DATE
 
-`--info` logs explain why a task was executed, though build scans do this is searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
+`--info` logs explain why a task was executed, though build scans do this in a searchable, visual way by going to the _Timeline_ view and clicking on the task you want to inspect.
 
 ++++
 <figure>

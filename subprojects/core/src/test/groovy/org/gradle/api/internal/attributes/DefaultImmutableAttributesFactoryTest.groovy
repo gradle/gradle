@@ -212,4 +212,33 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         UnsupportedOperationException t = thrown()
         t.message == "Mutation of attributes is not allowed"
     }
+
+    def "can override values"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1"))
+        def set2 = factory.of(BAR, "bar2")
+
+        when:
+        def concat = factory.concat(set1, set2)
+
+        then:
+        concat.keySet() == [FOO, BAR] as Set
+        concat.getAttribute(FOO) == "foo1"
+        concat.getAttribute(BAR) == "bar2"
+    }
+
+    def "can detect incompatible values when merging"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1"))
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        AttributeMergingException e = thrown()
+        e.attribute == BAR
+        e.leftValue == "bar1"
+        e.rightValue == "bar2"
+    }
 }

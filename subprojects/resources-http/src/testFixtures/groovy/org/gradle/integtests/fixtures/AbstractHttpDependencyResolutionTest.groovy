@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,18 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
 
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.CONNECTION_TIMEOUT_SYSTEM_PROPERTY
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
+
 abstract class AbstractHttpDependencyResolutionTest extends AbstractDependencyResolutionTest {
     @Rule public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+
+    def setup() {
+        executer.beforeExecute {
+            executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=60000")
+            executer.withArgument("-D${CONNECTION_TIMEOUT_SYSTEM_PROPERTY}=60000")
+        }
+    }
 
     IvyHttpRepository getIvyHttpRepo() {
         return new IvyHttpRepository(server, "/repo", ivyRepo)

@@ -391,6 +391,31 @@ If you come from Maven land you might be perfectly happy with this. If you come 
 
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
 
+[[sec:depending_on_output_of_another_project]]
+=== Depending on the task output produced by another project
+
+<<sec:project_jar_dependencies,Project dependencies>> model dependencies between modules. Effectively, you are saying that you depend on the main output of another project. In a Java-based project that's usually a JAR file.
+
+Sometimes you may want to depend on an output produced by another task. In turn you'll want to make sure that the task is executed beforehand to produce that very output. Declaring a task dependency from one project to another is a poor way to model this kind of relationship and introduces unnecessary coupling. The recommended way to model such a dependency is to produce the output, mark it as an "outgoing" artifact or add it to the output of the `main` source set which you can depend on in the consuming project.
+
+Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`. The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version. The attribute `builtBy` takes care of establishing an inferred task dependency. For more information on `builtBy`, see api:org.gradle.api.tasks.SourceSetOutput[].
+
+++++
+<sample id="buildInfoProducer" dir="userguide/multiproject/dependencies/outgoingArtifact/producer" title="Task generating a property file containing build information">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The consuming project is supposed to be able to read the properties file at runtime. Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
+
+++++
+<sample id="buildInfoConsumer" dir="userguide/multiproject/dependencies/outgoingArtifact/consumer" title="Declaring a project dependency on the project producing the properties file">
+    <sourcefile file="build.gradle" snippet="producer-project-dependency"/>
+</sample>
+++++
+
+In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
+
 [[sec:parallel_execution]]
 === Parallel project execution
 

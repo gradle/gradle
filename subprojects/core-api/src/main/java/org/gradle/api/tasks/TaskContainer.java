@@ -71,7 +71,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
+    <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
@@ -221,7 +221,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    Provider<Task> createLater(String name, Action<? super Task> configurationAction);
+    TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction);
 
     /**
      * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
@@ -239,7 +239,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    <T extends Task> Provider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
+    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
@@ -256,7 +256,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    <T extends Task> Provider<T> createLater(String name, Class<T> type);
+    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type);
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
@@ -272,7 +272,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.8
      */
     @Incubating
-    <T extends Task> Provider<T> createLater(String name);
+    <T extends Task> TaskProvider<T> createLater(String name);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the

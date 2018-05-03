@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -361,7 +360,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Javadoc.class, new Action<Javadoc>() {
+        project.getTasks().configureEachLater(Javadoc.class, new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -378,29 +377,37 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuildNeeded(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_NEEDED_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BUILD_TASK_NAME);
+        project.getTasks().createLater(BUILD_NEEDED_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task buildTask) {
+                buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
+                buildTask.setGroup(BasePlugin.BUILD_GROUP);
+                buildTask.dependsOn(BUILD_TASK_NAME);
+            }
+        });
     }
 
     private void configureBuildDependents(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_DEPENDENTS_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
-        buildTask.setGroup(BasePlugin.BUILD_GROUP);
-        buildTask.dependsOn(BUILD_TASK_NAME);
-        buildTask.doFirst(new Action<Task>() {
+        project.getTasks().createLater(BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
             @Override
-            public void execute(Task task) {
-                if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
-                    task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
-                }
+            public void execute(Task buildTask) {
+                buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
+                buildTask.setGroup(BasePlugin.BUILD_GROUP);
+                buildTask.dependsOn(BUILD_TASK_NAME);
+                buildTask.doFirst(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
+                            task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+                        }
+                    }
+                });
             }
         });
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
             public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }
@@ -408,7 +415,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
             @Override
             public void execute(final TaskExecutionGraph taskExecutionGraph) {
-                project.getTasks().withType(Test.class, new Action<Test>() {
+                project.getTasks().configureEachLater(Test.class, new Action<Test>() {
 
                     @Override
                     public void execute(Test test) {

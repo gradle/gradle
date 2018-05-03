@@ -35,8 +35,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
@@ -270,16 +270,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public Provider<Task> createLater(String name, Action<? super Task> configurationAction) {
+    public TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) {
         return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
     }
 
     @Override
-    public <T extends Task> Provider<T> createLater(final String name, final Class<T> type, @Nullable  Action<? super T> configurationAction) {
+    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable  Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        TaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
@@ -288,12 +288,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> Provider<T> createLater(String name, Class<T> type) {
+    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
         return createLater(name, type, null);
     }
 
     @Override
-    public <T extends Task> Provider<T> createLater(String name) {
+    public <T extends Task> TaskProvider<T> createLater(String name) {
         return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
@@ -321,8 +321,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> Provider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+    public <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
         return new TaskLookupProvider<T>(type, name);
+    }
+
+    public void configureLater(final String name, final Action<? super Task> action) {
+        configureEachLater(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (task.getName().equals(name)) {
+                    action.execute(task);
+                }
+            }
+        });
     }
 
     public Task resolveTask(String path) {
@@ -474,11 +485,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
     }
 
-    private abstract class TaskProvider<T extends Task> extends AbstractProvider<T> implements Named {
+    private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
         final Class<T> type;
         final String name;
 
-        TaskProvider(Class<T> type, String name) {
+        DefaultTaskProvider(Class<T> type, String name) {
             this.type = type;
             this.name = name;
         }
@@ -497,9 +508,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public boolean isPresent() {
             return findByNameWithoutRules(name) != null;
         }
+
+        @Override
+        public void configure(final Action<? super Task> action) {
+            configureLater(name, action);
+        }
     }
 
-    private class TaskCreatingProvider<T extends Task> extends TaskProvider<T> {
+    private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         Action<? super T> configureAction;
         T task;
 
@@ -527,7 +543,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-    private class TaskLookupProvider<T extends Task> extends TaskProvider<T> {
+    private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
 
         public TaskLookupProvider(Class<T> type, String name) {

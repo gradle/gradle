@@ -55,6 +55,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
     @Unroll
     def "take specified Swift source compatibility (#sourceCompatibility) regardless of the selected Swift compiler"() {
         given:
+        assumeSwiftCompilerSupportsLanguageVersion(sourceCompatibility)
         settingsFile << "rootProject.name = '${fixture.projectName}'"
         makeSingleProject()
         buildFile << """

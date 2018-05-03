@@ -21,8 +21,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -30,17 +32,19 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
+import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestExecutable;
@@ -149,14 +153,32 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                         @Override
                         public void execute(final DefaultCppTestExecutable executable) {
                             if (mainComponent != null) {
-                                // TODO: This should be modeled as a kind of dependency vs wiring binaries together directly.
                                 mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                     @Override
-                                    public void execute(CppBinary cppBinary) {
-                                        if (cppBinary == mainComponent.getDevelopmentBinary().get()) {
-                                            AbstractLinkTask linkTest = executable.getLinkTask().get();
-                                            linkTest.source(cppBinary.getObjects());
+                                    public void execute(CppBinary testedBinary) {
+                                        if (testedBinary != mainComponent.getDevelopmentBinary().get()) {
+                                            return;
                                         }
+
+                                        // TODO - move this to a base plugin
+                                        // Setup the dependency on the main binary
+                                        // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
+
+                                        // Inherit implementation dependencies
+                                        executable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
+
+                                        // Configure test binary to link against tested component compiled objects
+                                        FileCollection testableObjects;
+                                        if (mainComponent instanceof CppApplication) {
+                                            UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
+                                            unexportMainSymbol.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                                            unexportMainSymbol.getObjects().from(testedBinary.getObjects());
+                                            testableObjects = unexportMainSymbol.getRelocatedObjects();
+                                        } else {
+                                            testableObjects = testedBinary.getObjects();
+                                        }
+                                        Dependency linkDependency = project.getDependencies().create(testableObjects);
+                                        executable.getLinkConfiguration().getDependencies().add(linkDependency);
                                     }
                                 });
                             }
@@ -173,6 +195,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                     return executable.getInstallDirectory().get().getAsFile().exists();
                                 }
                             });
+                            testTask.getInputs().dir(executable.getInstallDirectory());
                             testTask.setExecutable(installTask.getRunScriptFile().get().getAsFile());
                             testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
                             // TODO: Honor changes to build directory

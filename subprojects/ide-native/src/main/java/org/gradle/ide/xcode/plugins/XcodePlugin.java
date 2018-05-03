@@ -308,7 +308,7 @@ public class XcodePlugin extends IdePlugin {
                 xcodeProject.getGroups().getSources().from(sources);
 
                 FileCollection headers = component.getHeaderFiles();
-                xcodeProject.getGroups().getHeaders().from(headers.getAsFileTree());
+                xcodeProject.getGroups().getHeaders().from(headers);
 
                 // TODO - should use the _install_ task for an executable
                 final String targetName = StringUtils.capitalize(component.getBaseName().get());

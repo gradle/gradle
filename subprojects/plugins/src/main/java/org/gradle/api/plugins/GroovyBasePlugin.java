@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.plugins.internal.SourceSetUtil;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
@@ -74,7 +76,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults() {
-        project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
+        project.getTasks().configureEachLater(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -87,7 +89,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults() {
         project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
-            public void execute(SourceSet sourceSet) {
+            public void execute(final SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
                 new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
 
@@ -100,20 +102,31 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(groovySourceSet.getGroovy());
                 sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
-                String compileTaskName = sourceSet.getCompileTaskName("groovy");
-                GroovyCompile compile = project.getTasks().create(compileTaskName, GroovyCompile.class);
-                SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
-                compile.dependsOn(sourceSet.getCompileJavaTaskName());
-                compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
-                compile.setSource(groovySourceSet.getGroovy());
+                final Provider<GroovyCompile> compileTask = project.getTasks().createLater(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
+                    @Override
+                    public void execute(GroovyCompile compile) {
+                        SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
+                        compile.dependsOn(sourceSet.getCompileJavaTaskName());
+                        compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
+                        compile.setSource(groovySourceSet.getGroovy());
+                    }
+                });
 
-                project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(compileTaskName);
+
+                // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
+                // doesn't need to do this.
+                project.getTasks().getByNameLater(Task.class, sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        task.dependsOn(compileTask);
+                    }
+                });
             }
         });
     }
 
     private void configureGroovydoc() {
-        project.getTasks().withType(Groovydoc.class, new Action<Groovydoc>() {
+        project.getTasks().configureEachLater(Groovydoc.class, new Action<Groovydoc>() {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
