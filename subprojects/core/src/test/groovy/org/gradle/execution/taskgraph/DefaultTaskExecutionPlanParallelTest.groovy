@@ -781,6 +781,7 @@ class DefaultTaskExecutionPlanParallelTest extends ConcurrentSpec {
                             try {
                                 nextNode.set(executionPlan.selectNextTask(parentWorkerLease, resourceLockState))
                             } catch (Throwable t) {
+                                resourceLockState.releaseLocks()
                                 executionPlan.abortAllAndFail(t)
                                 moreTasks.set(false)
                             }
