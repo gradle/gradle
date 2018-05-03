@@ -44,7 +44,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `gradle kotlin dsl api is available at test runtime`() {
+    fun `gradle kotlin dsl api is available for test implementation`() {
         withBuildScript("""
 
             plugins {
@@ -81,16 +81,17 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             import org.gradle.testfixtures.ProjectBuilder
             import org.junit.Test
+            import org.gradle.kotlin.dsl.*
 
             class MyTest {
 
                 @Test
                 fun `my test`() {
-                    val project = ProjectBuilder.builder().build()
-                    project.plugins.apply(MyPlugin::class.java)
+                    ProjectBuilder.builder().build().run {
+                        apply<MyPlugin>()
+                    }
                 }
             }
-
         """)
 
         assertThat(
