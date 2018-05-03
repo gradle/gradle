@@ -168,6 +168,12 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test", "--tests=NotATest*")
         then:
         result.assertHasCause('No tests found for given includes: [NotATest*](--tests filter)')
+
+        when:
+        executer.expectDeprecationWarning()
+        fails("test", "-Dtest.single=DoesNotMatchAClass", "-i")
+        then:
+        result.assertHasCause('Could not find matching test for pattern: DoesNotMatchAClass')
     }
 
     def canUseTestSuperClassesFromAnotherProject() {

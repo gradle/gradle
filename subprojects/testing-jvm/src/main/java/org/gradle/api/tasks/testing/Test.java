@@ -31,6 +31,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -49,7 +50,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -80,6 +80,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
@@ -153,6 +154,19 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         patternSet = getFileResolver().getPatternSetFactory().create();
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
         forkOptions.setEnableAssertions(true);
+
+        // TODO: This can go away when we remove -Dtest.single
+        String singleTest = getTestSingleSystemPropertyValue();
+        if (singleTest==null) {
+            getInputs().files(new Callable<FileTree>() {
+                @Override
+                public FileTree call() throws Exception {
+                    return getCandidateClassFiles();
+                }
+            }).withPropertyName("nonEmptyCandidateClassFiles").withPathSensitivity(PathSensitivity.RELATIVE).skipWhenEmpty();
+        } else {
+            addTestListener(new NoMatchingTestsReporter("Could not find matching test for pattern: " + singleTest));
+        }
     }
 
     @Inject
@@ -1040,7 +1054,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    @SkipWhenEmpty
     public FileTree getCandidateClassFiles() {
         checkBackwardsCompatibilitySystemPropertySingleTest();
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
@@ -1074,10 +1087,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void checkBackwardsCompatibilitySystemPropertySingleTest() {
-        String singleTest = getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead");
+        String singleTest = getTestSingleSystemPropertyValue();
         if (singleTest != null) {
             setIncludes(Collections.singletonList("**/" + singleTest + "*.class"));
         }
+    }
+
+    @Nullable
+    private String getTestSingleSystemPropertyValue() {
+        return getTaskPrefixedProperty("single", "Use --tests to filter which tests to run instead");
     }
 
     /**
