@@ -161,7 +161,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
@@ -468,7 +467,4 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildScanUserInputHandler(userInputHandler);
     }
 
-    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
-        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
-    }
 }

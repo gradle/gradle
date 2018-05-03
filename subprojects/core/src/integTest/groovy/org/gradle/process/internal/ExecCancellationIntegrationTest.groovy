@@ -26,6 +26,7 @@ import spock.lang.Unroll
 class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
     private static final String START_UP_MESSAGE = "Cancellable task started!"
     private DaemonClientFixture client
+    private int daemonLogCheckpoint
 
     @Unroll
     def "can cancel #scenario"() {
@@ -71,6 +72,36 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         assertTaskIsCancellable('exec')
     }
 
+    @Unroll
+    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled"() {
+        given:
+        file('outputFile') << ''
+        blockCode()
+        buildFile << """
+            apply plugin: 'java'
+            
+            @CacheableTask
+            class MyJavaExec extends JavaExec {
+                @Input
+                String getInput() { "input" }
+                
+                @OutputFile
+                File getOutputFile() { new java.io.File('${fileToPath(file('outputFile'))}') }
+            }
+            
+            task exec(type: MyJavaExec) {
+                classpath = sourceSets.main.output
+                main = 'Block'
+            }
+        """
+
+        expect:
+        assertTaskGetsRerun('exec', buildCacheEnabled)
+
+        where:
+        buildCacheEnabled << [true, false]
+    }
+
     String fileToPath(File file) {
         file.absolutePath.replace('\\', '/')
     }
@@ -88,8 +119,11 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         """
     }
 
-    private void startBuild(String task) {
+    private void startBuild(String task, boolean buildCacheEnabled) {
         executer.withArgument('--debug').withTasks(task)
+        if (buildCacheEnabled) {
+            executer.withBuildCacheEnabled()
+        }
 
         client = new DaemonClientFixture(executer.start())
         waitForDaemonLog(START_UP_MESSAGE)
@@ -99,14 +133,23 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
     private void cancelBuild() {
         client.kill()
         waitForDaemonLog('BUILD FAILED in')
+        assert !client.gradleHandle.standardOutput.contains("BUILD FAIL")
+        assert !client.gradleHandle.standardOutput.contains("BUILD SUCCESS")
         daemons.daemon.becomesIdle()
     }
 
-    private void assertTaskIsCancellable(String task) {
-        startBuild(task)
+    private void assertTaskGetsRerun(String task, boolean buildCacheEnabled = false) {
+        startBuild(task, buildCacheEnabled)
         cancelBuild()
 
-        startBuild(task)
+        startBuild(task, buildCacheEnabled)
+        cancelBuild()
+
+        assert daemons.daemons.size() == 1
+    }
+
+    private void assertTaskIsCancellable(String task, boolean buildCacheEnabled = false) {
+        startBuild(task, buildCacheEnabled)
         cancelBuild()
 
         def build = executer.withTasks("tasks").withArguments("--debug").start()
@@ -115,8 +158,12 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
     }
 
     private void waitForDaemonLog(String output) {
-        ConcurrentTestUtil.poll {
-            assert daemons.daemon.log.contains(output)
-        }
+        String daemonLogSinceLastCheckpoint = ''
+        ConcurrentTestUtil.poll(60, {
+            daemonLogSinceLastCheckpoint = daemons.daemon.log.substring(daemonLogCheckpoint)
+            assert daemonLogSinceLastCheckpoint.contains(output)
+        })
+
+        daemonLogCheckpoint += daemonLogSinceLastCheckpoint.length()
     }
 }

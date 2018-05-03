@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -54,6 +55,7 @@ public class ServicesSetupBuildActionExecuter implements BuildExecuter {
                 requestContext,
                 actionParameters.getInjectedPluginClasspath()
             );
+            ((BuildSessionScopeServices) buildSessionScopeServices).add(BuildCancellationToken.class, requestContext.getCancellationToken());
             try {
                 SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                 try {
