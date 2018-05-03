@@ -33,6 +33,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.ExecFactory
@@ -58,10 +59,11 @@ class DefaultFileOperationsTest extends Specification {
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
     private final ExecFactory execFactory = TestFiles.execFactory()
+    private final TextResourceLoader textResourceLoader = Mock()
     private DefaultFileOperations fileOperations = instance()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader)
     }
 
     @Rule
