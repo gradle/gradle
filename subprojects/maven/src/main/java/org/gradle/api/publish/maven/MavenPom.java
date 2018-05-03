@@ -19,18 +19,126 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The POM for a Maven publication.
  *
- * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
+ * <p>The {@link #withXml(org.gradle.api.Action)} method can be used to modify the
+ * descriptor after it has been generated according to the publication data.
+ * However, the preferred way to customize the project information to be published
+ * is to use the dedicated properties exposed by this class, e.g.
+ * {@link #getDescription()}. Please refer to the official
+ * <a href="https://maven.apache.org/pom.html">POM Reference</a> for detailed
+ * information about the individual properties.
  *
  * @since 1.4
  */
 @Incubating
 @HasInternalProtocol
 public interface MavenPom {
+
+    /**
+     * Returns the packaging for the publication represented by this POM.
+     */
+    String getPackaging();
+
+    /**
+     * Sets the packaging for the publication represented by this POM.
+     */
+    void setPackaging(String packaging);
+
+    /**
+     * The name for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    Property<String> getName();
+
+    /**
+     * The description for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    Property<String> getDescription();
+
+    /**
+     * The URL for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    Property<String> getUrl();
+
+    /**
+     * The year of the inception for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    Property<String> getInceptionYear();
+
+    /**
+     * Configures the licenses for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void licenses(Action<? super MavenPomLicenseSpec> action);
+
+    /**
+     * Configures the organization for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void organization(Action<? super MavenPomOrganization> action);
+
+    /**
+     * Configures the developers for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void developers(Action<? super MavenPomDeveloperSpec> action);
+
+    /**
+     * Configures the contributors for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void contributors(Action<? super MavenPomContributorSpec> action);
+
+    /**
+     * Configures the SCM (source control management) for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void scm(Action<? super MavenPomScm> action);
+
+    /**
+     * Configures the issue management for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void issueManagement(Action<? super MavenPomIssueManagement> action);
+
+    /**
+     * Configures the CI management for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void ciManagement(Action<? super MavenPomCiManagement> action);
+
+    /**
+     * Configures the distribution management for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void distributionManagement(Action<? super MavenPomDistributionManagement> action);
+
+    /**
+     * Configures the mailing lists for the publication represented by this POM.
+     *
+     * @since 4.8
+     */
+    void mailingLists(Action<? super MavenPomMailingListSpec> action);
 
     /**
      * Allows configuration of the POM, after it has been generated according to the input data.
@@ -42,7 +150,7 @@ public interface MavenPom {
      *   publications {
      *     maven(MavenPublication) {
      *       pom.withXml {
-     *         asNode().appendNode('description', 'A demonstration of Maven POM customization')
+     *         asNode().appendNode('properties').appendNode('my-property', 'my-value')
      *       }
      *     }
      *   }
@@ -62,16 +170,5 @@ public interface MavenPom {
      * @see XmlProvider
      */
     void withXml(Action<? super XmlProvider> action);
-
-    /**
-     * Returns the packaging for this publication.
-     */
-    String getPackaging();
-
-    /**
-     * Sets the packaging for this publication.
-     */
-    void setPackaging(String packaging);
-
 
 }

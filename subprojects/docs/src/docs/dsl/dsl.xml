@@ -184,6 +184,29 @@
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.management.PluginManagementSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.resources.ResourceHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.resources.TextResourceFactory</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Publishing types</title>
+        <para>Listed below are the types used to configure publishing:</para>
+        <table>
+            <title>Publishing types</title>
+            <tr>
                 <td>org.gradle.api.publish.PublishingExtension</td>
             </tr>
             <tr>
@@ -211,19 +234,46 @@
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
+                <td>org.gradle.api.publish.maven.MavenPomCiManagement</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.use.PluginDependencySpec</td>
+                <td>org.gradle.api.publish.maven.MavenPomContributor</td>
             </tr>
             <tr>
-                <td>org.gradle.plugin.management.PluginManagementSpec</td>
+                <td>org.gradle.api.publish.maven.MavenPomContributorSpec</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.ResourceHandler</td>
+                <td>org.gradle.api.publish.maven.MavenPomDeveloper</td>
             </tr>
             <tr>
-                <td>org.gradle.api.resources.TextResourceFactory</td>
+                <td>org.gradle.api.publish.maven.MavenPomDeveloperSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomDistributionManagement</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomIssueManagement</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomLicense</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomLicenseSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomMailingList</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomMailingListSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomOrganization</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomRelocation</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPomScm</td>
             </tr>
         </table>
     </section>

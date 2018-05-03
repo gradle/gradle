@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -66,6 +67,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
     private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
@@ -74,10 +76,11 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final ImmutableAttributesFactory immutableAttributesFactory;
 
     @Inject
-    public MavenPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
-                              ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
+    public MavenPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
+                              FileResolver fileResolver, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
                               FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
         this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -203,7 +206,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
+                    name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
             );
         }
     }
