@@ -30,7 +30,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     def deletesAllPreviousOutputFiles() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        cleaner.destinationDir = tmpDir.testDirectory
+        cleaner.addDirToClean(tmpDir.testDirectory)
 
         when:
         cleaner.execute()
@@ -48,7 +48,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         def destDir = tmpDir.file('dir')
         def file1 = destDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        cleaner.destinationDir = destDir
+        cleaner.addDirToClean(destDir)
 
         when:
         cleaner.execute()
@@ -63,7 +63,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     }
 
     def reportsWhenNoWorkDone() {
-        cleaner.destinationDir = tmpDir.file('dir')
+        cleaner.addDirToClean(tmpDir.file('dir'))
 
         when:
         cleaner.execute()
