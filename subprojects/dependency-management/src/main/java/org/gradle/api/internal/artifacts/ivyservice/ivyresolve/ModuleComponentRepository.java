@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 
@@ -49,6 +50,8 @@ public interface ModuleComponentRepository {
     ModuleComponentRepositoryAccess getRemoteAccess();
 
     ComponentMetadataSupplier createMetadataSupplier();
+
+    ComponentMetadataVersionLister createVersionLister();
 
     // TODO - put this somewhere else
     Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache();

@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
@@ -82,6 +83,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             return null;
         }
     };
+
+    private final static Factory<ComponentMetadataVersionLister> NO_LISTER = new Factory<ComponentMetadataVersionLister>() {
+        @Override
+        public ComponentMetadataVersionLister create() {
+            return null;
+        }
+    };
+
     private static final Object[] NO_PARAMS = new Object[0];
 
     private Object baseUrl;
@@ -99,6 +108,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final InstantiatorFactory instantiatorFactory;
     private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
     private Object[] componentMetadataSupplierParams;
+    private Class<? extends ComponentMetadataVersionLister> componentMetadataListerClass;
+    private Object[] componentMetadataListerParams;
     private final FileResourceRepository fileResourceRepository;
     private final ModuleMetadataParser moduleMetadataParser;
     private final IvyMutableModuleMetadataFactory metadataFactory;
@@ -175,8 +186,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
-        Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(createInjectorForMetadataSupplier(transport));
-        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport);
+        Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(injector);
+        Factory<ComponentMetadataVersionLister> listerFactory = createComponentMetadataVersionLister(injector);
+        return new IvyResolver(getName(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, moduleIdentifierFactory, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
     }
 
     @Override
@@ -209,7 +222,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
      * @param transport the transport used to create the repository accessor
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
-    private Instantiator createInjectorForMetadataSupplier(final RepositoryTransport transport) {
+    private Instantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
@@ -223,15 +236,23 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new ExternalRepositoryResourceAccessor(getUrl(), transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
-    private Factory<ComponentMetadataSupplier> createComponentMetadataSupplierFactory(final Instantiator instantiator) {
-        if (componentMetadataSupplierClass == null) {
-            return NO_METADATA_SUPPLIER;
+    private Factory<ComponentMetadataSupplier> createComponentMetadataSupplierFactory(Instantiator instantiator) {
+        return createFactory(instantiator, componentMetadataSupplierClass, componentMetadataSupplierParams, NO_METADATA_SUPPLIER);
+    }
+
+    private Factory<ComponentMetadataVersionLister> createComponentMetadataVersionLister(final Instantiator instantiator) {
+        return createFactory(instantiator, componentMetadataListerClass, componentMetadataListerParams, NO_LISTER);
+    }
+
+    private static <T> Factory<T> createFactory(final Instantiator instantiator, final Class<? extends T> clazz, final Object[] params, Factory<T> fallback) {
+        if (clazz == null) {
+            return fallback;
         }
 
-        return new Factory<ComponentMetadataSupplier>() {
+        return new Factory<T>() {
             @Override
-            public ComponentMetadataSupplier create() {
-                return instantiator.newInstance(componentMetadataSupplierClass, componentMetadataSupplierParams);
+            public T create() {
+                return instantiator.newInstance(clazz, params);
             }
         };
     }
@@ -293,6 +314,20 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         configureAction.execute(configuration);
         this.componentMetadataSupplierClass = rule;
         this.componentMetadataSupplierParams = configuration.getParams();
+    }
+
+    @Override
+    public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister) {
+        this.componentMetadataListerClass = lister;
+        this.componentMetadataListerParams = NO_PARAMS;
+    }
+
+    @Override
+    public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
+        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
+        configureAction.execute(configuration);
+        this.componentMetadataListerClass = lister;
+        this.componentMetadataListerParams = configuration.getParams();
     }
 
     /**

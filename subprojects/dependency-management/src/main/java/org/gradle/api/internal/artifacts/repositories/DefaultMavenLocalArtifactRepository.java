@@ -80,7 +80,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             moduleIdentifierFactory,
             createMetadataSources(mavenMetadataLoader),
             MavenMetadataArtifactProvider.INSTANCE,
-            mavenMetadataLoader);
+            mavenMetadataLoader,
+            null);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

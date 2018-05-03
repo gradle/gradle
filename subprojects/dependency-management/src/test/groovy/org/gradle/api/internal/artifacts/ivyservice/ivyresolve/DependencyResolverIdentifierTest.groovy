@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
@@ -76,7 +77,7 @@ class DependencyResolverIdentifierTest extends Specification {
     static class TestResolver extends ExternalResourceResolver {
 
         protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-            super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, metadataArtifactProvider)
+            super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, metadataArtifactProvider, null)
         }
 
         @Override
@@ -106,6 +107,11 @@ class DependencyResolverIdentifierTest extends Specification {
 
         @Override
         ComponentMetadataSupplier createMetadataSupplier() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ComponentMetadataVersionLister createVersionLister() {
             throw new UnsupportedOperationException()
         }
     }
