@@ -95,7 +95,7 @@ import java.io.File;
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
-    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath) {
+    public BuildSessionScopeServices(final ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, final StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken) {
         super(parent);
         addProvider(crossBuildSessionScopeServices);
         register(new Action<ServiceRegistration>() {
@@ -107,6 +107,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+        add(BuildCancellationToken.class, buildCancellationToken);
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         add(BuildRequestMetaData.class, buildRequestMetaData);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
@@ -212,12 +213,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CleanupActionFactory(buildOperationExecutor);
     }
 
-    protected ExecFactory createExecFactory(FileResolver fileResolver) {
-        BuildCancellationToken buildCancellationToken = (BuildCancellationToken) find(BuildCancellationToken.class);
-        if (buildCancellationToken == null) {
-            return new DefaultExecActionFactory(fileResolver);
-        } else {
-            return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
-        }
+    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
+        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
     }
 }

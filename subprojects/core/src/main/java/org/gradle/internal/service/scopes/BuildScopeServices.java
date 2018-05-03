@@ -466,5 +466,4 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected BuildScanUserInputHandler createBuildScanUserInputHandler(UserInputHandler userInputHandler) {
         return new DefaultBuildScanUserInputHandler(userInputHandler);
     }
-
 }
