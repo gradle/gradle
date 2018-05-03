@@ -67,7 +67,7 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     @Override
-    public PhasedBuildActionExecuter.Builder phasedAction() {
+    public PhasedBuildActionExecuter.Builder action() {
         return new DefaultPhasedBuildActionExecuter.Builder(connection, parameters);
     }
 }

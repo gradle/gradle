@@ -122,7 +122,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
+            connection.action().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
                 .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
@@ -140,7 +140,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new FailAction(), projectsLoadedHandler)
+            connection.action().projectsLoaded(new FailAction(), projectsLoadedHandler)
                 .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
@@ -162,7 +162,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new FailAction(), projectsLoadedHandler)
+            connection.action().projectsLoaded(new FailAction(), projectsLoadedHandler)
                 .build()
                 .forTasks(["hello"])
                 .addProgressListener(new ProgressListener() {
@@ -186,7 +186,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().projectsLoaded(new CustomProjectsLoadedAction(["hello"]), projectsLoadedHandler)
+            connection.action().projectsLoaded(new CustomProjectsLoadedAction(["hello"]), projectsLoadedHandler)
                 .build()
                 .forTasks([])
                 .setStandardOutput(stdOut)
@@ -205,7 +205,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+            connection.action().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .forTasks("bye")
                 .setStandardOutput(stdOut)
@@ -227,7 +227,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+            connection.action().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .setStandardOutput(stdOut)
                 .run()
@@ -246,7 +246,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         withConnection { connection ->
-            connection.phasedAction().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+            connection.action().buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
                 .run()
         }
