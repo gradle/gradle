@@ -77,7 +77,7 @@ class IncrementalCompilationInitializerTest extends Specification {
         1 * fileOperations.fileResolver >> fileResolver
         1 * fileResolver.patternSetFactory >> patternSetFactory
         1 * patternSetFactory.create() >> patternSet
-        _ * compilationSourceDirs.sourceRoots >> [new File('/some/base/dir/source/main/java')]
+        _ * compilationSourceDirs.sourceRoots >> ['/some/base/dir/source/main/java/']
 
         narrowedSourceFiles == toSourceFiles(['com/Foo.java', 'com/Foo$Inner.java', 'Bar.java', 'Bar$Inner$Inner.java'])
     }

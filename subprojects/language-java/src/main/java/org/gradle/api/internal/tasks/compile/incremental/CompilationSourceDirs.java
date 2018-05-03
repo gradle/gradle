@@ -23,40 +23,48 @@ import org.gradle.api.logging.Logging;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Attempts to infer the source root directories for the `source` inputs to a
  * {@link org.gradle.api.tasks.compile.JavaCompile} task, in order to determine the `.class` file that corresponds
  * to any input source file.
- * 
+ *
  * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
  */
 public class CompilationSourceDirs {
     private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
 
     private final List<Object> sources;
-    private List<File> sourceRoots;
+    private List<String> sourceRoots;
 
     public CompilationSourceDirs(List<Object> sources) {
         this.sources = sources;
     }
 
-    List<File> getSourceRoots() {
+    List<String> getSourceRoots() {
         if (sourceRoots == null) {
             sourceRoots = Lists.newArrayList();
             for (Object source : sources) {
                 if (isDirectory(source)) {
-                    sourceRoots.add((File) source);
+                    sourceRoots.add(absolutePath((File) source));
                 } else if (isDirectoryTree(source)) {
-                    sourceRoots.add(((DirectoryTree) source).getDir());
+                    sourceRoots.add(absolutePath(((DirectoryTree) source).getDir()));
                 } else if (isSourceDirectorySet(source)) {
-                    sourceRoots.addAll(((SourceDirectorySet) source).getSrcDirs());
+                    Set<File> srcDirs = ((SourceDirectorySet) source).getSrcDirs();
+                    for (File srcDir : srcDirs) {
+                        sourceRoots.add(absolutePath(srcDir));
+                    }
                 } else {
                     throw new UnsupportedOperationException();
                 }
             }
         }
         return sourceRoots;
+    }
+
+    private String absolutePath(File source) {
+        return source.getAbsolutePath() + File.separatorChar;
     }
 
     public boolean canInferSourceRoots() {
