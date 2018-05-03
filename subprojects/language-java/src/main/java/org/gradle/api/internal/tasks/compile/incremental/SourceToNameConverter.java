@@ -35,7 +35,9 @@ public class SourceToNameConverter {
             String javaSourceClassAbsolutePath = javaSourceClass.getAbsolutePath();
             if (javaSourceClassAbsolutePath.startsWith(sourceDirAbsolutePath)) {
                 int endIndex = javaSourceClassAbsolutePath.endsWith(".java") ? javaSourceClassAbsolutePath.length() - 5 : javaSourceClassAbsolutePath.length();
-                String relativePath = javaSourceClassAbsolutePath.substring(sourceDirAbsolutePath.length(), endIndex);
+                int startIndex = sourceDirAbsolutePath.length();
+                int dollarIndex = javaSourceClassAbsolutePath.indexOf('$', startIndex);
+                String relativePath = javaSourceClassAbsolutePath.substring(startIndex, dollarIndex == -1 ? endIndex : dollarIndex);
                 return relativePath.replace(File.separatorChar, '.');
             }
         }

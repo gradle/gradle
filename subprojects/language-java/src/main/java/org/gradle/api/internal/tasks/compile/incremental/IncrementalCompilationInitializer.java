@@ -65,17 +65,12 @@ class IncrementalCompilationInitializer {
         Set<String> classesToCompileSet = ImmutableSet.copyOf(sourceToCompile);
         for (File sourceFile : spec.getSourceFiles()) {
             String className = sourceToNameConverter.getClassName(sourceFile);
-            if (classesToCompileSet.contains(normalizedClassName(className))) {
+            if (classesToCompileSet.contains(className)) {
                 builder.add(sourceFile);
             }
         }
 
         spec.setSourceFiles(builder.build());
-    }
-
-    private String normalizedClassName(String className) {
-        int dollarPosition = className.indexOf('$');
-        return dollarPosition == -1 ? className : className.substring(0, dollarPosition);
     }
 
     private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
