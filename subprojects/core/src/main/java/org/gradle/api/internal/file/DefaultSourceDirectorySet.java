@@ -240,6 +240,12 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return this;
     }
 
+    @Override
+    public void setSrcDirs(Set<File> srcPaths) {
+        source.clear();
+        source.addAll(srcPaths);
+    }
+
     public SourceDirectorySet setSrcDirs(Iterable<?> srcPaths) {
         source.clear();
         GUtil.addToCollection(source, srcPaths);

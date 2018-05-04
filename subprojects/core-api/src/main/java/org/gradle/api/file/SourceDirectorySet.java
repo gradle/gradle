@@ -65,6 +65,14 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     /**
      * Sets the source directories for this set.
      *
+     * @param srcPaths The source directories.
+     * @since 4.8
+     */
+    void setSrcDirs(Set<File> srcPaths);
+
+    /**
+     * Sets the source directories for this set.
+     *
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
