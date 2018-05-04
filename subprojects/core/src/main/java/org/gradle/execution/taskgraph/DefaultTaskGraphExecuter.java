@@ -130,7 +130,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
+            taskPlanExecutor.process(taskExecutionPlan, new ExecuteTaskAction(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
@@ -239,16 +239,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     /**
-     * This action will set the start and end times on the internal task state, and will make sure
-     * that when a task is started, the public listeners are executed after the internal listeners
-     * are executed and when a task is finished, the public listeners are executed before the internal
-     * listeners are executed. Basically the internal listeners embrace the public listeners.
+     * This action executes a task via the task executer wrapping everything into a build operation.
      */
-    private class EventFiringTaskWorker implements Action<TaskInternal> {
+    private class ExecuteTaskAction implements Action<TaskInternal> {
         private final TaskExecuter taskExecuter;
         private final BuildOperationRef parentOperation;
 
-        EventFiringTaskWorker(TaskExecuter taskExecuter, BuildOperationRef parentOperation) {
+        ExecuteTaskAction(TaskExecuter taskExecuter, BuildOperationRef parentOperation) {
             this.taskExecuter = taskExecuter;
             this.parentOperation = parentOperation;
         }
@@ -258,17 +255,10 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    taskListeners.getSource().beforeExecute(task);
-
                     TaskStateInternal state = task.getState();
                     TaskExecutionContext ctx = new DefaultTaskExecutionContext();
                     taskExecuter.execute(task, state, ctx);
                     context.setResult(new ExecuteTaskBuildOperationResult(state, ctx));
-
-                    // If this fails, it masks the task failure.
-                    // It should addSuppressed() the task failure if there was one.
-                    taskListeners.getSource().afterExecute(task, state);
-
                     context.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
                     context.failed(state.getFailure());
                 }
@@ -302,4 +292,8 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         return taskExecutionPlan.getFilteredTasks();
     }
 
+    @Override
+    public TaskExecutionListener getTaskExecutionListenerSource() {
+        return taskListeners.getSource();
+    }
 }
