@@ -16,10 +16,15 @@
 
 package org.gradle.internal.scheduler;
 
-public interface WorkerPool {
+import java.io.Closeable;
+
+public interface WorkerPool extends Closeable {
     /**
      * Tries to run the node with an allocated worker.
      * @return whether or not we succeeded in running the given node.
      */
     boolean tryRunWithAnAllocatedWorker(Runnable action);
+
+    @Override
+    void close();
 }

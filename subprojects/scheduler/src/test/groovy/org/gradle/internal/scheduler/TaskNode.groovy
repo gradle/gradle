@@ -20,9 +20,9 @@ class TaskNode extends Node {
     final String project
     final String name
     final boolean fails
-    private final Collection<? super Node> executionTracker
+    private final NodeExecutionTracker executionTracker
 
-    TaskNode(String project, String name, Collection<? super Node> executionTracker, boolean fails) {
+    TaskNode(String project, String name, NodeExecutionTracker executionTracker, boolean fails) {
         this.executionTracker = executionTracker
         this.project = project
         this.name = name
@@ -36,7 +36,7 @@ class TaskNode extends Node {
 
     @Override
     void execute() {
-        executionTracker.add(this)
+        executionTracker.nodeExecuted(this)
         println "Executing ${fails ? " failing" : ""}task $this"
         if (fails) {
             setState(NodeState.FAILED)

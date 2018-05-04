@@ -16,8 +16,14 @@
 
 package org.gradle.internal.scheduler
 
-class DefaultSchedulerTest extends AbstractSchedulerTest {
+class ImmediateWorkerPool implements WorkerPool {
+    @Override
+    boolean tryRunWithAnAllocatedWorker(Runnable action) {
+        action.run()
+        return true
+    }
 
-    Scheduler scheduler = new DefaultScheduler(graph, false, new ImmediateWorkerPool())
-
+    @Override
+    void close() {
+    }
 }

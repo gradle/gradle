@@ -50,6 +50,7 @@ public class DefaultScheduler implements Scheduler {
         this.workerPool = workerPool;
     }
 
+    @Override
     public void executeGraph() {
         List<Event> eventsToProcess = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
         while (graph.hasNodes()) {
@@ -68,7 +69,7 @@ public class DefaultScheduler implements Scheduler {
                 throw new RuntimeException("Handle execution aborted");
             }
             for (Event event : eventsToProcess) {
-                LOGGER.debug("> Handling event {}", event);
+                System.out.printf("> Handling event %s%n", event);
                 event.handle(graph, runningNodes);
             }
             eventsToProcess.clear();
@@ -78,7 +79,9 @@ public class DefaultScheduler implements Scheduler {
     private void scheduleWork(Iterable<Node> rootNodes) {
         boolean expectAvailableWorkers = true;
         for (Node nodeToRun : rootNodes) {
-            LOGGER.debug("> Trying to run {}", nodeToRun);
+            if (runningNodes.contains(nodeToRun)) {
+                continue;
+            }
             switch (nodeToRun.getState()) {
                 case RUNNABLE:
                 case MUST_RUN:
@@ -105,6 +108,7 @@ public class DefaultScheduler implements Scheduler {
     private boolean tryRunNode(final Node nodeToRun) {
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
+                System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
                 graph.addEdge(new Edge(runningNode, nodeToRun, EdgeType.MUST_NOT_RUN_WITH));
                 return true;
             }
@@ -179,5 +183,10 @@ public class DefaultScheduler implements Scheduler {
                 }
             }
         });
+    }
+
+    @Override
+    public void close() {
+        workerPool.close();
     }
 }

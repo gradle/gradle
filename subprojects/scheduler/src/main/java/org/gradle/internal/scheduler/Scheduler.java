@@ -16,5 +16,11 @@
 
 package org.gradle.internal.scheduler;
 
-public interface Scheduler {
+import java.io.Closeable;
+
+public interface Scheduler extends Closeable {
+    void executeGraph();
+
+    @Override
+    void close();
 }

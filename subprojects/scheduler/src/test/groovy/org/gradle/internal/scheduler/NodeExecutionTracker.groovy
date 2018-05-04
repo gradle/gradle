@@ -16,10 +16,6 @@
 
 package org.gradle.internal.scheduler
 
-class InfiniteWorkerPool implements WorkerPool {
-    @Override
-    boolean tryRunWithAnAllocatedWorker(Runnable action) {
-        action.run()
-        return true
-    }
+interface NodeExecutionTracker {
+    void nodeExecuted(Node node)
 }
