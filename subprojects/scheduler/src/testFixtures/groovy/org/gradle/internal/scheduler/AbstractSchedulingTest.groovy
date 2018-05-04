@@ -403,7 +403,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         //tasks that depends on finalized, we will execute them
         def df1 = task("df1", dependsOn: [finalized1])
-        def df2 = task("df1", dependsOn: [finalized2])
+        def df2 = task("df2", dependsOn: [finalized2])
 
         when:
         addToGraphAndPopulate([df1, df2])
