@@ -193,6 +193,28 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "ivy-${version}.xml"
     }
 
+    @UsesSample("ivy-publish/distribution")
+    def publishesDistributionArchives() {
+        given:
+        sample sampleProject
+
+        and:
+        def repo = ivy(sampleProject.dir.file("build/repo"))
+        def artifactId = "distribution"
+        def version = "1.0"
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":customDistTar", ":distZip"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "ivy-${version}.xml"
+    }
+
     private void verifyIvyFile(IvyFileModule project1sample, String outputFileName) {
         def actualIvyXmlText = project1sample.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
         assert actualIvyXmlText == getExpectedIvyOutput(sampleProject.dir.file(outputFileName))
