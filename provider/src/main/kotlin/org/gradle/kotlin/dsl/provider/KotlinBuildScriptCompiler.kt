@@ -93,7 +93,7 @@ class KotlinBuildScriptCompiler(
 
     private
     val compilationClassPath: ClassPath by lazy {
-        buildscriptBlockCompilationClassPath + scriptHandler.scriptClassPath
+        buildscriptBlockCompilationClassPath + classPathProvider.compilationClassPathOf(targetScope)
     }
 
     private
