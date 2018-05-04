@@ -510,14 +510,13 @@ Incremental annotation processing will be deactivated if a custom `executable` o
 
 ===== Making an annotation processor incremental
 
-Gradle supports incremental compilation for two common categories of annotation processors: "Isolating" and "Aggregating".
+Gradle supports incremental compilation for two common categories of annotation processors: "isolating" and "aggregating".
 As a processor author, please consult the information below to decide which category fits your processor.
-You can then register it for incremental compilation in its META-INF folder.
-The format is one line per processor, with the qualified name of the processor and its category separated by a comma.
+You can then register it for incremental compilation using the `getSupportedOptions()` method.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
-     <sourcefile file="processor/src/main/resources/META-INF/gradle/incremental.annotation.processors" snippet="registering-incremental-annotation-processors"/>
+     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="registering-incremental-annotation-processors"/>
 </sample>
 ++++
 

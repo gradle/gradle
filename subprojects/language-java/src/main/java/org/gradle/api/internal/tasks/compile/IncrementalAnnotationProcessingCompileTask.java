@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
-import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -87,13 +87,26 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
             try {
                 Class<?> processorClass = processorClassloader.loadClass(declaredProcessor.getClassName());
                 Processor processor = (Processor) processorClass.newInstance();
-                processor = decorateIfIncremental(processor, declaredProcessor.getType());
+                IncrementalAnnotationProcessorType defaultType = declaredProcessor.getType();
+                IncrementalAnnotationProcessorType type = getProcessorType(processor, defaultType);
+                processor = decorateIfIncremental(processor, type);
                 processors.add(processor);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
             }
         }
         delegate.setProcessors(processors);
+    }
+
+    private IncrementalAnnotationProcessorType getProcessorType(Processor processor, IncrementalAnnotationProcessorType defaultType) {
+        Set<String> supportedOptions = processor.getSupportedOptions();
+        if (supportedOptions.contains(IncrementalAnnotationProcessorType.ISOLATING.getProcessorOption())) {
+            return IncrementalAnnotationProcessorType.ISOLATING;
+        } else if (supportedOptions.contains(IncrementalAnnotationProcessorType.AGGREGATING.getProcessorOption())) {
+            return IncrementalAnnotationProcessorType.AGGREGATING;
+        } else {
+            return defaultType;
+        }
     }
 
     private Processor decorateIfIncremental(Processor processor, IncrementalAnnotationProcessorType type) {
