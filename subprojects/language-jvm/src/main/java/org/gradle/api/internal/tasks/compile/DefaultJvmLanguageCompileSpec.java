@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
@@ -28,7 +30,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
-    private FileCollection source;
+    private List<File> sourceFiles;
     private String sourceCompatibility;
     private String targetCompatibility;
 
@@ -61,14 +63,28 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
         this.tempDir = tempDir;
     }
 
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
     @Override
     public FileCollection getSource() {
-        return source;
+        return ImmutableFileCollection.of(sourceFiles);
+    }
+
+    // retained because ThirdPartyPluginsSmokeTest.'gosu plugin'()
+    @Deprecated
+    @Override
+    public void setSource(FileCollection source) {
+        sourceFiles = ImmutableList.copyOf(source.getFiles());
     }
 
     @Override
-    public void setSource(FileCollection source) {
-        this.source = source;
+    public Collection<File> getSourceFiles() {
+        return sourceFiles;
+    }
+
+    @Override
+    public void setSourceFiles(Iterable<File> sourceFiles) {
+        this.sourceFiles = ImmutableList.copyOf(sourceFiles);
     }
 
     @Override

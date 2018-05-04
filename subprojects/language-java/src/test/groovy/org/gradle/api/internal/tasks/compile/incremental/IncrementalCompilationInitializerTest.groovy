@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.compile.incremental
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptions
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
@@ -28,15 +30,16 @@ import spock.lang.Subject
 class IncrementalCompilationInitializerTest extends Specification {
 
     def fileOperations = Mock(FileOperations)
+    def compilationSourceDirs = Mock(CompilationSourceDirs)
+    def sourceToNameConverter = new SourceToNameConverter(compilationSourceDirs)
     @Subject
-        initializer = new IncrementalCompilationInitializer(fileOperations)
+    def initializer = new IncrementalCompilationInitializer(fileOperations, sourceToNameConverter)
 
     def "prepares patterns"() {
         PatternSet filesToDelete = Mock(PatternSet)
-        PatternSet sourceToCompile = Mock(PatternSet)
 
         when:
-        initializer.preparePatterns(["com.Foo", "Bar"], filesToDelete, sourceToCompile)
+        initializer.prepareDeletePatterns(["com.Foo", "Bar"], filesToDelete)
 
         then:
         1 * filesToDelete.include('com/Foo.class')
@@ -48,12 +51,39 @@ class IncrementalCompilationInitializerTest extends Specification {
         1 * filesToDelete.include('Bar$*.class')
         1 * filesToDelete.include('Bar$*.java')
 
-        1 * sourceToCompile.include('Bar.java')
-        1 * sourceToCompile.include('com/Foo.java')
-        1 * sourceToCompile.include('Bar$*.java')
-        1 * sourceToCompile.include('com/Foo$*.java')
-
         0 * _
+    }
+
+    def "narrows source files"() {
+        def compileSpec = Mock(JavaCompileSpec)
+        def spec = new RecompilationSpec()
+        spec.classesToCompile.addAll(["com.Foo", "Bar"])
+        def narrowedSourceFiles = []
+        def fileResolver = Mock(FileResolver)
+        org.gradle.internal.Factory<PatternSet> patternSetFactory = Mock()
+        def patternSet = Mock(PatternSet)
+        def compileOptions = Mock(MinimalJavaCompileOptions)
+
+        when:
+        initializer.initializeCompilation(compileSpec, spec)
+
+        then:
+        1 * compileSpec.getSourceFiles() >> toSourceFiles(['com/Foo.java', 'com/Foo$Inner.java', 'Bar.java', 'org/Bar.java', 'org/Bar$Inner.java', 'BarFoo.java', 'Bar$Inner$Inner.java', 'Bar2$Inner.java', 'Baz.java'])
+        1 * compileSpec.setSourceFiles(_) >> { args ->
+            narrowedSourceFiles.addAll(args[0])
+        }
+        1 * compileSpec.compileClasspath >> []
+        1 * compileSpec.getCompileOptions() >> compileOptions
+        1 * fileOperations.fileResolver >> fileResolver
+        1 * fileResolver.patternSetFactory >> patternSetFactory
+        1 * patternSetFactory.create() >> patternSet
+        _ * compilationSourceDirs.sourceRoots >> ['/some/base/dir/source/main/java/']
+
+        narrowedSourceFiles == toSourceFiles(['com/Foo.java', 'com/Foo$Inner.java', 'Bar.java', 'Bar$Inner$Inner.java'])
+    }
+
+    List<File> toSourceFiles(List<String> relativePaths) {
+        relativePaths.collect { new File("/some/base/dir/source/main/java/${it}")}
     }
 
     def "configures empty source when stale classes empty"() {
@@ -63,7 +93,7 @@ class IncrementalCompilationInitializerTest extends Specification {
         initializer.initializeCompilation(compileSpec, new RecompilationSpec())
 
         then:
-        1 * compileSpec.setSource { it.files.empty }
+        1 * compileSpec.setSourceFiles { it.files.empty }
     }
 
     def "configures empty classes when aggregated types empty"() {

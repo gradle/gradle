@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import org.gradle.util.RelativePathUtil;
-
 import java.io.File;
 import java.util.List;
 
@@ -32,13 +30,15 @@ public class SourceToNameConverter {
     }
 
     public String getClassName(File javaSourceClass) {
-        List<File> dirs = sourceDirs.getSourceRoots();
-        for (File sourceDir : dirs) {
-            if (javaSourceClass.getAbsolutePath().startsWith(sourceDir.getAbsolutePath())) { //perf tweak only
-                String relativePath = RelativePathUtil.relativePath(sourceDir, javaSourceClass);
-                if (!relativePath.startsWith("..")) {
-                    return relativePath.replaceAll("/", ".").replaceAll("\\.java$", "");
-                }
+        List<String> dirs = sourceDirs.getSourceRoots();
+        for (String sourceDirAbsolutePath : dirs) {
+            String javaSourceClassAbsolutePath = javaSourceClass.getAbsolutePath();
+            if (javaSourceClassAbsolutePath.startsWith(sourceDirAbsolutePath)) {
+                int endIndex = javaSourceClassAbsolutePath.endsWith(".java") ? javaSourceClassAbsolutePath.length() - 5 : javaSourceClassAbsolutePath.length();
+                int startIndex = sourceDirAbsolutePath.length();
+                int dollarIndex = javaSourceClassAbsolutePath.indexOf('$', startIndex);
+                String relativePath = javaSourceClassAbsolutePath.substring(startIndex, dollarIndex == -1 ? endIndex : dollarIndex);
+                return relativePath.replace(File.separatorChar, '.');
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",

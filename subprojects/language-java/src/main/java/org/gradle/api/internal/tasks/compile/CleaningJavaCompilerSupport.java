@@ -28,7 +28,7 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
         StaleClassCleaner cleaner = createCleaner(spec);
 
         cleaner.setDestinationDir(spec.getDestinationDir());
-        cleaner.setSource(spec.getSource());
+        cleaner.setSource(spec.getSourceFiles());
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();
