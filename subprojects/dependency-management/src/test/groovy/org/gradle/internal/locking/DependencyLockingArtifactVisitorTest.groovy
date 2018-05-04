@@ -64,7 +64,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         0 * _
     }
 
-    def 'process node having a ModuleComponentIdentifier'() {
+    def 'processes node having a ModuleComponentIdentifier'() {
         given:
         startWithState([])
 
@@ -78,8 +78,26 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         then:
         1 * node.owner >> component
         1 * component.componentId >> identifier
+        1 * identifier.version >> '1.0'
         1 * identifier.displayName >> 'org:foo:1.0'
+    }
 
+    def 'ignores node having a ModuleComponentIdentifier but an empty version'() {
+        given:
+        startWithState([])
+
+        DependencyGraphNode node = Mock()
+        DependencyGraphComponent component = Mock()
+        ModuleComponentIdentifier identifier = Mock()
+
+        when:
+        visitor.visitNode(node)
+
+        then:
+        1 * node.owner >> component
+        1 * component.componentId >> identifier
+        1 * identifier.version >> ''
+        0 * _
     }
 
     def 'ignores node not having a ModuleComponentIdentifier'() {
@@ -156,6 +174,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         ModuleComponentIdentifier identifier = Mock()
         node.owner >> component
         component.componentId >> identifier
+        identifier.version >> module.substring(module.lastIndexOf(':') + 1)
         identifier.displayName >> module
 
         visitor.visitNode(node)

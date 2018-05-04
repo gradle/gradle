@@ -88,9 +88,13 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     @Override
-    protected void configureTaskDefaults(Checkstyle task, final String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("checkstyle");
+    protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+    }
+
+    @Override
+    protected void configureTaskDefaults(Checkstyle task, final String baseName) {
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

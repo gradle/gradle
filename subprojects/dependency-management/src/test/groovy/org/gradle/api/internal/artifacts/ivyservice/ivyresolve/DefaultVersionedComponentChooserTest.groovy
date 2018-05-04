@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -237,9 +238,23 @@ class DefaultVersionedComponentChooserTest extends Specification {
         if (notation.indexOf('+') > 0) {
             1 * selectedComponentResult.notMatched(d.id)
         } else {
-            1 * selectedComponentResult.doesNotMatchConsumerAttributes(d.id)
+            1 * selectedComponentResult.doesNotMatchConsumerAttributes({ it.id == d.id &&
+                it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                    .with { match ->
+                        assert match.requestedValue.get() == 'red'
+                        assert match.found.get() == 'blue'
+                        match
+                }
+            })
         }
-        1 * selectedComponentResult.doesNotMatchConsumerAttributes(c.id)
+        1 * selectedComponentResult.doesNotMatchConsumerAttributes({ it.id == c.id &&
+            it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                .with { match ->
+                assert match.requestedValue.get() == 'red'
+                assert match.found.get() == 'green'
+                match
+            }
+        })
         1 * selectedComponentResult.matches(b.id)
         0 * _
 

@@ -72,7 +72,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     private boolean cleanPreviousOutputs(NativeCompileSpec spec) {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs);
-        cleaner.setDestinationDir(spec.getObjectFileDir());
+        cleaner.addDirToClean(spec.getObjectFileDir());
         cleaner.execute();
         return cleaner.getDidWork();
     }

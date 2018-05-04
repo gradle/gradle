@@ -292,74 +292,73 @@ model {
     + buildEnvironment
           | Type:   \torg.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
           | Value:  \ttask ':buildEnvironment\'
-          | Creator: \ttasks.addPlaceholderAction(buildEnvironment)
+          | Creator: \tProject.<init>.tasks.buildEnvironment()
           | Rules:
              ⤷ copyToTaskContainer
     + components
           | Type:   \torg.gradle.api.reporting.components.ComponentReport
-          | Value:  \ttask ':components'
-          | Creator: \ttasks.addPlaceholderAction(components)
+          | Value:  \ttask ':components\'
+          | Creator: \tProject.<init>.tasks.components()
           | Rules:
              ⤷ copyToTaskContainer
     + dependencies
           | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask
-          | Value:  \ttask ':dependencies'
-          | Creator: \ttasks.addPlaceholderAction(dependencies)
+          | Value:  \ttask ':dependencies\'
+          | Creator: \tProject.<init>.tasks.dependencies()
           | Rules:
              ⤷ copyToTaskContainer
     + dependencyInsight
           | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask
-          | Value:  \ttask ':dependencyInsight'
-          | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
+          | Value:  \ttask ':dependencyInsight\'
+          | Creator: \tProject.<init>.tasks.dependencyInsight()
           | Rules:
-             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration(DependencyInsightReportTask, ServiceRegistry)
              ⤷ copyToTaskContainer
     + dependentComponents
           | Type:   \torg.gradle.api.reporting.dependents.DependentComponentsReport
-          | Value:  \ttask ':dependentComponents'
-          | Creator: \ttasks.addPlaceholderAction(dependentComponents)
+          | Value:  \ttask ':dependentComponents\'
+          | Creator: \tProject.<init>.tasks.dependentComponents()
           | Rules:
              ⤷ copyToTaskContainer
     + help
           | Type:   \torg.gradle.configuration.Help
-          | Value:  \ttask ':help'
-          | Creator: \ttasks.addPlaceholderAction(help)
+          | Value:  \ttask ':help\'
+          | Creator: \tProject.<init>.tasks.help()
           | Rules:
              ⤷ copyToTaskContainer
     + init
           | Type:   \torg.gradle.buildinit.tasks.InitBuild
-          | Value:  \ttask ':init'
-          | Creator: \ttasks.addPlaceholderAction(init)
+          | Value:  \ttask ':init\'
+          | Creator: \tProject.<init>.tasks.init()
           | Rules:
              ⤷ copyToTaskContainer
     + model
           | Type:   \torg.gradle.api.reporting.model.ModelReport
-          | Value:  \ttask ':model'
-          | Creator: \ttasks.addPlaceholderAction(model)
+          | Value:  \ttask ':model\'
+          | Creator: \tProject.<init>.tasks.model()
           | Rules:
              ⤷ copyToTaskContainer
     + projects
           | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask
-          | Value:  \ttask ':projects'
-          | Creator: \ttasks.addPlaceholderAction(projects)
+          | Value:  \ttask ':projects\'
+          | Creator: \tProject.<init>.tasks.projects()
           | Rules:
              ⤷ copyToTaskContainer
     + properties
           | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
-          | Value:  \ttask ':properties'
-          | Creator: \ttasks.addPlaceholderAction(properties)
+          | Value:  \ttask ':properties\'
+          | Creator: \tProject.<init>.tasks.properties()
           | Rules:
              ⤷ copyToTaskContainer
     + tasks
           | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
-          | Value:  \ttask ':tasks'
-          | Creator: \ttasks.addPlaceholderAction(tasks)
+          | Value:  \ttask ':tasks\'
+          | Creator: \tProject.<init>.tasks.tasks()
           | Rules:
              ⤷ copyToTaskContainer
     + wrapper
           | Type:   \torg.gradle.api.tasks.wrapper.Wrapper
-          | Value:  \ttask ':wrapper'
-          | Creator: \ttasks.addPlaceholderAction(wrapper)
+          | Value:  \ttask ':wrapper\'
+          | Creator: \tProject.<init>.tasks.wrapper()
           | Rules:
              ⤷ copyToTaskContainer
 + unsetNumbers
@@ -373,6 +372,7 @@ model {
           | Type:   \tjava.lang.Integer
           | Value:  \tnull
           | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+
 ''')
     }
 

@@ -89,6 +89,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         then:
         module.assertPublished()
         module.parsedIvy.description == "A demonstration of ivy descriptor customization"
+        sampleProject.dir.file("build/generated-ivy.xml").assertExists()
     }
 
     @UsesSample("ivy-publish/multiple-publications")
@@ -170,6 +171,48 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         executed ":publishBinaryAndSourcesPublicationToInternalRepository"
         skipped ":publishBinaryPublicationToInternalRepository"
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
+    }
+
+    @UsesSample("ivy-publish/publish-artifact")
+    def publishesRpmArtifact() {
+        given:
+        sample sampleProject
+        def artifactId = "publish-artifact"
+        def version = "1.0"
+        def repo = ivy(sampleProject.dir.file("build/repo"))
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":rpm", ":publish"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.rpm", "ivy-${version}.xml"
+    }
+
+    @UsesSample("ivy-publish/distribution")
+    def publishesDistributionArchives() {
+        given:
+        sample sampleProject
+
+        and:
+        def repo = ivy(sampleProject.dir.file("build/repo"))
+        def artifactId = "distribution"
+        def version = "1.0"
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":customDistTar", ":distZip"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "ivy-${version}.xml"
     }
 
     private void verifyIvyFile(IvyFileModule project1sample, String outputFileName) {

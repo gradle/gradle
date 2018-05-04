@@ -43,6 +43,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -73,13 +74,18 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
+    @Deprecated //used by the Kotlin DSL
     public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory) {
+        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, null);
+    }
+
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, TextResourceLoader textResourceLoader) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
+        this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.execFactory = execFactory;

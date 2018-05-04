@@ -80,7 +80,7 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
         if (stopFirst) {
             uris = [uris[0]]
         }
-        uris.collect { "    $it" }.join('\n')
+        uris.collect { "  - $it" }.join('\n')
     }
 
     static Map<String, String> rules = [

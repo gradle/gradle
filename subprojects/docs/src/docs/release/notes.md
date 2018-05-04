@@ -22,23 +22,58 @@ The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.
 
 ### Signing Publications
 
-The Signing plugin now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
+The [Signing Plugin](userguide/signing_plugin.html) now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
 
     publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-            }
+      publications {
+        mavenJava(MavenPublication) {
+          from components.java
         }
+      }
     }
 
     signing {
-        sign publishing.publications
+      sign publishing.publications
+    }
+
+### Customizing the generated POM
+
+The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedicated, type safe DSL to customize the POM generated as part of a Maven publication. The following sample demonstrates some of the new properties and methods. Please see the [DSL Reference](dsl/org.gradle.api.publish.maven.MavenPom.html) for the complete documentation.
+
+    publishing {
+      publications {
+        mavenJava(MavenPublication) {
+          from components.java
+          pom {
+            name = "Demo"
+            description = "A demonstration of Maven POM customization"
+            url = "http://www.example.com/project"
+            licenses {
+              license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+              }
+            }
+            developers {
+              developer {
+                id = "johnd"
+                name = "John Doe"
+                email = "john.doe@example.com"
+              }
+            }
+            scm {
+              connection = "scm:svn:http://subversion.example.com/svn/project/trunk/"
+              developerConnection = "scm:svn:https://subversion.example.com/svn/project/trunk/"
+              url = "http://subversion.example.com/svn/project/trunk/"
+            }
+          }
+        }
+      }
     }
 
 ### Configuration-wide dependency excludes are now published
 
-The [Ivy Publishing Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publishing Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
+The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
 ## Promoted features
 
@@ -55,6 +90,14 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
+
+### TextResources can now be fetched from a URI
+
+Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
+
+    checkstyle {
+        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
+    }
 
 <!--
 ### Example deprecation
@@ -101,12 +144,14 @@ This is no longer the case and thus may cause modules to be excluded from a depe
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
+- [Filip Hrisafov](filiphr) Add support for URI backed TextResource (gradle/gradle#2760)
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
 - [Andrew Potter](https://github.com/apottere) Update pluginManagement documentation to mention global configuration options (gradle/gradle#4999)
 - [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
 - [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
-- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
-
+- [Alexandre Bouthinon](https://github.com/alexandrebouthinon) Fix NullPointerException (gradle/gradle#5199)
+- [Paul Eddie](https://github.com/paul-eeoc) Fix typo (gradle/gradle#5180)
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->

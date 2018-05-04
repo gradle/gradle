@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class CleaningJavaCompilerTest extends Specification {
     private final org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> target = Mock()
-    private final JavaCompileSpec spec = Mock()
+    private final JavaCompileSpec spec = Stub()
     private final StaleClassCleaner cleaner = Mock()
     private final CleaningJavaCompilerSupport<JavaCompileSpec> compiler = new CleaningJavaCompilerSupport<JavaCompileSpec>() {
         @Override
@@ -37,9 +37,11 @@ class CleaningJavaCompilerTest extends Specification {
     def cleansStaleClassesAndThenInvokesCompiler() {
         WorkResult result = Mock()
         File destDir = new File('dest')
-        _ * spec.destinationDir >> destDir
-        def files = [new File('src')] as Set
-        _ * spec.sourceFiles >> files
+        File genDir = new File('gen')
+        spec.destinationDir >> destDir
+        spec.compileOptions >> Stub(MinimalJavaCompileOptions) {
+            it.annotationProcessorGeneratedSourcesDirectory >> genDir
+        }
 
         when:
         def r = compiler.execute(spec)
@@ -48,8 +50,8 @@ class CleaningJavaCompilerTest extends Specification {
         r == result
 
         and:
-        1 * cleaner.setDestinationDir(destDir)
-        1 * cleaner.setSource(files)
+        1 * cleaner.addDirToClean(destDir)
+        1 * cleaner.addDirToClean(genDir)
 
         and:
         1 * cleaner.execute()

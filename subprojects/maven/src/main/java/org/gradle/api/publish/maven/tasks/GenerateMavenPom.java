@@ -109,7 +109,7 @@ public class GenerateMavenPom extends DefaultTask {
         MavenPomInternal pomInternal = (MavenPomInternal) getPom();
 
         MavenPomFileGenerator pomGenerator = new MavenPomFileGenerator(pomInternal.getProjectIdentity(), getVersionRangeMapper());
-        pomGenerator.setPackaging(pomInternal.getPackaging());
+        pomGenerator.configureFrom(pomInternal);
 
         for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
             pomGenerator.addApiDependencyManagement(mavenDependency);

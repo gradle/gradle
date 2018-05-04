@@ -85,7 +85,7 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
         created.artifacts.empty
         created.excludes.empty
         !created.force
-        created.transitive
+        !created.transitive
         !created.changing
     }
 }

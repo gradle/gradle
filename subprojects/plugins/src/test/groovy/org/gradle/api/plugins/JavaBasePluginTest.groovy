@@ -26,7 +26,6 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.platform.base.BinarySpec
@@ -50,7 +49,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(LanguageBasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
@@ -261,7 +259,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
 
-    def "adds language source sets for each source set added to the 'sourceSets' container"() {
+    def "adds language source sets for each source set added to the 'sourceSets' container when software model is active"() {
         project.pluginManager.apply(JavaBasePlugin)
 
         given:
@@ -278,6 +276,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         }
 
         when:
+        project.prepareForRuleBasedPlugins()
         def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
         then:
@@ -293,7 +292,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         resources.source.srcDirs as Set == [project.file("resrc1"), project.file("resrc2")] as Set
     }
 
-    def "adds a class directory binary for each source set added to the 'sourceSets' container"() {
+    def "adds a class directory binary for each source set added to the 'sourceSets' container when software model is active"() {
         project.pluginManager.apply(JavaBasePlugin)
 
         given:
@@ -305,6 +304,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         }
 
         when:
+        project.prepareForRuleBasedPlugins()
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
         def sources = project.modelRegistry.realize("sources", ProjectSourceSet)
 
@@ -318,7 +318,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         binary.inputs as Set == sources as Set
     }
 
-    def "attaches tasks to binary associated with each source set"() {
+    def "attaches tasks to binary associated with each source set when software model is active"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -328,6 +328,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
                 output.resourcesDir = project.file("resources")
             }
         }
+        project.prepareForRuleBasedPlugins()
         def binaries = project.modelRegistry.realize("binaries", modelMap(BinarySpec))
 
         then:

@@ -85,6 +85,25 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-sources/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "greetings"; }}'
     }
 
+    def "generated sources are cleaned up on full compilations"() {
+        given:
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            compileJava.options.annotationProcessorGeneratedSourcesDirectory = file("build/generated-sources")
+        """
+        succeeds "compileJava"
+
+        when:
+        buildFile << """compileJava.options.annotationProcessorPath = files()"""
+        fails("compileJava")
+
+        then:
+        file("build/generated-sources/TestAppHelper.java").assertDoesNotExist()
+    }
+
     def "can model annotation processor arguments"() {
         buildFile << """                                                       
             class HelperAnnotationProcessor implements CommandLineArgumentProvider {

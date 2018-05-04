@@ -85,23 +85,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
 
-    @UsesSample("maven-publish/pomCustomization")
-    def pomCustomization() {
-        given:
-        sample sampleProject
-
-        and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "pomCustomization", "1.0")
-
-        when:
-        succeeds "publish"
-
-        then:
-        module.assertPublishedAsPomModule()
-        module.parsedPom.description == "A demonstration of maven POM customization"
-    }
-
     @UsesSample("maven-publish/multiple-publications")
     def multiplePublications() {
         given:
@@ -187,6 +170,62 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         executed ":publishBinaryAndSourcesPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToMavenLocal"
         skipped ":publishBinaryPublicationToInternalRepository", ":publishBinaryPublicationToMavenLocal"
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
+    }
+
+    @UsesSample("maven-publish/publish-artifact")
+    def publishesRpmArtifact() {
+        given:
+        sample sampleProject
+        def artifactId = "publish-artifact"
+        def version = "1.0"
+        def repo = maven(sampleProject.dir.file("build/repo"))
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":rpm", ":publish"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.rpm", "${artifactId}-${version}.pom"
+    }
+
+    @UsesSample("maven-publish/pomGeneration")
+    def pomGeneration() {
+        given:
+        sample sampleProject
+
+        when:
+        succeeds "generatePomFileForMavenCustomPublication"
+
+        then:
+        def pom = sampleProject.dir.file("build/generated-pom.xml").assertExists()
+        def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
+        parsedPom.name == "Example"
+    }
+
+    @UsesSample("maven-publish/distribution")
+    def publishesDistributionArchives() {
+        given:
+        sample sampleProject
+
+        and:
+        def repo = maven(sampleProject.dir.file("build/repo"))
+        def artifactId = "distribution"
+        def version = "1.0"
+        def module = repo.module("org.gradle.sample", artifactId, version)
+
+        when:
+        succeeds "publish"
+
+        then:
+        executed ":customDistTar", ":distZip"
+
+        and:
+        module.assertPublished()
+        module.assertArtifactsPublished "${artifactId}-${version}.zip", "${artifactId}-${version}.tar", "${artifactId}-${version}.pom"
     }
 
     private void verifyPomFile(MavenFileModule module, String outputFileName) {

@@ -71,6 +71,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -143,8 +144,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory);
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, TextResourceLoader textResourceLoader) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
@@ -168,7 +169,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
-        PluginTarget target = new RuleBasedPluginTarget<ProjectInternal>(
+        PluginTarget target = new RuleBasedPluginTarget(
             project,
             get(ModelRuleExtractor.class),
             get(ModelRuleSourceDetector.class)

@@ -82,7 +82,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     private boolean hasVariants(ComponentResolveMetadata targetComponent) {
-        return !targetComponent.getVariantsForGraphTraversal().isEmpty();
+        return targetComponent.getVariantsForGraphTraversal().isPresent();
     }
     @Override
     public List<IvyArtifactName> getArtifacts() {

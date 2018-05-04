@@ -246,7 +246,7 @@ class AssembleDslDocTask extends DefaultTask {
                 linkMetaData.addBlockMethod(blockDoc.blockMethod.metaData)
             }
             classDoc.classProperties.each { propertyDoc ->
-                linkMetaData.addGetterMethod(propertyDoc.name, propertyDoc.metaData.getter)
+                linkMetaData.addPropertyAccessorMethod(propertyDoc.name, propertyDoc.metaData.getter ?: propertyDoc.metaData.setter)
             }
         } catch (Exception e) {
             throw new DocGenerationException("Failed to generate documentation for class '$classDoc.name'.", e)

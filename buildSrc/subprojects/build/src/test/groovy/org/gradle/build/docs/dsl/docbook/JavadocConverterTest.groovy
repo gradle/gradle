@@ -385,6 +385,17 @@ text3</para></section>'''
         format(result.docbook) == '''<para>The name of the thing.</para>'''
     }
 
+    def convertsPropertySetterMethodCommentToPropertyComment() {
+        PropertyMetaData propertyMetaData = Mock()
+        _ * propertyMetaData.rawCommentText >> 'sets the name of the thing.'
+
+        when:
+        def result = parser.parse(propertyMetaData, listener)
+
+        then:
+        format(result.docbook) == '''<para>The name of the thing.</para>'''
+    }
+
     def convertsInheritDocTag() {
         PropertyMetaData propertyMetaData = Mock()
         PropertyMetaData overriddenMetaData = Mock()

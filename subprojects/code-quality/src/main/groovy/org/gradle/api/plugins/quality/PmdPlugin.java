@@ -87,9 +87,13 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void configureTaskDefaults(Pmd task, String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("pmd");
+    protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+    }
+
+    @Override
+    protected void configureTaskDefaults(Pmd task, String baseName) {
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

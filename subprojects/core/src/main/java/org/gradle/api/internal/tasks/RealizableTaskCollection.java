@@ -56,7 +56,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     public void realizeRuleTaskTypes() {
         // Task dependencies may be calculated more than once.
         // This guard is purely an optimisation.
-        if (realized.compareAndSet(false, true)) {
+        if (modelNode != null && realized.compareAndSet(false, true)) {
             modelNode.ensureAtLeast(ModelNode.State.SelfClosed);
             for (MutableModelNode node : modelNode.getLinks(ModelType.of(type))) {
                 node.ensureAtLeast(ModelNode.State.GraphClosed);

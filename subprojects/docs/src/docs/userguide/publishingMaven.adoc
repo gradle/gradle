@@ -104,8 +104,16 @@ For each custom artifact, it is possible to specify the `extension` and `classif
 Configure custom artifacts as follows:
 
 ++++
-<sample dir="maven-publish/javaProject" id="publishing_maven:publish-custom-artifact" title="Adding additional artifact to a MavenPublication">
+<sample dir="maven-publish/javaProject" id="publishing_maven:publish-custom-artifact" title="Adding an additional archive artifact to a MavenPublication">
     <sourcefile file="build.gradle" snippet="publish-custom-artifact"/>
+</sample>
+++++
+
+In addition, instances of api:org.gradle.api.artifacts.PublishArtifact[] can be added to a publication. For example, let's assume you have a custom `rpm` task that produces an RPM package of your application and writes it to `rpmFile`. The following sample demonstrates how to create a `PublishArtifact` using the `artifacts.add()` method and add it to a publication:
+
+++++
+<sample dir="maven-publish/publish-artifact" id="publishing_maven:publish-artifact" title="Adding an additional custom artifact to a MavenPublication">
+    <sourcefile file="build.gradle" snippet="custom-artifact"/>
 </sample>
 ++++
 
@@ -137,24 +145,16 @@ Maven restricts 'groupId' and 'artifactId' to a limited character set (`[A-Za-z0
 
 The only Unicode values that are explicitly prohibited are '```\```', '```/```' and any ISO control character. Supplied values are validated early in publication.
 
-[[sec:modifying_the_generated_pom]]
-==== Modifying the generated POM
+[[sec:customizing_the_generated_pom]]
+==== Customizing the generated POM
 
-The generated POM file may need to be tweaked before publishing. The “`maven-publish`” plugin provides a hook to allow such modification.
+The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The “`maven-publish`” plugin provides a DSL for that purpose. Please see api:org.gradle.api.publish.maven.MavenPom[] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
 ++++
-<sample dir="maven-publish/pomCustomization" id="publishing_maven:pom_modification" title="Modifying the POM file">
-    <sourcefile file="build.gradle" snippet="pom-modification"/>
+<sample dir="signing/maven-publish" id="publishing_maven:pom_customization" title="Customizing the POM file">
+    <sourcefile file="build.gradle" snippet="pom-customization"/>
 </sample>
 ++++
-
-In this example we are adding a 'description' element for the generated POM. With this hook, you can modify any aspect of the POM. For example, you could replace the version range for a dependency with the actual version used to produce the build.
-
-See api:org.gradle.api.publish.maven.MavenPom#withXml(org.gradle.api.Action)[] in the API documentation for more information.
-
-It is possible to modify virtually any aspect of the created POM. This means that it is also possible to modify the POM in such a way that it is no longer a valid Maven POM, so care must be taken when using this feature.
-
-The identifier (groupId, artifactId, version) of the published module is an exception; these values cannot be modified in the POM using the `withXML` hook.
 
 [[sec:publishing_multiple_modules_to_maven]]
 ==== Publishing multiple modules
@@ -265,7 +265,7 @@ Moreover, you may want to define your own shorthand tasks to fit your workflow. 
 [[publishing_maven:signing]]
 === Signing artifacts
 
-The <<signing_plugin, Signing plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
+The <<signing_plugin, Signing Plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
 
 ++++
 <sample dir="signing/maven-publish" id="publishingMavenSignPublication" title="Signing a publication">
@@ -289,17 +289,30 @@ At times it is useful to generate a Maven POM file for a module without actually
 The task for generating the POM file is of type api:org.gradle.api.publish.maven.tasks.GenerateMavenPom[], and it is given a name based on the name of the publication: “`generatePomFileFor«_PUBNAME_»Publication`”. So in the example below, where the publication is named “`mavenCustom`”, the task will be named “`generatePomFileForMavenCustomPublication`”.
 
 ++++
-<sample dir="maven-publish/pomCustomization" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
-            <sourcefile file="build.gradle" snippet="generate"/>
-            <output args="generatePomFileForMavenCustomPublication"/>
-        </sample>
+<sample dir="maven-publish/pomGeneration" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
+    <sourcefile file="build.gradle" snippet="generate"/>
+    <output args="generatePomFileForMavenCustomPublication"/>
+</sample>
 ++++
 
-All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom.withXml`.
+All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom`.
 
-[NOTE]
-====
-The “`maven-publish`” plugin leverages some experimental support for late plugin configuration, and any `GenerateMavenPom` tasks will not be constructed until the publishing extension is configured. The simplest way to ensure that the publishing plugin is configured when you attempt to access the `GenerateMavenPom` task is to place the access inside a `model` block, as the example above demonstrates.
+[[publishing_maven:complete_example]]
+=== Complete example
 
-The same applies to any attempt to access publication-specific tasks like api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[]. These tasks should be referenced from within a `model` block.
-====
+The following example demonstrates how to sign and publish a Java library including sources, Javadoc, and a customized POM:
+
+++++
+<sample dir="signing/maven-publish" id="publishing_maven:complete_example:sample" title="Publishing a Java library">
+    <sourcefile file="build.gradle"/>
+</sample>
+++++
+
+The result is that the following artifacts will be published:
+
+* The POM: `my-library-1.0.pom`
+* The primary JAR artifact for the Java component: `my-library-1.0.jar`
+* The sources JAR artifact that has been explicitly configured: `my-library-1.0-sources.jar`
+* The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
+
+The <<signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
