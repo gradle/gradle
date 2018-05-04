@@ -161,3 +161,22 @@ integTestTasks.configureEach {
 }
 
 apply from: 'binary-compatibility.gradle'
+
+task uploadDistributionSnapshot {
+    dependsOn(binZip, allZip)
+    doLast {
+        def archives = [binZip, allZip].collect { it.archivePath } as List<File>
+        def username = project.findProperty("artifactory_user") ?: "nouser"
+        def password = project.findProperty("artifactory_password") ?: "nopass"
+        def baseUri = "https://repo.gradle.org/gradle/kotlin-dsl-snapshots-local"
+        archives.each { archive ->
+            (new URL("$baseUri/${archive.name}").openConnection() as HttpURLConnection).with {
+                doOutput = true
+                requestMethod = "PUT"
+                setRequestProperty("Authorization", "Basic ${Base64.urlEncoder.encodeToString("$username:$password".bytes)}")
+                outputStream.withCloseable { out -> archive.withInputStream { out << it } }
+                inputStream.text
+            }
+        }
+    }
+}
