@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
@@ -511,6 +512,29 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             val configured = main.groovy.groovy.srcDirs
             val expected = linkedSetOf(file("src/main/groovy"), file("some/path"), file("another/path"))
             require(configured == expected)
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `can access source sets private conventions without public type registered by declared external plugins via jit accessors as Any`() {
+
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+
+            plugins {
+                kotlin("jvm") version "$embeddedKotlinVersion"
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            val other by java.sourceSets.creating {
+                (kotlin as KotlinSourceSet).kotlin.setSrcDirs(setOf("src/other/kotlin"))
+                require(typeOf(kotlin) == "Any")
+            }
+
+            require((other.kotlin as KotlinSourceSet).kotlin.srcDirs == linkedSetOf(file("src/other/kotlin")))
         """)
 
         build("help")
