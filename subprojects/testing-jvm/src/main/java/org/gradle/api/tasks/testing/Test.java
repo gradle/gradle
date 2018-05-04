@@ -787,6 +787,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param includes The patterns list
      * @see #include(String...)
+     * @since 4.8
+     */
+    @Override
+    public void setIncludes(Set<String> includes) {
+        patternSet.setIncludes(includes);
+    }
+
+    /**
+     * Sets the include patterns for test execution.
+     *
+     * @param includes The patterns list
+     * @see #include(String...)
      */
     @Override
     public Test setIncludes(Iterable<String> includes) {
@@ -803,6 +815,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
+    }
+
+    /**
+     * Sets the exclude patterns for test execution.
+     *
+     * @param excludes The patterns list
+     * @see #exclude(String...)
+     * @since 4.8
+     */
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        patternSet.setExcludes(excludes);
     }
 
     /**

@@ -108,8 +108,18 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
+    public void setIncludes(Set<String> includes) {
+        getDelegateCopySpec().setIncludes(includes);
+    }
+
+    @Override
     public CopySpec setIncludes(Iterable<String> includes) {
         return getDelegateCopySpec().setIncludes(includes);
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        getDelegateCopySpec().setExcludes(excludes);
     }
 
     @Override

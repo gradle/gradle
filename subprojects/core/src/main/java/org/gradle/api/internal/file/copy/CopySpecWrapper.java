@@ -127,9 +127,19 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     @Override
+    public void setIncludes(Set<String> includes) {
+        delegate.setIncludes(includes);
+    }
+
+    @Override
     public CopySpec setIncludes(Iterable<String> includes) {
         delegate.setIncludes(includes);
         return this;
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        delegate.setExcludes(excludes);
     }
 
     @Override

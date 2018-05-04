@@ -84,6 +84,26 @@ public interface PatternFilterable {
      * Set the allowable include patterns.  Note that unlike {@link #include(Iterable)} this replaces any previously
      * defined includes.
      *
+     * @param includes the new include patterns
+     * @see PatternFilterable Pattern Format
+     * @since 4.8
+     */
+    void setIncludes(Set<String> includes);
+
+    /**
+     * Set the allowable exclude patterns.  Note that unlike {@link #exclude(Iterable)} this replaces any previously
+     * defined excludes.
+     *
+     * @param excludes the new exclude patterns
+     * @see PatternFilterable Pattern Format
+     * @since 4.8
+     */
+    void setExcludes(Set<String> excludes);
+
+    /**
+     * Set the allowable include patterns.  Note that unlike {@link #include(Iterable)} this replaces any previously
+     * defined includes.
+     *
      * @param includes an Iterable providing new include patterns
      * @return this
      * @see PatternFilterable Pattern Format

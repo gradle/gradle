@@ -21,6 +21,8 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 
+import java.util.Set;
+
 // TODO: this doesn't quite guarantee immutability, because the source may be holding closures that are doing god knows what
 public class ImmutablePatternSet extends PatternSet {
 
@@ -35,6 +37,11 @@ public class ImmutablePatternSet extends PatternSet {
     private ImmutablePatternSet(PatternSet source) {
         super(source);
         copyFrom(source);
+    }
+
+    @Override
+    public void setIncludes(Set<String> includes) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -59,6 +66,11 @@ public class ImmutablePatternSet extends PatternSet {
 
     @Override
     public void setCaseSensitive(boolean caseSensitive) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
         throw new UnsupportedOperationException();
     }
 

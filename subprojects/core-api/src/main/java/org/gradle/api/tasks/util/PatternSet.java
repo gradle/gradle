@@ -242,6 +242,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return includeSpecs;
     }
 
+    public void setIncludes(Set<String> includes) {
+        this.includes = null;
+        include(includes);
+    }
+
     public PatternSet setIncludes(Iterable<String> includes) {
         this.includes = null;
         return include(includes);
@@ -276,6 +281,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             excludeSpecs = Sets.newLinkedHashSet();
         }
         return excludeSpecs;
+    }
+
+    public void setExcludes(Set<String> excludes) {
+        this.excludes = null;
+        exclude(excludes);
     }
 
     public PatternSet setExcludes(Iterable<String> excludes) {

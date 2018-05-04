@@ -349,6 +349,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    public void setIncludes(Set<String> includes) {
+        patternSet.setIncludes(includes);
+    }
+
+    @Override
     public CopySpec setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
@@ -381,6 +386,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        patternSet.setExcludes(excludes);
     }
 
     @Override

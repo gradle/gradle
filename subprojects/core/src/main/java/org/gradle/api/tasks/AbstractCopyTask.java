@@ -437,6 +437,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
+    public void setIncludes(Set<String> includes) {
+        getMainSpec().setIncludes(includes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public AbstractCopyTask setIncludes(Iterable<String> includes) {
         getMainSpec().setIncludes(includes);
         return this;
@@ -449,6 +457,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public Set<String> getIncludes() {
         return getMainSpec().getIncludes();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        getMainSpec().setExcludes(excludes);
     }
 
     /**

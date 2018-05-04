@@ -97,9 +97,19 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         return patterns.getExcludes();
     }
 
+    @Override
+    public void setIncludes(Set<String> includes) {
+        patterns.setIncludes(includes);
+    }
+
     public PatternFilterable setIncludes(Iterable<String> includes) {
         patterns.setIncludes(includes);
         return this;
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        patterns.setExcludes(excludes);
     }
 
     public PatternFilterable setExcludes(Iterable<String> excludes) {

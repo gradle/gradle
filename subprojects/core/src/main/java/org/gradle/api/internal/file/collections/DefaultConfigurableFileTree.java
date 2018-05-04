@@ -98,6 +98,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return patternSet.getIncludes();
     }
 
+    @Override
+    public void setIncludes(Set<String> includes) {
+        patternSet.setIncludes(includes);
+    }
+
     public DefaultConfigurableFileTree setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
@@ -105,6 +110,11 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
 
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
+    }
+
+    @Override
+    public void setExcludes(Set<String> excludes) {
+        patternSet.setExcludes(excludes);
     }
 
     public DefaultConfigurableFileTree setExcludes(Iterable<String> excludes) {

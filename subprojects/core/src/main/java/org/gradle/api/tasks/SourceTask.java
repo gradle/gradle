@@ -168,6 +168,13 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     /**
      * {@inheritDoc}
      */
+    public void setIncludes(Set<String> includes) {
+        patternSet.setIncludes(includes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public SourceTask setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
@@ -179,6 +186,13 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @Internal
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setExcludes(Set<String> excludes) {
+        patternSet.setExcludes(excludes);
     }
 
     /**
