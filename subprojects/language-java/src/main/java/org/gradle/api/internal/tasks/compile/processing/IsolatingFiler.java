@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.compile.processing;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
-import javax.tools.Diagnostic;
 import java.util.Set;
 
 /**
@@ -29,8 +27,8 @@ import java.util.Set;
  */
 class IsolatingFiler extends IncrementalFiler {
 
-    IsolatingFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
-        super(delegate, result, messager);
+    IsolatingFiler(Filer delegate, AnnotationProcessingResult result) {
+        super(delegate, result);
     }
 
     @Override
@@ -39,7 +37,7 @@ class IsolatingFiler extends IncrementalFiler {
         Set<String> originatingTypes = ElementUtils.getTopLevelTypeNames(originatingElements);
         int size = originatingTypes.size();
         if (size != 1) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Generated type '" + generatedType + "' must have exactly one originating element, but had " + size + ".");
+            result.setFullRebuildCause("the generated type '" + generatedType + "' must have exactly one originating element, but had " + size);
         }
         result.addGeneratedType(generatedType, originatingTypes);
     }

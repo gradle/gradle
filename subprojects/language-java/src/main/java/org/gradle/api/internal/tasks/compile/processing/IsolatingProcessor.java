@@ -36,7 +36,7 @@ public class IsolatingProcessor extends DelegatingProcessor {
 
     @Override
     public final void init(ProcessingEnvironment processingEnv) {
-        IncrementalFiler incrementalFiler = new IsolatingFiler(processingEnv.getFiler(), this.result, processingEnv.getMessager());
+        IncrementalFiler incrementalFiler = new IsolatingFiler(processingEnv.getFiler(), result);
         IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
         super.init(incrementalProcessingEnvironment);
     }

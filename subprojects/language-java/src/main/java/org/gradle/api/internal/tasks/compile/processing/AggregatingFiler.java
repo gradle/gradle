@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.processing;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 
 /**
@@ -27,8 +26,8 @@ import javax.lang.model.element.Element;
  */
 class AggregatingFiler extends IncrementalFiler {
 
-    AggregatingFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
-        super(delegate, result, messager);
+    AggregatingFiler(Filer delegate, AnnotationProcessingResult result) {
+        super(delegate, result);
     }
 
     @Override
