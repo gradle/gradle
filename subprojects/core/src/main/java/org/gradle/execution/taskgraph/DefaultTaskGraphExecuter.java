@@ -26,8 +26,6 @@ import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.execution.internal.ExecuteTaskBuildOperationResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -39,15 +37,13 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationCategory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
@@ -97,7 +93,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     }
 
     public void useFilter(Spec<? super Task> filter) {
-        this.filter = (Spec<? super Task>) (filter != null ? filter : Specs.SATISFIES_ALL);
+        this.filter = Cast.uncheckedCast(filter != null ? filter : Specs.SATISFIES_ALL);
         taskExecutionPlan.useFilter(this.filter);
         taskGraphState = TaskGraphState.DIRTY;
     }
@@ -252,27 +248,15 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
         @Override
         public void execute(final TaskInternal task) {
-            buildOperationExecutor.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    TaskStateInternal state = task.getState();
-                    TaskExecutionContext ctx = new DefaultTaskExecutionContext();
-                    taskExecuter.execute(task, state, ctx);
-                    context.setResult(new ExecuteTaskBuildOperationResult(state, ctx));
-                    context.setStatus(state.getFailure() != null ? "FAILED" : state.getSkipMessage());
-                    context.failed(state.getFailure());
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(task);
-                    return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
-                        .name(task.getIdentityPath().toString())
-                        .parent(parentOperation)
-                        .operationType(BuildOperationCategory.TASK)
-                        .details(taskOperation);
-                }
-            });
+            BuildOperationRef previous = CurrentBuildOperationRef.instance().get();
+            CurrentBuildOperationRef.instance().set(parentOperation);
+            try {
+                TaskStateInternal state = task.getState();
+                TaskExecutionContext ctx = new DefaultTaskExecutionContext();
+                taskExecuter.execute(task, state, ctx);
+            } finally {
+                CurrentBuildOperationRef.instance().set(previous);
+            }
         }
     }
 
