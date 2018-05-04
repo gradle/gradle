@@ -45,7 +45,7 @@ abstract class AbstractSchedulingTest extends Specification {
     protected abstract void useFilter(Spec filter)
     protected abstract Set getAllTasks()
     protected abstract List getExecutedTasks()
-    protected abstract void awaitCompletion()
+    protected abstract void rethrowFailures()
     protected abstract void continueOnFailure()
 
     def "schedules tasks in dependency order"() {
@@ -549,7 +549,7 @@ abstract class AbstractSchedulingTest extends Specification {
         executedTasks == [a]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -568,7 +568,7 @@ abstract class AbstractSchedulingTest extends Specification {
         executedTasks == [a]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         BuildCancelledException e = thrown()
@@ -587,7 +587,7 @@ abstract class AbstractSchedulingTest extends Specification {
         executedTasks == [a]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -606,7 +606,7 @@ abstract class AbstractSchedulingTest extends Specification {
         executedTasks == [a]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -617,16 +617,16 @@ abstract class AbstractSchedulingTest extends Specification {
         RuntimeException failure = new RuntimeException()
         def a = task("a", failure: failure)
         def b = task("b")
-        addToGraphAndPopulate([a, b])
+        continueOnFailure()
 
         when:
-        continueOnFailure()
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a, b]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -647,7 +647,7 @@ abstract class AbstractSchedulingTest extends Specification {
         executedTasks == [a, b]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()
@@ -661,17 +661,17 @@ abstract class AbstractSchedulingTest extends Specification {
         RuntimeException failure = new RuntimeException()
         final def a = task("a", failure: failure)
         final def b = task("b", dependsOn: [a])
-        final def c = task("c")
-        addToGraphAndPopulate([b, c])
+        final def c = task("c", shouldRunAfter: [a])
+        continueOnFailure()
 
         when:
-        continueOnFailure()
+        addToGraphAndPopulate([b, c])
 
         then:
         executedTasks == [a, c]
 
         when:
-        awaitCompletion()
+        rethrowFailures()
 
         then:
         RuntimeException e = thrown()

@@ -22,10 +22,8 @@ class TaskNode extends Node {
     final String project
     final String name
     final Throwable failure
-    private final NodeExecutionTracker executionTracker
 
-    TaskNode(String project, String name, NodeExecutionTracker executionTracker, @Nullable Throwable failure) {
-        this.executionTracker = executionTracker
+    TaskNode(String project, String name, @Nullable Throwable failure) {
         this.project = project
         this.name = name
         this.failure = failure
@@ -38,7 +36,6 @@ class TaskNode extends Node {
 
     @Override
     Throwable execute() {
-        executionTracker.nodeExecuted(this)
         println "Executing node $this"
         return failure
     }

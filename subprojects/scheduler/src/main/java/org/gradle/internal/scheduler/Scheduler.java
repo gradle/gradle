@@ -20,15 +20,13 @@ import org.gradle.api.specs.Spec;
 
 import java.io.Closeable;
 import java.util.Collection;
-import java.util.List;
 
 public interface Scheduler extends Closeable {
     /**
      * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
-     * that don't match the {@code filter}. Filtered nodes are reported in {@code filteredNodes},
-     * while all considered nodes are returned as a {@link List}.
+     * that don't match the {@code filter}.
      */
-    List<Node> execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter, Collection<? super Node> filteredNodes);
+    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter);
 
     @Override
     void close();

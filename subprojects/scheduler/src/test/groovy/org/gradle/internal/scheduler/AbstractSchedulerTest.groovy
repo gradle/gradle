@@ -19,6 +19,7 @@ package org.gradle.internal.scheduler
 import com.google.common.collect.Lists
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
+import org.gradle.execution.MultipleBuildFailures
 import org.gradle.internal.Cast
 import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
@@ -46,15 +47,8 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     List<Node> nodesToExecute = []
     Spec<? super Node> filter = Specs.satisfyAll()
     boolean continueOnFailure
-    List<Node> allNodes
-    List<Node> executedNodes = []
-    List<Node> filteredNodes = []
-    def executionTracker = new NodeExecutionTracker() {
-        @Override
-        synchronized void nodeExecuted(Node node) {
-            executedNodes.add(node)
-        }
-    }
+
+    GraphExecutionResult results
 
     def cycleReporter = new CycleReporter() {
         @Override
@@ -96,7 +90,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()
         try {
-            allNodes = scheduler.execute(graph, entryNodes, continueOnFailure, filter, filteredNodes)
+            results = scheduler.execute(graph, entryNodes, continueOnFailure, filter)
         } finally {
             scheduler.close()
         }
@@ -117,17 +111,17 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void executes(Object... expectedNodes) {
-        assert executedNodes == (expectedNodes as List)
+        assert results.executedNodes == (expectedNodes as List)
     }
 
     @Override
     protected Set getAllTasks() {
-        return allNodes as Set
+        return results.liveNodes as Set
     }
 
     @Override
     protected List getExecutedTasks() {
-        return executedNodes
+        return results.executedNodes
     }
 
     @Override
@@ -139,7 +133,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     protected TaskNode task(Map options, String name) {
         String project = options.project ?: ""
         Exception failure = options.failure
-        def task = new TaskNode(project, name, executionTracker, failure)
+        def task = new TaskNode(project, name, failure)
         graph.addNode(task)
         relationships(options, task)
         return task
@@ -163,7 +157,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void filtered(Object... expectedNodes) {
-        assert filteredNodes == (expectedNodes as List)
+        assert results.filteredNodes == (expectedNodes as List)
     }
 
     @Override
@@ -177,8 +171,15 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void awaitCompletion() {
-
+    protected void rethrowFailures() {
+        switch (results.failures.size()) {
+            case 0:
+                break
+            case 1:
+                throw results.failures[0]
+            default:
+                throw new MultipleBuildFailures(results.failures);
+        }
     }
 
     @Override

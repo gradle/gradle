@@ -54,7 +54,7 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
     void executesBatches(List<Node>... batches) {
         executeGraph(graph.allNodes)
-        def actualNodes = new ArrayDeque<Node>(executedNodes)
+        def actualNodes = new ArrayDeque<Node>(results.executedNodes)
         def expectedBatches = new ArrayDeque<List<Node>>(batches as List)
         while (!expectedBatches.isEmpty()) {
             def expectedBatch = expectedBatches.remove()

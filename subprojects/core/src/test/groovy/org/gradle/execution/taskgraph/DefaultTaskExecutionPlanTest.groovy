@@ -173,7 +173,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     }
 
     @Override
-    void awaitCompletion() {
+    void rethrowFailures() {
         executionPlan.awaitCompletion()
     }
 

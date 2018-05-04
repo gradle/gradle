@@ -55,11 +55,11 @@ public class Graph {
         return !rootNodes.isEmpty() || !incomingEdges.isEmpty();
     }
 
-    public List<Node> getAllNodes() {
+    public ImmutableList<Node> getAllNodes() {
         return ImmutableList.copyOf(Iterables.concat(rootNodes, incomingEdges.keySet()));
     }
 
-    public List<Edge> getAllEdges() {
+    public ImmutableList<Edge> getAllEdges() {
         return ImmutableList.copyOf(incomingEdges.values());
     }
 
@@ -145,7 +145,7 @@ public class Graph {
      * Creates a new graph with only the nodes available from the given entry nodes via
      * {@link EdgeType#DEPENDENT} and {@link EdgeType#FINALIZER} edges.
      */
-    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, Collection<? super Node> filteredNodes) {
+    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, ImmutableList.Builder<Node> filteredNodes) {
         Set<Node> liveNodes = Sets.newLinkedHashSet();
         Graph liveGraph = new Graph();
         Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
