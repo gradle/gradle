@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
@@ -41,6 +42,8 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.util.Path;
+
+import javax.annotation.Nullable;
 
 @UsedByScanPlugin
 public interface ProjectInternal extends Project, ProjectIdentifier, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
@@ -120,5 +123,14 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
      */
     Path getIdentityPath();
 
-
+    /**
+     * Executes the given action against the given listener collecting any new listener registrations in a separate
+     * {@link ProjectEvaluationListener} instance which is returned at the end if not empty.
+     *
+     * @param listener the current listener
+     * @param action the listener action
+     * @return null if no listeners were added during evaluation or the {@link ProjectEvaluationListener} instance representing the new batch of registered listeners
+     */
+    @Nullable
+    ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> action);
 }
