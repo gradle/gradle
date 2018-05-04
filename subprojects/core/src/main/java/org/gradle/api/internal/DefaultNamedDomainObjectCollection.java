@@ -262,7 +262,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             index.removePending(name);
             getStore().removePending(provider);
             // TODO - this isn't correct, assumes that a side effect is to add the element
-            return provider.get();
+            provider.get();
+            // Use the index here so we can apply any filters to the realized element
+            return index.get(name);
         }
         if (!applyRules(name)) {
             return null;
@@ -601,7 +603,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         @Override
         public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
-            // TODO not sure if we clean up the generics here and do less unchecked casting
+            // TODO not sure if we can clean up the generics here and do less unchecked casting
             Map<String, ProviderInternal<?>> delegateMap = (Map<String, ProviderInternal<?>>) delegate.getPendingAsMap();
             Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
