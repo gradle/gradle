@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -102,6 +103,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final ImmutableMetadataSources metadataSources;
     private final MetadataArtifactProvider metadataArtifactProvider;
 
+    private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
     private final Factory<ComponentMetadataVersionLister> providedVersionListerFactory;
 
     private String id;
@@ -116,6 +118,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                        ImmutableMetadataSources metadataSources,
                                        MetadataArtifactProvider metadataArtifactProvider,
+                                       Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                                        Factory<ComponentMetadataVersionLister> providedVersionListerFactory) {
         this.name = name;
         this.local = local;
@@ -126,6 +129,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataSources = metadataSources;
         this.metadataArtifactProvider = metadataArtifactProvider;
+        this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.providedVersionListerFactory = providedVersionListerFactory;
     }
 
@@ -199,7 +203,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
      * It's assumed that the result of such a call is authoritative.
      */
     private void tryListingViaRule(ModuleIdentifier module, BuildableModuleVersionListingResolveResult result) {
-        ComponentMetadataVersionLister versionLister = providedVersionListerFactory == null ? null : providedVersionListerFactory.create();
+        ComponentMetadataVersionLister versionLister = createVersionLister();
         if (versionLister != null) {
             versionLister.execute(new DefaultComponentVersionsLister(module, result));
         }
@@ -347,6 +351,18 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         invalidateCaches();
         artifactPatterns.clear();
         CollectionUtils.addAll(artifactPatterns, patterns);
+    }
+
+    @Override
+    public ComponentMetadataSupplier createMetadataSupplier() {
+        return componentMetadataSupplierFactory.create();
+    }
+
+    ComponentMetadataVersionLister createVersionLister() {
+        if (providedVersionListerFactory == null) {
+            return null;
+        }
+        return providedVersionListerFactory.create();
     }
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess {

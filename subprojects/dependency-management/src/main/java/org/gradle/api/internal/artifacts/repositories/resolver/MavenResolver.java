@@ -72,6 +72,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,
                          MavenMetadataLoader mavenMetadataLoader,
+                         Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory,
                          Factory<ComponentMetadataVersionLister> versionListerFactory) {
         super(name, transport.isLocal(),
             transport.getRepository(),
@@ -81,6 +82,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             moduleIdentifierFactory,
             metadataSources,
             metadataArtifactProvider,
+            componentMetadataSupplierFactory,
             versionListerFactory);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
@@ -200,15 +202,6 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteAccess;
-    }
-
-    public ComponentMetadataSupplier createMetadataSupplier() {
-        return null;
-    }
-
-    @Override
-    public ComponentMetadataVersionLister createVersionLister() {
-        return null;
     }
 
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {

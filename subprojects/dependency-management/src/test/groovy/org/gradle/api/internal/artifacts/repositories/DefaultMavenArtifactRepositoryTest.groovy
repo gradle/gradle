@@ -16,6 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ComponentMetadataListerDetails
+import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -32,6 +36,8 @@ import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import javax.inject.Inject
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
@@ -157,6 +163,120 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         repo instanceof MavenResolver
         repo.root == uri
+    }
+
+    def "can set a custom metadata rule"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        resolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport('http', 'name', _) >> transport()
+
+        given:
+        repository.setMetadataSupplier(CustomMetadataSupplier)
+
+        when:
+        def resolver = repository.createResolver()
+
+        then:
+        resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
+    }
+
+    def "can inject configuration into a custom metadata rule"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        resolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport('http', 'name', _) >> transport()
+
+        given:
+        repository.setMetadataSupplier(CustomMetadataSupplierWithParams) { it.params("a", 12, [1, 2, 3]) }
+
+        when:
+        def resolver = repository.createResolver()
+        def supplier = resolver.createMetadataSupplier()
+
+        then:
+        supplier instanceof CustomMetadataSupplierWithParams
+        supplier.s == "a"
+    }
+
+    def "can set a custom version lister"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        resolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport('http', 'name', _) >> transport()
+
+        given:
+        repository.setComponentVersionsLister(CustomVersionLister)
+
+        when:
+        def lister = repository.createResolver().createVersionLister()
+
+        then:
+        lister instanceof CustomVersionLister
+    }
+
+    def "can inject configuration into a custom version lister"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        resolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport('http', 'name', _) >> transport()
+
+        given:
+        repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
+
+        when:
+        def lister = repository.createResolver().createVersionLister()
+
+        then:
+        lister instanceof CustomVersionListerWithParams
+        lister.s == "a"
+    }
+
+    static class CustomVersionLister implements ComponentMetadataVersionLister {
+
+        @Override
+        void execute(ComponentMetadataListerDetails details) {
+        }
+    }
+
+    static class CustomVersionListerWithParams implements ComponentMetadataVersionLister {
+        String s
+        Number n
+        List<Integer> v
+
+        @Inject
+        CustomVersionListerWithParams(String s, Number n, List<Integer> v) {
+            this.s = s
+            this.n = n
+            this.v = v
+        }
+
+        @Override
+        void execute(ComponentMetadataListerDetails details) {
+        }
+    }
+
+    static class CustomMetadataSupplier implements ComponentMetadataSupplier {
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+        }
+    }
+
+    static class CustomMetadataSupplierWithParams implements ComponentMetadataSupplier {
+        String s
+        Number n
+        List<Integer> v
+
+        @Inject
+        CustomMetadataSupplierWithParams(String s, Number n, List<Integer> v) {
+            this.s = s
+            this.n = n
+            this.v = v
+        }
+
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+        }
     }
 
     private RepositoryTransport transport() {

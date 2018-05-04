@@ -40,8 +40,6 @@ import java.net.URI;
 public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetadata> implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
-    private final Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory;
-    private final Factory<ComponentMetadataVersionLister> componentMetadataListerFactory;
     private boolean m2Compatible;
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
@@ -56,9 +54,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        Factory<ComponentMetadataVersionLister> componentMetadataVersionListerFactory,
                        ImmutableMetadataSources repositoryContentFilter,
                        MetadataArtifactProvider metadataArtifactProvider) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider, componentMetadataVersionListerFactory);
-        this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
-        this.componentMetadataListerFactory = componentMetadataVersionListerFactory;
+        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, repositoryContentFilter, metadataArtifactProvider, componentMetadataSupplierFactory, componentMetadataVersionListerFactory);
         this.dynamicResolve = dynamicResolve;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
@@ -121,16 +117,6 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     @Override
     public ModuleComponentRepositoryAccess getRemoteAccess() {
         return remoteRepositoryAccess;
-    }
-
-    @Override
-    public ComponentMetadataSupplier createMetadataSupplier() {
-        return componentMetadataSupplierFactory.create();
-    }
-
-    @Override
-    public ComponentMetadataVersionLister createVersionLister() {
-        return componentMetadataListerFactory.create();
     }
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
