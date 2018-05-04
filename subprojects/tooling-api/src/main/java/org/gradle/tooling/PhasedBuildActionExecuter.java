@@ -76,7 +76,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsLoadedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
-     * It can be an empty collection to indicate that tasks should be run.
+     * Passing an empty collection will run the default tasks.
      * @return this
      */
     @Incubating
@@ -86,7 +86,7 @@ public interface PhasedBuildActionExecuter extends ConfigurableLauncher<PhasedBu
      * Specifies the tasks to execute before executing the BuildFinishedAction and after the ProjectsLoadedAction.
      *
      * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
-     * It can be an empty collection to indicate that tasks should be run.
+     * Passing an empty collection will run the default tasks.
      * @return this
      */
     @Incubating
