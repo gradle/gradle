@@ -22,7 +22,6 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 
 @RequiredFeatures([
     // we only need to check without experimental, it doesn't depend on this flag
@@ -837,7 +836,6 @@ group:projectB:2.2;release
         new SimpleSupplierInteractions()
     }
 
-    @Ignore("Component metadata rules are not yet wired after metadata suppliers")
     def "component metadata rules are executed after metadata supplier is called"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -884,7 +882,11 @@ group:projectB:2.2;release
 
         then:
         outputContains 'Providing metadata for group:projectB:1.1'
-        outputContains "Changing status for 'group:projectB:1.1' from 'should be overriden by rule' to 'release'"
+        // first one comes from the rule executed on shallow metadata, provided by a rule
+        outputContains "Changing status for group:projectB:1.1 from 'should be overriden by rule' to 'release'"
+
+        // second one comes from the rule executed on "real" metadata, after parsing the module
+        outputContains "Changing status for group:projectB:1.1 from '${GradleMetadataResolveRunner.useIvy()?'integration':'release'}' to 'release'"
     }
 
     def checkResolve(Map edges) {

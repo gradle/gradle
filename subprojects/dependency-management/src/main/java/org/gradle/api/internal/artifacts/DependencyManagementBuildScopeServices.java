@@ -295,7 +295,8 @@ class DependencyManagementBuildScopeServices {
             versionSelectorScheme,
             versionComparator,
             moduleIdentifierFactory,
-            repositoryBlacklister, versionParser);
+            repositoryBlacklister,
+            versionParser);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
