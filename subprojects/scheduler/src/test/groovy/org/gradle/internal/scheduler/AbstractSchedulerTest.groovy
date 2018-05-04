@@ -96,6 +96,34 @@ abstract class AbstractSchedulerTest extends Specification {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
+    def "finalizer tasks are executed if a finalized task is added to the graph"() {
+        def finalizer = task("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
+
+        expect:
+        executes finalized, finalizer
+    }
+
+    def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
+        def finalizer = task("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
+        def dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
+
+        expect:
+        executes finalized, finalizer, dependsOnFinalized
+    }
+
+    def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
+        def finalizerDependency = task("finalizerDependency")
+        def finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
+        def finalized1 = task("finalized1", finalizedBy: [finalizer1])
+        def finalizer2 = task("finalizer2")
+        def finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
+
+        expect:
+        executes finalized1, finalizerDependency, finalizer1, finalized2, finalizer2
+    }
+
     protected void executeGraph() {
         def scheduler = getScheduler()
         try {

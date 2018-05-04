@@ -40,6 +40,7 @@ public class DefaultScheduler implements Scheduler {
 
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
+    private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
     private final Graph graph;
     private final boolean continueOnFailure;
     private final WorkerPool workerPool;
@@ -52,33 +53,36 @@ public class DefaultScheduler implements Scheduler {
 
     @Override
     public void executeGraph() {
-        List<Event> eventsToProcess = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
+        connectFinalizerDependencies();
         while (graph.hasNodes()) {
-            // Schedule some work if we can
-            scheduleWork(graph.getRootNodes());
-
-            // Handle events
-            try {
-                // Wait for at least one event to arrive
-                Event event = eventQueue.take();
-                eventsToProcess.add(event);
-                // Make sure we take all available events
-                eventQueue.drainTo(eventsToProcess, EVENTS_TO_PROCESS_AT_ONCE - 1);
-            } catch (InterruptedException e) {
-                // TODO Handle execution aborted
-                throw new RuntimeException("Handle execution aborted");
-            }
-            for (Event event : eventsToProcess) {
-                System.out.printf("> Handling event %s%n", event);
-                event.handle(graph, runningNodes);
-            }
-            eventsToProcess.clear();
+            scheduleWork();
+            handleEvents();
         }
     }
 
-    private void scheduleWork(Iterable<Node> rootNodes) {
+    private void connectFinalizerDependencies() {
+        for (Edge edge : graph.getAllEdges()) {
+            if (edge.getType() != EdgeType.FINALIZER) {
+                continue;
+            }
+            final Set<Edge> edgesAddedFromFinalized = Sets.newHashSet();
+            final Node finalized = edge.getSource();
+            Node finalizer = edge.getTarget();
+            graph.walkIncomingEdgesFrom(finalizer, EdgeType.DEPENDENT, new Action<Node>() {
+                @Override
+                public void execute(Node finalizerDependency) {
+                    Edge finalizerDependencyConstraint = new Edge(finalized, finalizerDependency, EdgeType.AVOID_STARTING_BEFORE_FINALIZED);
+                    if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
+                        graph.addEdge(finalizerDependencyConstraint);
+                    }
+                }
+            });
+        }
+    }
+
+    private void scheduleWork() {
         boolean expectAvailableWorkers = true;
-        for (Node nodeToRun : rootNodes) {
+        for (Node nodeToRun : graph.getRootNodes()) {
             if (runningNodes.contains(nodeToRun)) {
                 continue;
             }
@@ -99,6 +103,24 @@ public class DefaultScheduler implements Scheduler {
                     throw new AssertionError();
             }
         }
+    }
+
+    private void handleEvents() {
+        try {
+            // Wait for at least one event to arrive
+            Event event = eventQueue.take();
+            eventsBeingProcessed.add(event);
+            // Make sure we take all available events
+            eventQueue.drainTo(eventsBeingProcessed, EVENTS_TO_PROCESS_AT_ONCE - 1);
+        } catch (InterruptedException e) {
+            // TODO Handle execution aborted
+            throw new RuntimeException("Handle execution aborted");
+        }
+        for (Event event : eventsBeingProcessed) {
+            System.out.printf("> Handling event %s%n", event);
+            event.handle(graph, runningNodes);
+        }
+        eventsBeingProcessed.clear();
     }
 
     /**

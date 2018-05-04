@@ -58,8 +58,7 @@ public class Graph {
         return ImmutableList.copyOf(Iterables.concat(rootNodes, incomingEdges.keySet()));
     }
 
-    @VisibleForTesting
-    List<Edge> getAllEdges() {
+    public List<Edge> getAllEdges() {
         return ImmutableList.copyOf(incomingEdges.values());
     }
 
@@ -109,6 +108,25 @@ public class Graph {
         Set<Node> nonRootNodes = incomingEdges.keySet();
         for (Node node : Lists.newArrayList(nonRootNodes)) {
             breakCycles(node, path, null, visitedNodes, cycleReporter);
+        }
+    }
+
+    public void walkIncomingEdgesFrom(Node start, EdgeType type, Action<? super Node> action) {
+        Deque<Node> queue = new ArrayDeque<Node>();
+        queue.add(start);
+        while (true) {
+            Node node = queue.poll();
+            if (node == null) {
+                break;
+            }
+            for (Edge incoming : Lists.newArrayList(incomingEdges.get(node))) {
+                if (incoming.getType() != type) {
+                    continue;
+                }
+                Node source = incoming.getSource();
+                action.execute(source);
+                queue.add(source);
+            }
         }
     }
 
