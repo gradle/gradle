@@ -48,31 +48,35 @@ You can run `gradle installDist` to assemble the uncompressed distribution into 
 
 The Distribution Plugin adds a number of tasks to your project, as shown below.
 
-`distZip(type: api:org.gradle.api.tasks.bundling.Zip[])`::
-_Creates a ZIP archive of the distribution contents._
+`distZip` — type: api:org.gradle.api.tasks.bundling.Zip[]::
+Creates a ZIP archive of the distribution contents.
 
-`distTar(type: api:org.gradle.api.Task[])`::
-_Creates a TAR archive of the distribution contents._
+`distTar` — type: api:org.gradle.api.Task[]::
+Creates a TAR archive of the distribution contents.
 
-`assembleDist(type: api:org.gradle.api.Task[])`::
-_Creates ZIP and TAR archives of the distribution contents._ Depends on the `distTar` and `distZip` tasks.
+`assembleDist` — type: api:org.gradle.api.Task[]::
+_Depends on_: `distTar`, `distZip`
++
+Creates ZIP and TAR archives of the distribution contents.
 
-`installDist(type: api:org.gradle.api.tasks.Sync[])`::
-_Assembles the distribution content and installs it on the current machine._
+`installDist` — type: api:org.gradle.api.tasks.Sync[]::
+Assembles the distribution content and installs it on the current machine.
 
-For each additional distribution you add to the project, the Distribution Plugin adds the following tasks:
+For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from api:org.gradle.api.distribution.Distribution#getName()[]:
 
-`__${distribution.name}__DistZip(type: api:org.gradle.api.tasks.bundling.Zip[])`::
-_Creates a ZIP archive of the distribution contents._
+`__distributionName__DistZip` — type: api:org.gradle.api.tasks.bundling.Zip[]::
+Creates a ZIP archive of the distribution contents.
 
-`__${distribution.name}__DistTar(type: api:org.gradle.api.tasks.bundling.Tar[])`::
-_Creates a TAR archive of the distribution contents._
+`__distributionName__DistTar` — type: api:org.gradle.api.tasks.bundling.Tar[]::
+Creates a TAR archive of the distribution contents.
 
-`assemble__${distribution.name.capitalize()}__Dist(type: api:org.gradle.api.Task[])`::
-_Creates ZIP and TAR archives of the distribution contents._ Depends on the `__${distribution.name}__DistTar` and `__${distribution.name}__DistZip` tasks.
+`assemble__DistributionName__Dist` — type: api:org.gradle.api.Task[]::
+_Depends on_: `__distributionName__DistTar`, `__distributionName__DistZip`
++
+Creates ZIP and TAR archives of the distribution contents.
 
-`install__${distribution.name.capitalize()}__Dist(type: api:org.gradle.api.tasks.Sync[])`::
-_Assembles the distribution content and installs it on the current machine._
+`install__DistributionName__Dist` — type: api:org.gradle.api.tasks.Sync[]::
+Assembles the distribution content and installs it on the current machine.
 
 The following sample creates a `custom` distribution that will cause four additional tasks to be added to the project: `customDistZip`, `customDistTar`, `assembleCustomDist`, and `installCustomDist`:
 
