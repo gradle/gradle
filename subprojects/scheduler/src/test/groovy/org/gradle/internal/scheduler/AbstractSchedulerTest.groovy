@@ -34,6 +34,7 @@ abstract class AbstractSchedulerTest extends Specification {
         }
     }
 
+    def cycleReporter = Mock(CycleReporter)
     abstract Scheduler getScheduler()
 
     def "schedules tasks in dependency order"() {
@@ -124,17 +125,17 @@ abstract class AbstractSchedulerTest extends Specification {
         executes finalized1, finalizerDependency, finalizer1, finalized2, finalizer2
     }
 
-    protected void executeGraph() {
+    protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()
         try {
-            scheduler.executeGraph()
+            scheduler.execute(graph, entryNodes)
         } finally {
             scheduler.close()
         }
     }
 
     protected void executes(Node... nodes) {
-        executeGraph()
+        executeGraph(graph.allNodes)
         assert executedNodes == (nodes as List)
     }
 

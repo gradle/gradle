@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -41,26 +42,32 @@ public class DefaultScheduler implements Scheduler {
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
-    private final Graph graph;
     private final boolean continueOnFailure;
     private final WorkerPool workerPool;
+    private final CycleReporter cycleReporter;
 
-    public DefaultScheduler(Graph graph, boolean continueOnFailure, WorkerPool workerPool) {
-        this.graph = graph;
+    public DefaultScheduler(boolean continueOnFailure, WorkerPool workerPool, CycleReporter cycleReporter) {
         this.continueOnFailure = continueOnFailure;
         this.workerPool = workerPool;
+        this.cycleReporter = cycleReporter;
     }
 
     @Override
-    public void executeGraph() {
-        connectFinalizerDependencies();
+    public void execute(Graph graph, Collection<Node> entryNodes) {
+        Graph liveGraph = graph.retainLiveNodes(entryNodes);
+        connectFinalizerDependencies(liveGraph);
+        liveGraph.breakCycles(cycleReporter);
+        executeLiveGraph(liveGraph);
+    }
+
+    private void executeLiveGraph(Graph graph) {
         while (graph.hasNodes()) {
-            scheduleWork();
-            handleEvents();
+            scheduleWork(graph);
+            handleEvents(graph);
         }
     }
 
-    private void connectFinalizerDependencies() {
+    private void connectFinalizerDependencies(final Graph graph) {
         for (Edge edge : graph.getAllEdges()) {
             if (edge.getType() != EdgeType.FINALIZER) {
                 continue;
@@ -80,7 +87,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void scheduleWork() {
+    private void scheduleWork(Graph graph) {
         boolean expectAvailableWorkers = true;
         for (Node nodeToRun : graph.getRootNodes()) {
             if (runningNodes.contains(nodeToRun)) {
@@ -90,14 +97,14 @@ public class DefaultScheduler implements Scheduler {
                 case RUNNABLE:
                 case MUST_RUN:
                     if (expectAvailableWorkers) {
-                        if (!tryRunNode(nodeToRun)) {
+                        if (!tryRunNode(graph, runningNodes, nodeToRun)) {
                             expectAvailableWorkers = false;
                         }
                     }
                     break;
                 case CANCELLED:
                 case FAILED:
-                    handleNodeSkipped(nodeToRun);
+                    handleNodeSkipped(graph, nodeToRun);
                     break;
                 default:
                     throw new AssertionError();
@@ -105,7 +112,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void handleEvents() {
+    private void handleEvents(Graph graph) {
         try {
             // Wait for at least one event to arrive
             Event event = eventQueue.take();
@@ -127,7 +134,7 @@ public class DefaultScheduler implements Scheduler {
      * Tries to run the given node.
      * @return whether the operation was successful.
      */
-    private boolean tryRunNode(final Node nodeToRun) {
+    private boolean tryRunNode(Graph graph, Set<Node> runningNodes, final Node nodeToRun) {
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
                 System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
@@ -193,7 +200,7 @@ public class DefaultScheduler implements Scheduler {
         return true;
     }
 
-    private void handleNodeSkipped(Node skippedNode) {
+    private static void handleNodeSkipped(Graph graph, Node skippedNode) {
         // TODO Report node status as SKIPPED
         // TODO Handle remaining incoming edges when suspended node is skipped
         graph.removeNodeWithOutgoingEdges(skippedNode, new Action<Edge>() {

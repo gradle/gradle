@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
@@ -101,7 +102,7 @@ public class Graph {
         }
     }
 
-    public void breakCycles(CycleReporter cycleReporter) {
+    public void breakCycles(CycleReporter cycleReporter) throws CircularReferenceException {
         Set<Node> visitedNodes = Sets.newHashSet();
         Set<Node> path = Sets.newLinkedHashSet();
 
@@ -111,7 +112,7 @@ public class Graph {
         }
     }
 
-    public void walkIncomingEdgesFrom(Node start, EdgeType type, Action<? super Node> action) {
+    public void walkIncomingEdgesFrom(Node start, EdgeType type, Action<? super Node> action) throws CircularReferenceException  {
         Deque<Node> queue = new ArrayDeque<Node>();
         queue.add(start);
         while (true) {
@@ -128,6 +129,43 @@ public class Graph {
                 queue.add(source);
             }
         }
+    }
+
+    /**
+     * Creates a new graph with only the nodes available from the given entry nodes via
+     * {@link EdgeType#DEPENDENT} and {@link EdgeType#FINALIZER} edges.
+     */
+    public Graph retainLiveNodes(Collection<Node> entryNodes) {
+        Set<Node> liveNodes = Sets.newLinkedHashSet();
+        Graph liveGraph = new Graph();
+        Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
+        while (true) {
+            Node node = queue.poll();
+            if (node == null) {
+                break;
+            }
+            if (!liveNodes.add(node)) {
+                continue;
+            }
+            liveGraph.addNode(node);
+            for (Edge incoming : incomingEdges.get(node)) {
+                if (incoming.getType() == EdgeType.DEPENDENT) {
+                    queue.add(incoming.getSource());
+                }
+            }
+            for (Edge outgoing : outgoingEdges.get(node)) {
+                if (outgoing.getType() == EdgeType.FINALIZER) {
+                    queue.add(outgoing.getTarget());
+                }
+            }
+        }
+        for (Edge edge : incomingEdges.values()) {
+            if (liveNodes.contains(edge.getSource())
+                && liveNodes.contains(edge.getTarget())) {
+                liveGraph.addEdge(edge);
+            }
+        }
+        return liveGraph;
     }
 
     private void breakCycles(Node node, final Set<Node> path, @Nullable Edge lastRemovableEdge, Set<Node> visitedNodes, CycleReporter cycleReporter) {

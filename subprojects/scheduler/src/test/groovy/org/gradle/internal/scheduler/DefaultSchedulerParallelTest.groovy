@@ -20,7 +20,7 @@ import com.google.common.collect.Sets
 
 class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(graph, false, new ParallelWorkerPool(4))
+    Scheduler scheduler = new DefaultScheduler(false, new ParallelWorkerPool(4), cycleReporter)
 
     def "schedules many tasks at once"() {
         given:
@@ -53,7 +53,7 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
     }
 
     void executesBatches(List<Node>... batches) {
-        executeGraph()
+        executeGraph(graph.allNodes)
         def actualNodes = new ArrayDeque<Node>(executedNodes)
         def expectedBatches = new ArrayDeque<List<Node>>(batches as List)
         while (!expectedBatches.isEmpty()) {

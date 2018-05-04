@@ -22,6 +22,7 @@ import spock.lang.Specification
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
+import static org.gradle.internal.scheduler.EdgeType.FINALIZER
 
 class GraphTest extends Specification {
     def graph = new Graph()
@@ -209,6 +210,95 @@ class GraphTest extends Specification {
         graph.allNodes as Set == ([a, b, c, d]) as Set
         graph.rootNodes == [c]
         graph.allEdges == [ab, cd, ca, da]
+    }
+
+    def "retains no live nodes when no entry nodes are given"() {
+        addNode("a")
+        addNode("b")
+
+        when:
+        def live = graph.retainLiveNodes([])
+
+        then:
+        live.allNodes == []
+        live.rootNodes == []
+        live.allEdges == []
+    }
+
+    def "ignores dead node"() {
+        def a = addNode("a")
+        addNode("b")
+
+        when:
+        def live = graph.retainLiveNodes([a])
+
+        then:
+        live.allNodes == [a]
+        live.rootNodes == [a]
+        live.allEdges == []
+    }
+
+    def "retains dependency"() {
+        def a = addNode("a")
+        def b = addNode("b")
+        def ab = addEdge(a, b, DEPENDENT)
+
+        when:
+        def live = graph.retainLiveNodes([b])
+
+        then:
+        live.allNodes == [a, b]
+        live.rootNodes == [a]
+        live.allEdges == [ab]
+    }
+
+    def "retains finalizer"() {
+        def finalized = addNode("finalized")
+        def finalizer = addNode("finalizer")
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
+
+        when:
+        def live = graph.retainLiveNodes([finalized])
+
+        then:
+        live.allNodes == [finalized, finalizer]
+        live.rootNodes == [finalized]
+        live.allEdges == [finalizerEdge]
+    }
+
+    def "retains finalizer dependencies"() {
+        def finalized = addNode("finalized")
+        def finalizer = addNode("finalizer")
+        def finalizerDependency = addNode("finalizerDependency")
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
+        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENT)
+
+        when:
+        def live = graph.retainLiveNodes([finalized])
+
+        then:
+        live.allNodes == [finalized, finalizerDependency, finalizer]
+        live.rootNodes == [finalized, finalizerDependency]
+        live.allEdges == [finalizerEdge, finalizerDependentEdge]
+    }
+
+
+    def "retains finalizer of finalizer dependencies"() {
+        def finalized = addNode("finalized")
+        def finalizer = addNode("finalizer")
+        def finalizerDependency = addNode("finalizerDependency")
+        def finalizerDependencyFinalizer = addNode("finalizerDependencyFinalizer")
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
+        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENT)
+        def finalizerDependencyFinalizerEdge = addEdge(finalizerDependency, finalizerDependencyFinalizer, FINALIZER)
+
+        when:
+        def live = graph.retainLiveNodes([finalized])
+
+        then:
+        live.allNodes == [finalized, finalizerDependency, finalizer, finalizerDependencyFinalizer]
+        live.rootNodes == [finalized, finalizerDependency]
+        live.allEdges == [finalizerEdge, finalizerDependentEdge, finalizerDependencyFinalizerEdge]
     }
 
     private Node addNode(String name) {
