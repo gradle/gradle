@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -42,15 +43,15 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
     }
 
     @Override
-    public void add(Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
+    public void add(final Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
         DefaultActionConfiguration configuration = new DefaultActionConfiguration();
         configureAction.execute(configuration);
-        this.rules.add(new InstantiatingAction<T>(rule, configuration.getParams(), instantiator));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(rule, configuration.getParams(), instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
-        this.rules.add(new InstantiatingAction<T>(rule, NO_PARAMS, instantiator));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(rule, NO_PARAMS, instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override
@@ -80,27 +81,21 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         return !rules.isEmpty();
     }
 
-    private static class InstantiatingAction<T> implements Action<MultipleCandidatesDetails<T>> {
-        private final Class<? extends AttributeDisambiguationRule<T>> rule;
-        private final Object[] params;
-        private final Instantiator instantiator;
+    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {
 
-        InstantiatingAction(Class<? extends AttributeDisambiguationRule<T>> rule, Object[] params, Instantiator instantiator) {
+        private final Class<? extends AttributeDisambiguationRule<T>> rule;
+
+        private ExceptionHandler(Class<? extends AttributeDisambiguationRule<T>> rule) {
+
             this.rule = rule;
-            this.params = params;
-            this.instantiator = instantiator;
         }
 
         @Override
-        public void execute(MultipleCandidatesDetails<T> details) {
-            try {
-                AttributeDisambiguationRule<T> instance = instantiator.newInstance(rule, params);
-                instance.execute(details);
-            } catch (Throwable t) {
-                Set<T> orderedValues = Sets.newTreeSet(Ordering.usingToString());
-                orderedValues.addAll(details.getCandidateValues());
-                throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", orderedValues, ModelType.of(rule).getDisplayName()), t);
-            }
+        public void handleException(MultipleCandidatesDetails<T> details, Throwable throwable) {
+            Set<T> orderedValues = Sets.newTreeSet(Ordering.usingToString());
+            orderedValues.addAll(details.getCandidateValues());
+            throw new AttributeMatchException(String.format("Could not select value from candidates %s using %s.", orderedValues, ModelType.of(rule).getDisplayName()), throwable);
         }
+
     }
 }
