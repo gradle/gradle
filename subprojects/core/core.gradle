@@ -50,6 +50,7 @@ dependencies {
     api libraries.inject.coordinates
 
     implementation project(":modelGroovy")
+    implementation project(":scheduler")
     implementation libraries.asm.coordinates
     implementation libraries.asm_commons.coordinates
     implementation libraries.slf4j_api.coordinates
@@ -94,6 +95,7 @@ testFixtures {
     from(':modelCore')
     from(':logging')
     from(':baseServices')
+    from(':scheduler')
 }
 
 test {

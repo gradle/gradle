@@ -16,16 +16,17 @@
 
 package org.gradle.internal.scheduler
 
-import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.api.Task
+import org.gradle.api.specs.Spec
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
 import static org.gradle.internal.scheduler.EdgeType.FINALIZER
 import static org.gradle.internal.scheduler.EdgeType.MUST_RUN_AFTER
 
-abstract class AbstractSchedulerTest extends Specification {
+abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     def graph = new Graph()
+    def nodesToExecute = []
     def executedNodes = []
     def executionTracker = new NodeExecutionTracker() {
         @Override
@@ -37,94 +38,6 @@ abstract class AbstractSchedulerTest extends Specification {
     def cycleReporter = Mock(CycleReporter)
     abstract Scheduler getScheduler()
 
-    def "schedules tasks in dependency order"() {
-        given:
-        def a = task("a")
-        def b = task("b", dependsOn: [a])
-        def c = task("c", dependsOn: [b, a])
-        def d = task("d", dependsOn: [c])
-
-        expect:
-        executes a, b, c, d
-    }
-
-    def "schedules task dependencies in name order when there are no dependencies between them"() {
-        given:
-        def a = task("a")
-        def b = task("b")
-        def c = task("c")
-        def d = task("d", dependsOn: [b, a, c])
-
-        expect:
-        executes a, b, c, d
-    }
-
-    @Unroll
-    def "schedules #orderingRule task dependencies in name order"() {
-        given:
-        def a = task("a")
-        def b = task("b")
-        def c = task("c", (orderingRule): [b, a])
-        def d = task("d", dependsOn: [b, a])
-
-        expect:
-        executes a, b, c, d
-
-        where:
-        orderingRule << ['mustRunAfter', 'shouldRunAfter']
-    }
-
-    def "all dependencies scheduled when adding tasks"() {
-        def a = task("a")
-        def b = task("b", dependsOn: [a])
-        def c = task("c", dependsOn: [b, a])
-        def d = task("d", dependsOn: [c])
-
-        expect:
-        executes a, b, c, d
-    }
-
-    @Unroll
-    def "#orderingRule ordering is honoured for dependencies"() {
-        def b = task("b")
-        def a = task("a", (orderingRule): [b])
-        def c = task("c", dependsOn: [a, b])
-
-        expect:
-        executes b, a, c
-
-        where:
-        orderingRule << ['mustRunAfter', 'shouldRunAfter']
-    }
-
-    def "finalizer tasks are executed if a finalized task is added to the graph"() {
-        def finalizer = task("finalizer")
-        def finalized = task("finalized", finalizedBy: [finalizer])
-
-        expect:
-        executes finalized, finalizer
-    }
-
-    def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
-        def finalizer = task("finalizer")
-        def finalized = task("finalized", finalizedBy: [finalizer])
-        def dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
-
-        expect:
-        executes finalized, finalizer, dependsOnFinalized
-    }
-
-    def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
-        def finalizerDependency = task("finalizerDependency")
-        def finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
-        def finalized1 = task("finalized1", finalizedBy: [finalizer1])
-        def finalizer2 = task("finalizer2")
-        def finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
-
-        expect:
-        executes finalized1, finalizerDependency, finalizer1, finalized2, finalizer2
-    }
-
     protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()
         try {
@@ -134,32 +47,79 @@ abstract class AbstractSchedulerTest extends Specification {
         }
     }
 
-    protected void executes(Node... nodes) {
-        executeGraph(graph.allNodes)
+    @Override
+    protected void addToGraph(List tasks) {
+        nodesToExecute.addAll(tasks)
+    }
+
+    @Override
+    protected void determineExecutionPlan() {
+    }
+
+    @Override
+    protected void executes(Object... nodes) {
+        executeGraph(nodesToExecute.empty ? graph.allNodes : nodesToExecute)
         assert executedNodes == (nodes as List)
     }
 
-    protected TaskNode task(String name) {
-        task([:], name)
+    @Override
+    protected List getExecutedTasks() {
+        return executedNodes
     }
 
+    @Override
+    protected createTask(String name) {
+        task(name)
+    }
+
+    @Override
     protected TaskNode task(Map options, String name) {
         String project = options.project ?: "root"
         boolean failure = options.failure ?: false
         def task = new TaskNode(project, name, executionTracker, failure)
         graph.addNode(task)
+        relationships(options, task)
+        return task
+    }
+
+    @Override
+    protected void relationships(Map options, def task) {
         options.dependsOn?.each { TaskNode dependency ->
-            graph.addEdge(new Edge(dependency, task, DEPENDENT))
+            graph.addEdge(new Edge(dependency, task as TaskNode, DEPENDENT))
         }
         options.mustRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task, MUST_RUN_AFTER))
+            graph.addEdge(new Edge(predecessor, task as TaskNode, MUST_RUN_AFTER))
         }
         options.shouldRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task, AVOID_STARTING_BEFORE))
+            graph.addEdge(new Edge(predecessor, task as TaskNode, AVOID_STARTING_BEFORE))
         }
         options.finalizedBy?.each { TaskNode finalizer ->
-            graph.addEdge(new Edge(task, finalizer, FINALIZER))
+            graph.addEdge(new Edge(task as TaskNode, finalizer, FINALIZER))
         }
-        return task
+    }
+
+    @Override
+    protected void filtered(Object... expectedTasks) {
+
+    }
+
+    @Override
+    protected filteredTask(String name) {
+        return null
+    }
+
+    @Override
+    protected void useFilter(Spec<? super Task> filter) {
+
+    }
+
+    @Override
+    protected void awaitCompletion() {
+
+    }
+
+    @Override
+    protected void ignoreFailureFor(Object node) {
+
     }
 }
