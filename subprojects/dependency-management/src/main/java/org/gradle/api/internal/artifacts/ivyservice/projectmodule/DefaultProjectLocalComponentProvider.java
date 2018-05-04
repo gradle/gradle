@@ -69,7 +69,6 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         if (!isLocalProject(projectIdentifier)) {
             return null;
         }
-        Object result;
         try {
             return projects.get(projectIdentifier);
         } catch (ExecutionException e) {
