@@ -28,9 +28,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
+import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
+import static org.gradle.internal.scheduler.NodeState.FAILED;
 import static org.gradle.internal.scheduler.NodeState.MUST_RUN;
 import static org.gradle.internal.scheduler.NodeState.RUNNABLE;
 
@@ -125,7 +127,7 @@ public class DefaultScheduler implements Scheduler {
         }
         for (Event event : eventsBeingProcessed) {
             System.out.printf("> Handling event %s%n", event);
-            event.handle(graph, runningNodes);
+            event.handle(graph);
         }
         eventsBeingProcessed.clear();
     }
@@ -217,5 +219,93 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public void close() {
         workerPool.close();
+    }
+
+    private abstract class Event {
+        protected final Node node;
+
+        protected Event(Node node) {
+            this.node = node;
+        }
+
+        public final void handle(Graph graph) {
+            runningNodes.remove(node);
+            handleGraphChanges(graph);
+        }
+
+        protected abstract void handleGraphChanges(Graph graph);
+    }
+
+    private class NodeFinishedEvent extends Event {
+        public NodeFinishedEvent(Node node) {
+            super(node);
+        }
+
+        @Override
+        protected void handleGraphChanges(Graph graph) {
+            switch (node.getState()) {
+                case RUNNABLE:
+                case MUST_RUN:
+                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                        @Override
+                        public void execute(Edge edge) {
+                            Node target = edge.getTarget();
+                            if (target.getState() == CANCELLED) {
+                                target.setState(RUNNABLE);
+                            }
+                        }
+                    });
+                    break;
+                case CANCELLED:
+                    // TODO Handle remaining incoming edges when suspended node is skipped
+                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                        @Override
+                        public void execute(Edge outgoing) {
+                            Node target = outgoing.getTarget();
+                            if (target.getState() == RUNNABLE) {
+                                target.setState(CANCELLED);
+                            }
+                        }
+                    });
+                    break;
+                case FAILED:
+                    // TODO Cancel everything if `--continue` is not enabled
+                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                        @Override
+                        public void execute(Edge outgoing) {
+                            if (outgoing.getType() == EdgeType.DEPENDENT) {
+                                outgoing.getTarget().setState(FAILED);
+                            }
+                        }
+                    });
+                    break;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("FINISHED %s (%s)", node, node.getState());
+        }
+    }
+
+    private class NodeSuspendedEvent extends Event {
+        public NodeSuspendedEvent(Node node) {
+            super(node);
+        }
+
+        @Override
+        protected void handleGraphChanges(Graph graph) {
+            graph.processOutgoingEdges(node, new Graph.EdgeAction() {
+                @Override
+                public Graph.EdgeActionResult process(Edge edge) {
+                    return edge.getType() == MUST_NOT_RUN_WITH ? REMOVE : KEEP;
+                }
+            });
+        }
+
+        @Override
+        public String toString() {
+            return String.format("SUSPENDED %s (%s)", node, node.getState());
+        }
     }
 }
