@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.ivy
+package org.gradle.integtests.resolve.suppliers
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Unroll
 
 @RequiredFeatures([
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
     // we only need to check without experimental, it doesn't depend on this flag
     @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
     // we only need to check without Gradle metadata, it doesn't matter either
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
 ])
-class IvyCustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
+class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
     void "can list versions without hitting repository"() {
         withLister([testA: [1, 2, 3]])
         given:
@@ -83,7 +83,7 @@ class IvyCustomVersionListerIntegrationTest extends AbstractModuleDependencyReso
     }
 
     void "doesn't fallback to repository listing when empty list version is returned"() {
-        withLister([testA:[]])
+        withLister([testA: []])
         given:
         buildFile << """
             dependencies {
@@ -129,8 +129,17 @@ class IvyCustomVersionListerIntegrationTest extends AbstractModuleDependencyReso
         succeeds 'checkDeps'
     }
 
-    void "caches version listing"() {
-        withLister([testA: [1, 2, 3]], true)
+    @Unroll
+    void "caches version listing using #lister lister"() {
+        ListerInteractions listerInteractions
+        switch (lister) {
+            case 'simple':
+                listerInteractions = withLister(modules, true)
+                break;
+            default:
+                listerInteractions = withExternalResourceLister(modules, true)
+                break;
+        }
         given:
         repository {
             'org:testA:1'()
@@ -156,11 +165,6 @@ class IvyCustomVersionListerIntegrationTest extends AbstractModuleDependencyReso
         resetExpectations()
 
         when:
-        repositoryInteractions {
-            'org:testA:3' {
-                allowAll()
-            }
-        }
         succeeds 'checkDeps'
 
         then:
@@ -169,18 +173,25 @@ class IvyCustomVersionListerIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            'org:testA:3' {
-                allowAll()
+            "org:testA:3" {
+                expectHeadMetadata()
+                expectHeadArtifact()
             }
         }
+        listerInteractions.expectRefresh('testA')
         succeeds 'checkDeps', '--refresh-dependencies'
 
         then:
         outputContains("Listing versions for module testA")
+
+        where:
+        lister               | modules
+        'simple'             | [testA: [1, 2, 3]]
+        'file on repository' | [testA: [1, 2, 3]]
     }
 
 
-    private void withLister(Map<String, List<String>> moduleToVersions, boolean logQueries=false) {
+    private ListerInteractions withLister(Map<String, List<String>> moduleToVersions, boolean logQueries = false) {
         metadataListerClass = 'MyLister'
         def listing = moduleToVersions.collect { k, v ->
             "                    if (name=='$k') { details.listed([${v.collect { "'$it'" }.join(',')}]) }"
@@ -194,7 +205,64 @@ $listing
                 }
             }
         """
+        new SimpleListerInteractions()
+    }
 
+    private ListerInteractions withExternalResourceLister(Map<String, List<String>> moduleToVersions, boolean logQueries = false) {
+        metadataListerClass = 'MyLister'
+        buildFile << """
+            class MyLister implements ComponentMetadataVersionLister {
+
+                final RepositoryResourceAccessor repositoryResourceAccessor
+            
+                @javax.inject.Inject
+                MyLister(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+
+                void execute(ComponentMetadataListerDetails details) {
+                    def id = details.moduleIdentifier
+                    if ($logQueries) { println("Listing versions for module \$id.name") }
+                    repositoryResourceAccessor.withResource("\${id.group}/\${id.name}/versions.txt") {
+                        def versions = (new String(it.bytes)).split(',') as List
+                        details.listed(versions)
+                    }
+                }
+            }
+        """
+        def files = [:]
+        moduleToVersions.each { module, versions ->
+            def file = temporaryFolder.createFile("versions-${module}.txt")
+            file << versions.join(',')
+            files[module] = file
+            server.allowGetOrHead("/repo/org/$module/versions.txt", file)
+        }
+        new ExternalResourceListerInteractions(files)
+    }
+
+    interface ListerInteractions {
+        void expectRefresh(String... modules)
+    }
+
+    class SimpleListerInteractions implements ListerInteractions {
+
+        @Override
+        void expectRefresh(String... modules) {
+
+        }
+    }
+
+    class ExternalResourceListerInteractions implements ListerInteractions {
+        private final Map<String, File> files
+
+        ExternalResourceListerInteractions(Map<String, File> files) {
+            this.files = files
+        }
+
+        @Override
+        void expectRefresh(String... modules) {
+            modules.each {
+                server.expectHead("/repo/org/$it/versions.txt", files[it])
+            }
+        }
     }
 
 
