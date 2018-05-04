@@ -926,7 +926,7 @@ group:projectB:2.2;release
 
         private File expectGetStatusOf(String path, String status, boolean broken) {
             def file = temporaryFolder.createFile("cheap-${path.replace('/', '_')}.status")
-            file << status
+            file.text = status
             if (!broken) {
                 server.expectGet("/repo/${path}/status.txt", file)
             } else {
