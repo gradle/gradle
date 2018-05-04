@@ -269,13 +269,6 @@ You can specify where the generated Ivy file will be located by setting the `des
 </sample>
 ++++
 
-[NOTE]
-====
-The “`ivy-publish`” plugin leverages some experimental support for late plugin configuration, and the `GenerateIvyDescriptor` task will not be constructed until the publishing extension is configured. The simplest way to ensure that the publishing plugin is configured when you attempt to access the `GenerateIvyDescriptor` task is to place the access inside a `model` block, as the example above demonstrates.
-
-The same applies to any attempt to access publication-specific tasks like api:org.gradle.api.publish.ivy.tasks.PublishToIvyRepository[]. These tasks should be referenced from within a `model` block.
-====
-
 
 [[publishing_ivy:example]]
 === Complete example

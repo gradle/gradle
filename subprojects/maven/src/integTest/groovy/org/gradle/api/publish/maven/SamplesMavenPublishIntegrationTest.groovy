@@ -85,23 +85,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         module.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2")
     }
 
-    @UsesSample("maven-publish/pomCustomization")
-    def pomCustomization() {
-        given:
-        sample sampleProject
-
-        and:
-        def fileRepo = maven(sampleProject.dir.file("build/repo"))
-        def module = fileRepo.module("org.gradle.sample", "pomCustomization", "1.0")
-
-        when:
-        succeeds "publish"
-
-        then:
-        module.assertPublishedAsPomModule()
-        module.parsedPom.description == "A demonstration of maven POM customization"
-    }
-
     @UsesSample("maven-publish/multiple-publications")
     def multiplePublications() {
         given:
@@ -207,6 +190,20 @@ class SamplesMavenPublishIntegrationTest extends AbstractIntegrationSpec {
         and:
         module.assertPublished()
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "${artifactId}-${version}.pom"
+    }
+
+    @UsesSample("maven-publish/pomGeneration")
+    def pomGeneration() {
+        given:
+        sample sampleProject
+
+        when:
+        succeeds "generatePomFileForMavenCustomPublication"
+
+        then:
+        def pom = sampleProject.dir.file("build/generated-pom.xml").assertExists()
+        def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
+        parsedPom.name == "Example"
     }
 
     private void verifyPomFile(MavenFileModule module, String outputFileName) {
