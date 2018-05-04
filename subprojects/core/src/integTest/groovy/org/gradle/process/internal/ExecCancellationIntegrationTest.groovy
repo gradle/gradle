@@ -73,7 +73,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
     }
 
     @Unroll
-    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled"() {
+    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''
         blockCode()
@@ -92,6 +92,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
             task exec(type: MyJavaExec) {
                 classpath = sourceSets.main.output
                 main = 'Block'
+                ignoreExitValue = ${ignoreExitValue}
             }
         """
 
@@ -99,7 +100,11 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         assertTaskGetsRerun('exec', buildCacheEnabled)
 
         where:
-        buildCacheEnabled << [true, false]
+        buildCacheEnabled | ignoreExitValue
+        true              | true
+        true              | false
+        false             | true
+        false             | false
     }
 
     String fileToPath(File file) {
