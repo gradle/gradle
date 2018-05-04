@@ -63,6 +63,16 @@ public class Graph {
         return ImmutableList.copyOf(incomingEdges.values());
     }
 
+    @VisibleForTesting
+    Collection<Edge> getIncomingEdges(Node target) {
+        return incomingEdges.get(target);
+    }
+
+    @VisibleForTesting
+    Collection<Edge> getOutgoingEdges(Node source) {
+        return outgoingEdges.get(source);
+    }
+
     public Iterable<Node> getRootNodes() {
         return ImmutableList.copyOf(rootNodes);
     }
@@ -172,9 +182,8 @@ public class Graph {
         if (!path.add(node)) {
             // We have a cycle
             if (lastRemovableEdge == null) {
-                Deque<Node> nodes = new ArrayDeque<Node>(path);
-                //nodes.addFirst(nodes.removeLast());
-                throw new CircularReferenceException(cycleReporter.reportCycle(Lists.reverse(ImmutableList.copyOf(nodes))));
+                String message = cycleReporter.reportCycle(path);
+                throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", message));
             } else {
                 // TODO ignore the part of the path from here on that is before the removed edge's target node
                 LOGGER.debug("Removing edge {}", lastRemovableEdge);

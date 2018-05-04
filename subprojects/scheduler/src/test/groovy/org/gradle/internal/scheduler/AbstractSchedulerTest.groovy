@@ -16,8 +16,13 @@
 
 package org.gradle.internal.scheduler
 
+import com.google.common.collect.Lists
 import org.gradle.api.Task
 import org.gradle.api.specs.Spec
+import org.gradle.internal.graph.DirectedGraph
+import org.gradle.internal.graph.DirectedGraphRenderer
+import org.gradle.internal.graph.GraphNodeRenderer
+import org.gradle.internal.logging.text.StyledTextOutput
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
@@ -35,7 +40,45 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
         }
     }
 
-    def cycleReporter = Mock(CycleReporter)
+    def cycleReporter = new CycleReporter() {
+        @Override
+        String reportCycle(Collection<Node> cycle) {
+            def sortedCycle = Lists.newArrayList(cycle)
+            Collections.sort(sortedCycle) { a, b ->
+                def result = a.project <=> b.project
+                if (result != 0) {
+                    return result
+                }
+                return a.name <=> b.name
+            }
+            DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<Node>(new GraphNodeRenderer<Node>() {
+                @Override
+                void renderTo(Node node, StyledTextOutput output) {
+                    output.withStyle(StyledTextOutput.Style.Identifier).text(node);
+                }
+            }, new DirectedGraph<Node, Object>() {
+                @Override
+                void getNodeValues(Node node, Collection<? super Object> values, Collection<? super Node> connectedNodes) {
+                    for (Node dependency : sortedCycle) {
+                        for (Edge incoming : graph.getIncomingEdges(node)) {
+                            if (incoming.getType() == DEPENDENT && incoming.getSource() == dependency) {
+                                connectedNodes.add(dependency)
+                            }
+                        }
+                        for (Edge outgoing : graph.getOutgoingEdges(node)) {
+                            if (outgoing.getType() == FINALIZER && outgoing.getTarget() == dependency) {
+                                connectedNodes.add(dependency)
+                            }
+                        }
+                    }
+                }
+            });
+            StringWriter writer = new StringWriter();
+            def firstNode = sortedCycle.get(0)
+            graphRenderer.renderTo(firstNode, writer);
+            return writer.toString()
+        }
+    }
     abstract Scheduler getScheduler()
 
     protected void executeGraph(List<Node> entryNodes) {
@@ -54,11 +97,11 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void determineExecutionPlan() {
+        executeGraph(nodesToExecute.empty ? graph.allNodes : nodesToExecute)
     }
 
     @Override
     protected void executes(Object... nodes) {
-        executeGraph(nodesToExecute.empty ? graph.allNodes : nodesToExecute)
         assert executedNodes == (nodes as List)
     }
 
@@ -74,7 +117,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected TaskNode task(Map options, String name) {
-        String project = options.project ?: "root"
+        String project = options.project ?: ""
         boolean failure = options.failure ?: false
         def task = new TaskNode(project, name, executionTracker, failure)
         graph.addNode(task)

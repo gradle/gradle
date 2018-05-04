@@ -50,8 +50,8 @@ class TaskNode extends Node {
 
         TaskNode that = (TaskNode) o
 
-        if (name != that.name) return false
         if (project != that.project) return false
+        if (name != that.name) return false
 
         return true
     }

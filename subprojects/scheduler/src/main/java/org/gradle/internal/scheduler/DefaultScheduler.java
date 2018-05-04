@@ -106,7 +106,7 @@ public class DefaultScheduler implements Scheduler {
                     break;
                 case CANCELLED:
                 case FAILED:
-                    handleNodeSkipped(graph, nodeToRun);
+                    eventQueue.add(new NodeFinishedEvent(nodeToRun));
                     break;
                 default:
                     throw new AssertionError();
@@ -202,20 +202,6 @@ public class DefaultScheduler implements Scheduler {
         return true;
     }
 
-    private static void handleNodeSkipped(Graph graph, Node skippedNode) {
-        // TODO Report node status as SKIPPED
-        // TODO Handle remaining incoming edges when suspended node is skipped
-        graph.removeNodeWithOutgoingEdges(skippedNode, new Action<Edge>() {
-            @Override
-            public void execute(Edge outgoing) {
-                Node target = outgoing.getTarget();
-                if (target.getState() == RUNNABLE) {
-                    target.setState(CANCELLED);
-                }
-            }
-        });
-    }
-
     @Override
     public void close() {
         workerPool.close();
@@ -243,43 +229,36 @@ public class DefaultScheduler implements Scheduler {
 
         @Override
         protected void handleGraphChanges(Graph graph) {
-            switch (node.getState()) {
-                case RUNNABLE:
-                case MUST_RUN:
-                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
-                        @Override
-                        public void execute(Edge edge) {
-                            Node target = edge.getTarget();
+            final NodeState removedNodeState = node.getState();
+            graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                @Override
+                public void execute(Edge outgoing) {
+                    Node target = outgoing.getTarget();
+                    switch (removedNodeState) {
+                        case RUNNABLE:
+                        case MUST_RUN:
                             if (target.getState() == CANCELLED) {
                                 target.setState(RUNNABLE);
                             }
-                        }
-                    });
-                    break;
-                case CANCELLED:
-                    // TODO Handle remaining incoming edges when suspended node is skipped
-                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
-                        @Override
-                        public void execute(Edge outgoing) {
-                            Node target = outgoing.getTarget();
+                            break;
+                        case CANCELLED:
+                            // TODO Handle remaining incoming edges when suspended node is skipped
                             if (target.getState() == RUNNABLE) {
                                 target.setState(CANCELLED);
                             }
-                        }
-                    });
-                    break;
-                case FAILED:
-                    // TODO Cancel everything if `--continue` is not enabled
-                    graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
-                        @Override
-                        public void execute(Edge outgoing) {
+                            break;
+                        case FAILED:
+                            // TODO Handle remaining incoming edges when suspended node is skipped
+                            // TODO Cancel everything if `--continue` is not enabled
                             if (outgoing.getType() == EdgeType.DEPENDENT) {
-                                outgoing.getTarget().setState(FAILED);
+                                target.setState(FAILED);
                             }
-                        }
-                    });
-                    break;
-            }
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
+                }
+            });
         }
 
         @Override
