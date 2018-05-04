@@ -97,12 +97,17 @@ fun accessibleConventionsSchema(plugins: Map<String, Any>) =
 private
 fun inferPublicTypeOfConvention(instance: Any) =
     if (instance is HasPublicType) instance.publicType
-    else TypeOf.typeOf(instance::class.java.undecorated)
+    else TypeOf.typeOf(instance::class.java.firstNonSyntheticOrSelf)
 
 
 private
-val Class<*>.undecorated
-    get() = takeIf { it.name.endsWith("_Decorated") }?.superclass ?: this
+val Class<*>.firstNonSyntheticOrSelf
+    get() = firstNonSyntheticOrNull ?: this
+
+
+private
+val Class<*>.firstNonSyntheticOrNull: Class<*>?
+    get() = takeIf { !isSynthetic } ?: superclass?.firstNonSyntheticOrNull
 
 
 private
