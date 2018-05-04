@@ -81,30 +81,25 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def fooB = projectB.task("foo")
         def barB = projectB.task("bar")
 
-        TaskInfo task1
-        TaskInfo task2
-        TaskInfo task3
-        TaskInfo task4
-
         when:
         addToGraphAndPopulate(fooA, barA, fooB, barB)
-        task1 = selectNextTaskInfo()
-        task2 = selectNextTaskInfo()
+        def taskInfo1 = selectNextTaskInfo()
+        def taskInfo2 = selectNextTaskInfo()
 
         then:
         lockSetup.lockedProjects.size() == 2
-        task1.task.project != task2.task.project
+        taskInfo1.task.project != taskInfo2.task.project
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(task1)
-        executionPlan.taskComplete(task2)
-        task3 = selectNextTaskInfo()
-        task4 = selectNextTaskInfo()
+        executionPlan.taskComplete(taskInfo1)
+        executionPlan.taskComplete(taskInfo2)
+        def taskInfo3 = selectNextTaskInfo()
+        def taskInfo4 = selectNextTaskInfo()
 
         then:
         lockSetup.lockedProjects.size() == 2
-        task3.task.project != task4.task.project
+        taskInfo3.task.project != taskInfo4.task.project
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
