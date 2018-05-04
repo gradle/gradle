@@ -36,7 +36,6 @@ import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
 import static org.gradle.internal.scheduler.NodeState.DEPENDENCY_FAILED;
-import static org.gradle.internal.scheduler.NodeState.FAILED;
 import static org.gradle.internal.scheduler.NodeState.MUST_RUN;
 import static org.gradle.internal.scheduler.NodeState.RUNNABLE;
 
@@ -124,7 +123,6 @@ public class DefaultScheduler implements Scheduler {
                     break;
                 case CANCELLED:
                 case DEPENDENCY_FAILED:
-                case FAILED:
                     eventQueue.add(new NodeFinishedEvent(nodeToRun));
                     break;
                 default:
@@ -168,8 +166,14 @@ public class DefaultScheduler implements Scheduler {
         boolean workSubmittedSuccessfully = workerPool.tryRunWithAnAllocatedWorker(new Runnable() {
             @Override
             public void run() {
-                nodeToRun.execute();
-                eventQueue.add(new NodeFinishedEvent(nodeToRun));
+                Throwable failure = nodeToRun.execute();
+                Event event;
+                if (failure == null) {
+                    event = new NodeFinishedEvent(nodeToRun);
+                } else {
+                    event = new NodeFailedEvent(nodeToRun, failure);
+                }
+                eventQueue.add(event);
             }
         });
 
@@ -279,21 +283,43 @@ public class DefaultScheduler implements Scheduler {
                                     }
                             }
                             break;
-                        case FAILED:
-                            // TODO Handle remaining incoming edges when suspended node is skipped
-                            // TODO Cancel everything if `--continue` is not enabled
-                            if (outgoing.getType() == EdgeType.DEPENDENT) {
-                                target.setState(DEPENDENCY_FAILED);
-                            }
-                            break;
                         default:
                             throw new AssertionError();
                     }
                 }
             });
+        }
+
+        @Override
+        public String toString() {
+            return String.format("FINISHED %s (%s)", node, node.getState());
+        }
+    }
+
+    private class NodeFailedEvent extends Event {
+        private final Throwable failure;
+
+        public NodeFailedEvent(Node node, Throwable failure) {
+            super(node);
+            this.failure = failure;
+        }
+
+        @Override
+        protected void updateGraph(Graph graph, boolean continueOnFailure) {
+            graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                @Override
+                public void execute(Edge outgoing) {
+                    Node target = outgoing.getTarget();
+                    // TODO Handle remaining incoming edges when suspended node is skipped
+                    // TODO Cancel everything if `--continue` is not enabled
+                    if (outgoing.getType() == EdgeType.DEPENDENT) {
+                        target.setState(DEPENDENCY_FAILED);
+                    }
+                }
+            });
 
             // Cancel all runnable nodes (including any that is still running) if `--continue` is off
-            if (finishedNodeState == FAILED && !continueOnFailure) {
+            if (!continueOnFailure) {
                 for (Node candidate : graph.getAllNodes()) {
                     if (candidate.getState() == RUNNABLE) {
                         candidate.setState(CANCELLED);
@@ -304,7 +330,7 @@ public class DefaultScheduler implements Scheduler {
 
         @Override
         public String toString() {
-            return String.format("FINISHED %s (%s)", node, node.getState());
+            return String.format("FAILED %s (%s)", node, failure.getClass().getSimpleName());
         }
     }
 

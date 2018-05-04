@@ -16,6 +16,8 @@
 
 package org.gradle.internal.scheduler;
 
+import javax.annotation.Nullable;
+
 public abstract class Node {
     private NodeState state;
 
@@ -33,7 +35,8 @@ public abstract class Node {
 
     public abstract boolean canExecuteInParallelWith(Node other);
 
-    public abstract void execute();
+    @Nullable
+    public abstract Throwable execute();
 
     @Override
     public abstract int hashCode();

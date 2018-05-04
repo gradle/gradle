@@ -35,10 +35,5 @@ public enum NodeState {
     /**
      * One of the node's dependencies has failed to execute, and should not be re-activated.
      */
-    DEPENDENCY_FAILED,
-
-    /**
-     * Node has failed to execute.
-     */
-    FAILED
+    DEPENDENCY_FAILED
 }

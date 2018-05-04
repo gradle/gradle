@@ -37,12 +37,10 @@ class TaskNode extends Node {
     }
 
     @Override
-    void execute() {
+    Throwable execute() {
         executionTracker.nodeExecuted(this)
         println "Executing node $this"
-        if (failure) {
-            setState(NodeState.FAILED)
-        }
+        return failure
     }
 
     boolean equals(o) {

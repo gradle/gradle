@@ -373,7 +373,7 @@ class GraphTest extends Specification {
         }
 
         @Override
-        void execute() {
+        Throwable execute() {
             throw new UnsupportedOperationException()
         }
 
