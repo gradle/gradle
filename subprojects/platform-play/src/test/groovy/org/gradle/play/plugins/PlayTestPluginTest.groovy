@@ -47,6 +47,7 @@ class PlayTestPluginTest extends Specification {
     def dependencyHandler = Mock(DependencyHandler)
 
     File buildDir = new File("tmp")
+    File jarFile = new File("file.jar")
 
     PlayTestPlugin plugin = new PlayTestPlugin()
 
@@ -57,9 +58,12 @@ class PlayTestPluginTest extends Specification {
             taskName(_, _) >> { String verb, String object -> "${verb}SomeBinary${object.capitalize()}"}
             taskName(_) >> { String verb -> "${verb}SomeBinary"}
         }
+        1 * binary.jarFile >> jarFile
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration
+        _ * configurations.getByName(_) >> configuration
+        0 * _
     }
 
     def "adds test related tasks per binary"() {
@@ -79,5 +83,6 @@ class PlayTestPluginTest extends Specification {
         1 * taskModelMap.create("testSomeBinary", Test, _)
         0 * taskModelMap.create(_)
         0 * taskModelMap.create(_, _, _)
+        1 * taskModelMap.get('testSomeBinary')
     }
 }

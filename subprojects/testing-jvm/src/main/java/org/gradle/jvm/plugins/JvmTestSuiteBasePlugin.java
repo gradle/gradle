@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.initialization.BuildIdentity;
@@ -84,7 +84,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                 test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
-                test.setTestClassesDirs(new SimpleFileCollection(binary.getClassesDir()));
+                test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
                 test.setClasspath(binary.getRuntimeClasspath());
                 configureReports(binary, test);
             }

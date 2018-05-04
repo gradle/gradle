@@ -456,11 +456,13 @@ compileTestJava.options.incremental = true
     }
 
     def "reports source type that does not support detection of source root"() {
-        buildFile << "compileJava.source([file('extra-java'), file('other')])"
+        buildFile << "compileJava.source([file('extra-java'), file('other'), file('text-file.txt')])"
 
         java("class A extends B {}")
         file("extra-java/B.java") << "class B {}"
         file("extra-java/C.java") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
 
         outputs.snapshot { run "compileJava" }
 
@@ -471,7 +473,7 @@ compileTestJava.options.incremental = true
 
         then:
         outputs.recompiledClasses("A", "B", "C")
-        output.contains("Cannot infer source root(s) for input with type `ArrayList`. Supported types are `File`, `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
         output.contains(":compileJava - is not incremental. Unable to infer the source directories.")
     }
 
