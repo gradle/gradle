@@ -55,8 +55,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext(moduleIdentifierFactory);
         }
 
-        public LocalComponentProvider createLocalComponentProvider(BuildStateRegistry buildRegistry) {
-            return new LocalComponentInAnotherBuildProvider(buildRegistry, new IncludedBuildDependencyMetadataBuilder());
+        public LocalComponentProvider createLocalComponentProvider(ProjectStateRegistry projectRegistry) {
+            return new LocalComponentInAnotherBuildProvider(projectRegistry, new IncludedBuildDependencyMetadataBuilder());
         }
 
         public IncludedBuildControllers createIncludedBuildControllers(ExecutorFactory executorFactory, BuildStateRegistry buildRegistry) {
