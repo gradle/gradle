@@ -18,7 +18,9 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 
@@ -34,8 +36,13 @@ public class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
-    private IdeaWorkspace workspace = new IdeaWorkspace();
+    private IdeaWorkspace workspace;
     private String targetVersion;
+
+    @Inject
+    public IdeaModel(ObjectFactory objectFactory) {
+        this.workspace = objectFactory.newInstance(IdeaWorkspace.class);
+    }
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.

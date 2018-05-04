@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -33,13 +34,17 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -59,6 +64,7 @@ import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -120,10 +126,11 @@ public class IdeaPlugin extends IdePlugin {
 
     @Override
     protected void onApply(final Project project) {
-        getLifecycleTask().setDescription("Generates IDEA project files (IML, IPR, IWS)");
-        getCleanTask().setDescription("Cleans IDEA project files (IML, IPR)");
+        getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
+        getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
-        ideaModel = project.getExtensions().create("idea", IdeaModel.class);
+        ideaModel = project.getObjects().newInstance(IdeaModel.class);
+        project.getExtensions().add("idea", ideaModel);
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
@@ -142,24 +149,44 @@ public class IdeaPlugin extends IdePlugin {
 
     private void configureIdeaWorkspace(final Project project) {
         if (isRoot()) {
-            GenerateIdeaWorkspace task = project.getTasks().create("ideaWorkspace", GenerateIdeaWorkspace.class);
-            task.setDescription("Generates an IDEA workspace file (IWS)");
-            IdeaWorkspace workspace = new IdeaWorkspace();
-            workspace.setIws(new XmlFileContentMerger(task.getXmlTransformer()));
-            task.setWorkspace(workspace);
-            ideaModel.setWorkspace(task.getWorkspace());
-            task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
+            final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
+            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().createLater("ideaWorkspace", GenerateIdeaWorkspace.class, new Action<GenerateIdeaWorkspace>() {
+                @Override
+                public void execute(GenerateIdeaWorkspace task) {
+                    task.setDescription("Generates an IDEA workspace file (IWS)");
+                    task.setWorkspace(workspace);
+                    task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
+                }
+            });
+            workspace.setIws(ValueCachingProvider.of(project.provider(new Callable<XmlFileContentMerger>() {
+                @Override
+                public XmlFileContentMerger call() {
+                    return new XmlFileContentMerger(task.get().getXmlTransformer());
+                }
+            })));
+            ideaModel.setWorkspace(workspace);
+
             addWorker(task, false);
         }
     }
 
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
-            final GenerateIdeaProject projectTask = project.getTasks().create("ideaProject", GenerateIdeaProject.class);
-            projectTask.setDescription("Generates IDEA project file (IPR)");
-            XmlFileContentMerger ipr = new XmlFileContentMerger(projectTask.getXmlTransformer());
-            IdeaProject ideaProject = instantiator.newInstance(IdeaProject.class, project, ipr);
-            projectTask.setIdeaProject(ideaProject);
+            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().createLater("ideaProject", GenerateIdeaProject.class);
+            Provider<XmlFileContentMerger> ipr = ValueCachingProvider.of(project.provider(new Callable<XmlFileContentMerger>() {
+                @Override
+                public XmlFileContentMerger call() {
+                    return new XmlFileContentMerger(projectTask.get().getXmlTransformer());
+                }
+            }));
+            final IdeaProject ideaProject = instantiator.newInstance(IdeaProject.class, project, ipr);
+            projectTask.configure(new Action<GenerateIdeaProject>() {
+                @Override
+                public void execute(GenerateIdeaProject projectTask) {
+                    projectTask.setDescription("Generates IDEA project file (IPR)");
+                    projectTask.setIdeaProject(ideaProject);
+                }
+            });
             ideaModel.setProject(ideaProject);
 
             ideaProject.setOutputFile(new File(project.getProjectDir(), project.getName() + ".ipr"));
@@ -208,7 +235,7 @@ public class IdeaPlugin extends IdePlugin {
             conventionMapping.map("pathFactory", new Callable<PathFactory>() {
                 @Override
                 public PathFactory call() {
-                    return new PathFactory().addPathVariable("PROJECT_DIR", projectTask.getOutputFile().getParentFile());
+                    return new PathFactory().addPathVariable("PROJECT_DIR", projectTask.get().getOutputFile().getParentFile());
                 }
             });
 
@@ -241,11 +268,22 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModule(final ProjectInternal project) {
-        final GenerateIdeaModule task = project.getTasks().create("ideaModule", GenerateIdeaModule.class);
-        task.setDescription("Generates IDEA module files (IML)");
-        IdeaModuleIml iml = new IdeaModuleIml(task.getXmlTransformer(), project.getProjectDir());
+        final TaskProvider<GenerateIdeaModule> task = project.getTasks().createLater("ideaModule", GenerateIdeaModule.class);
+
+        Provider<IdeaModuleIml> iml = ValueCachingProvider.of(project.provider(new Callable<IdeaModuleIml>() {
+            @Override
+            public IdeaModuleIml call() {
+                return new IdeaModuleIml(task.get().getXmlTransformer(), project.getProjectDir());
+            }
+        }));
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
-        task.setModule(module);
+        task.configure(new Action<GenerateIdeaModule>() {
+            @Override
+            public void execute(GenerateIdeaModule task) {
+                task.setDescription("Generates IDEA module files (IML)");
+                task.setModule(module);
+            }
+        });
         ideaModel.setModule(module);
 
         final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
@@ -296,7 +334,7 @@ public class IdeaPlugin extends IdePlugin {
             @Override
             public PathFactory call() {
                 final PathFactory factory = new PathFactory();
-                factory.addPathVariable("MODULE_DIR", task.getOutputFile().getParentFile());
+                factory.addPathVariable("MODULE_DIR", task.get().getOutputFile().getParentFile());
                 for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());
                 }
@@ -329,69 +367,9 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModuleForJava(final Project project) {
-        project.getTasks().withType(GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
+        project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
-                // Defaults
-                setupScopes(ideaModule);
-
-                // Convention
-                ConventionMapping convention = ((IConventionAware) ideaModule.getModule()).getConventionMapping();
-                convention.map("sourceDirs", new Callable<Set<File>>() {
-                    @Override
-                    public Set<File> call() {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("main").getAllSource().getSrcDirs();
-                    }
-                });
-                convention.map("testSourceDirs", new Callable<Set<File>>() {
-                    @Override
-                    public Set<File> call() {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("test").getAllSource().getSrcDirs();
-                    }
-                });
-                convention.map("resourceDirs", new Callable<Set<File>>() {
-                    @Override
-                    public Set<File> call() throws Exception {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("main").getResources().getSrcDirs();
-                    }
-                });
-                convention.map("testResourceDirs", new Callable<Set<File>>() {
-                    @Override
-                    public Set<File> call() throws Exception {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return sourceSets.getByName("test").getResources().getSrcDirs();
-                    }
-                });
-                convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
-                    @Override
-                    public Map<String, FileCollection> call() {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
-                        map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
-                        map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
-                        return map;
-                    }
-
-                });
-                convention.map("targetBytecodeVersion", new Callable<JavaVersion>() {
-                    @Override
-                    public JavaVersion call() {
-                        JavaVersion moduleTargetBytecodeLevel = project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
-                        return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
-                    }
-
-                });
-                convention.map("languageLevel", new Callable<IdeaLanguageLevel>() {
-                    @Override
-                    public IdeaLanguageLevel call() {
-                        IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
-                        return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel) ? moduleLanguageLevel : null;
-                    }
-
-                });
                 // Dependencies
                 ideaModule.dependsOn(new Callable<FileCollection>() {
                     @Override
@@ -404,9 +382,70 @@ public class IdeaPlugin extends IdePlugin {
             }
 
         });
+
+        // Defaults
+        setupScopes(project);
+
+        // Convention
+        ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
+        convention.map("sourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                return sourceSets.getByName("main").getAllSource().getSrcDirs();
+            }
+        });
+        convention.map("testSourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                return sourceSets.getByName("test").getAllSource().getSrcDirs();
+            }
+        });
+        convention.map("resourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                return sourceSets.getByName("main").getResources().getSrcDirs();
+            }
+        });
+        convention.map("testResourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                return sourceSets.getByName("test").getResources().getSrcDirs();
+            }
+        });
+        convention.map("singleEntryLibraries", new Callable<Map<String, FileCollection>>() {
+            @Override
+            public Map<String, FileCollection> call() {
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                LinkedHashMap<String, FileCollection> map = new LinkedHashMap<String, FileCollection>(2);
+                map.put("RUNTIME", sourceSets.getByName("main").getOutput().getDirs());
+                map.put("TEST", sourceSets.getByName("test").getOutput().getDirs());
+                return map;
+            }
+
+        });
+        convention.map("targetBytecodeVersion", new Callable<JavaVersion>() {
+            @Override
+            public JavaVersion call() {
+                JavaVersion moduleTargetBytecodeLevel = project.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
+                return includeModuleBytecodeLevelOverride(project.getRootProject(), moduleTargetBytecodeLevel) ? moduleTargetBytecodeLevel : null;
+            }
+
+        });
+        convention.map("languageLevel", new Callable<IdeaLanguageLevel>() {
+            @Override
+            public IdeaLanguageLevel call() {
+                IdeaLanguageLevel moduleLanguageLevel = new IdeaLanguageLevel(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
+                return includeModuleLanguageLevelOverride(project.getRootProject(), moduleLanguageLevel) ? moduleLanguageLevel : null;
+            }
+
+        });
     }
 
-    private void setupScopes(GenerateIdeaModule ideaModule) {
+    private void setupScopes(Project project) {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
@@ -415,7 +454,6 @@ public class IdeaPlugin extends IdePlugin {
             scopes.put(scope.name(), plusMinus);
         }
 
-        Project project = ideaModule.getProject();
         ConfigurationContainer configurations = project.getConfigurations();
 
         Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
@@ -428,11 +466,11 @@ public class IdeaPlugin extends IdePlugin {
         test.add(configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME));
         test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
 
-        ideaModule.getModule().setScopes(scopes);
+        ideaModel.getModule().setScopes(scopes);
     }
 
     private void configureIdeaModuleForWar(final Project project) {
-        project.getTasks().withType(GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
+        project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
                 ConfigurationContainer configurations = project.getConfigurations();
@@ -486,15 +524,20 @@ public class IdeaPlugin extends IdePlugin {
 
     private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().findByName("ideaModule").dependsOn(project.getRootProject().getTasks().findByName("ideaProject"));
+        project.getTasks().get(Task.class, "ideaModule").configure(dependsOn(project.getRootProject().getTasks().get(Task.class, "ideaProject")));
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
         if (isRoot()) {
-            getLifecycleTask().dependsOn(new Callable<List<TaskDependency>>() {
+            getLifecycleTask().configure(new Action<Task>() {
                 @Override
-                public List<TaskDependency> call() {
-                    return allImlArtifactsInComposite(project, ideaModel.getProject());
+                public void execute(Task task) {
+                    task.dependsOn(new Callable<List<TaskDependency>>() {
+                        @Override
+                        public List<TaskDependency> call() {
+                            return allImlArtifactsInComposite(project, ideaModel.getProject());
+                        }
+                    });
                 }
             });
         }
@@ -521,5 +564,43 @@ public class IdeaPlugin extends IdePlugin {
             dependencies.add(reference.getBuildDependencies());
         }
         return dependencies;
+    }
+
+    /**
+     * Some comment
+     * @param <T>
+     */
+    public static class ValueCachingProvider<T> extends AbstractProvider<T> {
+        private final Provider<T> delegate;
+        private T cachedValue;
+
+        ValueCachingProvider(Provider<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return ((ProviderInternal<T>)delegate).getType();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Nullable
+        @Override
+        public T getOrNull() {
+            if (cachedValue == null) {
+                cachedValue = delegate.getOrNull();
+            }
+            return cachedValue;
+        }
+
+        public static <T> Provider<T> of(Provider<T> provider) {
+            return new ValueCachingProvider<T>(provider);
+        }
     }
 }

@@ -17,6 +17,8 @@
 package org.gradle.plugins.ide.eclipse.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
@@ -25,18 +27,18 @@ import java.util.Collections;
 import java.util.Set;
 
 public class EclipseProjectMetadata implements IdeProjectMetadata {
-    private final EclipseProject eclipseProject;
+    private final Provider<EclipseProject> eclipseProject;
     private final File projectDir;
-    private final Task generatorTask;
+    private final TaskProvider<? extends Task> generatorTask;
 
-    public EclipseProjectMetadata(EclipseProject eclipseProject, File projectDir, Task generatorTask) {
+    public EclipseProjectMetadata(Provider<EclipseProject> eclipseProject, File projectDir, TaskProvider<? extends Task> generatorTask) {
         this.eclipseProject = eclipseProject;
         this.projectDir = projectDir;
         this.generatorTask = generatorTask;
     }
 
     public String getName() {
-        return eclipseProject.getName();
+        return eclipseProject.get().getName();
     }
 
     @Override
@@ -46,6 +48,6 @@ public class EclipseProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return Collections.singleton(generatorTask);
+        return Collections.singleton(generatorTask.get());
     }
 }

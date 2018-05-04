@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 
@@ -28,7 +29,7 @@ import org.gradle.api.provider.Provider;
  * @since 4.8
  */
 @Incubating
-public interface TaskProvider<T extends Task> extends Provider<T> {
+public interface TaskProvider<T extends Task> extends Provider<T>, Named {
     /**
      * Configures the task with the given action. Actions are run in the order added.
      *

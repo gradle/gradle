@@ -23,11 +23,16 @@ import org.gradle.api.internal.PropertiesTransformer
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = new EclipseModel(classpath: new EclipseClasspath(null))
+    EclipseModel model = new EclipseModel(TestUtil.objectFactory())
+
+    def setup() {
+        model.classpath = new EclipseClasspath(null, TestUtil.objectFactory())
+    }
 
     def "enables setting path variables even if wtp is not configured"() {
         given:
@@ -43,7 +48,7 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables even if wtp component is not configured"() {
         given:
-        model.wtp = new EclipseWtp()
+        model.wtp = new EclipseWtp(TestUtil.objectFactory())
         //for example when wtp+java applied but project is not a dependency to any war/ear.
         assert model.wtp.component == null
 
@@ -56,7 +61,7 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables"() {
         given:
-        model.wtp = new EclipseWtp()
+        model.wtp = new EclipseWtp(TestUtil.objectFactory())
         model.wtp.component = new EclipseWtpComponent(null, null)
 
         when:
@@ -152,7 +157,7 @@ class EclipseModelTest extends Specification {
         def xmlAction = {} as Action<XmlProvider>
         def facet = new EclipseWtpFacet(xmlMerger)
         def component = new EclipseWtpComponent(null, xmlMerger)
-        model.wtp = new EclipseWtp()
+        model.wtp = new EclipseWtp(TestUtil.objectFactory())
 
         when: "configure wtp"
         model.wtp({ wtp ->

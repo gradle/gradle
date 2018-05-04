@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -31,7 +32,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         rootProject.getPlugins().apply(JavaPlugin)
         rootProject.getPlugins().apply(IdeaPlugin)
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = new IdeaModule(moduleProject, Providers.of(iml))
         expect:
         module.languageLevel == null
     }
@@ -45,7 +46,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         rootProject.sourceCompatibility = 1.5
 
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = new IdeaModule(moduleProject, Providers.of(iml))
         expect:
         module.languageLevel == null
     }
@@ -55,7 +56,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         rootProject.getPlugins().apply(JavaPlugin)
         rootProject.getPlugins().apply(IdeaPlugin)
         def iml = Mock(IdeaModuleIml)
-        def module = new IdeaModule(moduleProject, iml)
+        def module = new IdeaModule(moduleProject, Providers.of(iml))
         expect:
         module.targetBytecodeVersion == null
     }
@@ -69,7 +70,7 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
        rootProject.targetCompatibility = 1.5
 
        def iml = Mock(IdeaModuleIml)
-       def module = new IdeaModule(moduleProject, iml)
+       def module = new IdeaModule(moduleProject, Providers.of(iml))
        expect:
        module.targetBytecodeVersion == null
    }

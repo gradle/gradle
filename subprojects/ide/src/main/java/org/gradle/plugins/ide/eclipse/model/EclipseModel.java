@@ -19,7 +19,11 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 
@@ -55,13 +59,19 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 public class EclipseModel {
 
-    private EclipseProject project;
+    private final Property<EclipseProject> project;
 
     private EclipseClasspath classpath;
 
-    private EclipseJdt jdt;
+    private final Property<EclipseJdt> jdt;
 
     private EclipseWtp wtp;
+
+    @Inject
+    public EclipseModel(ObjectFactory objectFactory) {
+        this.project = objectFactory.property(EclipseProject.class);
+        this.jdt = objectFactory.property(EclipseJdt.class);
+    }
 
     /**
      * Configures eclipse project information
@@ -69,11 +79,15 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public EclipseProject getProject() {
-        return project;
+        return project.getOrNull();
     }
 
     public void setProject(EclipseProject project) {
-        this.project = project;
+        this.project.set(project);
+    }
+
+    public void setProject(Provider<EclipseProject> project) {
+        this.project.set(project);
     }
 
     /**
@@ -95,11 +109,15 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public EclipseJdt getJdt() {
-        return jdt;
+        return jdt.getOrNull();
     }
 
     public void setJdt(EclipseJdt jdt) {
-        this.jdt = jdt;
+        this.jdt.set(jdt);
+    }
+
+    public void setJdt(Provider<EclipseJdt> jdt) {
+        this.jdt.set(jdt);
     }
 
     /**
@@ -121,7 +139,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public void project(Closure closure) {
-        configure(closure, project);
+        configure(closure, getProject());
     }
 
     /**
@@ -132,7 +150,7 @@ public class EclipseModel {
      * @since 3.5
      */
     public void project(Action<? super EclipseProject> action) {
-        action.execute(project);
+        action.execute(getProject());
     }
 
     /**
@@ -181,7 +199,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public void jdt(Closure closure) {
-        configure(closure, jdt);
+        configure(closure, getJdt());
     }
 
     /**
@@ -192,7 +210,7 @@ public class EclipseModel {
      * @since 3.5
      */
     public void jdt(Action<? super EclipseJdt> action) {
-        action.execute(jdt);
+        action.execute(getJdt());
     }
 
     /**

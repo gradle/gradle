@@ -17,7 +17,12 @@ package org.gradle.plugins.ide.idea.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+
+import javax.inject.Inject;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
@@ -37,7 +42,12 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 public class IdeaWorkspace {
 
-    private XmlFileContentMerger iws;
+    private final Property<XmlFileContentMerger> iws;
+
+    @Inject
+    public IdeaWorkspace(ObjectFactory objectFactory) {
+        this.iws = objectFactory.property(XmlFileContentMerger.class);
+    }
 
     /**
      * Enables advanced manipulation of the output XML.
@@ -45,11 +55,15 @@ public class IdeaWorkspace {
      * For example see docs for {@link IdeaWorkspace}
      */
     public XmlFileContentMerger getIws() {
-        return iws;
+        return iws.getOrNull();
     }
 
     public void setIws(XmlFileContentMerger iws) {
-        this.iws = iws;
+        this.iws.set(iws);
+    }
+
+    public void setIws(Provider<XmlFileContentMerger> iws) {
+        this.iws.set(iws);
     }
 
     /**
@@ -73,12 +87,12 @@ public class IdeaWorkspace {
     }
 
     public void mergeXmlWorkspace(Workspace xmlWorkspace) {
-        iws.getBeforeMerged().execute(xmlWorkspace);
+        getIws().getBeforeMerged().execute(xmlWorkspace);
 
         //we don't merge anything in the iws, yet.
         //I kept the logic for the sake of consistency
         // and compatibility with pre M4 ways of configuring IDEA information.
 
-        iws.getWhenMerged().execute(xmlWorkspace);
+        getIws().getWhenMerged().execute(xmlWorkspace);
     }
 }

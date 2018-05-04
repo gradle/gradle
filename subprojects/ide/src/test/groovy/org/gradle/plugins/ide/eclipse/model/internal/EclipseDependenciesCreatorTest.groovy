@@ -27,7 +27,7 @@ import org.gradle.util.TestUtil
 class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec{
     private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
-    private final EclipseClasspath eclipseClasspath = new EclipseClasspath(project)
+    private final EclipseClasspath eclipseClasspath = new EclipseClasspath(project, TestUtil.objectFactory())
     private final dependenciesProvider = new EclipseDependenciesCreator(eclipseClasspath, project.services.get(IdeArtifactRegistry), project.services.get(ProjectStateRegistry))
 
     def "compile dependency on child project"() {

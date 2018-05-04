@@ -26,6 +26,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
@@ -38,9 +39,10 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
@@ -54,6 +56,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
+import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -75,13 +78,11 @@ public class EclipsePlugin extends IdePlugin {
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
     public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
-    private final Instantiator instantiator;
     private final UniqueProjectNameProvider uniqueProjectNameProvider;
     private final IdeArtifactRegistry artifactRegistry;
 
     @Inject
-    public EclipsePlugin(Instantiator instantiator, UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
-        this.instantiator = instantiator;
+    public EclipsePlugin(UniqueProjectNameProvider uniqueProjectNameProvider, IdeArtifactRegistry artifactRegistry) {
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
         this.artifactRegistry = artifactRegistry;
     }
@@ -93,10 +94,11 @@ public class EclipsePlugin extends IdePlugin {
 
     @Override
     protected void onApply(Project project) {
-        getLifecycleTask().setDescription("Generates all Eclipse files.");
-        getCleanTask().setDescription("Cleans all Eclipse files.");
+        getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
+        getCleanTask().configure(withDescription("Cleans all Eclipse files."));
 
-        EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class);
+        EclipseModel model = project.getObjects().newInstance(EclipseModel.class);
+        project.getExtensions().add("eclipse", model);
 
         configureEclipseProject((ProjectInternal) project, model);
         configureEclipseJdt(project, model);
@@ -112,7 +114,7 @@ public class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
-        maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, new Action<GenerateEclipseProject>() {
+        final TaskProvider<GenerateEclipseProject> task = maybeAddTask(project, this, ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, new Action<GenerateEclipseProject>() {
             @Override
             public void execute(GenerateEclipseProject task) {
                 final EclipseProject projectModel = task.getProjectModel();
@@ -121,9 +123,6 @@ public class EclipsePlugin extends IdePlugin {
                 task.setDescription("Generates the Eclipse project file.");
                 task.setInputFile(project.file(".project"));
                 task.setOutputFile(project.file(".project"));
-
-                //model:
-                model.setProject(projectModel);
 
                 final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
                 projectModel.setName(defaultModuleName);
@@ -136,10 +135,18 @@ public class EclipsePlugin extends IdePlugin {
                     }
 
                 });
+            }
+        });
 
-                project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
+        project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
+            @Override
+            public void execute(JavaBasePlugin javaBasePlugin) {
+                task.configure(new Action<GenerateEclipseProject>() {
                     @Override
-                    public void execute(JavaBasePlugin javaBasePlugin) {
+                    public void execute(GenerateEclipseProject task) {
+                        EclipseProject projectModel = task.getProjectModel();
+                        ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
+
                         if (!project.getPlugins().hasPlugin(EarPlugin.class)) {
                             projectModel.buildCommand("org.eclipse.jdt.core.javabuilder");
                         }
@@ -153,20 +160,33 @@ public class EclipsePlugin extends IdePlugin {
 
                         });
                     }
-
                 });
+            }
 
-                project.getPlugins().withType(GroovyBasePlugin.class, new Action<GroovyBasePlugin>() {
+        });
+
+        project.getPlugins().withType(GroovyBasePlugin.class, new Action<GroovyBasePlugin>() {
+            @Override
+            public void execute(GroovyBasePlugin groovyBasePlugin) {
+                task.configure(new Action<GenerateEclipseProject>() {
                     @Override
-                    public void execute(GroovyBasePlugin groovyBasePlugin) {
+                    public void execute(GenerateEclipseProject task) {
+                        EclipseProject projectModel = task.getProjectModel();
                         projectModel.getNatures().add(projectModel.getNatures().indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature");
                     }
-
                 });
+            }
 
-                project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
+        });
+
+        project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
+            @Override
+            public void execute(ScalaBasePlugin scalaBasePlugin) {
+                task.configure(new Action<GenerateEclipseProject>() {
                     @Override
-                    public void execute(ScalaBasePlugin scalaBasePlugin) {
+                    public void execute(GenerateEclipseProject task) {
+                        EclipseProject projectModel = task.getProjectModel();
+
                         projectModel.getBuildCommands().set(Iterables.indexOf(projectModel.getBuildCommands(), new Predicate<BuildCommand>() {
                             @Override
                             public boolean apply(BuildCommand buildCommand) {
@@ -176,16 +196,25 @@ public class EclipsePlugin extends IdePlugin {
                         }), new BuildCommand("org.scala-ide.sdt.core.scalabuilder"));
                         projectModel.getNatures().add(projectModel.getNatures().indexOf("org.eclipse.jdt.core.javanature"), "org.scala-ide.sdt.core.scalanature");
                     }
-
                 });
+            }
 
-                artifactRegistry.registerIdeProject(new EclipseProjectMetadata(projectModel, project.getProjectDir(), task));
+        });
+
+        //model:
+        Provider<EclipseProject> projectModel = task.map(new Transformer<EclipseProject, GenerateEclipseProject>() {
+            @Override
+            public EclipseProject transform(GenerateEclipseProject task) {
+                return task.getProjectModel();
             }
         });
+        model.setProject(projectModel);
+
+        artifactRegistry.registerIdeProject(new EclipseProjectMetadata(projectModel, project.getProjectDir(), task));
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        model.setClasspath(instantiator.newInstance(EclipseClasspath.class, project));
+        model.setClasspath(project.getObjects().newInstance(EclipseClasspath.class, project));
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {
@@ -198,7 +227,7 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                maybeAddTask(project, eclipsePlugin, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, new Action<GenerateEclipseClasspath>() {
+                final TaskProvider<GenerateEclipseClasspath> task = maybeAddTask(project, eclipsePlugin, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, new Action<GenerateEclipseClasspath>() {
                     @Override
                     public void execute(final GenerateEclipseClasspath task) {
                         //task properties:
@@ -208,58 +237,65 @@ public class EclipsePlugin extends IdePlugin {
 
                         //model properties:
                         task.setClasspath(model.getClasspath());
-                        task.getClasspath().setFile(new XmlFileContentMerger(task.getXmlTransformer()));
-                        task.getClasspath().setSourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets());
-
-                        AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
-                            @Override
-                            public void execute(Project p) {
-                                // keep the ordering we had in earlier gradle versions
-                                Set<String> containers = Sets.newLinkedHashSet();
-                                containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
-                                containers.addAll(task.getClasspath().getContainers());
-                                task.getClasspath().setContainers(containers);
-                            }
-
-                        });
-
-                        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
-                            @Override
-                            public void execute(JavaPlugin javaPlugin) {
-                                configureJavaClasspath(project, task);
-                            }
-
-                        });
-
-                        configureScalaDependencies(project, task);
                     }
+                });
 
+                model.getClasspath().setFile(IdeaPlugin.ValueCachingProvider.of(task.map(new Transformer<XmlFileContentMerger, GenerateEclipseClasspath>() {
+                    @Override
+                    public XmlFileContentMerger transform(GenerateEclipseClasspath task) {
+                        return new XmlFileContentMerger(task.getXmlTransformer());
+                    }
+                })));
+                model.getClasspath().setSourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets());
+
+                AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
+                    @Override
+                    public void execute(Project p) {
+                        // keep the ordering we had in earlier gradle versions
+                        Set<String> containers = Sets.newLinkedHashSet();
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
+                        containers.addAll(model.getClasspath().getContainers());
+                        model.getClasspath().setContainers(containers);
+                    }
+                });
+
+                configureScalaDependencies(project, model);
+                configureJavaClasspath(project, task, model);
+            }
+
+        });
+    }
+
+    private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model) {
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
+            public void execute(JavaPlugin javaPlugin) {
+                model.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("compileClasspath"), project.getConfigurations().getByName("runtimeClasspath"), project.getConfigurations().getByName("testCompileClasspath"), project.getConfigurations().getByName("testRuntimeClasspath")));
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
+                    @Override
+                    public List<File> call() {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(), sourceSets.getByName("test").getOutput().getDirs()));
+                    }
+                });
+
+                task.configure(new Action<GenerateEclipseClasspath>() {
+                    @Override
+                    public void execute(GenerateEclipseClasspath task) {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
+                        task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
+                    }
                 });
             }
-
         });
     }
 
-    private static void configureJavaClasspath(final Project project, GenerateEclipseClasspath task) {
-        task.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("compileClasspath"), project.getConfigurations().getByName("runtimeClasspath"), project.getConfigurations().getByName("testCompileClasspath"), project.getConfigurations().getByName("testRuntimeClasspath")));
-        ((IConventionAware) task.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
-            @Override
-            public List<File> call() {
-                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(), sourceSets.getByName("test").getOutput().getDirs()));
-            }
-
-        });
-        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-        task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
-        task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
-    }
-
-    private static void configureScalaDependencies(final Project project, final GenerateEclipseClasspath task) {
+    private static void configureScalaDependencies(final Project project, final EclipseModel model) {
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
-                task.getClasspath().containers("org.scala-ide.sdt.launching.SCALA_CONTAINER");
+                model.getClasspath().containers("org.scala-ide.sdt.launching.SCALA_CONTAINER");
 
                 // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
                 project.getGradle().addBuildListener(new BuildAdapter() {
@@ -273,7 +309,7 @@ public class EclipsePlugin extends IdePlugin {
                             }
 
                         };
-                        List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(task.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {
+                        List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(model.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {
                             @Override
                             public Iterable<Dependency> apply(Configuration config) {
                                 return config.getAllDependencies();
@@ -281,7 +317,7 @@ public class EclipsePlugin extends IdePlugin {
 
                         })), dependencyInProvided));
                         if (!dependencies.isEmpty()) {
-                            task.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
+                            model.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
                         }
                     }
                 });
@@ -295,17 +331,16 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                maybeAddTask(project, eclipsePlugin, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, new Action<GenerateEclipseJdt>() {
+                final TaskProvider<GenerateEclipseJdt> task = maybeAddTask(project, eclipsePlugin, ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, new Action<GenerateEclipseJdt>() {
                     @Override
                     public void execute(GenerateEclipseJdt task) {
                         //task properties:
                         task.setDescription("Generates the Eclipse JDT settings file.");
                         task.setOutputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
                         task.setInputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
+
                         //model properties:
-                        EclipseJdt jdt = task.getJdt();
-                        model.setJdt(jdt);
-                        ConventionMapping conventionMapping = ((IConventionAware) jdt).getConventionMapping();
+                        ConventionMapping conventionMapping = ((IConventionAware) task.getJdt()).getConventionMapping();
                         conventionMapping.map("sourceCompatibility", new Callable<JavaVersion>() {
                             @Override
                             public JavaVersion call() {
@@ -330,8 +365,14 @@ public class EclipsePlugin extends IdePlugin {
                     }
 
                 });
-            }
 
+                model.setJdt(task.map(new Transformer<EclipseJdt, GenerateEclipseJdt>() {
+                    @Override
+                    public EclipseJdt transform(GenerateEclipseJdt task) {
+                        return task.getJdt();
+                    }
+                }));
+            }
         });
     }
 
@@ -368,14 +409,17 @@ public class EclipsePlugin extends IdePlugin {
         };
     }
 
-    private static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType, Action<T> action) {
+    private static <T extends Task> TaskProvider<T> maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType, Action<T> action) {
         TaskContainer tasks = project.getTasks();
-        if (tasks.findByName(taskName) != null) {
-            return;
+        T taskFound = tasks.withType(taskType).findByName(taskName);
+        if (taskFound != null) {
+            return tasks.get(taskType, taskName);
         }
 
-        T task = tasks.create(taskName, taskType);
-        action.execute(task);
+        TaskProvider<T> task = tasks.createLater(taskName, taskType);
+        task.configure(action);
         plugin.addWorker(task);
+
+        return task;
     }
 }

@@ -17,6 +17,11 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+
+import javax.inject.Inject;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
@@ -50,9 +55,14 @@ import static org.gradle.util.ConfigureUtil.configure;
  * </pre>
  */
 public class EclipseWtp {
+    private final Property<EclipseWtpComponent> component;
+    private final Property<EclipseWtpFacet> facet;
 
-    private EclipseWtpComponent component;
-    private EclipseWtpFacet facet;
+    @Inject
+    public EclipseWtp(ObjectFactory objectFactory) {
+        this.component = objectFactory.property(EclipseWtpComponent.class);
+        this.facet = objectFactory.property(EclipseWtpFacet.class);
+    }
 
     /**
      * Configures wtp component.
@@ -60,11 +70,15 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpComponent}
      */
     public EclipseWtpComponent getComponent() {
-        return component;
+        return component.getOrNull();
     }
 
     public void setComponent(EclipseWtpComponent component) {
-        this.component = component;
+        this.component.set(component);
+    }
+
+    public void setComponent(Provider<EclipseWtpComponent> component) {
+        this.component.set(component);
     }
 
     /**
@@ -73,7 +87,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpComponent}
      */
     public void component(Closure action) {
-        configure(action, component);
+        configure(action, getComponent());
     }
 
     /**
@@ -84,7 +98,7 @@ public class EclipseWtp {
      * @since 3.5
      */
     public void component(Action<? super EclipseWtpComponent> action) {
-        action.execute(component);
+        action.execute(getComponent());
     }
 
     /**
@@ -93,11 +107,15 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public EclipseWtpFacet getFacet() {
-        return facet;
+        return facet.get();
     }
 
     public void setFacet(EclipseWtpFacet facet) {
-        this.facet = facet;
+        this.facet.set(facet);
+    }
+
+    public void setFacet(Provider<EclipseWtpFacet> facet) {
+        this.facet.set(facet);
     }
 
     /**
@@ -106,7 +124,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public void facet(Closure action) {
-        configure(action, facet);
+        configure(action, getFacet());
     }
 
     /**
@@ -117,6 +135,6 @@ public class EclipseWtp {
      * @since 3.5
      */
     public void facet(Action<? super EclipseWtpFacet> action) {
-        action.execute(facet);
+        action.execute(getFacet());
     }
 }

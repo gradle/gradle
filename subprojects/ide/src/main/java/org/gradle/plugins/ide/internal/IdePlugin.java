@@ -24,6 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
@@ -34,8 +35,8 @@ import java.io.File;
 import java.io.IOException;
 
 public abstract class IdePlugin implements Plugin<Project> {
-    private Task lifecycleTask;
-    private Task cleanTask;
+    private TaskProvider<Task> lifecycleTask;
+    private TaskProvider<Delete> cleanTask;
     protected Project project;
 
     /**
@@ -69,18 +70,27 @@ public abstract class IdePlugin implements Plugin<Project> {
     public void apply(Project target) {
         project = target;
         String lifecycleTaskName = getLifecycleTaskName();
-        lifecycleTask = target.task(lifecycleTaskName);
-        lifecycleTask.setGroup("IDE");
-        cleanTask = target.getTasks().create(cleanName(lifecycleTaskName), Delete.class);
-        cleanTask.setGroup("IDE");
+        lifecycleTask = target.getTasks().createLater(lifecycleTaskName);
+        lifecycleTask.configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setGroup("IDE");
+            }
+        });
+        cleanTask = target.getTasks().createLater(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete task) {
+                task.setGroup("IDE");
+            }
+        });
         onApply(target);
     }
 
-    public Task getLifecycleTask() {
+    public TaskProvider<? extends Task> getLifecycleTask() {
         return lifecycleTask;
     }
 
-    public Task getCleanTask() {
+    public TaskProvider<? extends Task> getCleanTask() {
         return cleanTask;
     }
 
@@ -89,50 +99,99 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     public void addWorker(Task worker) {
+        addWorker(project.getTasks().get(Task.class, worker.getName()));
+    }
+
+    public void addWorker(TaskProvider<? extends Task> worker) {
         addWorker(worker, true);
     }
 
     public void addWorker(Task worker, boolean includeInClean) {
-        lifecycleTask.dependsOn(worker);
-        Delete cleanWorker = project.getTasks().create(cleanName(worker.getName()), Delete.class);
-        cleanWorker.delete(worker.getOutputs().getFiles());
+        addWorker(project.getTasks().get(Task.class, worker.getName()), includeInClean);
+    }
+
+    public void addWorker(final TaskProvider<? extends Task> worker, boolean includeInClean) {
+        lifecycleTask.configure(dependsOn(worker));
+        final TaskProvider<Delete> cleanWorker = project.getTasks().createLater(cleanName(worker.getName()), Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete cleanWorker) {
+                cleanWorker.delete(worker.get().getOutputs().getFiles());
+            }
+        });
+
         if (includeInClean) {
-            cleanTask.dependsOn(cleanWorker);
+            cleanTask.configure(dependsOn(cleanWorker));
         }
+    }
+
+    protected static Action<? super Task> dependsOn(final Task taskDependency) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskDependency);
+            }
+        };
+    }
+
+    protected static Action<? super Task> dependsOn(final TaskProvider<? extends Task> taskProvider) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(taskProvider);
+            }
+        };
+    }
+
+    protected static Action<? super Task> withDescription(final String description) {
+        return new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setDescription(description);
+            }
+        };
     }
 
     protected void onApply(Project target) {
     }
 
     protected void addWorkspace(final IdeWorkspace workspace) {
-        lifecycleTask.doLast(new Action<Task>() {
+        lifecycleTask.configure(new Action<Task>() {
             @Override
-            public void execute(Task task) {
-                System.out.println(String.format("Generated %s at %s", workspace.getDisplayName(), new ConsoleRenderer().asClickableFileUrl(workspace.getLocation().get().getAsFile())));
+            public void execute(Task lifecycleTask) {
+                lifecycleTask.doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        System.out.println(String.format("Generated %s at %s", workspace.getDisplayName(), new ConsoleRenderer().asClickableFileUrl(workspace.getLocation().get().getAsFile())));
+                    }
+                });
             }
         });
 
-        Task openTask = project.getTasks().create("open" + StringUtils.capitalize(getLifecycleTaskName()));
-        openTask.dependsOn(lifecycleTask);
-        openTask.setGroup("IDE");
-        openTask.setDescription("Opens the " + workspace.getDisplayName());
-        openTask.doLast(new Action<Task>() {
+        project.getTasks().createLater("open" + StringUtils.capitalize(getLifecycleTaskName()), new Action<Task>() {
             @Override
-            public void execute(Task task) {
-                if (OperatingSystem.current().isMacOsX()) {
-                    project.exec(new Action<ExecSpec>() {
-                        @Override
-                        public void execute(ExecSpec execSpec) {
-                            execSpec.commandLine("open", workspace.getLocation().get());
+            public void execute(Task openTask) {
+                openTask.dependsOn(lifecycleTask);
+                openTask.setGroup("IDE");
+                openTask.setDescription("Opens the " + workspace.getDisplayName());
+                openTask.doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        if (OperatingSystem.current().isMacOsX()) {
+                            project.exec(new Action<ExecSpec>() {
+                                @Override
+                                public void execute(ExecSpec execSpec) {
+                                    execSpec.commandLine("open", workspace.getLocation().get());
+                                }
+                            });
+                        } else {
+                            try {
+                                Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
                         }
-                    });
-                } else {
-                    try {
-                        Desktop.getDesktop().open(workspace.getLocation().get().getAsFile());
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
                     }
-                }
+                });
             }
         });
     }

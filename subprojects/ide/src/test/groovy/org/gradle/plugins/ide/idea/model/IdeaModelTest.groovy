@@ -20,16 +20,18 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.provider.Providers
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IdeaModelTest extends Specification {
 
-    IdeaModel model = new IdeaModel()
+    IdeaModel model = new IdeaModel(TestUtil.objectFactory())
 
     def "can configure workspace with Actions"() {
         given:
@@ -69,7 +71,7 @@ class IdeaModelTest extends Specification {
                 get(IncludedBuildTaskGraph) >> (IncludedBuildTaskGraph) null
             }
         }
-        model.project = new IdeaProject(gradleProject, xmlMerger)
+        model.project = new IdeaProject(gradleProject, Providers.of(xmlMerger))
 
         when: "configure project"
         model.project({ p -> p.vcs = 'GIT' } as Action<IdeaProject>)
@@ -95,7 +97,7 @@ class IdeaModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlAction = {} as Action<XmlProvider>
         def moduleIml = Spy(IdeaModuleIml, constructorArgs: [xmlTransformer, null])
-        model.module = new IdeaModule(null, moduleIml)
+        model.module = new IdeaModule(null, Providers.of(moduleIml))
 
         when: "configure module"
         model.module({ mod -> mod.name = 'name' } as Action<IdeaModule>)

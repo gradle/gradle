@@ -114,7 +114,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
-    private final XmlFileContentMerger ipr;
+    private final Provider<XmlFileContentMerger> ipr;
     private final ProjectStateRegistry projectPathRegistry;
     private final IdeArtifactRegistry artifactRegistry;
 
@@ -128,7 +128,7 @@ public class IdeaProject implements IdeWorkspace {
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
-    public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
+    public IdeaProject(org.gradle.api.Project project, Provider<XmlFileContentMerger> ipr) {
         this.project = project;
         this.ipr = ipr;
 
@@ -161,7 +161,7 @@ public class IdeaProject implements IdeWorkspace {
      * See {@link #ipr(Action) }
      */
     public XmlFileContentMerger getIpr() {
-        return ipr;
+        return ipr.get();
     }
 
     /**
@@ -342,10 +342,10 @@ public class IdeaProject implements IdeWorkspace {
     }
 
     public void mergeXmlProject(Project xmlProject) {
-        ipr.getBeforeMerged().execute(xmlProject);
+        getIpr().getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
         configureModulePaths(xmlProject);
-        ipr.getWhenMerged().execute(xmlProject);
+        getIpr().getWhenMerged().execute(xmlProject);
     }
 
     private void configureModulePaths(Project xmlProject) {
