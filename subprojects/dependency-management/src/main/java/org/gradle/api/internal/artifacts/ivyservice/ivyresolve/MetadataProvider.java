@@ -23,11 +23,12 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -52,7 +53,7 @@ public class MetadataProvider {
     public ComponentMetadata getComponentMetadata() {
         ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataSupplier();
         if (componentMetadataSupplier != null) {
-            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()));
+            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()), resolveState.getAttributesFactory());
             ComponentMetadataSupplierDetails details = new ComponentMetadataSupplierDetails() {
                 @Override
                 public ModuleComponentIdentifier getId() {
@@ -67,7 +68,9 @@ public class MetadataProvider {
             };
             componentMetadataSupplier.execute(details);
             if (builder.mutated) {
-                return builder.build();
+                ComponentMetadata metadata = builder.build();
+                metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);
+                return metadata;
             }
         }
         if (resolve()) {
@@ -107,15 +110,22 @@ public class MetadataProvider {
         return cachedResult;
     }
 
+    /**
+     * This class bridges from the public type available in metadata suppliers ({@link ComponentMetadataBuilder}
+     * to the complete type ({@link ComponentMetadata}) which provides more than what we want to expose in those
+     * rules. In particular, the builder exposes setters, that we don't want on the component metadata type.
+     */
     private static class SimpleComponentMetadataBuilder implements ComponentMetadataBuilder {
         private final ModuleVersionIdentifier id;
         private boolean mutated; // used internally to determine if a rule effectively did something
 
         private String status;
         private List<String> statusScheme = ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
+        private final AttributeContainerInternal attributes;
 
-        private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id) {
+        private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {
             this.id = id;
+            this.attributes = attributesFactory.mutable();
         }
 
         @Override
@@ -131,44 +141,10 @@ public class MetadataProvider {
         }
 
         ComponentMetadata build() {
-            return new UserProvidedMetadata(id, status, statusScheme);
+            attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
+            return new UserProvidedMetadata(id, statusScheme, attributes.asImmutable());
         }
 
-        private static class UserProvidedMetadata implements ComponentMetadata {
-            private final ModuleVersionIdentifier id;
-            private final String status;
-            private final List<String> statusScheme;
-
-            private UserProvidedMetadata(ModuleVersionIdentifier id, String status, List<String> statusScheme) {
-                this.id = id;
-                this.status = status;
-                this.statusScheme = statusScheme;
-            }
-
-            @Override
-            public ModuleVersionIdentifier getId() {
-                return id;
-            }
-
-            @Override
-            public boolean isChanging() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public String getStatus() {
-                return status;
-            }
-
-            @Override
-            public List<String> getStatusScheme() {
-                return statusScheme;
-            }
-
-            @Override
-            public AttributeContainer getAttributes() {
-                return ImmutableAttributes.EMPTY;
-            }
-        }
     }
+
 }
