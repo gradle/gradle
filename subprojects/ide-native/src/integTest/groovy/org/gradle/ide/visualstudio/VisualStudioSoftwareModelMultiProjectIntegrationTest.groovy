@@ -289,6 +289,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
 
@@ -333,6 +334,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can clean from visual studio with dependencies"() {
         useMsbuildTool()
         def debugBinary = executable('exe/build/exe/main/debug/main')
