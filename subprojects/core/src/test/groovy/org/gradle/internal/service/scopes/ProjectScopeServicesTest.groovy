@@ -57,6 +57,7 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
@@ -116,6 +117,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(StreamHasher) >> Mock(StreamHasher)
         parent.get(FileHasher) >> Mock(FileHasher)
         parent.get(TaskStatistics) >> new TaskStatistics()
+        parent.get(TextResourceLoader) >> Mock(TextResourceLoader)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

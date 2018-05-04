@@ -122,7 +122,7 @@ public class JavaScriptMinify extends SourceTask {
     @TaskAction
     void compileJavaScriptSources() {
         StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
+        cleaner.addDirToClean(getDestinationDir());
         cleaner.execute();
 
         MinifyFileVisitor visitor = new MinifyFileVisitor();

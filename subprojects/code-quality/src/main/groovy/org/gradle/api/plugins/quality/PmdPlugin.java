@@ -66,7 +66,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
         extension.setRuleSets(new ArrayList<String>(Arrays.asList("java-basic")));
-        extension.setRuleSetFiles(project.files());
+        extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", new Callable<Object>() {
             @Override
             public Object call() {
@@ -87,9 +87,13 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void configureTaskDefaults(Pmd task, String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("pmd");
+    protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
+    }
+
+    @Override
+    protected void configureTaskDefaults(Pmd task, String baseName) {
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

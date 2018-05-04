@@ -19,6 +19,8 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
+import java.io.File;
+
 /**
  * Deletes stale classes before invoking the actual compiler
  */
@@ -27,8 +29,11 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
     public WorkResult execute(T spec) {
         StaleClassCleaner cleaner = createCleaner(spec);
 
-        cleaner.setDestinationDir(spec.getDestinationDir());
-        cleaner.setSource(spec.getSource());
+        cleaner.addDirToClean(spec.getDestinationDir());
+        File generatedSourcesDirectory = spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory();
+        if (generatedSourcesDirectory != null) {
+            cleaner.addDirToClean(generatedSourcesDirectory);
+        }
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();

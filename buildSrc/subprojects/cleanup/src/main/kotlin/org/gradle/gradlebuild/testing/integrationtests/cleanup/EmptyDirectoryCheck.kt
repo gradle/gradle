@@ -67,5 +67,5 @@ open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : Def
 
     private
     fun createMessage(targetDir: File, report: File) =
-            "The directory $targetDir was not empty. Report: ${ConsoleRenderer().asClickableFileUrl(report)}"
+            "The directory $targetDir was not empty. Report: ${ConsoleRenderer().asClickableFileUrl(report)}\n${report.readText()}"
 }

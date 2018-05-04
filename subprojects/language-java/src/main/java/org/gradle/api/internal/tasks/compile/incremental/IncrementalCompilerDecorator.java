@@ -51,12 +51,13 @@ public class IncrementalCompilerDecorator {
     private final CompilationSourceDirs sourceDirs;
     private final FileCollection annotationProcessorPath;
     private final AnnotationProcessorDetector annotationProcessorDetector;
+    private final Compiler<JavaCompileSpec> rebuildAllCompiler;
     private final IncrementalCompilationInitializer compilationInitializer;
 
     public IncrementalCompilerDecorator(JarClasspathSnapshotMaker jarClasspathSnapshotMaker, CompileCaches compileCaches,
                                         IncrementalCompilationInitializer compilationInitializer, CleaningJavaCompiler cleaningCompiler, String displayName,
                                         RecompilationSpecProvider staleClassDetecter, ClassSetAnalysisUpdater classSetAnalysisUpdater,
-                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath, AnnotationProcessorDetector annotationProcessorDetector) {
+                                        CompilationSourceDirs sourceDirs, FileCollection annotationProcessorPath, AnnotationProcessorDetector annotationProcessorDetector, Compiler<JavaCompileSpec> rebuildAllCompiler) {
         this.jarClasspathSnapshotMaker = jarClasspathSnapshotMaker;
         this.compileCaches = compileCaches;
         this.compilationInitializer = compilationInitializer;
@@ -67,6 +68,7 @@ public class IncrementalCompilerDecorator {
         this.sourceDirs = sourceDirs;
         this.annotationProcessorPath = annotationProcessorPath;
         this.annotationProcessorDetector = annotationProcessorDetector;
+        this.rebuildAllCompiler = rebuildAllCompiler;
     }
 
     public Compiler<JavaCompileSpec> prepareCompiler(IncrementalTaskInputs inputs) {
@@ -78,24 +80,24 @@ public class IncrementalCompilerDecorator {
     private Compiler<JavaCompileSpec> getCompiler(IncrementalTaskInputs inputs, CompilationSourceDirs sourceDirs) {
         if (!inputs.isIncremental()) {
             LOG.info("{} - is not incremental (e.g. outputs have changed, no previous execution, etc.).", displayName);
-            return cleaningCompiler;
+            return rebuildAllCompiler;
         }
         if (!sourceDirs.canInferSourceRoots()) {
             LOG.info("{} - is not incremental. Unable to infer the source directories.", displayName);
-            return cleaningCompiler;
+            return rebuildAllCompiler;
         }
         List<AnnotationProcessorDeclaration> nonIncrementalProcessors = getNonIncrementalProcessors();
         if (!nonIncrementalProcessors.isEmpty()) {
             warnAboutNonIncrementalProcessors(nonIncrementalProcessors);
-            return cleaningCompiler;
+            return rebuildAllCompiler;
         }
         ClassSetAnalysisData data = compileCaches.getLocalClassSetAnalysisStore().get();
         if (data == null) {
             LOG.info("{} - is not incremental. No class analysis data available from the previous build.", displayName);
-            return cleaningCompiler;
+            return rebuildAllCompiler;
         }
         PreviousCompilation previousCompilation = new PreviousCompilation(new ClassSetAnalysis(data), compileCaches.getLocalJarClasspathSnapshotStore(), compileCaches.getJarSnapshotCache(), compileCaches.getAnnotationProcessorPathStore());
-        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
+        return new SelectiveCompiler(inputs, previousCompilation, cleaningCompiler, rebuildAllCompiler, staleClassDetecter, compilationInitializer, jarClasspathSnapshotMaker);
     }
 
     private List<AnnotationProcessorDeclaration> getNonIncrementalProcessors() {
