@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDecla
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
+import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -102,7 +103,7 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
             case AGGREGATING:
                 return new AggregatingProcessor(processor, result);
             default:
-                return processor;
+                return new NonIncrementalProcessor(processor, result);
         }
     }
 
