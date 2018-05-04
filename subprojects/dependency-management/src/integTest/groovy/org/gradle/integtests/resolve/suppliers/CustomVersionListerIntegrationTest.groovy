@@ -190,6 +190,104 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
+    void "can recover from broken lister"() {
+        withBrokenLister()
+        given:
+        repository {
+            'org:testA:1'()
+            'org:testA:2'()
+            'org:testA:3'()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:testA:+"
+            }
+        """
+
+        when:
+        fails 'checkDeps', '-PbreakBuild=true'
+
+        then:
+        failure.assertHasCause("Failed to list versions for org:testA.")
+        failure.assertHasCause("oh noes!")
+
+        when:
+        repositoryInteractions {
+            'org:testA' {
+                expectVersionListing()
+            }
+            'org:testA:3' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+    }
+
+    def "can recover from --offline mode"() {
+        withLister(['testA': [1, 2, 3]])
+
+        given:
+        repository {
+            'org:testA:1'()
+            'org:testA:2'()
+            'org:testA:3'()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:testA:+"
+            }
+        """
+
+        when:
+        fails 'checkDeps', '--offline'
+
+        then:
+        failure.assertHasCause("No cached version listing for org:testA:+ available for offline mode")
+
+        when:
+        repositoryInteractions {
+            'org:testA:3' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+    }
+
+    def "can use result from lister in --offline mode"() {
+        withLister(['testA': [1, 2, 3]])
+
+        given:
+        repository {
+            'org:testA:1'()
+            'org:testA:2'()
+            'org:testA:3'()
+        }
+        buildFile << """
+            dependencies {
+                conf "org:testA:+"
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:testA:3' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'checkDeps'
+
+        when:
+        resetExpectations()
+
+        then:
+        succeeds 'checkDeps', '--refresh-dependencies', '--offline'
+    }
 
     private ListerInteractions withLister(Map<String, List<String>> moduleToVersions, boolean logQueries = false) {
         metadataListerClass = 'MyLister'
@@ -205,6 +303,23 @@ $listing
                 }
             }
         """
+        new SimpleListerInteractions()
+    }
+
+    private ListerInteractions withBrokenLister() {
+        buildFile << """
+            class BrokenLister implements ComponentMetadataVersionLister {
+                private final boolean breakBuild
+                
+                @javax.inject.Inject
+                BrokenLister(boolean breakBuild) { this.breakBuild = breakBuild }
+            
+                void execute(ComponentMetadataListerDetails details) {
+                    if (breakBuild) { throw new RuntimeException("oh noes!") }
+                }
+            }
+        """
+        setMetadataListerClassWithParams('BrokenLister', 'project.findProperty(\'breakBuild\')?true:false')
         new SimpleListerInteractions()
     }
 
