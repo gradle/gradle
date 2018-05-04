@@ -72,7 +72,7 @@ public class GroupedOutputFixture {
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutcome = matcher.group(2);
-            String taskOutput = matcher.group(3).trim();
+            String taskOutput = matcher.group(3);
 
             GroupedTaskFixture task = tasks.get(taskName);
             if (task == null) {
