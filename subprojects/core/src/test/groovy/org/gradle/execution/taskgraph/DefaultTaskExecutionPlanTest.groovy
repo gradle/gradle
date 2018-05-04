@@ -74,10 +74,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules tasks in dependency order"() {
         given:
-        Task a = task("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", dependsOn: [b, a])
-        Task d = task("d", dependsOn: [c])
+        def a = task("a")
+        def b = task("b", dependsOn: [a])
+        def c = task("c", dependsOn: [b, a])
+        def d = task("d", dependsOn: [c])
 
         when:
         addToGraphAndPopulate([d])
@@ -88,10 +88,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules task dependencies in name order when there are no dependencies between them"() {
         given:
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c")
-        Task d = task("d", dependsOn: [b, a, c])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+        def d = task("d", dependsOn: [b, a, c])
 
         when:
         addToGraphAndPopulate([d])
@@ -102,9 +102,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules a single batch of tasks in name order"() {
         given:
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c")
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
 
         when:
         addToGraphAndPopulate(toList(b, c, a))
@@ -115,10 +115,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "schedules separately added tasks in order added"() {
         given:
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c")
-        Task d = task("d")
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+        def d = task("d")
 
         when:
         executionPlan.addToTaskGraph(toList(c, b))
@@ -132,10 +132,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "schedules #orderingRule task dependencies in name order"() {
         given:
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c", (orderingRule): [b, a])
-        Task d = task("d", dependsOn: [b, a])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", (orderingRule): [b, a])
+        def d = task("d", dependsOn: [b, a])
 
         when:
         addToGraphAndPopulate([c, d])
@@ -148,11 +148,11 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "common tasks in separate batches are schedules only once"() {
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c", dependsOn: [a, b])
-        Task d = task("d")
-        Task e = task("e", dependsOn: [b, d])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", dependsOn: [a, b])
+        def d = task("d")
+        def e = task("e", dependsOn: [b, d])
 
         when:
         executionPlan.addToTaskGraph(toList(c))
@@ -164,10 +164,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "all dependencies scheduled when adding tasks"() {
-        Task a = task("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", dependsOn: [b, a])
-        Task d = task("d", dependsOn: [c])
+        def a = task("a")
+        def b = task("b", dependsOn: [a])
+        def c = task("c", dependsOn: [b, a])
+        def d = task("d", dependsOn: [c])
 
         when:
         addToGraphAndPopulate(toList(d))
@@ -178,9 +178,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "#orderingRule ordering is honoured for tasks added separately to graph"() {
-        Task a = task("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", (orderingRule): [b])
+        def a = task("a")
+        def b = task("b", dependsOn: [a])
+        def c = task("c", (orderingRule): [b])
 
         when:
         executionPlan.addToTaskGraph([c])
@@ -196,9 +196,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "#orderingRule ordering is honoured for dependencies"() {
-        Task b = task("b")
-        Task a = task("a", (orderingRule): [b])
-        Task c = task("c", dependsOn: [a, b])
+        def b = task("b")
+        def a = task("a", (orderingRule): [b])
+        def c = task("c", dependsOn: [a, b])
 
         when:
         addToGraphAndPopulate([c])
@@ -211,10 +211,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "mustRunAfter dependencies are scheduled before regular dependencies"() {
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c", dependsOn: [a], mustRunAfter: [b])
-        Task d = task("d", dependsOn: [b])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", dependsOn: [a], mustRunAfter: [b])
+        def d = task("d", dependsOn: [b])
 
         when:
         addToGraphAndPopulate([c, d])
@@ -224,10 +224,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "shouldRunAfter dependencies are scheduled before mustRunAfter dependencies"() {
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c", mustRunAfter: [a], shouldRunAfter: [b])
-        Task d = task("d", dependsOn: [a, b])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", mustRunAfter: [a], shouldRunAfter: [b])
+        def d = task("d", dependsOn: [a, b])
 
         when:
         addToGraphAndPopulate([c, d])
@@ -239,15 +239,15 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     def "cyclic should run after ordering is ignored in complex task graph"() {
         given:
 
-        Task e = createTask("e")
-        Task x = task("x", dependsOn: [e])
-        Task f = task("f", dependsOn: [x])
-        Task a = task("a", shouldRunAfter: [x])
-        Task b = task("b", shouldRunAfter: [a])
-        Task c = task("c", shouldRunAfter: [b])
-        Task d = task("d", dependsOn: [f], shouldRunAfter: [c])
+        def e = createTask("e")
+        def x = task("x", dependsOn: [e])
+        def f = task("f", dependsOn: [x])
+        def a = task("a", shouldRunAfter: [x])
+        def b = task("b", shouldRunAfter: [a])
+        def c = task("c", shouldRunAfter: [b])
+        def d = task("d", dependsOn: [f], shouldRunAfter: [c])
         relationships(e, shouldRunAfter: [d])
-        Task build = task("build", dependsOn: [x, a, b, c, d, e])
+        def build = task("build", dependsOn: [x, a, b, c, d, e])
 
         when:
         addToGraphAndPopulate([build])
@@ -258,8 +258,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "#orderingRule does not pull in tasks that are not in the graph"() {
-        Task a = task("a")
-        Task b = task("b", (orderingRule): [a])
+        def a = task("a")
+        def b = task("b", (orderingRule): [a])
 
         when:
         addToGraphAndPopulate([b])
@@ -272,8 +272,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks are executed if a finalized task is added to the graph"() {
-        Task finalizer = task("a")
-        Task finalized = task("b", finalizedBy: [finalizer])
+        def finalizer = task("a")
+        def finalized = task("b", finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate([finalized])
@@ -283,11 +283,11 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks and their dependencies are executed even in case of a task failure"() {
-        Task finalizerDependency = task("finalizerDependency")
-        Task finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
-        Task finalized1 = task("finalized1", finalizedBy: [finalizer1])
-        Task finalizer2 = task("finalizer2")
-        Task finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
+        def finalizerDependency = task("finalizerDependency")
+        def finalizer1 = task("finalizer1", dependsOn: [finalizerDependency])
+        def finalized1 = task("finalized1", finalizedBy: [finalizer1])
+        def finalizer2 = task("finalizer2")
+        def finalized2 = task("finalized2", finalizedBy: [finalizer2], failure: new RuntimeException("failure"))
 
         when:
         addToGraphAndPopulate([finalized1, finalized2])
@@ -298,8 +298,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "finalizer task is not added to the graph if it is filtered"() {
         given:
-        Task finalizer = filteredTask("finalizer")
-        Task finalized = task("finalized", finalizedBy: [finalizer])
+        def finalizer = filteredTask("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
         Spec<Task> filter = Mock() {
             isSatisfiedBy(_) >> { Task t -> t != finalizer }
         }
@@ -313,10 +313,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks and their dependencies are not executed if finalized task did not run"() {
-        Task finalizerDependency = task("finalizerDependency")
-        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
-        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
-        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
+        def finalizerDependency = task("finalizerDependency")
+        def finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        def finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        def finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate([finalized])
@@ -327,10 +327,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks and their dependencies are executed if they are previously required even if the finalized task did not run"() {
-        Task finalizerDependency = task("finalizerDependency")
-        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
-        Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
-        Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
+        def finalizerDependency = task("finalizerDependency")
+        def finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        def finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
+        def finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
         executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(finalizedDependency))
 
         when:
@@ -342,10 +342,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks and their dependencies are executed if they are later required via dependency even if the finalized task did not do any work"() {
-        Task finalizerDependency = task("finalizerDependency")
-        Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
-        Task dependsOnFinalizer = task("dependsOnFinalizer", dependsOn: [finalizer])
-        Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
+        def finalizerDependency = task("finalizerDependency")
+        def finalizer = task("finalizer", dependsOn: [finalizerDependency])
+        def dependsOnFinalizer = task("dependsOnFinalizer", dependsOn: [finalizer])
+        def finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
         executionPlan.addToTaskGraph([finalized])
@@ -357,9 +357,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer tasks run as soon as possible for tasks that depend on finalized tasks"() {
-        Task finalizer = task("finalizer")
-        Task finalized = task("finalized", finalizedBy: [finalizer])
-        Task dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
+        def finalizer = task("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
+        def dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
 
         when:
         addToGraphAndPopulate([dependsOnFinalized])
@@ -369,9 +369,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "multiple finalizer tasks may have relationships between each other"() {
-        Task f2 = task("f2")
-        Task f1 = task("f1", dependsOn: [f2])
-        Task finalized = task("finalized", finalizedBy: [f1, f2])
+        def f2 = task("f2")
+        def f1 = task("f1", dependsOn: [f2])
+        def finalized = task("finalized", finalizedBy: [f1, f2])
 
         when:
         addToGraphAndPopulate([finalized])
@@ -381,10 +381,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "multiple finalizer tasks may have relationships between each other via some other task"() {
-        Task f2 = task("f2")
-        Task d = task("d", dependsOn:[f2] )
-        Task f1 = task("f1", dependsOn: [d])
-        Task finalized = task("finalized", finalizedBy: [f1, f2])
+        def f2 = task("f2")
+        def d = task("d", dependsOn:[f2] )
+        def f1 = task("f1", dependsOn: [d])
+        def finalized = task("finalized", finalizedBy: [f1, f2])
 
         when:
         addToGraphAndPopulate([finalized])
@@ -396,14 +396,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Issue("GRADLE-2957")
     def "task with a dependency and a finalizer both having a common finalizer"() {
         // Finalizer task
-        Task finalTask = task('finalTask')
+        def finalTask = task('finalTask')
 
         // Task with this finalizer
-        Task dependency = task('dependency', finalizedBy: [finalTask])
-        Task finalizer = task('finalizer', finalizedBy: [finalTask])
+        def dependency = task('dependency', finalizedBy: [finalTask])
+        def finalizer = task('finalizer', finalizedBy: [finalTask])
 
         // Task to call, with the same finalizer than one of its dependencies
-        Task requestedTask = task('requestedTask', dependsOn: [dependency], finalizedBy: [finalizer])
+        def requestedTask = task('requestedTask', dependsOn: [dependency], finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate([requestedTask])
@@ -415,17 +415,17 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Issue("GRADLE-2983")
     def "multiple finalizer tasks with relationships via other tasks scheduled from multiple tasks"() {
         //finalizers with a relationship via a dependency
-        Task f1 = task("f1")
-        Task dep = task("dep", dependsOn:[f1] )
-        Task f2 = task("f2", dependsOn: [dep])
+        def f1 = task("f1")
+        def dep = task("dep", dependsOn:[f1] )
+        def f2 = task("f2", dependsOn: [dep])
 
         //2 finalized tasks
-        Task finalized1 = task("finalized1", finalizedBy: [f1, f2])
-        Task finalized2 = task("finalized2", finalizedBy: [f1, f2])
+        def finalized1 = task("finalized1", finalizedBy: [f1, f2])
+        def finalized2 = task("finalized2", finalizedBy: [f1, f2])
 
         //tasks that depends on finalized, we will execute them
-        Task df1 = task("df1", dependsOn: [finalized1])
-        Task df2 = task("df1", dependsOn: [finalized2])
+        def df1 = task("df1", dependsOn: [finalized1])
+        def df2 = task("df1", dependsOn: [finalized2])
 
         when:
         addToGraphAndPopulate([df1, df2])
@@ -436,9 +436,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "finalizer tasks run as soon as possible for tasks that #orderingRule finalized tasks"() {
-        Task finalizer = task("finalizer")
-        Task finalized = task("finalized", finalizedBy: [finalizer])
-        Task runsAfterFinalized = task("runsAfterFinalized", (orderingRule): [finalized])
+        def finalizer = task("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
+        def runsAfterFinalized = task("runsAfterFinalized", (orderingRule): [finalized])
 
         when:
         addToGraphAndPopulate([runsAfterFinalized, finalized])
@@ -452,9 +452,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "finalizer tasks run as soon as possible but after its #orderingRule tasks"() {
-        Task finalizer = createTask("finalizer")
-        Task finalized = task("finalized", finalizedBy: [finalizer])
-        Task dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
+        def finalizer = createTask("finalizer")
+        def finalized = task("finalized", finalizedBy: [finalizer])
+        def dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
         relationships(finalizer, (orderingRule): [dependsOnFinalized])
 
         when:
@@ -468,10 +468,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "cannot add task with circular reference"() {
-        Task a = createTask("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", dependsOn: [b])
-        Task d = task("d")
+        def a = createTask("a")
+        def b = task("b", dependsOn: [a])
+        def c = task("c", dependsOn: [b])
+        def d = task("d")
         relationships(a, dependsOn: [c, d])
 
         when:
@@ -490,9 +490,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "cannot add a task with must run after induced circular reference"() {
-        Task a = createTask("a")
-        Task b = task("b", mustRunAfter: [a])
-        Task c = task("c", dependsOn: [b])
+        def a = createTask("a")
+        def b = task("b", mustRunAfter: [a])
+        def c = task("c", dependsOn: [b])
         relationships(a, dependsOn: [c])
 
         when:
@@ -511,10 +511,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "cannot add a task with must run after induced circular reference that was previously in graph but not required"() {
-        Task a = createTask("a")
-        Task b = task("b", mustRunAfter: [a])
-        Task c = task("c", dependsOn: [b])
-        Task d = task("d", dependsOn: [c])
+        def a = createTask("a")
+        def b = task("b", mustRunAfter: [a])
+        def c = task("c", dependsOn: [b])
+        def d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
         executionPlan.addToTaskGraph([d])
 
@@ -535,14 +535,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "should run after ordering is ignored if it is in a middle of a circular reference"() {
-        Task a = task("a")
-        Task b = task("b")
-        Task c = task("c")
-        Task d = createTask("d")
-        Task e = task("e", dependsOn: [a, d])
-        Task f = task("f", dependsOn: [e])
-        Task g = task("g", dependsOn: [c, f])
-        Task h = task("h", dependsOn: [b, g])
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+        def d = createTask("d")
+        def e = task("e", dependsOn: [a, d])
+        def f = task("f", dependsOn: [e])
+        def g = task("g", dependsOn: [c, f])
+        def h = task("h", dependsOn: [b, g])
         relationships(d, shouldRunAfter: [g])
 
         when:
@@ -554,9 +554,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Issue("GRADLE-3166")
     def "multiple should run after declarations are removed if causing circular reference"() {
-        Task a = createTask("a")
-        Task b = createTask("b")
-        Task c = createTask("c")
+        def a = createTask("a")
+        def b = createTask("b")
+        def c = createTask("c")
 
         relationships(a, dependsOn: [c])
         relationships(b, dependsOn: [a, c])
@@ -570,9 +570,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "should run after ordering is ignored if it is at the end of a circular reference"() {
-        Task a = createTask("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", dependsOn: [b])
+        def a = createTask("a")
+        def b = task("b", dependsOn: [a])
+        def c = task("c", dependsOn: [b])
         relationships(a, shouldRunAfter: [c])
 
         when:
@@ -584,10 +584,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     @Issue("GRADLE-3127")
     def "circular dependency detected with shouldRunAfter dependencies in the graph"() {
-        Task a = createTask("a")
-        Task b = task("b")
-        Task c = createTask("c")
-        Task d = task("d", dependsOn: [a, b, c])
+        def a = createTask("a")
+        def b = task("b")
+        def c = createTask("c")
+        def d = task("d", dependsOn: [a, b, c])
         relationships(a, shouldRunAfter: [b])
         relationships(c, dependsOn: [d])
 
@@ -609,8 +609,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         RuntimeException exception = new RuntimeException("failure")
 
         when:
-        Task a = task([failure: exception],"a")
-        Task b = task("b")
+        def a = task([failure: exception],"a")
+        def b = task("b")
         addToGraphAndPopulate([a, b])
 
         then:
@@ -626,8 +626,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "stops returning tasks when build is cancelled"() {
         2 * cancellationHandler.cancellationRequested >>> [false, true]
-        Task a = task("a")
-        Task b = task("b")
+        def a = task("a")
+        def b = task("b")
 
         when:
         addToGraphAndPopulate([a, b])
@@ -645,8 +645,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
         RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
+        def a = task("a", failure: failure)
+        def b = task("b")
 
         when:
         addToGraphAndPopulate([a, b])
@@ -664,8 +664,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "stops execution on task failure when failure handler indicates that execution should stop"() {
         RuntimeException failure = new RuntimeException("failure")
-        Task a = task("a", failure: failure)
-        Task b = task("b")
+        def a = task("a", failure: failure)
+        def b = task("b")
 
         addToGraphAndPopulate([a, b])
 
@@ -691,8 +691,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
         RuntimeException failure = new RuntimeException()
-        Task a = task("a", failure: failure)
-        Task b = task("b")
+        def a = task("a", failure: failure)
+        def b = task("b")
         addToGraphAndPopulate([a, b])
 
         when:
@@ -712,8 +712,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
         RuntimeException failure = new RuntimeException()
-        Task a = task("a", failure: failure)
-        Task b = task("b", (orderingRule): [a])
+        def a = task("a", failure: failure)
+        def b = task("b", (orderingRule): [a])
         addToGraphAndPopulate([a, b])
 
         when:
@@ -735,9 +735,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
         RuntimeException failure = new RuntimeException()
-        final Task a = task("a", failure: failure)
-        final Task b = task("b", dependsOn: [a])
-        final Task c = task("c")
+        final def a = task("a", failure: failure)
+        final def b = task("b", dependsOn: [a])
+        final def c = task("c")
         addToGraphAndPopulate([b, c])
 
         when:
@@ -760,7 +760,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
             args[0].transform(Mock(ResourceLockState))
             return true
         }
-        Task a = task("a")
+        def a = task("a")
 
         when:
         addToGraphAndPopulate(toList(a))
@@ -777,8 +777,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
             args[0].transform(Mock(ResourceLockState))
             return true
         }
-        Task a = task("a")
-        Task b = task("b")
+        def a = task("a")
+        def b = task("b")
 
         when:
         addToGraphAndPopulate([a])
@@ -796,8 +796,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "does not build graph for or execute filtered tasks"() {
         given:
-        Task a = filteredTask("a")
-        Task b = task("b")
+        def a = filteredTask("a")
+        def b = task("b")
         Spec<Task> filter = Mock()
 
         and:
@@ -814,9 +814,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "does not build graph for or execute filtered dependencies"() {
         given:
-        Task a = filteredTask("a")
-        Task b = task("b")
-        Task c = task("c", dependsOn: [a, b])
+        def a = filteredTask("a")
+        def b = task("b")
+        def c = task("c", dependsOn: [a, b])
         Spec<Task> filter = Mock()
 
         and:
@@ -834,9 +834,9 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "does not build graph for or execute filtered tasks reachable via #orderingRule task ordering"() {
         given:
-        Task a = filteredTask("a")
-        Task b = task("b", (orderingRule): [a])
-        Task c = task("c", dependsOn: [a])
+        def a = filteredTask("a")
+        def b = task("b", (orderingRule): [a])
+        def c = task("c", dependsOn: [a])
         Spec<Task> filter = Mock()
 
         and:
@@ -856,8 +856,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     def "will execute a task whose dependencies have been filtered"() {
         given:
-        Task b = filteredTask("b")
-        Task c = task("c", dependsOn: [b])
+        def b = filteredTask("b")
+        def c = task("c", dependsOn: [b])
         Spec<Task> filter = Mock()
 
         and:
