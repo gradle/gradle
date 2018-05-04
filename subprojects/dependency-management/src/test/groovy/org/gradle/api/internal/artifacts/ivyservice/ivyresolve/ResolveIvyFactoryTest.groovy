@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.Lists
+import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
@@ -128,6 +129,7 @@ class ResolveIvyFactoryTest extends Specification {
         FileStore<ModuleComponentArtifactMetadata> artifactFileStore = Stub()
         ImmutableMetadataSources metadataSources = Stub()
         MetadataArtifactProvider metadataArtifactProvider = Stub()
+        Factory<ComponentMetadataSupplier> componentMetadataSupplierFactory = Stub()
         Factory<ComponentMetadataVersionLister> versionListerFactory = Stub()
 
         return Spy(ExternalResourceResolver,
@@ -141,6 +143,7 @@ class ResolveIvyFactoryTest extends Specification {
                 moduleIdentifierFactory,
                 metadataSources,
                 metadataArtifactProvider,
+                componentMetadataSupplierFactory,
                 versionListerFactory
             ]
         ) {
