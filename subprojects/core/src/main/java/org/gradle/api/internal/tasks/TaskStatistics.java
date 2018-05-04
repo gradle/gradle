@@ -20,11 +20,14 @@ import com.google.common.collect.Maps;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
+import org.gradle.util.CollectionUtils;
 
 import java.io.Closeable;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,6 +39,7 @@ public class TaskStatistics implements Closeable {
     private final AtomicInteger lazyTasks = new AtomicInteger();
     private final AtomicInteger lazyRealizedTasks = new AtomicInteger();
     private final Map<Class, Integer> typeCounts = Maps.newHashMap();
+    private final Map<Class, Integer> realizedTypeCounts = Maps.newHashMap();
     private final boolean collectStatistics;
 
     private PrintWriter lazyTaskLog;
@@ -77,9 +81,18 @@ public class TaskStatistics implements Closeable {
         }
     }
 
-    public void lazyTaskRealized() {
+    public void lazyTaskRealized(Class<?> type) {
         if (collectStatistics) {
             lazyRealizedTasks.incrementAndGet();
+            synchronized (realizedTypeCounts) {
+                Integer count = realizedTypeCounts.get(type);
+                if (count == null) {
+                    count = 1;
+                } else {
+                    count = count + 1;
+                }
+                realizedTypeCounts.put(type, count);
+            }
             if (lazyTaskLog != null) {
                 new Throwable().printStackTrace(lazyTaskLog);
             }
@@ -90,10 +103,24 @@ public class TaskStatistics implements Closeable {
     public void close() throws IOException {
         if (collectStatistics) {
             LOGGER.lifecycle("E {} L {} LR {}", eagerTasks.getAndSet(0), lazyTasks.getAndSet(0), lazyRealizedTasks.getAndSet(0));
-            for (Map.Entry<Class, Integer> typeCount : typeCounts.entrySet()) {
+            printTypeCounts("Task types that were eagerly created", typeCounts);
+            printTypeCounts("Lazy task types that were realized", realizedTypeCounts);
+            IoActions.closeQuietly(lazyTaskLog);
+        }
+    }
+
+    private void printTypeCounts(String header, Map<Class, Integer> typeCounts) {
+        if (!typeCounts.isEmpty()) {
+            LOGGER.lifecycle(header);
+            List<Map.Entry<Class, Integer>> sorted = CollectionUtils.sort(typeCounts.entrySet(), new Comparator<Map.Entry<Class, Integer>>() {
+                @Override
+                public int compare(Map.Entry<Class, Integer> a, Map.Entry<Class, Integer> b) {
+                    return b.getValue().compareTo(a.getValue());
+                }
+            });
+            for (Map.Entry<Class, Integer> typeCount : sorted) {
                 LOGGER.lifecycle(typeCount.getKey() + " " + typeCount.getValue());
             }
-            IoActions.closeQuietly(lazyTaskLog);
         }
     }
 }
