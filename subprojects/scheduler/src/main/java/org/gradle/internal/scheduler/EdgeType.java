@@ -1,0 +1,72 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.scheduler;
+
+public enum EdgeType {
+    /**
+     * Represents a dependency between two nodes, pointing from dependency node to dependent node.
+     * The edge is removed when the source node is completed.
+     */
+    DEPENDENT(false),
+
+    /**
+     * The target node can only be started once the source node has fully finished running.
+     * The edge is removed when the source node is completed.
+     */
+    MUST_RUN_AFTER(false),
+
+    /**
+     * The target node cannot be started while the source node is running.
+     * The edge is removed when the source node is completed or suspended.
+     */
+    MUST_NOT_RUN_WITH(false),
+
+    /**
+     * The target node finalizes the source node.
+     * Once the source node starts running, the target node is marked as
+     * {@link NodeState#MUST_RUN}.
+     * The edge is removed when the source node is completed.
+     */
+    FINALIZER(false),
+
+    /**
+     * The scheduler should try to avoid starting the target node before the source node.
+     * The edge can be removed to resolve cycles in the graph.
+     * The edge is removed when the source node starts executing.
+     */
+    AVOID_STARTING_BEFORE(true),
+
+    /**
+     * The scheduler should try to avoid starting the target node before the source node.
+     * The edge can be removed to resolve cycles in the graph.
+     * The edge is removed when the source node starts executing.
+     */
+    AVOID_STARTING_BEFORE_FINALIZED(true);
+
+    private final boolean removable;
+
+    EdgeType(boolean removable) {
+        this.removable = removable;
+    }
+
+    /**
+     * Returns whether this edge can be removed to break cycles in the graph.
+     */
+    public boolean isRemovableToBreakCycles() {
+        return removable;
+    }
+}
