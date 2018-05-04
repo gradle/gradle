@@ -172,7 +172,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public void flushPending() {
-        collection.flushPending();
+        flushPending(filter.getType());
     }
 
     @Override

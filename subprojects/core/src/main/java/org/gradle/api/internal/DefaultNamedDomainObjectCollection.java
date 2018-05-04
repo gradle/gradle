@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -48,7 +49,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -64,7 +64,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
     private final Index<T> index;
-    private Map<String, Provider<? extends T>> pending;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -132,11 +131,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     public void addLater(final Provider<? extends T> provider) {
         super.addLater(provider);
         if (provider instanceof Named) {
-            if (pending == null) {
-                pending = new LinkedHashMap<String, Provider<? extends T>>();
-            }
             final Named named = (Named) provider;
-            pending.put(named.getName(), provider);
+            index.putPending(named.getName(), (ProviderInternal<? extends T>) provider);
             deferredElementKnown(named.getName(), provider);
         }
     }
@@ -148,10 +144,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             T next = iterator.next();
             whenKnown.execute(new ObjectBackedElementInfo<T>(namer.determineName(next), next));
         }
-        if (pending != null) {
-            for (Map.Entry<String, Provider<? extends T>> entry : pending.entrySet()) {
-                deferredElementKnown(entry.getKey(), entry.getValue());
-            }
+
+        for (Map.Entry<String, ProviderInternal<? extends T>> entry : index.getPendingAsMap().entrySet()) {
+            deferredElementKnown(entry.getKey(), entry.getValue());
         }
     }
 
@@ -236,11 +231,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     public SortedSet<String> getNames() {
         NavigableSet<String> realizedNames = index.asMap().navigableKeySet();
-        if (pending == null || pending.isEmpty()) {
+        Set<String> pendingNames = index.getPendingAsMap().keySet();
+        if (pendingNames.isEmpty()) {
             return realizedNames;
         }
         TreeSet<String> allNames = new TreeSet<String>(realizedNames);
-        allNames.addAll(pending.keySet());
+        allNames.addAll(pendingNames);
         return allNames;
     }
 
@@ -261,12 +257,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (value != null) {
             return value;
         }
-        if (pending != null) {
-            Provider<? extends T> provider = pending.remove(name);
-            if (provider != null) {
-                // TODO - this isn't correct, assumes that a side effect is to add the element
-                return provider.get();
-            }
+        ProviderInternal<? extends T> provider = index.getPending(name);
+        if (provider != null) {
+            index.removePending(name);
+            getStore().removePending(provider);
+            // TODO - this isn't correct, assumes that a side effect is to add the element
+            return provider.get();
         }
         if (!applyRules(name)) {
             return null;
@@ -275,7 +271,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected boolean hasWithName(String name) {
-        return index.get(name) != null || (pending != null && pending.containsKey(name));
+        return index.get(name) != null || index.getPending(name) != null;
     }
 
     @Nullable
@@ -463,10 +459,20 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         NavigableMap<String, T> asMap();
 
         <S extends T> Index<S> filter(CollectionFilter<S> filter);
+
+        @Nullable
+        ProviderInternal<? extends T> getPending(String name);
+
+        void putPending(String name, ProviderInternal<? extends T> provider);
+
+        @Nullable
+        void removePending(String name);
+
+        Map<String, ProviderInternal<? extends T>> getPendingAsMap();
     }
 
     protected static class UnfilteredIndex<T> implements Index<T> {
-
+        private final Map<String, ProviderInternal<? extends T>> pendingMap = Maps.newLinkedHashMap();
         private final NavigableMap<String, T> map = new TreeMap<String, T>();
 
         @Override
@@ -497,6 +503,27 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
             return new FilteredIndex<S>(this, filter);
+        }
+
+        @Nullable
+        @Override
+        public ProviderInternal<? extends T> getPending(String name) {
+            return pendingMap.get(name);
+        }
+
+        @Override
+        public void putPending(String name, ProviderInternal<? extends T> provider) {
+            pendingMap.put(name, provider);
+        }
+
+        @Override
+        public void removePending(String name) {
+            pendingMap.remove(name);
+        }
+
+        @Override
+        public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
+            return pendingMap;
         }
     }
 
@@ -548,6 +575,41 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
             return new FilteredIndex<S>(delegate, this.filter.and(filter));
+        }
+
+        @Nullable
+        @Override
+        public ProviderInternal<? extends T> getPending(String name) {
+            ProviderInternal<?> provider = delegate.getPending(name);
+            if (provider != null && provider.getType() != null && filter.getType().isAssignableFrom(provider.getType())) {
+                return (ProviderInternal<? extends T>) provider;
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public void putPending(String name, ProviderInternal<? extends T> provider) {
+            delegate.putPending(name, provider);
+        }
+
+        @Nullable
+        @Override
+        public void removePending(String name) {
+            delegate.removePending(name);
+        }
+
+        @Override
+        public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
+            // TODO not sure if we clean up the generics here and do less unchecked casting
+            Map<String, ProviderInternal<?>> delegateMap = (Map<String, ProviderInternal<?>>) delegate.getPendingAsMap();
+            Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
+            for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
+                if (entry.getValue().getType() != null && filter.getType().isAssignableFrom(entry.getValue().getType())) {
+                    filteredMap.put(entry.getKey(), (ProviderInternal<? extends T>) entry.getValue());
+                }
+            }
+            return filteredMap;
         }
     }
 
