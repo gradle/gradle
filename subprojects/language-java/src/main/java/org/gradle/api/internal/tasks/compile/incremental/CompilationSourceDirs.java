@@ -39,35 +39,30 @@ public class CompilationSourceDirs {
     private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
 
     private final FileTreeInternal sources;
-    private List<String> sourceRoots;
-    private boolean canInferSourceRoots;
+    private SourceRoots sourceRoots;
 
     public CompilationSourceDirs(FileTreeInternal sources) {
         this.sources = sources;
     }
 
     public List<String> getSourceRoots() {
+        return resolveRoots().getSourceRoots();
+    }
+
+    public boolean canInferSourceRoots() {
+        return resolveRoots().isCanInferSourceRoots();
+    }
+
+    private SourceRoots resolveRoots() {
         if (sourceRoots == null) {
-            resolveRoots();
+            SourceRoots visitor = new SourceRoots();
+            sources.visitRootElements(visitor);
+            sourceRoots = visitor;
         }
         return sourceRoots;
     }
 
-    public boolean canInferSourceRoots() {
-        if (sourceRoots == null) {
-            resolveRoots();
-        }
-        return canInferSourceRoots;
-    }
-
-    private void resolveRoots() {
-        SourceRootVisitor visitor = new SourceRootVisitor();
-        sources.visitRootElements(visitor);
-        canInferSourceRoots = visitor.isCanInferSourceRoots();
-        sourceRoots = visitor.getSourceRoots();
-    }
-
-    private static class SourceRootVisitor implements FileCollectionVisitor {
+    private static class SourceRoots implements FileCollectionVisitor {
         private boolean canInferSourceRoots = true;
         private List<String> sourceRoots = Lists.newArrayList();
 
@@ -88,7 +83,7 @@ public class CompilationSourceDirs {
 
         private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
             canInferSourceRoots = false;
-            LOG.info("Cannot infer source root(s) for source `{}`. Only things resolving to directory trees are supported.", fileCollection);
+            LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
         }
 
         public boolean isCanInferSourceRoots() {
