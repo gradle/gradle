@@ -18,10 +18,12 @@ package org.gradle.ide.visualstudio
 
 import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -250,6 +252,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/install/main/debug/lib/app")
@@ -281,6 +284,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/lib/main/debug/static/lib")

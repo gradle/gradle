@@ -18,11 +18,13 @@ package org.gradle.ide.visualstudio
 
 import groovy.transform.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -339,6 +341,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
         def app = new CppAppWithLibrary()
