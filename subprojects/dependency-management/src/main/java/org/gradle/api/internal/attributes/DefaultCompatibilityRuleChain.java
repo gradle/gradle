@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -53,12 +54,12 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
     public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
         DefaultActionConfiguration configuration = new DefaultActionConfiguration();
         configureAction.execute(configuration);
-        rules.add(new InstantiatingAction<T>(rule, configuration.getParams(), instantiator));
+        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(rule, configuration.getParams(), instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override
     public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new InstantiatingAction<T>(rule, NO_PARAMS, instantiator));
+        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(rule, NO_PARAMS, instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override
@@ -76,25 +77,17 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         return !rules.isEmpty();
     }
 
-    private static class InstantiatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
-        private final Class<? extends AttributeCompatibilityRule<T>> rule;
-        private final Object[] params;
-        private final Instantiator instantiator;
+    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
 
-        InstantiatingAction(Class<? extends AttributeCompatibilityRule<T>> rule, Object[] params, Instantiator instantiator) {
+        private final Class<? extends AttributeCompatibilityRule<T>> rule;
+
+        private ExceptionHandler(Class<? extends AttributeCompatibilityRule<T>> rule) {
             this.rule = rule;
-            this.params = params;
-            this.instantiator = instantiator;
         }
 
         @Override
-        public void execute(CompatibilityCheckDetails<T> details) {
-            try {
-                AttributeCompatibilityRule<T> instance = instantiator.newInstance(rule, params);
-                instance.execute(details);
-            } catch (Throwable t) {
-                throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), t);
-            }
+        public void handleException(CompatibilityCheckDetails<T> details, Throwable throwable) {
+            throw new AttributeMatchException(String.format("Could not determine whether value %s is compatible with value %s using %s.", details.getProducerValue(), details.getConsumerValue(), ModelType.of(rule).getDisplayName()), throwable);
         }
     }
 }
