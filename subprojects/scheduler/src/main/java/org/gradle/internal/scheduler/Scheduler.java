@@ -16,11 +16,19 @@
 
 package org.gradle.internal.scheduler;
 
+import org.gradle.api.specs.Spec;
+
 import java.io.Closeable;
 import java.util.Collection;
+import java.util.List;
 
 public interface Scheduler extends Closeable {
-    void execute(Graph graph, Collection<Node> entryNodes);
+    /**
+     * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
+     * that don't match the {@code filter}. Filtered nodes are reported in {@code filteredNodes},
+     * while all considered nodes are returned as a {@link List}.
+     */
+    List<Node> execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter, Collection<? super Node> filteredNodes);
 
     @Override
     void close();

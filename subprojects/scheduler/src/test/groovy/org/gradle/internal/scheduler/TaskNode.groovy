@@ -16,17 +16,19 @@
 
 package org.gradle.internal.scheduler
 
+import javax.annotation.Nullable
+
 class TaskNode extends Node {
     final String project
     final String name
-    final boolean fails
+    final Throwable failure
     private final NodeExecutionTracker executionTracker
 
-    TaskNode(String project, String name, NodeExecutionTracker executionTracker, boolean fails) {
+    TaskNode(String project, String name, NodeExecutionTracker executionTracker, @Nullable Throwable failure) {
         this.executionTracker = executionTracker
         this.project = project
         this.name = name
-        this.fails = fails
+        this.failure = failure
     }
 
     @Override
@@ -37,13 +39,12 @@ class TaskNode extends Node {
     @Override
     void execute() {
         executionTracker.nodeExecuted(this)
-        println "Executing ${fails ? " failing" : ""}task $this"
-        if (fails) {
+        println "Executing node $this"
+        if (failure) {
             setState(NodeState.FAILED)
         }
     }
 
-    @Override
     boolean equals(o) {
         if (this.is(o)) return true
         if (getClass() != o.class) return false
@@ -56,7 +57,6 @@ class TaskNode extends Node {
         return true
     }
 
-    @Override
     int hashCode() {
         int result
         result = project.hashCode()
@@ -66,6 +66,6 @@ class TaskNode extends Node {
 
     @Override
     String toString() {
-        return "$project:$name"
+        return "$project:$name" + (failure ? " (failing)" : "")
     }
 }

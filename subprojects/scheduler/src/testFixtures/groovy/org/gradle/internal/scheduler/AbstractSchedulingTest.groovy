@@ -18,10 +18,7 @@ package org.gradle.internal.scheduler
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
-import org.gradle.api.Task
 import org.gradle.api.specs.Spec
-import org.gradle.execution.TaskFailureHandler
-import org.gradle.internal.resources.ResourceLockState
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -45,10 +42,11 @@ abstract class AbstractSchedulingTest extends Specification {
     protected abstract def createTask(String name)
     protected abstract def task(Map options, final String name)
     protected abstract def filteredTask(final String name)
-    protected abstract void useFilter(Spec<? super Task> filter)
+    protected abstract void useFilter(Spec filter)
+    protected abstract Set getAllTasks()
     protected abstract List getExecutedTasks()
     protected abstract void awaitCompletion()
-    protected abstract void ignoreFailureFor(def node)
+    protected abstract void continueOnFailure()
 
     def "schedules tasks in dependency order"() {
         given:
@@ -56,20 +54,6 @@ abstract class AbstractSchedulingTest extends Specification {
         def b = task("b", dependsOn: [a])
         def c = task("c", dependsOn: [b, a])
         def d = task("d", dependsOn: [c])
-
-        when:
-        addToGraphAndPopulate([d])
-
-        then:
-        executes(a, b, c, d)
-    }
-
-    def "schedules task dependencies in name order when there are no dependencies between them"() {
-        given:
-        def a = task("a")
-        def b = task("b")
-        def c = task("c")
-        def d = task("d", dependsOn: [b, a, c])
 
         when:
         addToGraphAndPopulate([d])
@@ -188,32 +172,6 @@ abstract class AbstractSchedulingTest extends Specification {
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    def "mustRunAfter dependencies are scheduled before regular dependencies"() {
-        def a = task("a")
-        def b = task("b")
-        def c = task("c", dependsOn: [a], mustRunAfter: [b])
-        def d = task("d", dependsOn: [b])
-
-        when:
-        addToGraphAndPopulate([c, d])
-
-        then:
-        executes(b, a, c, d)
-    }
-
-    def "shouldRunAfter dependencies are scheduled before mustRunAfter dependencies"() {
-        def a = task("a")
-        def b = task("b")
-        def c = task("c", mustRunAfter: [a], shouldRunAfter: [b])
-        def d = task("d", dependsOn: [a, b])
-
-        when:
-        addToGraphAndPopulate([c, d])
-
-        then:
-        executes(b, a, c, d)
-    }
-
     def "cyclic should run after ordering is ignored in complex task graph"() {
         given:
 
@@ -278,12 +236,8 @@ abstract class AbstractSchedulingTest extends Specification {
         given:
         def finalizer = filteredTask("finalizer")
         def finalized = task("finalized", finalizedBy: [finalizer])
-        Spec<Task> filter = Mock() {
-            isSatisfiedBy(_) >> { Task t -> t != finalizer }
-        }
-
         when:
-        useFilter(filter)
+        useFilter { t -> t != finalizer }
         addToGraphAndPopulate([finalized])
 
         then:
@@ -300,7 +254,7 @@ abstract class AbstractSchedulingTest extends Specification {
         addToGraphAndPopulate([finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        allTasks == ([finalizedDependency, finalized, finalizerDependency, finalizer] as Set)
         executedTasks == [finalizedDependency]
     }
 
@@ -309,13 +263,13 @@ abstract class AbstractSchedulingTest extends Specification {
         def finalizer = task("finalizer", dependsOn: [finalizerDependency])
         def finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
         def finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
-        ignoreFailureFor(finalizedDependency)
+        continueOnFailure()
 
         when:
         addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        allTasks == ([finalizedDependency, finalized, finalizerDependency, finalizer] as Set)
         executedTasks == [finalizedDependency, finalizerDependency, finalizer]
     }
 
@@ -402,7 +356,7 @@ abstract class AbstractSchedulingTest extends Specification {
         def finalized2 = task("finalized2", finalizedBy: [f1, f2])
 
         //tasks that depends on finalized, we will execute them
-        def df1 = task("df1", dependsOn: [finalized1])
+        def df1 = task("df1", dependsOn: [finalized1, finalized2])
         def df2 = task("df2", dependsOn: [finalized2])
 
         when:
@@ -517,7 +471,7 @@ abstract class AbstractSchedulingTest extends Specification {
         def b = task("b")
         def c = task("c")
         def d = createTask("d")
-        def e = task("e", dependsOn: [a, d])
+        def e = task("e", dependsOn: [a, b, c, d])
         def f = task("f", dependsOn: [e])
         def g = task("g", dependsOn: [c, f])
         def h = task("h", dependsOn: [b, g])
@@ -527,7 +481,7 @@ abstract class AbstractSchedulingTest extends Specification {
         addToGraphAndPopulate([e, h])
 
         then:
-        executedTasks == [a, d, e, b, c, f, g, h]
+        executedTasks == [a, b, c, d, e, f, g, h]
     }
 
     @Issue("GRADLE-3166")
@@ -645,16 +599,8 @@ abstract class AbstractSchedulingTest extends Specification {
         def a = task("a", failure: failure)
         def b = task("b")
 
-        addToGraphAndPopulate([a, b])
-
-        TaskFailureHandler handler = Mock()
-        RuntimeException wrappedFailure = new RuntimeException("wrapped")
-        handler.onTaskFailure(a) >> {
-            throw wrappedFailure
-        }
-
         when:
-        executionPlan.useFailureHandler(handler)
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a]
@@ -664,7 +610,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         RuntimeException e = thrown()
-        e == wrappedFailure
+        e == failure
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
@@ -674,7 +620,7 @@ abstract class AbstractSchedulingTest extends Specification {
         addToGraphAndPopulate([a, b])
 
         when:
-        ignoreFailureFor(a)
+        continueOnFailure()
 
         then:
         executedTasks == [a, b]
@@ -695,7 +641,7 @@ abstract class AbstractSchedulingTest extends Specification {
         addToGraphAndPopulate([a, b])
 
         when:
-        ignoreFailureFor(a)
+        continueOnFailure()
 
         then:
         executedTasks == [a, b]
@@ -719,7 +665,7 @@ abstract class AbstractSchedulingTest extends Specification {
         addToGraphAndPopulate([b, c])
 
         when:
-        ignoreFailureFor(a)
+        continueOnFailure()
 
         then:
         executedTasks == [a, c]
@@ -732,40 +678,13 @@ abstract class AbstractSchedulingTest extends Specification {
         e == failure
     }
 
-    def "can add additional tasks after execution and clear"() {
-        given:
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
-        def a = task("a")
-        def b = task("b")
-
-        when:
-        addToGraphAndPopulate([a])
-
-        then:
-        executes(a)
-
-        when:
-        executionPlan.clear()
-        addToGraphAndPopulate([b])
-
-        then:
-        executes(b)
-    }
-
     def "does not build graph for or execute filtered tasks"() {
         given:
         def a = filteredTask("a")
         def b = task("b")
-        Spec<Task> filter = Mock()
-
-        and:
-        filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        useFilter(filter)
+        useFilter { t -> t != a }
         addToGraphAndPopulate([a, b])
 
         then:
@@ -778,13 +697,9 @@ abstract class AbstractSchedulingTest extends Specification {
         def a = filteredTask("a")
         def b = task("b")
         def c = task("c", dependsOn: [a, b])
-        Spec<Task> filter = Mock()
-
-        and:
-        filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        useFilter(filter)
+        useFilter { t -> t != a }
         addToGraphAndPopulate([c])
 
         then:
@@ -798,13 +713,9 @@ abstract class AbstractSchedulingTest extends Specification {
         def a = filteredTask("a")
         def b = task("b", (orderingRule): [a])
         def c = task("c", dependsOn: [a])
-        Spec<Task> filter = Mock()
-
-        and:
-        filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        useFilter(filter)
+        useFilter { t -> t != a }
         addToGraphAndPopulate([b, c])
 
         then:
@@ -819,13 +730,9 @@ abstract class AbstractSchedulingTest extends Specification {
         given:
         def b = filteredTask("b")
         def c = task("c", dependsOn: [b])
-        Spec<Task> filter = Mock()
-
-        and:
-        filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        useFilter(filter)
+        useFilter { t -> t != b }
         addToGraphAndPopulate([c])
 
         then:

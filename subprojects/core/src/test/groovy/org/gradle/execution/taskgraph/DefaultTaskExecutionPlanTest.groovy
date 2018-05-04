@@ -77,6 +77,46 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         }
     }
 
+    def "schedules task dependencies in name order when there are no dependencies between them"() {
+        given:
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+        def d = task("d", dependsOn: [b, a, c])
+
+        when:
+        addToGraphAndPopulate([d])
+
+        then:
+        executes(a, b, c, d)
+    }
+
+    def "mustRunAfter dependencies are scheduled before regular dependencies"() {
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", dependsOn: [a], mustRunAfter: [b])
+        def d = task("d", dependsOn: [b])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executes(b, a, c, d)
+    }
+
+    def "shouldRunAfter dependencies are scheduled before mustRunAfter dependencies"() {
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", mustRunAfter: [a], shouldRunAfter: [b])
+        def d = task("d", dependsOn: [a, b])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executes(b, a, c, d)
+    }
+
     def "clear removes all tasks"() {
         given:
         _ * coordinationService.withStateLock(_) >> { args ->
@@ -128,7 +168,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     }
 
     @Override
-    void useFilter(Spec<? super Task> filter) {
+    void useFilter(Spec filter) {
         executionPlan.useFilter(filter)
     }
 
@@ -138,14 +178,12 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void ignoreFailureFor(def task) {
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(task))
-    }
-
-    private TaskFailureHandler createIgnoreTaskFailureHandler(def task) {
-        Mock(TaskFailureHandler) {
-            onTaskFailure(task) >> {}
-        }
+    protected void continueOnFailure() {
+        executionPlan.useFailureHandler(new TaskFailureHandler() {
+            @Override
+            void onTaskFailure(Task task) {
+            }
+        })
     }
 
     @Override
@@ -157,6 +195,11 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     @Override
     protected void filtered(Object... expectedTasks) {
         assert executionPlan.filteredTasks == expectedTasks as Set
+    }
+
+    @Override
+    protected Set getAllTasks() {
+        return executionPlan.tasks as Set
     }
 
     List getExecutedTasks() {

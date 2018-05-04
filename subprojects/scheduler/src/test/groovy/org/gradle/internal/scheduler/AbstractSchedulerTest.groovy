@@ -17,8 +17,9 @@
 package org.gradle.internal.scheduler
 
 import com.google.common.collect.Lists
-import org.gradle.api.Task
 import org.gradle.api.specs.Spec
+import org.gradle.api.specs.Specs
+import org.gradle.internal.Cast
 import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
@@ -30,9 +31,24 @@ import static org.gradle.internal.scheduler.EdgeType.FINALIZER
 import static org.gradle.internal.scheduler.EdgeType.MUST_RUN_AFTER
 
 abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
+    static final TASK_NODE_COMPARATOR = new Comparator<? super Node>() {
+        @Override
+        int compare(def a, def b) {
+            def result = a.project <=> b.project
+            if (result != 0) {
+                return result
+            }
+            return a.name <=> b.name
+        }
+    }
+
     def graph = new Graph()
-    def nodesToExecute = []
-    def executedNodes = []
+    List<Node> nodesToExecute = []
+    Spec<? super Node> filter = Specs.satisfyAll()
+    boolean continueOnFailure
+    List<Node> allNodes
+    List<Node> executedNodes = []
+    List<Node> filteredNodes = []
     def executionTracker = new NodeExecutionTracker() {
         @Override
         synchronized void nodeExecuted(Node node) {
@@ -44,24 +60,19 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
         @Override
         String reportCycle(Collection<Node> cycle) {
             def sortedCycle = Lists.newArrayList(cycle)
-            Collections.sort(sortedCycle) { a, b ->
-                def result = a.project <=> b.project
-                if (result != 0) {
-                    return result
-                }
-                return a.name <=> b.name
-            }
+            Collections.sort(sortedCycle, TASK_NODE_COMPARATOR)
             DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<Node>(new GraphNodeRenderer<Node>() {
                 @Override
                 void renderTo(Node node, StyledTextOutput output) {
-                    output.withStyle(StyledTextOutput.Style.Identifier).text(node);
+                    output.withStyle(StyledTextOutput.Style.Identifier).text(node)
                 }
             }, new DirectedGraph<Node, Object>() {
                 @Override
                 void getNodeValues(Node node, Collection<? super Object> values, Collection<? super Node> connectedNodes) {
                     for (Node dependency : sortedCycle) {
                         for (Edge incoming : graph.getIncomingEdges(node)) {
-                            if (incoming.getType() == DEPENDENT && incoming.getSource() == dependency) {
+                            if ((incoming.getType() == DEPENDENT || incoming.getType() == MUST_RUN_AFTER)
+                                && incoming.getSource() == dependency) {
                                 connectedNodes.add(dependency)
                             }
                         }
@@ -72,19 +83,20 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
                         }
                     }
                 }
-            });
-            StringWriter writer = new StringWriter();
+            })
+            StringWriter writer = new StringWriter()
             def firstNode = sortedCycle.get(0)
-            graphRenderer.renderTo(firstNode, writer);
+            graphRenderer.renderTo(firstNode, writer)
             return writer.toString()
         }
     }
+
     abstract Scheduler getScheduler()
 
     protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()
         try {
-            scheduler.execute(graph, entryNodes)
+            allNodes = scheduler.execute(graph, entryNodes, continueOnFailure, filter, filteredNodes)
         } finally {
             scheduler.close()
         }
@@ -92,7 +104,10 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void addToGraph(List tasks) {
-        nodesToExecute.addAll(tasks)
+        // TODO This sorting is to satisfy some tests but it might not have much point to keep these
+        List<TaskNode> sorted = Lists.newArrayList(Cast.<List<TaskNode>>uncheckedCast(tasks))
+        Collections.sort(sorted, TASK_NODE_COMPARATOR)
+        nodesToExecute.addAll(sorted)
     }
 
     @Override
@@ -101,8 +116,13 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void executes(Object... nodes) {
-        assert executedNodes == (nodes as List)
+    protected void executes(Object... expectedNodes) {
+        assert executedNodes == (expectedNodes as List)
+    }
+
+    @Override
+    protected Set getAllTasks() {
+        return allNodes as Set
     }
 
     @Override
@@ -118,7 +138,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     @Override
     protected TaskNode task(Map options, String name) {
         String project = options.project ?: ""
-        boolean failure = options.failure ?: false
+        Exception failure = options.failure
         def task = new TaskNode(project, name, executionTracker, failure)
         graph.addNode(task)
         relationships(options, task)
@@ -142,18 +162,18 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void filtered(Object... expectedTasks) {
-
+    protected void filtered(Object... expectedNodes) {
+        assert filteredNodes == (expectedNodes as List)
     }
 
     @Override
     protected filteredTask(String name) {
-        return null
+        return task(fails: true, name)
     }
 
     @Override
-    protected void useFilter(Spec<? super Task> filter) {
-
+    protected void useFilter(Spec filter) {
+        this.filter = filter
     }
 
     @Override
@@ -162,7 +182,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void ignoreFailureFor(Object node) {
-
+    protected void continueOnFailure() {
+        continueOnFailure = true
     }
 }

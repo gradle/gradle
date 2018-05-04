@@ -25,6 +25,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.specs.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +55,7 @@ public class Graph {
         return !rootNodes.isEmpty() || !incomingEdges.isEmpty();
     }
 
-    @VisibleForTesting
-    List<Node> getAllNodes() {
+    public List<Node> getAllNodes() {
         return ImmutableList.copyOf(Iterables.concat(rootNodes, incomingEdges.keySet()));
     }
 
@@ -145,7 +145,7 @@ public class Graph {
      * Creates a new graph with only the nodes available from the given entry nodes via
      * {@link EdgeType#DEPENDENT} and {@link EdgeType#FINALIZER} edges.
      */
-    public Graph retainLiveNodes(Collection<Node> entryNodes) {
+    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, Collection<? super Node> filteredNodes) {
         Set<Node> liveNodes = Sets.newLinkedHashSet();
         Graph liveGraph = new Graph();
         Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
@@ -153,6 +153,10 @@ public class Graph {
             Node node = queue.poll();
             if (node == null) {
                 break;
+            }
+            if (!filter.isSatisfiedBy(node)) {
+                filteredNodes.add(node);
+                continue;
             }
             if (!liveNodes.add(node)) {
                 continue;
@@ -220,6 +224,12 @@ public class Graph {
     }
 
     public void addEdge(Edge edge) {
+        if (!addEdgeIfAbsent(edge)) {
+            throw new IllegalArgumentException("Edge already present in graph: " + edge);
+        }
+    }
+
+    public boolean addEdgeIfAbsent(Edge edge) {
         Node source = edge.getSource();
         Node target = edge.getTarget();
         boolean targetWasRootNode = rootNodes.contains(target);
@@ -229,14 +239,14 @@ public class Graph {
         if (!rootNodes.contains(source) && !incomingEdges.containsKey(source)) {
             throw new IllegalArgumentException("Source node for edge to be added is not present in graph: " + edge);
         }
-        if (incomingEdges.containsEntry(target, edge)) {
-            throw new IllegalArgumentException("Edge already present in graph: " + edge);
+        if (!incomingEdges.put(target, edge)) {
+            return false;
         }
-        incomingEdges.put(target, edge);
         outgoingEdges.put(source, edge);
         if (targetWasRootNode) {
             rootNodes.remove(target);
         }
+        return true;
     }
 
     private void removeEdge(Edge edge) {

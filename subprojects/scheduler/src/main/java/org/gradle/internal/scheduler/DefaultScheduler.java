@@ -20,18 +20,22 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.specs.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
+import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
+import static org.gradle.internal.scheduler.NodeState.DEPENDENCY_FAILED;
 import static org.gradle.internal.scheduler.NodeState.FAILED;
 import static org.gradle.internal.scheduler.NodeState.MUST_RUN;
 import static org.gradle.internal.scheduler.NodeState.RUNNABLE;
@@ -44,28 +48,29 @@ public class DefaultScheduler implements Scheduler {
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
-    private final boolean continueOnFailure;
     private final WorkerPool workerPool;
     private final CycleReporter cycleReporter;
 
-    public DefaultScheduler(boolean continueOnFailure, WorkerPool workerPool, CycleReporter cycleReporter) {
-        this.continueOnFailure = continueOnFailure;
+    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter) {
         this.workerPool = workerPool;
         this.cycleReporter = cycleReporter;
     }
 
     @Override
-    public void execute(Graph graph, Collection<Node> entryNodes) {
-        Graph liveGraph = graph.retainLiveNodes(entryNodes);
+    public List<Node> execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter, Collection<? super Node> filteredNodes) {
+        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes);
         connectFinalizerDependencies(liveGraph);
+        enforceEntryNodeOrder(graph, entryNodes);
         liveGraph.breakCycles(cycleReporter);
-        executeLiveGraph(liveGraph);
+        List<Node> allNodes = liveGraph.getAllNodes();
+        executeLiveGraph(liveGraph, continueOnFailure);
+        return allNodes;
     }
 
-    private void executeLiveGraph(Graph graph) {
+    private void executeLiveGraph(Graph graph, boolean continueOnFailure) {
         while (graph.hasNodes()) {
             scheduleWork(graph);
-            handleEvents(graph);
+            handleEvents(graph, continueOnFailure);
         }
     }
 
@@ -89,6 +94,19 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
+    private void enforceEntryNodeOrder(Graph graph, Collection<? extends Node> entryNodes) {
+        Iterator<? extends Node> iEntryNode = entryNodes.iterator();
+        if (!iEntryNode.hasNext()) {
+            return;
+        }
+        Node previousNode = iEntryNode.next();
+        while (iEntryNode.hasNext()) {
+            Node node = iEntryNode.next();
+            graph.addEdgeIfAbsent(new Edge(previousNode, node, AVOID_STARTING_BEFORE));
+            previousNode = node;
+        }
+    }
+
     private void scheduleWork(Graph graph) {
         boolean expectAvailableWorkers = true;
         for (Node nodeToRun : graph.getRootNodes()) {
@@ -105,6 +123,7 @@ public class DefaultScheduler implements Scheduler {
                     }
                     break;
                 case CANCELLED:
+                case DEPENDENCY_FAILED:
                 case FAILED:
                     eventQueue.add(new NodeFinishedEvent(nodeToRun));
                     break;
@@ -114,7 +133,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void handleEvents(Graph graph) {
+    private void handleEvents(Graph graph, boolean continueOnFailure) {
         try {
             // Wait for at least one event to arrive
             Event event = eventQueue.take();
@@ -127,7 +146,7 @@ public class DefaultScheduler implements Scheduler {
         }
         for (Event event : eventsBeingProcessed) {
             System.out.printf("> Handling event %s%n", event);
-            event.handle(graph);
+            event.handle(graph, continueOnFailure);
         }
         eventsBeingProcessed.clear();
     }
@@ -137,6 +156,7 @@ public class DefaultScheduler implements Scheduler {
      * @return whether the operation was successful.
      */
     private boolean tryRunNode(Graph graph, Set<Node> runningNodes, final Node nodeToRun) {
+        System.out.printf("Checking node %s for conflicts with running nodes %s%n", nodeToRun, runningNodes);
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
                 System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
@@ -170,7 +190,6 @@ public class DefaultScheduler implements Scheduler {
                         break;
                     default:
                         break;
-
                 }
                 // Since the node is now starting, we can unlock nodes that shouldn't have been started before
                 switch (type) {
@@ -214,12 +233,12 @@ public class DefaultScheduler implements Scheduler {
             this.node = node;
         }
 
-        public final void handle(Graph graph) {
+        public final void handle(Graph graph, boolean continueOnFailure) {
             runningNodes.remove(node);
-            handleGraphChanges(graph);
+            updateGraph(graph, continueOnFailure);
         }
 
-        protected abstract void handleGraphChanges(Graph graph);
+        protected abstract void updateGraph(Graph graph, boolean continueOnFailure);
     }
 
     private class NodeFinishedEvent extends Event {
@@ -228,13 +247,13 @@ public class DefaultScheduler implements Scheduler {
         }
 
         @Override
-        protected void handleGraphChanges(Graph graph) {
-            final NodeState removedNodeState = node.getState();
+        protected void updateGraph(Graph graph, boolean continueOnFailure) {
+            final NodeState finishedNodeState = node.getState();
             graph.removeNodeWithOutgoingEdges(node, new Action<Edge>() {
                 @Override
                 public void execute(Edge outgoing) {
                     Node target = outgoing.getTarget();
-                    switch (removedNodeState) {
+                    switch (finishedNodeState) {
                         case RUNNABLE:
                         case MUST_RUN:
                             if (target.getState() == CANCELLED) {
@@ -247,11 +266,24 @@ public class DefaultScheduler implements Scheduler {
                                 target.setState(CANCELLED);
                             }
                             break;
+                        case DEPENDENCY_FAILED:
+                            // TODO Handle remaining incoming edges when suspended node is skipped
+                            switch (outgoing.getType()) {
+                                case DEPENDENT:
+                                    target.setState(DEPENDENCY_FAILED);
+                                    break;
+                                case FINALIZER:
+                                case AVOID_STARTING_BEFORE_FINALIZED:
+                                    if (target.getState() == RUNNABLE) {
+                                        target.setState(CANCELLED);
+                                    }
+                            }
+                            break;
                         case FAILED:
                             // TODO Handle remaining incoming edges when suspended node is skipped
                             // TODO Cancel everything if `--continue` is not enabled
                             if (outgoing.getType() == EdgeType.DEPENDENT) {
-                                target.setState(FAILED);
+                                target.setState(DEPENDENCY_FAILED);
                             }
                             break;
                         default:
@@ -259,6 +291,15 @@ public class DefaultScheduler implements Scheduler {
                     }
                 }
             });
+
+            // Cancel all runnable nodes (including any that is still running) if `--continue` is off
+            if (finishedNodeState == FAILED && !continueOnFailure) {
+                for (Node candidate : graph.getAllNodes()) {
+                    if (candidate.getState() == RUNNABLE) {
+                        candidate.setState(CANCELLED);
+                    }
+                }
+            }
         }
 
         @Override
@@ -273,7 +314,7 @@ public class DefaultScheduler implements Scheduler {
         }
 
         @Override
-        protected void handleGraphChanges(Graph graph) {
+        protected void updateGraph(Graph graph, boolean continueOnFailure) {
             graph.processOutgoingEdges(node, new Graph.EdgeAction() {
                 @Override
                 public Graph.EdgeActionResult process(Edge edge) {

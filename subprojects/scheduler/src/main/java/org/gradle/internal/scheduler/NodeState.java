@@ -33,7 +33,12 @@ public enum NodeState {
     CANCELLED,
 
     /**
-     * Node or one of its dependencies has failed to execute, and should not be re-activated.
+     * One of the node's dependencies has failed to execute, and should not be re-activated.
+     */
+    DEPENDENCY_FAILED,
+
+    /**
+     * Node has failed to execute.
      */
     FAILED
 }

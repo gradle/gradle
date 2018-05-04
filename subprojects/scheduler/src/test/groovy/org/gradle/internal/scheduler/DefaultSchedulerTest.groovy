@@ -18,6 +18,6 @@ package org.gradle.internal.scheduler
 
 class DefaultSchedulerTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(false, new ImmediateWorkerPool(), cycleReporter)
+    Scheduler scheduler = new DefaultScheduler(new ImmediateWorkerPool(), cycleReporter)
 
 }

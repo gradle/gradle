@@ -71,7 +71,7 @@ class GraphTest extends Specification {
         ex.message == "Node is already present in graph: test"
     }
 
-    def "cannot add queal node twice"() {
+    def "cannot add equal node twice"() {
         addNode("test")
         when:
         addNode("test")
@@ -80,7 +80,7 @@ class GraphTest extends Specification {
         ex.message == "Node is already present in graph: test"
     }
 
-    def "can connect nodes"() {
+    def "can connect nodes via addEdge"() {
         def source = addNode("source")
         def target = addNode("target")
 
@@ -88,6 +88,49 @@ class GraphTest extends Specification {
         def edge = addEdge(source, target, DEPENDENT)
 
         then:
+        graph.allNodes == [source, target]
+        graph.rootNodes == [source]
+        graph.allEdges == [edge]
+    }
+
+    def "can connect nodes via addEdgeIfAbsent"() {
+        def source = addNode("source")
+        def target = addNode("target")
+        def edge = new Edge(source, target, DEPENDENT)
+
+        when:
+        def added = graph.addEdgeIfAbsent(edge)
+
+        then:
+        added
+        graph.allNodes == [source, target]
+        graph.rootNodes == [source]
+        graph.allEdges == [edge]
+    }
+
+    def "fails when adding already existing edge with addEdge"() {
+        def source = addNode("source")
+        def target = addNode("target")
+        def edge = addEdge(source, target, DEPENDENT)
+
+        when:
+        graph.addEdge(edge)
+
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Edge already present in graph: source --DEPENDENT--> target"
+    }
+
+    def "doesn't fail when adding already existing edge with addEdgeIfAbsent"() {
+        def source = addNode("source")
+        def target = addNode("target")
+        def edge = addEdge(source, target, DEPENDENT)
+
+        when:
+        def added = graph.addEdgeIfAbsent(edge)
+
+        then:
+        !added
         graph.allNodes == [source, target]
         graph.rootNodes == [source]
         graph.allEdges == [edge]
@@ -129,7 +172,7 @@ class GraphTest extends Specification {
 
         then:
         def ex = thrown CircularReferenceException
-        ex.message == "There was a cycle"
+        ex.message == "Circular dependency between the following tasks:\nThere was a cycle"
         1 * cycleReporter.reportCycle(_) >> { List args ->
             Collection<Node> cycle = Cast.uncheckedCast(args[0])
             assert cycle as Set == ([a, b, c] as Set)
@@ -178,7 +221,7 @@ class GraphTest extends Specification {
 
         then:
         def ex = thrown CircularReferenceException
-        ex.message == "There was a cycle"
+        ex.message == "Circular dependency between the following tasks:\nThere was a cycle"
         1 * cycleReporter.reportCycle(_) >> { List args ->
             Collection<Node> cycle = Cast.uncheckedCast(args[0])
             assert cycle as Set == ([a, b, c, d] as Set)
