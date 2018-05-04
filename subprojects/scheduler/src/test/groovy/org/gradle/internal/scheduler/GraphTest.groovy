@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scheduler
 
+import org.gradle.api.CircularReferenceException
 import org.gradle.internal.Cast
 import spock.lang.Specification
 
@@ -26,9 +27,8 @@ class GraphTest extends Specification {
     def graph = new Graph()
 
     def "can add node to empty graph"() {
-        def test = node("test")
         when:
-        graph.addNode(test)
+        def test = addNode("test")
 
         then:
         graph.allNodes == [test]
@@ -37,8 +37,7 @@ class GraphTest extends Specification {
     }
 
     def "can remove node"() {
-        def test = node("test")
-        graph.addNode(test)
+        def test = addNode("test")
         when:
         graph.removeNodeWithOutgoingEdges(test) { edge ->
             throw new RuntimeException("shouldn't remove any edges")
@@ -63,8 +62,7 @@ class GraphTest extends Specification {
     }
 
     def "cannot add same node twice"() {
-        def test = node("test")
-        graph.addNode(test)
+        def test = addNode("test")
         when:
         graph.addNode(test)
         then:
@@ -73,23 +71,20 @@ class GraphTest extends Specification {
     }
 
     def "cannot add queal node twice"() {
-        graph.addNode(node("test"))
+        addNode("test")
         when:
-        graph.addNode(node("test"))
+        addNode("test")
         then:
         def ex = thrown IllegalArgumentException
         ex.message == "Node is already present in graph: test"
     }
 
     def "can connect nodes"() {
-        def source = node("source")
-        def target = node("target")
-        def edge = new Edge(source, target, DEPENDENT)
-        graph.addNode(source)
-        graph.addNode(target)
+        def source = addNode("source")
+        def target = addNode("target")
 
         when:
-        graph.addEdge(edge)
+        def edge = addEdge(source, target, DEPENDENT)
 
         then:
         graph.allNodes == [source, target]
@@ -98,13 +93,10 @@ class GraphTest extends Specification {
     }
 
     def "cannot add edge to non-existent target"() {
-        def source = node("source")
-        def target = node("target")
-        def edge = new Edge(source, target, DEPENDENT)
-        graph.addNode(source)
+        def source = addNode("source")
 
         when:
-        graph.addEdge(edge)
+        addEdge(source, node("target"), DEPENDENT)
 
         then:
         def ex = thrown IllegalArgumentException
@@ -112,13 +104,10 @@ class GraphTest extends Specification {
     }
 
     def "cannot add edge from non-existent source"() {
-        def source = node("source")
-        def target = node("target")
-        def edge = new Edge(source, target, DEPENDENT)
-        graph.addNode(target)
+        def target = addNode("target")
 
         when:
-        graph.addEdge(edge)
+        addEdge(node("source"), target, DEPENDENT)
 
         then:
         def ex = thrown IllegalArgumentException
@@ -132,18 +121,18 @@ class GraphTest extends Specification {
         addEdge(a, b, DEPENDENT)
         addEdge(b, c, DEPENDENT)
         addEdge(c, a, DEPENDENT)
-        def cycleReporter = Mock(GraphCycleReporter)
+        def cycleReporter = Mock(CycleReporter)
 
         when:
         graph.breakCycles(cycleReporter)
 
         then:
-        def ex = thrown IllegalStateException
+        def ex = thrown CircularReferenceException
         ex.message == "There was a cycle"
-        1 * cycleReporter.throwException(_) >> { List args ->
+        1 * cycleReporter.reportCycle(_) >> { List args ->
             Collection<Node> cycle = Cast.uncheckedCast(args[0])
-            assert cycle == [a, b, c]
-            throw new IllegalStateException("There was a cycle")
+            assert cycle as Set == ([a, b, c] as Set)
+            return "There was a cycle"
         }
         0 * _
     }
@@ -155,7 +144,7 @@ class GraphTest extends Specification {
         def ab = addEdge(a, b, DEPENDENT)
         def bc = addEdge(b, c, DEPENDENT)
         addEdge(c, a, AVOID_STARTING_BEFORE)
-        def cycleReporter = Mock(GraphCycleReporter)
+        def cycleReporter = Mock(CycleReporter)
 
         when:
         graph.breakCycles(cycleReporter)
@@ -164,6 +153,62 @@ class GraphTest extends Specification {
         graph.allNodes == [a, b, c]
         graph.rootNodes == [a]
         graph.allEdges == [ab, bc]
+    }
+
+    /*
+     * a -> b -> c -> d
+     * c => a
+     * d -> a
+     */
+    def "can detect complex cycle after breaking up smaller one"() {
+        def a = addNode("a")
+        def b = addNode("b")
+        def c = addNode("c")
+        def d = addNode("d")
+        addEdge(a, b, DEPENDENT)
+        addEdge(b, c, DEPENDENT)
+        addEdge(c, d, DEPENDENT)
+        addEdge(c, a, AVOID_STARTING_BEFORE)
+        addEdge(d, a, DEPENDENT)
+        def cycleReporter = Mock(CycleReporter)
+
+        when:
+        graph.breakCycles(cycleReporter)
+
+        then:
+        def ex = thrown CircularReferenceException
+        ex.message == "There was a cycle"
+        1 * cycleReporter.reportCycle(_) >> { List args ->
+            Collection<Node> cycle = Cast.uncheckedCast(args[0])
+            assert cycle as Set == ([a, b, c, d] as Set)
+            return "There was a cycle"
+        }
+        0 * _
+    }
+    /*
+     * a -> b => c -> d
+     * c -> a
+     * d -> a
+     */
+    def "can break double cycle"() {
+        def a = addNode("a")
+        def b = addNode("b")
+        def c = addNode("c")
+        def d = addNode("d")
+        def ab = addEdge(a, b, DEPENDENT)
+        addEdge(b, c, AVOID_STARTING_BEFORE)
+        def cd = addEdge(c, d, DEPENDENT)
+        def ca = addEdge(c, a, DEPENDENT)
+        def da = addEdge(d, a, DEPENDENT)
+        def cycleReporter = Mock(CycleReporter)
+
+        when:
+        graph.breakCycles(cycleReporter)
+
+        then:
+        graph.allNodes as Set == ([a, b, c, d]) as Set
+        graph.rootNodes == [c]
+        graph.allEdges == [ab, cd, ca, da]
     }
 
     private Node addNode(String name) {

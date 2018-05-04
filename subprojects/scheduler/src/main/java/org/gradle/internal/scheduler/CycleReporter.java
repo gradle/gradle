@@ -18,6 +18,6 @@ package org.gradle.internal.scheduler;
 
 import java.util.Collection;
 
-public interface GraphCycleReporter {
-    RuntimeException throwException(Collection<Node> cycle);
+public interface CycleReporter {
+    String reportCycle(Collection<Node> cycle);
 }

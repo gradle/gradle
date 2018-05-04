@@ -24,9 +24,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.CircularReferenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Comparator;
@@ -100,29 +102,28 @@ public class Graph {
         }
     }
 
-    public void breakCycles(GraphCycleReporter cycleReporter) {
+    public void breakCycles(CycleReporter cycleReporter) {
         Set<Node> visitedNodes = Sets.newHashSet();
         Set<Node> path = Sets.newLinkedHashSet();
-        Deque<Edge> removableEdges = new ArrayDeque<Edge>();
 
         Set<Node> nonRootNodes = incomingEdges.keySet();
         for (Node node : Lists.newArrayList(nonRootNodes)) {
-            breakCycles(node, path, removableEdges, visitedNodes, cycleReporter);
+            breakCycles(node, path, null, visitedNodes, cycleReporter);
         }
     }
 
-    private void breakCycles(Node node, final Set<Node> path, Deque<Edge> softOrderingEdges, Set<Node> visitedNodes, GraphCycleReporter cycleReporter) {
+    private void breakCycles(Node node, final Set<Node> path, @Nullable Edge lastRemovableEdge, Set<Node> visitedNodes, CycleReporter cycleReporter) {
         if (!path.add(node)) {
             // We have a cycle
-            if (softOrderingEdges.isEmpty()) {
+            if (lastRemovableEdge == null) {
                 Deque<Node> nodes = new ArrayDeque<Node>(path);
-                nodes.addFirst(nodes.removeLast());
-                throw cycleReporter.throwException(Lists.reverse(ImmutableList.copyOf(nodes)));
+                //nodes.addFirst(nodes.removeLast());
+                throw new CircularReferenceException(cycleReporter.reportCycle(Lists.reverse(ImmutableList.copyOf(nodes))));
             } else {
                 // TODO ignore the part of the path from here on that is before the removed edge's target node
-                Edge edgeToRemove = softOrderingEdges.getLast();
-                LOGGER.debug("Removing edge {}", edgeToRemove);
-                removeEdge(edgeToRemove);
+                LOGGER.debug("Removing edge {}", lastRemovableEdge);
+                removeEdge(lastRemovableEdge);
+                lastRemovableEdge = null;
             }
         }
         try {
@@ -137,20 +138,15 @@ public class Graph {
             }
 
             List<Edge> incomingEdgesToNodeSorted = Lists.newArrayList(incomingEdgesToNode);
+            // Make sure we process the strongest edge first, and then we can skip any redundant weaker edges
             Collections.sort(incomingEdgesToNodeSorted, EDGE_TYPE_PRECEDENCE);
 
             for (Edge incomingEdge : incomingEdgesToNodeSorted) {
                 Node source = incomingEdge.getSource();
                 if (visitedFromHere.add(source)) {
                     boolean removableToBreakCycles = incomingEdge.getType().isRemovableToBreakCycles();
-                    if (removableToBreakCycles) {
-                        softOrderingEdges.push(incomingEdge);
-                    }
                     LOGGER.debug("Checking edge {} for cycles", incomingEdge);
-                    breakCycles(source, path, softOrderingEdges, visitedNodes, cycleReporter);
-                    if (removableToBreakCycles) {
-                        softOrderingEdges.pop();
-                    }
+                    breakCycles(source, path, removableToBreakCycles ? incomingEdge : lastRemovableEdge, visitedNodes, cycleReporter);
                 }
             }
         } finally {
