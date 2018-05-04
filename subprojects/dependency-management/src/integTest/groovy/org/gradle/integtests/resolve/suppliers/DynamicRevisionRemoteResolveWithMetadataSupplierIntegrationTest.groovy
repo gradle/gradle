@@ -22,6 +22,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import spock.lang.Ignore
 
 @RequiredFeatures([
     // we only need to check without experimental, it doesn't depend on this flag
@@ -834,6 +835,56 @@ group:projectB:2.2;release
 """
         metadataSupplierClass = 'MP'
         new SimpleSupplierInteractions()
+    }
+
+    @Ignore("Component metadata rules are not yet wired after metadata suppliers")
+    def "component metadata rules are executed after metadata supplier is called"() {
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier()
+
+        buildFile << """
+            dependencies {
+                components {
+                    withModule('group:projectB') {
+                        if (id.version == '1.1') {
+                           println("Changing status for \$id from '\$status' to 'release'")
+                           status = 'release'
+                        }
+                    }
+                }
+            }
+       
+        """
+
+        when:
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'should be overriden by rule')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+
+        then:
+        outputContains 'Providing metadata for group:projectB:1.1'
+        outputContains "Changing status for 'group:projectB:1.1' from 'should be overriden by rule' to 'release'"
     }
 
     def checkResolve(Map edges) {
