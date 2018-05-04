@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 
     override fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
-        targetSchemaFor(project, TypeOf.typeOf(Project::class.java)).let { targetSchema ->
+        targetSchemaFor(project, typeOfProject).let { targetSchema ->
             ProjectSchema(
                 targetSchema.extensions,
                 targetSchema.conventions,
@@ -73,7 +73,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
         }
         if (target is Project) {
             target.convention.findPlugin(JavaPluginConvention::class.java)?.sourceSets?.forEach { sourceSet ->
-                collectSchemaOf(sourceSet, sourceSetType)
+                collectSchemaOf(sourceSet, typeOfSourceSet)
             }
         }
     }
@@ -116,5 +116,15 @@ fun isPublic(name: String): Boolean =
 
 
 private
-val sourceSetType: TypeOf<SourceSet> =
-    TypeOf.typeOf(SourceSet::class.java)
+val typeOfProject: TypeOf<Project> =
+    typeOf()
+
+
+private
+val typeOfSourceSet: TypeOf<SourceSet> =
+    typeOf()
+
+
+internal
+inline fun <reified T> typeOf(): TypeOf<T> =
+    object : TypeOf<T>() {}
