@@ -72,7 +72,7 @@ public class GroupedOutputFixture {
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutcome = matcher.group(2);
-            String taskOutput = matcher.group(3);
+            String taskOutput = trimEmptyLines(matcher.group(3));
 
             GroupedTaskFixture task = tasks.get(taskName);
             if (task == null) {
@@ -85,6 +85,19 @@ public class GroupedOutputFixture {
         }
 
         return strippedOutput;
+    }
+
+    private String trimEmptyLines(String s) {
+        int end = s.length();
+        int start = 0;
+
+        while ((start < end) && (s.charAt(start) == '\n')) {
+            start++;
+        }
+        while ((start < end) && (s.charAt(end - 1) == '\n')) {
+            end--;
+        }
+        return s.substring(start, end);
     }
 
     public int getTaskCount() {
