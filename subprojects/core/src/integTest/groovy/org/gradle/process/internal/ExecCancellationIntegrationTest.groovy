@@ -135,9 +135,9 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         daemons.daemon.assertBusy()
     }
 
-    private void cancelBuild() {
+    private void cancelBuild(String task) {
         client.kill()
-        waitForDaemonLog('BUILD FAILED in')
+        waitForDaemonLog("Build operation 'Task :$task' completed")
         assert !client.gradleHandle.standardOutput.contains("BUILD FAIL")
         assert !client.gradleHandle.standardOutput.contains("BUILD SUCCESS")
         daemons.daemon.becomesIdle()
@@ -145,17 +145,17 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
 
     private void assertTaskGetsRerun(String task, boolean buildCacheEnabled = false) {
         startBuild(task, buildCacheEnabled)
-        cancelBuild()
+        cancelBuild(task)
 
         startBuild(task, buildCacheEnabled)
-        cancelBuild()
+        cancelBuild(task)
 
         assert daemons.daemons.size() == 1
     }
 
     private void assertTaskIsCancellable(String task, boolean buildCacheEnabled = false) {
         startBuild(task, buildCacheEnabled)
-        cancelBuild()
+        cancelBuild(task)
 
         def build = executer.withTasks("tasks").withArguments("--debug").start()
         build.waitForFinish()
