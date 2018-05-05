@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
@@ -56,15 +55,14 @@ public class War extends Jar {
 
     private File webXml;
     private FileCollection classpath;
-    private final DefaultCopySpec webInf;
-
+    private final CopySpec webInf;
 
     public War() {
         setExtension(WAR_EXTENSION);
         setMetadataCharset("UTF-8");
-        // Add these as separate specs, so they are not affected by the changes to the main spec
 
-        webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
+        webInf = getProject().copySpec().into("WEB-INF");
+        getMainSpec().with(webInf);
         webInf.into("classes", new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
@@ -105,7 +103,9 @@ public class War extends Jar {
 
     @Internal
     public CopySpec getWebInf() {
-        return webInf.addChild();
+        CopySpec child = getProject().copySpec();
+        webInf.with(child);
+        return child;
     }
 
     /**
