@@ -26,8 +26,6 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
-        assumeJavaLessThan9()
-
         withBuildScript("""
 
             plugins {
