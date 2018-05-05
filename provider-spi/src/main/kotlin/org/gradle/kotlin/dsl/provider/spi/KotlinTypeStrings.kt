@@ -19,19 +19,18 @@ package org.gradle.kotlin.dsl.provider.spi
 import org.gradle.api.reflect.TypeOf
 
 
-fun kotlinTypeStringFor(type: TypeOf<*>): String =
-    type.run {
-        when {
-            isArray ->
-                "Array<${kotlinTypeStringFor(componentType!!)}>"
-            isParameterized ->
-                "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
-            isWildcard ->
-                upperBound?.let(::kotlinTypeStringFor) ?: "Any"
-            else ->
-                toString().let { primitiveTypeStrings[it] ?: it }
-        }
+fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
+    when {
+        isArray ->
+            "Array<${kotlinTypeStringFor(componentType!!)}>"
+        isParameterized ->
+            "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
+        isWildcard ->
+            upperBound?.let(::kotlinTypeStringFor) ?: "Any"
+        else ->
+            toString().let { primitiveTypeStrings[it] ?: it }
     }
+}
 
 
 private
