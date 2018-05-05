@@ -18,9 +18,12 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.concurrent.tapi
 import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
-
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
+
+import java.io.File
 
 
 internal
@@ -94,18 +97,23 @@ const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 internal
 fun connectorFor(request: KotlinBuildScriptModelRequest): org.gradle.tooling.GradleConnector =
-    org.gradle.tooling.GradleConnector
-        .newConnector()
-        .forProjectDirectory(request.projectDir)
+    connectorFor(request.projectDir, request.gradleInstallation)
         .useGradleUserHomeDir(request.gradleUserHome)
+
+
+internal
+fun connectorFor(projectDir: File, gradleInstallation: GradleInstallation): GradleConnector =
+    GradleConnector
+        .newConnector()
+        .forProjectDirectory(projectDir)
         .let { connector ->
-            applyGradleInstallationTo(connector, request)
+            applyGradleInstallationTo(connector, gradleInstallation)
         }
 
 
 private
-fun applyGradleInstallationTo(connector: org.gradle.tooling.GradleConnector, request: KotlinBuildScriptModelRequest): org.gradle.tooling.GradleConnector =
-    request.gradleInstallation.run {
+fun applyGradleInstallationTo(connector: GradleConnector, gradleInstallation: GradleInstallation): org.gradle.tooling.GradleConnector =
+    gradleInstallation.run {
         when (this) {
             is GradleInstallation.Local -> connector.useInstallation(dir)
             is GradleInstallation.Remote -> connector.useDistribution(uri)
