@@ -210,6 +210,14 @@ val rootProjectDir = File("..").canonicalFile!!
 val customInstallationBuildDir = File(rootProjectDir, "build/custom")
 
 
+inline fun <T> withTestDaemon(block: () -> T) =
+    withDaemonRegistry(customDaemonRegistry()) {
+        withDaemonIdleTimeout(1) {
+            block()
+        }
+    }
+
+
 inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)
 

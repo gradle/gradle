@@ -4,11 +4,9 @@ import org.gradle.kotlin.dsl.concurrent.future
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.customDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.customInstallation
-import org.gradle.kotlin.dsl.fixtures.withDaemonIdleTimeout
-import org.gradle.kotlin.dsl.fixtures.withDaemonRegistry
 import org.gradle.kotlin.dsl.fixtures.matching
+import org.gradle.kotlin.dsl.fixtures.withTestDaemon
 
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequest
@@ -217,19 +215,22 @@ fun classPathFor(projectDir: File, scriptFile: File?) =
 
 internal
 fun kotlinBuildScriptModelFor(projectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
-    withDaemonRegistry(customDaemonRegistry()) {
-        withDaemonIdleTimeout(1) {
-            future {
-                fetchKotlinBuildScriptModelFor(
-                    KotlinBuildScriptModelRequest(
-                        projectDir = projectDir,
-                        scriptFile = scriptFile,
-                        gradleInstallation = GradleInstallation.Local(customInstallation()),
-                        jvmOptions = listOf("-Xms128m", "-Xmx256m"))) {
+    withTestDaemon {
+        future {
+            fetchKotlinBuildScriptModelFor(
+                KotlinBuildScriptModelRequest(
+                    projectDir = projectDir,
+                    scriptFile = scriptFile,
+                    gradleInstallation = customGradleInstallation(),
+                    jvmOptions = listOf("-Xms128m", "-Xmx256m"))) {
 
-                    setStandardOutput(System.out)
-                    setStandardError(System.err)
-                }
-            }.get()
-        }
+                setStandardOutput(System.out)
+                setStandardError(System.err)
+            }
+        }.get()
     }
+
+
+internal
+fun customGradleInstallation() =
+    GradleInstallation.Local(customInstallation())
