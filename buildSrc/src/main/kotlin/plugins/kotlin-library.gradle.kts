@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.dsl.Coroutines
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm")
@@ -41,6 +42,11 @@ tasks {
     }
 
     withType<Test> {
+
+        testLogging {
+            events("failed")
+            exceptionFormat = TestExceptionFormat.FULL
+        }
 
         // sets the Gradle Test Kit user home to a known constant dir
         systemProperty(
