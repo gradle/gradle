@@ -16,11 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.api.JavaVersion
-
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
-
-import org.junit.Assume.assumeTrue
 
 import org.junit.Test
 
@@ -30,7 +26,7 @@ class TestKitIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
-        assumeTrue(!JavaVersion.current().isJava9)
+        assumeJavaLessThan9()
 
         withBuildScript("""
 

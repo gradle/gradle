@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.FileUtils.toSafeFileName
 
 import org.gradle.kotlin.dsl.support.zipTo
@@ -12,6 +13,7 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.rules.TestName
@@ -147,6 +149,11 @@ open class AbstractIntegrationTest {
     protected
     fun withGradleJvmArguments(vararg jvmArguments: String) =
         withGradleProperties("org.gradle.jvmargs" to jvmArguments.joinToString(" "))
+
+    protected
+    fun assumeJavaLessThan9() {
+        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
+    }
 
     private
     fun withGradleProperties(vararg gradleProperties: Pair<String, String>) =
