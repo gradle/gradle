@@ -467,7 +467,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
         void putPending(String name, ProviderInternal<? extends T> provider);
 
-        @Nullable
         void removePending(String name);
 
         Map<String, ProviderInternal<? extends T>> getPendingAsMap();
@@ -595,7 +594,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             delegate.putPending(name, provider);
         }
 
-        @Nullable
         @Override
         public void removePending(String name) {
             delegate.removePending(name);
