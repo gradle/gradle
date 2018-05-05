@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import groovy.json.JsonOutput.toJson
+import groovy.json.JsonOutput
 
 import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
@@ -42,12 +42,17 @@ fun multiProjectSchemaFor(root: Project): Map<String, ProjectSchema<TypeOf<*>>> 
 
 internal
 fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
-    project.serviceOf<ProjectSchemaProvider>().schemaFor(project)
+    projectSchemaProviderOf(project).schemaFor(project)
+
+
+private
+fun projectSchemaProviderOf(project: Project) =
+    project.serviceOf<ProjectSchemaProvider>()
 
 
 internal
 fun toJson(multiProjectStringSchema: Map<String, ProjectSchema<String>>): String =
-    toJson(multiProjectStringSchema)
+    JsonOutput.toJson(multiProjectStringSchema)
 
 
 @Suppress("unchecked_cast")
