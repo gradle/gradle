@@ -4,6 +4,10 @@ import org.gradle.api.Project
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
+import org.gradle.kotlin.dsl.provider.spi.kotlinTypeStringFor
+
 import org.gradle.kotlin.dsl.typeOf
 
 import org.hamcrest.CoreMatchers.equalTo

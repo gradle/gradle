@@ -10,4 +10,5 @@ base {
 
 dependencies {
     compileOnly(gradleApi())
+    compile(futureKotlin("stdlib-jdk8"))
 }

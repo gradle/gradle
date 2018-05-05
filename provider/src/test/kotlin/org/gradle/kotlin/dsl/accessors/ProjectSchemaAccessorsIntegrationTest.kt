@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
@@ -431,6 +432,109 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                     require(deepConvention == mapOf(42 to 23), { "rootConvention.nestedExtension.deepConvention" })
                 }
             }
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `convention accessors honor HasPublicType`() {
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `java-gradle-plugin`
+                `kotlin-dsl`
+            }
+            gradlePlugin {
+                (plugins) {
+                    "my-plugin" {
+                        id = "my-plugin"
+                        implementationClass = "plugins.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
+            package plugins
+
+            import org.gradle.api.*
+            import org.gradle.api.plugins.*
+            import org.gradle.api.reflect.*
+            import org.gradle.kotlin.dsl.*
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    convention.plugins.put("myConvention", MyPrivateConventionImpl())
+                }
+            }
+
+            interface MyConvention
+
+            private
+            class MyPrivateConventionImpl : MyConvention, HasPublicType {
+                override fun getPublicType(): TypeOf<*> = typeOf<MyConvention>()
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            myConvention {
+                println("Type of `myConvention` receiver is " + typeOf(this@myConvention))
+            }
+        """)
+
+        val result = build("help")
+        assertThat(result.output, containsString("Type of `myConvention` receiver is MyConvention"))
+    }
+
+    @Test
+    fun `can access source sets conventions registered by declared plugins via jit accessors`() {
+
+        withBuildScript("""
+            plugins {
+                groovy
+            }
+
+            java.sourceSets["main"].groovy {
+                groovy.srcDir("some/path")
+            }
+
+            val main by java.sourceSets
+            main.groovy.groovy {
+                srcDir("another/path")
+            }
+
+            val configured = main.groovy.groovy.srcDirs
+            val expected = linkedSetOf(file("src/main/groovy"), file("some/path"), file("another/path"))
+            require(configured == expected)
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `can access source sets private conventions without public type registered by declared external plugins via jit accessors as Any`() {
+
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+
+            plugins {
+                kotlin("jvm") version "$embeddedKotlinVersion"
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            val other by java.sourceSets.creating {
+                (kotlin as KotlinSourceSet).kotlin.setSrcDirs(setOf("src/other/kotlin"))
+                require(typeOf(kotlin) == "Any")
+            }
+
+            require((other.kotlin as KotlinSourceSet).kotlin.srcDirs == linkedSetOf(file("src/other/kotlin")))
         """)
 
         build("help")

@@ -26,6 +26,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf

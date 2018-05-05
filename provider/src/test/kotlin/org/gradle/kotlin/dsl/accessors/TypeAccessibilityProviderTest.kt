@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.kotlin.dsl.provider.spi.kotlinTypeStringFor
 import org.gradle.kotlin.dsl.typeOf
 
 import org.hamcrest.CoreMatchers.*
