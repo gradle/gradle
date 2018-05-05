@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class ArgWriter implements ArgCollector {
-    private static final Pattern WHITESPACE = Pattern.compile("\\s");
+
+    private static final Pattern QUOTABLE = Pattern.compile("\\s|#");
+
     private final PrintWriter writer;
     private final boolean backslashEscape;
 
@@ -108,7 +110,7 @@ public class ArgWriter implements ArgCollector {
             }
             if (str.isEmpty()) {
                 writer.print("\"\"");
-            } else if (WHITESPACE.matcher(str).find()) {
+            } else if (needsQuoting(str)) {
                 writer.print('\"');
                 writer.print(str);
                 writer.print('\"');
@@ -118,6 +120,10 @@ public class ArgWriter implements ArgCollector {
         }
         writer.println();
         return this;
+    }
+
+    private boolean needsQuoting(String str) {
+        return QUOTABLE.matcher(str).find();
     }
 
     public ArgCollector args(Iterable<?> args) {

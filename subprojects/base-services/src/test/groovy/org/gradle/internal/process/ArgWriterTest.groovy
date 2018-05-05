@@ -52,6 +52,14 @@ class ArgWriterTest extends Specification {
         writer.toString() == toPlatformLineSeparators('"ab c" "d e f"\n')
     }
 
+    def "quotes argument with hash"() {
+        when:
+        argWriter.args("ab#c", "d#e#f")
+
+        then:
+        writer.toString() == toPlatformLineSeparators('"ab#c" "d#e#f"\n')
+    }
+
     def "quotes empty argument"() {
         when:
         argWriter.args("a", "", "", "b")
