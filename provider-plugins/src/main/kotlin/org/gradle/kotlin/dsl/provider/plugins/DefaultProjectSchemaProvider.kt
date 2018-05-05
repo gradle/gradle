@@ -38,7 +38,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
             ProjectSchema(
                 targetSchema.extensions,
                 targetSchema.conventions,
-                accessibleConfigurations(project.configurations.names.toList()))
+                accessibleConfigurationsOf(project))
         }
 }
 
@@ -72,7 +72,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
             }
         }
         if (target is Project) {
-            target.convention.findPlugin(JavaPluginConvention::class.java)?.sourceSets?.forEach { sourceSet ->
+            sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
             }
         }
@@ -95,6 +95,11 @@ fun accessibleConventionsSchema(plugins: Map<String, Any>) =
 
 
 private
+fun sourceSetsOf(project: Project) =
+    project.convention.findPlugin(JavaPluginConvention::class.java)?.sourceSets
+
+
+private
 fun inferPublicTypeOfConvention(instance: Any) =
     if (instance is HasPublicType) instance.publicType
     else TypeOf.typeOf(instance::class.java.firstNonSyntheticOrSelf)
@@ -111,8 +116,8 @@ val Class<*>.firstNonSyntheticOrNull: Class<*>?
 
 
 private
-fun accessibleConfigurations(configurations: List<String>) =
-    configurations.filter(::isPublic)
+fun accessibleConfigurationsOf(project: Project) =
+    project.configurations.names.filter(::isPublic)
 
 
 private
@@ -121,13 +126,11 @@ fun isPublic(name: String): Boolean =
 
 
 private
-val typeOfProject: TypeOf<Project> =
-    typeOf()
+val typeOfProject = typeOf<Project>()
 
 
 private
-val typeOfSourceSet: TypeOf<SourceSet> =
-    typeOf()
+val typeOfSourceSet = typeOf<SourceSet>()
 
 
 internal
