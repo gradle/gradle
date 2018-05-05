@@ -39,6 +39,7 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
@@ -445,5 +446,6 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): DefaultFileOpe
         services.get<DirectoryFileTreeFactory>(),
         services.get<StreamHasher>(),
         services.get<FileHasher>(),
-        services.get<ExecFactory>())
+        services.get<ExecFactory>(),
+        services.get<TextResourceLoader>())
 }
