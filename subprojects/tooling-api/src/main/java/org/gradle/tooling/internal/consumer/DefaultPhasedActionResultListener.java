@@ -27,14 +27,11 @@ import javax.annotation.Nullable;
  */
 public class DefaultPhasedActionResultListener implements PhasedActionResultListener {
     @Nullable private final PhasedResultHandler<?> projectsLoadedHandler;
-    @Nullable private final PhasedResultHandler<?> projectsEvaluatedHandler;
     @Nullable private final PhasedResultHandler<?> buildFinishedHandler;
 
     public DefaultPhasedActionResultListener(@Nullable PhasedResultHandler<?> projectsLoadedHandler,
-                                             @Nullable PhasedResultHandler<?> projectsEvaluatedHandler,
                                              @Nullable PhasedResultHandler<?> buildFinishedHandler) {
         this.projectsLoadedHandler = projectsLoadedHandler;
-        this.projectsEvaluatedHandler = projectsEvaluatedHandler;
         this.buildFinishedHandler = buildFinishedHandler;
     }
 
@@ -44,8 +41,6 @@ public class DefaultPhasedActionResultListener implements PhasedActionResultList
         PhasedActionResult.Phase type = result.getPhase();
         if (type == PhasedActionResult.Phase.PROJECTS_LOADED) {
             onComplete(model, projectsLoadedHandler);
-        } else if (type == PhasedActionResult.Phase.PROJECTS_EVALUATED) {
-            onComplete(model, projectsEvaluatedHandler);
         } else if (type == PhasedActionResult.Phase.BUILD_FINISHED) {
             onComplete(model, buildFinishedHandler);
         }

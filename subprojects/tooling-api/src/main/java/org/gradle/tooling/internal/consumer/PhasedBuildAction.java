@@ -31,9 +31,6 @@ public interface PhasedBuildAction {
     BuildActionWrapper<?> getProjectsLoadedAction();
 
     @Nullable
-    BuildActionWrapper<?> getProjectsEvaluatedAction();
-
-    @Nullable
     BuildActionWrapper<?> getBuildFinishedAction();
 
     interface BuildActionWrapper<T> {

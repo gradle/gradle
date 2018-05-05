@@ -158,7 +158,7 @@ public interface ProjectConnection {
      * @since 4.8
      */
     @Incubating
-    PhasedBuildActionExecuter.Builder phasedAction();
+    PhasedBuildActionExecuter.Builder action();
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.
