@@ -17,12 +17,10 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -53,7 +51,6 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "build generated visual studio solution"() {
         useMsbuildTool()
 

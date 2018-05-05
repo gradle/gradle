@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -28,7 +27,6 @@ import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -145,7 +143,6 @@ model {
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/exe/main/win32/debug/main")
@@ -178,7 +175,6 @@ model {
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
@@ -213,7 +209,6 @@ model {
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
 
@@ -242,7 +237,6 @@ model {
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "can clean from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable('build/exe/main/win32/debug/main')
