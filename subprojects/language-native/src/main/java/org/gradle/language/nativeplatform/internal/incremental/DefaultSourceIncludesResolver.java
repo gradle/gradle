@@ -28,6 +28,7 @@ import org.gradle.language.nativeplatform.internal.MacroFunction;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ComplexExpression;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.SimpleExpression;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,18 +41,19 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
+    private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
     private final List<File> includePaths;
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final Map<File, Map<String, IncludeFileImpl>> includeRoots;
+    private final Map<File, Map<String, CachedIncludeFile>> includeRoots;
 
     public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
         this.includePaths = includePaths;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        this.includeRoots = new HashMap<File, Map<String, IncludeFileImpl>>();
+        this.includeRoots = new HashMap<File, Map<String, CachedIncludeFile>>();
     }
 
     @Override
-    public IncludeResolutionResult resolveInclude(final File sourceFile, Include include, MacroLookup visibleMacros) {
+    public IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros) {
         BuildableResult results = new BuildableResult();
         resolveExpression(visibleMacros, include, new PathResolvingVisitor(sourceFile, results), new TokenLookup());
         return results;
@@ -245,6 +247,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
     }
 
+    @Nullable
+    @Override
+    public IncludeFile resolveInclude(@Nullable File sourceFile, String includePath) {
+        List<File> path = sourceFile != null ? prependSourceDir(sourceFile, includePaths) : includePaths;
+        return searchForDependency(path, includePath, sourceFile != null);
+    }
+
     private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
         File sourceDir = sourceFile.getParentFile();
         if (includePaths.size() > 1 && includePaths.get(0).equals(sourceDir)) {
@@ -257,46 +266,84 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return quotedSearchPath;
     }
 
-    private void searchForDependency(List<File> searchPath, String include, BuildableResult dependencies) {
+    @Nullable
+    private IncludeFile searchForDependency(List<File> searchPath, String includePath, boolean quotedPath) {
         for (File searchDir : searchPath) {
-            Map<String, IncludeFileImpl> searchedIncludes = includeRoots.get(searchDir);
+            Map<String, CachedIncludeFile> searchedIncludes = includeRoots.get(searchDir);
             if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, IncludeFileImpl>();
+                searchedIncludes = new HashMap<String, CachedIncludeFile>();
                 includeRoots.put(searchDir, searchedIncludes);
             }
-            if (searchedIncludes.containsKey(include)) {
-                IncludeFileImpl includeFile = searchedIncludes.get(include);
-                if (includeFile.snapshot.getType() == FileType.RegularFile) {
-                    dependencies.resolved(includeFile);
-                    return;
+            if (searchedIncludes.containsKey(includePath)) {
+                CachedIncludeFile includeFile = searchedIncludes.get(includePath);
+                if (includeFile.getType() == FileType.RegularFile) {
+                    return includeFile.toIncludeFile(quotedPath);
                 }
                 continue;
             }
 
-            File candidate = new File(searchDir, include);
+            File candidate = new File(searchDir, includePath);
             FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            IncludeFileImpl includeFile = fileSnapshot.getType() == FileType.RegularFile ? new IncludeFileImpl(candidate, fileSnapshot) : new IncludeFileImpl(null, fileSnapshot);
-            searchedIncludes.put(include, includeFile);
+            CachedIncludeFile includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot) : MISSING_INCLUDE_FILE;
+            searchedIncludes.put(includePath, includeFile);
 
             if (fileSnapshot.getType() == FileType.RegularFile) {
-                dependencies.resolved(includeFile);
-                return;
+                return includeFile.toIncludeFile(quotedPath);
             }
+        }
+        return null;
+    }
+
+    private static abstract class CachedIncludeFile {
+        abstract FileType getType();
+
+        abstract IncludeFile toIncludeFile(boolean quotedPath);
+    }
+
+    private static class MissingIncludeFile extends CachedIncludeFile {
+        MissingIncludeFile() {
+        }
+
+        @Override
+        FileType getType() {
+            return FileType.Missing;
+        }
+
+        @Override
+        IncludeFile toIncludeFile(boolean quotedPath) {
+            throw new UnsupportedOperationException();
         }
     }
 
-    private static class IncludeFileImpl implements IncludeFile {
+    private static class SystemIncludeFile extends CachedIncludeFile implements IncludeFile {
         final File file;
+        final String includePath;
         final FileSnapshot snapshot;
 
-        IncludeFileImpl(File file, FileSnapshot snapshot) {
+        SystemIncludeFile(File file, String includePath, FileSnapshot snapshot) {
             this.file = file;
+            this.includePath = includePath;
             this.snapshot = snapshot;
+        }
+
+        @Override
+        public String getPath() {
+            return includePath;
+        }
+
+        @Override
+        public boolean isQuotedInclude() {
+            return false;
         }
 
         @Override
         public File getFile() {
             return file;
+        }
+
+        @Override
+        FileType getType() {
+            return snapshot.getType();
         }
 
         @Override
@@ -312,13 +359,31 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (obj == null || getClass() != obj.getClass()) {
                 return false;
             }
-            IncludeFileImpl other = (IncludeFileImpl) obj;
+            SystemIncludeFile other = (SystemIncludeFile) obj;
             return Objects.equal(file, other.file) && snapshot.equals(other.snapshot);
         }
 
         @Override
         public int hashCode() {
             return snapshot.hashCode();
+        }
+
+        IncludeFile toIncludeFile(boolean quotedPath) {
+            if (quotedPath) {
+                return new QuotedIncludeFile(file, includePath, snapshot);
+            }
+            return this;
+        }
+
+        private static class QuotedIncludeFile extends SystemIncludeFile {
+            QuotedIncludeFile(File file, String includePath, FileSnapshot snapshot) {
+                super(file, includePath, snapshot);
+            }
+
+            @Override
+            public boolean isQuotedInclude() {
+                return true;
+            }
         }
     }
 
@@ -445,7 +510,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 return;
             }
             List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-            searchForDependency(quotedSearchPath, path, results);
+            IncludeFile includeFile = searchForDependency(quotedSearchPath, path, true);
+            if (includeFile != null) {
+                results.resolved(includeFile);
+            }
         }
 
         @Override
@@ -454,7 +522,10 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (!system.add(path)) {
                 return;
             }
-            searchForDependency(includePaths, path, results);
+            IncludeFile includeFile = searchForDependency(includePaths, path, false);
+            if (includeFile != null) {
+                results.resolved(includeFile);
+            }
         }
 
         @Override

@@ -39,26 +39,31 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     @Override
     public CompilationState read(Decoder decoder) throws Exception {
         // Deduplicates the include file states, as these are often shared between source files
-        Map<Integer, IncludeFileState> ids = new HashMap<Integer, IncludeFileState>();
+        Map<Integer, IncludeFileEdge> ids = new HashMap<Integer, IncludeFileEdge>();
         int sourceFileCount = decoder.readSmallInt();
         ImmutableMap.Builder<File, SourceFileState> builder = ImmutableMap.builder();
         for (int i = 0; i < sourceFileCount; i++) {
             File sourceFile = fileSerializer.read(decoder);
             HashCode sourceHashCode = hashSerializer.read(decoder);
+            boolean isUnresolved = decoder.readBoolean();
             int includeFileCount = decoder.readSmallInt();
-            ImmutableSet.Builder<IncludeFileState> includeFileStateBuilder = ImmutableSet.builder();
+            ImmutableSet.Builder<IncludeFileEdge> includeFileStateBuilder = ImmutableSet.builder();
             for (int j = 0; j < includeFileCount; j++) {
                 int id = decoder.readSmallInt();
-                IncludeFileState includeFileState = ids.get(id);
+                IncludeFileEdge includeFileState = ids.get(id);
                 if (includeFileState == null) {
-                    File includeFile = fileSerializer.read(decoder);
-                    HashCode includeHashCode = hashSerializer.read(decoder);
-                    includeFileState = new IncludeFileState(includeHashCode, includeFile);
+                    String includePath = decoder.readString();
+                    HashCode includedBy = null;
+                    if (decoder.readBoolean()) {
+                        includedBy = hashSerializer.read(decoder);
+                    }
+                    HashCode resolvedTo = hashSerializer.read(decoder);
+                    includeFileState = new IncludeFileEdge(includePath, includedBy, resolvedTo);
                     ids.put(id, includeFileState);
                 }
                 includeFileStateBuilder.add(includeFileState);
             }
-            builder.put(sourceFile, new SourceFileState(sourceHashCode, includeFileStateBuilder.build()));
+            builder.put(sourceFile, new SourceFileState(sourceHashCode, isUnresolved, includeFileStateBuilder.build()));
         }
         return new CompilationState(builder.build());
     }
@@ -66,21 +71,28 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     @Override
     public void write(Encoder encoder, CompilationState value) throws Exception {
         // Deduplicates the include file states, as these are often shared between source files
-        Map<File, Integer> ids = new HashMap<File, Integer>();
+        Map<IncludeFileEdge, Integer> ids = new HashMap<IncludeFileEdge, Integer>();
         encoder.writeSmallInt(value.getFileStates().size());
         for (Map.Entry<File, SourceFileState> entry : value.getFileStates().entrySet()) {
             SourceFileState sourceFileState = entry.getValue();
             fileSerializer.write(encoder, entry.getKey());
             hashSerializer.write(encoder, sourceFileState.getHash());
+            encoder.writeBoolean(sourceFileState.isHasUnresolved());
             encoder.writeSmallInt(sourceFileState.getResolvedIncludes().size());
-            for (IncludeFileState includeFileState : sourceFileState.getResolvedIncludes()) {
-                Integer id = ids.get(includeFileState.getIncludeFile());
+            for (IncludeFileEdge includeFileState : sourceFileState.getResolvedIncludes()) {
+                Integer id = ids.get(includeFileState);
                 if (id == null) {
                     id = ids.size();
-                    ids.put(includeFileState.getIncludeFile(), id);
+                    ids.put(includeFileState, id);
                     encoder.writeSmallInt(id);
-                    fileSerializer.write(encoder, includeFileState.getIncludeFile());
-                    hashSerializer.write(encoder, includeFileState.getHash());
+                    encoder.writeString(includeFileState.getIncludePath());
+                    if (includeFileState.getIncludedBy() == null) {
+                        encoder.writeBoolean(false);
+                    } else {
+                        encoder.writeBoolean(true);
+                        hashSerializer.write(encoder, includeFileState.getIncludedBy());
+                    }
+                    hashSerializer.write(encoder, includeFileState.getResolvedTo());
                 } else {
                     encoder.writeSmallInt(id);
                 }

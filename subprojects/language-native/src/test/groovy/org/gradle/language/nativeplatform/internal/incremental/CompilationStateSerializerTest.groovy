@@ -41,7 +41,7 @@ class CompilationStateSerializerTest extends SerializerSpec {
         fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), [new File("ONE"), new File("TWO")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["ONE","TWO"])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState(fileStates)
 
@@ -62,11 +62,11 @@ class CompilationStateSerializerTest extends SerializerSpec {
         when:
         def fileOne = new File("one")
         def fileStates = [:]
-        def stateOne = compilationFileState(HashCode.fromInt(0x12345678), [new File("ONE"), new File("TWO")])
+        def stateOne = compilationFileState(HashCode.fromInt(0x12345678), ["ONE", "TWO"])
         fileStates.put(fileOne, stateOne)
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), [new File("TWO"), new File("THREE")])
+        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["TWO", "THREE"])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState(fileStates)
 
@@ -83,8 +83,8 @@ class CompilationStateSerializerTest extends SerializerSpec {
         otherCompileState.resolvedIncludes == stateTwo.resolvedIncludes
     }
 
-    private SourceFileState compilationFileState(HashCode hash, Collection<File> resolvedIncludes) {
-        return new SourceFileState(hash, ImmutableSet.copyOf(resolvedIncludes.collect { new IncludeFileState(HashCode.fromInt(123), it )}))
+    private SourceFileState compilationFileState(HashCode hash, Collection<String> includes) {
+        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, HashCode.fromInt(123) )}))
     }
 
     private CompilationState compilationState(Map<File, SourceFileState> states) {

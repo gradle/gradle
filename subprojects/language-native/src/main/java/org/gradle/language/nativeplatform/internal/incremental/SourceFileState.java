@@ -23,10 +23,12 @@ import org.gradle.internal.hash.HashCode;
  */
 public class SourceFileState {
     private final HashCode hash;
-    private final ImmutableSet<IncludeFileState> resolvedIncludes;
+    private final boolean hasUnresolved;
+    private final ImmutableSet<IncludeFileEdge> resolvedIncludes;
 
-    public SourceFileState(HashCode hash, ImmutableSet<IncludeFileState> resolvedIncludes) {
+    public SourceFileState(HashCode hash, boolean hasUnresolved, ImmutableSet<IncludeFileEdge> resolvedIncludes) {
         this.hash = hash;
+        this.hasUnresolved = hasUnresolved;
         this.resolvedIncludes = resolvedIncludes;
     }
 
@@ -34,10 +36,14 @@ public class SourceFileState {
         return hash;
     }
 
+    public boolean isHasUnresolved() {
+        return hasUnresolved;
+    }
+
     /**
      * The set of successfully resolved include files, in the order included.
      */
-    public ImmutableSet<IncludeFileState> getResolvedIncludes() {
+    public ImmutableSet<IncludeFileEdge> getResolvedIncludes() {
         return resolvedIncludes;
     }
 
