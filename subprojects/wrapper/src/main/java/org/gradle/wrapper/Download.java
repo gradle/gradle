@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import java.net.*;
 
 public class Download implements IDownload {
-    private static final int PROGRESS_CHUNK = 1024 * 1024;
     private static final int BUFFER_SIZE = 10 * 1024;
     private final Logger logger;
     private final String appName;
@@ -66,23 +65,28 @@ public class Download implements IDownload {
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
-            int contentLength = conn.getContentLength();
-            long progressCounter = 0;
-            long numDownloaded = 0;
+            int totalLength = conn.getContentLength();
+            int downloadedLength = 0;
             while ((numRead = in.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.print("interrupted");
                     throw new IOException("Download was interrupted.");
                 }
-                numDownloaded += numRead;
-                progressCounter += numRead;
-                if (progressCounter / PROGRESS_CHUNK > 0) {
-                    logger.append(".");
-                    progressCounter = progressCounter - PROGRESS_CHUNK;
-                    if (progressListener != null) {
-                        progressListener.downloadStatusChanged(address, contentLength, numDownloaded);
-                    }
+
+                long previousDownloadedLength = downloadedLength;
+                downloadedLength += numRead;
+
+                int currentDownloadPercentTenth = calculateDownloadPercent(totalLength, downloadedLength) / 10;
+                int previousDownloadPercentTenth = calculateDownloadPercent(totalLength, previousDownloadedLength) / 10;
+
+                if (currentDownloadPercentTenth != 0 && currentDownloadPercentTenth != previousDownloadPercentTenth) {
+                    logger.append(String.format("%d%%... ", currentDownloadPercentTenth * 10));
                 }
+
+                if (progressListener != null) {
+                    progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
+                }
+
                 out.write(buffer, 0, numRead);
             }
         } finally {
@@ -94,6 +98,10 @@ public class Download implements IDownload {
                 out.close();
             }
         }
+    }
+
+    private int calculateDownloadPercent(long totalLength, long downloadedLength) {
+        return (int) ((downloadedLength / (double) totalLength) * 100);
     }
 
     /**

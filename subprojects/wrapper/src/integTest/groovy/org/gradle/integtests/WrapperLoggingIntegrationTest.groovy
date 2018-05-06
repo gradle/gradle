@@ -84,4 +84,15 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         failure.assertOutputContains("Could not unzip")
         failure.assertNotOutput("Could not set executable permissions")
     }
+
+    def "wrapper prints progress which contains all tenths of percentages except zero"() {
+        given:
+        prepareWrapper()
+
+        when:
+        def result = wrapperExecuter.run()
+
+        then:
+        result.output.contains("10%... 20%... 30%... 40%... 50%... 60%... 70%... 80%... 90%... 100%...")
+    }
 }
