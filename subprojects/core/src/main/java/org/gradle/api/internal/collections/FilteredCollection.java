@@ -144,7 +144,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public Iterator<S> iterator() {
-        collection.flushPending(filter.getType());
+        collection.realizePending(filter.getType());
         return new FilteringIterator<T, S>(collection, filter);
     }
 
@@ -171,13 +171,13 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void flushPending() {
-        flushPending(filter.getType());
+    public void realizePending() {
+        realizePending(filter.getType());
     }
 
     @Override
-    public void flushPending(Class<?> type) {
-        collection.flushPending(type);
+    public void realizePending(Class<?> type) {
+        collection.realizePending(type);
     }
 
     @Override
@@ -191,5 +191,5 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
-    public void onFlush(Action<ProviderInternal<? extends S>> action) { }
+    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
 }

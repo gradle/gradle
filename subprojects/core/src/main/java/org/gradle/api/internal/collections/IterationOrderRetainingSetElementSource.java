@@ -50,7 +50,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public Iterator<T> iterator() {
-        pending.flushPending();
+        pending.realizePending();
         return values.iterator();
     }
 
@@ -61,13 +61,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
 
     @Override
     public boolean contains(Object element) {
-        pending.flushPending();
+        pending.realizePending();
         return values.contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
-        pending.flushPending();
+        pending.realizePending();
         return values.containsAll(elements);
     }
 
@@ -88,13 +88,13 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     }
 
     @Override
-    public void flushPending() {
-        pending.flushPending();
+    public void realizePending() {
+        pending.realizePending();
     }
 
     @Override
-    public void flushPending(Class<?> type) {
-        pending.flushPending(type);
+    public void realizePending(Class<?> type) {
+        pending.realizePending(type);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class IterationOrderRetainingSetElementSource<T> implements ElementSource
     }
 
     @Override
-    public void onFlush(Action<ProviderInternal<? extends T>> action) {
-        pending.onFlush(action);
+    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        pending.onRealize(action);
     }
 }

@@ -20,15 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 public interface PendingSource<T> {
-    void flushPending();
+    void realizePending();
 
-    void flushPending(Class<?> type);
+    void realizePending(Class<?> type);
 
     void addPending(ProviderInternal<? extends T> provider);
 
     void removePending(ProviderInternal<? extends T> provider);
 
-    void onFlush(Action<ProviderInternal<? extends T>> action);
+    void onRealize(Action<ProviderInternal<? extends T>> action);
 
     boolean isEmpty();
 

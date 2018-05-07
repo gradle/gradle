@@ -253,12 +253,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void flushPending() {
+        public void realizePending() {
 
         }
 
         @Override
-        public void flushPending(Class<?> type) {
+        public void realizePending(Class<?> type) {
 
         }
 
@@ -273,7 +273,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
 
         @Override
-        public void onFlush(Action<ProviderInternal<? extends T>> action) {
+        public void onRealize(Action<ProviderInternal<? extends T>> action) {
 
         }
     }

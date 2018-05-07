@@ -28,7 +28,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     private Action<ProviderInternal<? extends T>> flushAction;
 
     @Override
-    public void flushPending() {
+    public void realizePending() {
         for (ProviderInternal<? extends T> provider : pending) {
             flushAction.execute(provider);
         }
@@ -36,7 +36,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void flushPending(Class<?> type) {
+    public void realizePending(Class<?> type) {
         ListIterator<ProviderInternal<? extends T>> iterator = pending.listIterator();
         while (iterator.hasNext()) {
             ProviderInternal<? extends T> provider = iterator.next();
@@ -58,7 +58,7 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     }
 
     @Override
-    public void onFlush(Action<ProviderInternal<? extends T>> action) {
+    public void onRealize(Action<ProviderInternal<? extends T>> action) {
         this.flushAction = action;
     }
 

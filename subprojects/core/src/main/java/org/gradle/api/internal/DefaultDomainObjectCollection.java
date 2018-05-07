@@ -54,7 +54,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
-        this.store.onFlush(new Action<ProviderInternal<? extends T>>() {
+        this.store.onRealize(new Action<ProviderInternal<? extends T>>() {
             @Override
             public void execute(ProviderInternal<? extends T> provider) {
                 doAdd(provider.get());
@@ -410,7 +410,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         @Override
         public void registerEagerAddAction(Class<? extends S> type, Action<? super S> addAction) {
             // Any elements previously added should not be visible to the action
-            store.flushPending(filter.getType());
+            store.realizePending(filter.getType());
             delegate.registerEagerAddAction(filter.getType(), Actions.filter(addAction, filter));
         }
 
