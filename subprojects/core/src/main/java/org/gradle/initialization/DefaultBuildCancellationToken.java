@@ -28,12 +28,14 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
     private boolean cancelled;
     private List<Runnable> callbacks = new LinkedList<Runnable>();
 
+    @Override
     public boolean isCancellationRequested() {
         synchronized (lock) {
             return cancelled;
         }
     }
 
+    @Override
     public boolean addCallback(Runnable cancellationHandler) {
         boolean returnValue;
         synchronized (lock) {
@@ -48,12 +50,14 @@ public class DefaultBuildCancellationToken implements BuildCancellationToken {
         return returnValue;
     }
 
+    @Override
     public void removeCallback(Runnable cancellationHandler) {
         synchronized (lock) {
             callbacks.remove(cancellationHandler);
         }
     }
 
+    @Override
     public void cancel() {
         List<Runnable> toCall = new ArrayList<Runnable>();
         synchronized (lock) {

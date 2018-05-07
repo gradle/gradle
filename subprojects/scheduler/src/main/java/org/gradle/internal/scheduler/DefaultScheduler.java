@@ -21,7 +21,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.specs.Spec;
+import org.gradle.initialization.BuildCancellationToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -43,6 +47,7 @@ import static org.gradle.internal.scheduler.NodeState.RUNNABLE;
 import static org.gradle.internal.scheduler.NodeState.SHOULD_RUN;
 
 public class DefaultScheduler implements Scheduler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
     private static final int MAX_WORKERS = 16;
     private static final int EVENTS_TO_PROCESS_AT_ONCE = 2 * MAX_WORKERS;
 
@@ -51,10 +56,13 @@ public class DefaultScheduler implements Scheduler {
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
     private final WorkerPool workerPool;
     private final CycleReporter cycleReporter;
+    private final BuildCancellationToken cancellationToken;
+    private boolean cancelled;
 
-    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter) {
+    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
         this.workerPool = workerPool;
         this.cycleReporter = cycleReporter;
+        this.cancellationToken = cancellationToken;
     }
 
     @Override
@@ -80,13 +88,46 @@ public class DefaultScheduler implements Scheduler {
         ImmutableList<Node> liveNodes = liveGraph.getAllNodes();
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
         ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
+
         executeLiveGraph(liveGraph, continueOnFailure, executedNodes, failures);
+        if (cancelled) {
+            failures.add(new BuildCancelledException());
+        }
 
         return new GraphExecutionResult(liveNodes, executedNodes.build(), filteredNodes.build(), failures.build());
     }
 
+    private void cancelAllNodes(Graph graph, boolean cancelEverything) {
+        for (Node node : graph.getAllNodes()) {
+            // Allow currently executing and enforced tasks to complete, but skip everything else.
+            switch (node.getState()) {
+                case RUNNABLE:
+                case SHOULD_RUN:
+                    node.setState(CANCELLED);
+                    cancelled = true;
+                    break;
+                case MUST_RUN:
+                    if (cancelEverything) {
+                        node.setState(CANCELLED);
+                        cancelled = true;
+                    }
+                    break;
+                case CANCELLED:
+                case DEPENDENCY_FAILED:
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+        }
+    }
+
     private void executeLiveGraph(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         while (graph.hasNodes()) {
+            if (cancellationToken.isCancellationRequested()) {
+                cancelAllNodes(graph, false);
+                break;
+            }
+
             scheduleWork(graph);
             handleEvents(graph, continueOnFailure, executedNodes, failures);
         }
@@ -180,8 +221,9 @@ public class DefaultScheduler implements Scheduler {
             // Make sure we take all available events
             eventQueue.drainTo(eventsBeingProcessed, EVENTS_TO_PROCESS_AT_ONCE - 1);
         } catch (InterruptedException e) {
-            // TODO Handle execution aborted
-            throw new RuntimeException("Handle execution aborted");
+            LOGGER.info("Build has been interrupted", e);
+            failures.add(e);
+            cancelAllNodes(graph, true);
         }
         for (Event event : eventsBeingProcessed) {
             System.out.printf("> Handling event %s%n", event);

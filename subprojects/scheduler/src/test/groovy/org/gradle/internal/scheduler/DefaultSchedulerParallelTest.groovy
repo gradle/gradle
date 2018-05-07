@@ -20,7 +20,7 @@ import com.google.common.collect.Sets
 
 class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(new ParallelWorkerPool(4), cycleReporter)
+    Scheduler scheduler = new DefaultScheduler(new ParallelWorkerPool(4), cycleReporter, cancellationHandler)
 
     def "schedules many tasks at once"() {
         given:

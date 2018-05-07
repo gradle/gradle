@@ -19,6 +19,7 @@ package org.gradle.internal.scheduler
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.specs.Spec
+import org.gradle.initialization.BuildCancellationToken
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -27,6 +28,8 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
 abstract class AbstractSchedulingTest extends Specification {
+    def cancellationHandler = Mock(BuildCancellationToken)
+
     protected abstract void addToGraph(List tasks)
     protected abstract void determineExecutionPlan()
     protected void addToGraphAndPopulate(List nodes) {

@@ -30,7 +30,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.execution.TaskFailureHandler
-import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
@@ -58,7 +57,6 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root
-    def cancellationHandler = Mock(BuildCancellationToken)
     def workerLeaseService = Mock(WorkerLeaseService)
     def coordinationService = Mock(ResourceLockCoordinationService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
