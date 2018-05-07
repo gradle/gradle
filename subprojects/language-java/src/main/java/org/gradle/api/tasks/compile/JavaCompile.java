@@ -124,8 +124,7 @@ public class JavaCompile extends AbstractCompile {
             createCompiler(spec),
             getPath(),
             (IncrementalTaskInputsInternal) inputs,
-            getSource(),
-            getEffectiveAnnotationProcessorPath()
+            getSource()
         );
         performCompilation(spec, incrementalCompiler);
     }

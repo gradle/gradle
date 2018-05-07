@@ -48,8 +48,20 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         run "compileJava", "--info"
 
         then:
-        output.contains("The following annotation processors don't support incremental compilation:")
-        output.contains("Processor (type: UNKNOWN)")
+        output.contains("Full recompilation is required because ThingProcessor is not incremental.")
+    }
+
+    def "compilation is incremental if the non-incremental processor is not used"() {
+        def a = java "class A {}"
+        java "class B {}"
+
+        when:
+        outputs.snapshot { run "compileJava" }
+        a.text = "class A { public void foo() {} }"
+        run "compileJava", "--info"
+
+        then:
+        outputs.recompiledClasses("A")
     }
 
     def "generated files and classes are deleted when processor is removed"() {
