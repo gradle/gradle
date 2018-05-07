@@ -137,15 +137,15 @@ public class IncrementalCompileFilesFactory {
                 return true;
             }
 
-            // Check each edge in the include file graph
-            Map<HashCode, File> includes = new HashMap<HashCode, File>();
-            Set<File> headers = new LinkedHashSet<File>();
+            // Check each unique edge in the include file graph
+            Map<HashCode, File> includes = new HashMap<HashCode, File>(previousState.getEdges().size());
+            Set<File> headers = new HashSet<File>();
             includes.put(fileSnapshot.getContent().getContentMd5(), sourceFile);
             for (IncludeFileEdge includeFileEdge : previousState.getEdges()) {
                 File includedFrom = includeFileEdge.getIncludedBy() != null ? includes.get(includeFileEdge.getIncludedBy()) : null;
                 SourceIncludesResolver.IncludeFile includeFile = sourceIncludesResolver.resolveInclude(includedFrom, includeFileEdge.getIncludePath());
                 if (includeFile == null) {
-                    // Include file not found
+                    // Include file not found (but previously was found)
                     return false;
                 }
                 HashCode hash = includeFile.getSnapshot().getContent().getContentMd5();
@@ -153,7 +153,10 @@ public class IncrementalCompileFilesFactory {
                     // Include file changed
                     return false;
                 }
-                headers.add(includeFile.getFile());
+                if (!existingHeaders.contains(includeFile.getFile())) {
+                    // Collect for later, do not add until the graph is known to have not changed
+                    headers.add(includeFile.getFile());
+                }
                 includes.put(hash, includeFile.getFile());
             }
             existingHeaders.addAll(headers);
