@@ -103,7 +103,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -393,7 +392,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void beforeExecute(Task task) {
-            assertTrue(planned.contains(task));
+            if (!planned.contains(task)) {
+                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
+            }
 
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {

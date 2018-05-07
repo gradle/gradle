@@ -39,7 +39,6 @@ import org.gradle.api.internal.changedetection.state.TaskOutputFilesRepository;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.BuildOperationWrappingTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
@@ -146,8 +145,7 @@ public class TaskExecutionServices {
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(taskExecutionGraph, executer);
-        executer = new BuildOperationWrappingTaskExecuter(buildOperationExecutor, executer);
+        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionGraph, executer);
         return executer;
     }
 

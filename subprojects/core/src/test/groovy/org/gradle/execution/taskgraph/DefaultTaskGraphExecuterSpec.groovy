@@ -21,7 +21,6 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraphListener
-import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -75,42 +74,11 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         workerLeases.stop()
     }
 
-    def "notifies task listeners as tasks are executed"() {
-        def listener = Mock(TaskExecutionListener)
-        def a = task("a")
-        def b = task("b")
-
-        given:
-        taskExecuter.addTaskExecutionListener(listener)
-        taskExecuter.addTasks([a, b])
-
-        when:
-        taskExecuter.execute()
-
-        then:
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
-        1 * listener.beforeExecute(a)
-        1 * listener.afterExecute(a, a.state)
-
-        then:
-        1 * listener.beforeExecute(b)
-        1 * listener.afterExecute(b, b.state)
-        0 * listener._
-
-        and:
-        buildOperationExecutor.operations[0].name == ":a"
-        buildOperationExecutor.operations[0].displayName == "Task :a"
-        buildOperationExecutor.operations[1].name == ":b"
-        buildOperationExecutor.operations[1].displayName == "Task :b"
-    }
-
-    def "notifies task listener when task fails"() {
-        def listener = Mock(TaskExecutionListener)
+    def "rethrows task failures"() {
         def failure = new RuntimeException()
         def a = brokenTask("a", failure)
 
         given:
-        taskExecuter.addTaskExecutionListener(listener)
         taskExecuter.addTasks([a])
 
         when:
@@ -119,9 +87,6 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * listener.beforeExecute(a)
-        1 * listener.afterExecute(a, a.state)
-        0 * listener._
     }
 
     def "stops running tasks and fails with exception when build is cancelled"() {
@@ -435,7 +400,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         executedTasks == [a]
     }
 
-    def "notifies before task listener as tasks are executed"() {
+    def "notifies before task listeners"() {
         def closure = Mock(Closure) {
             _ * getMaximumNumberOfParameters() >> 1
         }
@@ -447,8 +412,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         when:
         taskExecuter.beforeTask(closure)
         taskExecuter.beforeTask(action)
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskExecuter.taskExecutionListenerSource.beforeExecute(a)
+        taskExecuter.taskExecutionListenerSource.beforeExecute(b)
 
         then:
         1 * closure.call(a)
@@ -457,7 +422,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         1 * action.execute(b)
     }
 
-    def "notifies after task listener as tasks are executed"() {
+    def "notifies after task listeners"() {
         def closure = Mock(Closure) {
             _ * getMaximumNumberOfParameters() >> 1
         }
@@ -469,8 +434,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         when:
         taskExecuter.afterTask(closure)
         taskExecuter.afterTask(action)
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskExecuter.taskExecutionListenerSource.afterExecute(a, a.state)
+        taskExecuter.taskExecutionListenerSource.afterExecute(b, b.state)
 
         then:
         1 * closure.call(a)
