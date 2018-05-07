@@ -145,6 +145,9 @@ public class DefaultScheduler implements Scheduler {
                         return false;
                     }
                     Node finalizerDependency = edge.getSource();
+                    if (finalizerDependency == finalized) {
+                        return false;
+                    }
                     Edge finalizerDependencyConstraint = new Edge(finalized, finalizerDependency, AVOID_STARTING_BEFORE_FINALIZED);
                     if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
                         graph.addEdge(finalizerDependencyConstraint);
