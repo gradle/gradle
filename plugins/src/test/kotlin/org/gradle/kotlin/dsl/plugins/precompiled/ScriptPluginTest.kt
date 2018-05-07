@@ -101,6 +101,17 @@ class ScriptPluginTest : TestWithTempFiles() {
             """.trimIndent()))
     }
 
+    @Test
+    fun `can extract package name from script with Windows line endings`() {
+
+        val script =
+            newFile("my-script.gradle.kts", "/*\r\n */\r\npackage org.acme\r\n")
+
+        assertThat(
+            ScriptPlugin(script).packageName,
+            equalTo("org.acme"))
+    }
+
     private
     fun firstNonBlankLineOf(expectedFile: File) =
         expectedFile.bufferedReader().useLines {

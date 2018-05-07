@@ -15,6 +15,7 @@
  */
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -22,6 +23,8 @@ import org.gradle.api.invocation.Gradle
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+
+import org.gradle.util.TextUtil.normaliseLineSeparators
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -104,7 +107,7 @@ data class ScriptPlugin(private val scriptFile: File) {
 
 private
 fun packageNameOf(file: File): String? =
-    packageNameOf(file.readText())
+    packageNameOf(normaliseLineSeparators(file.readText()))
 
 
 private
