@@ -191,12 +191,12 @@
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing-artifacts" aria-expanded="false" aria-controls="publishing-artifacts">Publishing Artifacts</a>
                                 <ul id="publishing-artifacts">
-                                    <li><a href="/userguide/distribution_plugin.html">Distribution Plugin</a></li>
-                                    <li><a href="/userguide/maven_plugin.html">Maven Plugin</a></li>
                                     <li><a href="/userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                                     <li><a href="/userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
                                     <li><a href="/userguide/artifact_management.html">Publishing Artifacts Overview</a></li>
+                                    <li><a href="/userguide/maven_plugin.html">Old Maven Plugin</a></li>
                                     <li><a href="/userguide/signing_plugin.html">Signing Plugin</a></li>
+                                    <li><a href="/userguide/distribution_plugin.html">Distribution Plugin</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Sample Gradle Builds</a>

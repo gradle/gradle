@@ -82,6 +82,10 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
+### Ivy Publish and Maven Publish Plugins marked stable
+
+The [Ivy Publish Plugin](userguide/publishing_ivy.html) and [Maven Publish Plugin](userguide/publishing_maven.html) that have been _incubating_ since Gradle 1.3 are now marked as stable. Both plugins now [support signing](#signing-publications) and [publish configuration-wide dependency excludes](#configuration-wide-dependency-excludes-are-now-published). The [Maven Publish Plugin](userguide/publishing_maven.html) introduces a new dedicated DSL for [customizing the generated POM](#customizing-the-generated-pom). In addition, some usage quirks with the `publishing` extension have been addressed which now [behaves like other extension objects](https://github.com/gradle/gradle/issues/4945). Thus, these plugins are now the preferred option for publishing artifacts to Ivy and Maven repositories, respectively.
+
 ## Fixed issues
 
 ### Nested `afterEvaluate` requests are no longer silently ignored

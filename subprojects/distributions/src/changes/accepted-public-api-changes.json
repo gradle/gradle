@@ -22,6 +22,24 @@
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
             "acceptation": "Injected service"
+        },
+        {
+            "type": "org.gradle.api.publish.PublicationArtifact",
+            "member": "Class org.gradle.api.publish.PublicationArtifact",
+            "acceptation": "Common super-interface for already existing IvyArtifact and MavenArtifact",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.PublicationArtifact",
+            "member": "Method org.gradle.api.publish.PublicationArtifact.builtBy(java.lang.Object[])",
+            "acceptation": "Method already existed on IvyArtifact and MavenArtifact"
+        },
+        {
+            "type": "org.gradle.api.publish.PublicationArtifact",
+            "member": "Method org.gradle.api.publish.PublicationArtifact.getFile()",
+            "acceptation": "Method already existed on IvyArtifact and MavenArtifact"
         }
     ]
 }

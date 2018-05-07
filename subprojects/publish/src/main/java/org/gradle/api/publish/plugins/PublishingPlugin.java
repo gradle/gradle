@@ -17,7 +17,6 @@
 package org.gradle.api.publish.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -41,7 +40,6 @@ import javax.inject.Inject;
  *
  * @since 1.3
  */
-@Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";

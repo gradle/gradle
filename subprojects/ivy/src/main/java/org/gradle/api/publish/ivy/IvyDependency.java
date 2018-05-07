@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A module dependency declared in an ivy dependency descriptor published as part of an {@link IvyPublication}.
  */
-@Incubating
 @HasInternalProtocol
 public interface IvyDependency {
 
