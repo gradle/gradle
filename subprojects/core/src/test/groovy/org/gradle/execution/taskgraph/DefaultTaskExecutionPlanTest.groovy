@@ -90,6 +90,24 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         executes(a, b, c, d)
     }
 
+    @Unroll
+    def "schedules #orderingRule task dependencies in name order"() {
+        given:
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", (orderingRule): [b, a])
+        def d = task("d", dependsOn: [b, a])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executes(a, b, c, d)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
+    }
+
     def "mustRunAfter dependencies are scheduled before regular dependencies"() {
         def a = task("a")
         def b = task("b")
@@ -114,24 +132,6 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
         then:
         executes(b, a, c, d)
-    }
-
-    @Unroll
-    def "schedules #orderingRule task dependencies in name order"() {
-        given:
-        def a = task("a")
-        def b = task("b")
-        def c = task("c", (orderingRule): [b, a])
-        def d = task("d", dependsOn: [b, a])
-
-        when:
-        addToGraphAndPopulate([c, d])
-
-        then:
-        executes(a, b, c, d)
-
-        where:
-        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "clear removes all tasks"() {
