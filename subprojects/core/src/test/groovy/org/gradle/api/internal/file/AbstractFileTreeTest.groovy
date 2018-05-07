@@ -100,6 +100,50 @@ public class AbstractFileTreeTest extends Specification {
         filtered.buildDependencies == buildDependencies
     }
 
+    def "can create a subtree"() {
+        File file1 = new File("d1/f1")
+        File file2 = new File("d1/f2")
+        File file3 = new File("f3")
+        File file4 = new File("d2/f4")
+        def tree = new TestFileTree([file1, file2, file3, file4].collect { File f ->
+            Stub(FileVisitDetails) {
+                getFile() >> {
+                    return f
+                }
+                getRelativePath() >> {
+                    return RelativePath.parse(true, f.path)
+                }
+            }
+        })
+
+        when:
+        FileTree subTree = tree.subTree('d1')
+
+        then:
+        subTree.files.sort() == [file1, file2]
+        subTree.matching {it.include('d1/**')}.empty
+    }
+
+    def "creating a subtree with an empty root returns the original tree"() {
+        def tree = new TestFileTree([])
+
+        when:
+        def subTree = tree.subTree('')
+
+        then:
+        subTree == tree
+    }
+
+    def "cannot create a subtree using absolute paths"() {
+        def tree = new TestFileTree([])
+
+        when:
+        tree.subTree('/d1')
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
     def "can add file trees together"() {
         File file1 = new File("f1")
         File file2 = new File("f2")

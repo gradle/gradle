@@ -41,3 +41,9 @@ tasks.withType<AbstractArchiveTask>() {
 }
 // end::reproducible[]
 
+// tag::subtree-zip[]
+task<Copy>("unpackBin") {
+    from(zipTree("src/resources/program.zip").subTree("bin"))
+    into("program-bin")
+}
+// end::subtree-zip[]

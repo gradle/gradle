@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
@@ -34,5 +35,29 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         type << ["Object", "Object[]", "Set", "LinkedHashSet", "List", "LinkedList", "Collection", "FileCollection"]
+    }
+
+    @Issue("gradle/gradle#1108")
+    def "can use 'subtree()' to re-root zipTrees"() {
+        given:
+        createZip('test.zip') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.txt'
+            }
+        }
+        and:
+        buildFile << '''
+            task copy(type: Copy) {
+                from zipTree('test.zip').subTree('subdir1')
+                into 'dest'
+            }
+            '''
+        when:
+        run 'copy'
+        then:
+        file('dest').assertHasDescendants('file1.txt')
     }
 }

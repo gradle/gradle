@@ -243,6 +243,19 @@ include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=t
 
 As with filtering, you can also apply renaming to a subset of files by configuring it as part of a child specification on a `from()`.
 
+[[sec:subtree_example]]
+== Using only part of a file tree
+
+Sometimes you'll need only one subdirectory of a file tree. In that case, you can use api:org.gradle.api.file.FileTree#subTree(java.lang.String)[] to get only part of the file tree. This will rename the files to be relative to the specified root. For example, if a file tree contained `bin/gradle` and `README`, calling `subTree('bin')` would give you a file tree with just `gradle`.
+
+This is especially useful with archive trees where you only need a particular folder:
+
+.Unpacking only part of an archive tree
+====
+include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=subtree-zip]"]
+include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=subtree-zip]"]
+====
+
 [[sec:deleting_files_example]]
 == Deleting files and directories
 

@@ -45,6 +45,19 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
+    public FileTree subTree(final String root) {
+        if (root.isEmpty()) {
+            return this;
+        }
+        return new FilteredFileTree() {
+            @Override
+            protected FileTree filter(FileTree set) {
+                return set.subTree(root);
+            }
+        };
+    }
+
+    @Override
     public FileTree matching(final Closure filterConfigClosure) {
         return new FilteredFileTree() {
             @Override

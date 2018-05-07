@@ -110,6 +110,24 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
+    @UsesSample("userguide/files/archives")
+    def "can unpack part of a ZIP file with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds("unpackBin")
+
+        then:
+        def outputDir = dslDir.file("program-bin")
+        outputDir.listFiles().collect { it.name } == ['program']
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @Unroll
     @UsesSample("userguide/files/archivesWithJavaPlugin")
     def "can create an uber JAR with #dsl dsl"() {
         given:

@@ -115,6 +115,22 @@ public interface FileTree extends FileCollection {
     FileTree plus(FileTree fileTree);
 
     /**
+     * <p>Restricts the contents of this tree to those files starting with {@code root}, and removes {@code root} from
+     * their path. The filtered tree is live, so that any changes to this tree are reflected in the filtered tree.</p>
+     *
+     * <p>A slash is appended to {@code root} (before filtering) if it does not end with a slash, and is not empty.</p>
+     *
+     * <p>Examples:</p>
+     * <p>If {@code root} is {@code "foo"}, then {@code "foo/file1.txt"} and {@code "foo/subdir/file2.txt"} would be
+     * included as {@code "file1.txt"} and {@code "subdir/file2.txt"}. {@code "bar/foo/file3.txt"} would be excluded.</p>
+     * <p>If {@code root} is {@code ""}, then the tree is returned unchanged.</p>
+     *
+     * @param root The root of the new tree. Should not be null.
+     * @return The filtered tree.
+     */
+    FileTree subTree(String root);
+
+    /**
      * Returns this.
      *
      * @return this

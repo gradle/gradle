@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -32,9 +33,13 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -133,6 +138,17 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
+    @Override
+    public FileTree subTree(String subDir) {
+        if (subDir.isEmpty()) {
+            return this;
+        }
+        if (subDir.startsWith("/")) {
+            throw new IllegalArgumentException("Sub-directory must be relative");
+        }
+        return new SubTreeFileTreeImpl(this, subDir);
+    }
+
     public FileTree visit(Closure closure) {
         return visit(fileVisitorFrom(closure));
     }
@@ -206,6 +222,92 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public void registerWatchPoints(FileSystemSubset.Builder builder) {
             // TODO: we aren't considering the filter
             fileTree.registerWatchPoints(builder);
+        }
+
+        @Override
+        public void visitTreeOrBackingFile(FileVisitor visitor) {
+            fileTree.visitTreeOrBackingFile(visitor);
+        }
+    }
+
+    private static class SubTreeFileTreeImpl extends AbstractFileTree {
+        private final AbstractFileTree fileTree;
+        private final RelativePath subDir;
+
+        private SubTreeFileTreeImpl(AbstractFileTree fileTree, String subDir) {
+            this.fileTree = fileTree;
+            this.subDir = RelativePath.parse(false, subDir);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return fileTree.getDisplayName();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return fileTree.getBuildDependencies();
+        }
+
+        public FileTree visit(final FileVisitor visitor) {
+            fileTree.visit(new FileVisitor() {
+                public void visitDir(FileVisitDetails dirDetails) {
+                    RelativePath newPath = relativePathIfMatching(dirDetails.getRelativePath());
+                    if (newPath != null) {
+                        visitor.visitDir(subTreeDetail(dirDetails, newPath));
+                    }
+                }
+
+                public void visitFile(FileVisitDetails fileDetails) {
+                    RelativePath newPath = relativePathIfMatching(fileDetails.getRelativePath());
+                    if (newPath != null) {
+                        visitor.visitFile(subTreeDetail(fileDetails, newPath));
+                    }
+                }
+            });
+            return this;
+        }
+
+        @Nullable
+        private RelativePath relativePathIfMatching(RelativePath path) {
+            if (path.getSegments().length <= subDir.getSegments().length) {
+                // Too short to match.
+                // Includes equal case because we don't want an empty path.
+                return null;
+            }
+            Iterator<String> pathIter = path.segmentIterator();
+            Iterator<String> subDirIter = subDir.segmentIterator();
+            while (subDirIter.hasNext()) {
+                String subDirPart = subDirIter.next();
+                String pathPart = pathIter.next();
+                if (!subDirPart.equals(pathPart)) {
+                    return null;
+                }
+            }
+            List<String> remainingPath = new ArrayList<String>();
+            while (pathIter.hasNext()) {
+                remainingPath.add(pathIter.next());
+            }
+            return new RelativePath(path.isFile(), remainingPath.toArray(new String[0]));
+        }
+
+        private FileVisitDetails subTreeDetail(final FileVisitDetails source, final RelativePath newPath) {
+            return new DelegatingFileVisitDetails(source) {
+                @Override
+                public String getName() {
+                    return getRelativePath().getLastName();
+                }
+
+                @Override
+                public String getPath() {
+                    return getRelativePath().getPathString();
+                }
+
+                @Override
+                public RelativePath getRelativePath() {
+                    return newPath;
+                }
+            };
         }
 
         @Override
