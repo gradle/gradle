@@ -638,10 +638,10 @@ abstract class AbstractSchedulingTest extends Specification {
         RuntimeException failure = new RuntimeException()
         def a = task("a", failure: failure)
         def b = task("b", (orderingRule): [a])
-        addToGraphAndPopulate([a, b])
+        continueOnFailure()
 
         when:
-        continueOnFailure()
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a, b]
