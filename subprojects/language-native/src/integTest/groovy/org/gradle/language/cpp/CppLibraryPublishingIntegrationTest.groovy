@@ -480,6 +480,38 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    def "can adjust publication coordiantes"() {
+        def lib = new CppLib()
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            library {
+                baseName = 'test'
+            }
+            publishing {
+                repositories { maven { url 'repo' } }
+                publications.withType(MavenPublication) {
+                    artifactId = "\${artifactId}-adjusted"
+                }
+            }
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(file("repo"))
+        def main = repo.module('some.group', 'test-adjusted', '1.2')
+        main.assertPublished()
+        main.assertArtifactsPublished("test-adjusted-1.2-cpp-api-headers.zip", "test-adjusted-1.2.pom", "test-adjusted-1.2.module")
+    }
+
     def "private headers are not visible to consumer"() {
         def lib = new CppLib()
         def repoDir = file("repo")
