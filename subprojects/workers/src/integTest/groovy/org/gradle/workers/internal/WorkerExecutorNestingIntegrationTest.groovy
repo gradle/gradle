@@ -33,7 +33,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         succeeds("runInWorker")
 
         then:
-        result.assertOutputContains("Hello World")
+        outputContains("Hello World")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
