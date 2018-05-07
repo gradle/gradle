@@ -161,6 +161,22 @@ The [use of a system property](userguide/java_testing.html#sec:single_test_execu
 
 The use of a system property (`-Dtest.debug`) to enable remote debugging of test processes is deprecated.  The built-in `--debug-jvm` flag has long replaced this functionality.
 
+### Overwriting Gradle's built-in tasks
+
+Defining a custom `wrapper` or `init` task is deprecated. Please configure the existing tasks instead.
+
+I.e. instead of this:
+
+    task wrapper(type:Wrapper) {
+        //configuration
+    }
+    
+Do this:
+
+    wrapper {
+        //configuration
+    }
+
 ## Potential breaking changes
 
 ### Changed behaviour for missing init scripts
