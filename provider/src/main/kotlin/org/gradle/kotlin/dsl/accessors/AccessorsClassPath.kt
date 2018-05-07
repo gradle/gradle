@@ -387,25 +387,26 @@ class ClassDataFromKotlinMetadataAnnotationVisitor(
     private
     var d2 = mutableListOf<String>()
 
-    override fun visitArray(name: String?): AnnotationVisitor =
+    override fun visitArray(name: String?): AnnotationVisitor? =
         when (name) {
-            "d1" -> object : AnnotationVisitor(ASM6) {
-                override fun visit(name: String?, value: Any?) {
-                    (value as? String)?.let(d1::add)
-                }
-            }
-            "d2" -> object : AnnotationVisitor(ASM6) {
-                override fun visit(name: String?, value: Any?) {
-                    (value as? String)?.let(d2::add)
-                }
-            }
-            else -> super.visitArray(name)
+            "d1" -> AnnotationValueCollector(d1)
+            "d2" -> AnnotationValueCollector(d2)
+            else -> null
         }
 
     override fun visitEnd() {
         val (_, classData) = JvmProtoBufUtil.readClassDataFrom(d1.toTypedArray(), d2.toTypedArray())
         onClassData(classData)
         super.visitEnd()
+    }
+}
+
+
+private
+class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM6) {
+    override fun visit(name: String?, value: Any?) {
+        @Suppress("unchecked_cast")
+        output.add(value as T)
     }
 }
 
