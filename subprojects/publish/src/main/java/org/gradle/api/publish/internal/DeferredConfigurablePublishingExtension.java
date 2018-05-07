@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.api.publish.internal;
 
-class FeaturePreviewsFixture {
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.api.publish.PublicationContainer;
 
-    static void enableGradleMetadata(File settings) {
-        settings << """
-enableFeaturePreview("GRADLE_METADATA")
-"""
-    }
+@DeferredConfigurable
+public class DeferredConfigurablePublishingExtension extends DefaultPublishingExtension {
 
-    static void enableImprovedPomSupport(File settings) {
-        settings << """
-enableFeaturePreview("IMPROVED_POM_SUPPORT")
-"""
-    }
-
-    static void enableStablePublishing(File settings) {
-        settings << """
-enableFeaturePreview("STABLE_PUBLISHING")
-"""
+    public DeferredConfigurablePublishingExtension(RepositoryHandler repositories, PublicationContainer publications) {
+        super(repositories, publications);
     }
 }

@@ -27,7 +27,8 @@ public class FeaturePreviews {
      */
     public enum Feature {
         IMPROVED_POM_SUPPORT(true),
-        GRADLE_METADATA(true);
+        GRADLE_METADATA(true),
+        STABLE_PUBLISHING(true);
 
         public static Feature withName(String name) {
             try {

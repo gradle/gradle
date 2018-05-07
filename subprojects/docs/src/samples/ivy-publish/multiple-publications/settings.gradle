@@ -1,2 +1,3 @@
 rootProject.name = 'ivy-publish-multiple'
 include 'project1', 'project2'
+enableFeaturePreview("STABLE_PUBLISHING")

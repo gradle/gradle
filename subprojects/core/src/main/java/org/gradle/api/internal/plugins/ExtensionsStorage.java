@@ -132,7 +132,7 @@ public class ExtensionsStorage {
     }
 
     private <T> ExtensionHolder<T> wrap(String name, TypeOf<T> publicType, T extension) {
-        if (isDeferredConfigurable(extension)) {
+        if (isDeferredConfigurable(extension) && !extension.getClass().getName().startsWith("org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension")) {
             DeprecationLogger.nagUserOfDeprecated("@DeferredConfigurable");
             return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }

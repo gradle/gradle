@@ -139,6 +139,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Deferred configuration of the publishing block
+
+Until Gradle 4.7, the `publishing {}` block was implicitly treated as if all the logic inside it was executed after the project is evaluated.
+This caused quite a bit of confusion, because it was the only block that behaved that way.
+As part of the stabilization effort in Gradle 4.8, we are deprecating this behavior and asking all users to migrate their build.
+
+Please see the [migration guide](userguide/publishing_maven.html#publishing_maven:deferred_configuration) for more information.
+
 ### Methods on `FileCollection`
 
 - `FileCollection.add()` is now deprecated. Use `ConfigurableFileCollection.from()` instead. You can create a `ConfigurableFileCollection` via `Project.files()`.
