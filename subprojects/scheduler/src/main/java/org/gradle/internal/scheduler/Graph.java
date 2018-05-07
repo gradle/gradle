@@ -157,13 +157,15 @@ public class Graph {
             }
             liveGraph.addNode(node);
             for (Edge incoming : incomingEdges.get(node)) {
-                if (detector.isIncomingEdgeLive(incoming)) {
-                    queue.add(incoming.getSource());
+                Node source = incoming.getSource();
+                if (!liveNodes.contains(source) && detector.isIncomingEdgeLive(incoming)) {
+                    queue.add(source);
                 }
             }
             for (Edge outgoing : outgoingEdges.get(node)) {
-                if (detector.isOutgoingEdgeLive(outgoing)) {
-                    queue.add(outgoing.getTarget());
+                Node target = outgoing.getTarget();
+                if (!liveNodes.contains(target) && detector.isOutgoingEdgeLive(outgoing)) {
+                    queue.add(target);
                 }
             }
         }

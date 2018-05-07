@@ -159,10 +159,10 @@ abstract class AbstractSchedulingTest extends Specification {
 
         def e = createTask("e")
         def x = task("x", dependsOn: [e])
-        def f = task("f", dependsOn: [x])
         def a = task("a", shouldRunAfter: [x])
         def b = task("b", shouldRunAfter: [a])
         def c = task("c", shouldRunAfter: [b])
+        def f = task("f", dependsOn: [x], shouldRunAfter: [c])
         def d = task("d", dependsOn: [f], shouldRunAfter: [c])
         relationships(e, shouldRunAfter: [d])
         def build = task("build", dependsOn: [x, a, b, c, d, e])

@@ -30,6 +30,13 @@ public enum EdgeType {
     MUST_RUN_AFTER,
 
     /**
+     * The scheduler should try to avoid starting the target node before the source node is completed.
+     * The edge can be removed to resolve cycles in the graph.
+     * The edge is removed when the source node is completed.
+     */
+    SHOULD_RUN_AFTER,
+
+    /**
      * The target node cannot be started while the source node is running.
      * The edge is removed when the source node is completed or suspended.
      */
@@ -44,14 +51,7 @@ public enum EdgeType {
     FINALIZER,
 
     /**
-     * The scheduler should try to avoid starting the target node before the source node.
-     * The edge can be removed to resolve cycles in the graph.
-     * The edge is removed when the source node starts executing.
-     */
-    AVOID_STARTING_BEFORE,
-
-    /**
-     * The scheduler should try to avoid starting the target node before the source node.
+     * The scheduler should try to avoid starting the target node before the source node is started.
      * The edge can be removed to resolve cycles in the graph.
      * The edge is removed when the source node starts executing.
      */

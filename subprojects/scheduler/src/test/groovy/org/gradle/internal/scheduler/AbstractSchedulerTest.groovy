@@ -26,7 +26,7 @@ import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 
-import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE
+import static org.gradle.internal.scheduler.EdgeType.SHOULD_RUN_AFTER
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
 import static org.gradle.internal.scheduler.EdgeType.FINALIZER
 import static org.gradle.internal.scheduler.EdgeType.MUST_RUN_AFTER
@@ -148,7 +148,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
             graph.addEdge(new Edge(predecessor, task as TaskNode, MUST_RUN_AFTER))
         }
         options.shouldRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task as TaskNode, AVOID_STARTING_BEFORE))
+            graph.addEdge(new Edge(predecessor, task as TaskNode, SHOULD_RUN_AFTER))
         }
         options.finalizedBy?.each { TaskNode finalizer ->
             graph.addEdge(new Edge(task as TaskNode, finalizer, FINALIZER))
@@ -178,7 +178,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
             case 1:
                 throw results.failures[0]
             default:
-                throw new MultipleBuildFailures(results.failures);
+                throw new MultipleBuildFailures(results.failures)
         }
     }
 

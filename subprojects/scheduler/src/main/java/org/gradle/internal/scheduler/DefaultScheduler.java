@@ -22,7 +22,6 @@ import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.scheduler.Graph.EdgeWalkerAction;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,11 +29,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE;
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE_FINALIZED;
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT;
 import static org.gradle.internal.scheduler.EdgeType.FINALIZER;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
+import static org.gradle.internal.scheduler.EdgeType.SHOULD_RUN_AFTER;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
@@ -101,7 +100,7 @@ public class DefaultScheduler implements Scheduler {
             final Set<Edge> edgesAddedFromFinalized = Sets.newHashSet();
             final Node finalized = edge.getSource();
             Node finalizer = edge.getTarget();
-            graph.walkIncomingEdgesFrom(finalizer, new EdgeWalkerAction() {
+            graph.walkIncomingEdgesFrom(finalizer, new Graph.EdgeWalkerAction() {
                 @Override
                 public boolean execute(Edge edge) {
                     if (edge.getType() != DEPENDENT) {
@@ -126,7 +125,7 @@ public class DefaultScheduler implements Scheduler {
         Node previousNode = iEntryNode.next();
         while (iEntryNode.hasNext()) {
             Node node = iEntryNode.next();
-            graph.addEdgeIfAbsent(new Edge(previousNode, node, AVOID_STARTING_BEFORE));
+            graph.addEdgeIfAbsent(new Edge(previousNode, node, SHOULD_RUN_AFTER));
             previousNode = node;
         }
     }
@@ -134,7 +133,7 @@ public class DefaultScheduler implements Scheduler {
     private static void markEntryNodesAsShouldRun(Graph graph, Iterable<? extends Node> entryNodes) {
         for (Node entryNode : entryNodes) {
             entryNode.setState(SHOULD_RUN);
-            graph.walkIncomingEdgesFrom(entryNode, new EdgeWalkerAction() {
+            graph.walkIncomingEdgesFrom(entryNode, new Graph.EdgeWalkerAction() {
                 @Override
                 public boolean execute(Edge edge) {
                     if (edge.getType() != DEPENDENT) {
@@ -242,9 +241,9 @@ public class DefaultScheduler implements Scheduler {
                     case DEPENDENT:
                     case MUST_NOT_RUN_WITH:
                     case MUST_RUN_AFTER:
+                    case SHOULD_RUN_AFTER:
                     case FINALIZER:
                         return KEEP;
-                    case AVOID_STARTING_BEFORE:
                     case AVOID_STARTING_BEFORE_FINALIZED:
                         return REMOVE;
                     default:
