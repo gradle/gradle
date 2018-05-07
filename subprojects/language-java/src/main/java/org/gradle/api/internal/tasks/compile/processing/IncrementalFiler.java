@@ -19,9 +19,7 @@ package org.gradle.api.internal.tasks.compile.processing;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
 import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
-import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -34,12 +32,10 @@ import java.io.IOException;
 abstract class IncrementalFiler implements Filer {
     protected final Filer delegate;
     protected final AnnotationProcessingResult result;
-    protected final Messager messager;
 
-    IncrementalFiler(Filer delegate, AnnotationProcessingResult result, Messager messager) {
+    IncrementalFiler(Filer delegate, AnnotationProcessingResult result) {
         this.delegate = delegate;
         this.result = result;
-        this.messager = messager;
     }
 
     @Override
@@ -58,13 +54,13 @@ abstract class IncrementalFiler implements Filer {
 
     @Override
     public final FileObject createResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element... originatingElements) throws IOException {
-        messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to create resources.");
+        result.setFullRebuildCause("incremental annotation processors are not allowed to create resources");
         return delegate.createResource(location, pkg, relativeName, originatingElements);
     }
 
     @Override
     public final FileObject getResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName) throws IOException {
-        messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to read resources.");
+        result.setFullRebuildCause("incremental annotation processors are not allowed to read resources");
         return delegate.getResource(location, pkg, relativeName);
     }
 }
