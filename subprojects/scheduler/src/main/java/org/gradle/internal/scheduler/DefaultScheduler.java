@@ -48,6 +48,17 @@ public class DefaultScheduler implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
     private static final int MAX_WORKERS = 16;
     private static final int EVENTS_TO_PROCESS_AT_ONCE = 2 * MAX_WORKERS;
+    private static final Graph.LiveEdgeDetector LIVE_EDGE_DETECTOR = new Graph.LiveEdgeDetector() {
+        @Override
+        public boolean isIncomingEdgeLive(Edge edge) {
+            return edge.getType() == DEPENDENCY_OF;
+        }
+
+        @Override
+        public boolean isOutgoingEdgeLive(Edge edge) {
+            return edge.getType() == FINALIZED_BY;
+        }
+    };
 
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
@@ -67,17 +78,7 @@ public class DefaultScheduler implements Scheduler {
     public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter) {
         ImmutableList.Builder<Node> filteredNodes = ImmutableList.builder();
 
-        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, new Graph.LiveEdgeDetector() {
-            @Override
-            public boolean isIncomingEdgeLive(Edge edge) {
-                return edge.getType() == DEPENDENCY_OF;
-            }
-
-            @Override
-            public boolean isOutgoingEdgeLive(Edge edge) {
-                return edge.getType() == FINALIZED_BY;
-            }
-        });
+        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, LIVE_EDGE_DETECTOR);
         connectFinalizerDependencies(liveGraph);
         Graph dag = liveGraph.breakCycles(cycleReporter);
         markEntryNodesAsShouldRun(dag, entryNodes);
@@ -130,7 +131,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void connectFinalizerDependencies(final Graph graph) {
+    private static void connectFinalizerDependencies(final Graph graph) {
         for (Edge edge : graph.getAllEdges()) {
             if (edge.getType() != FINALIZED_BY) {
                 continue;

@@ -27,8 +27,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.specs.Spec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -38,8 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class Graph {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Graph.class);
-
     private final SetMultimap<Node, Edge> incomingEdges = LinkedHashMultimap.create();
     private final SetMultimap<Node, Edge> outgoingEdges = LinkedHashMultimap.create();
     private final Set<Node> rootNodes = Sets.newLinkedHashSet();
@@ -109,12 +105,12 @@ public class Graph {
         Map<Node, Node> parents = Maps.newHashMap();
         List<Edge> removableEdges = Lists.newArrayListWithCapacity(incomingEdges.size());
 
-        Graph dag = new Graph();
-
         // Start by copying root nodes over
+        Graph dag = new Graph();
         for (Node rootNode : rootNodes) {
             dag.addNode(rootNode);
         }
+        // Copy non-root nodes over, too
         for (Node node : incomingEdges.keySet()) {
             dag.addNode(node);
         }
@@ -149,6 +145,7 @@ public class Graph {
             dag.addEdge(removableEdge);
             parents.put(target, source);
         }
+
         return dag;
     }
 
