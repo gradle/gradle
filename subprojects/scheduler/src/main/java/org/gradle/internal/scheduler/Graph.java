@@ -33,19 +33,12 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 
 public class Graph {
     private static final Logger LOGGER = LoggerFactory.getLogger(Graph.class);
-    private static final Comparator<? super Edge> EDGE_TYPE_PRECEDENCE = new Comparator<Edge>() {
-        @Override
-        public int compare(Edge edge1, Edge edge2) {
-            return edge1.getType().compareTo(edge2.getType());
-        }
-    };
 
     private final SetMultimap<Node, Edge> incomingEdges = LinkedHashMultimap.create();
     private final SetMultimap<Node, Edge> outgoingEdges = LinkedHashMultimap.create();
@@ -122,7 +115,7 @@ public class Graph {
         }
     }
 
-    public void walkIncomingEdgesFrom(Node start, EdgeType type, Action<? super Node> action) throws CircularReferenceException  {
+    public void walkIncomingEdgesFrom(Node start, EdgeWalkerAction action) {
         Deque<Node> queue = new ArrayDeque<Node>();
         queue.add(start);
         while (true) {
@@ -131,21 +124,22 @@ public class Graph {
                 break;
             }
             for (Edge incoming : Lists.newArrayList(incomingEdges.get(node))) {
-                if (incoming.getType() != type) {
-                    continue;
+                if (action.execute(incoming)) {
+                    queue.add(incoming.getSource());
                 }
-                Node source = incoming.getSource();
-                action.execute(source);
-                queue.add(source);
             }
         }
     }
 
+    public interface EdgeWalkerAction {
+        boolean execute(Edge edge);
+    }
+
     /**
      * Creates a new graph with only the nodes available from the given entry nodes via
-     * {@link EdgeType#DEPENDENT} and {@link EdgeType#FINALIZER} edges.
+     * live edges.
      */
-    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, ImmutableList.Builder<Node> filteredNodes) {
+    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, ImmutableList.Builder<Node> filteredNodes, LiveEdgeDetector detector) {
         Set<Node> liveNodes = Sets.newLinkedHashSet();
         Graph liveGraph = new Graph();
         Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
@@ -163,12 +157,12 @@ public class Graph {
             }
             liveGraph.addNode(node);
             for (Edge incoming : incomingEdges.get(node)) {
-                if (incoming.getType() == EdgeType.DEPENDENT) {
+                if (detector.isIncomingEdgeLive(incoming)) {
                     queue.add(incoming.getSource());
                 }
             }
             for (Edge outgoing : outgoingEdges.get(node)) {
-                if (outgoing.getType() == EdgeType.FINALIZER) {
+                if (detector.isOutgoingEdgeLive(outgoing)) {
                     queue.add(outgoing.getTarget());
                 }
             }
@@ -180,6 +174,11 @@ public class Graph {
             }
         }
         return liveGraph;
+    }
+
+    public interface LiveEdgeDetector {
+        boolean isIncomingEdgeLive(Edge edge);
+        boolean isOutgoingEdgeLive(Edge edge);
     }
 
     private void breakCycles(Node node, final Set<Node> path, @Nullable Edge lastRemovableEdge, Set<Node> visitedNodes, CycleReporter cycleReporter) {
@@ -208,12 +207,12 @@ public class Graph {
 
             List<Edge> incomingEdgesToNodeSorted = Lists.newArrayList(incomingEdgesToNode);
             // Make sure we process the strongest edge first, and then we can skip any redundant weaker edges
-            Collections.sort(incomingEdgesToNodeSorted, EDGE_TYPE_PRECEDENCE);
+            Collections.sort(incomingEdgesToNodeSorted);
 
             for (Edge incomingEdge : incomingEdgesToNodeSorted) {
                 Node source = incomingEdge.getSource();
                 if (visitedFromHere.add(source)) {
-                    boolean removableToBreakCycles = incomingEdge.getType().isRemovableToBreakCycles();
+                    boolean removableToBreakCycles = incomingEdge.isRemovableToBreakCycles();
                     LOGGER.debug("Checking edge {} for cycles", incomingEdge);
                     breakCycles(source, path, removableToBreakCycles ? incomingEdge : lastRemovableEdge, visitedNodes, cycleReporter);
                 }

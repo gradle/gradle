@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scheduler;
 
-public class Edge {
+public class Edge implements Comparable<Edge> {
     private final Node source;
     private final Node target;
     private final EdgeType type;
@@ -39,6 +39,16 @@ public class Edge {
         return type;
     }
 
+    public boolean isRemovableToBreakCycles() {
+        switch (type) {
+            case AVOID_STARTING_BEFORE:
+            case AVOID_STARTING_BEFORE_FINALIZED:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -57,6 +67,11 @@ public class Edge {
         result = 31 * result + target.hashCode();
         result = 31 * result + type.hashCode();
         return result;
+    }
+
+    @Override
+    public int compareTo(Edge o) {
+        return type.compareTo(o.type);
     }
 
     @Override

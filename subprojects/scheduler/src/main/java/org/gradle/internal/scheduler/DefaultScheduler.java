@@ -22,6 +22,7 @@ import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.scheduler.Graph.EdgeWalkerAction;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,7 +31,10 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE;
+import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE_FINALIZED;
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT;
+import static org.gradle.internal.scheduler.EdgeType.FINALIZER;
+import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
@@ -58,7 +62,17 @@ public class DefaultScheduler implements Scheduler {
     public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter) {
         ImmutableList.Builder<Node> filteredNodes = ImmutableList.builder();
 
-        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes);
+        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, new Graph.LiveEdgeDetector() {
+            @Override
+            public boolean isIncomingEdgeLive(Edge edge) {
+                return edge.getType() == DEPENDENT;
+            }
+
+            @Override
+            public boolean isOutgoingEdgeLive(Edge edge) {
+                return edge.getType() == FINALIZER;
+            }
+        });
         connectFinalizerDependencies(liveGraph);
         enforceEntryNodeOrder(graph, entryNodes);
         liveGraph.breakCycles(cycleReporter);
@@ -81,19 +95,24 @@ public class DefaultScheduler implements Scheduler {
 
     private void connectFinalizerDependencies(final Graph graph) {
         for (Edge edge : graph.getAllEdges()) {
-            if (edge.getType() != EdgeType.FINALIZER) {
+            if (edge.getType() != FINALIZER) {
                 continue;
             }
             final Set<Edge> edgesAddedFromFinalized = Sets.newHashSet();
             final Node finalized = edge.getSource();
             Node finalizer = edge.getTarget();
-            graph.walkIncomingEdgesFrom(finalizer, EdgeType.DEPENDENT, new Action<Node>() {
+            graph.walkIncomingEdgesFrom(finalizer, new EdgeWalkerAction() {
                 @Override
-                public void execute(Node finalizerDependency) {
-                    Edge finalizerDependencyConstraint = new Edge(finalized, finalizerDependency, EdgeType.AVOID_STARTING_BEFORE_FINALIZED);
+                public boolean execute(Edge edge) {
+                    if (edge.getType() != DEPENDENT) {
+                        return false;
+                    }
+                    Node finalizerDependency = edge.getSource();
+                    Edge finalizerDependencyConstraint = new Edge(finalized, finalizerDependency, AVOID_STARTING_BEFORE_FINALIZED);
                     if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
                         graph.addEdge(finalizerDependencyConstraint);
                     }
+                    return true;
                 }
             });
         }
@@ -115,10 +134,14 @@ public class DefaultScheduler implements Scheduler {
     private static void markEntryNodesAsShouldRun(Graph graph, Iterable<? extends Node> entryNodes) {
         for (Node entryNode : entryNodes) {
             entryNode.setState(SHOULD_RUN);
-            graph.walkIncomingEdgesFrom(entryNode, DEPENDENT, new Action<Node>() {
+            graph.walkIncomingEdgesFrom(entryNode, new EdgeWalkerAction() {
                 @Override
-                public void execute(Node dependency) {
-                    dependency.setState(SHOULD_RUN);
+                public boolean execute(Edge edge) {
+                    if (edge.getType() != DEPENDENT) {
+                        return false;
+                    }
+                    edge.getSource().setState(SHOULD_RUN);
+                    return true;
                 }
             });
         }
@@ -177,7 +200,7 @@ public class DefaultScheduler implements Scheduler {
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
                 System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
-                graph.addEdge(new Edge(runningNode, nodeToRun, EdgeType.MUST_NOT_RUN_WITH));
+                graph.addEdge(new Edge(runningNode, nodeToRun, MUST_NOT_RUN_WITH));
                 return true;
             }
         }
@@ -343,7 +366,7 @@ public class DefaultScheduler implements Scheduler {
                     Node target = outgoing.getTarget();
                     // TODO Handle remaining incoming edges when suspended node is skipped
                     // TODO Cancel everything if `--continue` is not enabled
-                    if (outgoing.getType() == EdgeType.DEPENDENT) {
+                    if (outgoing.getType() == DEPENDENT) {
                         target.setState(DEPENDENCY_FAILED);
                     }
                 }

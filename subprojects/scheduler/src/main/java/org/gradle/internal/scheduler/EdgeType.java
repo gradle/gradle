@@ -21,19 +21,19 @@ public enum EdgeType {
      * Represents a dependency between two nodes, pointing from dependency node to dependent node.
      * The edge is removed when the source node is completed.
      */
-    DEPENDENT(false),
+    DEPENDENT,
 
     /**
      * The target node can only be started once the source node has fully finished running.
      * The edge is removed when the source node is completed.
      */
-    MUST_RUN_AFTER(false),
+    MUST_RUN_AFTER,
 
     /**
      * The target node cannot be started while the source node is running.
      * The edge is removed when the source node is completed or suspended.
      */
-    MUST_NOT_RUN_WITH(false),
+    MUST_NOT_RUN_WITH,
 
     /**
      * The target node finalizes the source node.
@@ -41,32 +41,19 @@ public enum EdgeType {
      * {@link NodeState#MUST_RUN}.
      * The edge is removed when the source node is completed.
      */
-    FINALIZER(false),
+    FINALIZER,
 
     /**
      * The scheduler should try to avoid starting the target node before the source node.
      * The edge can be removed to resolve cycles in the graph.
      * The edge is removed when the source node starts executing.
      */
-    AVOID_STARTING_BEFORE(true),
+    AVOID_STARTING_BEFORE,
 
     /**
      * The scheduler should try to avoid starting the target node before the source node.
      * The edge can be removed to resolve cycles in the graph.
      * The edge is removed when the source node starts executing.
      */
-    AVOID_STARTING_BEFORE_FINALIZED(true);
-
-    private final boolean removable;
-
-    EdgeType(boolean removable) {
-        this.removable = removable;
-    }
-
-    /**
-     * Returns whether this edge can be removed to break cycles in the graph.
-     */
-    public boolean isRemovableToBreakCycles() {
-        return removable;
-    }
+    AVOID_STARTING_BEFORE_FINALIZED;
 }
