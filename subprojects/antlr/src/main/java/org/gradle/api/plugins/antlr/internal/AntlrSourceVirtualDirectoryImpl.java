@@ -20,12 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.util.ConfigureUtil;
 
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
  */
-public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory {
+public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory, HasPublicType {
     private final SourceDirectorySet antlr;
 
     public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
@@ -50,5 +52,10 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
     public AntlrSourceVirtualDirectory antlr(Action<? super SourceDirectorySet> configureAction) {
         configureAction.execute(getAntlr());
         return this;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return TypeOf.typeOf(AntlrSourceVirtualDirectory.class);
     }
 }

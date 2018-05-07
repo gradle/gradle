@@ -19,6 +19,8 @@ import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.reflect.TypeOf
+import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Before
@@ -65,5 +67,10 @@ class DefaultScalaSourceSetTest {
     public void canConfigureScalaSourceUsingAnAction() {
         sourceSet.scala({ set -> set.srcDir 'src/scala' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.scala.srcDirs, equalTo([tmpDir.file('src/scala')] as Set))
+    }
+
+    @Test
+    void exposesConventionPublicType() {
+        sourceSet.publicType == TypeOf.typeOf(ScalaSourceSet)
     }
 }

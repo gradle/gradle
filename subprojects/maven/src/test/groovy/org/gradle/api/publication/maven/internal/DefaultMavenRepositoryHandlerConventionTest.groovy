@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.plugins.MavenRepositoryHandlerConvention
+import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
 
 class DefaultMavenRepositoryHandlerConventionTest extends Specification {
@@ -139,4 +141,7 @@ class DefaultMavenRepositoryHandlerConventionTest extends Specification {
         1 * installer.setName("other")
     }
 
+    void exposesConventionPublicType() {
+        convention.publicType == TypeOf.typeOf(MavenRepositoryHandlerConvention)
+    }
 }
