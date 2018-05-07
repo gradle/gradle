@@ -91,24 +91,6 @@ abstract class AbstractSchedulingTest extends Specification {
         executes(b, c, a, d)
     }
 
-    @Unroll
-    def "schedules #orderingRule task dependencies in name order"() {
-        given:
-        def a = task("a")
-        def b = task("b")
-        def c = task("c", (orderingRule): [b, a])
-        def d = task("d", dependsOn: [b, a])
-
-        when:
-        addToGraphAndPopulate([c, d])
-
-        then:
-        executes(a, b, c, d)
-
-        where:
-        orderingRule << ['mustRunAfter', 'shouldRunAfter']
-    }
-
     def "common tasks in separate batches are schedules only once"() {
         def a = task("a")
         def b = task("b")

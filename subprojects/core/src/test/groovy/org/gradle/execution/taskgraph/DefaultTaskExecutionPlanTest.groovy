@@ -42,6 +42,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.WrapUtil.toList
@@ -115,6 +116,24 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
         then:
         executes(b, a, c, d)
+    }
+
+    @Unroll
+    def "schedules #orderingRule task dependencies in name order"() {
+        given:
+        def a = task("a")
+        def b = task("b")
+        def c = task("c", (orderingRule): [b, a])
+        def d = task("d", dependsOn: [b, a])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executes(a, b, c, d)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "clear removes all tasks"() {
