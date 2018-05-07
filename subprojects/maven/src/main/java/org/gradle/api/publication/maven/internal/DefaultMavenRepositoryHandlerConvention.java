@@ -27,6 +27,7 @@ import org.gradle.api.reflect.TypeOf;
 
 import java.util.Map;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.internal.Actions.composite;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
@@ -106,6 +107,6 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(MavenRepositoryHandlerConvention.class);
+        return typeOf(MavenRepositoryHandlerConvention.class);
     }
 }

@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -27,6 +26,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -71,6 +71,6 @@ class DefaultScalaSourceSetTest {
 
     @Test
     void exposesConventionPublicType() {
-        sourceSet.publicType == TypeOf.typeOf(ScalaSourceSet)
+        sourceSet.publicType == typeOf(ScalaSourceSet)
     }
 }

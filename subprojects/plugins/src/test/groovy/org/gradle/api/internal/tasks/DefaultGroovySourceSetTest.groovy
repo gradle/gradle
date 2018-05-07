@@ -19,13 +19,14 @@ import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.CollectionUtils
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.api.reflect.TypeOf.typeOf
 
 class DefaultGroovySourceSetTest extends Specification {
 
@@ -71,6 +72,6 @@ class DefaultGroovySourceSetTest extends Specification {
     }
 
     void exposesConventionPublicType() {
-        sourceSet.publicType == TypeOf.typeOf(GroovySourceSet)
+        sourceSet.publicType == typeOf(GroovySourceSet)
     }
 }

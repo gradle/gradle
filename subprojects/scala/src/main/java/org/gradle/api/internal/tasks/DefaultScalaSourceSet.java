@@ -23,6 +23,7 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.ScalaSourceSet;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
@@ -58,6 +59,6 @@ public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(ScalaSourceSet.class);
+        return typeOf(ScalaSourceSet.class);
     }
 }

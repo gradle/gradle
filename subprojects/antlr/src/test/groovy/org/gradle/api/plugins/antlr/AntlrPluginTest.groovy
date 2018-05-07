@@ -17,8 +17,9 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Action
-import org.gradle.api.reflect.TypeOf
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+
+import static org.gradle.api.reflect.TypeOf.typeOf
 
 class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
@@ -90,6 +91,6 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def main = project.sourceSets.main
-        main.convention.plugins['antlr'].publicType == TypeOf.typeOf(AntlrSourceVirtualDirectory)
+        main.convention.plugins['antlr'].publicType == typeOf(AntlrSourceVirtualDirectory)
     }
 }

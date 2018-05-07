@@ -23,6 +23,7 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.GroovySourceSet;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
@@ -58,6 +59,6 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(GroovySourceSet.class);
+        return typeOf(GroovySourceSet.class);
     }
 }

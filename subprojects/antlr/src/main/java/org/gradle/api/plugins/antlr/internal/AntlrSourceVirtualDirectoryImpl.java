@@ -24,6 +24,8 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.util.ConfigureUtil;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
  */
@@ -56,6 +58,6 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
 
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(AntlrSourceVirtualDirectory.class);
+        return typeOf(AntlrSourceVirtualDirectory.class);
     }
 }
