@@ -33,8 +33,14 @@ import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
+import org.jetbrains.kotlin.metadata.deserialization.Flags
+import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
@@ -212,19 +218,37 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     private
     fun loadAccessibilityInfoFor(className: String): TypeAccessibilityInfo {
         val classBytes = classBytesFor(className) ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
-        val visitor = HasTypeParameterClassVisitor()
         val classReader = ClassReader(classBytes)
         val access = classReader.access
-        classReader.accept(visitor, 0)
         return TypeAccessibilityInfo(
-            listOfNotNull(when {
-                ACC_PUBLIC !in access -> nonPublic(className)
-                ACC_SYNTHETIC in access -> synthetic(className)
-                else -> null
-            }),
-            visitor.hasTypeParameters
+            listOfNotNull(
+                when {
+                    ACC_PUBLIC !in access -> nonPublic(className)
+                    ACC_SYNTHETIC in access -> synthetic(className)
+                    isNonPublicKotlinType(classReader) -> nonPublic(className)
+                    else -> null
+                }),
+            hasTypeParameters(classReader)
         )
     }
+
+    private
+    fun isNonPublicKotlinType(classReader: ClassReader) =
+        kotlinVisibilityFor(classReader)?.let { it != Visibility.PUBLIC } ?: false
+
+    private
+    fun kotlinVisibilityFor(classReader: ClassReader) =
+        classReader(KotlinVisibilityClassVisitor()).visibility
+
+    private
+    fun hasTypeParameters(classReader: ClassReader): Boolean =
+        classReader(HasTypeParameterClassVisitor()).hasTypeParameters
+
+    private
+    operator fun <T : ClassVisitor> ClassReader.invoke(visitor: T): T =
+        visitor.also {
+            accept(it, ClassReader.SKIP_CODE + ClassReader.SKIP_DEBUG + ClassReader.SKIP_FRAMES)
+        }
 
     private
     fun classBytesFor(className: String): ByteArray? {
@@ -313,7 +337,9 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
 private
 class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
+
     var hasTypeParameters = false
+
     override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
         if (signature != null) {
             SignatureReader(signature).accept(object : SignatureVisitor(ASM6) {
@@ -322,6 +348,65 @@ class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
                 }
             })
         }
+    }
+}
+
+
+private
+class KotlinVisibilityClassVisitor : ClassVisitor(ASM6) {
+
+    var visibility: Visibility? = null
+
+    override fun visitAnnotation(desc: String?, visible: Boolean): AnnotationVisitor? =
+        when (desc) {
+            "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
+                visibility = Flags.VISIBILITY[classData.flags]
+            }
+            else -> null
+        }
+}
+
+
+/**
+ * Reads the serialized [ProtoBuf.Class] information stored in the visited [kotlin.Metadata] annotation.
+ */
+private
+class ClassDataFromKotlinMetadataAnnotationVisitor(
+    private val onClassData: (ProtoBuf.Class) -> Unit
+) : AnnotationVisitor(ASM6) {
+
+    /**
+     * @see kotlin.Metadata.d1
+     */
+    private
+    var d1 = mutableListOf<String>()
+
+    /**
+     * @see kotlin.Metadata.d2
+     */
+    private
+    var d2 = mutableListOf<String>()
+
+    override fun visitArray(name: String?): AnnotationVisitor? =
+        when (name) {
+            "d1" -> AnnotationValueCollector(d1)
+            "d2" -> AnnotationValueCollector(d2)
+            else -> null
+        }
+
+    override fun visitEnd() {
+        val (_, classData) = JvmProtoBufUtil.readClassDataFrom(d1.toTypedArray(), d2.toTypedArray())
+        onClassData(classData)
+        super.visitEnd()
+    }
+}
+
+
+private
+class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM6) {
+    override fun visit(name: String?, value: Any?) {
+        @Suppress("unchecked_cast")
+        output.add(value as T)
     }
 }
 
