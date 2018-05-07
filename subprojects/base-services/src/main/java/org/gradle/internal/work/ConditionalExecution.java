@@ -23,7 +23,7 @@ import org.gradle.internal.resources.ResourceLock;
  */
 public interface ConditionalExecution<T> {
     /**
-     * Provides the resource lock that much be acquired before execution can begin.
+     * Provides the resource lock that must be acquired before execution can begin.
      */
     ResourceLock getResourceLock();
 
