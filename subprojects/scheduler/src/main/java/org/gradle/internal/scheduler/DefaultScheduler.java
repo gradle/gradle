@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -37,7 +36,6 @@ import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE_FINAL
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENT;
 import static org.gradle.internal.scheduler.EdgeType.FINALIZER;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
-import static org.gradle.internal.scheduler.EdgeType.SHOULD_RUN_AFTER;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
@@ -81,9 +79,8 @@ public class DefaultScheduler implements Scheduler {
             }
         });
         connectFinalizerDependencies(liveGraph);
-        enforceEntryNodeOrder(graph, entryNodes);
         liveGraph.breakCycles(cycleReporter);
-        markEntryNodesAsShouldRun(graph, entryNodes);
+        markEntryNodesAsShouldRun(liveGraph, entryNodes);
 
         ImmutableList<Node> liveNodes = liveGraph.getAllNodes();
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
@@ -155,19 +152,6 @@ public class DefaultScheduler implements Scheduler {
                     return true;
                 }
             });
-        }
-    }
-
-    private void enforceEntryNodeOrder(Graph graph, Collection<? extends Node> entryNodes) {
-        Iterator<? extends Node> iEntryNode = entryNodes.iterator();
-        if (!iEntryNode.hasNext()) {
-            return;
-        }
-        Node previousNode = iEntryNode.next();
-        while (iEntryNode.hasNext()) {
-            Node node = iEntryNode.next();
-            graph.addEdgeIfAbsent(new Edge(previousNode, node, SHOULD_RUN_AFTER));
-            previousNode = node;
         }
     }
 
