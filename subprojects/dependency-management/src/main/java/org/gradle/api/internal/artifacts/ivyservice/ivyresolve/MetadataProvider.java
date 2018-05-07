@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -30,6 +31,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -47,6 +49,7 @@ import java.util.List;
 public class MetadataProvider {
     private final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
+    private Optional<ComponentMetadata> cachedComponentMetadata;
 
     public MetadataProvider(ModuleComponentResolveState resolveState) {
         this.resolveState = resolveState;
@@ -58,6 +61,10 @@ public class MetadataProvider {
     }
 
     public ComponentMetadata getComponentMetadata() {
+        if (cachedComponentMetadata != null) {
+            return cachedComponentMetadata.orNull();
+        }
+
         ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataSupplier();
         if (componentMetadataSupplier != null) {
             final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()), resolveState.getAttributesFactory());
@@ -77,12 +84,16 @@ public class MetadataProvider {
             if (builder.mutated) {
                 ComponentMetadata metadata = builder.build();
                 metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);
+                cachedComponentMetadata = Optional.of(metadata);
                 return metadata;
             }
         }
         if (resolve()) {
-            return new ComponentMetadataAdapter(getMetaData());
+            ComponentMetadataAdapter adapter = new ComponentMetadataAdapter(getMetaData());
+            cachedComponentMetadata = Optional.<ComponentMetadata>of(adapter);
+            return adapter;
         }
+        cachedComponentMetadata = Optional.absent();
         return null;
     }
 
@@ -132,6 +143,7 @@ public class MetadataProvider {
         private SimpleComponentMetadataBuilder(ModuleVersionIdentifier id, ImmutableAttributesFactory attributesFactory) {
             this.id = id;
             this.attributes = attributesFactory.mutable();
+            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, MavenVersionUtils.inferStatusFromEffectiveVersion(id.getVersion()));
         }
 
         @Override
