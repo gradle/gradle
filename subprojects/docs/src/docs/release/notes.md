@@ -75,6 +75,15 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
 
 The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### TextResources can now be fetched from a URI
+
+Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
+
+    checkstyle {
+        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
+    }
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -125,14 +134,6 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 5.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
-
-### TextResources can now be fetched from a URI
-
-Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
-
-    checkstyle {
-        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
-    }
 
 <!--
 ### Example deprecation
