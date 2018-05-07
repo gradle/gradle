@@ -84,6 +84,35 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         executes(a, b, c, d)
     }
 
+    def "schedules a single batch of tasks in name order"() {
+        given:
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+
+        when:
+        addToGraphAndPopulate(toList(b, c, a))
+
+        then:
+        executes(a, b, c)
+    }
+
+    def "schedules separately added tasks in order added"() {
+        given:
+        def a = task("a")
+        def b = task("b")
+        def c = task("c")
+        def d = task("d")
+
+        when:
+        addToGraph(toList(c, b))
+        addToGraph(toList(d, a))
+        determineExecutionPlan()
+
+        then:
+        executes(b, c, a, d)
+    }
+
     @Unroll
     def "schedules #orderingRule task dependencies in name order"() {
         given:

@@ -22,7 +22,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.Cast
 import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
@@ -121,10 +120,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void addToGraph(List tasks) {
-        // TODO This sorting is to satisfy some tests but it might not have much point to keep these
-        List<TaskNode> sorted = Lists.newArrayList(Cast.<List<TaskNode>>uncheckedCast(tasks))
-        Collections.sort(sorted, TASK_NODE_COMPARATOR)
-        nodesToExecute.addAll(sorted)
+        nodesToExecute.addAll(tasks)
     }
 
     @Override
