@@ -44,6 +44,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     def graph = new Graph()
+    def nodeExecutor = new TaskNodeExecutor()
     List<Node> nodesToExecute = []
     Spec<? super Node> filter = Specs.satisfyAll()
     boolean continueOnFailure

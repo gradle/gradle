@@ -16,29 +16,9 @@
 
 package org.gradle.internal.scheduler;
 
-public abstract class Node {
-    private NodeState state;
+import javax.annotation.Nullable;
 
-    protected Node() {
-        this.state = NodeState.RUNNABLE;
-    }
-
-    public NodeState getState() {
-        return state;
-    }
-
-    public void setState(NodeState state) {
-        this.state = state;
-    }
-
-    public abstract boolean canExecuteInParallelWith(Node other);
-
-    @Override
-    public abstract int hashCode();
-
-    @Override
-    public abstract boolean equals(Object obj);
-
-    @Override
-    public abstract String toString();
+public interface NodeExecutor {
+    @Nullable
+    Throwable execute(Node node);
 }

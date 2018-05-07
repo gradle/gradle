@@ -64,12 +64,14 @@ public class DefaultScheduler implements Scheduler {
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
     private final WorkerPool workerPool;
+    private final NodeExecutor nodeExecutor;
     private final CycleReporter cycleReporter;
     private final BuildCancellationToken cancellationToken;
     private boolean cancelled;
 
-    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
+    public DefaultScheduler(WorkerPool workerPool, NodeExecutor nodeExecutor, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
         this.workerPool = workerPool;
+        this.nodeExecutor = nodeExecutor;
         this.cycleReporter = cycleReporter;
         this.cancellationToken = cancellationToken;
     }
@@ -237,7 +239,7 @@ public class DefaultScheduler implements Scheduler {
         boolean workSubmittedSuccessfully = workerPool.tryRunWithAnAllocatedWorker(new Runnable() {
             @Override
             public void run() {
-                Throwable failure = nodeToRun.execute();
+                Throwable failure = nodeExecutor.execute(nodeToRun);
                 Event event;
                 if (failure == null) {
                     event = new NodeFinishedEvent(nodeToRun);

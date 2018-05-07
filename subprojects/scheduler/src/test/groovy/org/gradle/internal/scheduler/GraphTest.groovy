@@ -421,10 +421,6 @@ class GraphTest extends Specification {
             throw new UnsupportedOperationException()
         }
 
-        @Override
-        Throwable execute() {
-            throw new UnsupportedOperationException()
-        }
 
         @Override
         boolean equals(o) {

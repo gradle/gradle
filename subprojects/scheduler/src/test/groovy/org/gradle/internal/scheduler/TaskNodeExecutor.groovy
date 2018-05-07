@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler;
+package org.gradle.internal.scheduler
 
-public abstract class Node {
-    private NodeState state;
-
-    protected Node() {
-        this.state = NodeState.RUNNABLE;
-    }
-
-    public NodeState getState() {
-        return state;
-    }
-
-    public void setState(NodeState state) {
-        this.state = state;
-    }
-
-    public abstract boolean canExecuteInParallelWith(Node other);
-
+class TaskNodeExecutor implements NodeExecutor {
     @Override
-    public abstract int hashCode();
-
-    @Override
-    public abstract boolean equals(Object obj);
-
-    @Override
-    public abstract String toString();
+    Throwable execute(Node node) {
+        println "Executing $node"
+        return ((TaskNode) node).failure
+    }
 }

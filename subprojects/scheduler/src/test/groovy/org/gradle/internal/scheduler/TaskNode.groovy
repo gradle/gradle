@@ -34,11 +34,6 @@ class TaskNode extends Node {
         return !(other instanceof TaskNode) || other.project != project
     }
 
-    @Override
-    Throwable execute() {
-        println "Executing node $this"
-        return failure
-    }
 
     boolean equals(o) {
         if (this.is(o)) return true
