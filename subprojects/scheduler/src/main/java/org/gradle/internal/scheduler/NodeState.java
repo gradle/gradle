@@ -23,6 +23,12 @@ public enum NodeState {
     RUNNABLE,
 
     /**
+     * Node needs to run unless cancelled by an upstream failure. Entry tasks and their dependencies
+     * are marked as such at build start.
+     */
+    SHOULD_RUN,
+
+    /**
      * Node must be executed once all its constraints have been fulfilled, and cannot be cancelled.
      */
     MUST_RUN,

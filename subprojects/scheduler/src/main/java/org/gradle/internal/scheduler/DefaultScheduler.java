@@ -30,12 +30,14 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE;
+import static org.gradle.internal.scheduler.EdgeType.DEPENDENT;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
 import static org.gradle.internal.scheduler.NodeState.CANCELLED;
 import static org.gradle.internal.scheduler.NodeState.DEPENDENCY_FAILED;
 import static org.gradle.internal.scheduler.NodeState.MUST_RUN;
 import static org.gradle.internal.scheduler.NodeState.RUNNABLE;
+import static org.gradle.internal.scheduler.NodeState.SHOULD_RUN;
 
 public class DefaultScheduler implements Scheduler {
     private static final int MAX_WORKERS = 16;
@@ -55,14 +57,18 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter) {
         ImmutableList.Builder<Node> filteredNodes = ImmutableList.builder();
+
         Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes);
         connectFinalizerDependencies(liveGraph);
         enforceEntryNodeOrder(graph, entryNodes);
         liveGraph.breakCycles(cycleReporter);
+        markEntryNodesAsShouldRun(graph, entryNodes);
+
         ImmutableList<Node> liveNodes = liveGraph.getAllNodes();
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
         ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
         executeLiveGraph(liveGraph, continueOnFailure, executedNodes, failures);
+
         return new GraphExecutionResult(liveNodes, executedNodes.build(), filteredNodes.build(), failures.build());
     }
 
@@ -106,6 +112,18 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
+    private static void markEntryNodesAsShouldRun(Graph graph, Iterable<? extends Node> entryNodes) {
+        for (Node entryNode : entryNodes) {
+            entryNode.setState(SHOULD_RUN);
+            graph.walkIncomingEdgesFrom(entryNode, DEPENDENT, new Action<Node>() {
+                @Override
+                public void execute(Node dependency) {
+                    dependency.setState(SHOULD_RUN);
+                }
+            });
+        }
+    }
+
     private void scheduleWork(Graph graph) {
         boolean expectAvailableWorkers = true;
         for (Node nodeToRun : graph.getRootNodes()) {
@@ -114,6 +132,7 @@ public class DefaultScheduler implements Scheduler {
             }
             switch (nodeToRun.getState()) {
                 case RUNNABLE:
+                case SHOULD_RUN:
                 case MUST_RUN:
                     if (expectAvailableWorkers) {
                         if (!tryRunNode(graph, runningNodes, nodeToRun)) {
@@ -213,6 +232,7 @@ public class DefaultScheduler implements Scheduler {
             private void markAsMustRun(Node target) {
                 switch (target.getState()) {
                     case RUNNABLE:
+                    case SHOULD_RUN:
                     case CANCELLED:
                         target.setState(MUST_RUN);
                     default:
@@ -241,6 +261,7 @@ public class DefaultScheduler implements Scheduler {
             runningNodes.remove(node);
             switch (node.getState()) {
                 case RUNNABLE:
+                case SHOULD_RUN:
                 case MUST_RUN:
                     executedNodes.add(node);
                     break;
@@ -267,6 +288,7 @@ public class DefaultScheduler implements Scheduler {
                     Node target = outgoing.getTarget();
                     switch (finishedNodeState) {
                         case RUNNABLE:
+                        case SHOULD_RUN:
                         case MUST_RUN:
                             if (target.getState() == CANCELLED) {
                                 target.setState(RUNNABLE);
@@ -331,7 +353,8 @@ public class DefaultScheduler implements Scheduler {
             if (!continueOnFailure) {
                 System.out.println("Marking all runnable nodes as cancelled because of failure");
                 for (Node candidate : graph.getAllNodes()) {
-                    if (candidate.getState() == RUNNABLE) {
+                    if (candidate.getState() == RUNNABLE || candidate.getState() == SHOULD_RUN) {
+                        System.out.printf("Marking %s as cancelled%n", candidate);
                         candidate.setState(CANCELLED);
                     }
                 }
