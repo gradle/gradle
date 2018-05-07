@@ -79,14 +79,14 @@ public class DefaultScheduler implements Scheduler {
             }
         });
         connectFinalizerDependencies(liveGraph);
-        liveGraph.breakCycles(cycleReporter);
-        markEntryNodesAsShouldRun(liveGraph, entryNodes);
+        Graph dag = liveGraph.breakCycles(cycleReporter);
+        markEntryNodesAsShouldRun(dag, entryNodes);
 
-        ImmutableList<Node> liveNodes = liveGraph.getAllNodes();
+        ImmutableList<Node> liveNodes = dag.getAllNodes();
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
         ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
 
-        executeLiveGraph(liveGraph, continueOnFailure, executedNodes, failures);
+        executeLiveGraph(dag, continueOnFailure, executedNodes, failures);
         if (cancelled) {
             failures.add(new BuildCancelledException());
         }

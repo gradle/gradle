@@ -192,12 +192,12 @@ class GraphTest extends Specification {
         def cycleReporter = Mock(CycleReporter)
 
         when:
-        graph.breakCycles(cycleReporter)
+        def dag = graph.breakCycles(cycleReporter)
 
         then:
-        graph.allNodes == [a, b, c]
-        graph.rootNodes == [a]
-        graph.allEdges == [ab, bc]
+        dag.allNodes == [a, b, c]
+        dag.rootNodes == [a]
+        dag.allEdges == [ab, bc]
     }
 
     /*
@@ -248,12 +248,12 @@ class GraphTest extends Specification {
         def cycleReporter = Mock(CycleReporter)
 
         when:
-        graph.breakCycles(cycleReporter)
+        def dag = graph.breakCycles(cycleReporter)
 
         then:
-        graph.allNodes as Set == ([a, b, c, d]) as Set
-        graph.rootNodes == [c]
-        graph.allEdges == [ab, cd, ca, da]
+        dag.allNodes as Set == ([a, b, c, d]) as Set
+        dag.rootNodes == [c]
+        dag.allEdges == [ab, cd, ca, da]
     }
 
     def "retains no live nodes when no entry nodes are given"() {

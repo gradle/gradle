@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -29,12 +30,11 @@ import org.gradle.api.specs.Spec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Graph {
@@ -105,14 +105,70 @@ public class Graph {
         }
     }
 
-    public void breakCycles(CycleReporter cycleReporter) throws CircularReferenceException {
-        Set<Node> visitedNodes = Sets.newHashSet();
-        Set<Node> path = Sets.newLinkedHashSet();
+    public Graph breakCycles(CycleReporter cycleReporter) throws CircularReferenceException {
+        Map<Node, Node> parents = Maps.newHashMap();
+        List<Edge> removableEdges = Lists.newArrayListWithCapacity(incomingEdges.size());
 
-        Set<Node> nonRootNodes = incomingEdges.keySet();
-        for (Node node : Lists.newArrayList(nonRootNodes)) {
-            breakCycles(node, path, null, visitedNodes, cycleReporter);
+        Graph dag = new Graph();
+
+        // Start by copying root nodes over
+        for (Node rootNode : rootNodes) {
+            dag.addNode(rootNode);
         }
+        for (Node node : incomingEdges.keySet()) {
+            dag.addNode(node);
+        }
+
+        // First add non-breakable edges
+        for (Edge edge : incomingEdges.values()) {
+            Node source = edge.getSource();
+            Node target = edge.getTarget();
+            if (edge.isRemovableToBreakCycles()) {
+                removableEdges.add(edge);
+                continue;
+            }
+            if (hasAmongAncestors(parents, source, target)) {
+                // Report cycle
+                List<Node> path = Lists.newArrayList();
+                addAncestorsToPath(parents, source, path);
+                String message = cycleReporter.reportCycle(path);
+                throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", message));
+            }
+            dag.addEdge(edge);
+            parents.put(target, source);
+        }
+
+        // Then add any breakable edges as long as they don't form a cycle
+        for (Edge removableEdge : removableEdges) {
+            Node source = removableEdge.getSource();
+            Node target = removableEdge.getTarget();
+            if (hasAmongAncestors(parents, source, target)) {
+                // Skip edge if it would form a cycle
+                continue;
+            }
+            dag.addEdge(removableEdge);
+            parents.put(target, source);
+        }
+        return dag;
+    }
+
+    private static void addAncestorsToPath(Map<Node, Node> parents, Node child, List<Node> path) {
+        path.add(child);
+        Node parent = parents.get(child);
+        if (parent != null) {
+            addAncestorsToPath(parents, parent, path);
+        }
+    }
+
+    private static boolean hasAmongAncestors(Map<Node, Node> parents, Node parent, Node child) {
+        Node grandParent = parents.get(parent);
+        if (grandParent == null) {
+            return false;
+        }
+        if (grandParent == child) {
+            return true;
+        }
+        return hasAmongAncestors(parents, grandParent, child);
     }
 
     public void walkIncomingEdgesFrom(Node start, EdgeWalkerAction action) {
@@ -181,47 +237,6 @@ public class Graph {
     public interface LiveEdgeDetector {
         boolean isIncomingEdgeLive(Edge edge);
         boolean isOutgoingEdgeLive(Edge edge);
-    }
-
-    private void breakCycles(Node node, final Set<Node> path, @Nullable Edge lastRemovableEdge, Set<Node> visitedNodes, CycleReporter cycleReporter) {
-        if (!path.add(node)) {
-            // We have a cycle
-            if (lastRemovableEdge == null) {
-                String message = cycleReporter.reportCycle(path);
-                throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", message));
-            } else {
-                // TODO ignore the part of the path from here on that is before the removed edge's target node
-                LOGGER.debug("Removing edge {}", lastRemovableEdge);
-                removeEdge(lastRemovableEdge);
-                lastRemovableEdge = null;
-            }
-        }
-        try {
-            if (!visitedNodes.add(node)) {
-                return;
-            }
-
-            Set<Node> visitedFromHere = Sets.newHashSet();
-            Set<Edge> incomingEdgesToNode = incomingEdges.get(node);
-            if (incomingEdgesToNode.isEmpty()) {
-                return;
-            }
-
-            List<Edge> incomingEdgesToNodeSorted = Lists.newArrayList(incomingEdgesToNode);
-            // Make sure we process the strongest edge first, and then we can skip any redundant weaker edges
-            Collections.sort(incomingEdgesToNodeSorted);
-
-            for (Edge incomingEdge : incomingEdgesToNodeSorted) {
-                Node source = incomingEdge.getSource();
-                if (visitedFromHere.add(source)) {
-                    boolean removableToBreakCycles = incomingEdge.isRemovableToBreakCycles();
-                    LOGGER.debug("Checking edge {} for cycles", incomingEdge);
-                    breakCycles(source, path, removableToBreakCycles ? incomingEdge : lastRemovableEdge, visitedNodes, cycleReporter);
-                }
-            }
-        } finally {
-            path.remove(node);
-        }
     }
 
     public void addEdge(Edge edge) {
