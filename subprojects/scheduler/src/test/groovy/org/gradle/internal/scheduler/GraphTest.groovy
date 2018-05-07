@@ -21,9 +21,9 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.internal.Cast
 import spock.lang.Specification
 
-import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
-import static org.gradle.internal.scheduler.EdgeType.FINALIZER
-import static org.gradle.internal.scheduler.EdgeType.SHOULD_RUN_AFTER
+import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF
+import static org.gradle.internal.scheduler.EdgeType.FINALIZED_BY
+import static org.gradle.internal.scheduler.EdgeType.SHOULD_COMPLETE_BEFORE
 
 class GraphTest extends Specification {
     def graph = new Graph()
@@ -86,7 +86,7 @@ class GraphTest extends Specification {
         def target = addNode("target")
 
         when:
-        def edge = addEdge(source, target, DEPENDENT)
+        def edge = addEdge(source, target, DEPENDENCY_OF)
 
         then:
         graph.allNodes == [source, target]
@@ -97,7 +97,7 @@ class GraphTest extends Specification {
     def "can connect nodes via addEdgeIfAbsent"() {
         def source = addNode("source")
         def target = addNode("target")
-        def edge = new Edge(source, target, DEPENDENT)
+        def edge = new Edge(source, target, DEPENDENCY_OF)
 
         when:
         def added = graph.addEdgeIfAbsent(edge)
@@ -112,20 +112,20 @@ class GraphTest extends Specification {
     def "fails when adding already existing edge with addEdge"() {
         def source = addNode("source")
         def target = addNode("target")
-        def edge = addEdge(source, target, DEPENDENT)
+        def edge = addEdge(source, target, DEPENDENCY_OF)
 
         when:
         graph.addEdge(edge)
 
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Edge already present in graph: source --DEPENDENT--> target"
+        ex.message == "Edge already present in graph: source --DEPENDENCY_OF--> target"
     }
 
     def "doesn't fail when adding already existing edge with addEdgeIfAbsent"() {
         def source = addNode("source")
         def target = addNode("target")
-        def edge = addEdge(source, target, DEPENDENT)
+        def edge = addEdge(source, target, DEPENDENCY_OF)
 
         when:
         def added = graph.addEdgeIfAbsent(edge)
@@ -141,31 +141,31 @@ class GraphTest extends Specification {
         def source = addNode("source")
 
         when:
-        addEdge(source, node("target"), DEPENDENT)
+        addEdge(source, node("target"), DEPENDENCY_OF)
 
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Target node for edge to be added is not present in graph: source --DEPENDENT--> target"
+        ex.message == "Target node for edge to be added is not present in graph: source --DEPENDENCY_OF--> target"
     }
 
     def "cannot add edge from non-existent source"() {
         def target = addNode("target")
 
         when:
-        addEdge(node("source"), target, DEPENDENT)
+        addEdge(node("source"), target, DEPENDENCY_OF)
 
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Source node for edge to be added is not present in graph: source --DEPENDENT--> target"
+        ex.message == "Source node for edge to be added is not present in graph: source --DEPENDENCY_OF--> target"
     }
 
     def "can detect simple cycle"() {
         def a = addNode("a")
         def b = addNode("b")
         def c = addNode("c")
-        addEdge(a, b, DEPENDENT)
-        addEdge(b, c, DEPENDENT)
-        addEdge(c, a, DEPENDENT)
+        addEdge(a, b, DEPENDENCY_OF)
+        addEdge(b, c, DEPENDENCY_OF)
+        addEdge(c, a, DEPENDENCY_OF)
         def cycleReporter = Mock(CycleReporter)
 
         when:
@@ -186,9 +186,9 @@ class GraphTest extends Specification {
         def a = addNode("a")
         def b = addNode("b")
         def c = addNode("c")
-        def ab = addEdge(a, b, DEPENDENT)
-        def bc = addEdge(b, c, DEPENDENT)
-        addEdge(c, a, SHOULD_RUN_AFTER)
+        def ab = addEdge(a, b, DEPENDENCY_OF)
+        def bc = addEdge(b, c, DEPENDENCY_OF)
+        addEdge(c, a, SHOULD_COMPLETE_BEFORE)
         def cycleReporter = Mock(CycleReporter)
 
         when:
@@ -210,11 +210,11 @@ class GraphTest extends Specification {
         def b = addNode("b")
         def c = addNode("c")
         def d = addNode("d")
-        addEdge(a, b, DEPENDENT)
-        addEdge(b, c, DEPENDENT)
-        addEdge(c, d, DEPENDENT)
-        addEdge(c, a, SHOULD_RUN_AFTER)
-        addEdge(d, a, DEPENDENT)
+        addEdge(a, b, DEPENDENCY_OF)
+        addEdge(b, c, DEPENDENCY_OF)
+        addEdge(c, d, DEPENDENCY_OF)
+        addEdge(c, a, SHOULD_COMPLETE_BEFORE)
+        addEdge(d, a, DEPENDENCY_OF)
         def cycleReporter = Mock(CycleReporter)
 
         when:
@@ -240,11 +240,11 @@ class GraphTest extends Specification {
         def b = addNode("b")
         def c = addNode("c")
         def d = addNode("d")
-        def ab = addEdge(a, b, DEPENDENT)
-        addEdge(b, c, SHOULD_RUN_AFTER)
-        def cd = addEdge(c, d, DEPENDENT)
-        def ca = addEdge(c, a, DEPENDENT)
-        def da = addEdge(d, a, DEPENDENT)
+        def ab = addEdge(a, b, DEPENDENCY_OF)
+        addEdge(b, c, SHOULD_COMPLETE_BEFORE)
+        def cd = addEdge(c, d, DEPENDENCY_OF)
+        def ca = addEdge(c, a, DEPENDENCY_OF)
+        def da = addEdge(d, a, DEPENDENCY_OF)
         def cycleReporter = Mock(CycleReporter)
 
         when:
@@ -294,7 +294,7 @@ class GraphTest extends Specification {
     def "ignores filtered node"() {
         def a = addNode("a")
         def b = addNode("b")
-        def ab = addEdge(a, b, DEPENDENT)
+        def ab = addEdge(a, b, DEPENDENCY_OF)
         def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
@@ -313,7 +313,7 @@ class GraphTest extends Specification {
     def "retains dependency"() {
         def a = addNode("a")
         def b = addNode("b")
-        def ab = addEdge(a, b, DEPENDENT)
+        def ab = addEdge(a, b, DEPENDENCY_OF)
         def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
@@ -332,7 +332,7 @@ class GraphTest extends Specification {
     def "retains finalizer"() {
         def finalized = addNode("finalized")
         def finalizer = addNode("finalizer")
-        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
         def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
@@ -351,8 +351,8 @@ class GraphTest extends Specification {
         def finalized = addNode("finalized")
         def finalizer = addNode("finalizer")
         def finalizerDependency = addNode("finalizerDependency")
-        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
-        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENT)
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
+        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENCY_OF)
         def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
@@ -374,9 +374,9 @@ class GraphTest extends Specification {
         def finalizer = addNode("finalizer")
         def finalizerDependency = addNode("finalizerDependency")
         def finalizerDependencyFinalizer = addNode("finalizerDependencyFinalizer")
-        def finalizerEdge = addEdge(finalized, finalizer, FINALIZER)
-        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENT)
-        def finalizerDependencyFinalizerEdge = addEdge(finalizerDependency, finalizerDependencyFinalizer, FINALIZER)
+        def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
+        def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENCY_OF)
+        def finalizerDependencyFinalizerEdge = addEdge(finalizerDependency, finalizerDependencyFinalizer, FINALIZED_BY)
         def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 

@@ -21,20 +21,20 @@ public enum EdgeType {
      * Represents a dependency between two nodes, pointing from dependency node to dependent node.
      * The edge is removed when the source node is completed.
      */
-    DEPENDENT,
+    DEPENDENCY_OF,
 
     /**
      * The target node can only be started once the source node has fully finished running.
      * The edge is removed when the source node is completed.
      */
-    MUST_RUN_AFTER,
+    MUST_COMPLETE_BEFORE,
 
     /**
      * The scheduler should try to avoid starting the target node before the source node is completed.
      * The edge can be removed to resolve cycles in the graph.
      * The edge is removed when the source node is completed.
      */
-    SHOULD_RUN_AFTER,
+    SHOULD_COMPLETE_BEFORE,
 
     /**
      * The target node cannot be started while the source node is running.
@@ -48,12 +48,13 @@ public enum EdgeType {
      * {@link NodeState#MUST_RUN}.
      * The edge is removed when the source node is completed.
      */
-    FINALIZER,
+    FINALIZED_BY,
 
     /**
+     * The target node is a dependency of one of the source node's finalizers.
      * The scheduler should try to avoid starting the target node before the source node is started.
      * The edge can be removed to resolve cycles in the graph.
      * The edge is removed when the source node starts executing.
      */
-    AVOID_STARTING_BEFORE_FINALIZED;
+    AVOID_STARTING_BEFORE_FINALIZED
 }

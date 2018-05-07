@@ -33,8 +33,8 @@ import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
 import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE_FINALIZED;
-import static org.gradle.internal.scheduler.EdgeType.DEPENDENT;
-import static org.gradle.internal.scheduler.EdgeType.FINALIZER;
+import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF;
+import static org.gradle.internal.scheduler.EdgeType.FINALIZED_BY;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
@@ -70,12 +70,12 @@ public class DefaultScheduler implements Scheduler {
         Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, new Graph.LiveEdgeDetector() {
             @Override
             public boolean isIncomingEdgeLive(Edge edge) {
-                return edge.getType() == DEPENDENT;
+                return edge.getType() == DEPENDENCY_OF;
             }
 
             @Override
             public boolean isOutgoingEdgeLive(Edge edge) {
-                return edge.getType() == FINALIZER;
+                return edge.getType() == FINALIZED_BY;
             }
         });
         connectFinalizerDependencies(liveGraph);
@@ -132,7 +132,7 @@ public class DefaultScheduler implements Scheduler {
 
     private void connectFinalizerDependencies(final Graph graph) {
         for (Edge edge : graph.getAllEdges()) {
-            if (edge.getType() != FINALIZER) {
+            if (edge.getType() != FINALIZED_BY) {
                 continue;
             }
             final Set<Edge> edgesAddedFromFinalized = Sets.newHashSet();
@@ -141,7 +141,7 @@ public class DefaultScheduler implements Scheduler {
             graph.walkIncomingEdgesFrom(finalizer, new Graph.EdgeWalkerAction() {
                 @Override
                 public boolean execute(Edge edge) {
-                    if (edge.getType() != DEPENDENT) {
+                    if (edge.getType() != DEPENDENCY_OF) {
                         return false;
                     }
                     Node finalizerDependency = edge.getSource();
@@ -164,7 +164,7 @@ public class DefaultScheduler implements Scheduler {
             graph.walkIncomingEdgesFrom(entryNode, new Graph.EdgeWalkerAction() {
                 @Override
                 public boolean execute(Edge edge) {
-                    if (edge.getType() != DEPENDENT) {
+                    if (edge.getType() != DEPENDENCY_OF) {
                         return false;
                     }
                     edge.getSource().setState(SHOULD_RUN);
@@ -258,7 +258,7 @@ public class DefaultScheduler implements Scheduler {
                 EdgeType type = edge.getType();
                 // Everything that's involved in finalizing this node must now run
                 switch (type) {
-                    case FINALIZER:
+                    case FINALIZED_BY:
                     case AVOID_STARTING_BEFORE_FINALIZED:
                         markAsMustRun(target);
                         break;
@@ -267,11 +267,11 @@ public class DefaultScheduler implements Scheduler {
                 }
                 // Since the node is now starting, we can unlock nodes that shouldn't have been started before
                 switch (type) {
-                    case DEPENDENT:
+                    case DEPENDENCY_OF:
                     case MUST_NOT_RUN_WITH:
-                    case MUST_RUN_AFTER:
-                    case SHOULD_RUN_AFTER:
-                    case FINALIZER:
+                    case MUST_COMPLETE_BEFORE:
+                    case SHOULD_COMPLETE_BEFORE:
+                    case FINALIZED_BY:
                         return KEEP;
                     case AVOID_STARTING_BEFORE_FINALIZED:
                         return REMOVE;
@@ -354,10 +354,10 @@ public class DefaultScheduler implements Scheduler {
                         case DEPENDENCY_FAILED:
                             // TODO Handle remaining incoming edges when suspended node is skipped
                             switch (outgoing.getType()) {
-                                case DEPENDENT:
+                                case DEPENDENCY_OF:
                                     target.setState(DEPENDENCY_FAILED);
                                     break;
-                                case FINALIZER:
+                                case FINALIZED_BY:
                                 case AVOID_STARTING_BEFORE_FINALIZED:
                                     if (target.getState() == RUNNABLE) {
                                         target.setState(CANCELLED);
@@ -394,7 +394,7 @@ public class DefaultScheduler implements Scheduler {
                     Node target = outgoing.getTarget();
                     // TODO Handle remaining incoming edges when suspended node is skipped
                     // TODO Cancel everything if `--continue` is not enabled
-                    if (outgoing.getType() == DEPENDENT) {
+                    if (outgoing.getType() == DEPENDENCY_OF) {
                         target.setState(DEPENDENCY_FAILED);
                     }
                 }

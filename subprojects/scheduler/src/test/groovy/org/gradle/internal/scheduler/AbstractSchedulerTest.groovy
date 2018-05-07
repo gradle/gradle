@@ -26,10 +26,10 @@ import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 
-import static org.gradle.internal.scheduler.EdgeType.SHOULD_RUN_AFTER
-import static org.gradle.internal.scheduler.EdgeType.DEPENDENT
-import static org.gradle.internal.scheduler.EdgeType.FINALIZER
-import static org.gradle.internal.scheduler.EdgeType.MUST_RUN_AFTER
+import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF
+import static org.gradle.internal.scheduler.EdgeType.FINALIZED_BY
+import static org.gradle.internal.scheduler.EdgeType.MUST_COMPLETE_BEFORE
+import static org.gradle.internal.scheduler.EdgeType.SHOULD_COMPLETE_BEFORE
 
 abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     static final TASK_NODE_COMPARATOR = new Comparator<? super Node>() {
@@ -65,13 +65,13 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
                 void getNodeValues(Node node, Collection<? super Object> values, Collection<? super Node> connectedNodes) {
                     for (Node dependency : sortedCycle) {
                         for (Edge incoming : graph.getIncomingEdges(node)) {
-                            if ((incoming.getType() == DEPENDENT || incoming.getType() == MUST_RUN_AFTER)
+                            if ((incoming.getType() == DEPENDENCY_OF || incoming.getType() == MUST_COMPLETE_BEFORE)
                                 && incoming.getSource() == dependency) {
                                 connectedNodes.add(dependency)
                             }
                         }
                         for (Edge outgoing : graph.getOutgoingEdges(node)) {
-                            if (outgoing.getType() == FINALIZER && outgoing.getTarget() == dependency) {
+                            if (outgoing.getType() == FINALIZED_BY && outgoing.getTarget() == dependency) {
                                 connectedNodes.add(dependency)
                             }
                         }
@@ -142,16 +142,16 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     @Override
     protected void relationships(Map options, def task) {
         options.dependsOn?.each { TaskNode dependency ->
-            graph.addEdge(new Edge(dependency, task as TaskNode, DEPENDENT))
+            graph.addEdge(new Edge(dependency, task as TaskNode, DEPENDENCY_OF))
         }
         options.mustRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task as TaskNode, MUST_RUN_AFTER))
+            graph.addEdge(new Edge(predecessor, task as TaskNode, MUST_COMPLETE_BEFORE))
         }
         options.shouldRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task as TaskNode, SHOULD_RUN_AFTER))
+            graph.addEdge(new Edge(predecessor, task as TaskNode, SHOULD_COMPLETE_BEFORE))
         }
         options.finalizedBy?.each { TaskNode finalizer ->
-            graph.addEdge(new Edge(task as TaskNode, finalizer, FINALIZER))
+            graph.addEdge(new Edge(task as TaskNode, finalizer, FINALIZED_BY))
         }
     }
 

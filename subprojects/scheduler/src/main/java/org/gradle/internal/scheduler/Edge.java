@@ -41,7 +41,7 @@ public class Edge implements Comparable<Edge> {
 
     public boolean isRemovableToBreakCycles() {
         switch (type) {
-            case SHOULD_RUN_AFTER:
+            case SHOULD_COMPLETE_BEFORE:
             case AVOID_STARTING_BEFORE_FINALIZED:
                 return true;
             default:
