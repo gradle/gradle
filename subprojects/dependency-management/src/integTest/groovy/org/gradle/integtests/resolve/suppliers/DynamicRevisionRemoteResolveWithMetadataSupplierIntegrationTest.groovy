@@ -809,33 +809,6 @@ group:projectB:2.2;release
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
     }
 
-    private SimpleSupplierInteractions withPerVersionStatusSupplier() {
-        buildFile << """
-          class MP implements ComponentMetadataSupplier {
-          
-            final RepositoryResourceAccessor repositoryResourceAccessor
-            
-            @Inject
-            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
-            int count
-          
-            void execute(ComponentMetadataSupplierDetails details) {
-                assert count == 0
-                def id = details.id
-                println "Providing metadata for \$id"
-                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
-                    details.result.status = new String(it.bytes)
-                }
-                count++
-            }
-          }
-
-"""
-        metadataSupplierClass = 'MP'
-        new SimpleSupplierInteractions()
-    }
-
     def "component metadata rules are executed after metadata supplier is called"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -887,6 +860,135 @@ group:projectB:2.2;release
 
         // second one comes from the rule executed on "real" metadata, after parsing the module
         outputContains "Changing status for group:projectB:1.1 from '${GradleMetadataResolveRunner.useIvy()?'integration':'release'}' to 'release'"
+    }
+
+    def "can use a custom metadata provider to expose components with custom attributes"() {
+        given:
+        withSupplierWithAttributes([
+                'projectA:1.2': [:],
+                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"integration"'],
+                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"']
+        ])
+
+        when:
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2'()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        outputContains 'Providing metadata for group:projectB:1.1'
+    }
+
+    def "can use a custom metadata provider to perform selection using attributes without fetching component metadata"() {
+        given:
+        withSupplierWithAttributes([
+                'projectA:1.2': [:],
+                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
+                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
+        ])
+
+        buildFile << """
+            class MyAttributes {
+                public static final CUSTOM_STR = Attribute.of("custom string", String)
+            }
+            
+            configurations.conf.attributes {
+                attribute(MyAttributes.CUSTOM_STR, 'v2')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2'()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        outputContains 'Providing metadata for group:projectB:1.1'
+
+        // Because the consumer has declared attributes, we now need to call the supplier for projectA too
+        outputContains 'Providing metadata for group:projectA:1.2'
+    }
+
+
+    private SimpleSupplierInteractions withPerVersionStatusSupplier() {
+        buildFile << """
+          class MP implements ComponentMetadataSupplier {
+          
+            final RepositoryResourceAccessor repositoryResourceAccessor
+            
+            @Inject
+            MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
+          
+            int count
+          
+            void execute(ComponentMetadataSupplierDetails details) {
+                assert count == 0
+                def id = details.id
+                println "Providing metadata for \$id"
+                repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/status.txt") {
+                    details.result.status = new String(it.bytes)
+                }
+                count++
+            }
+          }
+
+"""
+        metadataSupplierClass = 'MP'
+        new SimpleSupplierInteractions()
+    }
+
+    private SupplierInteractions withSupplierWithAttributes(Map<String, Map<String, String>> attributesPerVersion) {
+        def cases = attributesPerVersion.collect { version, attributes ->
+            def attributesBlock = attributes.collect { k, v ->
+                "it.attribute($k, $v)"
+            }.join('; ')
+            "case ('$version'): details.result.attributes { $attributesBlock }; break"
+        }.join('\n                    ')
+
+        buildFile << """
+        import org.gradle.api.internal.project.ProjectInternal
+
+        class MP implements ComponentMetadataSupplier {
+            void execute(ComponentMetadataSupplierDetails details) {
+                def id = details.id
+                println "Providing metadata for \$id"
+                String key = "\${id.module}:\${id.version}"
+                switch (key) {
+                    $cases
+                }
+            }
+        }
+"""
+        metadataSupplierClass = 'MP'
+        null
     }
 
     def checkResolve(Map edges) {
