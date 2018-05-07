@@ -94,7 +94,7 @@ public class DefaultScheduler implements Scheduler {
         return new GraphExecutionResult(liveNodes, executedNodes.build(), filteredNodes.build(), failures.build());
     }
 
-    private void cancelAllNodes(Graph graph, boolean cancelEverything) {
+    private void cancelExecution(Graph graph, boolean cancelMustRun) {
         for (Node node : graph.getAllNodes()) {
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             switch (node.getState()) {
@@ -104,7 +104,7 @@ public class DefaultScheduler implements Scheduler {
                     cancelled = true;
                     break;
                 case MUST_RUN:
-                    if (cancelEverything) {
+                    if (cancelMustRun) {
                         node.setState(CANCELLED);
                         cancelled = true;
                     }
@@ -121,7 +121,7 @@ public class DefaultScheduler implements Scheduler {
     private void executeLiveGraph(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         while (graph.hasNodes()) {
             if (cancellationToken.isCancellationRequested()) {
-                cancelAllNodes(graph, false);
+                cancelExecution(graph, false);
                 break;
             }
 
@@ -210,7 +210,7 @@ public class DefaultScheduler implements Scheduler {
         } catch (InterruptedException e) {
             LOGGER.info("Build has been interrupted", e);
             failures.add(e);
-            cancelAllNodes(graph, true);
+            cancelExecution(graph, true);
         }
         for (Event event : eventsBeingProcessed) {
             System.out.printf("> Handling event %s%n", event);
