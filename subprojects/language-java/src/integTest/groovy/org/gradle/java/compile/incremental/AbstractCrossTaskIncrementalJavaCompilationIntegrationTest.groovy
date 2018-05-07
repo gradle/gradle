@@ -627,7 +627,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     }
 
-    def "recognizes change of constant value in annotation, even if we know it's a bad practice"() {
+    def "recognizes change of constant value in annotation"() {
         java api: [
             "class A { public static final int CST = 0; }",
             """import java.lang.annotation.Retention;
@@ -638,6 +638,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
             // cases where it's relevant, ABI-wise
             "@B(A.CST) class OnClass {}",
             "class OnMethod { @B(A.CST) void foo() {} }",
+            "class OnField { @B(A.CST) String foo; }",
             "class OnParameter { void foo(@B(A.CST) int x) {} }"
         ]
 
@@ -648,8 +649,71 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         run("impl:compileJava")
 
         then:
-        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter")
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
+    }
 
+    @Unroll
+    def "change to class referenced by an annotation recompiles annotated types"() {
+        java api: [
+            """
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.CLASS) 
+                public @interface B {
+                    Class<?> value();
+                }
+            """,
+            "class A {}"
+        ], impl: [
+            "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        ]
+
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: [
+            """
+                class A { public void foo() {} }
+            """
+        ]
+        run "compileJava"
+
+        then:
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
+    }
+
+    @Unroll
+    def "change to class referenced by an array value in an annotation recompiles annotated types"() {
+        java api: [
+            """
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.CLASS) 
+                public @interface B {
+                    Class<?>[] value();
+                }
+            """,
+            "class A {}"
+        ], impl: [
+            "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        ]
+
+        impl.snapshot { run "compileJava" }
+
+        when:
+        java api: [
+            """
+                class A { public void foo() {} }
+            """
+        ]
+        run "compileJava"
+
+        then:
+        impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
     @NotYetImplemented
