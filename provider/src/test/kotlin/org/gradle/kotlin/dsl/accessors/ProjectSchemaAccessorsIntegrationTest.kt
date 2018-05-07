@@ -459,21 +459,21 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
             import org.gradle.api.*
             import org.gradle.api.plugins.*
-            import org.gradle.api.reflect.*
-            import org.gradle.kotlin.dsl.*
 
             open class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     convention.plugins.put("myConvention", MyPrivateConventionImpl())
                 }
             }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyConvention.kt", """
+            package plugins
 
             interface MyConvention
 
-            private
-            class MyPrivateConventionImpl : MyConvention, HasPublicType {
-                override fun getPublicType(): TypeOf<*> = typeOf<MyConvention>()
-            }
+            internal
+            class MyPrivateConventionImpl : MyConvention
         """)
 
         withBuildScript("""
@@ -488,12 +488,31 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
             }
         """)
 
-        val result = build("help")
-        assertThat(result.output, containsString("Type of `myConvention` receiver is MyConvention"))
+        assertThat(
+            build("help").output,
+            containsString("Type of `myConvention` receiver is Any"))
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyConvention.kt", """
+            package plugins
+
+            import org.gradle.api.reflect.*
+            import org.gradle.kotlin.dsl.*
+
+            interface MyConvention
+
+            internal
+            class MyPrivateConventionImpl : MyConvention, HasPublicType {
+                override fun getPublicType() = typeOf<MyConvention>()
+            }
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("Type of `myConvention` receiver is MyConvention"))
     }
 
     @Test
-    fun `can access source sets conventions registered by declared plugins via jit accessors`() {
+    fun `can access source sets conventions registered by declared core plugins via jit accessors`() {
 
         withBuildScript("""
             plugins {
@@ -518,23 +537,17 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `can access source sets private conventions without public type registered by declared external plugins via jit accessors as Any`() {
-
+    fun `can access source sets conventions registered by declared external plugins via jit accessors`() {
         withBuildScript("""
-            import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-
             plugins {
                 kotlin("jvm") version "$embeddedKotlinVersion"
             }
 
-            inline fun <reified T> typeOf(t: T) = T::class.simpleName
-
             val other by java.sourceSets.creating {
-                (kotlin as KotlinSourceSet).kotlin.setSrcDirs(setOf("src/other/kotlin"))
-                require(typeOf(kotlin) == "Any")
+                kotlin.kotlin.setSrcDirs(setOf("src/other/kotlin"))
             }
 
-            require((other.kotlin as KotlinSourceSet).kotlin.srcDirs == linkedSetOf(file("src/other/kotlin")))
+            require(other.kotlin.kotlin.srcDirs == linkedSetOf(file("src/other/kotlin")))
         """)
 
         build("help")
