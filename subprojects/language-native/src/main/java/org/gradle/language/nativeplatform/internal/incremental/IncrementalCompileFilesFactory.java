@@ -17,7 +17,6 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.internal.file.FileType;
@@ -65,7 +64,7 @@ public class IncrementalCompileFilesFactory {
         private final CompilationState previous;
         private final BuildableCompilationState current = new BuildableCompilationState();
         private final List<File> toRecompile = new ArrayList<File>();
-        private final Set<File> existingHeaders = Sets.newHashSet();
+        private final Set<File> existingHeaders = new HashSet<File>();
         private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
         private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
         private boolean hasUnresolvedHeaders;
@@ -133,28 +132,28 @@ public class IncrementalCompileFilesFactory {
                 // Source file has changed
                 return false;
             }
-            if (previousState.getResolvedIncludes().isEmpty()) {
+            if (previousState.getEdges().isEmpty()) {
                 // Source file has not changed and no include files
                 return true;
             }
 
-            // Check each include file
+            // Check each edge in the include file graph
             Map<HashCode, File> includes = new HashMap<HashCode, File>();
             Set<File> headers = new LinkedHashSet<File>();
             includes.put(fileSnapshot.getContent().getContentMd5(), sourceFile);
-            for (IncludeFileEdge includeFileEdge : previousState.getResolvedIncludes()) {
+            for (IncludeFileEdge includeFileEdge : previousState.getEdges()) {
                 File includedFrom = includeFileEdge.getIncludedBy() != null ? includes.get(includeFileEdge.getIncludedBy()) : null;
                 SourceIncludesResolver.IncludeFile includeFile = sourceIncludesResolver.resolveInclude(includedFrom, includeFileEdge.getIncludePath());
                 if (includeFile == null) {
                     // Include file not found
                     return false;
                 }
-                headers.add(includeFile.getFile());
                 HashCode hash = includeFile.getSnapshot().getContent().getContentMd5();
                 if (!hash.equals(includeFileEdge.getResolvedTo())) {
                     // Include file changed
                     return false;
                 }
+                headers.add(includeFile.getFile());
                 includes.put(hash, includeFile.getFile());
             }
             existingHeaders.addAll(headers);

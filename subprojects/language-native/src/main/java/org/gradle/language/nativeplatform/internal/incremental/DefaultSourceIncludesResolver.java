@@ -42,14 +42,17 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
-    private final List<File> includePaths;
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final Map<File, Map<String, CachedIncludeFile>> includeRoots;
+    private final Map<File, DirectoryContents> includeRoots = new HashMap<File, DirectoryContents>();
+    private final FixedIncludePath includePath;
 
     public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemSnapshotter fileSystemSnapshotter) {
-        this.includePaths = includePaths;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
-        this.includeRoots = new HashMap<File, Map<String, CachedIncludeFile>>();
+        List<DirectoryContents> includeDirs = new ArrayList<DirectoryContents>(includePaths.size());
+        for (File includeDir : includePaths) {
+            includeDirs.add(toDir(includeDir));
+        }
+        this.includePath = new FixedIncludePath(includeDirs);
     }
 
     @Override
@@ -250,48 +253,108 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     @Nullable
     @Override
     public IncludeFile resolveInclude(@Nullable File sourceFile, String includePath) {
-        List<File> path = sourceFile != null ? prependSourceDir(sourceFile, includePaths) : includePaths;
-        return searchForDependency(path, includePath, sourceFile != null);
+        IncludePath path = sourceFile != null ? prependSourceDir(sourceFile, this.includePath) : this.includePath;
+        return path.searchForDependency(includePath, sourceFile != null);
     }
 
-    private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
+    private DirectoryContents toDir(File includeDir) {
+        DirectoryContents directoryContents = includeRoots.get(includeDir);
+        if (directoryContents == null) {
+            directoryContents = new DirectoryContents(includeDir);
+            includeRoots.put(includeDir, directoryContents);
+        }
+        return directoryContents;
+    }
+
+    private IncludePath prependSourceDir(File sourceFile, FixedIncludePath includePaths) {
         File sourceDir = sourceFile.getParentFile();
-        if (includePaths.size() > 1 && includePaths.get(0).equals(sourceDir)) {
+        if (includePaths.startsWith(sourceDir)) {
             // Source dir already at the start of the path, just use the include path
             return includePaths;
         }
-        List<File> quotedSearchPath = new ArrayList<File>(includePaths.size() + 1);
-        quotedSearchPath.add(sourceDir);
-        quotedSearchPath.addAll(includePaths);
-        return quotedSearchPath;
+        return new PrefixedIncludePath(toDir(sourceDir), includePaths);
     }
 
-    @Nullable
-    private IncludeFile searchForDependency(List<File> searchPath, String includePath, boolean quotedPath) {
-        for (File searchDir : searchPath) {
-            Map<String, CachedIncludeFile> searchedIncludes = includeRoots.get(searchDir);
-            if (searchedIncludes == null) {
-                searchedIncludes = new HashMap<String, CachedIncludeFile>();
-                includeRoots.put(searchDir, searchedIncludes);
+    private static abstract class IncludePath {
+        @Nullable
+        abstract IncludeFile searchForDependency(String includePath, boolean quotedPath);
+    }
+
+    private static class PrefixedIncludePath extends IncludePath {
+        private final DirectoryContents head;
+        private final IncludePath tail;
+
+        PrefixedIncludePath(DirectoryContents head, IncludePath tail) {
+            this.head = head;
+            this.tail = tail;
+        }
+
+        @Nullable
+        @Override
+        IncludeFile searchForDependency(String includePath, boolean quotedPath) {
+            CachedIncludeFile includeFile = head.get(includePath);
+            if (includeFile.getType() == FileType.RegularFile) {
+                return includeFile.toIncludeFile(quotedPath);
             }
-            if (searchedIncludes.containsKey(includePath)) {
-                CachedIncludeFile includeFile = searchedIncludes.get(includePath);
-                if (includeFile.getType() == FileType.RegularFile) {
-                    return includeFile.toIncludeFile(quotedPath);
+            return tail.searchForDependency(includePath, quotedPath);
+        }
+    }
+
+    private static class FixedIncludePath extends IncludePath {
+        private final List<DirectoryContents> directories;
+        private final Map<String, CachedIncludeFile> cachedLookups = new HashMap<String, CachedIncludeFile>();
+
+        FixedIncludePath(List<DirectoryContents> directories) {
+            this.directories = directories;
+        }
+
+        @Nullable
+        @Override
+        IncludeFile searchForDependency(String includePath, boolean quotedPath) {
+            CachedIncludeFile includeFile = cachedLookups.get(includePath);
+            if (includeFile == null) {
+                for (DirectoryContents dir : directories) {
+                    includeFile = dir.get(includePath);
+                    if (includeFile.getType() == FileType.RegularFile) {
+                        break;
+                    }
                 }
-                continue;
+                if (includeFile == null) {
+                    includeFile = MISSING_INCLUDE_FILE;
+                }
+                cachedLookups.put(includePath, includeFile);
+            }
+            if (includeFile.getType() == FileType.RegularFile) {
+                return includeFile.toIncludeFile(quotedPath);
+            }
+            return null;
+        }
+
+        public boolean startsWith(File sourceDir) {
+            return directories.size() > 0 && directories.get(0).searchDir.equals(sourceDir);
+        }
+    }
+
+    private class DirectoryContents {
+        private final File searchDir;
+        private final Map<String, CachedIncludeFile> contents = new HashMap<String, CachedIncludeFile>();
+
+        DirectoryContents(File searchDir) {
+            this.searchDir = searchDir;
+        }
+
+        CachedIncludeFile get(String includePath) {
+            CachedIncludeFile includeFile = contents.get(includePath);
+            if (includeFile != null) {
+                return includeFile;
             }
 
             File candidate = new File(searchDir, includePath);
             FileSnapshot fileSnapshot = fileSystemSnapshotter.snapshotSelf(candidate);
-            CachedIncludeFile includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot) : MISSING_INCLUDE_FILE;
-            searchedIncludes.put(includePath, includeFile);
-
-            if (fileSnapshot.getType() == FileType.RegularFile) {
-                return includeFile.toIncludeFile(quotedPath);
-            }
+            includeFile = fileSnapshot.getType() == FileType.RegularFile ? new SystemIncludeFile(candidate, includePath, fileSnapshot) : MISSING_INCLUDE_FILE;
+            contents.put(includePath, includeFile);
+            return includeFile;
         }
-        return null;
     }
 
     private static abstract class CachedIncludeFile {
@@ -509,8 +572,8 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (!quoted.add(path)) {
                 return;
             }
-            List<File> quotedSearchPath = prependSourceDir(sourceFile, includePaths);
-            IncludeFile includeFile = searchForDependency(quotedSearchPath, path, true);
+            IncludePath quotedSearchPath = prependSourceDir(sourceFile, includePath);
+            IncludeFile includeFile = quotedSearchPath.searchForDependency(path, true);
             if (includeFile != null) {
                 results.resolved(includeFile);
             }
@@ -522,7 +585,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             if (!system.add(path)) {
                 return;
             }
-            IncludeFile includeFile = searchForDependency(includePaths, path, false);
+            IncludeFile includeFile = includePath.searchForDependency(path, false);
             if (includeFile != null) {
                 results.resolved(includeFile);
             }

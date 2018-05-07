@@ -78,8 +78,8 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
             fileSerializer.write(encoder, entry.getKey());
             hashSerializer.write(encoder, sourceFileState.getHash());
             encoder.writeBoolean(sourceFileState.isHasUnresolved());
-            encoder.writeSmallInt(sourceFileState.getResolvedIncludes().size());
-            for (IncludeFileEdge includeFileState : sourceFileState.getResolvedIncludes()) {
+            encoder.writeSmallInt(sourceFileState.getEdges().size());
+            for (IncludeFileEdge includeFileState : sourceFileState.getEdges()) {
                 Integer id = ids.get(includeFileState);
                 if (id == null) {
                     id = ids.size();

@@ -36,21 +36,17 @@ public class SourceFileState {
         return hash;
     }
 
+    /**
+     * Were any edges in the include file graph unable to be resolved?
+     */
     public boolean isHasUnresolved() {
         return hasUnresolved;
     }
 
     /**
-     * The set of successfully resolved include files, in the order included.
+     * The set of successfully resolved edges in the include file graph.
      */
-    public ImmutableSet<IncludeFileEdge> getResolvedIncludes() {
+    public ImmutableSet<IncludeFileEdge> getEdges() {
         return resolvedIncludes;
-    }
-
-    /**
-     * Returns true if this file or its set of includes has changed since the given snapshot.
-     */
-    public boolean hasChanged(SourceFileState previousState) {
-        return !hash.equals(previousState.hash) || !resolvedIncludes.equals(previousState.resolvedIncludes);
     }
 }

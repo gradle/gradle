@@ -51,11 +51,11 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileEmpty)
         emptyCompileState.hash == HashCode.fromInt(0x12345678)
-        emptyCompileState.resolvedIncludes.empty
+        emptyCompileState.edges.empty
 
         def otherCompileState = newState.getState(fileTwo)
         otherCompileState.hash == HashCode.fromInt(0x23456789)
-        otherCompileState.resolvedIncludes == stateTwo.resolvedIncludes
+        otherCompileState.edges == stateTwo.edges
     }
 
     def "serializes state with shared include files"() {
@@ -76,11 +76,11 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def emptyCompileState = newState.getState(fileOne)
         emptyCompileState.hash == HashCode.fromInt(0x12345678)
-        emptyCompileState.resolvedIncludes == stateOne.resolvedIncludes
+        emptyCompileState.edges == stateOne.edges
 
         def otherCompileState = newState.getState(fileTwo)
         otherCompileState.hash == HashCode.fromInt(0x23456789)
-        otherCompileState.resolvedIncludes == stateTwo.resolvedIncludes
+        otherCompileState.edges == stateTwo.edges
     }
 
     private SourceFileState compilationFileState(HashCode hash, Collection<String> includes) {
