@@ -146,32 +146,26 @@ Before this release, `afterEvaluate` requests happening during the execution of 
 
 Consider the following code:
 
-```gradle
-afterEvaluate {
-    println "> Outer"
     afterEvaluate {
-        println "Inner"
+        println "> Outer"
+        afterEvaluate {
+            println "Inner"
+        }
+        println "< Outer"
     }
-    println "< Outer"
-}
-```
 
 In Gradle 4.7 and below, it would print:
 
-```text
-> Outer
-< Outer
-```
+    > Outer
+    < Outer
 
 With the `Inner` part being silently ignored.
 
 Starting with Gradle 4.8, nested `afterEvaluate` requests will be honoured asynchronously in order to preserve the callback _execute later_ semantics, in other words, the same code will now print:
 
-```text
-> Outer
-< Outer
-Inner
-```
+    > Outer
+    < Outer
+    Inner
 
 Please note that `beforeEvaluate` and other similar hooks have *not* been changed and will still silently ignore nested requests, that behaviour is subject to change in a future Gradle release (gradle/gradle#5262).
 
