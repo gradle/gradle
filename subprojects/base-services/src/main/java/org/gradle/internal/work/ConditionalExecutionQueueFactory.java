@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r48;
+package org.gradle.internal.work;
 
-import java.io.Serializable;
-
-public interface CustomProjectsEvaluatedModel extends Serializable {
-    String getValue();
+/**
+ * Provides new {@link ConditionalExecutionQueue} objects
+ */
+public interface ConditionalExecutionQueueFactory {
+    /**
+     * Provides a {@link ConditionalExecutionQueue} that can process {@link ConditionalExecution} objects that
+     * return the provided result class.
+     */
+    <T> ConditionalExecutionQueue<T> create(String displayName, Class<T> resultClass);
 }

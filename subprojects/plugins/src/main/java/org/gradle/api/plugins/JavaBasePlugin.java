@@ -32,19 +32,16 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -55,7 +52,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.util.SingleMessageLogger;
-import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -368,65 +364,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 configureTestDefaults(test, project, convention);
             }
         });
-        project.getGradle().getTaskGraph().whenReady(new Action<TaskExecutionGraph>() {
-            @Override
-            public void execute(final TaskExecutionGraph taskExecutionGraph) {
-                project.getTasks().configureEachLater(Test.class, new Action<Test>() {
-
-                    @Override
-                    public void execute(Test test) {
-                        if (taskExecutionGraph.hasTask(test)) {
-                            //TODO we should deprecate and remove these old properties
-                            //they can be replaced by --tests and --debug-jvm
-                            configureBasedOnSingleProperty(test);
-                            overwriteDebugIfDebugPropertyIsSet(test);
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    private void overwriteDebugIfDebugPropertyIsSet(Test test) {
-        String debugProp = getTaskPrefixedProperty(test, "debug");
-        if (debugProp != null) {
-            test.prependParallelSafeAction(new Action<Task>() {
-                public void execute(Task task) {
-                    task.getLogger().info("Running tests for remote debugging.");
-                }
-            });
-            test.setDebug(true);
-        }
-    }
-
-    private void configureBasedOnSingleProperty(final Test test) {
-        String singleTest = getTaskPrefixedProperty(test, "single");
-        if (singleTest == null) {
-            //configure inputs so that the test task is skipped when there are no source files.
-            //unfortunately, this only applies when 'test.single' is *not* applied
-            //We should fix this distinction, the behavior with 'test.single' or without it should be the same
-            test.getInputs().files(test.getCandidateClassFiles())
-                .withPropertyName("nonEmptyCandidateClassFiles")
-                .withPathSensitivity(PathSensitivity.RELATIVE)
-                .skipWhenEmpty();
-            return;
-        }
-        test.prependParallelSafeAction(new Action<Task>() {
-            public void execute(Task task) {
-                test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
-            }
-        });
-        test.setIncludes(WrapUtil.toSet("**/" + singleTest + "*.class"));
-        test.addTestListener(new NoMatchingTestsReporter("Could not find matching test for pattern: " + singleTest));
-    }
-
-    private String getTaskPrefixedProperty(Task task, String propertyName) {
-        String suffix = '.' + propertyName;
-        String value = System.getProperty(task.getPath() + suffix);
-        if (value == null) {
-            return System.getProperty(task.getName() + suffix);
-        }
-        return value;
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {

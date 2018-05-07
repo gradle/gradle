@@ -146,29 +146,34 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def canRunSingleTests() {
         when:
-        executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
+        succeeds("test", "--tests=Ok2*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('Ok2')
+        def testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted('Ok2')
 
         when:
-        executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
+        succeeds("cleanTest", "test", "--tests=Ok*")
 
         then:
-        result.assertTestClassesExecuted('Ok', 'Ok2')
+        testResult.assertTestClassesExecuted('Ok', 'Ok2')
 
         when:
-        def failure = executer.withTasks('test').withArguments('-Dtest.single=DoesNotMatchAClass').runWithFailure()
+        fails("test", "--tests=DoesNotMatchAClass*")
 
         then:
-        failure.assertHasCause('Could not find matching test for pattern: DoesNotMatchAClass')
+        result.assertHasCause('No tests found for given includes: [DoesNotMatchAClass*](--tests filter)')
 
         when:
-        failure = executer.withTasks('test').withArguments('-Dtest.single=NotATest').runWithFailure()
-
+        fails("test", "--tests=NotATest*")
         then:
-        failure.assertHasCause('Could not find matching test for pattern: NotATest')
+        result.assertHasCause('No tests found for given includes: [NotATest*](--tests filter)')
+
+        when:
+        executer.expectDeprecationWarning()
+        fails("test", "-Dtest.single=DoesNotMatchAClass", "-i")
+        then:
+        result.assertHasCause('Could not find matching test for pattern: DoesNotMatchAClass')
     }
 
     def canUseTestSuperClassesFromAnotherProject() {

@@ -19,14 +19,13 @@ package org.gradle.api.internal.tasks.compile.processing
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 
 import javax.annotation.processing.Filer
-import javax.annotation.processing.Messager
 
 class AggregatingFilerTest extends IncrementalFilerTest {
 
 
     @Override
-    Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new AggregatingFiler(delegate, result, messager)
+    Filer createFiler(Filer filer, AnnotationProcessingResult result) {
+        new AggregatingFiler(delegate, result)
     }
 
     def "can have zero originating elements"() {
@@ -34,15 +33,15 @@ class AggregatingFilerTest extends IncrementalFilerTest {
         filer.createSourceFile("Foo")
 
         then:
-        0 * messager._
+        !result.fullRebuildCause
     }
 
-    def "does not fail when many originating elements are given"() {
+    def "can have many originating elements"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
 
         then:
-        0 * messager._
+        !result.fullRebuildCause
     }
 
     def "adds generated types to the processing result"() {

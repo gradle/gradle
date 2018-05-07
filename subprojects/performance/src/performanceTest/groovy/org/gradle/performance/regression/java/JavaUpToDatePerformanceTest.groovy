@@ -19,20 +19,25 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "up-to-date assemble on #testProject"() {
+    def "up-to-date assemble on #testProject (parallel #parallel)"() {
         //This test scenario can potentially be replaced with an incremental change test
 
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.targetVersions = ["4.8-20180502235951+0000"]
+        runner.targetVersions = ["4.8-20180506235948+0000"]
+        if (parallel) {
+            runner.args += ["--parallel"]
+        } else {
+            runner.previousTestIds = ["up-to-date assemble on $testProject"]
+        }
 
         when:
         def result = runner.run()
@@ -41,8 +46,10 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                   | parallel
+        LARGE_MONOLITHIC_JAVA_PROJECT | true
+        LARGE_MONOLITHIC_JAVA_PROJECT | false
+        LARGE_JAVA_MULTI_PROJECT      | true
+        LARGE_JAVA_MULTI_PROJECT      | false
     }
 }

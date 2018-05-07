@@ -23,14 +23,11 @@ import javax.annotation.Nullable;
 
 public class DefaultPhasedBuildAction implements PhasedBuildAction {
     @Nullable private final BuildActionWrapper<?> projectsLoadedAction;
-    @Nullable private final BuildActionWrapper<?> projectsEvaluatedAction;
     @Nullable private final BuildActionWrapper<?> buildFinishedAction;
 
     DefaultPhasedBuildAction(@Nullable BuildActionWrapper<?> projectsLoadedAction,
-                             @Nullable BuildActionWrapper<?> projectsEvaluatedAction,
                              @Nullable BuildActionWrapper<?> buildFinishedAction) {
         this.projectsLoadedAction = projectsLoadedAction;
-        this.projectsEvaluatedAction = projectsEvaluatedAction;
         this.buildFinishedAction = buildFinishedAction;
     }
 
@@ -38,12 +35,6 @@ public class DefaultPhasedBuildAction implements PhasedBuildAction {
     @Override
     public BuildActionWrapper<?> getProjectsLoadedAction() {
         return projectsLoadedAction;
-    }
-
-    @Nullable
-    @Override
-    public BuildActionWrapper<?> getProjectsEvaluatedAction() {
-        return projectsEvaluatedAction;
     }
 
     @Nullable

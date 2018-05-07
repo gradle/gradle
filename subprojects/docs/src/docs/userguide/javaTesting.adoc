@@ -70,9 +70,9 @@ When debugging for tests is enabled, Gradle will start the test process suspende
 It's a common requirement to run subsets of a test suite, such as when you're fixing a bug or developing a new test case. Gradle provides two mechanisms to do this:
 
  * Filtering (the preferred option)
- * Test inclusion/exclusion (based on `-Dtest.single`, `test.include` and friends)
- 
-Filtering supersedes the inclusion/exclusionmechanism, but you may still come across the latter in the wild.
+ * Test inclusion/exclusion
+
+Filtering supersedes the inclusion/exclusion mechanism, but you may still come across the latter in the wild.
 
 With Gradle's test filtering you can select tests to run based on:
 
@@ -80,7 +80,7 @@ With Gradle's test filtering you can select tests to run based on:
  * A simple class name or method name if the pattern starts with an upper-case letter, e.g. `SomeTest`, `SomeTest.someMethod` (since Gradle 4.7)
  * '*' wildcard matching
 
-You can enable filtering either in the build or via the `--tests` command line option. Here's an example of some filters that are applied every time the build runs:
+You can enable filtering either in the build script or via the `--tests` command-line option. Here's an example of some filters that are applied every time the build runs:
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
@@ -90,7 +90,7 @@ You can enable filtering either in the build or via the `--tests` command line o
 
 For more details and examples of declaring filters in the build script, please see the api:org.gradle.api.tasks.testing.TestFilter[] reference.
 
-The command line option is especially useful for the classic single test method execution use case. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. Also note that it is possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command line option.
+The command-line option is especially useful to execute a single test method. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. It is also possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command-line option.
 
 NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible. However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
 
@@ -171,7 +171,7 @@ The `Test` task generates the following results by default:
 
 In most cases, you'll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
 
-Unlike with many of the testing configuration options, there are several project-level <<sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so: 
+Unlike with many of the testing configuration options, there are several project-level <<sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
 ++++
 <sample id="javaCustomReportDirs" dir="userguide/java/customDirs" title="Changing the default test report and results directories">

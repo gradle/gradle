@@ -135,7 +135,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
 
             class TaskWithTwoOutputDirectoriesProperties extends DefaultTask {
-                @InputFiles def inputFiles = project.files()
+                @InputFiles def inputFiles = project.layout.files()
 
                 @OutputDirectory File outputs1
                 @OutputDirectory File outputs2
@@ -193,7 +193,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*
 
             class TaskWithValidOutputFilesAndOutputDirectoriesProperty extends DefaultTask {
-                @InputFiles def inputFiles = project.files()
+                @InputFiles def inputFiles = project.layout.files()
                 @OutputFiles Map<String, File> outputFiles = [:]
                 @OutputDirectories Map<String, File> outputDirs = [:]
                 @TaskAction void action() {}

@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.Action
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInputsInternal
@@ -31,7 +31,6 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.scheduler.AbstractSchedulingTest
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -58,22 +57,17 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root
     def workerLeaseService = Mock(WorkerLeaseService)
-    def coordinationService = Mock(ResourceLockCoordinationService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
     def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(cancellationHandler, coordinationService, workerLeaseService, Mock(GradleInternal))
+        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, Mock(GradleInternal))
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
         }
         _ * workerLease.tryLock() >> true
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
     }
 
     def "schedules task dependencies in name order when there are no dependencies between them"() {
@@ -134,12 +128,27 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         executes(b, a, c, d)
     }
 
+    def "stops returning tasks when build is cancelled"() {
+        def a = task("a")
+        def b = task("b")
+
+        when:
+        addToGraphAndPopulate([a, b])
+        executionPlan.cancelExecution()
+
+        then:
+        executedTasks == []
+
+        when:
+        rethrowFailures()
+
+        then:
+        BuildCancelledException e = thrown()
+        e.message == 'Build cancelled.'
+    }
+
     def "clear removes all tasks"() {
         given:
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
         def a = task("a")
 
         when:
@@ -153,10 +162,6 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
     def "can add additional tasks after execution and clear"() {
         given:
-        _ * coordinationService.withStateLock(_) >> { args ->
-            args[0].transform(Mock(ResourceLockState))
-            return true
-        }
         def a = task("a")
         def b = task("b")
 
@@ -191,7 +196,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
     @Override
     void rethrowFailures() {
-        executionPlan.awaitCompletion()
+        executionPlan.rethrowFailures()
     }
 
     @Override
@@ -223,12 +228,14 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         def tasks = []
         def moreTasks = true
         while (moreTasks) {
-            moreTasks = executionPlan.executeWithTask(workerLease, new Action<TaskInternal>() {
-                @Override
-                void execute(TaskInternal task) {
-                    tasks << task
+            def nextNode = executionPlan.selectNextTask(workerLease, Mock(ResourceLockState))
+            if (nextNode != null) {
+                if (!nextNode.isComplete()) {
+                    tasks << nextNode.task
+                    executionPlan.taskComplete(nextNode)
                 }
-            })
+            }
+            moreTasks = executionPlan.hasWorkRemaining()
         }
         return tasks
     }

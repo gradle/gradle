@@ -17,9 +17,11 @@
 package org.gradle.internal.scheduler
 
 import com.google.common.collect.Lists
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.execution.MultipleBuildFailures
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Cast
 import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
@@ -43,6 +45,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
         }
     }
 
+    def cancellationHandler = Mock(BuildCancellationToken)
     def graph = new Graph()
     def nodeExecutor = new TaskNodeExecutor()
     List<Node> nodesToExecute = []
@@ -87,6 +90,25 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     abstract Scheduler getScheduler()
+
+    def "stops returning tasks when build is cancelled"() {
+        2 * cancellationHandler.isCancellationRequested() >>> [false, true]
+        def a = task("a")
+        def b = task("b")
+
+        when:
+        addToGraphAndPopulate([a, b])
+
+        then:
+        executedTasks == [a]
+
+        when:
+        rethrowFailures()
+
+        then:
+        BuildCancelledException e = thrown()
+        e.message == 'Build cancelled.'
+    }
 
     protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()

@@ -83,7 +83,7 @@ public class Assemble extends DefaultTask {
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getObjectFileDir());
+        cleaner.addDirToClean(getObjectFileDir());
         cleaner.execute();
 
         DefaultAssembleSpec spec = new DefaultAssembleSpec();

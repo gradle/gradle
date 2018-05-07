@@ -75,6 +75,15 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
 
 The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### TextResources can now be fetched from a URI
+
+Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
+
+    checkstyle {
+        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
+    }
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -83,6 +92,41 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
+
+### Nested `afterEvaluate` requests are no longer silently ignored
+
+Before this release, `afterEvaluate` requests happening during the execution of an `afterEvaluate` callback were silently ignored.
+
+Consider the following code:
+
+```gradle
+afterEvaluate {
+    println "> Outer"
+    afterEvaluate {
+        println "Inner"
+    }
+    println "< Outer"
+}
+```
+
+In Gradle 4.7 and below, it would print:
+
+```text
+> Outer
+< Outer
+```
+
+With the `Inner` part being silently ignored.
+
+Starting with Gradle 4.8, nested `afterEvaluate` requests will be honoured asynchronously in order to preserve the callback _execute later_ semantics, in other words, the same code will now print:
+
+```text
+> Outer
+< Outer
+Inner
+```
+
+Please note that `beforeEvaluate` and other similar hooks have *not* been changed and will still silently ignore nested requests, that behaviour is subject to change in a future Gradle release (gradle/gradle#5262).
 
 ## Deprecations
 
@@ -103,6 +147,35 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Method on `Signature`
 
 `Signature.getToSignArtifact()` should have been an internal API and is now deprecated without a replacement.
+
+### `SimpleFileCollection`
+
+The internal `SimpleFileCollection` implementation of `FileCollection` has been deprecated.
+You should use `Project.files()` instead.
+
+### Use of single test selection system property
+
+The [use of a system property](userguide/java_testing.html#sec:single_test_execution_via_system_properties) to select which tests to execute is deprecated.  The built-in `--tests` filter has long replaced this functionality.
+
+### Use of remote debugging test system property
+
+The use of a system property (`-Dtest.debug`) to enable remote debugging of test processes is deprecated.  The built-in `--debug-jvm` flag has long replaced this functionality.
+
+### Overwriting Gradle's built-in tasks
+
+Defining a custom `wrapper` or `init` task is deprecated. Please configure the existing tasks instead.
+
+I.e. instead of this:
+
+    task wrapper(type:Wrapper) {
+        //configuration
+    }
+    
+Do this:
+
+    wrapper {
+        //configuration
+    }
 
 ## Potential breaking changes
 
@@ -131,11 +204,12 @@ This is no longer the case and thus may cause modules to be excluded from a depe
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
+- [Filip Hrisafov](filiphr) Add support for URI backed TextResource (gradle/gradle#2760)
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
 - [Andrew Potter](https://github.com/apottere) Update pluginManagement documentation to mention global configuration options (gradle/gradle#4999)
 - [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
 - [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
-- [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
 - [Alexandre Bouthinon](https://github.com/alexandrebouthinon) Fix NullPointerException (gradle/gradle#5199)
 - [Paul Eddie](https://github.com/paul-eeoc) Fix typo (gradle/gradle#5180)
 <!--

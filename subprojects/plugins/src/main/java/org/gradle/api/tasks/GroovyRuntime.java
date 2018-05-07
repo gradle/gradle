@@ -73,7 +73,7 @@ public class GroovyRuntime {
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
      */
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
-        // alternatively, we could return project.files(Runnable)
+        // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
@@ -89,7 +89,7 @@ public class GroovyRuntime {
                 }
 
                 if (groovyJar.isGroovyAll()) {
-                    return Cast.cast(FileCollectionInternal.class, project.files(groovyJar.getFile()));
+                    return Cast.cast(FileCollectionInternal.class, project.getLayout().files(groovyJar.getFile()));
                 }
 
                 if (project.getRepositories().isEmpty()) {

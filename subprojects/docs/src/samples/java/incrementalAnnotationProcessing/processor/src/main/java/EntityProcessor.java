@@ -36,6 +36,13 @@ public class EntityProcessor extends AbstractProcessor {
         return true;
     }
 
+    // START SNIPPET registering-incremental-annotation-processors
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.isolating");
+    }
+    // END SNIPPET registering-incremental-annotation-processors
+
     private void createRepository(TypeElement entity) {
         Name entityName = entity.getQualifiedName();
         String repositoryName = entityName + "Repository";

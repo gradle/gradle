@@ -1,0 +1,38 @@
+apply plugin: 'distribution'
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+distributions {
+    main {
+        contents {
+            from { 'src' }
+        }
+    }
+    custom {
+        contents {
+            from { 'src' }
+        }
+    }
+}
+
+// START SNIPPET publishing
+apply plugin: 'ivy-publish'
+
+publishing {
+    publications {
+        myDistribution(IvyPublication) {
+            artifact distZip
+            artifact customDistTar
+        }
+    }
+}
+// END SNIPPET publishing
+
+publishing {
+    repositories {
+        ivy {
+            url "$buildDir/repo"
+        }
+    }
+}

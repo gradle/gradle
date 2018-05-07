@@ -34,4 +34,8 @@ public enum IncrementalAnnotationProcessorType {
     public boolean isIncremental() {
         return incremental;
     }
+
+    public String getProcessorOption() {
+        return "org.gradle.annotation.processing." + name().toLowerCase();
+    }
 }

@@ -146,12 +146,13 @@ public class ProviderConnection {
                                   PhasedActionResultListener resultListener,
                                   BuildCancellationToken cancellationToken,
                                   ProviderOperationParameters providerParameters) {
+        List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, listenerConfig.clientSubscriptions);
+        BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
                 providerParameters, params);

@@ -22,6 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import org.gradle.util.ToBeImplemented
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -545,14 +546,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
         resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed jar [broken-utf8.jar] found on classpath'
+        outputContains "Malformed jar 'broken-utf8.jar' found on classpath"
 
     }
 
@@ -576,14 +577,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
         file('foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains 'Malformed jar [foo.jar] found on classpath.'
+        outputContains "Malformed jar 'foo.jar' found on classpath."
     }
 
     @Issue("gradle/gradle#1358")
@@ -598,14 +599,14 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         '''
         file('classes/foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
+        executer.withStackTraceChecksDisabled()
 
         when:
-        executer.withFullDeprecationStackTraceDisabled()
-        run 'compileJava'
+        run 'compileJava', '--debug'
 
         then:
         executedAndNotSkipped ':compileJava'
-        outputContains 'Malformed class file [foo.class] found on compile classpath'
+        outputContains"Malformed class file 'foo.class' found on compile classpath"
     }
 
     @Issue("gradle/gradle#1359")
@@ -631,6 +632,38 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
         executedAndNotSkipped ':compileJava'
+    }
+
+    @ToBeImplemented
+    @Issue(["https://github.com/gradle/gradle/issues/2463", "https://github.com/gradle/gradle/issues/3444"])
+    def "java compilation ignores empty packages"() {
+        given:
+        buildFile << """
+            plugins { id 'java' }
+        """
+
+        file('src/main/java/org/gradle/test/MyTest.java').text = """
+            package org.gradle.test;
+            
+            class MyTest {}
+        """
+
+        when:
+        run 'compileJava'
+        then:
+        executedAndNotSkipped(':compileJava')
+
+        when:
+        run 'compileJava'
+        then:
+        skipped(':compileJava')
+
+        when:
+        file('src/main/java/org/gradle/different').createDir()
+        run('compileJava', '--info')
+        then:
+        // FIXME: should be skipped
+        executedAndNotSkipped(':compileJava')
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
