@@ -937,6 +937,59 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
+    /**
+     * Component metadata from an external source only support 2 different types of attributes: boolean or string.
+     * Gradle makes the necessary work to coerce those into "real" typed attributes during matching. This test
+     * is here to prove that coercion works properly whenever attributes are sourced from a component metadata
+     * supplier.
+     */
+    def "user provided attributes are properly coerced to typed attributes"() {
+        given:
+        withSupplierWithAttributes([
+                'projectA:1.2': [:],
+                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
+                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
+        ])
+
+        buildFile << """
+            interface CustomType extends Named {}
+            
+            class MyAttributes {
+                public static final CUSTOM_STR = Attribute.of("custom", String)
+                public static final CUSTOM_REAL = Attribute.of("custom", CustomType)
+            }
+            
+            configurations.conf.attributes {
+                attribute(MyAttributes.CUSTOM_REAL, objects.named(CustomType, 'v2'))
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2'()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then: "custom metadata rule prevented parsing of ivy descriptor"
+        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        outputContains 'Providing metadata for group:projectB:2.2'
+        outputContains 'Providing metadata for group:projectB:1.1'
+
+        // Because the consumer has declared attributes, we now need to call the supplier for projectA too
+        outputContains 'Providing metadata for group:projectA:1.2'
+    }
+
 
     private SimpleSupplierInteractions withPerVersionStatusSupplier() {
         buildFile << """
