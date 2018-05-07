@@ -16,24 +16,24 @@
 package org.gradle.gradlebuild.buildquality.classycle
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
-
 import org.gradle.kotlin.dsl.*
-
 import java.io.File
 import java.net.URI
 import javax.inject.Inject
@@ -41,38 +41,46 @@ import javax.inject.Inject
 
 @CacheableTask
 open class Classycle @Inject constructor(
-    @get:Internal val classesDirs: FileCollection,
+    @get:Inject open val antBuilder: IsolatedAntBuilder,
+
+    @get:Classpath val classycleClasspath: FileCollection,
+
     @get:Input val excludePatterns: Provider<List<String>>,
     @get:Input val reportName: String,
-    @get:Internal val reportDir: File,
-    @get:InputFile @get:PathSensitive(PathSensitivity.NONE) val reportResourcesZip: Provider<RegularFile>
+
+    classesDirs: FileCollection,
+    defaultReportResourcesZip: RegularFileProperty,
+    private val defaultReportDirectory: Provider<Directory>,
+    defaultReportFile: Provider<RegularFile>,
+    defaultAnalysisFile: Provider<RegularFile>
 ) : DefaultTask() {
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val reportResourcesZip: Provider<RegularFile> = newInputFile()
 
     @get:InputFiles
     @get:SkipWhenEmpty
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val existingClassesDir: FileCollection
-        get() = classesDirs.filter(File::exists)
 
     @get:OutputFile
-    val reportFile
-        get() = File(reportDir, "$reportName.txt")
+    val reportFile: Provider<RegularFile> = newOutputFile()
 
-    private
-    val analysisFile: File
-        get() = File(reportDir, "${reportName}_analysis.xml")
+    @get:OutputFile
+    val analysisFile: Provider<RegularFile> = newOutputFile()
 
-    @get:Inject
-    protected
-    open val antBuilder: IsolatedAntBuilder
-        get() = throw UnsupportedOperationException()
+    init {
+        (reportResourcesZip as RegularFileProperty).set(defaultReportResourcesZip)
+        existingClassesDir = classesDirs.filter(File::exists)
+        (reportFile as RegularFileProperty).set(defaultReportFile)
+        (analysisFile as RegularFileProperty).set(defaultAnalysisFile)
+    }
 
     @TaskAction
     fun generate() = project.run {
         val classesDirs = existingClassesDir
-        val classpath = configurations[classycleBaseName].files
-        reportFile.parentFile.mkdirs()
-        antBuilder.withClasspath(classpath).execute(closureOf<AntBuilderDelegate> {
+        antBuilder.withClasspath(classycleClasspath).execute(closureOf<AntBuilderDelegate> {
             ant.withGroovyBuilder {
                 "taskdef"(
                     "name" to "classycleDependencyCheck",
@@ -83,7 +91,7 @@ open class Classycle @Inject constructor(
                 try {
                     "classycleDependencyCheck"(
                         mapOf(
-                            "reportFile" to reportFile,
+                            "reportFile" to reportFile.get().asFile,
                             "failOnUnwantedDependencies" to true,
                             "mergeInnerClasses" to true),
                         """
@@ -97,9 +105,9 @@ open class Classycle @Inject constructor(
                     try {
                         "unzip"(
                             "src" to reportResourcesZip.get().asFile,
-                            "dest" to reportDir)
+                            "dest" to defaultReportDirectory.get().asFile)
                         "classycleReport"(
-                            "reportFile" to analysisFile,
+                            "reportFile" to analysisFile.get().asFile,
                             "reportType" to "xml",
                             "mergeInnerClasses" to true,
                             "title" to "$name $reportName ($path)") {
@@ -110,7 +118,7 @@ open class Classycle @Inject constructor(
                         ex.printStackTrace()
                     }
                     throw RuntimeException("Classycle check failed: $ex.message. " +
-                        "See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}", ex)
+                        "See failure report at ${clickableUrl(reportFile.get().asFile)} and analysis report at ${clickableUrl(analysisFile.get().asFile)}", ex)
                 }
             }
         })

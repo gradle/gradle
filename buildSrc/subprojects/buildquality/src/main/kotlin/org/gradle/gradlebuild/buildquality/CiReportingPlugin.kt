@@ -1,17 +1,16 @@
 package org.gradle.gradlebuild.buildquality
 
 import me.champeau.gradle.japicmp.JapicmpTask
-import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.reporting.Reporting
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.withGroovyBuilder
-import org.gradle.plugin.devel.tasks.ValidateTaskProperties
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.buildquality.classycle.Classycle
-import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
+import org.gradle.kotlin.dsl.*
+import org.gradle.plugin.devel.tasks.ValidateTaskProperties
+import org.gradle.testing.DistributedPerformanceTest
 import java.io.File
 
 
@@ -66,7 +65,7 @@ open class CiReportingPlugin : Plugin<Project> {
     private
     fun Task.failedTaskCustomReports() = when (this) {
         is ValidateTaskProperties -> listOf(outputFile.get().asFile to project.name)
-        is Classycle -> listOf(reportFile to project.name)
+        is Classycle -> listOf(reportFile.get().asFile to project.name)
         is DistributionTest -> listOf(
             gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile to "all-logs",
             gradleInstallationForTest.daemonRegistry.get().asFile to "all-logs"

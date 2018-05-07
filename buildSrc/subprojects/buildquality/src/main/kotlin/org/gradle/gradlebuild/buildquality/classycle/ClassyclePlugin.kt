@@ -15,13 +15,12 @@
  */
 package org.gradle.gradlebuild.buildquality.classycle
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-import org.gradle.kotlin.dsl.*
-
 import accessors.java
 import accessors.reporting
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.kotlin.dsl.*
 
 
 internal
@@ -34,19 +33,27 @@ open class ClassyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         val extension = extensions.create<ClassycleExtension>(classycleBaseName, project)
-        configurations.create(classycleBaseName)
+        val classycleConfiguration = configurations.create(classycleBaseName)
         dependencies.add(classycleBaseName, "classycle:classycle:1.4@jar")
         tasks {
             val classycle by creating
             java.sourceSets.all {
                 val taskName = getTaskName(classycle.name, null)
+                val reportingDirectory: DirectoryProperty = reporting.baseDirectory
+                val reportFile = reportingDirectory.file("${classycle.name}/$name.txt")
+                val analysisFile = reportingDirectory.file("${classycle.name}/${name}_analysis.xml")
+
                 val sourceSetTask = project.tasks.create<Classycle>(
                     taskName,
-                    output.classesDirs,
+
+                    classycleConfiguration,
                     extension.excludePatterns,
                     name,
-                    reporting.file(classycle.name),
-                    extension.reportResourcesZip
+                    output.classesDirs,
+                    extension.reportResourcesZip,
+                    reportingDirectory.dir(classycle.name),
+                    reportFile,
+                    analysisFile
                 )
                 classycle.dependsOn(sourceSetTask)
                 "check" { dependsOn(sourceSetTask) }
