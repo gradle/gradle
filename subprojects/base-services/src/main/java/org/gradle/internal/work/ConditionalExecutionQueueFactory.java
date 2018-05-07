@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
-
-import org.gradle.internal.operations.BuildOperationRef;
+package org.gradle.internal.work;
 
 /**
- * A service that executes work in a (potentially) long-lived process or in-process.
+ * Provides new {@link ConditionalExecutionQueue} objects
  */
-public interface Worker {
-    DefaultWorkResult execute(ActionExecutionSpec spec);
-    DefaultWorkResult execute(ActionExecutionSpec spec, final BuildOperationRef parentBuildOperation);
+public interface ConditionalExecutionQueueFactory {
+    /**
+     * Provides a {@link ConditionalExecutionQueue} that can process {@link ConditionalExecution} objects that
+     * return the provided result class.
+     */
+    <T> ConditionalExecutionQueue<T> create(String displayName, Class<T> resultClass);
 }
