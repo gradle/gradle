@@ -24,13 +24,13 @@ import spock.lang.Specification
 class SelectedTaskExecutionActionTest extends Specification {
     final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
     final BuildExecutionContext context = Mock()
-    final TaskGraphExecuter executer = Mock()
+    final TaskExecutionGraphInternal taskGraph = Mock()
     final GradleInternal gradleInternal = Mock()
     final StartParameter startParameter = Mock()
 
     def setup() {
         _ * context.gradle >> gradleInternal
-        _ * gradleInternal.taskGraph >> executer
+        _ * gradleInternal.taskGraph >> taskGraph
         _ * gradleInternal.startParameter >> startParameter
     }
 
@@ -42,7 +42,7 @@ class SelectedTaskExecutionActionTest extends Specification {
         action.execute(context)
 
         then:
-        1 * executer.execute()
+        1 * taskGraph.execute()
     }
 
     def "executes selected tasks when continue specified"() {
@@ -53,8 +53,8 @@ class SelectedTaskExecutionActionTest extends Specification {
         action.execute(context)
 
         then:
-        1 * executer.setContinueOnFailure(true)
-        1 * executer.execute()
+        1 * taskGraph.setContinueOnFailure(true)
+        1 * taskGraph.execute()
     }
 
     def brokenTask(Throwable failure) {

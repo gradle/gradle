@@ -30,7 +30,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.event.DefaultListenerManager
@@ -67,7 +67,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
-        _ * serviceRegistry.get(TaskGraphExecuter) >> Mock(TaskGraphExecuter)
+        _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
         _ * serviceRegistry.newInstance(TaskContainerInternal) >> Mock(TaskContainerInternal)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(Instantiator) >> Mock(Instantiator)
