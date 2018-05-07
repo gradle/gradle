@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -602,11 +603,12 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         @Override
         public Map<String, ProviderInternal<? extends T>> getPendingAsMap() {
             // TODO not sure if we can clean up the generics here and do less unchecked casting
-            Map<String, ProviderInternal<?>> delegateMap = (Map<String, ProviderInternal<?>>) delegate.getPendingAsMap();
+            Map<String, ProviderInternal<?>> delegateMap = Cast.uncheckedCast(delegate.getPendingAsMap());
             Map<String, ProviderInternal<? extends T>> filteredMap = Maps.newLinkedHashMap();
             for (Map.Entry<String, ProviderInternal<?>> entry : delegateMap.entrySet()) {
                 if (entry.getValue().getType() != null && filter.getType().isAssignableFrom(entry.getValue().getType())) {
-                    filteredMap.put(entry.getKey(), (ProviderInternal<? extends T>) entry.getValue());
+                    ProviderInternal<? extends T> typedValue = Cast.uncheckedCast(entry.getValue());
+                    filteredMap.put(entry.getKey(), typedValue);
                 }
             }
             return filteredMap;

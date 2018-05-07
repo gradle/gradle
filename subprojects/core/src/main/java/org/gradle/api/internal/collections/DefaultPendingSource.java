@@ -30,7 +30,11 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
     @Override
     public void realizePending() {
         for (ProviderInternal<? extends T> provider : pending) {
-            flushAction.execute(provider);
+            if (flushAction != null) {
+                flushAction.execute(provider);
+            } else {
+                throw new IllegalStateException("Cannot realize pending elements when realize action is not set");
+            }
         }
         pending.clear();
     }

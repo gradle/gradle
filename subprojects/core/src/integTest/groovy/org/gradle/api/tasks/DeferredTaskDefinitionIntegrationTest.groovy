@@ -272,6 +272,26 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task1")
     }
 
+    def "fails to get a task by name when it does not match the filtered type"() {
+        buildFile <<'''
+            tasks.createLater("task1", SomeTask) {
+                println "Configure ${path}"
+            }
+            
+            tasks.create("other") {
+                dependsOn tasks.withType(SomeOtherTask).getByName("task1")
+            }
+        '''
+
+        when:
+        fails "other"
+
+        then:
+        outputDoesNotContain("Create :task1")
+        outputDoesNotContain("Configure :task1")
+        failure.assertHasCause("Task with name 'task1' not found")
+    }
+
     def "fails to get a task by name when it does not match the collection filter"() {
         buildFile <<'''
             tasks.createLater("task1", SomeTask) {
