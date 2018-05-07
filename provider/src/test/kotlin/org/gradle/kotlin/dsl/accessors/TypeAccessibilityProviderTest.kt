@@ -11,6 +11,10 @@ import org.junit.Assert.*
 import org.junit.Test
 
 
+internal
+interface InternalType
+
+
 class TypeAccessibilityProviderTest : TestWithClassPath() {
 
     @Test
@@ -20,8 +24,19 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
         assertThat(
             accessibilityFor(
                 genericTypeWithPrimitiveComponent,
-                jarClassPathWith(PublicGenericType::class)),
+                classPath = jarClassPathWith(PublicGenericType::class)),
             equalTo(accessible(genericTypeWithPrimitiveComponent)))
+    }
+
+    @Test
+    fun `internal Kotlin type is inaccessible because NonPublic`() {
+
+        val internalType = kotlinTypeStringFor(typeOf<InternalType>())
+        assertThat(
+            accessibilityFor(
+                internalType,
+                classPath = jarClassPathWith(InternalType::class)),
+            equalTo(inaccessible(internalType, InaccessibilityReason.NonPublic(internalType))))
     }
 
     @Test
