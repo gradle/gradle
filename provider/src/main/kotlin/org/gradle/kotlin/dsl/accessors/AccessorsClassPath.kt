@@ -382,7 +382,7 @@ class ClassDataFromKotlinMetadataAnnotationVisitor(
     var d1 = mutableListOf<String>()
 
     /**
-     * @see kotlin.Metadata.d1
+     * @see kotlin.Metadata.d2
      */
     private
     var d2 = mutableListOf<String>()
