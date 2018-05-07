@@ -70,7 +70,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                         throw new InvalidLockFileException(configurationName, e);
                     }
                 }
-                LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Loaded lock state for configuration '{}', state is: {}", configurationName, lockedModules);
+                } else {
+                    LOGGER.info("Loaded lock state for configuration '{}'", configurationName);
+                }
                 return new DefaultDependencyLockingState(partialUpdate, results);
             }
         }
@@ -80,7 +84,13 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules) {
         if (writeLocks) {
-            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedModules));
+            List<String> modulesOrdered = getModulesOrdered(resolvedModules);
+            lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", configurationName, modulesOrdered);
+            } else {
+                LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", configurationName);
+            }
         }
     }
 
@@ -90,7 +100,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             modules.add(converter.convertToLockNotation(identifier));
         }
         Collections.sort(modules);
-        LOGGER.debug("Found the following modules:\n\t{}", modules);
         return modules;
     }
 
