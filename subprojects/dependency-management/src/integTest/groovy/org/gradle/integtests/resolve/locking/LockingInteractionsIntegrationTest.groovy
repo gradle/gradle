@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -91,5 +92,49 @@ dependencies {
         then:
         outputContains('my-dep-1.0')
         lockfileFixture.verifyLockfile('lockedConf', [])
+    }
+
+    @Unroll
+    def "can lock when using latest.#level"() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').withNonUniqueSnapshots().publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.1-SNAPSHOT').withNonUniqueSnapshots().publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:latest.$level'
+}
+"""
+        def version = '1.0'
+        if (level == 'integration') {
+            version += '-SNAPSHOT'
+        }
+        lockfileFixture.createLockfile('lockedConf',["org:bar:$version".toString()])
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains("org:bar:$resolvedVersion")
+
+        where:
+        level           | resolvedVersion
+        'release'       | '1.0'
+        'integration'   | '1.0-SNAPSHOT'
     }
 }
