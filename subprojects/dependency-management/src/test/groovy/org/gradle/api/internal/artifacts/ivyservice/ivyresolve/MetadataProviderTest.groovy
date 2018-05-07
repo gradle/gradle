@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
@@ -186,4 +188,80 @@ class MetadataProviderTest extends Specification {
         componentMetadata.status == 'from rule'
         componentMetadata.statusScheme == ['from', 'rule']
     }
+
+
+    def "can mutate attributes using a metadata supplier"() {
+        def stringAttribute = Attribute.of("test", String)
+        def booleanAttribute = Attribute.of("bool", Boolean)
+        def unsetAttribute = Attribute.of("unset", String)
+
+        given:
+        resolveState.id >> id
+        resolveState.attributesFactory >> TestUtil.attributesFactory()
+        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
+            processMetadata(_) >> { args -> args[0] }
+        }
+        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
+            execute(_) >> { args ->
+                def builder = args[0].result
+                builder.status = 'foo'
+                builder.statusScheme = ['foo', 'bar']
+                builder.attributes {
+                    it.attribute(stringAttribute, "test value")
+                    it.attribute(booleanAttribute, true)
+                }
+            }
+        }
+
+        when:
+        def componentMetadata = metadataProvider.componentMetadata
+
+        then:
+        0 * resolveState.resolve()
+        componentMetadata.status == 'foo'
+        componentMetadata.statusScheme == ['foo', 'bar']
+
+        and:
+        def attributes = componentMetadata.attributes
+        attributes.getAttribute(stringAttribute) == 'test value'
+        attributes.getAttribute(booleanAttribute) == true
+        attributes.getAttribute(unsetAttribute) == null
+    }
+
+    def "validates that user supplied attributes are desugared"() {
+        def stringAttribute = Attribute.of("test", String)
+        def booleanAttribute = Attribute.of("bool", Boolean)
+        def invalidAttribute1 = Attribute.of("integer", Integer)
+        def invalidAttribute2 = Attribute.of("long", Long)
+
+        given:
+        resolveState.id >> id
+        resolveState.attributesFactory >> TestUtil.attributesFactory()
+        resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
+            processMetadata(_) >> { args -> args[0] }
+        }
+        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
+            execute(_) >> { args ->
+                def builder = args[0].result
+                builder.status = 'foo'
+                builder.statusScheme = ['foo', 'bar']
+                builder.attributes {
+                    it.attribute(stringAttribute, "test value")
+                    it.attribute(booleanAttribute, true)
+                    it.attribute(invalidAttribute1, 123)
+                }
+                builder.attributes.attribute(invalidAttribute2, 456L)
+            }
+        }
+
+        when:
+        metadataProvider.componentMetadata
+
+        then:
+        InvalidUserDataException ex = thrown()
+        ex.message == """Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans:
+  - Attribute 'integer' has type class java.lang.Integer
+  - Attribute 'long' has type class java.lang.Long"""
+    }
+
 }
