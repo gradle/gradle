@@ -24,7 +24,7 @@ import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 
 import java.util.Set;
 
@@ -42,7 +42,7 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     @Deprecated
     FileCollection getPublishableFiles();
 
-    MavenProjectIdentity getMavenProjectIdentity();
+    MutableMavenProjectIdentity getMavenProjectIdentity();
 
     Set<MavenDependency> getApiDependencyConstraints();
 

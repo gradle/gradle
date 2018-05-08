@@ -62,7 +62,7 @@ import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtif
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -107,7 +107,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private final String name;
     private final MavenPomInternal pom;
-    private final MavenProjectIdentity projectIdentity;
+    private final MutableMavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mainArtifacts;
     private final PublicationArtifactSet<MavenArtifact> metadataArtifacts;
     private final PublicationArtifactSet<MavenArtifact> derivedArtifacts;
@@ -129,7 +129,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean artifactsOverridden;
 
     public DefaultMavenPublication(
-        String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
+        String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
         this.name = name;
@@ -324,27 +324,27 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     public String getGroupId() {
-        return projectIdentity.getGroupId();
+        return projectIdentity.getGroupId().get();
     }
 
     public void setGroupId(String groupId) {
-        projectIdentity.setGroupId(groupId);
+        projectIdentity.getGroupId().set(groupId);
     }
 
     public String getArtifactId() {
-        return projectIdentity.getArtifactId();
+        return projectIdentity.getArtifactId().get();
     }
 
     public void setArtifactId(String artifactId) {
-        projectIdentity.setArtifactId(artifactId);
+        projectIdentity.getArtifactId().set(artifactId);
     }
 
     public String getVersion() {
-        return projectIdentity.getVersion();
+        return projectIdentity.getVersion().get();
     }
 
     public void setVersion(String version) {
-        projectIdentity.setVersion(version);
+        projectIdentity.getVersion().set(version);
     }
 
     @Override
@@ -380,7 +380,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         derivedArtifacts.remove(artifact);
     }
 
-    public MavenProjectIdentity getMavenProjectIdentity() {
+    public MutableMavenProjectIdentity getMavenProjectIdentity() {
         return projectIdentity;
     }
 
@@ -519,7 +519,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Nullable
     @Override
     public ImmutableAttributes getAttributes() {
-        String version = getMavenProjectIdentity().getVersion();
+        String version = getMavenProjectIdentity().getVersion().get();
         String status = MavenVersionUtils.inferStatusFromVersionNumber(version);
         return immutableAttributesFactory.of(ProjectInternal.STATUS_ATTRIBUTE, status);
     }

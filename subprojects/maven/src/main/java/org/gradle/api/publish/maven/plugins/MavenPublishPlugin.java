@@ -33,14 +33,15 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
@@ -52,6 +53,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -72,11 +74,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FileCollectionFactory fileCollectionFactory;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final ProviderFactory providerFactory;
 
     @Inject
     public MavenPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
                               FileResolver fileResolver, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
+                              FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
@@ -85,6 +88,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         this.fileCollectionFactory = fileCollectionFactory;
         this.featurePreviews = featurePreviews;
         this.immutableAttributesFactory = immutableAttributesFactory;
+        this.providerFactory = providerFactory;
     }
 
     public void apply(final Project project) {
@@ -198,14 +202,36 @@ public class MavenPublishPlugin implements Plugin<Project> {
         }
 
         public MavenPublication create(final String name) {
-            Module module = dependencyMetaDataProvider.getModule();
-            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(module);
+            MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
-
             return instantiator.newInstance(
-                    DefaultMavenPublication.class,
-                    name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
+                DefaultMavenPublication.class,
+                name, projectIdentity, artifactNotationParser, instantiator, objectFactory, projectDependencyResolver, fileCollectionFactory, featurePreviews, immutableAttributesFactory
             );
+        }
+
+        private MutableMavenProjectIdentity createProjectIdentity() {
+            final Module module = dependencyMetaDataProvider.getModule();
+            MutableMavenProjectIdentity projectIdentity = new WritableMavenProjectIdentity(objectFactory);
+            projectIdentity.getGroupId().set(providerFactory.provider(new Callable<String>() {
+                @Override
+                public String call() {
+                    return module.getGroup();
+                }
+            }));
+            projectIdentity.getArtifactId().set(providerFactory.provider(new Callable<String>() {
+                @Override
+                public String call() {
+                    return module.getName();
+                }
+            }));
+            projectIdentity.getVersion().set(providerFactory.provider(new Callable<String>() {
+                @Override
+                public String call() {
+                    return module.getVersion();
+                }
+            }));
+            return projectIdentity;
         }
     }
 }

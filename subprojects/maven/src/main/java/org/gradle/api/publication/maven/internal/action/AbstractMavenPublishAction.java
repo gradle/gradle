@@ -67,7 +67,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         BuildOperationRef currentBuildOperation = currentBuildOperationRef.get();
         session.setTransferListener(new LoggingMavenTransferListener(currentBuildOperationRef, currentBuildOperation));
 
-        pomArtifact = new DefaultArtifact(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), "pom", projectIdentity.getVersion());
+        pomArtifact = new DefaultArtifact(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get(), "pom", projectIdentity.getVersion().get());
         mainArtifact = createTypedArtifact(packaging, null);
     }
 
@@ -160,7 +160,7 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
                 classifier = stereotype.getClassifier();
             }
         }
-        return new DefaultArtifact(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), classifier, extension, projectIdentity.getVersion());
+        return new DefaultArtifact(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get(), classifier, extension, projectIdentity.getVersion().get());
     }
 
     public void setUniqueVersion(boolean uniqueVersion) {
