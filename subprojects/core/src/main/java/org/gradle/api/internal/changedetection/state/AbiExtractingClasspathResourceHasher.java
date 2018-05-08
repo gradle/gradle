@@ -17,11 +17,12 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.util.DeprecationLogger;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -32,6 +33,8 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
+    private static final Logger LOGGER = Logging.getLogger(AbiExtractingClasspathResourceHasher.class);
+
     private HashCode hashClassBytes(InputStream inputStream) throws IOException {
         // Use the ABI as the hash
         byte[] classBytes = ByteStreams.toByteArray(inputStream);
@@ -57,7 +60,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
             inputStream = Files.newInputStream(Paths.get(fileSnapshot.getPath()));
             return hashClassBytes(inputStream);
         } catch (Exception e) {
-            DeprecationLogger.nagUserWith("Malformed class file [" + name + "] found on compile classpath, which means that this class will cause a compile error if referenced in a source file. Gradle 5.0 will no longer allow malformed classes on compile classpath.");
+            LOGGER.debug("Malformed class file '" + name + "' found on compile classpath. Falling back to full file hash instead of ABI hasing.", e);
             return fileSnapshot.getContent().getContentMd5();
         } finally {
             IoActions.closeQuietly(inputStream);

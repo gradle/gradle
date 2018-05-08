@@ -18,7 +18,6 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.Namer;
-import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.FilteredList;
@@ -37,10 +36,6 @@ import java.util.ListIterator;
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
         super(objects, filter, instantiator, namer);
-    }
-
-    public DefaultNamedDomainObjectList(Class<T> type, CollectionEventRegister<T> collectionEventRegister, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, new ListElementSource<T>(), collectionEventRegister, new UnfilteredIndex<T>(), instantiator, namer);
     }
 
     public DefaultNamedDomainObjectList(Class<T> type, Instantiator instantiator, Namer<? super T> namer) {

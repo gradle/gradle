@@ -16,30 +16,34 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.base.Objects;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
+import javax.annotation.Nullable;
 
-public class IncludeFileState {
-    private final HashCode hash;
-    private final File includeFile;
+public class IncludeFileEdge {
+    private final String includePath;
+    @Nullable
+    private final HashCode includedBy;
+    private final HashCode resolvedTo;
 
-    public IncludeFileState(HashCode hash, File includeFile) {
-        this.hash = hash;
-        this.includeFile = includeFile;
+    public IncludeFileEdge(String includePath, @Nullable HashCode includedBy, HashCode resolvedTo) {
+        this.includePath = includePath;
+        this.includedBy = includedBy;
+        this.resolvedTo = resolvedTo;
     }
 
-    public HashCode getHash() {
-        return hash;
+    public String getIncludePath() {
+        return includePath;
     }
 
-    public File getIncludeFile() {
-        return includeFile;
+    @Nullable
+    public HashCode getIncludedBy() {
+        return includedBy;
     }
 
-    @Override
-    public String toString() {
-        return includeFile.toString();
+    public HashCode getResolvedTo() {
+        return resolvedTo;
     }
 
     @Override
@@ -50,12 +54,12 @@ public class IncludeFileState {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        IncludeFileState other = (IncludeFileState) obj;
-        return hash.equals(other.hash) && includeFile.equals(other.includeFile);
+        IncludeFileEdge other = (IncludeFileEdge) obj;
+        return includePath.equals(other.includePath) && Objects.equal(includedBy, other.includedBy) && resolvedTo.equals(other.resolvedTo);
     }
 
     @Override
     public int hashCode() {
-        return hash.hashCode();
+        return includePath.hashCode();
     }
 }

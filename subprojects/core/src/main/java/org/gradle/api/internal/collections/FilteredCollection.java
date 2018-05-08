@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.WithEstimatedSize;
+import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -95,7 +97,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         private S next;
 
         FilteringIterator(ElementSource<T> collection, CollectionFilter<S> filter) {
-            this.iterator = collection.iterator();
+            this.iterator = collection.iteratorNoFlush();
             this.filter = filter;
             this.estimatedSize = collection.estimatedSize();
             this.next = findNext();
@@ -142,6 +144,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
 
     @Override
     public Iterator<S> iterator() {
+        collection.realizePending(filter.getType());
         return new FilteringIterator<T, S>(collection, filter);
     }
 
@@ -153,6 +156,7 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
     @Override
     public int size() {
         int i = 0;
+        // TODO this will realize all pending elements
         for (T o : collection) {
             if (accept(o)) {
                 ++i;
@@ -160,4 +164,32 @@ public class FilteredCollection<T, S extends T> implements ElementSource<S> {
         }
         return i;
     }
+
+    @Override
+    public Iterator<S> iteratorNoFlush() {
+        return new FilteringIterator<T, S>(collection, filter);
+    }
+
+    @Override
+    public void realizePending() {
+        realizePending(filter.getType());
+    }
+
+    @Override
+    public void realizePending(Class<?> type) {
+        collection.realizePending(type);
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends S> provider) {
+        collection.addPending(provider);
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends S> provider) {
+        collection.removePending(provider);
+    }
+
+    @Override
+    public void onRealize(Action<ProviderInternal<? extends S>> action) { }
 }

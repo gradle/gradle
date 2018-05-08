@@ -37,14 +37,14 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        TaskGraphExecuter executer = gradle.getTaskGraph();
+        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
 
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
             List<TaskSelector.TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
             for (TaskSelector.TaskSelection taskSelection : taskSelections) {
                 LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
-                executer.addTasks(taskSelection.getTasks());
+                taskGraph.addTasks(taskSelection.getTasks());
             }
         }
 

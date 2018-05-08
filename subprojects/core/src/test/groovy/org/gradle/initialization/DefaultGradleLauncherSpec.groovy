@@ -28,11 +28,11 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.BuildConfigurer
 import org.gradle.execution.BuildConfigurationActionExecuter
 import org.gradle.execution.BuildExecuter
-import org.gradle.execution.TaskGraphExecuter
-import org.gradle.composite.internal.IncludedBuildControllers
+import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -52,7 +52,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def initScriptHandlerMock = Mock(InitScriptHandler)
     def settingsLoaderMock = Mock(SettingsLoader)
     def buildLoaderMock = Mock(BuildLoader)
-    def taskExecuterMock = Mock(TaskGraphExecuter)
+    def taskGraphMock = Mock(TaskExecutionGraphInternal)
     def buildConfigurerMock = Mock(BuildConfigurer)
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildExecuter)
@@ -109,9 +109,9 @@ class DefaultGradleLauncherSpec extends Specification {
 
         _ * gradleMock.getRootProject() >> expectedRootProject
         _ * gradleMock.getDefaultProject() >> expectedCurrentProject
-        _ * gradleMock.getTaskGraph() >> taskExecuterMock
-        _ * taskExecuterMock.getRequestedTasks() >> [Mock(Task)]
-        _ * taskExecuterMock.getFilteredTasks() >> [Mock(Task)]
+        _ * gradleMock.getTaskGraph() >> taskGraphMock
+        _ * taskGraphMock.getRequestedTasks() >> [Mock(Task)]
+        _ * taskGraphMock.getFilteredTasks() >> [Mock(Task)]
         _ * gradleMock.getStartParameter() >> expectedStartParams
         _ * gradleMock.getServices() >> buildScopeServices
         _ * gradleMock.includedBuilds >> []
