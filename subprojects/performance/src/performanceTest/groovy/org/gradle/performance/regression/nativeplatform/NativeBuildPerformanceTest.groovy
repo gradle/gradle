@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
-        runner.minimumVersion = '4.0'
+        runner.minimumVersion = '4.1' // minimum version that contains new C++ plugins
         runner.targetVersions = ["4.8-20180506235948+0000"]
     }
 

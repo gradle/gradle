@@ -43,7 +43,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.execution.TaskFailureHandler;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
@@ -96,7 +95,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final TaskInfoFactory nodeFactory = new TaskInfoFactory(failureCollector);
     private Spec<? super Task> filter = Specs.satisfyAll();
 
-    private TaskFailureHandler failureHandler = new RethrowingFailureHandler();
+    private boolean continueOnFailure;
 
     private final Set<TaskInfo> runningTasks = Sets.newIdentityHashSet();
     private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
@@ -545,8 +544,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.filter = filter;
     }
 
-    public void useFailureHandler(TaskFailureHandler handler) {
-        this.failureHandler = handler;
+    public void setContinueOnFailure(boolean continueOnFailre) {
+        this.continueOnFailure = continueOnFailre;
     }
 
     @Override
@@ -884,7 +883,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
         // Task failure
         try {
-            failureHandler.onTaskFailure(taskInfo.getTask());
+            if (!continueOnFailure) {
+                taskInfo.getTask().getState().rethrowFailure();
+            }
             this.failureCollector.addFailure(taskInfo.getTaskFailure());
         } catch (Exception e) {
             // If the failure handler rethrows exception, then execution of other tasks is aborted. (--continue will collect failures)
@@ -973,13 +974,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         private TaskInfoInVisitingSegment(TaskInfo taskInfo, int visitingSegment) {
             this.taskInfo = taskInfo;
             this.visitingSegment = visitingSegment;
-        }
-    }
-
-    private static class RethrowingFailureHandler implements TaskFailureHandler {
-        @Override
-        public void onTaskFailure(Task task) {
-            task.getState().rethrowFailure();
         }
     }
 

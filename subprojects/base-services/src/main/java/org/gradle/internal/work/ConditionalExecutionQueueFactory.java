@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
 
-import org.gradle.api.Task;
+package org.gradle.internal.work;
 
-public interface TaskFailureHandler {
+/**
+ * Provides new {@link ConditionalExecutionQueue} objects
+ */
+public interface ConditionalExecutionQueueFactory {
     /**
-     * Called when execution for a task fails. Can throw an exception to abort execution.
+     * Provides a {@link ConditionalExecutionQueue} that can process {@link ConditionalExecution} objects that
+     * return the provided result class.
      */
-    void onTaskFailure(Task task);
+    <T> ConditionalExecutionQueue<T> create(String displayName, Class<T> resultClass);
 }

@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -47,7 +46,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-class DefaultTaskGraphExecuterSpec extends Specification {
+class DefaultTaskExecutionGraphSpec extends Specification {
     def cancellationToken = Mock(BuildCancellationToken)
     def project = ProjectBuilder.builder().build()
     def listenerManager = new DefaultListenerManager()
@@ -58,7 +57,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def parallelismConfigurationManager = new ParallelismConfigurationManagerFixture(parallelismConfiguration)
     def workerLeases = new DefaultWorkerLeaseService(coordinationService, parallelismConfigurationManager)
     def executorFactory = Mock(ExecutorFactory)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
+    def taskGraph = new DefaultTaskExecutionGraph(listenerManager, new DefaultTaskPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinationService), Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease
     def executedTasks = []
 
@@ -81,11 +80,11 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         def b = task("b")
 
         given:
-        taskExecuter.addTaskExecutionListener(listener)
-        taskExecuter.addTasks([a, b])
+        taskGraph.addTaskExecutionListener(listener)
+        taskGraph.addTasks([a, b])
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
@@ -110,11 +109,11 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         def a = brokenTask("a", failure)
 
         given:
-        taskExecuter.addTaskExecutionListener(listener)
-        taskExecuter.addTasks([a])
+        taskGraph.addTaskExecutionListener(listener)
+        taskGraph.addTasks([a])
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         RuntimeException e = thrown()
@@ -132,8 +131,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         cancellationToken.cancellationRequested >>> [false, true]
 
         when:
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskGraph.addTasks([a, b])
+        taskGraph.execute()
 
         then:
         BuildCancelledException e = thrown()
@@ -152,8 +151,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         cancellationToken.cancellationRequested >>> [false, false, true]
 
         when:
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskGraph.addTasks([a, b])
+        taskGraph.execute()
 
         then:
         1 * executer.execute(a, a.state, _)
@@ -166,8 +165,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         cancellationToken.cancellationRequested >>> [true]
 
         when:
-        taskExecuter.addTasks([])
-        taskExecuter.execute()
+        taskGraph.addTasks([])
+        taskGraph.execute()
 
         then:
         noExceptionThrown()
@@ -180,8 +179,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task d = task("d", c)
 
         when:
-        taskExecuter.addTasks([d])
-        taskExecuter.execute()
+        taskGraph.addTasks([d])
+        taskGraph.execute()
 
         then:
         executedTasks == [a, b, c, d]
@@ -194,8 +193,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task d = task("d", b, a, c)
 
         when:
-        taskExecuter.addTasks([d])
-        taskExecuter.execute()
+        taskGraph.addTasks([d])
+        taskGraph.execute()
 
         then:
         executedTasks == [a, b, c, d]
@@ -207,8 +206,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task c = task("c")
 
         when:
-        taskExecuter.addTasks([b, c, a])
-        taskExecuter.execute()
+        taskGraph.addTasks([b, c, a])
+        taskGraph.execute()
 
         then:
         executedTasks == [a, b, c]
@@ -221,9 +220,9 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task d = task("d")
 
         when:
-        taskExecuter.addTasks([c, b])
-        taskExecuter.addTasks([d, a])
-        taskExecuter.execute()
+        taskGraph.addTasks([c, b])
+        taskGraph.addTasks([d, a])
+        taskGraph.execute()
 
         then:
         executedTasks == [b, c, a, d]
@@ -237,9 +236,9 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task e = task("e", b, d)
 
         when:
-        taskExecuter.addTasks([c])
-        taskExecuter.addTasks([e])
-        taskExecuter.execute()
+        taskGraph.addTasks([c])
+        taskGraph.addTasks([e])
+        taskGraph.execute()
 
         then:
         executedTasks == [a, b, c, d, e]
@@ -252,18 +251,18 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task d = task("d", c)
 
         when:
-        taskExecuter.addTasks([d])
+        taskGraph.addTasks([d])
 
         then:
-        taskExecuter.hasTask(":a")
-        taskExecuter.hasTask(a)
-        taskExecuter.hasTask(":b")
-        taskExecuter.hasTask(b)
-        taskExecuter.hasTask(":c")
-        taskExecuter.hasTask(c)
-        taskExecuter.hasTask(":d")
-        taskExecuter.hasTask(d)
-        taskExecuter.allTasks == [a, b, c, d]
+        taskGraph.hasTask(":a")
+        taskGraph.hasTask(a)
+        taskGraph.hasTask(":b")
+        taskGraph.hasTask(b)
+        taskGraph.hasTask(":c")
+        taskGraph.hasTask(c)
+        taskGraph.hasTask(":d")
+        taskGraph.hasTask(d)
+        taskGraph.allTasks == [a, b, c, d]
     }
 
     def "get all tasks returns tasks in execution order"() {
@@ -273,29 +272,29 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task a = task("a", b)
 
         when:
-        taskExecuter.addTasks([a])
+        taskGraph.addTasks([a])
 
         then:
-        taskExecuter.allTasks == [c, d, b, a]
+        taskGraph.allTasks == [c, d, b, a]
     }
 
     def "cannot use getter methods when graph has not been calculated"() {
         when:
-        taskExecuter.hasTask(":a")
+        taskGraph.hasTask(":a")
 
         then:
         def e = thrown(IllegalStateException)
         e.message == "Task information is not available, as this task execution graph has not been populated."
 
         when:
-        taskExecuter.hasTask("a")
+        taskGraph.hasTask("a")
 
         then:
         e = thrown(IllegalStateException)
         e.message == "Task information is not available, as this task execution graph has not been populated."
 
         when:
-        taskExecuter.getAllTasks()
+        taskGraph.getAllTasks()
 
         then:
         e = thrown(IllegalStateException)
@@ -307,13 +306,13 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task b = task("b", a)
 
         when:
-        taskExecuter.addTasks([b])
-        taskExecuter.execute()
+        taskGraph.addTasks([b])
+        taskGraph.execute()
 
         then:
-        !taskExecuter.hasTask(":a")
-        !taskExecuter.hasTask(a)
-        taskExecuter.allTasks.isEmpty()
+        !taskGraph.hasTask(":a")
+        !taskGraph.hasTask(a)
+        taskGraph.allTasks.isEmpty()
     }
 
     def "can execute multiple times"() {
@@ -322,21 +321,21 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         Task c = task("c")
 
         when:
-        taskExecuter.addTasks([b])
-        taskExecuter.execute()
+        taskGraph.addTasks([b])
+        taskGraph.execute()
 
         then:
         executedTasks == [a, b]
 
         when:
         executedTasks.clear()
-        taskExecuter.addTasks([c])
+        taskGraph.addTasks([c])
 
         then:
-        taskExecuter.allTasks == [c]
+        taskGraph.allTasks == [c]
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         executedTasks == [c]
@@ -349,8 +348,8 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         addDependencies(a, c)
 
         when:
-        taskExecuter.addTasks([c])
-        taskExecuter.execute()
+        taskGraph.addTasks([c])
+        taskGraph.execute()
 
         then:
         thrown(CircularReferenceException)
@@ -358,7 +357,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
+        def taskExecuter = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
@@ -376,7 +375,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
+        def taskExecuter = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")
@@ -400,10 +399,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
 
-        taskExecuter.addTasks([a, b])
+        taskGraph.addTasks([a, b])
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         def e = thrown(RuntimeException)
@@ -414,22 +413,17 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     }
 
     def "stops execution on failure when failure handler indicates that execution should stop"() {
-        final TaskFailureHandler handler = Mock(TaskFailureHandler)
-
         final RuntimeException failure = new RuntimeException()
-        final RuntimeException wrappedFailure = new RuntimeException()
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
 
         when:
-        taskExecuter.useFailureHandler(handler)
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskGraph.addTasks([a, b])
+        taskGraph.execute()
 
         then:
-        1 * handler.onTaskFailure(a) >> { args -> throw wrappedFailure }
         def e = thrown(RuntimeException)
-        e == wrappedFailure
+        e == failure
 
         and:
         executedTasks == [a]
@@ -445,10 +439,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         final Task b = task("b")
 
         when:
-        taskExecuter.beforeTask(closure)
-        taskExecuter.beforeTask(action)
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskGraph.beforeTask(closure)
+        taskGraph.beforeTask(action)
+        taskGraph.addTasks([a, b])
+        taskGraph.execute()
 
         then:
         1 * closure.call(a)
@@ -467,10 +461,10 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         final Task b = task("b")
 
         when:
-        taskExecuter.afterTask(closure)
-        taskExecuter.afterTask(action)
-        taskExecuter.addTasks([a, b])
-        taskExecuter.execute()
+        taskGraph.afterTask(closure)
+        taskGraph.afterTask(action)
+        taskGraph.addTasks([a, b])
+        taskGraph.execute()
 
         then:
         1 * closure.call(a)
@@ -489,14 +483,14 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         }
 
         when:
-        taskExecuter.useFilter(spec)
-        taskExecuter.addTasks([a, b])
+        taskGraph.useFilter(spec)
+        taskGraph.addTasks([a, b])
 
         then:
-        taskExecuter.allTasks == [b]
+        taskGraph.allTasks == [b]
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         executedTasks == [b]
@@ -513,35 +507,34 @@ class DefaultTaskGraphExecuterSpec extends Specification {
         }
 
         when:
-        taskExecuter.useFilter(spec)
-        taskExecuter.addTasks([c])
+        taskGraph.useFilter(spec)
+        taskGraph.addTasks([c])
 
         then:
-        taskExecuter.allTasks == [b, c]
+        taskGraph.allTasks == [b, c]
 
         when:
-        taskExecuter.execute()
+        taskGraph.execute()
 
         then:
         executedTasks == [b, c]
     }
 
     def "will execute a task whose dependencies have been filtered on failure"() {
-        final TaskFailureHandler handler = Mock(TaskFailureHandler)
         final RuntimeException failure = new RuntimeException()
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
         final Task c = task("c", b)
 
         when:
-        taskExecuter.useFailureHandler(handler)
-        taskExecuter.useFilter(new Spec<Task>() {
+        taskGraph.continueOnFailure = true
+        taskGraph.useFilter(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return element != b
             }
         })
-        taskExecuter.addTasks([a, c])
-        taskExecuter.execute()
+        taskGraph.addTasks([a, c])
+        taskGraph.execute()
 
         then:
         def e = thrown(RuntimeException)
