@@ -97,8 +97,11 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         daemonArgs.addAll(daemonOpts);
-        daemonArgs.add("-cp");
-        daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
+
+        if (!classpath.isEmpty()) {
+            daemonArgs.add("-cp");
+            daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
+        }
 
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
             daemonArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
