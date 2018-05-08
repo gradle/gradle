@@ -23,7 +23,7 @@ import org.gradle.api.provider.Provider;
 
 /**
  * Providers a task of the given type.
- * 
+ *
  * @param <T> Task type
  * @since 4.8
  */
@@ -35,5 +35,5 @@ public interface TaskProvider<T extends Task> extends Provider<T> {
      * @param action A {@link Action} that can configure the task when required.
      * @since 4.8
      */
-    void configure(Action<? super Task> action);
+    void configure(Action<? super T> action);
 }

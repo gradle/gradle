@@ -355,4 +355,75 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'assertActionExecutionCount'
     }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/662")
+    def "runs the lazy configuration actions in the same order as the eager configuration actions"() {
+        buildFile << '''
+            def actionExecutionOrderForTaskA = []
+
+            class A extends DefaultTask {}
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "A1"
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "A2"
+            }
+
+            def a = tasks.createLater("a", A) {
+                actionExecutionOrderForTaskA << "A3"
+            }
+
+            a.configure {
+                actionExecutionOrderForTaskA << "A4"
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "A5"
+            }
+
+            a.configure {
+                actionExecutionOrderForTaskA << "A6"
+            }
+
+            def actionExecutionOrderForTaskB = []
+
+            class B extends DefaultTask {}
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "B1"
+            }
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "B2"
+            }
+
+            def b = tasks.create("b", B) {
+                actionExecutionOrderForTaskB << "B3"
+            }
+
+            b.configure {
+                actionExecutionOrderForTaskB << "B4"
+            }
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "B5"
+            }
+
+            b.configure {
+                actionExecutionOrderForTaskB << "B6"
+            }
+
+            task assertActionExecutionOrder {
+                dependsOn a, b
+                doLast {
+                    assert actionExecutionOrderForTaskA == actionExecutionOrderForTaskB
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'assertActionExecutionOrder'
+    }
 }

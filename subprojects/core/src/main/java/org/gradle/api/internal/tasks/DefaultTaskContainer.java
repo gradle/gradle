@@ -274,12 +274,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
     }
 
-    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable  Action<? super T> configurationAction) {
+    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name);
         addLater(provider);
+        if (configurationAction != null) {
+            provider.configure(configurationAction);
+        }
         if (eagerlyCreateLazyTasks) {
             provider.get();
         }
@@ -450,8 +453,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
+            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName);
             placeholders.put(placeholderName, provider);
+            provider.configure(configure);
             deferredElementKnown(placeholderName, provider);
         } else {
             warnAboutPlaceholderDeprecation(placeholderName);
@@ -515,18 +519,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        public void configure(final Action<? super Task> action) {
-            configureLater(name, action);
+        public void configure(final Action<? super T> action) {
+            configureLater(name, new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    action.execute((T)task);
+                }
+            });
         }
     }
 
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
-        Action<? super T> configureAction;
         T task;
 
-        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
+        public TaskCreatingProvider(Class<T> type, String name) {
             super(type, name);
-            this.configureAction = configureAction;
             statistics.lazyTask();
         }
 
@@ -538,10 +545,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     task = createTask(name, type, NO_ARGS);
                     statistics.lazyTaskRealized(type);
                     add(task);
-                    if (configureAction != null) {
-                        configureAction.execute(task);
-                        configureAction = null;
-                    }
                 }
             }
             return task;
