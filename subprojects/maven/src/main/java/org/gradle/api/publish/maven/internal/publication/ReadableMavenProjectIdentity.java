@@ -21,9 +21,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 public class ReadableMavenProjectIdentity implements MavenProjectIdentity {
-    private Provider<String> groupId;
-    private Provider<String> artifactId;
-    private Provider<String> version;
+    private final Provider<String> groupId;
+    private final Provider<String> artifactId;
+    private final Provider<String> version;
 
     public ReadableMavenProjectIdentity(String groupId, String artifactId, String version) {
         this.groupId = Providers.of(groupId);

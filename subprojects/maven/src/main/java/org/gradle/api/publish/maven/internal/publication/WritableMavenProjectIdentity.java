@@ -21,9 +21,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 
 public class WritableMavenProjectIdentity implements MutableMavenProjectIdentity {
-    private Property<String> groupId;
-    private Property<String> artifactId;
-    private Property<String> version;
+    private final Property<String> groupId;
+    private final Property<String> artifactId;
+    private final Property<String> version;
 
     public WritableMavenProjectIdentity(ObjectFactory objectFactory) {
         this.groupId = objectFactory.property(String.class);
