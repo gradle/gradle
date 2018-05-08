@@ -198,10 +198,12 @@ class ClassLoaderClassPathCache {
     val cachedClassPaths = hashMapOf<ClassLoader, ClassPath>()
 
     fun of(classLoader: ClassLoader): ClassPath =
-        cachedClassPaths.computeIfAbsent(classLoader, ::computeClassPath)
+        cachedClassPaths.getOrPut(classLoader) {
+            classPathOf(classLoader)
+        }
 
     private
-    fun computeClassPath(classLoader: ClassLoader): ClassPath {
+    fun classPathOf(classLoader: ClassLoader): ClassPath {
         val classPathFiles = mutableListOf<File>()
 
         object : ClassLoaderVisitor() {
