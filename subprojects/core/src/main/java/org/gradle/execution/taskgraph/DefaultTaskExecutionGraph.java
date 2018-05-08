@@ -237,6 +237,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
                     "Task information is not available, as this task execution graph has not been populated.");
             case DIRTY:
                 taskExecutionPlan.determineExecutionPlan();
+                allTasks = null;
                 taskGraphState = TaskGraphState.POPULATED;
                 return;
             case POPULATED:
