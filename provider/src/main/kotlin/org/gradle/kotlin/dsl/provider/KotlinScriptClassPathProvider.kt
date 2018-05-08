@@ -116,8 +116,8 @@ class KotlinScriptClassPathProvider(
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
         }
-        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
         val fullClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
+        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
         return fullClassPath - rootClassPath
     }
 
