@@ -56,6 +56,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -216,7 +217,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     public List<Task> getAllTasks() {
         ensurePopulated();
-        return taskExecutionPlan.getTasks();
+        return new ArrayList<Task>(taskExecutionPlan.getTasks());
     }
 
     @Override
