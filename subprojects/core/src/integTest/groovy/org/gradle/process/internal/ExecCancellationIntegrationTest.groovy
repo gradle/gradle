@@ -99,7 +99,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
     }
 
     @Unroll
-    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and exceptions #ignored"() {
+    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and exceptions ignored = #ignored"() {
         given:
         file('outputFile') << ''
         blockCode()
@@ -119,7 +119,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
                     try {
                         def result = project.exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
                     } catch (Throwable t) {
-                        if("are ignored" != "${ignored}") {
+                        if(!${ignored}) {
                             throw t
                         }
                     }
@@ -136,10 +136,10 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
 
         where:
         buildCacheEnabled | ignored
-        true              | 'are ignored'
-        true              | 'are not ignored'
-        false             | 'are ignored'
-        false             | 'are not ignored'
+        true              | true
+        true              | false
+        false             | true
+        false             | false
     }
 
     String fileToPath(File file) {

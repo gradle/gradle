@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
@@ -81,9 +82,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            if (!buildCancellationToken.isCancellationRequested()) {
-                context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
-            }
+            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);
@@ -98,6 +97,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             task.getStandardOutputCapture().start();
             try {
                 executeAction(action.getDisplayName(), task, action, context);
+                if (buildCancellationToken.isCancellationRequested()) {
+                    return new BuildCancelledException("Build cancelled during task: " + task.getName());
+                }
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
