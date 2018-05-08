@@ -25,7 +25,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
-import org.gradle.internal.classloader.ClasspathUtil.getClasspath
+import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -38,6 +38,12 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GFileUtils.moveFile
 
 import java.io.File
+
+import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
+
+import java.util.concurrent.ConcurrentHashMap
 
 
 fun gradleKotlinDslOf(project: Project): List<File> =
@@ -99,6 +105,10 @@ class KotlinScriptClassPathProvider(
     }
 
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
+        cachedScopeCompilationClassPath.computeIfAbsent(scope, ::computeCompilationClassPath)
+
+    private
+    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
         gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
 
     private
@@ -106,8 +116,8 @@ class KotlinScriptClassPathProvider(
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
         }
-        val fullClassPath = getClasspath(scope.exportClassLoader)
-        val rootClassPath = getClasspath(scope.root.exportClassLoader)
+        val fullClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
+        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
         return fullClassPath - rootClassPath
     }
 
@@ -152,6 +162,12 @@ class KotlinScriptClassPathProvider(
     val gradleJars by lazy {
         classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
     }
+
+    private
+    val cachedScopeCompilationClassPath = ConcurrentHashMap<ClassLoaderScope, ClassPath>()
+
+    private
+    val cachedClassLoaderClassPath = ClassLoaderClassPathCache()
 }
 
 
@@ -173,3 +189,53 @@ private
 fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")
+
+
+private
+class ClassLoaderClassPathCache {
+
+    private
+    val cachedClassPaths = hashMapOf<ClassLoader, ClassPath>()
+
+    fun of(classLoader: ClassLoader): ClassPath =
+        cachedClassPaths.getOrPut(classLoader) {
+            classPathOf(classLoader)
+        }
+
+    private
+    fun classPathOf(classLoader: ClassLoader): ClassPath {
+        val classPathFiles = mutableListOf<File>()
+
+        object : ClassLoaderVisitor() {
+            override fun visitClassPath(classPath: Array<URL>) {
+                classPath.forEach { url ->
+                    if (url.protocol == "file") {
+                        classPathFiles.add(fileFrom(url))
+                    }
+                }
+            }
+
+            override fun visitParent(classLoader: ClassLoader) {
+                classPathFiles.addAll(of(classLoader).asFiles)
+            }
+        }.visit(classLoader)
+
+        return DefaultClassPath.of(classPathFiles)
+    }
+
+    private
+    fun fileFrom(url: URL) = File(toURI(url))
+}
+
+
+private
+fun toURI(url: URL): URI =
+    try {
+        url.toURI()
+    } catch (e: URISyntaxException) {
+        URL(
+            url.protocol,
+            url.host,
+            url.port,
+            url.file.replace(" ", "%20")).toURI()
+    }
