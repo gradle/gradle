@@ -36,17 +36,23 @@ To use the Java plugin, include the following in your build script:
 The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
 
 [[javalayout]]
-.Java plugin - default project layout
-[cols="a,a,a", options="header"]
-|===
-| Directory
-|
-| Meaning
+`src/main/java`::
+Production Java source.
 
-include::javaProjectMainLayout.adoc[]
-include::javaProjectTestLayout.adoc[]
-include::javaProjectGenericLayout.adoc[]
-|===
+`src/main/resources`::
+Production resources, such as XML and properties files.
+
+`src/test/java`::
+Test Java source.
+
+`src/test/resources`::
+Test resources.
+
+`src/__sourceSet__/java`::
+Java source for the source set named _sourceSet_.
+
+`src/__sourceSet__/resources`::
+Resources for the source set named _sourceSet_.
 
 
 [[sec:changing_java_project_layout]]
@@ -76,47 +82,67 @@ Contains your test source code, which is compiled and executed using JUnit or Te
 
 The following table lists some of the important properties of a source set. You can find more details in the API documentation for api:org.gradle.api.tasks.SourceSet[].
 
-`(read-only) String name`::
-_The name of the source set, used to identify it._ Default value: Not null
+`name` — (read-only) `String`::
+The name of the source set, used to identify it. 
 
-`(read-only) api:org.gradle.api.tasks.SourceSetOutput[] output`::
-_The output files of the source set, containing its compiled classes and resources._ Default value: Not null
+`output` — (read-only) api:org.gradle.api.tasks.SourceSetOutput[]::
+The output files of the source set, containing its compiled classes and resources.
 
-`api:org.gradle.api.file.FileCollection[] output.classesDirs`::
-_The directories to generate the classes of this source set into._ Default value: Not null
+`output.classesDirs` — (read-only) api:org.gradle.api.file.FileCollection[]::
+_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
++
+The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
 
-`File output.resourcesDir`::
-_The directory to generate the resources of this source set into._ Default value: `__buildDir__/resources/__name__`
+`output.resourcesDir` — `File`::
+_Default value_: `$buildDir/resources/$name`, e.g. _build/resources/main_
++
+The directory to generate the resources of this source set into. 
 
-`api:org.gradle.api.file.FileCollection[] compileClasspath`::
-_The classpath to use when compiling the source files of this source set._ Default value: `__sourceSet__CompileClasspath` configuration.
+`compileClasspath` — api:org.gradle.api.file.FileCollection[]::
+_Default value_: `${name}CompileClasspath` configuration
++
+The classpath to use when compiling the source files of this source set.
 
-`api:org.gradle.api.file.FileCollection[] annotationProcessorPath`::
-_The processor path to use when compiling the source files of this source set._ Default value: `__sourceSet__AnnotationProcessor` configuration.
+`annotationProcessorPath` — api:org.gradle.api.file.FileCollection[]::
+_Default value_: `${name}AnnotationProcessor` configuration
++
+The processor path to use when compiling the source files of this source set.
 
-`api:org.gradle.api.file.FileCollection[] runtimeClasspath`::
-_The classpath to use when executing the classes of this source set._ Default value: `output` + `__sourceSet__RuntimeClasspath` configuration.
+`runtimeClasspath` — api:org.gradle.api.file.FileCollection[]::
+_Default value_: `$output`, `${name}RuntimeClasspath` configuration
++
+The classpath to use when executing the classes of this source set.
 
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] java`::
-_The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files._ Default value: Not null
+`java` — (read-only) api:org.gradle.api.file.SourceDirectorySet[]::
+The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files.
 
-`Set&lt;File&gt; java.srcDirs`::
-_The source directories containing the Java source files of this source set._ Default value: `[__projectDir__/src/__name__/java]`. Can set using anything described in <<sec:specifying_multiple_files>>.
+`java.srcDirs` — `Set&lt;File&gt;`::
+_Default value_: `src/$name/java`, e.g. _src/main/java_
++
+The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<sec:specifying_multiple_files,this section>>.
 
-`File java.outputDir`::
-_The directory to generate compiled Java sources into._ Default value: `__buildDir__/classes/java/__sourceSetName__`. Can set using anything described in <<sec:locating_files>>.
+`java.outputDir` — `File`::
+_Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
++
+The directory to generate compiled Java sources into. You can set this to any value that is described in <<sec:single_file_paths,this section>>.
 
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] resources`::
-_The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource source directories. Other plugins, such as the Groovy plugin, exclude additional types of files from this collection._ Default value: Not null
+`resources` — (read-only) api:org.gradle.api.file.SourceDirectorySet[]::
+The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource directories. Other plugins, such as the <<groovy_plugin,Groovy Plugin>>, exclude additional types of files from this collection.
 
-`Set&lt;File&gt; resources.srcDirs`::
-_The source directories containing the resources of this source set._ Default value: `[__projectDir__/src/__name__/resources]`. Can set using anything described in <<sec:specifying_multiple_files>>.
+`resources.srcDirs` — `Set&lt;File&gt;`::
+_Default value_: `[src/$name/resources]`
++
+The directories containing the resources of this source set. You can set this to any type of value that is described in <<sec:specifying_multiple_files,this section>>.
 
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allJava`::
-_All `.java` files of this source set. Some plugins, such as the Groovy plugin, add additional Java source files to this collection._ Default value: `java`
+`allJava` — (read-only) api:org.gradle.api.file.SourceDirectorySet[]::
+_Default value_: Same as `java` property
++
+All Java files of this source set. Some plugins, such as the Groovy Plugin, add additional Java source files to this collection.
 
-`(read-only) api:org.gradle.api.file.SourceDirectorySet[] allSource`::
-_All source files of this source set. This include all resource files and all Java source files. Some plugins, such as the Groovy plugin, add additional source files to this collection._ Default value: `resources + java`
+`allSource` — (read-only) api:org.gradle.api.file.SourceDirectorySet[]::
+_Default value_: Sum of everything in the `resources` and `java` properties
++
+All source files of this source set of any language. This includes all resource files and all Java source files. Some plugins, such as the Groovy Plugin, add additional source files to this collection.
 
 [[sec:defining_new_source_sets]]
 ==== Defining new source sets
@@ -365,7 +391,7 @@ Compile time dependencies for the given source set. Superseded by `__sourceSet__
 Compile time dependencies for the given source set. Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
 
 `__sourceSet__CompileOnly`::
-_Compile time only dependencies for the given source set, not used at runtime._
+Compile time only dependencies for the given source set, not used at runtime.
 
 `__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
 Compile classpath, used when compiling source. Used by `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`.
