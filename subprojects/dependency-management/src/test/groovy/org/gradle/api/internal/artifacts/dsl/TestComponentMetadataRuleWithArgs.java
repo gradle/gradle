@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ComponentMetadataContext;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 
-/**
- * A rule that modify {@link ComponentMetadataDetails component metadata}.
- *
- * @since 4.9
- */
-@Incubating
-public interface ComponentMetadataRule extends Action<ComponentMetadataContext> {
+public class TestComponentMetadataRuleWithArgs implements ComponentMetadataRule {
+
+    public static int instanceCount = 0;
+    public static Object[] constructorParams;
+
+    public TestComponentMetadataRuleWithArgs(String arg1, long arg2) {
+        instanceCount++;
+        constructorParams = new Object[]{arg1, arg2};
+    }
+
+    @Override
+    public void execute(ComponentMetadataContext componentMetadataContext) {
+        // Do nothing for now
+    }
 }

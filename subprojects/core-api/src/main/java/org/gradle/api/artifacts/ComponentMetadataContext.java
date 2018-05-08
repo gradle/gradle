@@ -16,14 +16,28 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * A rule that modify {@link ComponentMetadataDetails component metadata}.
+ * Provides access to compoment metadata from a {@link ComponentMetadataRule}.
  *
  * @since 4.9
  */
 @Incubating
-public interface ComponentMetadataRule extends Action<ComponentMetadataContext> {
+public interface ComponentMetadataContext {
+
+    /**
+     * Used to access a specific descriptor format.
+     * For Ivy descriptor, an {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor ivy module descriptor} is returned.
+     *
+     * @param descriptorClass the descriptor class
+     * @param <T> the descriptor type
+     *
+     * @return a descriptor, or {@code null} if there was none of the requested type.
+     *
+     * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+     */
+    <T> T getDescriptor(Class<T> descriptorClass);
+
+    ComponentMetadataDetails getDetails();
 }

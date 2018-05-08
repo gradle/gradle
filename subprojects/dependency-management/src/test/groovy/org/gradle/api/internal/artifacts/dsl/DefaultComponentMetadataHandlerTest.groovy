@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.ActionConfiguration
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.artifacts.ComponentMetadataDetails
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -33,6 +34,7 @@ import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResol
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
@@ -57,6 +59,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+
+    def 'setup'() {
+        TestComponentMetadataRule.instanceCount = 0
+    }
 
     def "does nothing when no rules registered"() {
         def metadata = ivyMetadata().asImmutable()
@@ -113,6 +119,31 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         mockedHandler.rules[0].spec == Specs.satisfyAll()
     }
 
+    def "add class rule that applies to all components"() {
+        when:
+        handler.all(TestComponentMetadataRule)
+
+        then:
+        handler.classBasedRules.size() == 1
+        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].spec == Specs.satisfyAll()
+        TestComponentMetadataRule.instanceCount == 0
+    }
+
+    def "add class rule with parameters that applies to all components"() {
+        when:
+        handler.all(TestComponentMetadataRuleWithArgs, {
+                it.params("foo")
+                it.params(42L)
+            } as Action<ActionConfiguration>)
+
+        then:
+        handler.classBasedRules.size() == 1
+        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].spec == Specs.satisfyAll()
+        TestComponentMetadataRuleWithArgs.instanceCount == 0
+    }
+
     def "add action rule that applies to module" () {
         def action = new Action<ComponentMetadataDetails>() {
             @Override
@@ -162,6 +193,61 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         mockedHandler.rules.size() == 1
         mockedHandler.rules[0].action == (ruleAction)
         mockedHandler.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+    }
+
+    def "add class rule that applies to module"() {
+        String notation = "${GROUP}:${MODULE}"
+
+        when:
+        handler.withModule(notation, TestComponentMetadataRule)
+
+        then:
+        handler.classBasedRules.size() == 1
+        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        TestComponentMetadataRule.instanceCount == 0
+    }
+
+    def "add class rule with params that applies to module"() {
+        String notation = "${GROUP}:${MODULE}"
+
+        when:
+        handler.withModule(notation, TestComponentMetadataRuleWithArgs,  {
+            it.params("foo")
+            it.params(42L)
+        } as Action<ActionConfiguration>)
+
+        then:
+        handler.classBasedRules.size() == 1
+        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        TestComponentMetadataRule.instanceCount == 0
+    }
+
+    def "instantiates class rule when processing metadata"() {
+        String notation = "${GROUP}:${MODULE}"
+        handler.withModule(notation, TestComponentMetadataRule)
+
+        when:
+        handler.processMetadata(ivyMetadata().asImmutable())
+
+        then:
+        TestComponentMetadataRule.instanceCount == 1
+    }
+
+    def "instantiates class rule with params when processing metadata"() {
+        String notation = "${GROUP}:${MODULE}"
+        handler.withModule(notation, TestComponentMetadataRuleWithArgs,  {
+            it.params("foo")
+            it.params(42L)
+        } as Action<ActionConfiguration>)
+
+        when:
+        handler.processMetadata(ivyMetadata().asImmutable())
+
+        then:
+        TestComponentMetadataRuleWithArgs.instanceCount == 1
+        TestComponentMetadataRuleWithArgs.constructorParams == ["foo", 42L] as Object[]
     }
 
     def "propagates error creating rule for closure" () {
@@ -421,6 +507,18 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         "org.gradle" | "api" | true
         "com.gradle" | "api" | false
         "org.gradle" | "lib" | false
+    }
+
+    def 'refuses to add an old style rule after a class based one has been added'() {
+        handler.all(TestComponentMetadataRule)
+        def closure = { ComponentMetadataDetails cmd -> }
+
+        when:
+        handler.all closure
+
+        then:
+        thrown(IllegalArgumentException)
+
     }
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
