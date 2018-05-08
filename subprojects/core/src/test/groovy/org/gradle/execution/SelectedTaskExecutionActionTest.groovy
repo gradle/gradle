@@ -53,23 +53,8 @@ class SelectedTaskExecutionActionTest extends Specification {
         action.execute(context)
 
         then:
-        1 * executer.useFailureHandler(!null)
+        1 * executer.setContinueOnFailure(true)
         1 * executer.execute()
-    }
-
-    def "adds failure handler that does not abort execution when continue specified"() {
-        TaskFailureHandler handler
-        RuntimeException failure = new RuntimeException()
-
-        given:
-        _ * startParameter.continueOnFailure >> true
-
-        when:
-        action.execute(context)
-
-        then:
-        1 * executer.useFailureHandler(!null) >> { handler = it[0] }
-        1 * executer.execute() >> { handler.onTaskFailure(brokenTask(failure)) }
     }
 
     def brokenTask(Throwable failure) {
