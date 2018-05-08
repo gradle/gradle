@@ -17,7 +17,6 @@
 package org.gradle.api.publish;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.Incubating;
 
 import java.io.File;
 
@@ -26,7 +25,6 @@ import java.io.File;
  *
  * @since 4.8
  */
-@Incubating
 public interface PublicationArtifact extends Buildable {
     /**
      * The actual file contents to publish.

@@ -13,32 +13,34 @@
 // limitations under the License.
 
 [[publishing_ivy]]
-== Ivy Publishing (new)
+== Ivy Publish Plugin
 
 
 [NOTE]
 ====
 
-This chapter describes the new <<feature_lifecycle,incubating>> Ivy publishing support provided by the Ivy Publish Plugin. Eventually this new publishing support will replace publishing via the `Upload` task.
+This chapter describes the new Ivy publishing support provided by the Ivy Publish Plugin. This new publishing support is the preferred option for publishing artifacts and will eventually replace publishing via the `Upload` task.
 
-If you are looking for documentation on the original Ivy publishing support using the `Upload` task please see <<artifact_management>>.
+If you are looking for documentation on the original Ivy publishing support using the `Upload` task please see the chapter on <<artifact_management,publishing artifacts>>.
 
 ====
 
-This chapter describes how to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
+The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
 A published Ivy module can be consumed by Gradle (see <<declaring_dependencies>>) and other tools that understand the Ivy format.
 
 
-[[publishing_ivy:plugin]]
-=== The Ivy Publish Plugin
+[[publishing_ivy:usage]]
+=== Usage
 
-The ability to publish in the Ivy format is provided by the Ivy Publish Plugin. It uses an extension on the project named `publishing` of type api:org.gradle.api.publish.PublishingExtension[]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with api:org.gradle.api.publish.ivy.IvyPublication[] publications and api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[] repositories.
+The Ivy Publish Plugin uses an extension on the project named `publishing` of type api:org.gradle.api.publish.PublishingExtension[]. This extension provides a container of named publications and a container of named repositories. The Ivy Publish Plugin works with api:org.gradle.api.publish.ivy.IvyPublication[] publications and api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[] repositories.
+
+To use the Ivy Publish Plugin, include the following in your build script:
 
 ++++
 <sample id="publishing_ivy:apply-plugin-snippet" dir="ivy-publish/quickstart" title="Applying the Ivy Publish Plugin">
-            <sourcefile file="build.gradle" snippet="use-plugin"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="use-plugin"/>
+</sample>
 ++++
 
 Applying the Ivy Publish Plugin does the following:
@@ -281,13 +283,3 @@ Note that `«PUBLICATION-TIME-STAMP»` in this example Ivy module descriptor wil
     <sourcefile file="output-ivy.xml" snippet="content"/>
 </sample>
 ++++
-
-
-[[publishing_ivy:future]]
-=== Future features
-
-The Ivy Publish Plugin functionality as described above is incomplete, as the feature is still <<feature_lifecycle,incubating>>. In upcoming Gradle releases, the functionality will be expanded to include (but not limited to):
-
-* Convenient customization of module attributes (`module`, `organisation` etc.)
-* Convenient customization of dependencies reported in `module descriptor`.
-* Multiple discrete publications per project

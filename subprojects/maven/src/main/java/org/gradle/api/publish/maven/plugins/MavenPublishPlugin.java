@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -61,7 +60,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  *
  * @since 1.4
  */
-@Incubating
 public class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";

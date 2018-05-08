@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -40,7 +39,6 @@ import java.io.File;
  *
  * @since 1.4
  */
-@Incubating
 public class GenerateIvyDescriptor extends DefaultTask {
 
     private IvyModuleDescriptorSpec descriptor;
