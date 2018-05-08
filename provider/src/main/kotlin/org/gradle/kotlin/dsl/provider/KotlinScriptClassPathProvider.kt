@@ -25,7 +25,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
-import org.gradle.internal.classloader.ClasspathUtil.getClasspath
+import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -38,6 +38,10 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.GFileUtils.moveFile
 
 import java.io.File
+
+import java.net.URI
+import java.net.URISyntaxException
+import java.net.URL
 
 
 fun gradleKotlinDslOf(project: Project): List<File> =
@@ -173,3 +177,33 @@ private
 fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")
+
+
+private
+fun getClasspath(classLoader: ClassLoader): ClassPath {
+    val result = mutableListOf<File>()
+
+    object : ClassLoaderVisitor() {
+        override fun visitClassPath(classPath: Array<URL>) {
+            classPath
+                .filter { it.protocol == "file" }
+                .map { File(toURI(it)) }
+                .let(result::addAll)
+        }
+    }.visit(classLoader)
+
+    return DefaultClassPath.of(result)
+}
+
+
+private
+fun toURI(url: URL): URI =
+    try {
+        url.toURI()
+    } catch (e: URISyntaxException) {
+        URL(
+            url.protocol,
+            url.host,
+            url.port,
+            url.file.replace(" ", "%20")).toURI()
+    }
