@@ -31,6 +31,7 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -92,22 +93,22 @@ class KotlinBuildScriptCompiler(
     val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
 
     private
-    val compilationClassPath: ClassPath by lazy {
+    val compilationClassPath: ClassPath by unsafeLazy {
         classPathProvider.compilationClassPathOf(targetScope)
     }
 
     private
-    val accessorsClassPath: ClassPath by lazy {
+    val accessorsClassPath: ClassPath by unsafeLazy {
         scriptTarget.accessorsClassPathFor(compilationClassPath).bin
     }
 
     private
-    val buildscriptBlockRange: IntRange? by lazy {
+    val buildscriptBlockRange: IntRange? by unsafeLazy {
         extractTopLevelSectionFrom(script, scriptTarget.buildscriptBlockName)
     }
 
     private
-    val pluginsBlockRange: IntRange? by lazy {
+    val pluginsBlockRange: IntRange? by unsafeLazy {
         extractTopLevelSectionFrom(script, "plugins")
     }
 

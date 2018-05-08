@@ -47,6 +47,7 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -108,7 +109,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      * Logger for settings. You can use this in your settings file to write log messages.
      */
     @Suppress("unused")
-    val logger: Logger by lazy { Logging.getLogger(Settings::class.java) }
+    val logger: Logger by unsafeLazy { Logging.getLogger(Settings::class.java) }
 
     /**
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
@@ -116,13 +117,13 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by lazy { settings.serviceOf<LoggingManager>() }
+    val logging by unsafeLazy { settings.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
     @Suppress("unused")
-    val resources: ResourceHandler by lazy { fileOperations.resources }
+    val resources: ResourceHandler by unsafeLazy { fileOperations.resources }
 
     /**
      * Returns the relative path from this script's target base directory to the given path.

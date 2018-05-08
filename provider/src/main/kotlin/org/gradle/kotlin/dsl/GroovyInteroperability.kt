@@ -24,6 +24,8 @@ import org.gradle.internal.Cast.uncheckedCast
 
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
 
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
 
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].
@@ -212,7 +214,7 @@ private
 class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBuilderScope {
 
     private
-    val groovyMetaClass: MetaClass by lazy {
+    val groovyMetaClass: MetaClass by unsafeLazy {
         getMetaClass(delegate)
     }
 
