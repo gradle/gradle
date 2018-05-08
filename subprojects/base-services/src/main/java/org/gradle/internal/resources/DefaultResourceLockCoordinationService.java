@@ -125,12 +125,13 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
         @Override
         public void releaseLocks() {
-            if (lockedResources != null) {
+            if (lockedResources != null && !lockedResources.isEmpty()) {
                 rollback = true;
                 try {
                     for (ResourceLock resourceLock : lockedResources) {
                         resourceLock.unlock();
                     }
+                    lockedResources.clear();
                 } finally {
                     rollback = false;
                 }
