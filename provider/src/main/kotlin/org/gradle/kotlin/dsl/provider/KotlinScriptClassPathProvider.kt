@@ -208,10 +208,11 @@ class ClassLoaderClassPathCache {
 
         object : ClassLoaderVisitor() {
             override fun visitClassPath(classPath: Array<URL>) {
-                classPath
-                    .filter { it.protocol == "file" }
-                    .map { File(toURI(it)) }
-                    .let(classPathFiles::addAll)
+                classPath.forEach { url ->
+                    if (url.protocol == "file") {
+                        classPathFiles.add(fileFrom(url))
+                    }
+                }
             }
 
             override fun visitParent(classLoader: ClassLoader) {
@@ -221,6 +222,9 @@ class ClassLoaderClassPathCache {
 
         return DefaultClassPath.of(classPathFiles)
     }
+
+    private
+    fun fileFrom(url: URL) = File(toURI(url))
 }
 
 
