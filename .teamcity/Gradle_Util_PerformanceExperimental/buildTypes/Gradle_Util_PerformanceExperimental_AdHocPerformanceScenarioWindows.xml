@@ -32,14 +32,12 @@
     <build-runners order="RUNNER_1, RUNNER_2">
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
         <parameters>
-          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="clean %templates% performanceAdHocTest --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% -x prepareSamples -x performanceReport -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts -Djava7Home=%linux.jdk.for.gradle.compile% --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%" />
-          <param name="ui.gradleRunner.gradle.build.file" value="" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="clean %templates% performanceAdHocTest --scenarios &quot;%scenario%&quot; --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% -x prepareSamples -x performanceReport -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts -Djava7Home=%env.JDK_17_x64% --build-cache -Dgradle.cache.remote.url=%gradle.cache.remote.url% -Dgradle.cache.remote.username=%gradle.cache.remote.username% -Dgradle.cache.remote.password=%gradle.cache.remote.password%" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
