@@ -25,6 +25,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 
@@ -151,13 +152,17 @@ fun initScriptModelBuilder(scriptFile: File, project: Project) = project.run {
     val scriptSource = textResourceScriptSource("initialization script", scriptFile)
     val baseScope = gradleInternal.classLoaderScope
     val scriptScope = baseScope.createChild("init-${scriptFile.toURI()}")
-    val scriptHandler = gradle.serviceOf<ScriptHandlerFactory>().create(scriptSource, scriptScope)
+    val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope)
 
     KotlinScriptTargetModelBuilder(
         project = project,
         scriptClassPath = initScriptClassPathFor(gradleInternal, scriptHandler, scriptSource),
         sourceLookupScriptHandlers = listOf(scriptHandler))
 }
+
+
+private
+fun scriptHandlerFactoryOf(gradle: Gradle) = gradle.serviceOf<ScriptHandlerFactory>()
 
 
 private
