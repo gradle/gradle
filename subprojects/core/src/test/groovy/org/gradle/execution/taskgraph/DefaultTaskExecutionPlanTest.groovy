@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
-import org.gradle.execution.TaskFailureHandler
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -322,7 +321,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task finalizer = task("finalizer", dependsOn: [finalizerDependency])
         Task finalizedDependency = task("finalizedDependency", failure: new RuntimeException("failure"))
         Task finalized = task("finalized", dependsOn: [finalizedDependency], finalizedBy: [finalizer])
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(finalizedDependency))
+        executionPlan.setContinueOnFailure(true)
 
         when:
         addToGraphAndPopulate([finalizer, finalized])
@@ -658,16 +657,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         Task a = task("a", failure: failure)
         Task b = task("b")
 
-        addToGraphAndPopulate([a, b])
-
-        TaskFailureHandler handler = Mock()
-        RuntimeException wrappedFailure = new RuntimeException("wrapped")
-        handler.onTaskFailure(a) >> {
-            throw wrappedFailure
-        }
-
         when:
-        executionPlan.useFailureHandler(handler)
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a]
@@ -677,7 +668,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         RuntimeException e = thrown()
-        e == wrappedFailure
+        e == failure
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
@@ -687,7 +678,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([a, b])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, b]
@@ -708,7 +699,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([a, b])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, b]
@@ -732,7 +723,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([b, c])
 
         when:
-        executionPlan.useFailureHandler(createIgnoreTaskFailureHandler(a))
+        executionPlan.setContinueOnFailure(true)
 
         then:
         executedTasks == [a, c]
@@ -858,12 +849,6 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addToTaskGraph(tasks)
         executionPlan.determineExecutionPlan()
-    }
-
-    private TaskFailureHandler createIgnoreTaskFailureHandler(Task task) {
-        Mock(TaskFailureHandler) {
-            onTaskFailure(task) >> {}
-        }
     }
 
     void executes(Task... expectedTasks) {

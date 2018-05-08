@@ -29,14 +29,11 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
     def "phased build action built correctly"() {
         def projectsLoadedAction = Mock(BuildAction)
         def projectsLoadedHandler = Mock(PhasedResultHandler)
-        def projectsEvaluatedAction = Mock(BuildAction)
-        def projectsEvaluatedHandler = Mock(PhasedResultHandler)
         def buildFinishedAction = Mock(BuildAction)
         def buildFinishedHandler = Mock(PhasedResultHandler)
 
         when:
         def executer = builder.projectsLoaded(projectsLoadedAction, projectsLoadedHandler)
-            .projectsEvaluated(projectsEvaluatedAction, projectsEvaluatedHandler)
             .buildFinished(buildFinishedAction, buildFinishedHandler)
             .build()
 
@@ -45,8 +42,6 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
         executer.connectionParameters == parameters
         executer.phasedBuildAction.getProjectsLoadedAction().getAction() == projectsLoadedAction
         executer.phasedBuildAction.getProjectsLoadedAction().getHandler() == projectsLoadedHandler
-        executer.phasedBuildAction.getProjectsEvaluatedAction().getAction() == projectsEvaluatedAction
-        executer.phasedBuildAction.getProjectsEvaluatedAction().getHandler() == projectsEvaluatedHandler
         executer.phasedBuildAction.getBuildFinishedAction().getAction() == buildFinishedAction
         executer.phasedBuildAction.getBuildFinishedAction().getHandler() == buildFinishedHandler
     }
@@ -61,19 +56,11 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
         e1.message == 'ProjectsLoadedAction has already been added. Only one action per phase is allowed.'
 
         when:
-        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
-        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
 
         then:
         IllegalArgumentException e2 = thrown()
-        e2.message == 'ProjectsEvaluatedAction has already been added. Only one action per phase is allowed.'
-
-        when:
-        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
-        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
-
-        then:
-        IllegalArgumentException e3 = thrown()
-        e3.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
+        e2.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
     }
 }

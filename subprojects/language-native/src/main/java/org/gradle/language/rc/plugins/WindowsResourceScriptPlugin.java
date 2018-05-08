@@ -31,6 +31,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
@@ -77,6 +78,11 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
         @Override
         public String getLanguageName() {
             return "rc";
+        }
+
+        @Override
+        public ToolType getToolType() {
+            return ToolType.WINDOW_RESOURCES_COMPILER;
         }
 
         @Override

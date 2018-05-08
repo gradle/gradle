@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -32,10 +32,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 public class EventFiringTaskExecuter implements TaskExecuter {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final TaskGraphExecuter taskExecutionGraph;
+    private final TaskExecutionGraphInternal taskExecutionGraph;
     private final TaskExecuter delegate;
 
-    public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, TaskGraphExecuter taskExecutionGraph, TaskExecuter delegate) {
+    public EventFiringTaskExecuter(BuildOperationExecutor buildOperationExecutor, TaskExecutionGraphInternal taskExecutionGraph, TaskExecuter delegate) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.taskExecutionGraph = taskExecutionGraph;
         this.delegate = delegate;

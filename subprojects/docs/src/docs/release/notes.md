@@ -75,6 +75,15 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
 
 The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### TextResources can now be fetched from a URI
+
+Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
+
+    checkstyle {
+        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
+    }
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -126,14 +135,6 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-### TextResources can now be fetched from a URI
-
-Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
-
-    checkstyle {
-        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
-    }
-
 <!--
 ### Example deprecation
 -->
@@ -151,6 +152,30 @@ Text resources like a common checkstyle configuration file can now be fetched di
 
 The internal `SimpleFileCollection` implementation of `FileCollection` has been deprecated.
 You should use `Project.files()` instead.
+
+### Use of single test selection system property
+
+The [use of a system property](userguide/java_testing.html#sec:single_test_execution_via_system_properties) to select which tests to execute is deprecated.  The built-in `--tests` filter has long replaced this functionality.
+
+### Use of remote debugging test system property
+
+The use of a system property (`-Dtest.debug`) to enable remote debugging of test processes is deprecated.  The built-in `--debug-jvm` flag has long replaced this functionality.
+
+### Overwriting Gradle's built-in tasks
+
+Defining a custom `wrapper` or `init` task is deprecated. Please configure the existing tasks instead.
+
+I.e. instead of this:
+
+    task wrapper(type:Wrapper) {
+        //configuration
+    }
+    
+Do this:
+
+    wrapper {
+        //configuration
+    }
 
 ## Potential breaking changes
 

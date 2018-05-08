@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
@@ -31,7 +31,7 @@ class EventFiringTaskExecuterTest extends Specification {
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def taskExecutionListenerSource = Mock(TaskExecutionListener)
-    def taskExecutionGraph = Stub(TaskGraphExecuter) {
+    def taskExecutionGraph = Stub(TaskExecutionGraphInternal) {
         getTaskExecutionListenerSource() >> taskExecutionListenerSource
     }
     def delegate = Mock(TaskExecuter)

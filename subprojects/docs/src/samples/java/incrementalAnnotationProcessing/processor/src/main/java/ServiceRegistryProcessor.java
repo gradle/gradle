@@ -19,6 +19,11 @@ public class ServiceRegistryProcessor extends AbstractProcessor {
     }
 
     @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.aggregating");
+    }
+
+    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         TypeElement serviceAnnotation = processingEnv.getElementUtils().getTypeElement("Service");
         if (!annotations.equals(Collections.singleton(serviceAnnotation))) {

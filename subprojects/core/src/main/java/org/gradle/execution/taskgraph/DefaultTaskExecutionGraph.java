@@ -35,9 +35,8 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.execution.TaskFailureHandler;
-import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Cast;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -58,8 +57,8 @@ import java.util.List;
 import java.util.Set;
 
 @NonNullApi
-public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
+public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private enum TaskGraphState {
         EMPTY, DIRTY, POPULATED
@@ -78,7 +77,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final Set<Task> requestedTasks = Sets.newTreeSet();
     private Spec<? super Task> filter = Specs.SATISFIES_ALL;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
+    public DefaultTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -88,8 +87,9 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal);
     }
 
-    public void useFailureHandler(TaskFailureHandler handler) {
-        taskExecutionPlan.useFailureHandler(handler);
+    @Override
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        taskExecutionPlan.setContinueOnFailure(continueOnFailure);
     }
 
     public void useFilter(Spec<? super Task> filter) {

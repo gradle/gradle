@@ -22,7 +22,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
@@ -54,7 +54,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
      */
-    TaskGraphExecuter getTaskGraph();
+    TaskExecutionGraphInternal getTaskGraph();
 
     /**
      * Returns the default project. This is used to resolve relative names and paths provided on the UI.
