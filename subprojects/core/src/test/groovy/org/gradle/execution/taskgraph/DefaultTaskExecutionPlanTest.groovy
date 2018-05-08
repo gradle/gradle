@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
-import org.gradle.execution.TaskFailureHandler
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.scheduler.AbstractSchedulingTest
@@ -230,11 +229,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
     @Override
     protected void continueOnFailure() {
-        executionPlan.useFailureHandler(new TaskFailureHandler() {
-            @Override
-            void onTaskFailure(Task task) {
-            }
-        })
+        executionPlan.continueOnFailure = true
     }
 
     @Override
