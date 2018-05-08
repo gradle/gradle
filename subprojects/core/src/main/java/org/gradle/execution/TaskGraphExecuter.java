@@ -45,9 +45,9 @@ public interface TaskGraphExecuter extends TaskExecutionGraph {
     void execute();
 
     /**
-     * Sets the handler to use when a task fails.
+     * Sets whether execution should continue if a task fails.
      */
-    void useFailureHandler(TaskFailureHandler handler);
+    void setContinueOnFailure(boolean continueOnFailure);
 
     /**
      * Set of requested tasks.

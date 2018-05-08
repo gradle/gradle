@@ -32,7 +32,6 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -414,22 +413,17 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     }
 
     def "stops execution on failure when failure handler indicates that execution should stop"() {
-        final TaskFailureHandler handler = Mock(TaskFailureHandler)
-
         final RuntimeException failure = new RuntimeException()
-        final RuntimeException wrappedFailure = new RuntimeException()
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
 
         when:
-        taskExecuter.useFailureHandler(handler)
         taskExecuter.addTasks([a, b])
         taskExecuter.execute()
 
         then:
-        1 * handler.onTaskFailure(a) >> { args -> throw wrappedFailure }
         def e = thrown(RuntimeException)
-        e == wrappedFailure
+        e == failure
 
         and:
         executedTasks == [a]
@@ -527,14 +521,13 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     }
 
     def "will execute a task whose dependencies have been filtered on failure"() {
-        final TaskFailureHandler handler = Mock(TaskFailureHandler)
         final RuntimeException failure = new RuntimeException()
         final Task a = brokenTask("a", failure)
         final Task b = task("b")
         final Task c = task("c", b)
 
         when:
-        taskExecuter.useFailureHandler(handler)
+        taskExecuter.continueOnFailure = true
         taskExecuter.useFilter(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return element != b
