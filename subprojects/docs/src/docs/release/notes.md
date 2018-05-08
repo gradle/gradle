@@ -123,7 +123,7 @@ More details are available in the [user guide](userguide/more_about_tasks.html#s
 ### Immutable file collections
 
 It is now possible to create immutable file collections by using [`ProjectLayout.files(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-).
-There is also a new method for creating configurable file collections, [`ProjectLayout.configurableFiles(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object...-), which will replace `Project.files` in the long run.
+There is also a new method for creating configurable file collections, [`ProjectLayout.configurableFiles(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object...-), which will replace `Project.files()` in the long run.
 `FileCollection`s created by `ProjectLayout.files()` are performing slightly better and should be used whenever mutability is not required.
 For example, they fit nice when creating tasks with constructor arguments.
 
