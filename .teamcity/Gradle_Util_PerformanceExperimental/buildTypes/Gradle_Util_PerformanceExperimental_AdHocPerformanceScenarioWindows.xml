@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="b2dd68fc-8a92-4a80-9ca0-0b1a98981d01" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2017.2/project-config.xsd">
-  <name>AdHoc Performance Scenario - Linux</name>
+  <name>AdHoc Performance Scenario - Windows</name>
   <description />
   <settings>
     <options>
