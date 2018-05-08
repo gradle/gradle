@@ -43,6 +43,8 @@ import java.net.URI
 import java.net.URISyntaxException
 import java.net.URL
 
+import java.util.concurrent.ConcurrentHashMap
+
 
 fun gradleKotlinDslOf(project: Project): List<File> =
     kotlinScriptClassPathProviderOf(project).run {
@@ -103,6 +105,10 @@ class KotlinScriptClassPathProvider(
     }
 
     fun compilationClassPathOf(scope: ClassLoaderScope): ClassPath =
+        cachedScopeCompilationClassPath.computeIfAbsent(scope, ::computeCompilationClassPath)
+
+    private
+    fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
         gradleKotlinDsl + exportClassPathFromHierarchyOf(scope)
 
     private
@@ -110,8 +116,8 @@ class KotlinScriptClassPathProvider(
         require(scope.isLocked) {
             "$scope must be locked before it can be used to compute a classpath!"
         }
-        val fullClassPath = getClasspath(scope.exportClassLoader)
-        val rootClassPath = getClasspath(scope.root.exportClassLoader)
+        val rootClassPath = cachedClassLoaderClassPath.of(scope.root.exportClassLoader)
+        val fullClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
         return fullClassPath - rootClassPath
     }
 
@@ -156,6 +162,12 @@ class KotlinScriptClassPathProvider(
     val gradleJars by lazy {
         classPathRegistry.getClassPath(gradleApiNotation.name).asFiles
     }
+
+    private
+    val cachedScopeCompilationClassPath = ConcurrentHashMap<ClassLoaderScope, ClassPath>()
+
+    private
+    val cachedClassLoaderClassPath = ClassLoaderClassPathCache()
 }
 
 
@@ -180,19 +192,33 @@ fun isKotlinJar(name: String): Boolean =
 
 
 private
-fun getClasspath(classLoader: ClassLoader): ClassPath {
-    val result = mutableListOf<File>()
+class ClassLoaderClassPathCache {
 
-    object : ClassLoaderVisitor() {
-        override fun visitClassPath(classPath: Array<URL>) {
-            classPath
-                .filter { it.protocol == "file" }
-                .map { File(toURI(it)) }
-                .let(result::addAll)
-        }
-    }.visit(classLoader)
+    private
+    val cachedClassPaths = hashMapOf<ClassLoader, ClassPath>()
 
-    return DefaultClassPath.of(result)
+    fun of(classLoader: ClassLoader): ClassPath =
+        cachedClassPaths.computeIfAbsent(classLoader, ::computeClassPath)
+
+    private
+    fun computeClassPath(classLoader: ClassLoader): ClassPath {
+        val classPathFiles = mutableListOf<File>()
+
+        object : ClassLoaderVisitor() {
+            override fun visitClassPath(classPath: Array<URL>) {
+                classPath
+                    .filter { it.protocol == "file" }
+                    .map { File(toURI(it)) }
+                    .let(classPathFiles::addAll)
+            }
+
+            override fun visitParent(classLoader: ClassLoader) {
+                classPathFiles.addAll(of(classLoader).asFiles)
+            }
+        }.visit(classLoader)
+
+        return DefaultClassPath.of(classPathFiles)
+    }
 }
 
 
