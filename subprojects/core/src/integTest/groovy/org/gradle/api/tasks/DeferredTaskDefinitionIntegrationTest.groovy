@@ -311,4 +311,48 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Configure :task1")
         failure.assertHasCause("Task with name 'task1' not found")
     }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/661")
+    def "executes each configuration actions once when realizing a task"() {
+        buildFile << '''
+            def actionExecutionCount = [:].withDefault { 0 }
+
+            class A extends DefaultTask {}
+
+            tasks.configureEachLater(A) {
+                actionExecutionCount.a1++
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionCount.a2++
+            }
+
+            def a = tasks.createLater("a", A) {
+                actionExecutionCount.a3++
+            }
+
+            a.configure {
+                actionExecutionCount.a4++
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionCount.a5++
+            }
+
+            a.configure {
+                actionExecutionCount.a6++
+            }
+
+            task assertActionExecutionCount {
+                dependsOn a
+                doLast {
+                    assert actionExecutionCount.size() == 6
+                    assert actionExecutionCount.values().every { it == 1 }
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'assertActionExecutionCount'
+    }
 }
