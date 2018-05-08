@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.PhasedResultHandler
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.PhasedBuildAction
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -86,9 +86,9 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
 
     def "delegates to connection to run phased action"() {
         def projectsLoadedAction = Mock(BuildAction)
-        def projectsLoadedHandler = Mock(PhasedResultHandler)
+        def projectsLoadedHandler = Mock(IntermediateResultHandler)
         def buildFinishedAction = Mock(BuildAction)
-        def buildFinishedHandler = Mock(PhasedResultHandler)
+        def buildFinishedHandler = Mock(IntermediateResultHandler)
         def phasedAction = Stub(PhasedBuildAction) {
             getProjectsLoadedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
                 getAction() >> projectsLoadedAction

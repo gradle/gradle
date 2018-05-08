@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.r48;
 
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.IntermediateResultHandler;
 
-public class PhasedResultHandlerCollector implements PhasedResultHandler<String> {
+public class IntermediateResultHandlerCollector implements IntermediateResultHandler<String> {
     private String result = null;
 
     @Override
