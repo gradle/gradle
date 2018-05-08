@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="a3183d81-e07d-475c-8ef6-04ed60bf4053" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2017.2/project-config.xsd">
-  <name>AdHoc Performance Scenario - Linux</name>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="ade8e00c-d50b-497b-942f-233188543ca4" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2017.2/project-config.xsd">
+  <name>AdHoc Performance Scenario - Windows</name>
   <description />
   <settings>
     <options>
@@ -26,7 +26,7 @@
       <param name="templates" value="" spec="text display='prompt' validationMode='not_empty'" />
       <param name="warmups" value="3" spec="text display='prompt' validationMode='not_empty'" />
     </parameters>
-    <build-runners>
+    <build-runners order="RUNNER_1, RUNNER_2">
       <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
