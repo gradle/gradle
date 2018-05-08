@@ -17,8 +17,8 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.cancel.BuildCancellationTokenFactory;
+import org.gradle.internal.cancel.DefaultBuildCancellationTokenFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
@@ -29,15 +29,15 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
     private final FileResolver fileResolver;
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private final Executor executor;
-    private final BuildCancellationToken buildCancellationToken;
+    private final BuildCancellationTokenFactory buildCancellationTokenFactory;
 
     public DefaultExecActionFactory(FileResolver fileResolver) {
-        this(fileResolver, new DefaultBuildCancellationToken());
+        this(fileResolver, DefaultBuildCancellationTokenFactory.INSTANCE);
     }
 
-    public DefaultExecActionFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
+    public DefaultExecActionFactory(FileResolver fileResolver, BuildCancellationTokenFactory buildCancellationTokenFactory) {
         this.fileResolver = fileResolver;
-        this.buildCancellationToken = buildCancellationToken;
+        this.buildCancellationTokenFactory = buildCancellationTokenFactory;
         executor = executorFactory.create("Exec process");
     }
 
@@ -48,7 +48,7 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
     @Override
     public ExecFactory forContext(FileResolver fileResolver, Instantiator instantiator) {
-        return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationToken);
+        return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationTokenFactory);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecAction(fileResolver, executor, buildCancellationTokenFactory.create());
     }
 
     @Override
@@ -68,65 +68,65 @@ public class DefaultExecActionFactory implements ExecFactory, Stoppable {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultJavaExecAction(fileResolver, executor, buildCancellationTokenFactory.create());
     }
 
     @Override
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationTokenFactory.create());
     }
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationTokenFactory.create());
     }
 
     private static class DecoratingExecActionFactory implements ExecFactory {
         private final FileResolver fileResolver;
         private final Instantiator instantiator;
         private final Executor executor;
-        private final BuildCancellationToken buildCancellationToken;
+        private final BuildCancellationTokenFactory buildCancellationTokenFatory;
 
-        DecoratingExecActionFactory(FileResolver fileResolver, Instantiator instantiator, Executor executor, BuildCancellationToken buildCancellationToken) {
+        DecoratingExecActionFactory(FileResolver fileResolver, Instantiator instantiator, Executor executor, BuildCancellationTokenFactory buildCancellationTokenFactory) {
             this.fileResolver = fileResolver;
             this.instantiator = instantiator;
             this.executor = executor;
-            this.buildCancellationToken = buildCancellationToken;
+            this.buildCancellationTokenFatory = buildCancellationTokenFactory;
         }
 
         @Override
         public ExecFactory forContext(FileResolver fileResolver, Instantiator instantiator) {
-            return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationToken);
+            return new DecoratingExecActionFactory(fileResolver, instantiator, executor, buildCancellationTokenFatory);
         }
 
         @Override
         public ExecAction newExecAction() {
-            return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+            return new DefaultExecAction(fileResolver, executor, buildCancellationTokenFatory.create());
         }
 
         @Override
         public JavaExecAction newJavaExecAction() {
-            return new DefaultJavaExecAction(fileResolver, executor, buildCancellationToken);
+            return new DefaultJavaExecAction(fileResolver, executor, buildCancellationTokenFatory.create());
         }
 
         @Override
         public ExecHandleBuilder newExec() {
-            return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+            return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationTokenFatory.create());
         }
 
         @Override
         public JavaExecHandleBuilder newJavaExec() {
-            return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+            return new JavaExecHandleBuilder(fileResolver, executor, buildCancellationTokenFatory.create());
         }
 
         @Override
         public ExecAction newDecoratedExecAction() {
-            return instantiator.newInstance(DefaultExecAction.class, fileResolver, executor, buildCancellationToken);
+            return instantiator.newInstance(DefaultExecAction.class, fileResolver, executor, buildCancellationTokenFatory.create());
         }
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, executor, buildCancellationToken);
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, executor, buildCancellationTokenFatory.create());
         }
     }
 }

@@ -36,6 +36,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
@@ -67,6 +68,8 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildevents.ProjectEvaluationLogger;
+import org.gradle.internal.cancel.BuildCancellationTokenFactory;
+import org.gradle.internal.cancel.DefaultBuildCancellationTokenFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -116,6 +119,8 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtracti
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -132,6 +137,8 @@ import java.util.List;
 public class GlobalScopeServices extends BasicGlobalScopeServices {
     private final ClassPath additionalModuleClassPath;
 
+    private final BuildCancellationTokenFactory buildCancellationTokenFactory;
+
     private GradleBuildEnvironment environment;
 
     public GlobalScopeServices(final boolean longLiving) {
@@ -139,12 +146,17 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
+        this(longLiving, additionalModuleClassPath, DefaultBuildCancellationTokenFactory.INSTANCE);
+    }
+
+    public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath, BuildCancellationTokenFactory buildCancellationTokenFactory) {
         this.additionalModuleClassPath = additionalModuleClassPath;
         this.environment = new GradleBuildEnvironment() {
             public boolean isLongLivingProcess() {
                 return longLiving;
             }
         };
+        this.buildCancellationTokenFactory = buildCancellationTokenFactory;
     }
 
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
@@ -363,5 +375,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     Clock createClock() {
         return Time.clock();
+    }
+
+    @Override
+    ExecFactory createExecFactory(FileResolver fileResolver) {
+        return new DefaultExecActionFactory(fileResolver, buildCancellationTokenFactory);
     }
 }

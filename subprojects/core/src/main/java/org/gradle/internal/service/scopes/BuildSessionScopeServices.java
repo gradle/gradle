@@ -84,8 +84,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
-import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.process.internal.ExecFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -107,7 +105,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
-        add(BuildCancellationToken.class, buildCancellationToken);
         add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
         add(BuildRequestMetaData.class, buildRequestMetaData);
         addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
@@ -211,9 +208,5 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
         return new CleanupActionFactory(buildOperationExecutor);
-    }
-
-    protected ExecFactory createExecFactory(FileResolver fileResolver, BuildCancellationToken buildCancellationToken) {
-        return new DefaultExecActionFactory(fileResolver, buildCancellationToken);
     }
 }
