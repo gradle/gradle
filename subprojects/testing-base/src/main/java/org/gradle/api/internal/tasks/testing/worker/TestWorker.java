@@ -73,8 +73,13 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
-            // Clean out any security manager the tests might have installed
-            System.setSecurityManager(null);
+
+            try {
+                // Clean out any security manager the tests might have installed
+                System.setSecurityManager(null);
+            } catch (SecurityException e) {
+                LOGGER.info("Unable to clear out SecurityManager, continuing anyway.", e);
+            }
             testServices.close();
         }
     }
