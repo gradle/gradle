@@ -322,14 +322,14 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "notifies graph listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
+        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
         Task a = task("a")
 
         when:
-        taskExecuter.addTaskExecutionGraphListener(listener)
-        taskExecuter.addTasks([a])
-        taskExecuter.execute()
+        taskGraph.addTaskExecutionGraphListener(listener)
+        taskGraph.addTasks([a])
+        taskGraph.execute()
 
         then:
         1 * listener.graphPopulated(_)
@@ -340,16 +340,16 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
     def "executes whenReady listener before execute"() {
         def taskPlanExecutor = Mock(TaskPlanExecutor)
-        def taskExecuter = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
+        def taskGraph = new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, Factories.constant(executer), buildOperationExecutor, workerLeases, coordinationService, Mock(GradleInternal))
         def closure = Mock(Closure)
         def action = Mock(Action)
         Task a = task("a")
 
         when:
-        taskExecuter.whenReady(closure)
-        taskExecuter.whenReady(action)
-        taskExecuter.addTasks([a])
-        taskExecuter.execute()
+        taskGraph.whenReady(closure)
+        taskGraph.whenReady(action)
+        taskGraph.addTasks([a])
+        taskGraph.execute()
 
         then:
         1 * closure.call()
