@@ -58,6 +58,14 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         out.toString() == "output args: [arg1, arg2]"
         err.toString() == "error args: [arg1, arg2]"
         result.assertNormalExitValue()
+        1 * buildCancellationToken.addCallback(_) >> {
+            assert it[0].class == ExecHandleShutdownHookAction
+            true
+        }
+        1 * buildCancellationToken.removeCallback(_) >> {
+            assert it[0].class == ExecHandleShutdownHookAction
+            true
+        }
     }
 
     void "waiting for process returns quickly if process already completed"() {

@@ -195,7 +195,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             servicesToStop
         );
         nestedBuildFactory.setParent(gradleLauncher);
-        nestedBuildFactory.setBuildCancellationToken(cancellationToken);
         return gradleLauncher;
     }
 
@@ -218,7 +217,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             StartParameter startParameter = buildDefinition.getStartParameter();
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken);
+            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
             return createChildInstance(buildDefinition, buildIdentifier, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
@@ -228,7 +227,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             }));
         }
 
-        private void setParent(DefaultGradleLauncher parent) {
+        public void setParent(DefaultGradleLauncher parent) {
             this.parent = parent;
         }
 

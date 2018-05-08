@@ -23,7 +23,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.BuildIdentity
-import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
@@ -101,7 +100,7 @@ class ToolingApiDistributionResolver {
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
         def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.currentTimeMillis())
         def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalRegistry, startParameter)
-        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY, new DefaultBuildCancellationToken())
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         topLevelRegistry.add(BuildIdentity, new BuildIdentity() {
