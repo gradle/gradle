@@ -29,6 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -54,13 +55,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildInvocationScopeId buildInvocationScopeId;
+    private final BuildCancellationToken buildCancellationToken;
 
-    public ExecuteActionsTaskExecuter(TaskOutputChangesListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId) {
+    public ExecuteActionsTaskExecuter(TaskOutputChangesListener outputsGenerationListener, TaskActionListener taskActionListener, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, BuildInvocationScopeId buildInvocationScopeId, BuildCancellationToken buildCancellationToken) {
         this.outputsGenerationListener = outputsGenerationListener;
         this.listener = taskActionListener;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.buildInvocationScopeId = buildInvocationScopeId;
+        this.buildCancellationToken = buildCancellationToken;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -78,7 +81,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     state.getDidWork() ? TaskExecutionOutcome.EXECUTED : TaskExecutionOutcome.UP_TO_DATE
                 );
             }
-            context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
+            if (!buildCancellationToken.isCancellationRequested()) {
+                context.getTaskArtifactState().snapshotAfterTaskExecution(failure, buildInvocationScopeId.getId(), context);
+            }
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);

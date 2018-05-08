@@ -108,7 +108,8 @@ public class TaskExecutionServices {
                                     PathToFileResolver resolver,
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
-                                    BuildInvocationScopeId buildInvocationScopeId
+                                    BuildInvocationScopeId buildInvocationScopeId,
+                                    BuildCancellationToken buildCancellationToken
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -120,7 +121,8 @@ public class TaskExecutionServices {
             listenerManager.getBroadcaster(TaskActionListener.class),
             buildOperationExecutor,
             asyncWorkTracker,
-            buildInvocationScopeId
+            buildInvocationScopeId,
+            buildCancellationToken
         );
         executer = new OutputDirectoryCreatingTaskExecuter(executer);
         if (buildCacheEnabled) {

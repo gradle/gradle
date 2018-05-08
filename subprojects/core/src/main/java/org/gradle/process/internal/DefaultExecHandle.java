@@ -206,12 +206,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             lock.unlock();
         }
 
-        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState, newState), displayName);
+        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
         if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
             try {
                 broadcast.getSource().executionFinished(this, newResult);
             } catch (Exception e) {
-                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState, newState), displayName);
+                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
             }
         }
 
@@ -227,10 +227,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     @Nullable
-    private ExecException execExceptionFor(Throwable failureCause, ExecHandleState currentState, ExecHandleState newState) {
-        if(newState == ExecHandleState.ABORTED) {
-            return new ExecException("Process aborted", failureCause);
-        }
+    private ExecException execExceptionFor(Throwable failureCause, ExecHandleState currentState) {
         return failureCause != null
             ? new ExecException(failureMessageFor(currentState), failureCause)
             : null;

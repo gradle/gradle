@@ -46,6 +46,11 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
                     assert result.exitValue == 0
                 }
             }
+            
+            task javaExec(type: JavaExec) {
+                classpath = sourceSets.main.output
+                main = 'Block'
+            }
         """
 
         expect:
@@ -55,21 +60,7 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         scenario       | task
         'Exec'         | 'execTask'
         'project.exec' | 'projectExecTask'
-    }
-
-    def "can cancel JavaExec"() {
-        given:
-        blockCode()
-        buildFile << """
-            apply plugin: 'java'
-            task exec(type: JavaExec) {
-                classpath = sourceSets.main.output
-                main = 'Block'
-            }
-        """
-
-        expect:
-        assertTaskIsCancellable('exec')
+        'JavaExec'     | 'javaExec'
     }
 
     @Unroll
@@ -105,6 +96,50 @@ class ExecCancellationIntegrationTest extends DaemonIntegrationSpec implements D
         true              | false
         false             | true
         false             | false
+    }
+
+    @Unroll
+    def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and exceptions #ignored"() {
+        given:
+        file('outputFile') << ''
+        blockCode()
+        buildFile << """
+            apply plugin: 'java'
+            
+            @CacheableTask
+            class MyExec extends DefaultTask {
+                @Input
+                String getInput() { "input" }
+                
+                @OutputFile
+                File getOutputFile() { new java.io.File('${fileToPath(file('outputFile'))}') }
+
+                @TaskAction
+                void action() {
+                    try {
+                        def result = project.exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
+                    } catch (Throwable t) {
+                        if("are ignored" != "${ignored}") {
+                            throw t
+                        }
+                    }
+                }
+            }
+           
+            task exec(type: MyExec) {
+                dependsOn 'compileJava'
+            }
+        """
+
+        expect:
+        assertTaskGetsRerun('exec', buildCacheEnabled)
+
+        where:
+        buildCacheEnabled | ignored
+        true              | 'are ignored'
+        true              | 'are not ignored'
+        false             | 'are ignored'
+        false             | 'are not ignored'
     }
 
     String fileToPath(File file) {
