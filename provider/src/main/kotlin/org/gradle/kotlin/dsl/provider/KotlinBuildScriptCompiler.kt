@@ -87,10 +87,12 @@ class KotlinBuildScriptCompiler(
 ) {
 
     private
-    val buildscriptBlockCompilationClassPath: ClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
+    val buildscriptBlockCompilationClassPath: Lazy<ClassPath> = unsafeLazy {
+        classPathProvider.compilationClassPathOf(targetScope.parent)
+    }
 
     private
-    val pluginsBlockCompilationClassPath: ClassPath = buildscriptBlockCompilationClassPath
+    val pluginsBlockCompilationClassPath: Lazy<ClassPath> = buildscriptBlockCompilationClassPath
 
     private
     val compilationClassPath: ClassPath by unsafeLazy {
@@ -242,7 +244,7 @@ class KotlinBuildScriptCompiler(
     private
     fun compilePluginsBlock(scriptBlock: ScriptBlock<PluginsBlockMetadata>) =
         withKotlinCompiler {
-            compileScriptBlock(scriptBlock, pluginsBlockCompilationClassPath)
+            compileScriptBlock(scriptBlock, pluginsBlockCompilationClassPath.value)
         }
 
     private
@@ -344,7 +346,7 @@ fun initScriptClassPathFor(
         kotlinScriptSource,
         scriptTarget,
         initscriptBlockRange,
-        gradleKotlinDsl,
+        lazyOf(gradleKotlinDsl),
         baseScope,
         gradle.serviceOf(),
         gradle.serviceOf(),
@@ -360,7 +362,7 @@ class BuildscriptBlockEvaluator(
     val scriptSource: KotlinScriptSource,
     val scriptTarget: KotlinScriptTarget<Any>,
     val buildscriptBlockRange: IntRange?,
-    val classPath: ClassPath,
+    val classPath: Lazy<ClassPath>,
     val baseScope: ClassLoaderScope,
     val kotlinCompiler: CachingKotlinCompiler,
     val embeddedKotlinProvider: EmbeddedKotlinProvider,
@@ -385,7 +387,7 @@ class BuildscriptBlockEvaluator(
     private
     fun compileBuildscriptBlock(scriptBlock: ScriptBlock<Unit>) =
         withKotlinCompiler {
-            compileScriptBlock(scriptBlock, classPath)
+            compileScriptBlock(scriptBlock, classPath.value)
         }
 
     private
