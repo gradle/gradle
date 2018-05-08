@@ -78,6 +78,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
+    private List<Task> allTasks;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
     private Spec<? super Task> filter = Specs.SATISFIES_ALL;
@@ -217,7 +218,10 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     public List<Task> getAllTasks() {
         ensurePopulated();
-        return ImmutableList.copyOf(taskExecutionPlan.getTasks());
+        if (allTasks == null) {
+            allTasks = ImmutableList.copyOf(taskExecutionPlan.getTasks());
+        }
+        return allTasks;
     }
 
     @Override
