@@ -364,27 +364,27 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             class A extends DefaultTask {}
 
             tasks.configureEachLater(A) {
-                actionExecutionOrderForTaskA << "A1"
+                actionExecutionOrderForTaskA << "1"
             }
 
             tasks.configureEachLater(A) {
-                actionExecutionOrderForTaskA << "A2"
+                actionExecutionOrderForTaskA << "2"
             }
 
             def a = tasks.createLater("a", A) {
-                actionExecutionOrderForTaskA << "A3"
+                actionExecutionOrderForTaskA << "3"
             }
 
             a.configure {
-                actionExecutionOrderForTaskA << "A4"
+                actionExecutionOrderForTaskA << "4"
             }
 
             tasks.configureEachLater(A) {
-                actionExecutionOrderForTaskA << "A5"
+                actionExecutionOrderForTaskA << "5"
             }
 
             a.configure {
-                actionExecutionOrderForTaskA << "A6"
+                actionExecutionOrderForTaskA << "6"
             }
 
             def actionExecutionOrderForTaskB = []
@@ -392,32 +392,33 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             class B extends DefaultTask {}
 
             tasks.withType(B) {
-                actionExecutionOrderForTaskB << "B1"
+                actionExecutionOrderForTaskB << "1"
             }
 
             tasks.withType(B) {
-                actionExecutionOrderForTaskB << "B2"
+                actionExecutionOrderForTaskB << "2"
             }
 
             def b = tasks.create("b", B) {
-                actionExecutionOrderForTaskB << "B3"
+                actionExecutionOrderForTaskB << "3"
             }
 
             b.configure {
-                actionExecutionOrderForTaskB << "B4"
+                actionExecutionOrderForTaskB << "4"
             }
 
             tasks.withType(B) {
-                actionExecutionOrderForTaskB << "B5"
+                actionExecutionOrderForTaskB << "5"
             }
 
             b.configure {
-                actionExecutionOrderForTaskB << "B6"
+                actionExecutionOrderForTaskB << "6"
             }
 
             task assertActionExecutionOrder {
                 dependsOn a, b
                 doLast {
+                    assert actionExecutionOrderForTaskA.size() == 6
                     assert actionExecutionOrderForTaskA == actionExecutionOrderForTaskB
                 }
             }
