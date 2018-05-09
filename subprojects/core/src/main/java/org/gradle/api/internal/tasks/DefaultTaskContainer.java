@@ -284,11 +284,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction) {
+    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        final DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
@@ -447,9 +447,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
-    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, Action<? super T> configure) {
+    public <T extends Task> void addPlaceholderAction(final String placeholderName, Class<T> taskType, Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            final TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
+            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
             placeholders.put(placeholderName, provider);
             deferredElementKnown(placeholderName, provider);
         } else {
@@ -534,10 +534,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
 
-        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configurationAction) {
+        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
-            if (configurationAction != null) {
-                configure(configurationAction);
+            if (configureAction != null) {
+                configure(configureAction);
             }
             statistics.lazyTask();
         }
