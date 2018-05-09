@@ -123,9 +123,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return parent.createChild();
     }
 
-    GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {
+    GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor) {
         String gradleVersion = GradleVersion.current().getVersion();
-        return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
+        return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion, buildOperationExecutor);
     }
 
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {

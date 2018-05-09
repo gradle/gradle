@@ -20,10 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,13 +32,11 @@ public class RuntimeShadedJarFactory {
 
     private final GeneratedGradleJarCache cache;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, BuildOperationExecutor buildOperationExecutor, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
@@ -50,26 +44,13 @@ public class RuntimeShadedJarFactory {
         final File jarFile = cache.get(type.getIdentifier(), new Action<File>() {
             @Override
             public void execute(final File file) {
-                buildOperationExecutor.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
-                            progressLoggerFactory,
-                            new ImplementationDependencyRelocator(type),
-                            directoryFileTreeFactory
-                        );
-                        creator.create(file, classpath);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        String displayName = "Generating Jar " + file.getName();
-                        return BuildOperationDescriptor.displayName(displayName)
-                            .progressDisplayName(displayName);
-                    }
-                });
-
-             }
+                RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
+                    progressLoggerFactory,
+                    new ImplementationDependencyRelocator(type),
+                    directoryFileTreeFactory
+                );
+                creator.create(file, classpath);
+            }
         });
         LOGGER.debug("Using Gradle runtime shaded JAR file: {}", jarFile);
         return jarFile;

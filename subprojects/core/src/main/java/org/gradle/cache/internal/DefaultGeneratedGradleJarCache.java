@@ -20,6 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.Closeable;
 import java.io.File;
@@ -30,14 +34,16 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
 
     private final PersistentCache cache;
     private final String gradleVersion;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion) {
+    public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion, BuildOperationExecutor buildOperationExecutor) {
         this.cache = cacheRepository
             .cache(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
         this.gradleVersion = gradleVersion;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
@@ -46,11 +52,27 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
         cache.useCache(new Runnable() {
             public void run() {
                 if (!jarFile.exists()) {
-                    creator.execute(jarFile);
+                    runBuildOperation(creator, jarFile);
                 }
             }
         });
         return jarFile;
+    }
+
+    private void runBuildOperation(final Action<File> creator, final File jarFile) {
+        buildOperationExecutor.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                creator.execute(jarFile);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                String displayName = "Generating Jar " + jarFile.getName();
+                return BuildOperationDescriptor.displayName(displayName)
+                    .progressDisplayName(displayName);
+            }
+        });
     }
 
     @Override
