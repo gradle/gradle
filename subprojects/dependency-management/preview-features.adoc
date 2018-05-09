@@ -10,7 +10,7 @@ The new metadata format is still under active development. The latest version of
 - An additional request is required for Maven and Ivy repositories to check for the new metadata file.
 
 [NOTE]
-Activate this feature in Gradle 4.6+ by setting `org.gradle.gradlemetadata=true` in _gradle.properties_.
+Activate this feature in Gradle 4.6+ by adding `enableFeaturePreview("GRADLE_METADATA")` in _settings.gradle(.kts)_.
 
 ### Publishing `.module` metadata files
 

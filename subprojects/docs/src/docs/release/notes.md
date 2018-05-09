@@ -6,6 +6,25 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Locking of dynamic dependencies
+
+Gradle now provides a mechanism for locking dynamic versions.
+It enables builds to become reproducible even when declaring dependencies using version ranges.
+
+You first enable locking on configurations:
+
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
+You then run a build, telling Gradle to persiste lock state:
+
+    gradle test --write-locks
+
+From this point onwards, all configurations that have a lock state will fail to resolve if changes are made to their dependencies.
+
+Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
+
 ### Better control over system include path for native compilation
 
 In previous versions of Gradle, the native compile task include path was a single monolithic collection of files that was accessible through the `includes` property on the compile task.
@@ -146,32 +165,26 @@ Before this release, `afterEvaluate` requests happening during the execution of 
 
 Consider the following code:
 
-```gradle
-afterEvaluate {
-    println "> Outer"
     afterEvaluate {
-        println "Inner"
+        println "> Outer"
+        afterEvaluate {
+            println "Inner"
+        }
+        println "< Outer"
     }
-    println "< Outer"
-}
-```
 
 In Gradle 4.7 and below, it would print:
 
-```text
-> Outer
-< Outer
-```
+    > Outer
+    < Outer
 
 With the `Inner` part being silently ignored.
 
 Starting with Gradle 4.8, nested `afterEvaluate` requests will be honoured asynchronously in order to preserve the callback _execute later_ semantics, in other words, the same code will now print:
 
-```text
-> Outer
-< Outer
-Inner
-```
+    > Outer
+    < Outer
+    Inner
 
 Please note that `beforeEvaluate` and other similar hooks have *not* been changed and will still silently ignore nested requests, that behaviour is subject to change in a future Gradle release (gradle/gradle#5262).
 

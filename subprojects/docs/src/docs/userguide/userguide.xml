@@ -78,6 +78,7 @@
         <xi:include href='../../../build/asciidoc/userguide/declaringRepositories.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/inspectingDependencies.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/managingTransitiveDependencies.xml'/>
+        <xi:include href='../../../build/asciidoc/userguide/dependencyLocking.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/workingWithDependencies.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/customizingDependencyResolutionBehavior.xml'/>
         <xi:include href='../../../build/asciidoc/userguide/troubleshootingDependencyResolution.xml'/>
