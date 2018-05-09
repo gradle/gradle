@@ -43,15 +43,13 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     @Override
     public File get(final String identifier, final Action<File> creator) {
         final File jarFile = jarFile(identifier);
-        if (!jarFile.exists()) {
-            cache.useCache(new Runnable() {
-                public void run() {
-                    if (!jarFile.exists()) {
-                        creator.execute(jarFile);
-                    }
+        cache.useCache(new Runnable() {
+            public void run() {
+                if (!jarFile.exists()) {
+                    creator.execute(jarFile);
                 }
-            });
-        }
+            }
+        });
         return jarFile;
     }
 

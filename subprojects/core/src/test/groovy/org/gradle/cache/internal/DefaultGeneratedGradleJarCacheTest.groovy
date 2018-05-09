@@ -107,7 +107,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        0 * cache.useCache(_)
+        1 * cache.useCache(_)
         jarFile == resolvedFile
     }
 }
