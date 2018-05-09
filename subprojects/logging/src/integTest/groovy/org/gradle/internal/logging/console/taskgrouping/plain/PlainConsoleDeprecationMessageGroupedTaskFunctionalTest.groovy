@@ -23,6 +23,6 @@ class PlainConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractCo
     ConsoleOutput consoleType = ConsoleOutput.Plain
 
     def setup() {
-        notAttachedToConsole()
+        attachTestConsole()
     }
 }

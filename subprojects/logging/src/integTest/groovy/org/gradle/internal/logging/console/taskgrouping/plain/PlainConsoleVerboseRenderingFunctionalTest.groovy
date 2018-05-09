@@ -23,6 +23,6 @@ class PlainConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseR
     ConsoleOutput consoleType = ConsoleOutput.Plain
 
     def setup() {
-        notAttachedToConsole()
+        attachTestConsole()
     }
 }

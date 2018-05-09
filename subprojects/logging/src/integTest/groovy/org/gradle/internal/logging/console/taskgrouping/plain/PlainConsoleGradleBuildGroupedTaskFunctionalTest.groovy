@@ -23,6 +23,6 @@ class PlainConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGr
     ConsoleOutput consoleType = ConsoleOutput.Plain
 
     def setup() {
-        notAttachedToConsole()
+        attachTestConsole()
     }
 }

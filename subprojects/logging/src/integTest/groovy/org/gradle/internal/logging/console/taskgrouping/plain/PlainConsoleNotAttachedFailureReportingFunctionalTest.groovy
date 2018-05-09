@@ -17,12 +17,13 @@
 package org.gradle.internal.logging.console.taskgrouping.plain
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildSrcGroupedTaskFunctionalTest
+import org.gradle.internal.logging.console.taskgrouping.AbstractFailureReportingFunctionalTest
 
-class PlainConsoleBuildSrcGroupedTaskFunctionalTest extends AbstractConsoleBuildSrcGroupedTaskFunctionalTest {
+
+class PlainConsoleNotAttachedFailureReportingFunctionalTest extends AbstractFailureReportingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
 
     def setup() {
-        attachTestConsole()
+        notAttachedToConsole()
     }
 }
