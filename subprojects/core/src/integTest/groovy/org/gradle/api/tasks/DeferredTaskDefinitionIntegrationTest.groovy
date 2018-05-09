@@ -355,4 +355,198 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds 'assertActionExecutionCount'
     }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/662")
+    def "runs the lazy configuration actions in the same order as the eager configuration actions"() {
+        buildFile << '''
+            def actionExecutionOrderForTaskA = []
+
+            class A extends DefaultTask {}
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "1"
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "2"
+            }
+
+            def a = tasks.createLater("a", A) {
+                actionExecutionOrderForTaskA << "3"
+            }
+
+            a.configure {
+                actionExecutionOrderForTaskA << "4"
+            }
+
+            tasks.configureEachLater(A) {
+                actionExecutionOrderForTaskA << "5"
+            }
+
+            a.configure {
+                actionExecutionOrderForTaskA << "6"
+            }
+
+            def actionExecutionOrderForTaskB = []
+
+            class B extends DefaultTask {}
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "1"
+            }
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "2"
+            }
+
+            def b = tasks.create("b", B) {
+                actionExecutionOrderForTaskB << "3"
+            }
+
+            b.configure {
+                actionExecutionOrderForTaskB << "4"
+            }
+
+            tasks.withType(B) {
+                actionExecutionOrderForTaskB << "5"
+            }
+
+            b.configure {
+                actionExecutionOrderForTaskB << "6"
+            }
+
+            task assertActionExecutionOrder {
+                dependsOn a, b
+                doLast {
+                    assert actionExecutionOrderForTaskA.size() == 6
+                    assert actionExecutionOrderForTaskA == actionExecutionOrderForTaskB
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'assertActionExecutionOrder'
+    }
+
+    def "can overwrite a lazy task creation with a eager task creation without executing any lazy rules"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.createLater("myTask", SomeTask) {
+                assert false, "This task is overwritten before been realized"
+            }
+            myTask.configure {
+                assert false, "This task is overwritten before been realized"
+            }
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 1
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "can overwrite a lazy task creation with a eager task and configure lazy task again"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.createLater("myTask", SomeTask) {
+                assert false, "This task is overwritten before been realized"
+            }
+            myTask.configure {
+                assert false, "This task is overwritten before been realized"
+            }
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+
+            myTask.configure {
+                assert false, "This task was overwritten with an eager task of another type"
+            }
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 1
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "executes configuration rules for a lazy task only once when explicitly realized before been replaced"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def creationRuleExecutionCount = 0
+            def myTask = tasks.createLater("myTask", SomeTask) {
+               assert creationRuleExecutionCount++ == 0, "This task creation rule should only execute once."
+            }
+            def configurationRuleExecutionCount = 0
+            myTask.configure {
+                assert configurationRuleExecutionCount++ == 0, "This configuration rule should only execute once."
+            }
+            myTask.get()
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 2
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "executes configureEach rule for explicitly realized task and eager overwritten task"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def configureEachRuleExecutionCount = 0
+            tasks.configureEachLater(SomeTask) {
+                configureEachRuleExecutionCount++
+            }
+
+            def myTask = tasks.createLater("myTask", SomeTask)
+            myTask.get()
+
+            tasks.create(name: "myTask", type: SomeTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+
+            assert configureEachRuleExecutionCount == 2, "The configureEach rule should execute for the manually realized lazy task as well as the overwritten eager task"
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 2
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "executes configureEach rule only for eager overwritten task"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def configureEachRuleExecutionCount = 0
+            tasks.configureEachLater(SomeTask) {
+                configureEachRuleExecutionCount++
+            }
+
+            def myTask = tasks.createLater("myTask", SomeTask)
+            
+            tasks.create(name: "myTask", type: SomeTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+
+            assert configureEachRuleExecutionCount == 1, "The configureEach rule should execute only for the overwritten eager task"
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 1
+        result.output.count("Configure :myTask") == 1
+    }
 }
