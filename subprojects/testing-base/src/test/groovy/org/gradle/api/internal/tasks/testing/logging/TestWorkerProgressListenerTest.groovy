@@ -21,10 +21,9 @@ import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor
-import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -61,7 +60,7 @@ class TestWorkerProgressListenerTest extends Specification {
         1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, parentProgressLogger) >> testWorkerProgressLogger
         1 * testWorkerProgressLogger.start(testEvent.progressLoggerDescription, testEvent.progressLoggerDescription)
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 1
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent.progressLoggerDescription) == testWorkerProgressLogger
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor.id) == testWorkerProgressLogger
 
         when:
         testWorkerProgressListener.started(testDescriptor, createTestStartEvent())
@@ -70,7 +69,7 @@ class TestWorkerProgressListenerTest extends Specification {
         0 * progressLoggerFactory._
         0 * testWorkerProgressLogger._
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 1
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent.progressLoggerDescription) == testWorkerProgressLogger
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor.id) == testWorkerProgressLogger
     }
 
     def "can register progress loggers for different test workers"() {
@@ -80,8 +79,8 @@ class TestWorkerProgressListenerTest extends Specification {
         given:
         def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
         def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
-        def testDescriptor1 = createTestDescriptor(testEvent1)
-        def testDescriptor2 = createTestDescriptor(testEvent2)
+        def testDescriptor1 = createTestDescriptor(testEvent1, '1.1')
+        def testDescriptor2 = createTestDescriptor(testEvent2, '1.2')
 
         when:
         testWorkerProgressListener.started(testDescriptor1, createTestStartEvent())
@@ -90,7 +89,7 @@ class TestWorkerProgressListenerTest extends Specification {
         1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, parentProgressLogger) >> testWorkerProgressLogger1
         1 * testWorkerProgressLogger1.start(testEvent1.progressLoggerDescription, testEvent1.progressLoggerDescription)
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 1
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent1.progressLoggerDescription) == testWorkerProgressLogger1
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor1.id) == testWorkerProgressLogger1
 
         when:
         testWorkerProgressListener.started(testDescriptor2, createTestStartEvent())
@@ -99,7 +98,7 @@ class TestWorkerProgressListenerTest extends Specification {
         1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, parentProgressLogger) >> testWorkerProgressLogger2
         1 * testWorkerProgressLogger2.start(testEvent2.progressLoggerDescription, testEvent2.progressLoggerDescription)
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 2
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent2.progressLoggerDescription) == testWorkerProgressLogger2
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor2.id) == testWorkerProgressLogger2
     }
 
     def "does not complete progress logger for test worker that hasn't been registered"() {
@@ -122,8 +121,8 @@ class TestWorkerProgressListenerTest extends Specification {
         given:
         def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
         def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
-        def testDescriptor1 = createTestDescriptor(testEvent1)
-        def testDescriptor2 = createTestDescriptor(testEvent2)
+        def testDescriptor1 = createTestDescriptor(testEvent1, '1.1')
+        def testDescriptor2 = createTestDescriptor(testEvent2, '1.2')
 
         when:
         testWorkerProgressListener.started(testDescriptor1, createTestStartEvent())
@@ -135,8 +134,8 @@ class TestWorkerProgressListenerTest extends Specification {
         1 * testWorkerProgressLogger1.start(testEvent1.progressLoggerDescription, testEvent1.progressLoggerDescription)
         1 * testWorkerProgressLogger2.start(testEvent2.progressLoggerDescription, testEvent2.progressLoggerDescription)
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 2
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent1.progressLoggerDescription) == testWorkerProgressLogger1
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent2.progressLoggerDescription) == testWorkerProgressLogger2
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor1.id) == testWorkerProgressLogger1
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor2.id) == testWorkerProgressLogger2
 
         when:
         testWorkerProgressListener.completed(testDescriptor1, createTestResult(), createTestCompleteEvent())
@@ -155,8 +154,8 @@ class TestWorkerProgressListenerTest extends Specification {
         given:
         def testEvent1 = new TestEvent('Gradle Test Executor 1', 'org.gradle.Test1')
         def testEvent2 = new TestEvent('Gradle Test Executor 2', 'org.gradle.Test2')
-        def testDescriptor1 = createTestDescriptor(testEvent1)
-        def testDescriptor2 = createTestDescriptor(testEvent2)
+        def testDescriptor1 = createTestDescriptor(testEvent1, '1.1')
+        def testDescriptor2 = createTestDescriptor(testEvent2, '1.2')
 
         when:
         testWorkerProgressListener.started(testDescriptor1, createTestStartEvent())
@@ -168,8 +167,8 @@ class TestWorkerProgressListenerTest extends Specification {
         1 * testWorkerProgressLogger1.start(testEvent1.progressLoggerDescription, testEvent1.progressLoggerDescription)
         1 * testWorkerProgressLogger2.start(testEvent2.progressLoggerDescription, testEvent2.progressLoggerDescription)
         testWorkerProgressListener.testWorkerProgressLoggers.size() == 2
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent1.progressLoggerDescription) == testWorkerProgressLogger1
-        testWorkerProgressListener.testWorkerProgressLoggers.get(testEvent2.progressLoggerDescription) == testWorkerProgressLogger2
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor1.id) == testWorkerProgressLogger1
+        testWorkerProgressListener.testWorkerProgressLoggers.get(testDescriptor2.id) == testWorkerProgressLogger2
 
         when:
         testWorkerProgressListener.completeAll()
@@ -177,6 +176,43 @@ class TestWorkerProgressListenerTest extends Specification {
         then:
         1 * testWorkerProgressLogger1.completed()
         1 * testWorkerProgressLogger2.completed()
+        testWorkerProgressListener.testWorkerProgressLoggers.isEmpty()
+    }
+
+    def "uses intermediate progress loggers as parent"() {
+        given:
+        def intermediateProgressLogger = Mock(ProgressLogger)
+        def childProgressLogger = Mock(ProgressLogger)
+        def intermediateEvent = new TestEvent('Gradle Test Executor 1', 'JUnit Jupiter')
+        def childEvent = new TestEvent('JUnit Jupiter', 'org.gradle.Test')
+        def intermediateDescriptor = createTestDescriptor(intermediateEvent, '1')
+        def childDescriptor = createTestDescriptor(intermediateDescriptor, childEvent, '1.1')
+
+        when:
+        testWorkerProgressListener.started(intermediateDescriptor, createTestStartEvent())
+
+        then:
+        1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, this.parentProgressLogger) >> intermediateProgressLogger
+        1 * intermediateProgressLogger.start(intermediateEvent.progressLoggerDescription, intermediateEvent.progressLoggerDescription)
+        testWorkerProgressListener.testWorkerProgressLoggers.size() == 1
+        testWorkerProgressListener.testWorkerProgressLoggers.get(intermediateDescriptor.id) == intermediateProgressLogger
+
+        when:
+        testWorkerProgressListener.started(childDescriptor, createTestStartEvent())
+
+        then:
+        1 * progressLoggerFactory.newOperation(TestWorkerProgressListener.class, intermediateProgressLogger) >> childProgressLogger
+        1 * childProgressLogger.start(childEvent.progressLoggerDescription, childEvent.progressLoggerDescription)
+        testWorkerProgressListener.testWorkerProgressLoggers.size() == 2
+        testWorkerProgressListener.testWorkerProgressLoggers.get(intermediateDescriptor.id) == intermediateProgressLogger
+        testWorkerProgressListener.testWorkerProgressLoggers.get(childDescriptor.id) == childProgressLogger
+
+        when:
+        testWorkerProgressListener.completeAll()
+
+        then:
+        1 * childProgressLogger.completed()
+        1 * intermediateProgressLogger.completed()
         testWorkerProgressListener.testWorkerProgressLoggers.isEmpty()
     }
 
@@ -192,12 +228,14 @@ class TestWorkerProgressListenerTest extends Specification {
         new TestCompleteEvent(new Date().time)
     }
 
-    static TestDescriptor createTestDescriptor(TestEvent testEvent) {
-        def testWorkerDescriptor = new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(1, testEvent.testWorkerName)
-        def defaultTestClassDescriptor = new DefaultTestClassDescriptor(1, testEvent.testClassName)
-        def decoratingDefaultTestClassDescriptor = new DecoratingTestDescriptor(defaultTestClassDescriptor, null)
-        def decoratingTestWorkerDescriptor = new DecoratingTestDescriptor(testWorkerDescriptor, decoratingDefaultTestClassDescriptor)
-        new DecoratingTestDescriptor(defaultTestClassDescriptor, decoratingTestWorkerDescriptor)
+    static TestDescriptorInternal createTestDescriptor(TestEvent testEvent, Object id = '1.1') {
+        def parent = new DefaultTestSuiteDescriptor('1', testEvent.testWorkerName)
+        createTestDescriptor(parent, testEvent, id)
+    }
+
+    static TestDescriptorInternal createTestDescriptor(TestDescriptorInternal parent, TestEvent testEvent, Object id) {
+        def descriptor = new DefaultTestClassDescriptor(id, testEvent.testClassName)
+        new DecoratingTestDescriptor(descriptor, parent)
     }
 
     @TupleConstructor

@@ -30,6 +30,7 @@ public class TestEventSerializer {
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
         registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
+        registry.register(DefaultTestContainerDescriptor.class, new DefaultTestContainerDescriptorSerializer());
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
         registry.register(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
         registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
@@ -171,6 +172,29 @@ public class TestEventSerializer {
         public void write(Encoder encoder, WorkerTestClassProcessor.WorkerTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
+        }
+    }
+
+    private static class DefaultTestContainerDescriptorSerializer implements Serializer<DefaultTestContainerDescriptor> {
+        final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+
+        @Override
+        public DefaultTestContainerDescriptor read(Decoder decoder) throws Exception {
+            Object id = idSerializer.read(decoder);
+            String className = decoder.readString();
+            String classDisplayName = decoder.readString();
+            String name = decoder.readString();
+            String displayName = decoder.readString();
+            return new DefaultTestContainerDescriptor(id, className, name, classDisplayName, displayName);
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultTestContainerDescriptor value) throws Exception {
+            idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
+            encoder.writeString(value.getClassName());
+            encoder.writeString(value.getClassDisplayName());
+            encoder.writeString(value.getName());
+            encoder.writeString(value.getDisplayName());
         }
     }
 

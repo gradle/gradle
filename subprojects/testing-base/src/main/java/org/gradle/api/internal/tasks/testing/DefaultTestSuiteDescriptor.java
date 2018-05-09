@@ -17,8 +17,20 @@
 package org.gradle.api.internal.tasks.testing;
 
 public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
+    private final String displayName;
+
     public DefaultTestSuiteDescriptor(Object id, String name) {
+        this(id, name, name);
+    }
+
+    public DefaultTestSuiteDescriptor(Object id, String name, String displayName) {
         super(id, name);
+        this.displayName = displayName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
     }
 
     @Override

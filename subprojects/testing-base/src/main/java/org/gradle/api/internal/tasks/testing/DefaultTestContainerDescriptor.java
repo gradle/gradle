@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
+public class DefaultTestContainerDescriptor extends DefaultTestDescriptor {
 
-    public DefaultTestClassDescriptor(Object id, String className) {
-        this(id, className, className);
-    }
-
-    public DefaultTestClassDescriptor(Object id, String className, String classDisplayName) {
-        super(id, className, classDisplayName);
+    public DefaultTestContainerDescriptor(Object id, String className, String name, String classDisplayName, String displayName) {
+        super(id, className, name, classDisplayName, displayName);
     }
 
     @Override
-    public String getClassName() {
-        return getName();
-    }
-
-    @Override
-    public String getClassDisplayName() {
-        return getDisplayName();
+    public boolean isComposite() {
+        return true;
     }
 
     @Override
     public String toString() {
-        return "Test class " + getClassName();
+        return "Composite '"+ getName() + "'";
     }
+
 }

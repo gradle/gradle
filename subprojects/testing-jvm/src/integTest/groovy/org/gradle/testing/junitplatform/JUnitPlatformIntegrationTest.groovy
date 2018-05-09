@@ -136,7 +136,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         where:
         location    | beforeStatement                | afterStatement                 | successCount | failureCount
         'beforeAll' | 'throw new RuntimeException()' | ''                             | 0            | 1
-        'afterAll'  | ''                             | 'throw new RuntimeException()' | 1            | 1
+        'afterAll'  | ''                             | 'throw new RuntimeException()' | 0            | 1
     }
 
     def 'can handle class level assumption'() {
@@ -281,8 +281,8 @@ public class UninstantiatableExtension implements BeforeEachCallback {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass('UnknownClass')
-            .assertTestFailed('initializationError', containsString('UninstantiatableExtension'))
+            .testClass('JUnit Jupiter')
+            .assertTestFailed('failed to execute tests', containsString('UninstantiatableExtension'))
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4427')

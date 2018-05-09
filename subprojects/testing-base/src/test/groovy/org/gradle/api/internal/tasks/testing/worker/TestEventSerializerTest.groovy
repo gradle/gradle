@@ -74,6 +74,22 @@ class TestEventSerializerTest extends SerializerSpec {
         result.name == "some-test"
     }
 
+    def "serializes DefaultTestContainerDescriptor"() {
+        def id = new CompositeIdGenerator.CompositeId(1L, 2L)
+        def descriptor = new DefaultTestContainerDescriptor(id, "some-class", "some-test", "classDisplayName", "displayName")
+
+        when:
+        def result = serialize(descriptor)
+
+        then:
+        result instanceof DefaultTestContainerDescriptor
+        result.id == id
+        result.className == "some-class"
+        result.name == "some-test"
+        result.classDisplayName == "classDisplayName"
+        result.displayName == "displayName"
+    }
+
     def "serializes DefaultTestClassDescriptor"() {
         def id = new CompositeIdGenerator.CompositeId(1L, 2L)
         def descriptor = new DefaultTestClassDescriptor(id, "some-test")

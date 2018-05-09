@@ -48,17 +48,14 @@ public abstract class AbstractJUnitTestClassProcessor<T extends JUnitSpec> imple
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(resultProcessor);
-        TestClassExecutionEventGenerator eventGenerator = new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, clock);
-
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
-        resultProcessorActor = actorFactory.createBlockingActor(eventGenerator);
-        TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
-
-        executor = createTestExecutor(threadSafeResultProcessor, threadSafeTestClassListener);
+        resultProcessorActor = createActor(actorFactory, resultProcessorChain);
+        executor = createTestExecutor(resultProcessorActor);
     }
 
-    protected abstract Action<String> createTestExecutor(TestResultProcessor threadSafeResultProcessor, TestClassExecutionListener threadSafeTestClassListener);
+    protected abstract Actor createActor(ActorFactory actorFactory, TestResultProcessor resultProcessorChain);
+
+    protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
