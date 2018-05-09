@@ -120,6 +120,13 @@ In a Kotlin build script, you can pass constructor arguments using the reified e
 
 More details are available in the [user guide](userguide/more_about_tasks.html#sec:passing_arguments_to_a_task_constructor)
 
+### Immutable file collections
+
+It is now possible to create immutable file collections by using [`ProjectLayout.files(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-).
+There is also a new method for creating configurable file collections, [`ProjectLayout.configurableFiles(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object...-), which will replace `Project.files()` in the long run.
+`FileCollection`s created by `ProjectLayout.files()` are performing slightly better and should be used whenever mutability is not required.
+For example, they fit nice when creating tasks with constructor arguments.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -6,7 +6,7 @@ class FooExtension {
     FooExtension(Project project) {
         someDirectory = project.layout.directoryProperty()
         someFile = project.layout.fileProperty()
-        someFiles = project.files()
+        someFiles = project.layout.configurableFiles()
     }
 }
 
@@ -15,7 +15,7 @@ project.extensions.create('foo', FooExtension, project)
 foo {
     someDirectory = project.layout.projectDirectory.dir('some-directory')
     someFile = project.layout.buildDirectory.file('some-file')
-    someFiles.from project.files(someDirectory, someFile)
+    someFiles.from project.layout.configurableFiles(someDirectory, someFile)
 }
 
 task print {
