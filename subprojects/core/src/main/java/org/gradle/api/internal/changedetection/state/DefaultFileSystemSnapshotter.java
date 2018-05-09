@@ -44,7 +44,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 import org.gradle.util.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
