@@ -432,14 +432,40 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def myTask = tasks.createLater("myTask", SomeTask) {
-                assert false, "This task is overridden before been realized"
+                assert false, "This task is overwritten before been realized"
             }
             myTask.configure {
-                assert false, "This task is overridden before been realized"
+                assert false, "This task is overwritten before been realized"
             }
 
             tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
                println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create :myTask") == 1
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "can overwrite a lazy task creation with a eager task and configure lazy task again"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.createLater("myTask", SomeTask) {
+                assert false, "This task is overwritten before been realized"
+            }
+            myTask.configure {
+                assert false, "This task is overwritten before been realized"
+            }
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+
+            myTask.configure {
+                assert false, "This task was overwritten with an eager task of another type"
             }
         '''
 
@@ -475,7 +501,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.output.count("Configure :myTask") == 1
     }
 
-    def "executes configureEach rule for explicitly realized task and eager overridden task"() {
+    def "executes configureEach rule for explicitly realized task and eager overwritten task"() {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def configureEachRuleExecutionCount = 0
@@ -490,7 +516,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                println "Configure ${path}"
             }
 
-            assert configureEachRuleExecutionCount == 2, "The configureEach rule should execute for the manually realized lazy task as well as the overridden eager task"
+            assert configureEachRuleExecutionCount == 2, "The configureEach rule should execute for the manually realized lazy task as well as the overwritten eager task"
         '''
 
         expect:
@@ -500,7 +526,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.output.count("Configure :myTask") == 1
     }
 
-    def "executes configureEach rule only for eager overridden task"() {
+    def "executes configureEach rule only for eager overwritten task"() {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def configureEachRuleExecutionCount = 0
@@ -514,7 +540,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                println "Configure ${path}"
             }
 
-            assert configureEachRuleExecutionCount == 1, "The configureEach rule should execute only for the overridden eager task"
+            assert configureEachRuleExecutionCount == 1, "The configureEach rule should execute only for the overwritten eager task"
         '''
 
         expect:
