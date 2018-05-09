@@ -30,11 +30,17 @@ import java.util.Arrays.equals
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
+import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver
+import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
 internal
 typealias Environment = Map<String, Any?>
+
+
+private
+typealias Report = (ReportSeverity, String, Position?) -> Unit
 
 
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
@@ -45,13 +51,13 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
         /**
          * Shows a message in the IDE.
          *
-         * To report whole file errors (e.g. failure to query for dependencies), one can just pass null
-         * so the error/warning will be shown in the top panel of the editor
+         * To report whole file errors (e.g. failure to query for dependencies), one can just pass a
+         * null position so the error/warning will be shown in the top panel of the editor
          *
          * Also there is a FATAL Severity - in this case the highlighting of the file will be
          * switched off (may be it is useful for some errors).
          */
-        report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
+        report: (ReportSeverity, String, Position?) -> Unit,
         previousDependencies: KotlinScriptExternalDependencies?
     ) = future {
 
@@ -242,9 +248,7 @@ class KotlinBuildScriptDependencies(
 internal
 fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
 
-    // TODO:pm remove hardcoded reference to settings.gradle
-    // Using `DefaultScriptFileResolver()` here would do
-    // but that class is not available when this gets run inside IntelliJ
+    // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
     fun isProjectRoot(dir: File) =
         File(dir, "settings.gradle.kts").isFile
             || File(dir, "settings.gradle").isFile
