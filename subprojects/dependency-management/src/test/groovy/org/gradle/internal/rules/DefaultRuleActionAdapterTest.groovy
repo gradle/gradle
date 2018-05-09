@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserCodeException
 import spock.lang.Specification
 
 class DefaultRuleActionAdapterTest extends Specification {
-    def RuleActionValidator<String> noopValidator
+    def RuleActionValidator noopValidator
     def ruleActionAdapter
 
     def setup() {
@@ -30,7 +30,7 @@ class DefaultRuleActionAdapterTest extends Specification {
     }
 
     def "can adapt from closure" () {
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
         def closureCalled = ""
 
         when:
@@ -75,7 +75,7 @@ class DefaultRuleActionAdapterTest extends Specification {
     }
 
     def "can adapt from action" () {
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
         def actionCalled = false
 
         when:
@@ -89,7 +89,7 @@ class DefaultRuleActionAdapterTest extends Specification {
     }
 
     def "fails to adapt closure with invalid subject" () {
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(noopValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter(noopValidator, "context")
 
         when:
         ruleActionAdapter.createFromClosure(String, {List subject -> })
@@ -102,10 +102,10 @@ class DefaultRuleActionAdapterTest extends Specification {
     }
 
     def "fails to adapt closure when validation fails" () {
-        def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
+        def RuleActionValidator ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter(ruleActionValidator, "context")
 
         when:
         ruleActionAdapter.createFromClosure(String, { String s -> })
@@ -118,10 +118,10 @@ class DefaultRuleActionAdapterTest extends Specification {
     }
 
     def "fails to adapt action when validation fails" () {
-        def RuleActionValidator<String> ruleActionValidator = Stub(RuleActionValidator) {
+        def RuleActionValidator ruleActionValidator = Stub(RuleActionValidator) {
             validate(_) >> { RuleAction ruleAction -> throw new RuleActionValidationException("FAILED") }
         }
-        ruleActionAdapter = new DefaultRuleActionAdapter<String>(ruleActionValidator, "context")
+        ruleActionAdapter = new DefaultRuleActionAdapter(ruleActionValidator, "context")
 
         when:
         ruleActionAdapter.createFromAction(Stub(Action))

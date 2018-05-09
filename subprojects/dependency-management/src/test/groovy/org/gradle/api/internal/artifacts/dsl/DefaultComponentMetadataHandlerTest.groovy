@@ -52,7 +52,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     // For testing ComponentMetadataHandler capabilities
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory())
-    RuleActionAdapter<ComponentMetadataDetails> adapter = Mock(RuleActionAdapter)
+    RuleActionAdapter adapter = Mock(RuleActionAdapter)
     def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory())
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())

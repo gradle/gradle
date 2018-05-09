@@ -72,14 +72,14 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     private final Instantiator instantiator;
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
-    private final RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter;
+    private final RuleActionAdapter ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator,
-                                           RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter,
+    DefaultComponentMetadataHandler(Instantiator instantiator,
+                                           RuleActionAdapter ruleActionAdapter,
                                            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                            Interner<String> stringInterner,
                                            ImmutableAttributesFactory attributesFactory) {
@@ -98,9 +98,9 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory);
     }
 
-    private static RuleActionAdapter<ComponentMetadataDetails> createAdapter() {
-        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(VALIDATOR_PARAM_LIST);
-        return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ADAPTER_NAME);
+    private static RuleActionAdapter createAdapter() {
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(VALIDATOR_PARAM_LIST);
+        return new DefaultRuleActionAdapter(ruleActionValidator, ADAPTER_NAME);
     }
 
     private ComponentMetadataHandler addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
