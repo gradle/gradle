@@ -84,9 +84,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
-        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-        extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
-        createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+            @Override
+            public void execute(PublishingExtension extension) {
+                extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
+                createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+            }
+        });
     }
 
     private void createTasksLater(final Project project, final PublishingExtension publishingExtension, final DirectoryProperty buildDir) {

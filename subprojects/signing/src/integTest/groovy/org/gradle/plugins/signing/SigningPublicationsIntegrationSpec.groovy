@@ -16,12 +16,17 @@
 
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableGradleMetadata
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
+    @Override
+    def setup() {
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+    }
 
     def "signs single Maven publication"() {
         given:
