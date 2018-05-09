@@ -57,7 +57,7 @@ abstract class AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest extend
 
         then:
         def expectedOutput = "${normalizedJavaSourceFilePath}:4: warning: [deprecation] Legacy in unnamed package has been deprecated"
-        def actualOutput = result.groupedOutput.task(':compileJava').output
+        def actualOutput = stderrAttached ? result.groupedOutput.task(':compileJava').output : result.getError()
         normaliseFileSeparators(actualOutput).contains(expectedOutput)
     }
 }

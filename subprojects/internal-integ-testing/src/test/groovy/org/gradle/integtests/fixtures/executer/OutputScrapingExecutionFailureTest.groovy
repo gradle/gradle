@@ -116,15 +116,18 @@ broken!
         given:
         def output = """
 Some message
-Some error
 
 FAILURE: broken
 
 * Exception is:
 Some.Failure
 """
+        def errorOutput = """
+Some error
+"""
+
         when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, errorOutput)
 
         then:
         failure.assertOutputContains("Some message")
@@ -143,7 +146,6 @@ Some.Failure
             =======
              
             Some message
-            Some error
              
             Output:
         '''))
@@ -160,7 +162,6 @@ Some.Failure
             Build output:
             =======
              
-            Some message
             Some error
              
             Output:

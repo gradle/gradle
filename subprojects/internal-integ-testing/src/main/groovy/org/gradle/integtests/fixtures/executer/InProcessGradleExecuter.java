@@ -143,6 +143,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
+
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
             OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
@@ -268,7 +269,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, expectErrorsOnStdout);
 
         return loggingManager;
     }
@@ -470,6 +471,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public boolean hasErrorOutput(String expectedOutput) {
+            return outputResult.hasErrorOutput(expectedOutput);
+        }
+
+        @Override
+        public boolean hasMainOutput(String expectedOutput) {
             return outputResult.hasErrorOutput(expectedOutput);
         }
 

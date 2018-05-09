@@ -444,4 +444,19 @@ public interface GradleExecuter extends Stoppable {
      * By default the message is never rendered.
      */
     GradleExecuter withWelcomeMessageEnabled();
+
+    /**
+     * Specifies whether or not to expect error output on stderr or stdout.
+     */
+    GradleExecuter withErrorsOnStdout();
+
+    /**
+     * Specifies we should use a test console that has both stdout and stderr attached.
+     */
+    GradleExecuter withTestConsoleAttached();
+
+    /**
+     * Specifies we should use a test console that only has stdout attached.
+     */
+    GradleExecuter withTestConsoleAttachedToStdoutOnly();
 }

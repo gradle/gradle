@@ -21,4 +21,8 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleDeprecati
 
 class PlainConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
+
+    def setup() {
+        notAttachedToConsole()
+    }
 }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping.rich
+package org.gradle.internal.logging.console.taskgrouping.plain
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest
+import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 
-class RichConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Rich
+class PlainConsoleAttachedToStdoutBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Plain
 
     def setup() {
-        attachTestConsole()
+        attachTestConsoleToStdoutOnly()
     }
 }

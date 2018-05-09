@@ -56,9 +56,8 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")
 
-        // Summary always appears on stdout
-        failure.output.contains("BUILD FAILED")
-        !failure.error.contains("BUILD FAILED")
+        def errorContent = stderrAttached ? failure.output : failure.error
+        errorContent.contains("BUILD FAILED")
 
         where:
         level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]

@@ -178,10 +178,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
-    @Override
-    public ExecutionResult assertOutputContains(String expectedOutput) {
+    private ExecutionResult assertContentContains(String actualText, String expectedOutput) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        String actualText = getMainContent().withNormalizedEol();
         if (!actualText.contains(expectedText)) {
             failOnMissingOutput("Did not find expected text in build output.", "Build output", expectedOutput, actualText);
         }
@@ -189,13 +187,23 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public ExecutionResult assertOutputContains(String expectedOutput) {
+        return assertContentContains(getMainContent().withNormalizedEol(), expectedOutput);
+    }
+
+    @Override
     public boolean hasErrorOutput(String expectedOutput) {
+        return getError().contains(expectedOutput);
+    }
+
+    @Override
+    public boolean hasMainOutput(String expectedOutput) {
         return getMainContent().withNormalizedEol().contains(expectedOutput);
     }
 
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
-        return assertOutputContains(expectedOutput);
+        return assertContentContains(getError(), expectedOutput);
     }
 
     public String getError() {

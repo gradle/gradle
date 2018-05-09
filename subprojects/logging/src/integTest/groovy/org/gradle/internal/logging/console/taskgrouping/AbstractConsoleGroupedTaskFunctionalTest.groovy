@@ -24,6 +24,9 @@ import org.gradle.integtests.fixtures.RichConsoleStyling
  * A base class for testing the console.
  */
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+    protected boolean consoleAttached
+    protected boolean stderrAttached
+
     def setup() {
         executer.beforeExecute {
             it.withConsole(consoleType)
@@ -31,4 +34,21 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
     }
 
     abstract ConsoleOutput getConsoleType()
+
+    def attachTestConsole() {
+        executer.withTestConsoleAttached()
+        consoleAttached = true
+        stderrAttached = true
+    }
+
+    def attachTestConsoleToStdoutOnly() {
+        executer.withTestConsoleAttachedToStdoutOnly()
+        consoleAttached = true
+        stderrAttached = false
+    }
+
+    def notAttachedToConsole() {
+        consoleAttached = false
+        stderrAttached = false
+    }
 }

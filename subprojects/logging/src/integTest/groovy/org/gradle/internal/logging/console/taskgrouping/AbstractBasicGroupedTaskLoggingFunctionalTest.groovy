@@ -93,7 +93,12 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         succeeds('log')
 
         then:
-        result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
+        if (consoleAttached && stderrAttached) {
+            result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
+        } else {
+            result.groupedOutput.task(':log').output == "Standard out 1\nStandard out 2\n"
+            result.assertHasErrorOutput("Standard err 1\nStandard err 2")
+        }
     }
 
     def "grouped output is displayed for failed tasks"() {
@@ -211,4 +216,6 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }
+
+
 }

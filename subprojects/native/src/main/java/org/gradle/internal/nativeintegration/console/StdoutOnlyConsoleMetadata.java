@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping.rich
+package org.gradle.internal.nativeintegration.console;
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest
+public enum StdoutOnlyConsoleMetadata implements ConsoleMetaData {
+    INSTANCE;
 
-class RichConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Rich
+    @Override
+    public boolean isStdOut() {
+        return true;
+    }
 
-    def setup() {
-        attachTestConsole()
+    @Override
+    public boolean isStdErr() {
+        return false;
+    }
+
+    @Override
+    public int getCols() {
+        return 0;
+    }
+
+    @Override
+    public int getRows() {
+        return 0;
     }
 }

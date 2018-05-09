@@ -22,12 +22,17 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.StdoutOnlyConsoleMetadata;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class ConsoleConfigureAction {
+    public static final String TEST_CONSOLE_PROPERTY = "org.gradle.internal.console.test-console";
+    public static final String CONSOLE_BOTH = "both";
+    public static final String CONSOLE_STDOUT_ONLY = "stdout";
+
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Auto) {
             configureAutoConsole(renderer);
@@ -41,23 +46,40 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, boolean verbose) {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
         configureRichConsole(renderer, consoleMetaData, consoleMetaData == null, verbose);
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer) {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
         if (consoleMetaData != null) {
             configureRichConsole(renderer, consoleMetaData, false, false);
         } else {
-            configurePlainConsole(renderer);
+            configurePlainConsole(renderer, null);
         }
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer) {
-        renderer.addPlainConsole();
+        ConsoleMetaData consoleMetaData = getConsoleMetaData();
+        configurePlainConsole(renderer, consoleMetaData);
+    }
+
+    private static ConsoleMetaData getConsoleMetaData() {
+        String testConsole = System.getProperty(TEST_CONSOLE_PROPERTY);
+        if (testConsole != null) {
+            if (testConsole.equals(CONSOLE_BOTH)) {
+                return FallbackConsoleMetaData.INSTANCE;
+            } else if (testConsole.equals(CONSOLE_STDOUT_ONLY)) {
+                return StdoutOnlyConsoleMetadata.INSTANCE;
+            }
+        }
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        return consoleDetector.getConsole();
+    }
+
+    private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData) {
+        // Redirect stderr to stdout if a console is attached to both stdout and stderr
+        renderer.addPlainConsole(consoleMetaData != null && consoleMetaData.isStdOut() && consoleMetaData.isStdErr());
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, boolean force, boolean verbose) {
