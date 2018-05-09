@@ -43,6 +43,16 @@ private
 typealias Report = (ReportSeverity, String, Position?) -> Unit
 
 
+private
+fun Report.warning(message: String) =
+    invoke(ReportSeverity.WARNING, message, null)
+
+
+private
+fun Report.error(message: String) =
+    invoke(ReportSeverity.ERROR, message, null)
+
+
 class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
 
     override fun resolve(
@@ -76,11 +86,14 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                     assembleDependenciesFrom(
                         script.file,
                         environment!!,
+                        report,
                         previousDependencies,
                         action.buildscriptBlockHash)
                 }
             }
         } catch (e: Exception) {
+            if (previousDependencies == null) report.error("Script dependencies resolution failed")
+            else report.warning("Script dependencies resolution failed, using previous dependencies")
             log(ResolutionFailure(script.file, e))
             previousDependencies
         }
@@ -90,6 +103,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     suspend fun assembleDependenciesFrom(
         scriptFile: File?,
         environment: Environment,
+        report: Report,
         previousDependencies: KotlinScriptExternalDependencies?,
         buildscriptBlockHash: ByteArray?
     ): KotlinScriptExternalDependencies {
@@ -107,10 +121,12 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 }
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
+                    report.warning("There were some errors during script dependencies resolution, using previous dependencies")
                     log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
                 }
             else ->
                 dependenciesFrom(response, buildscriptBlockHash).also {
+                    report.warning("There were some errors during script dependencies resolution, using best effort dependencies")
                     log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
                 }
         }
