@@ -95,10 +95,10 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", task, e);
                     }
                 } else {
-                    LOGGER.info("Not loading {} from cache because pulling from cache is disabled for this task", task);
+                    LOGGER.info("Not loading {} from cache because loading from cache is disabled for this task", task);
                 }
             } else {
-                LOGGER.info("Not caching {} because no valid cache key was generated", task);
+                LOGGER.info("Not loading {} from cache because no valid cache key was generated", task);
             }
         }
 
@@ -112,13 +112,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                         Map<String, Map<String, FileContentSnapshot>> outputSnapshots = taskState.getOutputContentSnapshots();
                         buildCache.store(buildCacheCommandFactory.createStore(cacheKey, outputProperties, outputSnapshots, task, context.getExecutionTime()));
                     } catch (Exception e) {
-                        LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), task, e);
+                        LOGGER.warn("Failed to store cache entry {}", cacheKey.getDisplayName(), e);
                     }
                 } else {
-                    LOGGER.debug("Not pushing result from {} to cache because the task failed", task);
+                    LOGGER.debug("Not storing result of {} in cache because the task failed", task);
                 }
             } else {
-                LOGGER.info("Not pushing results from {} to cache because no valid cache key was generated", task);
+                LOGGER.info("Not storing results of {} in cache because no valid cache key was generated", task);
             }
         }
     }
