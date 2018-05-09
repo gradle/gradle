@@ -29,6 +29,7 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -45,7 +46,6 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
@@ -183,8 +183,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public File getGradleHomeDir() {
-        GradleInstallation gradleInstallation = getCurrentGradleInstallation().getInstallation();
-        return gradleInstallation == null ? null : gradleInstallation.getGradleHome();
+        return ((StartParameterInternal) startParameter).getGradleHomeDir();
     }
 
     @Override
