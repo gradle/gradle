@@ -23,7 +23,6 @@ import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -51,9 +50,9 @@ public interface TaskExecutionPlan extends Describable {
     Set<Task> getDependencies(Task task);
 
     /**
-     * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
+     * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */
-    List<Task> getTasks();
+    Set<Task> getTasks();
 
     /**
      * @return The set of all filtered tasks that don't get executed.

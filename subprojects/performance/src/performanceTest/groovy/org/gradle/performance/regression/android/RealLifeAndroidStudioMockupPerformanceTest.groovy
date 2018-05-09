@@ -44,8 +44,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         where:
         testProject         | iterations
         "k9AndroidBuild"    | 200
-//        FIXME wolfs: re-enable the test as soon as the regression has been fixed
-//        "largeAndroidBuild" | 40
+        "largeAndroidBuild" | 40
     }
 
 }

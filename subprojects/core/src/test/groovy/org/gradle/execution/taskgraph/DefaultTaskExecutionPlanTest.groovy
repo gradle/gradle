@@ -312,7 +312,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency]
     }
 
@@ -327,7 +327,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate([finalizer, finalized])
 
         then:
-        executionPlan.tasks == [finalizedDependency, finalized, finalizerDependency, finalizer]
+        executionPlan.tasks as List == [finalizedDependency, finalized, finalizerDependency, finalizer]
         executedTasks == [finalizedDependency, finalizerDependency, finalizer]
     }
 
@@ -745,7 +745,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executionPlan.clear()
 
         then:
-        executionPlan.tasks == []
+        executionPlan.tasks == [] as Set
         executedTasks == []
     }
 
@@ -852,8 +852,8 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     void executes(Task... expectedTasks) {
-        assert executionPlan.tasks == expectedTasks as List
-        assert expectedTasks == expectedTasks as List
+        assert executionPlan.tasks as List == expectedTasks as List
+        assert executedTasks == expectedTasks as List
     }
 
     void filtered(Task... expectedTasks) {
