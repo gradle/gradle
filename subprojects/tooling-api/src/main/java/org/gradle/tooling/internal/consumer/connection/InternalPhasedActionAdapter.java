@@ -23,14 +23,11 @@ import javax.annotation.Nullable;
 
 public class InternalPhasedActionAdapter implements InternalPhasedAction {
     @Nullable private final InternalBuildActionVersion2<?> projectsLoadedAction;
-    @Nullable private final InternalBuildActionVersion2<?> projectsEvaluatedAction;
     @Nullable private final InternalBuildActionVersion2<?> buildFinishedAction;
 
     InternalPhasedActionAdapter(@Nullable InternalBuildActionVersion2<?> projectsLoadedAction,
-                                @Nullable InternalBuildActionVersion2<?> projectsEvaluatedAction,
                                 @Nullable InternalBuildActionVersion2<?> buildFinishedAction) {
         this.projectsLoadedAction = projectsLoadedAction;
-        this.projectsEvaluatedAction = projectsEvaluatedAction;
         this.buildFinishedAction = buildFinishedAction;
     }
 
@@ -38,12 +35,6 @@ public class InternalPhasedActionAdapter implements InternalPhasedAction {
     @Override
     public InternalBuildActionVersion2<?> getProjectsLoadedAction() {
         return projectsLoadedAction;
-    }
-
-    @Nullable
-    @Override
-    public InternalBuildActionVersion2<?> getProjectsEvaluatedAction() {
-        return projectsEvaluatedAction;
     }
 
     @Nullable

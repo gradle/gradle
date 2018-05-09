@@ -77,6 +77,8 @@ abstract class AnnotationProcessorFixture {
                 public Set<String> getSupportedAnnotationTypes() {
                     return Collections.singleton(${annotationName}.class.getName());
                 }
+                
+                ${supportedOptionsBlock}
             
                 @Override
                 public SourceVersion getSupportedSourceVersion() {
@@ -104,10 +106,20 @@ abstract class AnnotationProcessorFixture {
             }
 """
         projectDir.file("src/main/resources/$AnnotationProcessorDetector.PROCESSOR_DECLARATION").text = "${annotationName}Processor"
-        if (declaredType) {
-            projectDir.file("src/main/resources/$AnnotationProcessorDetector.INCREMENTAL_PROCESSOR_DECLARATION").text = "${annotationName}Processor,$declaredType"
-        }
     }
 
     protected abstract String getGeneratorCode();
+
+    private String getSupportedOptionsBlock() {
+        if (declaredType) {
+            """
+                @Override
+                public Set<String> getSupportedOptions() {
+                    return Collections.singleton("${declaredType.processorOption}");
+                }
+            """
+        } else {
+            ""
+        }
+    }
 }

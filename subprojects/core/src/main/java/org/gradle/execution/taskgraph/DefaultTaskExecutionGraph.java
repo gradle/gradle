@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
@@ -36,19 +37,18 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.execution.TaskFailureHandler;
-import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.BuildOperationCategory;
+import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -61,14 +61,15 @@ import java.util.List;
 import java.util.Set;
 
 @NonNullApi
-public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
+public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private enum TaskGraphState {
         EMPTY, DIRTY, POPULATED
     }
 
     private final TaskPlanExecutor taskPlanExecutor;
+    private final ResourceLockCoordinationService coordinationService;
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
     private final Factory<? extends TaskExecuter> taskExecuter;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
@@ -80,17 +81,19 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final Set<Task> requestedTasks = Sets.newTreeSet();
     private Spec<? super Task> filter = Specs.SATISFIES_ALL;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
+    public DefaultTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
         this.taskPlanExecutor = taskPlanExecutor;
         this.taskExecuter = taskExecuter;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.coordinationService = coordinationService;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);
-        taskExecutionPlan = new DefaultTaskExecutionPlan(cancellationToken, coordinationService, workerLeaseService, gradleInternal);
+        taskExecutionPlan = new DefaultTaskExecutionPlan(workerLeaseService, gradleInternal);
     }
 
-    public void useFailureHandler(TaskFailureHandler handler) {
-        taskExecutionPlan.useFailureHandler(handler);
+    @Override
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        taskExecutionPlan.setContinueOnFailure(continueOnFailure);
     }
 
     public void useFilter(Spec<? super Task> filter) {
@@ -130,7 +133,13 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
-            taskExecutionPlan.clear();
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    taskExecutionPlan.clear();
+                    return ResourceLockState.Disposition.FINISHED;
+                }
+            });
         }
     }
 

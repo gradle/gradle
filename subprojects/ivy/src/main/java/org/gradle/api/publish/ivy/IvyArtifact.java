@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
@@ -24,7 +23,6 @@ import javax.annotation.Nullable;
 /**
  * An artifact published as part of a {@link IvyPublication}.
  */
-@Incubating
 public interface IvyArtifact extends PublicationArtifact {
     /**
      * The name used to publish the artifact file, never <code>null</code>.

@@ -855,6 +855,27 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void addsSetterMethodsForPropertyWhoseTypeIsPropertyAndCapitalizedProperly() throws Exception {
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
+
+        dynamicObject.setProperty("aProp", "value");
+        assertEquals("value", bean.getaProp().get());
+
+        dynamicObject.setProperty("aProp", providerFactory.provider(new Callable<String>() {
+            int count;
+            @Override
+            public String call() throws Exception {
+                return "[" + String.valueOf(++count) + "]";
+            }
+        }));
+        assertEquals("[1]", bean.getaProp().get());
+        assertEquals("[2]", bean.getaProp().get());
+    }
+
+    @Test
     public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
         DefaultProviderFactory providerFactory = new DefaultProviderFactory();
         BeanWithProperty bean = generator.newInstance(BeanWithProperty.class, TestUtil.objectFactory());
@@ -1375,10 +1396,12 @@ public class AsmBackedClassGeneratorTest {
     public static class BeanWithProperty {
         private final Property<String> prop;
         private final Property<String> prop2;
+        private final Property<String> aProp;
 
         public BeanWithProperty(ObjectFactory factory) {
             this.prop = factory.property(String.class);
             this.prop2 = factory.property(String.class);
+            this.aProp = factory.property(String.class);
         }
 
         public Property<String> getProp() {
@@ -1395,6 +1418,10 @@ public class AsmBackedClassGeneratorTest {
 
         public void setProp2(int value) {
             prop2.set("[" + value + "]");
+        }
+
+        public Property<String> getaProp() {
+            return aProp;
         }
     }
 

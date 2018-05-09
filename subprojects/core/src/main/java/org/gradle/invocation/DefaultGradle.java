@@ -39,7 +39,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -254,7 +254,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Inject
     @Override
-    public TaskGraphExecuter getTaskGraph() {
+    public TaskExecutionGraphInternal getTaskGraph() {
         throw new UnsupportedOperationException();
     }
 

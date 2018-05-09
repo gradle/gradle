@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
 
-import org.gradle.api.Task;
+package org.gradle.api.publish.maven.internal.publisher;
 
-public interface TaskFailureHandler {
-    /**
-     * Called when execution for a task fails. Can throw an exception to abort execution.
-     */
-    void onTaskFailure(Task task);
+import org.gradle.api.provider.Property;
+
+public interface MutableMavenProjectIdentity extends MavenProjectIdentity {
+    @Override
+    Property<String> getGroupId();
+
+    @Override
+    Property<String> getArtifactId();
+
+    @Override
+    Property<String> getVersion();
 }

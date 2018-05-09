@@ -16,19 +16,36 @@
 
 package org.gradle.integtests.tooling.r48;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.List;
 
 public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
-    // Plugins are not applied yet, cannot have access to custom model builders. However, basic models provided by Gradle are already available.
+    // Task graph is not calculated yet. Plugins can add tasks to it.
+
+    @Nullable private final List<String> tasks;
+
+    public CustomProjectsLoadedAction(@Nullable List<String> tasks) {
+        this.tasks = tasks;
+    }
 
     @Override
     public String execute(BuildController controller) {
-        GradleBuild buildModel = controller.getBuildModel();
-        assert buildModel != null;
-        return "loading";
+        CustomProjectsLoadedModel model;
+        if (tasks == null || tasks.isEmpty()) {
+            model = controller.getModel(CustomProjectsLoadedModel.class);
+        } else {
+            model = controller.getModel(CustomProjectsLoadedModel.class, CustomParameter.class, new Action<CustomParameter>() {
+                @Override
+                public void execute(CustomParameter customParameter) {
+                    customParameter.setTasks(tasks);
+                }
+            });
+        }
+        return model.getValue();
     }
 }

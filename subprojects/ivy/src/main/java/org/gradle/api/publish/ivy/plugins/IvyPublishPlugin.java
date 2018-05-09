@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -59,7 +58,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  *
  * @since 1.3
  */
-@Incubating
 public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;

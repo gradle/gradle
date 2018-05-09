@@ -17,12 +17,17 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
@@ -30,17 +35,27 @@ import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
-class DefaultTaskPlanExecutor implements TaskPlanExecutor {
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
+import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
+
+@NonNullApi
+public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;
+    private final BuildCancellationToken cancellationToken;
+    private final ResourceLockCoordinationService coordinationService;
 
-
-    public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
+    public DefaultTaskPlanExecutor(ParallelismConfiguration parallelismConfiguration, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
         this.executorFactory = executorFactory;
+        this.cancellationToken = cancellationToken;
+        this.coordinationService = coordinationService;
         int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
@@ -56,37 +71,54 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
-            taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease).run();
-            taskExecutionPlan.awaitCompletion();
+            new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService).run();
+            awaitCompletion(taskExecutionPlan);
         } finally {
             executor.stop();
         }
+    }
+
+    /**
+     * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
+     */
+    private void awaitCompletion(final TaskExecutionPlan taskExecutionPlan) {
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (taskExecutionPlan.allTasksComplete()) {
+                    taskExecutionPlan.rethrowFailures();
+                    return FINISHED;
+                } else {
+                    return RETRY;
+                }
+            }
+        });
     }
 
     private void startAdditionalWorkers(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Executor executor, WorkerLease parentWorkerLease) {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
-            executor.execute(worker);
+            executor.execute(new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService));
         }
-    }
-
-    private Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final WorkerLease parentWorkerLease;
+        private final BuildCancellationToken cancellationToken;
+        private final ResourceLockCoordinationService coordinationService;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.parentWorkerLease = parentWorkerLease;
+            this.cancellationToken = cancellationToken;
+            this.coordinationService = coordinationService;
         }
 
+        @Override
         public void run() {
             final AtomicLong busy = new AtomicLong(0);
             Timer totalTimer = Time.startTimer();
@@ -95,7 +127,7 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             WorkerLease childLease = parentWorkerLease.createChild();
             boolean moreTasksToExecute = true;
             while (moreTasksToExecute) {
-                moreTasksToExecute = taskExecutionPlan.executeWithTask(childLease, new Action<TaskInternal>() {
+                moreTasksToExecute = executeWithTask(childLease, new Action<TaskInternal>() {
                     @Override
                     public void execute(TaskInternal task) {
                         final String taskPath = task.getPath();
@@ -115,6 +147,70 @@ class DefaultTaskPlanExecutor implements TaskPlanExecutor {
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
+            }
+        }
+
+        /**
+         * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
+         * can be executed.  If all tasks have been executed, returns false.
+         *
+         * @return true if there are more tasks waiting to execute, false if all tasks have executed.
+         */
+        private boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
+            final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+            final AtomicBoolean workRemaining = new AtomicBoolean();
+            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                @Override
+                public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    if (cancellationToken.isCancellationRequested()) {
+                        taskExecutionPlan.cancelExecution();
+                    }
+
+                    workRemaining.set(taskExecutionPlan.hasWorkRemaining());
+                    if (!workRemaining.get()) {
+                        return FINISHED;
+                    }
+
+                    try {
+                        selected.set(taskExecutionPlan.selectNextTask(workerLease, resourceLockState));
+                    } catch (Throwable t) {
+                        resourceLockState.releaseLocks();
+                        taskExecutionPlan.abortAllAndFail(t);
+                        workRemaining.set(false);
+                    }
+
+                    if (selected.get() == null && workRemaining.get()) {
+                        return RETRY;
+                    } else {
+                        return FINISHED;
+                    }
+                }
+            });
+
+            TaskInfo selectedTask = selected.get();
+            if (selectedTask != null) {
+                execute(selectedTask, workerLease, taskExecution);
+            }
+            return workRemaining.get();
+        }
+
+        private void execute(final TaskInfo selectedTask, final WorkerLease workerLease, Action<TaskInternal> taskExecution) {
+            try {
+                if (!selectedTask.isComplete()) {
+                    try {
+                        taskExecution.execute(selectedTask.getTask());
+                    } catch (Throwable e) {
+                        selectedTask.setExecutionFailure(e);
+                    }
+                }
+            } finally {
+                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                    @Override
+                    public ResourceLockState.Disposition transform(ResourceLockState state) {
+                        taskExecutionPlan.taskComplete(selectedTask);
+                        return unlock(workerLease).transform(state);
+                    }
+                });
             }
         }
     }

@@ -30,7 +30,7 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomOrganiza
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectManagement
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomRelocation
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.test.fixtures.file.TestFile
@@ -44,7 +44,7 @@ import spock.lang.Specification
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def projectIdentity = new DefaultMavenProjectIdentity("group-id", "artifact-id", "1.0")
+    def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
     def objectFactory = TestUtil.objectFactory()
@@ -165,7 +165,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def groupId = 'group-ぴ₦ガき∆ç√∫'
         def artifactId = 'artifact-<tag attrib="value"/>-markup'
         def version = 'version-&"'
-        generator = new MavenPomFileGenerator(new DefaultMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
+        generator = new MavenPomFileGenerator(new ReadableMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
 
         then:
         with (pom) {

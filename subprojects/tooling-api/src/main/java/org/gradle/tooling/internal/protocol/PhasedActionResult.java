@@ -47,7 +47,6 @@ public interface PhasedActionResult<T> extends InternalProtocolInterface, Serial
      */
     enum Phase {
         PROJECTS_LOADED,
-        PROJECTS_EVALUATED,
         BUILD_FINISHED
     }
 }

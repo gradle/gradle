@@ -43,6 +43,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
@@ -86,7 +87,7 @@ import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
  * <li>Adds an {@code "assemble"} task for each binary of the main component.</li>
  *
  * <li>Adds tasks to compile and link an executable. Currently requires component implements internal API {@link ConfigurableComponentWithExecutable}.</li>
-
+ *
  * <li>Adds tasks to compile and link a shared library. Currently requires component implements internal API {@link ConfigurableComponentWithSharedLibrary}.</li>
  *
  * <li>Adds tasks to compile and create a static library. Currently requires component implements internal API {@link ConfigurableComponentWithStaticLibrary}.</li>
@@ -381,18 +382,10 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                                 publishing.getPublications().create("main", MavenPublication.class, new Action<MavenPublication>() {
                                     @Override
                                     public void execute(final MavenPublication publication) {
-                                        // TODO - use Providers to track changes to these properties instead of afterEvaluate
-                                        project.afterEvaluate(new Action<Project>() {
-                                            @Override
-                                            public void execute(Project project) {
-                                                publication.setGroupId(project.getGroup().toString());
-                                                publication.setArtifactId(component.getBaseName().get());
-                                                publication.setVersion(project.getVersion().toString());
-                                                publication.from(mainVariant);
-                                                ((MavenPublicationInternal) publication).publishWithOriginalFileName();
-
-                                            }
-                                        });
+                                        MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
+                                        publicationInternal.getMavenProjectIdentity().getArtifactId().set(component.getBaseName());
+                                        publicationInternal.from(mainVariant);
+                                        publicationInternal.publishWithOriginalFileName();
                                     }
                                 });
                                 Set<? extends SoftwareComponent> variants = mainVariant.getVariants();
@@ -412,16 +405,13 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
                             private void addPublicationFromVariant(final SoftwareComponent child, PublishingExtension publishing) {
                                 if (child instanceof PublishableComponent) {
-                                    final ModuleVersionIdentifier coordinates = ((PublishableComponent)child).getCoordinates();
                                     publishing.getPublications().create(child.getName(), MavenPublication.class, new Action<MavenPublication>() {
                                         @Override
                                         public void execute(MavenPublication publication) {
-                                            // TODO - use Providers to track changes to these properties
-                                            publication.setGroupId(coordinates.getGroup());
-                                            publication.setArtifactId(coordinates.getName());
-                                            publication.setVersion(coordinates.getVersion());
-                                            publication.from(child);
-                                            ((MavenPublicationInternal) publication).publishWithOriginalFileName();
+                                            MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
+                                            fillInCoordinates(project, publicationInternal, (PublishableComponent) child);
+                                            publicationInternal.from(child);
+                                            publicationInternal.publishWithOriginalFileName();
                                         }
                                     });
                                 }
@@ -431,6 +421,29 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
+    }
+
+    private void fillInCoordinates(ProjectInternal project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
+        final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
+        MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
+        identity.getGroupId().set(project.provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return coordinates.getGroup();
+            }
+        }));
+        identity.getArtifactId().set(project.provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return coordinates.getName();
+            }
+        }));
+        identity.getVersion().set(project.provider(new Callable<String>() {
+            @Override
+            public String call() {
+                return coordinates.getVersion();
+            }
+        }));
     }
 
     private void copyAttributesTo(AttributeContainer attributes, Configuration linkElements) {

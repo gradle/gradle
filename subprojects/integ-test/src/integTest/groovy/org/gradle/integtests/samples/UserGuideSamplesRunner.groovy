@@ -107,21 +107,23 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     void run(RunNotifier notifier) {
-        for (childDescription in description.children) {
-            notifier.fireTestStarted(childDescription)
-            def sampleRun = samples.get(childDescription)
-            try {
-                cleanup(sampleRun)
-                for (run in sampleRun.runs) {
-                    if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
-                        continue
+        if (JavaVersion.current() >= JavaVersion.VERSION_1_8) {
+            for (childDescription in description.children) {
+                notifier.fireTestStarted(childDescription)
+                def sampleRun = samples.get(childDescription)
+                try {
+                    cleanup(sampleRun)
+                    for (run in sampleRun.runs) {
+                        if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
+                            continue
+                        }
+                        runSample(run)
                     }
-                    runSample(run)
+                } catch (Throwable t) {
+                    notifier.fireTestFailure(new Failure(childDescription, t))
                 }
-            } catch (Throwable t) {
-                notifier.fireTestFailure(new Failure(childDescription, t))
+                notifier.fireTestFinished(childDescription)
             }
-            notifier.fireTestFinished(childDescription)
         }
         try {
             temporaryFolder.testDirectory.deleteDir()
