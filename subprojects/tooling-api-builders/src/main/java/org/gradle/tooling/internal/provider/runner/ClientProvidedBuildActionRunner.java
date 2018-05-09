@@ -19,10 +19,11 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.execution.ProjectConfigurer;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -51,6 +52,11 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         gradle.addBuildListener(new BuildAdapter() {
             @Override
+            public void projectsEvaluated(Gradle gradle) {
+                forceFullConfiguration((GradleInternal) gradle);
+            }
+
+            @Override
             public void buildFinished(BuildResult result) {
                 if (result.getFailure() == null) {
                     buildController.setResult(buildResult(clientAction, gradle));
@@ -67,8 +73,6 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
     @SuppressWarnings("deprecation")
     private BuildActionResult buildResult(Object clientAction, GradleInternal gradle) {
-        forceFullConfiguration(gradle);
-
         DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
         Object model = null;
         Throwable failure = null;
