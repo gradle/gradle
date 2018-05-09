@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildActionFailureException;
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.DefaultPhasedActionResultListener;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
@@ -60,7 +60,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     }
 
     @Nullable
-    private static <T> PhasedResultHandler<? super T> getHandler(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper) {
+    private static <T> IntermediateResultHandler<? super T> getHandler(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper) {
         return wrapper == null ? null : wrapper.getHandler();
     }
 

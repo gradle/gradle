@@ -117,8 +117,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "can run phased action"() {
-        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
-        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
 
         when:
         withConnection { connection ->
@@ -135,8 +135,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "failures are received and future actions not run"() {
-        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
-        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
 
         when:
         withConnection { connection ->
@@ -157,7 +157,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "build is interrupted immediately if action fails"() {
-        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def events = ""
 
         when:
@@ -181,7 +181,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "can modify task graph in projects evaluated action"() {
-        PhasedResultHandlerCollector projectsLoadedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
@@ -200,7 +200,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "can run pre-defined tasks and build finished action is run after tasks are executed"() {
-        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
@@ -222,7 +222,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.8")
     def "default tasks are not run if no tasks are specified"() {
-        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
         def stdOut = new ByteArrayOutputStream()
 
         when:
@@ -242,7 +242,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion("<4.8")
     def "exception when not supported gradle version"() {
         def version = targetDist.version.version
-        PhasedResultHandlerCollector buildFinishedHandler = new PhasedResultHandlerCollector()
+        IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
 
         when:
         withConnection { connection ->

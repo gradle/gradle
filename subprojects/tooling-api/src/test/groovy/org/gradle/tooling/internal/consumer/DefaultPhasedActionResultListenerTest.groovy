@@ -17,13 +17,13 @@
 package org.gradle.tooling.internal.consumer
 
 import org.gradle.testing.internal.util.Specification
-import org.gradle.tooling.PhasedResultHandler
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 
 class DefaultPhasedActionResultListenerTest extends Specification {
 
-    def projectsLoadedHandler = Mock(PhasedResultHandler)
-    def buildFinishedHandler = Mock(PhasedResultHandler)
+    def projectsLoadedHandler = Mock(IntermediateResultHandler)
+    def buildFinishedHandler = Mock(IntermediateResultHandler)
     def listener = new DefaultPhasedActionResultListener(projectsLoadedHandler, buildFinishedHandler)
 
     def "right handler is called"() {
