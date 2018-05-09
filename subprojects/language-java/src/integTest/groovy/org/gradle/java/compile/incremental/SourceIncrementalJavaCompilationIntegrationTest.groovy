@@ -27,7 +27,6 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
     CompilationOutputsFixture outputs
 
     def setup() {
-        executer.requireOwnGradleUserHomeDir()
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         buildFile << """
