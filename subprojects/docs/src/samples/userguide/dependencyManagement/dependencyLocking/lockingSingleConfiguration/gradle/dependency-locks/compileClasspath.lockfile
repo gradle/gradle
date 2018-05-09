@@ -1,0 +1,6 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+org.springframework:spring-beans:5.0.5.RELEASE
+org.springframework:spring-core:5.0.5.RELEASE
+org.springframework:spring-jcl:5.0.5.RELEASE
