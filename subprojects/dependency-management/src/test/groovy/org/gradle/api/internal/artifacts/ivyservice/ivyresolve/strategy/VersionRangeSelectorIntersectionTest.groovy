@@ -20,6 +20,7 @@ import spock.lang.Unroll
 
 class VersionRangeSelectorIntersectionTest extends Specification {
     def comparator = new DefaultVersionComparator().asVersionComparator()
+    def versionParser = new VersionParser()
 
     @Unroll
     def "intersects ranges #first and #second"() {
@@ -80,6 +81,6 @@ class VersionRangeSelectorIntersectionTest extends Specification {
 
 
     private VersionRangeSelector range(String str) {
-        new VersionRangeSelector(str, comparator)
+        new VersionRangeSelector(str, comparator, versionParser)
     }
 }

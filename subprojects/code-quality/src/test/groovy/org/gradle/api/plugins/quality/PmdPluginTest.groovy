@@ -150,7 +150,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             sourceSets = [project.sourceSets.main]
             ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
-            ruleSetFiles = project.files("my-ruleset.xml")
+            ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
             rulePriority = 3
@@ -186,7 +186,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         project.pmd {
             ruleSets = ["java-braces", "java-unusedcode"]
             ruleSetConfig = project.resources.text.fromString("ruleset contents")
-            ruleSetFiles = project.files("my-ruleset.xml")
+            ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
             rulePriority = 3

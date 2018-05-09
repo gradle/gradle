@@ -45,6 +45,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
     private final DisconnectQueue disconnectQueue;
     private final CancelQueue cancelQueue;
     private final ReceiveQueue receiveQueue;
+    private volatile boolean stopping;
 
     public DefaultDaemonConnection(final RemoteConnection<Message> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
@@ -62,7 +63,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
                         try {
                             message = connection.receive();
                         } catch (Exception e) {
-                            if (LOGGER.isDebugEnabled()) {
+                            if (!stopping && LOGGER.isDebugEnabled()) {
                                 LOGGER.debug(String.format("thread %s: Could not receive message from client.", Thread.currentThread().getId()), e);
                             }
                             failure = e;
@@ -137,6 +138,8 @@ public class DefaultDaemonConnection implements DaemonConnection {
     }
 
     public void stop() {
+        stopping = true;
+
         // 1. Stop handling disconnects. Blocks until the handler has finished.
         // 2. Stop the connection. This means that the thread receiving from the connection will receive a null and finish up.
         // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin and receive queues to signal end of input.

@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 // START SNIPPET simple-params
-FileCollection collection = files('src/file1.txt',
+FileCollection collection = layout.files('src/file1.txt',
                                   new File('src/file2.txt'),
                                   ['src/file3.csv', 'src/file4.csv'],
                                   Paths.get('src', 'file5.txt'))
@@ -20,7 +20,7 @@ task list {
         File srcDir
 
         // Create a file collection using a closure
-        collection = files { srcDir.listFiles() }
+        collection = layout.files { srcDir.listFiles() }
 
         srcDir = file('src')
         println "Contents of $srcDir.name"
@@ -35,7 +35,7 @@ task list {
 
 task usage {
     doLast {
-        collection = files('src/file1.txt')
+        collection = layout.files('src/file1.txt')
 
         //START SNIPPET usage
         // Iterate over the files in the collection
@@ -52,8 +52,8 @@ task usage {
         File file2 = collection as File
 
         // Add and subtract collections
-        def union = collection + files('src/file2.txt')
-        def different = collection - files('src/file2.txt')
+        def union = collection + layout.files('src/file2.txt')
+        def difference = collection - layout.files('src/file2.txt')
 
         //END SNIPPET usage
     }

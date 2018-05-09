@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
@@ -37,6 +36,5 @@ import org.gradle.api.NamedDomainObjectContainer;
  * }
  * </pre>
  */
-@Incubating
 public interface IvyConfigurationContainer extends NamedDomainObjectContainer<IvyConfiguration> {
 }

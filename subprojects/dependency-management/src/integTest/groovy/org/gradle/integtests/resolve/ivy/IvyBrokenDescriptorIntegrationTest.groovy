@@ -150,8 +150,8 @@ dependencies {
             .assertHasCause("Could not parse Ivy file ${module.ivy.uri}")
             .assertHasCause("""Could not find group:parent:a.
 Searched in the following locations:
-    ${parent.ivy.uri}
-    ${parent.jar.uri}""")
+  - ${parent.ivy.uri}
+  - ${parent.jar.uri}""")
     }
 
     def "reports parent descriptor that cannot be parsed"() {

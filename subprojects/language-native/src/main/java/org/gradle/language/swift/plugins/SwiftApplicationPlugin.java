@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -35,8 +34,6 @@ import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.BuildType;
-import org.gradle.language.nativeplatform.internal.ComponentWithNames;
-import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
@@ -104,28 +101,7 @@ public class SwiftApplicationPlugin implements Plugin<ProjectInternal> {
                     throw new IllegalArgumentException("An operating system needs to be specified for the application.");
                 }
 
-                // Add outgoing APIs
-                // TODO - remove this
                 final ObjectFactory objectFactory = project.getObjects();
-                final Configuration implementation = application.getImplementationDependencies();
-                final Usage apiUsage = objectFactory.named(Usage.class, Usage.SWIFT_API);
-
-                application.getBinaries().whenElementKnown(SwiftExecutable.class, new Action<SwiftExecutable>() {
-                    @Override
-                    public void execute(SwiftExecutable executable) {
-                        Names names = ((ComponentWithNames) executable).getNames();
-                        Configuration apiElements = configurations.create(names.withSuffix("SwiftApiElements"));
-                        apiElements.extendsFrom(implementation);
-                        apiElements.setCanBeResolved(false);
-                        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-                        apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, executable.isDebuggable());
-                        apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, executable.isOptimized());
-                        apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, executable.getTargetPlatform().getOperatingSystemFamily());
-                        apiElements.getOutgoing().artifact(executable.getModuleFile());
-                    }
-                });
-
-
                 Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
                 for (BuildType buildType : BuildType.DEFAULT_BUILD_TYPES) {

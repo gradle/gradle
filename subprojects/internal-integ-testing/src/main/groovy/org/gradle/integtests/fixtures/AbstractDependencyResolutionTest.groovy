@@ -20,7 +20,6 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 abstract class AbstractDependencyResolutionTest extends AbstractIntegrationSpec {
-
     def setup() {
         requireOwnGradleUserHomeDir()
     }

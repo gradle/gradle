@@ -16,13 +16,12 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableGradleMetadata
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
-    private TestFile enableGradleMetadata() {
-        settingsFile << "enableFeaturePreview('GRADLE_METADATA')"
-    }
 
     def "signs single Maven publication"() {
         given:
@@ -53,6 +52,113 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
+    }
+
+    def "component can still be mutated after signing is configured for a Maven publication"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+            }
+
+            version = 3.0
+        """
+
+        when:
+        run "signMavenJavaPublication"
+
+        then:
+        ":signMavenJavaPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-3.0.jar.asc").text
+        file("build", "libs", "sign-3.0.jar").text
+    }
+
+    def "component can still be mutated after signing is configured for an Ivy publication"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.ivyJava
+            }
+
+            version = 3.0
+        """
+
+        when:
+        run "signIvyJavaPublication"
+
+        then:
+        ":signIvyJavaPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-3.0.jar.asc").text
+        file("build", "libs", "sign-3.0.jar").text
+    }
+
+    def "artifacts can still be mutated after signing is configured"() {
+        given:
+
+        file("foo.txt") << "foo"
+
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            task customJar(type:Jar) {
+                with jar
+                classifier = 'custom'
+            }
+
+            publishing {
+                publications {
+                    custom(MavenPublication) {
+                        artifact customJar 
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.custom
+            }
+
+            customJar.classifier = 'custom2'
+
+        """
+
+        when:
+        run "signCustomPublication"
+
+        then:
+        ":signCustomPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-1.0-custom2.jar.asc").text
     }
 
     def "signs single Ivy publication"() {
@@ -111,7 +217,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         and:
         run "signIvyPublication", "signMavenPublication"
@@ -161,7 +267,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         and:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         when:
         succeeds "publishMavenJavaPublicationToM2Repository"
@@ -219,7 +325,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         and:
-        enableGradleMetadata()
+        enableGradleMetadata(settingsFile)
 
         when:
         succeeds "publishIvyJavaPublicationToIvyRepository"
@@ -304,8 +410,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 sign publishing.publications.mavenJava
             }
 
-            signMavenJavaPublication.signatures.removeAll { signature ->
-                signature.toSign.name.endsWith('.jar')
+            signMavenJavaPublication.signatures.all { signature ->
+                if (signature.toSign.name.endsWith('.jar')) {
+                    signMavenJavaPublication.signatures.remove signature
+                }    
             }
         """
 
@@ -387,5 +495,65 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         then:
         fails "signIvyPublication"
         failureDescriptionContains "Task 'signIvyPublication' not found"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5099")
+    def "disabling sign tasks skips uploading signature artifacts but does not break publishing"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        module '$artifactId'
+                    }
+                    maven(MavenPublication) {
+                        from components.java
+                        artifactId '$artifactId'
+                    }
+                }
+                repositories {
+                    maven {
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                    ivy {
+                        url "file://\$buildDir/ivyRepo/"
+                        layout "pattern"
+                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](-[classifier])(.[ext])"
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications
+            }
+
+            tasks.withType(Sign)*.enabled = false
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        ":signIvyPublication" in skippedTasks
+        ":signMavenPublication" in skippedTasks
+        ":publishIvyPublicationToIvyRepository" in nonSkippedTasks
+        ":publishMavenPublicationToMavenRepository" in nonSkippedTasks
+
+        and:
+        pom().assertExists()
+        pomSignature().assertDoesNotExist()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
     }
 }

@@ -93,7 +93,7 @@ A team might decide to implement a series of features before releasing a new ver
 In Maven repositories, changing versions are commonly referred to as link:https://maven.apache.org/guides/getting-started/index.html#What_is_a_SNAPSHOT_version[snapshot versions]. Snapshot versions contain the suffix `-SNAPSHOT`. The following example demonstrates how to declare a snapshot version on the Spring dependency.
 
 ++++
-<sample id="dependencies-changing-version" dir="userguide/dependencyManagement/declaringDependencies/changingVersion" title="Declaring a dependencies with a changing version">
+<sample id="dependencies-changing-version" dir="userguide/dependencyManagement/declaringDependencies/changingVersion" title="Declaring a dependency with a changing version">
     <sourcefile file="build.gradle" snippet="dependencies"/>
 </sample>
 ++++
@@ -124,7 +124,9 @@ The following example resolves file dependencies from the directories `ant`, `li
 </sample>
 ++++
 
-As you can see in the code example, every dependency has to define its exact location in the file system. The most prominent methods for creating a file reference are api:org.gradle.api.Project#files(java.lang.Object...)[] and api:org.gradle.api.Project#fileTree(java.lang.Object)[]. Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
+As you can see in the code example, every dependency has to define its exact location in the file system.
+The most prominent methods for creating a file reference are api:org.gradle.api.Project#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[], api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[], and api:org.gradle.api.Project#fileTree(java.lang.Object)[]
+Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<sec:flat_dir_resolver,flat directory repository>>.
 
 [[sec:declaring_project_dependency]]
 === Declaring a project dependency

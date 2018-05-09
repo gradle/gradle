@@ -15,7 +15,6 @@
  */
 package org.gradle.java.compile.daemon
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
 import org.gradle.util.Requires
@@ -55,7 +54,7 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
         goodCode()
         buildFile << """
             tasks.withType(JavaCompile) { 
-                options.sourcepath = project.files()
+                options.sourcepath = project.layout.files()
             }
         """
 
@@ -71,7 +70,7 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
         goodCode()
         buildFile << """
             tasks.withType(JavaCompile) { 
-                options.bootstrapClasspath = project.files("$bootClasspath")
+                options.bootstrapClasspath = project.layout.files("$bootClasspath")
             }
         """
 
@@ -81,16 +80,6 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
     def setup() {
         executer.withArguments("-d")
-
-        /*
-         * Sometimes on Java7, when another client attempts to connect to the daemon, we
-         * get a spurious stacktrace in the debug output from the daemon related to the
-         * other connection.  It doesn't affect this test functionally, but the stacktrace
-         * check fails the test anyways because the logged error shows up in the debug output.
-         */
-        if (JavaVersion.current().isJava7()) {
-            executer.withStackTraceChecksDisabled()
-        }
     }
 
     def compilerConfiguration() {

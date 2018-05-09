@@ -37,7 +37,6 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
@@ -53,6 +52,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
@@ -186,7 +186,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private void signArtifact(final PublicationArtifact publicationArtifact) {
-        dependsOn(publicationArtifact);
         addSignature(new Signature(publicationArtifact, new Callable<File>() {
             public File call() {
                 return publicationArtifact.getFile();
@@ -248,23 +247,38 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Incubating
     public void sign(Publication... publications) {
         for (Publication publication : publications) {
-            PublicationArtifactSet<?> publishableArtifacts = ((PublicationInternal<?>) publication).getPublishableArtifacts();
-            publishableArtifacts.all(
+            final PublicationInternal<?> publicationInternal = (PublicationInternal<?>) publication;
+            dependsOn(new Callable<Set<? extends PublicationArtifact>>() {
+                @Override
+                public Set<? extends PublicationArtifact> call() {
+                    return publicationInternal.getPublishableArtifacts().matching(new Spec<PublicationArtifact>() {
+                        @Override
+                        public boolean isSatisfiedBy(PublicationArtifact artifact) {
+                            return isNoSignatureArtifact(artifact);
+                        }
+                    });
+                }
+            });
+            publicationInternal.allPublishableArtifacts(
                 new Action<PublicationArtifact>() {
                     @Override
                     public void execute(PublicationArtifact artifact) {
-                        if (!getSignatureFiles().contains(artifact.getFile())) {
+                        if (isNoSignatureArtifact(artifact)) {
                             signArtifact(artifact);
                         }
                     }
                 });
-            publishableArtifacts.whenObjectRemoved(new Action<PublicationArtifact>() {
+            publicationInternal.whenPublishableArtifactRemoved(new Action<PublicationArtifact>() {
                 @Override
                 public void execute(final PublicationArtifact artifact) {
                     removeSignature(artifact);
                 }
             });
         }
+    }
+
+    private boolean isNoSignatureArtifact(PublicationArtifact artifact) {
+        return !getSignatureFiles().contains(artifact.getFile());
     }
 
     private void addSignature(Signature signature) {

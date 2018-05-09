@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -32,7 +31,6 @@ import javax.annotation.Nullable;
  *
  * @since 1.3
  */
-@Incubating
 @HasInternalProtocol
 public interface IvyModuleDescriptorSpec {
 

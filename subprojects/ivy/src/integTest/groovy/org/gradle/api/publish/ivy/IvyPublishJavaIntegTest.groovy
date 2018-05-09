@@ -17,11 +17,12 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
-    def javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
+    IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     String getDependencies() {
         """dependencies {
@@ -354,7 +355,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/4356")
+    @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
     void "generated ivy descriptor includes configuration exclusions"() {
         requiresExternalDependencies = true
 
@@ -385,6 +386,20 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         then:
         javaLibrary.assertPublishedAsJavaModule()
         javaLibrary.parsedIvy.exclusions.collect { it.org + ":" + it.module + "@" + it.conf} == ["foo:bar@compile", "baz:qux@runtime"]
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('commons-collections:commons-collections:3.2.2') {
+                hasExclude('foo', 'bar')
+                noMoreExcludes()
+            }
+        }
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('commons-io:commons-io:1.4') {
+                hasExclude('baz', 'qux')
+                noMoreExcludes()
+            }
+        }
     }
 
     void "defaultDependencies are included in published ivy descriptor"() {
@@ -767,6 +782,65 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             noMoreCapabilities()
         }
     }
+
+    def "can publish java-library with dependencies/constraints with attributes"() {
+        requiresExternalDependencies = true
+        given:
+        createBuildScripts("""
+            def attr1 = Attribute.of('custom', String)
+            def attr2 = Attribute.of('nice', Boolean)
+
+            dependencies {
+                api("org.test:bar:1.0") {
+                    attributes {
+                        attribute(attr1, 'hello')
+                    }
+                }
+                
+                constraints {
+                    implementation("org.test:bar:1.1") {
+                        attributes {
+                            attribute(attr1, 'world')
+                            attribute(attr2, true)
+                        }
+                    }
+                }
+            }
+            
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant('api') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            noMoreDependencies()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:1.0') {
+                hasAttribute('custom', 'hello')
+            }
+            constraint('org.test:bar:1.1') {
+                hasAttributes(custom: 'world', nice: true)
+            }
+            noMoreDependencies()
+        }
+    }
+
 
 
     private void createBuildScripts(def append) {

@@ -17,8 +17,11 @@
 package org.gradle.api.internal.tasks.compile.incremental;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.file.DirectoryTree;
-import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.logging.Logging;
 
 import java.io.File;
@@ -28,63 +31,67 @@ import java.util.List;
  * Attempts to infer the source root directories for the `source` inputs to a
  * {@link org.gradle.api.tasks.compile.JavaCompile} task, in order to determine the `.class` file that corresponds
  * to any input source file.
- * 
+ *
  * This is a bit of a hack: we'd be better off inspecting the actual source file to determine the name of the class file.
  */
+@NonNullApi
 public class CompilationSourceDirs {
     private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(IncrementalCompilerDecorator.class);
 
-    private final List<Object> sources;
-    private List<File> sourceRoots;
+    private final FileTreeInternal sources;
+    private SourceRoots sourceRoots;
 
-    public CompilationSourceDirs(List<Object> sources) {
+    public CompilationSourceDirs(FileTreeInternal sources) {
         this.sources = sources;
     }
 
-    List<File> getSourceRoots() {
+    public List<File> getSourceRoots() {
+        return resolveRoots().getSourceRoots();
+    }
+
+    public boolean canInferSourceRoots() {
+        return resolveRoots().isCanInferSourceRoots();
+    }
+
+    private SourceRoots resolveRoots() {
         if (sourceRoots == null) {
-            sourceRoots = Lists.newArrayList();
-            for (Object source : sources) {
-                if (isDirectory(source)) {
-                    sourceRoots.add((File) source);
-                } else if (isDirectoryTree(source)) {
-                    sourceRoots.add(((DirectoryTree) source).getDir());
-                } else if (isSourceDirectorySet(source)) {
-                    sourceRoots.addAll(((SourceDirectorySet) source).getSrcDirs());
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-            }
+            SourceRoots visitor = new SourceRoots();
+            sources.visitRootElements(visitor);
+            sourceRoots = visitor;
         }
         return sourceRoots;
     }
 
-    public boolean canInferSourceRoots() {
-        for (Object source : sources) {
-            if (!canInferSourceRoot(source)) {
-                LOG.info("Cannot infer source root(s) for input with type `{}`. Supported types are `File`, `DirectoryTree` and `SourceDirectorySet`. Unsupported input: {}", source.getClass().getSimpleName(), source);
-                return false;
-            }
+    private static class SourceRoots implements FileCollectionVisitor {
+        private boolean canInferSourceRoots = true;
+        private List<File> sourceRoots = Lists.newArrayList();
+
+        @Override
+        public void visitCollection(FileCollectionInternal fileCollection) {
+            cannotInferSourceRoots(fileCollection);
         }
-        return true;
-    }
 
-    private boolean canInferSourceRoot(Object source) {
-        return isSourceDirectorySet(source)
-                || isDirectoryTree(source)
-                || isDirectory(source);
-    }
+        @Override
+        public void visitTree(FileTreeInternal fileTree) {
+            cannotInferSourceRoots(fileTree);
+        }
 
-    private boolean isSourceDirectorySet(Object source) {
-        return source instanceof SourceDirectorySet;
-    }
+        @Override
+        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+            sourceRoots.add(directoryTree.getDir());
+        }
 
-    private boolean isDirectoryTree(Object source) {
-        return source instanceof DirectoryTree;
-    }
+        private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
+            canInferSourceRoots = false;
+            LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
+        }
 
-    private boolean isDirectory(Object source) {
-        return source instanceof File
-                && ((File) source).isDirectory();
+        public boolean isCanInferSourceRoots() {
+            return canInferSourceRoots;
+        }
+
+        public List<File> getSourceRoots() {
+            return sourceRoots;
+        }
     }
 }

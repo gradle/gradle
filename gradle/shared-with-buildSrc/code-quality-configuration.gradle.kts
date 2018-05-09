@@ -40,7 +40,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
-                tasks.create<Checkstyle>(getTaskName("checkstyle", "groovy")) {
+                tasks.createLater(getTaskName("checkstyle", "groovy"), Checkstyle::class.java) {
                     configFile = checkStyleConfigDir.resolve("checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath
@@ -91,7 +91,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
         configFile = codeQualityConfigDir.resolve("codenarc.xml")
     }
 
-    tasks.withType<CodeNarc> {
+    tasks.configureEachLater(CodeNarc::class.java) {
         reports.xml.isEnabled = true
         if (name.contains("IntegTest")) {
             configFile = codeQualityConfigDir.resolve("codenarc-integtests.xml")
@@ -100,16 +100,17 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
 }
 
 
-fun Project.configureCodeQualityTasks() =
+fun Project.configureCodeQualityTasks() {
+    val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle }
     tasks {
-        val codeQualityTasks = matching { it is CodeNarc || it is Checkstyle }
         "codeQuality" {
             dependsOn(codeQualityTasks)
         }
-        withType<Test> {
-            shouldRunAfter(codeQualityTasks)
-        }
     }
+    tasks.configureEachLater(Test::class.java) {
+        shouldRunAfter(codeQualityTasks)
+    }
+}
 
 
 val Project.java

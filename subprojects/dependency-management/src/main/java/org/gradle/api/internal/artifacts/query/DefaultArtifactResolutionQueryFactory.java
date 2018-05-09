@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
@@ -28,18 +29,20 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final ResolveIvyFactory ivyFactory;
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
+    private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                  ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
-                                                 ComponentTypeRegistry componentTypeRegistry) {
+                                                 ComponentTypeRegistry componentTypeRegistry, ImmutableAttributesFactory attributesFactory) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
+        this.attributesFactory = attributesFactory;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory);
     }
 }

@@ -24,58 +24,66 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.composite.internal.IncludedBuildTaskReference;
 import org.gradle.initialization.BuildIdentity;
-import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
-    private final ProjectPathRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectRegistry;
     private final DomainObjectContext domainObjectContext;
     private final BuildIdentity buildIdentity;
     private final FileOperations fileOperations;
 
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectPathRegistry projectPathRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
+    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
         this.store = store;
-        this.projectPathRegistry = projectPathRegistry;
+        this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
         this.domainObjectContext = domainObjectContext;
         this.buildIdentity = buildIdentity;
     }
 
     @Override
-    public void registerIdeArtifact(final IdeProjectMetadata ideProjectMetadata) {
+    public void registerIdeProject(IdeProjectMetadata ideProjectMetadata) {
         ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
         store.put(projectId, ideProjectMetadata);
     }
 
     @Nullable
     @Override
-    public <T extends IdeProjectMetadata> T getIdeArtifactMetadata(Class<T> type, ProjectComponentIdentifier project) {
-        for (IdeProjectMetadata ideProjectMetadata : store.get(project)) {
-            if (type.isInstance(ideProjectMetadata)) {
-                return type.cast(ideProjectMetadata);
+    public <T extends IdeProjectMetadata> T getIdeProject(Class<T> type, ProjectComponentIdentifier project) {
+        ProjectState projectState = projectRegistry.stateFor(project);
+        if (!projectState.getOwner().isImplicitBuild()) {
+            // Do not include implicit builds in workspace
+            for (IdeProjectMetadata ideProjectMetadata : store.get(project)) {
+                if (type.isInstance(ideProjectMetadata)) {
+                    return type.cast(ideProjectMetadata);
+                }
             }
         }
         return null;
     }
 
     @Override
-    public <T extends IdeProjectMetadata> List<Reference<T>> getIdeArtifactMetadata(Class<T> type) {
+    public <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type) {
         List<Reference<T>> result = Lists.newArrayList();
-        for (Path projectPath : projectPathRegistry.getAllExplicitProjectPaths()) {
-            final ProjectComponentIdentifier projectId = projectPathRegistry.getProjectComponentIdentifier(projectPath);
+        for (ProjectState project : projectRegistry.getAllProjects()) {
+            if (project.getOwner().isImplicitBuild()) {
+                // Do not include implicit builds in workspace
+                continue;
+            }
+            ProjectComponentIdentifier projectId = project.getComponentIdentifier();
             for (IdeProjectMetadata ideProjectMetadata : store.get(projectId)) {
                 if (type.isInstance(ideProjectMetadata)) {
                     final T metadata = type.cast(ideProjectMetadata);
@@ -93,12 +101,12 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     }
 
     @Override
-    public FileCollection getIdeArtifacts(final Class<? extends IdeProjectMetadata> type) {
+    public FileCollection getIdeProjectFiles(final Class<? extends IdeProjectMetadata> type) {
         return fileOperations.files(new Callable<List<FileCollection>>() {
             @Override
             public List<FileCollection> call() {
                 return CollectionUtils.collect(
-                    getIdeArtifactMetadata(type),
+                    getIdeProjects(type),
                     new Transformer<FileCollection, Reference<?>>() {
                         @Override
                         public FileCollection transform(Reference<?> result) {
@@ -160,7 +168,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
                     for (Task task : get().getGeneratorTasks()) {
-                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild().getName(), task.getPath()));
+                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild(), task.getPath()));
                     }
                 }
             };

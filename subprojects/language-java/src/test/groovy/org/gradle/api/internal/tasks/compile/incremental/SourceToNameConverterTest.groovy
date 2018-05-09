@@ -27,7 +27,7 @@ class SourceToNameConverterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
     def srcDirs = Stub(CompilationSourceDirs) {
-        getSourceRoots() >> [temp.file("src/main/java"), temp.file("src/main/java2")]
+        getSourceRoots() >> ["src/main/java", "src/main/java2"].collect { temp.file(it) }
     }
     @Subject converter = new SourceToNameConverter(srcDirs)
 

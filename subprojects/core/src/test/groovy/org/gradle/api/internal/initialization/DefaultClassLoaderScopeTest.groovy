@@ -30,8 +30,6 @@ import spock.lang.Specification
 
 class DefaultClassLoaderScopeTest extends Specification {
 
-    ClassLoader rootClassLoader
-
     ClassLoaderScope root
     ClassLoaderScope scope
 
@@ -43,7 +41,7 @@ class DefaultClassLoaderScopeTest extends Specification {
 
     def setup() {
         file("root/root") << "root"
-        rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
+        def rootClassLoader = new URLClassLoader(classPath("root").asURLArray, getClass().classLoader.parent)
         root = new RootClassLoaderScope(rootClassLoader, rootClassLoader, classLoaderCache)
         scope = root.createChild("child")
     }
@@ -53,7 +51,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     }
 
     ClassPath classPath(String... paths) {
-        new DefaultClassPath(paths.collect { file(it).createDir() } as Iterable<File>)
+        DefaultClassPath.of(paths.collect { file(it).createDir() } as Iterable<File>)
     }
 
     def "locked scope with no modifications exports parent"() {
@@ -61,8 +59,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.lock()
 
         then:
-        scope.localClassLoader.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
+        scope.localClassLoader.is root.exportClassLoader
+        scope.exportClassLoader.is root.exportClassLoader
     }
 
     def "locked empty scope does not define any classes"() {
@@ -80,8 +78,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.lock()
 
         then:
-        scope.localClassLoader.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
+        scope.localClassLoader.is root.exportClassLoader
+        scope.exportClassLoader.is root.exportClassLoader
     }
 
     def "locked scope with only exports uses same export and local loader"() {
@@ -93,7 +91,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.exportClassLoader.getResource("root").text == "root"
         scope.exportClassLoader.getResource("foo").text == "foo"
         scope.exportClassLoader instanceof URLClassLoader
-        scope.exportClassLoader.parent.is rootClassLoader
+        scope.exportClassLoader.parent.is root.exportClassLoader
         scope.localClassLoader.is scope.exportClassLoader
     }
 
@@ -127,7 +125,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader.getResource("foo").text == "foo"
         scope.localClassLoader.getResource("bar").text == "bar"
         scope.localClassLoader != scope.exportClassLoader
-        scope.exportClassLoader.is rootClassLoader
+        scope.exportClassLoader.is root.exportClassLoader
     }
 
     def "locked scope with only one local exports parent loader to children and uses loader as local loader"() {
@@ -139,8 +137,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader.getResource("root").text == "root"
         scope.localClassLoader.getResource("foo").text == "foo"
         scope.localClassLoader instanceof URLClassLoader
-        scope.localClassLoader.parent.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
+        scope.localClassLoader.parent.is root.exportClassLoader
+        scope.exportClassLoader.is root.exportClassLoader
     }
 
     def "locked scope with local and exports exports custom ClassLoader to children"() {
@@ -156,7 +154,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.exportClassLoader.getResource("export").text == "bar"
         scope.exportClassLoader.getResource("local") == null
         scope.exportClassLoader instanceof URLClassLoader
-        scope.exportClassLoader.parent == rootClassLoader
+        scope.exportClassLoader.parent == root.exportClassLoader
 
         scope.localClassLoader instanceof CachingClassLoader
         scope.localClassLoader.getResource("export").text == "bar"

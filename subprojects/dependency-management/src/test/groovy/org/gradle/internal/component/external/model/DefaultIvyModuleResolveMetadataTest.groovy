@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -105,7 +106,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         runtime.artifacts.is(runtime.artifacts)
     }
 
-    def "each configuration contains a single variant containing no attributes and the artifacts of the configuration"() {
+    def "each configuration contains a single variant containing the status attribute and the artifacts of the configuration"() {
         given:
         configuration("runtime")
         artifact("one", ["runtime"])
@@ -116,7 +117,8 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
 
         then:
         runtime.variants.size() == 1
-        runtime.variants.first().attributes.empty
+        runtime.variants.first().attributes.keySet().size() == 1
+        runtime.variants.first().attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE) == 'integration'
         runtime.variants.first().artifacts*.name.name == ["one", "two"]
     }
 

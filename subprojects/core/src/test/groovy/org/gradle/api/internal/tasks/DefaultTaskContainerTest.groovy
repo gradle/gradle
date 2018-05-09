@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.model.internal.registry.DefaultModelRegistry
+import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
@@ -36,10 +36,8 @@ import static java.util.Collections.singletonMap
 class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
-    def modelRegistry = new DefaultModelRegistry(null, null)
-    private project = Mock(ProjectInternal, name: "<project>") {
-        getModelRegistry() >> modelRegistry
-    }
+    def modelRegistry = Mock(ModelRegistry)
+    private project = Mock(ProjectInternal, name: "<project>")
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, new TaskStatistics()).create()
@@ -430,6 +428,42 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_)
+        result == task
+    }
+
+    void "can define task to create later given name and type"() {
+        when:
+        def provider = container.createLater("task", DefaultTask)
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+        !container.empty
+        !provider.present
+    }
+
+    void "can define task to create later given name"() {
+        def task = task("task")
+
+        when:
+        def provider = container.createLater("task")
+
+        then:
+        0 * _
+
+        and:
+        container.names.contains("task")
+        container.size() == 1
+
+        when:
+        def result = provider.get()
+
+        then:
+        1 * taskFactory.create("task", DefaultTask) >> task
         result == task
     }
 
@@ -553,6 +587,39 @@ class DefaultTaskContainerTest extends Specification {
         1 * taskFactory.create("task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
+    }
+
+    void "can configure a task by type and name without triggering creation or configuration"() {
+        def action = Mock(Action)
+        def deferredAction = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.createLater("task", DefaultTask, action)
+
+        when:
+        def provider = container.getByNameLater(Task, "task")
+        and:
+        provider.configure(deferredAction)
+        then:
+        !provider.present
+
+        and:
+        0 * _
+
+        when:
+        def result = provider.get()
+
+        then:
+        result == task
+        1 * taskFactory.create("task", DefaultTask) >> task
+        then:
+        1 * deferredAction.execute(task)
+        then:
+        1 * action.execute(task)
+        then:
+        0 * action._
+        0 * deferredAction._
     }
 
     void "can locate task that already exists by type and name without triggering creation or configuration"() {

@@ -32,6 +32,7 @@ import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsume
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection
 import org.gradle.tooling.internal.consumer.connection.NonCancellableConsumerConnectionAdapter
 import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection
+import org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.ShutdownAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
@@ -48,14 +49,18 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
 import org.gradle.tooling.internal.protocol.InternalConnection
+import org.gradle.tooling.internal.protocol.InternalPhasedAction
+import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.internal.protocol.ModelIdentifier
+import org.gradle.tooling.internal.protocol.PhasedActionResultListener
 import org.gradle.tooling.internal.protocol.ProjectVersion3
 import org.gradle.tooling.internal.protocol.ShutdownParameters
 import org.gradle.tooling.internal.protocol.StoppableConnection
@@ -82,7 +87,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -108,7 +113,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
         where:
         connectionImplementation  | adapter                                         | wrappedToNonCancellableAdapter
-        TestConnection.class      | ParameterAcceptingConsumerConnection.class      | false
+        TestConnection.class      | PhasedActionAwareConsumerConnection.class       | false
+        TestR44Connection.class   | ParameterAcceptingConsumerConnection.class      | false
         TestR26Connection.class   | TestExecutionConsumerConnection.class           | false
         TestR22Connection.class   | ShutdownAwareConsumerConnection.class           | false
         TestR21Connection.class   | CancellableConsumerConnection.class             | false
@@ -119,7 +125,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, progressListener, userHomeDir, cancellationToken) >> DefaultClassPath.of(
             getToolingApiResourcesDir(connectionImplementation),
             ClasspathUtil.getClasspathForClass(TestConnection.class),
             ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -171,7 +177,19 @@ class TestMetaData implements ConnectionMetaDataVersion1 {
     }
 }
 
-class TestConnection extends TestR26Connection implements InternalParameterAcceptingConnection {
+class TestConnection extends TestR44Connection implements InternalPhasedActionConnection {
+    @Override
+    BuildResult<?> run(InternalPhasedAction internalPhasedAction, PhasedActionResultListener listener, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+        throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, InternalBuildCancelledException, IllegalStateException {
+        throw new UnsupportedOperationException()
+    }
+
+    ConnectionMetaDataVersion1 getMetaData() {
+        return new TestMetaData('4.8')
+    }
+}
+
+class TestR44Connection extends TestR26Connection implements InternalParameterAcceptingConnection {
     @Override
     <T> BuildResult<T> run(InternalBuildActionVersion2<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {

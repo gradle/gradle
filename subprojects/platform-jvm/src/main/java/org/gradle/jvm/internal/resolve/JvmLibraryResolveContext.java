@@ -19,6 +19,7 @@ package org.gradle.jvm.internal.resolve;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
@@ -108,6 +109,11 @@ public class JvmLibraryResolveContext implements ResolveContext {
             });
         }
         return componentMetadata;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return ImmutableAttributes.EMPTY;
     }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
@@ -57,7 +58,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -80,7 +83,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                             .cache("workerMain")
                             .withInitializer(new CacheInitializer())
                             .open();
-                    workerClassPath = new DefaultClassPath(jarFile(workerClassPathCache));
+                    workerClassPath = DefaultClassPath.of(jarFile(workerClassPathCache));
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
@@ -116,32 +119,9 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             try {
                 File jarFile = jarFile(cache);
                 LOGGER.debug("Generating worker process classes to {}.", jarFile);
-
-                // TODO - calculate this list of classes dynamically
-                List<Class<?>> classes = Arrays.asList(
-                        GradleWorkerMain.class,
-                        BootstrapSecurityManager.class,
-                        EncodedStream.EncodedInput.class,
-                        ClassLoaderUtils.class,
-                        FilteringClassLoader.class,
-                        FilteringClassLoader.Spec.class,
-                        ClassLoaderHierarchy.class,
-                        ClassLoaderVisitor.class,
-                        ClassLoaderSpec.class,
-                        SystemClassLoaderSpec.class,
-                        JavaReflectionUtil.class,
-                        JavaMethod.class,
-                        GradleException.class,
-                        NoSuchPropertyException.class,
-                        NoSuchMethodException.class,
-                        UncheckedException.class,
-                        PropertyAccessor.class,
-                        PropertyMutator.class,
-                        Factory.class,
-                        Spec.class);
                 ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)));
                 try {
-                    for (Class<?> classToMap : classes) {
+                    for (Class<?> classToMap : getClassesForWorkerJar()) {
                         remapClass(classToMap, outputStream);
                     }
                 } finally {
@@ -150,6 +130,37 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             } catch (Exception e) {
                 throw new GradleException("Could not generate worker process bootstrap classes.", e);
             }
+        }
+
+        private Set<Class<?>> getClassesForWorkerJar() {
+            // TODO - calculate this list of classes dynamically
+            List<Class<?>> classes = Arrays.asList(
+                GradleWorkerMain.class,
+                BootstrapSecurityManager.class,
+                EncodedStream.EncodedInput.class,
+                ClassLoaderUtils.class,
+                FilteringClassLoader.class,
+                ClassLoaderHierarchy.class,
+                ClassLoaderVisitor.class,
+                ClassLoaderSpec.class,
+                SystemClassLoaderSpec.class,
+                JavaReflectionUtil.class,
+                JavaMethod.class,
+                GradleException.class,
+                NoSuchPropertyException.class,
+                NoSuchMethodException.class,
+                UncheckedException.class,
+                PropertyAccessor.class,
+                PropertyMutator.class,
+                Factory.class,
+                Spec.class,
+                JavaVersion.class);
+            Set<Class<?>> result = new HashSet<Class<?>>(classes);
+            for (Class<?> klass : classes) {
+                result.addAll(Arrays.asList(klass.getDeclaredClasses()));
+            }
+
+            return result;
         }
 
         private void remapClass(Class<?> classToMap, ZipOutputStream jar) throws IOException {

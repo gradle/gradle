@@ -18,7 +18,7 @@
 You can install the Gradle build tool on Linux, macOS, or Windows.
 This document covers installing using a package manager like SDKMAN!, Homebrew, or Scoop, as well as manual installation.
 
-To upgrade Gradle, use of the <<sec:upgrading_wrapper,Gradle Wrapper>> is the recommended.
+Use of the <<sec:upgrading_wrapper,Gradle Wrapper>> is the recommended way to upgrade Gradle.
 
 You can find all releases and their checksums on the link:https://gradle.org/releases[releases page].
 

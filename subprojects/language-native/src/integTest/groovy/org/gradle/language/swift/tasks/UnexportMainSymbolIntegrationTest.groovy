@@ -32,7 +32,8 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << """
             apply plugin: "swift-application"
             task unexport(type: UnexportMainSymbol) {
-                source { components.main.developmentBinary.get().objects }
+                outputDirectory = layout.buildDirectory.dir("relocated")
+                objects.from { components.main.developmentBinary.get().objects }
             }
         """
     }
@@ -55,9 +56,15 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
 
         when:
-        succeeds("unexport", "-i")
+        succeeds("unexport")
         then:
         result.assertTasksSkipped(":compileDebugSwift", ":unexport")
+
+        when:
+        updateMainSwift()
+        succeeds("unexport")
+        then:
+        result.assertTasksNotSkipped(":compileDebugSwift", ":unexport")
     }
 
     def "relocate _main symbol with main.swift"() {
@@ -66,7 +73,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
+        assertMainSymbolIsNotExported("build/relocated/main.o")
     }
 
     def "relocate _main symbol with notMain.swift"() {
@@ -75,7 +82,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/notMain.o")
+        assertMainSymbolIsNotExported("build/relocated/notMain.o")
     }
 
     def "relocate _main symbol with multiple swift files"() {
@@ -87,10 +94,11 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         when:
         succeeds("unexport")
         then:
-        assertMainSymbolIsNotExported("build/tmp/unexport/main.o")
+        assertMainSymbolIsNotExported("build/relocated/main.o")
+        file("build/relocated").assertHasDescendants("main.o", "other.o")
     }
 
-    def "does not relocate when there is no main.swift"() {
+    def "can relocate when there is no main symbol"() {
         file("src/main/swift/notMain.swift") << """
             class NotMain {}
         """
@@ -101,12 +109,18 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         when:
         succeeds("unexport")
         then:
-        file("build/tmp/unexport/main.o").assertDoesNotExist()
+        file("build/relocated").assertHasDescendants("notMain.o", "other.o")
     }
 
     private TestFile writeMainSwift(String filename="main.swift") {
         file("src/main/swift/${filename}") << """
             print("hello world!")
+        """
+    }
+
+    private TestFile updateMainSwift(String filename="main.swift") {
+        file("src/main/swift/${filename}") << """
+            print("goodbye world!")
         """
     }
 

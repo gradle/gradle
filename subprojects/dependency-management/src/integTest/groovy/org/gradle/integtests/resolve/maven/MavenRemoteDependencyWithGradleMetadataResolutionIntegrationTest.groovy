@@ -672,8 +672,8 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("""Could not find test:a:1.2.
 Searched in the following locations:
-    ${m.moduleMetadata.uri}
-    ${m.pom.uri}
+  - ${m.moduleMetadata.uri}
+  - ${m.pom.uri}
 Required by:
     project :""")
 

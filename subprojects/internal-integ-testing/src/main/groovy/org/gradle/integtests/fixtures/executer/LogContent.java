@@ -223,6 +223,19 @@ public class LogContent {
         }
     }
 
+    /**
+     * Remove all empty lines.
+     */
+    public LogContent removeEmptyLines() {
+        List<String> nonEmptyLines = new ArrayList<String>();
+        for (String line : lines) {
+            if (!line.isEmpty()) {
+                nonEmptyLines.add(line);
+            }
+        }
+        return new LogContent(ImmutableList.copyOf(nonEmptyLines), definitelyNoDebugPrefix, rawContent);
+    }
+
     public static String stripWorkInProgressArea(String output) {
         String result = output;
         for (int i = 1; i <= 10; ++i) {

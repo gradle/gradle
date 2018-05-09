@@ -43,6 +43,48 @@ class CachingClassLoaderTest extends Specification {
         0 * parent._
     }
 
+    def "loads resources once and caches result"() {
+        when:
+        def res = classLoader.getResource("foo.txt")
+
+        then:
+        res == new URL("file:foo.txt")
+
+        and:
+        1 * parent.getResource("foo.txt") >> new URL("file:foo.txt")
+        0 * parent._
+
+        when:
+        res = classLoader.getResource("foo.txt")
+
+        then:
+        res == new URL("file:foo.txt")
+
+        and:
+        0 * parent._
+    }
+
+    def "caches missing resources"() {
+        when:
+        def res = classLoader.getResource("foo.txt")
+
+        then:
+        res == null
+
+        and:
+        1 * parent.getResource("foo.txt") >> null
+        0 * parent._
+
+        when:
+        res = classLoader.getResource("foo.txt")
+
+        then:
+        res == null
+
+        and:
+        0 * parent._
+    }
+
     def "caches missing classes"() {
         when:
         classLoader.loadClass("someClass")

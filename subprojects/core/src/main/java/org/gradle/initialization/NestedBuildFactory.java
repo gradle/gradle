@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.invocation.BuildController;
 
@@ -23,11 +24,11 @@ public interface NestedBuildFactory {
     /**
      * Creates a nested {@link GradleLauncher} instance with the provided parameters.
      */
-    GradleLauncher nestedInstance(BuildDefinition buildDefinition);
+    GradleLauncher nestedInstance(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier);
 
     /**
      * Creates a {@link BuildController} for nested build instance with the provided parameters.
      * The nested build will be created with a new session.
      */
-    BuildController nestedBuildController(BuildDefinition buildDefinition);
+    BuildController nestedBuildController(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier);
 }

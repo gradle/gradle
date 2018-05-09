@@ -17,51 +17,55 @@ package org.gradle.gradlebuild.testing.integrationtests.cleanup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-
+import org.gradle.internal.logging.ConsoleRenderer
 import java.io.File
+import javax.inject.Inject
 
 
 /**
  * Ensures that a directory is empty or writes the names of files in
  * the directory to a report file.
  */
-open class EmptyDirectoryCheck : DefaultTask() {
+open class EmptyDirectoryCheck @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
-    @InputFiles
-    lateinit var targetDir: FileTree
+    @get:InputFiles
+    val targetDirectory: DirectoryProperty = newInputDirectory()
 
-    @OutputFile
-    lateinit var report: File
+    @get:OutputFile
+    val reportFile: RegularFileProperty = newOutputFile()
 
-    @Internal
-    var isErrorWhenNotEmpty: Boolean = false
-
-    // TODO Remove this property and move @Input annotation to isErrorWhenNotEmpty
-    // once https://github.com/gradle/build-cache/issues/1030 is fixed
     @get:Input
-    @Deprecated(
-        "See https://github.com/gradle/build-cache/issues/1030",
-        ReplaceWith("isErrorWhenNotEmpty"))
-    val errorWhenNotEmpty
-        get() = isErrorWhenNotEmpty
+    val policy: Property<WhenNotEmpty> = objects.property(WhenNotEmpty::class.java)
 
     @TaskAction
-    fun ensureEmptiness() {
-        var hasFile = false
-        targetDir.visit {
-            if (file.isFile) {
-                hasFile = true
-                report.appendText(file.path + "\n")
+    fun ensureDirectoryEmpty() {
+        var notEmpty = false
+        val report = reportFile.get().asFile
+        val targetDir = targetDirectory.get().asFile
+        project.fileTree(targetDir).visit {
+            if (!isDirectory) {
+                notEmpty = true
+                report.appendText(file.absolutePath + "\n")
             }
         }
-        if (hasFile && isErrorWhenNotEmpty) {
-            throw GradleException("The directory ${targetDir.asPath} was not empty.")
+
+        if (notEmpty) {
+            when (policy.get()) {
+                WhenNotEmpty.FAIL -> throw GradleException(createMessage(targetDir, report))
+                WhenNotEmpty.REPORT -> logger.warn(createMessage(targetDir, report))
+            }
         }
     }
+
+    private
+    fun createMessage(targetDir: File, report: File) =
+            "The directory $targetDir was not empty. Report: ${ConsoleRenderer().asClickableFileUrl(report)}\n${report.readText()}"
 }

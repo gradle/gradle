@@ -54,6 +54,11 @@ public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     }
 
     @Override
+    protected void configureConfiguration(Configuration configuration) {
+        configureDefaultDependencies(configuration);
+    }
+
+    @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("jdepend", JDependExtension.class);
         extension.setToolVersion(DEFAULT_JDEPEND_VERSION);
@@ -62,8 +67,7 @@ public class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     @Override
     protected void configureTaskDefaults(JDepend task, String baseName) {
-        Configuration configuration = project.getConfigurations().getAt("jdepend");
-        configureDefaultDependencies(configuration);
+        Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
     }

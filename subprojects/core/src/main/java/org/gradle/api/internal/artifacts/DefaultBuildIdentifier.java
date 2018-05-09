@@ -27,6 +27,10 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
         this.name = name;
     }
 
+    public String getIdName() {
+        return name;
+    }
+
     @Override
     public String getName() {
         return name;

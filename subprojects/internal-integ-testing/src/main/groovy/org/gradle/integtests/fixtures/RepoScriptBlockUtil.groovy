@@ -81,6 +81,15 @@ class RepoScriptBlockUtil {
         """
     }
 
+    static String mavenCentralRepositoryMirrorUrl() {
+        def url = MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+        if (url.endsWith('/')) {
+            url
+        } else {
+            url + '/'
+        }
+    }
+
     static String jcenterRepositoryDefinition() {
         MirroredRepository.JCENTER.repositoryDefinition
     }
@@ -112,29 +121,51 @@ class RepoScriptBlockUtil {
             """
         }.join("")
         mirrors << """
-            def withMirrors(repos) {
-                repos.all { repo ->
-                    if (repo.hasProperty('url')) {
-                        mirror(repo)
+            import groovy.transform.CompileStatic
+            import groovy.transform.CompileDynamic
+            
+            apply plugin: MirrorPlugin
+
+            @CompileStatic
+            class MirrorPlugin implements Plugin<Gradle> {
+                void apply(Gradle gradle) {
+                    gradle.allprojects { Project project ->
+                        project.buildscript.configurations["classpath"].incoming.beforeResolve {
+                            withMirrors(project.buildscript.repositories)
+                        }
+                        project.afterEvaluate {
+                            withMirrors(project.repositories)
+                        }
+                    }
+                    maybeConfigurePluginManagement(gradle)
+                }
+
+                @CompileDynamic
+                void maybeConfigurePluginManagement(Gradle gradle) {
+                    if (gradle.gradleVersion >= "4.4") {
+                        gradle.settingsEvaluated { Settings settings ->
+                            withMirrors(settings.pluginManagement.repositories)
+                        }
                     }
                 }
-            }
-
-            def mirror(repo) {
-                ${mirrorConditions}
-            }
-
-            allprojects {
-                buildscript.configurations.classpath.incoming.beforeResolve {
-                    withMirrors(buildscript.repositories)
+                
+                void withMirrors(RepositoryHandler repos) {
+                    repos.all { repo ->
+                        if (repo instanceof MavenArtifactRepository) {
+                            mirror(repo)
+                        } else if (repo instanceof IvyArtifactRepository) {
+                            mirror(repo)
+                        }
+                    }
                 }
-                afterEvaluate {
-                    withMirrors(repositories)
+    
+                void mirror(MavenArtifactRepository repo) {
+                    ${mirrorConditions}
                 }
-            }
 
-            settingsEvaluated { settings ->
-                withMirrors(settings.pluginManagement.repositories)
+                void mirror(IvyArtifactRepository repo) {
+                    ${mirrorConditions}
+                }
             }
         """
         mirrors

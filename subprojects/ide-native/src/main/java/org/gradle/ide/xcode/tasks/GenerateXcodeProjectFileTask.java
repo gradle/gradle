@@ -117,8 +117,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         }
     }
 
-    private void addToGroup(PBXGroup group, FileCollection sources) {
-        for (File source : sources.getAsFileTree()) {
+    private void addToGroup(PBXGroup group, Iterable<File> sources) {
+        for (File source : sources) {
             PBXFileReference fileReference = toFileReference(source);
             pathToFileReference.put(source.getAbsolutePath(), fileReference);
             group.getChildren().add(fileReference);

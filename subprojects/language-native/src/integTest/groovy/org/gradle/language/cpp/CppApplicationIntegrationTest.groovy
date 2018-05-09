@@ -496,7 +496,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """Unable to find a matching configuration of project :hello: Configuration 'cppApiElements':
+        failure.assertHasCause """Unable to find a matching variant of project :hello: Variant 'cppApiElements':
   - Required org.gradle.native.debuggable 'true' but no value provided.
   - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
   - Required org.gradle.native.optimized 'false' but no value provided.

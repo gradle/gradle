@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -30,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -51,32 +50,34 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
  *    In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
-    // TODO:DAZ Should inject this
-    private static final VersionSelectorScheme VERSION_SELECTOR_SCHEME = new DefaultVersionSelectorScheme(new DefaultVersionComparator());
     private final Long id;
     private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final ImmutableAttributesFactory attributesFactory;
 
     private ComponentIdResolveResult idResolveResult;
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private boolean resolved;
 
-    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId) {
+    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, VersionSelectorScheme versionSelectorScheme, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
         this.resolver = resolver;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionConstraint = resolveVersionConstraint(dependencyMetadata.getSelector());
+        this.attributesFactory = resolveState.getAttributesFactory();
         targetModule.addSelector(this);
     }
 
     private ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
-            return new DefaultResolvedVersionConstraint(((ModuleComponentSelector) selector).getVersionConstraint(), VERSION_SELECTOR_SCHEME);
+            return new DefaultResolvedVersionConstraint(((ModuleComponentSelector) selector).getVersionConstraint(), versionSelectorScheme);
         }
         return null;
     }
@@ -93,7 +94,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public ComponentSelector getRequested() {
-        return dependencyState.getRequested();
+        return selectorWithDesugaredAttributes(dependencyState.getRequested());
     }
 
     public ModuleResolveState getTargetModule() {
@@ -211,4 +212,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
     }
 
+    private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
+        return AttributeDesugaring.desugarSelector(selector, attributesFactory);
+    }
 }

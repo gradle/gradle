@@ -16,27 +16,22 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
 
 import javax.inject.Inject;
 
@@ -45,7 +40,6 @@ import javax.inject.Inject;
  *
  * @since 1.3
  */
-@Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
@@ -53,48 +47,44 @@ public class PublishingPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
+    private final ProjectPublicationRegistry projectPublicationRegistry;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry projectPublicationRegistry) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
+        this.projectPublicationRegistry = projectPublicationRegistry;
     }
 
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
+        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
-        // TODO Registering an extension should register it with the model registry as well
-        project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
-
-        Task publishLifecycleTask = project.getTasks().create(PUBLISH_LIFECYCLE_TASK_NAME);
-        publishLifecycleTask.setDescription("Publishes all publications produced by this project.");
-        publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
+        project.getTasks().createLater(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.setDescription("Publishes all publications produced by this project.");
+                task.setGroup(PUBLISH_TASK_GROUP);
+            }
+        });
+        extension.getPublications().all(new Action<Publication>() {
+            @Override
+            public void execute(Publication publication) {
+                PublicationInternal internalPublication = (PublicationInternal) publication;
+                projectPublicationRegistry.registerPublication(project.getPath(), internalPublication);
+            }
+        });
+        bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
     }
 
-    static class Rules extends RuleSource {
-        @Model
-        PublishingExtension publishing(ExtensionContainer extensions) {
-            return extensions.getByType(PublishingExtension.class);
-        }
-
-        @Model
-        ProjectPublicationRegistry projectPublicationRegistry(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(ProjectPublicationRegistry.class);
-        }
-
-        @Mutate
-        void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension, ProjectIdentifier projectIdentifier) {
-            for (Publication publication : extension.getPublications()) {
-                PublicationInternal internalPublication = (PublicationInternal) publication;
-                projectPublicationRegistry.registerPublication(projectIdentifier.getPath(), internalPublication);
+    private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
+        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+            @Override
+            public void prepareForRuleBasedPlugins(Project project) {
+                project.getPluginManager().apply(PublishingPluginRules.class);
             }
-        }
-
-        @Mutate
-        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
-            //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
-        }
+        });
     }
 
 }

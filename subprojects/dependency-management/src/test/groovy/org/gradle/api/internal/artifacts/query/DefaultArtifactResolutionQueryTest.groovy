@@ -35,6 +35,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
+import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -124,7 +125,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private def withArtifactResolutionInteractions(int numberOfComponentsToResolve = 1) {
-        1 * resolveIvyFactory.create(_, _, _) >> repositoryChain
+        1 * resolveIvyFactory.create(_, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
@@ -133,7 +134,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(configurationContainerInternal, repositoryHandler, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry)
+        new DefaultArtifactResolutionQuery(configurationContainerInternal, repositoryHandler, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, TestUtil.attributesFactory())
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {

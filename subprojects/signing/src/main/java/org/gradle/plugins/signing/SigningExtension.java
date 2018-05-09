@@ -33,6 +33,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -280,6 +281,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
                         task.sign(taskToSign);
                     }
                 })
@@ -304,6 +306,7 @@ public class SigningExtension {
             result.add(
                 createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
                     public void execute(Sign task) {
+                        task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
                         task.sign(configurationToSign);
                     }
                 })
@@ -369,13 +372,19 @@ public class SigningExtension {
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
         final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
             public void execute(Sign task) {
+                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
                 task.sign(publicationToSign);
             }
         });
         final Map<Signature, T> artifacts = new HashMap<Signature, T>();
         signTask.getSignatures().all(new Action<Signature>() {
-            public void execute(Signature signature) {
-                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), signature.getFile());
+            public void execute(final Signature signature) {
+                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new Factory<File>() {
+                    @Override
+                    public File create() {
+                        return signature.getFile();
+                    }
+                });
                 artifact.builtBy(signTask);
                 artifacts.put(signature, artifact);
             }

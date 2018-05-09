@@ -21,12 +21,17 @@ import org.gradle.api.internal.WithEstimatedSize;
 import java.util.Collection;
 import java.util.Iterator;
 
-public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize {
+public interface ElementSource<T> extends Iterable<T>, WithEstimatedSize, PendingSource<T> {
     /**
      * Iterates over and realizes each of the elements of this source.
      */
     @Override
     Iterator<T> iterator();
+
+    /**
+     * Iterates over only the realized elements (without flushing any pending elements)
+     */
+    Iterator<T> iteratorNoFlush();
 
     /**
      * Returns false if this source is not empty or it is not fast to determine this.

@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.util.ConfigureUtil;
@@ -222,7 +222,7 @@ public class SignOperation implements SignatureSpec {
     }
 
     private FileCollection newSignatureFileCollection(Function<Signature, File> getFile) {
-        return new SimpleFileCollection(collectSignatureFiles(getFile));
+        return ImmutableFileCollection.of(collectSignatureFiles(getFile));
     }
 
     private ArrayList<File> collectSignatureFiles(Function<Signature, File> getFile) {

@@ -351,7 +351,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
                 try {
                     // Classloader scope will be handled by the cache, class will be released when the classloader is.
-                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, new DefaultClassPath(scriptCacheDir), sourceHashCode));
+                    ClassLoader loader = classLoaderCache.put(classLoaderId, new ScriptClassLoader(source, classLoader, DefaultClassPath.of(scriptCacheDir), sourceHashCode));
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");

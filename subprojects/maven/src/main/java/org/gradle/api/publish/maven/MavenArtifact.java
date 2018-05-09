@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.publish.PublicationArtifact;
 
 import javax.annotation.Nullable;
@@ -23,7 +22,6 @@ import javax.annotation.Nullable;
 /**
  * An artifact published as part of a {@link MavenPublication}.
  */
-@Incubating
 public interface MavenArtifact extends PublicationArtifact {
     /**
      * The extension used to publish the artifact file, never <code>null</code>.

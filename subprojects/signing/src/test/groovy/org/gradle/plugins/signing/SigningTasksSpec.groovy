@@ -76,4 +76,18 @@ class SigningTasksSpec extends SigningProjectSpec {
         File libsDir = jar.outputs.files.singleFile.parentFile
         signTask.outputFiles == ["test_jar_asc": new File(libsDir, "test.jar.asc")]
     }
+
+    def "sign task has description"() {
+        given:
+        useJavadocAndSourceJars()
+
+        when:
+        signing {
+            sign jar, sourcesJar
+        }
+
+        then:
+        signJar.description == "Signs the archive produced by the 'jar' task."
+        signSourcesJar.description == "Signs the archive produced by the 'sourcesJar' task."
+    }
 }

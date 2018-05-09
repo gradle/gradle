@@ -93,12 +93,11 @@ project(":project3") {
         fails "publish"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
         failure.assertHasCause """Publishing is not able to resolve a dependency on a project with multiple publications that have different coordinates.
 Found the following publications in project ':project3':
-  - Maven publication 'extra' with coordinates extra.group:extra:extra
+  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0
   - Maven publication 'extraComp' with coordinates extra.group:extra-comp:extra
-  - Maven publication 'maven' with coordinates org.gradle.test:project3:3.0"""
+  - Maven publication 'extra' with coordinates extra.group:extra:extra"""
     }
 
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {

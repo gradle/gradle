@@ -36,6 +36,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         for (ScriptClassPathInitializer initializer : initializers) {
             initializer.execute(classpathConfiguration);
         }
-        return new DefaultClassPath(classpathConfiguration);
+        return DefaultClassPath.of(classpathConfiguration);
     }
 }

@@ -28,8 +28,9 @@ class DependencySpec {
     List<String> rejects
     List<ExcludeSpec> exclusions = []
     String reason
+    Map<String, ?> attributes
 
-    DependencySpec(String g, String m, String version, List<String> r, Collection<Map> e, String reason) {
+    DependencySpec(String g, String m, String version, List<String> r, Collection<Map> e, String reason, Map<String, ?> attributes) {
         group = g
         module = m
         prefers = version
@@ -42,5 +43,11 @@ class DependencySpec {
             }
         }
         this.reason = reason
+        this.attributes = attributes
+    }
+
+    DependencySpec attribute(String name, Object value) {
+        attributes[name] = value
+        this
     }
 }

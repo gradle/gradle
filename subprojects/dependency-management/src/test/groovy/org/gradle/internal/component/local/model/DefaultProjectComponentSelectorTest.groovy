@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -44,7 +45,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        new DefaultProjectComponentSelector("TEST", (String) null)
+        new DefaultProjectComponentSelector(Stub(BuildIdentifier), (String) null)
 
         then:
         Throwable t = thrown(AssertionError)

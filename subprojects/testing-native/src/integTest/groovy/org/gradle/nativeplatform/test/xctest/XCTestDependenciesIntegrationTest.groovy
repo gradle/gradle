@@ -31,11 +31,16 @@ class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegr
             }
 """
         file("src/test/swift/Test.swift") << """
+            import Lib
+            import XCTest
+
             class Test {
+                var util = Util()
             }
 """
-        file("lib/src/main/swift/Lib.swift") << """
-            class Lib {
+        file("lib/src/main/swift/Util.swift") << """
+            public class Util {
+                public init() { }
             }
 """
     }

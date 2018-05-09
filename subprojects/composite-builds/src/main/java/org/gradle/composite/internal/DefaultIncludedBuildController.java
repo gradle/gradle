@@ -28,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBuildController {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
-    private final IncludedBuildInternal includedBuild;
+    private final IncludedBuildState includedBuild;
 
     private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
     private final Set<String> tasksAdded = Sets.newHashSet();
@@ -58,7 +59,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     private final AtomicBoolean stopRequested = new AtomicBoolean();
     private final CountDownLatch stopped = new CountDownLatch(1);
 
-    public DefaultIncludedBuildController(IncludedBuildInternal includedBuild) {
+    public DefaultIncludedBuildController(IncludedBuildState includedBuild) {
         this.includedBuild = includedBuild;
     }
 

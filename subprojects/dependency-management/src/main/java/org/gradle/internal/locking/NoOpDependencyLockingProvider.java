@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
-import java.util.Collection;
+import java.util.Set;
 
 public class NoOpDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -35,12 +35,12 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     }
 
     @Override
-    public DependencyLockingState findLockConstraint(String configurationName) {
+    public DependencyLockingState loadLockState(String configurationName) {
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Collection<ModuleComponentIdentifier> resolutionResult) {
+    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult) {
         // No-op
     }
 }

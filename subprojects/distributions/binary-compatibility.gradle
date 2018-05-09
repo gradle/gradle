@@ -16,13 +16,13 @@
 
 
 
+
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
-import org.gradle.api.attributes.Attribute
-import org.gradle.binarycompatibility.rules.*
-import org.gradle.binarycompatibility.transforms.*
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.CleanAcceptedApiChanges
+import org.gradle.binarycompatibility.rules.*
+import org.gradle.binarycompatibility.transforms.*
 import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 

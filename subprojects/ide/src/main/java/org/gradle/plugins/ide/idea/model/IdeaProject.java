@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.provider.Provider;
-import org.gradle.initialization.ProjectPathRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.IdeWorkspace;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -115,7 +115,7 @@ import static org.gradle.util.ConfigureUtil.configure;
 public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
-    private final ProjectPathRegistry projectPathRegistry;
+    private final ProjectStateRegistry projectPathRegistry;
     private final IdeArtifactRegistry artifactRegistry;
 
     private List<IdeaModule> modules;
@@ -133,7 +133,7 @@ public class IdeaProject implements IdeWorkspace {
         this.ipr = ipr;
 
         ServiceRegistry services = ((ProjectInternal) project).getServices();
-        this.projectPathRegistry = services.get(ProjectPathRegistry.class);
+        this.projectPathRegistry = services.get(ProjectStateRegistry.class);
         this.artifactRegistry = services.get(IdeArtifactRegistry.class);
         this.outputFile = project.getLayout().fileProperty();
     }
@@ -349,8 +349,8 @@ public class IdeaProject implements IdeWorkspace {
     }
 
     private void configureModulePaths(Project xmlProject) {
-        ProjectComponentIdentifier thisProjectId = projectPathRegistry.getProjectComponentIdentifier(((ProjectInternal) project).getIdentityPath());
-        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata.class)) {
+        ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
+        for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {
             BuildIdentifier otherBuildId = reference.getOwningProject().getBuild();
             if (thisProjectId.getBuild().equals(otherBuildId)) {
                 // IDEA Module for project in current build: handled via `modules` model elements.

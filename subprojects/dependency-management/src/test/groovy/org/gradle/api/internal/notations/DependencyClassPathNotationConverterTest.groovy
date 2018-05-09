@@ -58,10 +58,10 @@ class DependencyClassPathNotationConverterTest extends Specification {
         def gradleApiFiles = [testDirectoryProvider.file('gradle-api.jar')]
         def gradleTestKitFiles = [testDirectoryProvider.file('gradle-test-kit.jar')]
 
-        classPathRegistry.getClassPath('GRADLE_API') >> new DefaultClassPath(gradleApiFiles)
-        classPathRegistry.getClassPath('GRADLE_TEST_KIT') >> new DefaultClassPath(gradleTestKitFiles)
-        classPathRegistry.getClassPath('LOCAL_GROOVY') >> new DefaultClassPath(localGroovyFiles)
-        classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> new DefaultClassPath(installationBeaconFiles)
+        classPathRegistry.getClassPath('GRADLE_API') >> DefaultClassPath.of(gradleApiFiles)
+        classPathRegistry.getClassPath('GRADLE_TEST_KIT') >> DefaultClassPath.of(gradleTestKitFiles)
+        classPathRegistry.getClassPath('LOCAL_GROOVY') >> DefaultClassPath.of(localGroovyFiles)
+        classPathRegistry.getClassPath('GRADLE_INSTALLATION_BEACON') >> DefaultClassPath.of(installationBeaconFiles)
 
         gradleInstallation.installation >> new GradleInstallation(testDirectoryProvider.file("gradle-home"))
 

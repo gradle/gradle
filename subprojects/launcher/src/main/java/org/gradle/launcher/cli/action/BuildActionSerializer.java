@@ -100,6 +100,7 @@ public class BuildActionSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
+            stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
 
             // Flags
             encoder.writeBoolean(startParameter.isBuildProjectDependencies());
@@ -170,6 +171,7 @@ public class BuildActionSerializer {
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setInitScripts(fileListSerializer.read(decoder));
+            startParameter.setLockedDependenciesToUpdate(stringListSerializer.read(decoder));
 
             // Flags
             startParameter.setBuildProjectDependencies(decoder.readBoolean());

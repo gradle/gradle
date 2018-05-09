@@ -22,13 +22,16 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 
 import java.util.Map;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.internal.Actions.composite;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
-public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryHandlerConvention {
+public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryHandlerConvention, HasPublicType {
     private final DefaultRepositoryHandler container;
     private final DeployerFactory deployerFactory;
 
@@ -100,5 +103,10 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
 
     private <T> ConfigureByMapAction<T> configureByMapActionFor(Map<String, ?> args) {
         return new ConfigureByMapAction<T>(args);
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(MavenRepositoryHandlerConvention.class);
     }
 }

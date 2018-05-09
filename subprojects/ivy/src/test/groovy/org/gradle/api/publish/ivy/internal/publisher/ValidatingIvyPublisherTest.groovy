@@ -24,9 +24,8 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
+import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -208,14 +207,15 @@ class ValidatingIvyPublisherTest extends Specification {
 
     def "reports and fails with invalid descriptor file"() {
         given:
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version"))
-        final artifact = new DefaultIvyArtifact(null, "name", "ext", "type", "classifier")
+        def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity)
+        final artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity)
         artifact.setConf("unknown")
         ivyFileGenerator.addArtifact(artifact)
         def ivyFile = ivyFile(ivyFileGenerator)
 
         and:
-        def publication = new IvyNormalizedPublication("pub-name", projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", identity, ivyFile, emptySet())
         def repository = Mock(PublicationAwareRepository)
 
         when:

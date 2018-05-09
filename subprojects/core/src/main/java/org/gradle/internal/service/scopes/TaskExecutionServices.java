@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
+import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizeInputFilePropertiesTaskExecuter;
@@ -66,8 +66,10 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
+import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
-import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -76,6 +78,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -104,7 +107,7 @@ public class TaskExecutionServices {
                                     BuildScanPluginApplied buildScanPlugin,
                                     PathToFileResolver resolver,
                                     PropertyWalker propertyWalker,
-                                    TaskExecutionGraph taskExecutionGraph,
+                                    TaskExecutionGraphInternal taskExecutionGraph,
                                     BuildInvocationScopeId buildInvocationScopeId
     ) {
 
@@ -142,6 +145,7 @@ public class TaskExecutionServices {
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new ExecuteAtMostOnceTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
+        executer = new EventFiringTaskExecuter(buildOperationExecutor, taskExecutionGraph, executer);
         return executer;
     }
 
@@ -209,8 +213,25 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(ParallelismConfigurationManager parallelismConfigurationManager, ExecutorFactory executorFactory, WorkerLeaseService workerLeaseService) {
-        return new TaskPlanExecutorFactory(parallelismConfigurationManager, executorFactory, workerLeaseService).create();
+    TaskPlanExecutor createTaskExecutorFactory(
+        ParallelismConfigurationManager parallelismConfigurationManager,
+        ExecutorFactory executorFactory,
+        WorkerLeaseService workerLeaseService,
+        BuildCancellationToken cancellationToken,
+        ResourceLockCoordinationService coordinationService) {
+        int parallelThreads = parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount();
+        if (parallelThreads < 1) {
+            throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
+        }
+
+        // TODO: Make task plan executor respond to changes in parallelism configuration
+        return new DefaultTaskPlanExecutor(
+            parallelismConfigurationManager.getParallelismConfiguration(),
+            executorFactory,
+            workerLeaseService,
+            cancellationToken,
+            coordinationService
+        );
     }
 
 }
