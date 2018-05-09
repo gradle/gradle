@@ -179,17 +179,26 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> T addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
-        if (placeholders.remove(name) != null && !replaceExisting) {
-            if (modelNode != null) {
-                modelNode.removeLink(name);
+        DefaultTaskProvider<? extends Task> placeholderProvider = (DefaultTaskProvider)placeholders.remove(name);
+        if (placeholderProvider != null) {
+            placeholderProvider.removed = true;
+            if (!replaceExisting) {
+                if (modelNode != null) {
+                    modelNode.removeLink(name);
+                }
+                warnAboutPlaceholderDeprecation(name);
             }
-            warnAboutPlaceholderDeprecation(name);
         }
 
         if (replaceExisting) {
             Task existing = findByNameWithoutRules(name);
             if (existing != null) {
                 remove(existing);
+            } else {
+                DefaultTaskProvider<? extends Task> taskProvider = (DefaultTaskProvider)findByNameLaterWithoutRules(name);
+                if (taskProvider != null) {
+                    taskProvider.removed = true;
+                }
             }
         } else if (hasWithName(name)) {
             duplicateTask(name);
@@ -274,15 +283,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
     }
 
-    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
+    @Override
+    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name);
+        final DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
         addLater(provider);
-        if (configurationAction != null) {
-            provider.configure(configurationAction);
-        }
         if (eagerlyCreateLazyTasks) {
             provider.get();
         }
@@ -440,11 +447,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
-    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
+    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName);
+            final TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
             placeholders.put(placeholderName, provider);
-            provider.configure(configure);
             deferredElementKnown(placeholderName, provider);
         } else {
             warnAboutPlaceholderDeprecation(placeholderName);
@@ -486,6 +492,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
         final Class<T> type;
         final String name;
+        boolean removed = false;
 
         DefaultTaskProvider(Class<T> type, String name) {
             this.type = type;
@@ -510,9 +517,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public void configure(final Action<? super T> action) {
             configureEachLater(new Action<Task>() {
+                private boolean alreadyExecuted = false;
+
                 @Override
                 public void execute(Task task) {
-                    if (task.getName().equals(name)) {
+                    // Task specific configuration action should only be executed once
+                    if (task.getName().equals(name) && !removed && !alreadyExecuted) {
+                        alreadyExecuted = true;
                         action.execute((T)task);
                     }
                 }
@@ -523,8 +534,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
 
-        public TaskCreatingProvider(Class<T> type, String name) {
+        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configurationAction) {
             super(type, name);
+            if (configurationAction != null) {
+                configure(configurationAction);
+            }
             statistics.lazyTask();
         }
 

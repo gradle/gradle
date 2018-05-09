@@ -282,6 +282,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return index.get(name);
     }
 
+    @Nullable
+    protected ProviderInternal<? extends T> findByNameLaterWithoutRules(String name) {
+        return index.getPending(name);
+    }
+
     protected T removeByName(String name) {
         T it = getByName(name);
         if (it != null) {
