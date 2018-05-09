@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -28,7 +29,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.internal.ProducerGuard;
@@ -41,7 +42,9 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -112,7 +115,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             public Snapshot create() {
                 Snapshot snapshot = fileSystemMirror.getContent(path);
                 if (snapshot == null) {
-                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(ImmutableFileCollection.of(file), InputPathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
+                    FileCollectionSnapshot fileCollectionSnapshot = snapshotter.snapshot(createSimpleFileCollection(file), InputPathNormalizationStrategy.ABSOLUTE, InputNormalizationStrategy.NOT_CONFIGURED);
                     DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
                     fileCollectionSnapshot.appendToHasher(hasher);
                     HashCode hashCode = hasher.hash();
@@ -121,6 +124,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                     fileSystemMirror.putContent(internedPath, snapshot);
                 }
                 return snapshot;
+            }
+        });
+    }
+
+    private FileCollection createSimpleFileCollection(final File file) {
+        return DeprecationLogger.whileDisabled(new Factory<FileCollection>() {
+            @Override
+            public FileCollection create() {
+                return new SimpleFileCollection(file);
             }
         });
     }
