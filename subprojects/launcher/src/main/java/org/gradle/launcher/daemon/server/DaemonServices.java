@@ -18,8 +18,6 @@ package org.gradle.launcher.daemon.server;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.cancel.BuildCancellationTokenFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -82,12 +80,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(true, additionalModuleClassPath, new BuildCancellationTokenFactory() {
-            @Override
-            public BuildCancellationToken create() {
-                return get(Daemon.class).getStateCoordinator().getCancellationToken();
-            }
-        }));
+        addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
     }
 
     protected DaemonContext createDaemonContext() {
