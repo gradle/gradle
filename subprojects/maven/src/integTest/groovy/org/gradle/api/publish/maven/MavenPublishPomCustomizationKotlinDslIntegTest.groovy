@@ -19,13 +19,10 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
-import static org.gradle.util.TestPrecondition.JDK9_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Ignore
-@Requires([KOTLIN_SCRIPT, JDK9_OR_EARLIER])
+@Requires([KOTLIN_SCRIPT])
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override
