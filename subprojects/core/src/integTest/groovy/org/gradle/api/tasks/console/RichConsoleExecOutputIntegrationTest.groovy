@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.tasks.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 
 class RichConsoleExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
+
+    def setup() {
+        attachTestConsole()
+    }
 }

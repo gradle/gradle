@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.tasks.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 
-class VerboseConsoleExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
-    ConsoleOutput consoleType = ConsoleOutput.Verbose
+class PlainConsoleAttachedToStdoutExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
+    ConsoleOutput consoleType = ConsoleOutput.Plain
+
+    def setup() {
+        attachTestConsoleToStdoutOnly()
+    }
 }
