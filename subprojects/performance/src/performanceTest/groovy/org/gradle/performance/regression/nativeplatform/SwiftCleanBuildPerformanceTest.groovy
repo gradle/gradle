@@ -18,10 +18,12 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.mutator.AbstractFileChangeMutator
+import org.gradle.performance.categories.PerformanceExperiment
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
+@Category(PerformanceExperiment)
+class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.minimumVersion = '4.6'
@@ -30,10 +32,11 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    def "up-to-date assemble on #testProject"() {
+    def "clean assemble on #testProject"() {
         given:
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
+        runner.cleanTasks = ["clean"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
 
         when:
@@ -46,42 +49,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         testProject        | maxMemory
         'mediumSwiftMulti' | '1G'
         'bigSwiftApp'      | '1G'
-    }
-
-    @Unroll
-    def "incremental compile on #testProject"() {
-        given:
-        runner.testProject = testProject
-        runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.addBuildExperimentListener(new ChangeSwiftFileMutator(fileToChange))
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | maxMemory | fileToChange
-        "mediumSwiftMulti" | '1G'      | 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
-        'bigSwiftApp'      | '1G'      | 'src/main/swift//AppImpl54Api3.swift'
-    }
-
-    private static class ChangeSwiftFileMutator extends AbstractFileChangeMutator {
-
-        ChangeSwiftFileMutator(String sourceFilePath) {
-            super(sourceFilePath)
-            if (!sourceFilePath.endsWith('.swift')) {
-                throw new IllegalArgumentException('Can only modify Swift source')
-            }
-        }
-
-        @Override
-        protected void applyChangeTo(StringBuilder text) {
-            def location = text.indexOf("public init() { }")
-            text.insert(location, "var ${uniqueText} : Int = 0\n    ")
-        }
     }
 
 }

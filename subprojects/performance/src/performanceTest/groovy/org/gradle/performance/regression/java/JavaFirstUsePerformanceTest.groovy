@@ -17,16 +17,19 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.util.GFileUtils
+import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
+@Category(PerformanceExperiment)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
