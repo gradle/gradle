@@ -57,7 +57,7 @@ class DefaultNestedBuildTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.nestedInstance(buildDefinition, buildIdentifier) >> launcher
+        1 * factory.nestedInstance(buildDefinition, build) >> launcher
 
         then:
         1 * action.transform(!null) >> { BuildController controller ->
@@ -76,7 +76,7 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * factory.nestedInstance(buildDefinition, buildIdentifier) >> launcher
+        1 * factory.nestedInstance(buildDefinition, build) >> launcher
         1 * action.transform(!null) >> { BuildController controller ->
             return null
         }

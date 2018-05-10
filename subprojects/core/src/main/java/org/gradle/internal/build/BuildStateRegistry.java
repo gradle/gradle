@@ -60,7 +60,7 @@ public interface BuildStateRegistry {
     /**
      * Registers a child build that is not an included or implicit build.
      */
-    NestedBuildState addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
      * Registers an implicit build. An implicit build is-a child build whose outputs are used by dependency resolution.

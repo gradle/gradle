@@ -31,6 +31,8 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
@@ -93,10 +95,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     @Override
-    public GradleLauncher newInstance(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
+    public GradleLauncher newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         if (rootBuild != null) {
-            throw new IllegalStateException("Cannot have a current build");
+            throw new IllegalStateException("Cannot have a current root build");
         }
 
         if (!(parentRegistry instanceof BuildTreeScopeServices)) {
@@ -104,7 +106,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, buildIdentifier, null,
+        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build.getBuildIdentifier(), null,
             requestContext.getCancellationToken(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
             ImmutableList.of(new Stoppable() {
@@ -210,8 +212,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         @Override
-        public GradleLauncher nestedInstance(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
-            return createChildInstance(buildDefinition, buildIdentifier, parent, buildTreeScopeServices, ImmutableList.of());
+        public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
+            return createChildInstance(buildDefinition, build.getBuildIdentifier(), parent, buildTreeScopeServices, ImmutableList.of());
         }
 
         @Override

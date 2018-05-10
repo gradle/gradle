@@ -16,8 +16,15 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.Transformer;
+import org.gradle.internal.invocation.BuildController;
+
 /**
- * A build that is a child of some other build, and runs within the lifetime of that containing build.
+ * A stand alone nested build, which is a nested build that runs as part of some containing build as a single atomic step, without participating in task execution of the containing build.
  */
-public interface NestedBuildState extends BuildState {
+public interface StandAloneNestedBuild extends NestedBuildState {
+    /**
+     * Runs a single invocation of this build, executing the given action and returning the result. Should be called once only for a given build instance.
+     */
+    <T> T run(Transformer<T, ? super BuildController> buildAction);
 }

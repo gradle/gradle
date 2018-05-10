@@ -31,7 +31,7 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -164,7 +164,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildState addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
         if (buildDefinition.getName() == null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
