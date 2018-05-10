@@ -19,8 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 
@@ -34,10 +34,12 @@ import java.util.List;
  */
 public class GradleBuild extends ConventionTask {
     private final NestedBuildFactory nestedBuildFactory;
+    private final BuildStateRegistry buildStateRegistry;
     private StartParameter startParameter;
 
     public GradleBuild() {
         this.nestedBuildFactory = getServices().get(NestedBuildFactory.class);
+        this.buildStateRegistry = getServices().get(BuildStateRegistry.class);
         this.startParameter = getServices().get(StartParameter.class).newBuild();
         startParameter.setCurrentDir(getProject().getProjectDir());
     }
@@ -153,7 +155,7 @@ public class GradleBuild extends ConventionTask {
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter());
-        StandAloneNestedBuild nestedBuild = nestedBuildFactory.nestedBuildTree(buildDefinition, new DefaultBuildIdentifier(buildDefinition.getStartParameter().getCurrentDir().getName()));
+        StandAloneNestedBuild nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, nestedBuildFactory);
         nestedBuild.run(new Transformer<Void, BuildController>() {
             @Override
             public Void transform(BuildController buildController) {

@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.composite.internal;
 
+import org.gradle.BuildAdapter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -30,11 +38,11 @@ import org.gradle.util.Path;
 
 public class RootOfNestedBuildTree implements StandAloneNestedBuild {
     private final BuildIdentifier buildIdentifier;
-    private final BuildController buildController;
+    private final GradleLauncher gradleLauncher;
 
-    public RootOfNestedBuildTree(BuildIdentifier buildIdentifier, BuildController buildController) {
+    public RootOfNestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, NestedBuildFactory buildFactory) {
         this.buildIdentifier = buildIdentifier;
-        this.buildController = buildController;
+        this.gradleLauncher = buildFactory.nestedBuildTree(buildDefinition, buildIdentifier);
     }
 
     @Override
@@ -49,22 +57,29 @@ public class RootOfNestedBuildTree implements StandAloneNestedBuild {
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        throw new UnsupportedOperationException();
+        return gradleLauncher.getGradle().getSettings();
     }
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        throw new UnsupportedOperationException();
+        return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override
     public <T> T run(final Transformer<T, ? super BuildController> buildAction) {
-        final GradleInternal gradle = buildController.getGradle();
+        final BuildController buildController = new GradleBuildController(gradleLauncher);
         try {
+            final GradleInternal gradle = gradleLauncher.getGradle();
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
                 public T call(BuildOperationContext context) {
+                    gradle.addBuildListener(new BuildAdapter() {
+                        @Override
+                        public void projectsLoaded(Gradle g) {
+                            gradle.getServices().get(ProjectStateRegistry.class).registerProjects(RootOfNestedBuildTree.this);
+                        }
+                    });
                     T result = buildAction.transform(buildController);
                     context.setResult(new RunNestedBuildBuildOperationType.Result() {
                     });
