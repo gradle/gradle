@@ -49,6 +49,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
@@ -188,6 +189,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
+        if (expectErrorsOnStdout) {
+            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+        }
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 
