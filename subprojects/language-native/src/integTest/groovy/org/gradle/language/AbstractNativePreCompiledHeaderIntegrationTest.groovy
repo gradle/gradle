@@ -125,11 +125,9 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
             model {
                 components {
                     hello {
-                        binaries.all {
-                            if (toolChain.name == "visualCpp") {
-                                ${app.sourceType}Compiler.args "/I${safeHeaderDirPath}"
-                            } else {
-                                ${app.sourceType}Compiler.args "-I${safeHeaderDirPath}"
+                        sources.all {
+                            exportedHeaders {
+                                srcDir "${safeHeaderDirPath}"
                             }
                         }
                     }
