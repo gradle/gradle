@@ -25,11 +25,9 @@ From this point onwards, all configurations that have a lock state will fail to 
 
 Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
 
-### Better control over system include path for native compilation
+### Continuing development of Native ecosystem
 
-In previous versions of Gradle, the native compile task include path was a single monolithic collection of files that was accessible through the `includes` property on the compile task.
-In Gradle 4.8, system header include directories can now be accessed separately via the `systemIncludes` property. 
-On GCC-compatible toolchains, the system header include directories specified with `systemIncludes` will be specified on the command line using the ["-isystem" argument](https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html), which marks them for special treatment by the compiler.   
+[The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48) to improve and evolve the native ecosystem support for Gradle.
 
 ### CodeNarc upgrade
 
