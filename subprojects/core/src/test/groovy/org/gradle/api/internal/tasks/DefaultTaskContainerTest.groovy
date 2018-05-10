@@ -614,9 +614,9 @@ class DefaultTaskContainerTest extends Specification {
         result == task
         1 * taskFactory.create("task", DefaultTask) >> task
         then:
-        1 * deferredAction.execute(task)
-        then:
         1 * action.execute(task)
+        then:
+        1 * deferredAction.execute(task)
         then:
         0 * action._
         0 * deferredAction._

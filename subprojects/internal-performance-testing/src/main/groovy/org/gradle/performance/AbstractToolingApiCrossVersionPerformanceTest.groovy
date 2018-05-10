@@ -28,6 +28,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
@@ -326,8 +327,14 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         public withAdditionalArgs(operation, ToolingApiBuildExperimentSpec spec) {
             Proxy.newProxyInstance(tapiClassLoader, operation.class.interfaces) { proxy, method, args ->
+                Stoppable stoppable = new CompositeStoppable()
                 if (method.name in ["run", "get"]) {
                     def params = operation.operationParamsBuilder
+                    def log = new File(spec.workingDirectory, "log.txt")
+                    def out = new FileOutputStream(log, true)
+                    stoppable.add(out)
+                    params.stdout = out
+                    params.stderr = out
                     params.arguments = params.arguments = params.arguments ?: []
                     params.arguments += ["--init-script", repositoryMirrorScript.absolutePath]
                     params.arguments += profiler.getAdditionalGradleArgs(spec)
@@ -335,7 +342,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     params.jvmArguments = params.jvmArguments = params.jvmArguments ?: []
                     params.jvmArguments += profiler.getAdditionalJvmOpts(spec)
                 }
-                method.invoke(operation, args)
+                try {
+                    method.invoke(operation, args)
+                } finally {
+                    stoppable.stop()
+                }
             }
         }
     }

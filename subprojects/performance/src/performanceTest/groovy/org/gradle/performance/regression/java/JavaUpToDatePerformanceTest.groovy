@@ -26,18 +26,12 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "up-to-date assemble on #testProject (parallel #parallel)"() {
-        //This test scenario can potentially be replaced with an incremental change test
-
         given:
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["4.8-20180506235948+0000"]
-        if (parallel) {
-            runner.args += ["--parallel"]
-        } else {
-            runner.previousTestIds = ["up-to-date assemble on $testProject"]
-        }
+        runner.args += ["-Dorg.gradle.parallel=$parallel"]
 
         when:
         def result = runner.run()
@@ -47,7 +41,6 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                   | parallel
-        LARGE_MONOLITHIC_JAVA_PROJECT | true
         LARGE_MONOLITHIC_JAVA_PROJECT | false
         LARGE_JAVA_MULTI_PROJECT      | true
         LARGE_JAVA_MULTI_PROJECT      | false
