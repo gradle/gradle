@@ -162,6 +162,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 OutputStreamWriter writer = new OutputStreamWriter(outputStream);
                 Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
                 addRichConsole(console, true, consoleAttachedToStderr, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
+                // For in-process console testing when stderr is not attached, we need to attach our own error stream to get error messages
+                if (!consoleAttachedToStderr) {
+                    addChain(onError(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(errorStream)))));
+                    removeSystemErrAsLoggingDestination();
+                }
             }
         }
     }
