@@ -55,12 +55,7 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return hasMainOutput(expectedOutput);
-    }
-
-    @Override
-    public boolean hasMainOutput(String expectedOutput) {
-        return delegate.hasMainOutput(expectedOutput);
+        return getOutput().contains(expectedOutput);
     }
 
     @Override

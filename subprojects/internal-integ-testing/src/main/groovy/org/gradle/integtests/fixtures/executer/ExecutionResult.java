@@ -68,13 +68,6 @@ public interface ExecutionResult {
      */
     boolean hasErrorOutput(String expectedOutput);
 
-    /**
-     * Returns true when this result includes the given output log message. Considers only text in the main content of the build output and not in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
-     *
-     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
-     */
-    boolean hasMainOutput(String expectedOutput);
-
     ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder);
 
     /**

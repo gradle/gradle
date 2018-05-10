@@ -197,11 +197,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public boolean hasMainOutput(String expectedOutput) {
-        return getMainContent().withNormalizedEol().contains(expectedOutput);
-    }
-
-    @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
         return assertContentContains(getError(), expectedOutput);
     }

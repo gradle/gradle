@@ -475,11 +475,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
-        public boolean hasMainOutput(String expectedOutput) {
-            return outputResult.hasMainOutput(expectedOutput);
-        }
-
-        @Override
         public ExecutionResult assertHasErrorOutput(String expectedOutput) {
             outputResult.assertHasErrorOutput(expectedOutput);
             return this;
