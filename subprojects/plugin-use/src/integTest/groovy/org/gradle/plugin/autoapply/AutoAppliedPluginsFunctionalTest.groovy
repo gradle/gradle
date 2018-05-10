@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.autoapply
 
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -162,7 +163,9 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
 
     private void withInteractiveConsole() {
         executer.withTestConsoleAttached()
-        executer.withStdinPipe().withForceInteractive(true)
+                .withConsole(ConsoleOutput.Plain)
+                .withStdinPipe()
+                .withForceInteractive(true)
     }
 
     private GradleHandle startBuildWithBuildScanCommandLineOption() {
