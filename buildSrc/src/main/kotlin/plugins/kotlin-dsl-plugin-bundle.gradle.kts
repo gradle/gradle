@@ -42,15 +42,6 @@ workAroundTestKitWithPluginClassPathIssues()
 // Also see AbstractPluginTest
 fun Project.workAroundTestKitWithPluginClassPathIssues() {
 
-    publishing {
-        repositories {
-            maven {
-                name = "test"
-                url = uri("$buildDir/repository")
-            }
-        }
-    }
-
     val publishPluginsToTestRepository = tasks.create("publishPluginsToTestRepository") {
         dependsOn("publishPluginMavenPublicationToTestRepository")
     }
@@ -62,6 +53,15 @@ fun Project.workAroundTestKitWithPluginClassPathIssues() {
     val writeFuturePluginVersions = createWriteFuturePluginVersionsTask()
 
     afterEvaluate {
+
+        publishing {
+            repositories {
+                maven {
+                    name = "test"
+                    url = uri("$buildDir/repository")
+                }
+            }
+        }
 
         gradlePlugin {
             plugins.all {
