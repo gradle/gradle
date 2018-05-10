@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
@@ -24,6 +25,10 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
+import org.gradle.language.nativeplatform.internal.Macro;
+import org.gradle.language.nativeplatform.internal.MacroFunction;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,6 +107,7 @@ public class IncrementalCompileFilesFactory {
                 if (graphHasNotChanged(sourceFile, fileSnapshot, previousState, existingHeaders)) {
                     // Include file graph for this source file has not changed, skip this file
                     current.setState(sourceFile, previousState);
+                    includeDirectivesMap.put(sourceFile, rebuildIncludeDirectives(previousState));
                     if (previousState.isHasUnresolved() && !ignoreUnresolvedHeadersInDependencies) {
                         hasUnresolvedHeaders = true;
                         return true;
@@ -125,6 +131,17 @@ public class IncrementalCompileFilesFactory {
                 hasUnresolvedHeaders = true;
             }
             return true;
+        }
+
+        private IncludeDirectives rebuildIncludeDirectives(SourceFileState previousState) {
+            ImmutableList.Builder<Include> allIncludes = ImmutableList.builder();
+            for (IncludeFileEdge edge : previousState.getEdges()) {
+                HashCode includedBy = edge.getIncludedBy();
+                if (includedBy != null && includedBy.equals(previousState.getHash())) {
+                    allIncludes.add(IncludeWithSimpleExpression.create(edge.getIncludePath(), false, IncludeType.SYSTEM));
+                }
+            }
+            return new DefaultIncludeDirectives(allIncludes.build(), ImmutableList.<Macro>of(), ImmutableList.<MacroFunction>of());
         }
 
         private boolean graphHasNotChanged(File sourceFile, FileSnapshot fileSnapshot, SourceFileState previousState, Set<File> existingHeaders) {
