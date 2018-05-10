@@ -16,15 +16,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.invocation.BuildController
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationRef
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -34,19 +30,9 @@ class GradleBuildTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def buildFactory = Mock(NestedBuildFactory)
+    def buildStateRegistry = Mock(BuildStateRegistry)
     def build = Mock(StandAloneNestedBuild)
-    def gradle = Mock(GradleInternal)
-    def services = Mock(ServiceRegistry)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def buildOperation = Mock(BuildOperationRef)
-    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory])
-
-    def setup() {
-        _ * build.getGradle() >> gradle
-        _ * gradle.getServices() >> services
-        _ * services.get(BuildOperationExecutor) >> buildOperationExecutor
-        _ * buildOperationExecutor.currentOperation >> buildOperation
-    }
+    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory, buildStateRegistry: buildStateRegistry])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()
@@ -69,7 +55,7 @@ class GradleBuildTest extends Specification {
 
         then:
 
-        1 * buildFactory.nestedBuildTree(_, _) >> { BuildDefinition buildDefinition, BuildIdentifier buildIdentifier ->
+        1 * buildStateRegistry.addNestedBuildTree(_, _) >> { BuildDefinition buildDefinition, NestedBuildFactory buildFactory ->
             assert buildDefinition.startParameter == task.startParameter
             build
         }
