@@ -23,8 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
-        // Kotlin DSL requires Gradle distribution
-        requireGradleDistribution()
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

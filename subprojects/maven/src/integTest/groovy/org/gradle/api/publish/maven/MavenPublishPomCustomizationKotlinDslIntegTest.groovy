@@ -36,8 +36,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
     }
 
     def setup() {
-        // Kotlin DSL requires Gradle distribution
-        requireGradleDistribution()
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
     def "can customize POM using Kotlin DSL"() {
