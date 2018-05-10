@@ -47,7 +47,11 @@ public class ConsoleConfigureAction {
 
     private static void configureRichConsole(OutputEventRenderer renderer, boolean verbose) {
         ConsoleMetaData consoleMetaData = getConsoleMetaData();
-        configureRichConsole(renderer, consoleMetaData, consoleMetaData == null, verbose);
+        configureRichConsole(renderer, consoleMetaData, shouldForce(consoleMetaData), verbose);
+    }
+
+    private static boolean shouldForce(ConsoleMetaData consoleMetaData) {
+        return consoleMetaData == null || consoleMetaData == FallbackConsoleMetaData.INSTANCE || consoleMetaData == StdoutOnlyConsoleMetadata.INSTANCE;
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer) {
