@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppLib
@@ -23,6 +24,11 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
+
+    def setup() {
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+    }
+
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
         assert !lib.publicHeaders.files.empty
@@ -157,6 +163,8 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
 
         def repoDir = file("repo")
         def producer = file("greeting")
+        def producerSettings = producer.file("settings.gradle")
+        FeaturePreviewsFixture.enableStablePublishing(producerSettings)
         producer.file("build.gradle") << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
@@ -182,6 +190,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         run('publish')
 
         def consumer = file("consumer").createDir()
+        consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }
