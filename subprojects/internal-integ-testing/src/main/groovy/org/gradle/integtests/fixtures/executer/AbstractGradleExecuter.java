@@ -130,7 +130,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
-    protected boolean expectErrorsOnStdout;
+    protected ConsoleAttachment consoleAttachment = ConsoleAttachment.NOT_ATTACHED;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -401,8 +401,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withWelcomeMessageEnabled();
         }
 
-        if (expectErrorsOnStdout) {
-            executer.withErrorsOnStdout();
+        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+            executer.withTestConsoleAttached();
+        }
+
+        if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
+            executer.withTestConsoleAttachedToStdoutOnly();
         }
 
         return executer;
@@ -1000,7 +1004,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         collectStateBeforeExecution();
         try {
             ExecutionResult result = doRun();
-            if (expectErrorsOnStdout) {
+            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
             return result;
@@ -1074,7 +1078,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         collectStateBeforeExecution();
         try {
             ExecutionFailure executionFailure = doRunWithFailure();
-            if (expectErrorsOnStdout) {
+            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
             return executionFailure;
@@ -1393,19 +1397,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withErrorsOnStdout() {
-        expectErrorsOnStdout = true;
-        return this;
-    }
-
-    @Override
     public GradleExecuter withTestConsoleAttached() {
-        expectErrorsOnStdout = true;
+        consoleAttachment = ConsoleAttachment.ATTACHED;
         return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
     }
 
     @Override
     public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
+        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
         return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+    }
+
+    enum ConsoleAttachment {
+        NOT_ATTACHED, ATTACHED, ATTACHED_STDOUT_ONLY
     }
 }

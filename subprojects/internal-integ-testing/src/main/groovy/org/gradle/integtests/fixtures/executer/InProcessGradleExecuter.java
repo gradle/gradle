@@ -189,8 +189,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
-        if (expectErrorsOnStdout) {
+        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
             withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+        } else if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
+            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
         }
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
@@ -273,7 +275,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, expectErrorsOnStdout);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment == ConsoleAttachment.ATTACHED);
 
         return loggingManager;
     }
@@ -377,11 +379,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleExecuter withTestConsoleAttached() {
-        return withErrorsOnStdout();
+        consoleAttachment = ConsoleAttachment.ATTACHED;
+        return this;
     }
 
     @Override
     public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
+        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
         return this;
     }
 
