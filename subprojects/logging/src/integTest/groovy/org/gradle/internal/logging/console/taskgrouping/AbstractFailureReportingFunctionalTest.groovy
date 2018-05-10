@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.console.taskgrouping
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.executer.LogContent
 import spock.lang.Unroll
 
@@ -42,9 +41,9 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         failure.assertHasDescription("Execution failed for task ':broken'")
         failure.assertHasCause("broken")
 
-        // Check that the failure text appears either stdout or stderr (as per console type)
-        def outputWithFailure = consoleType == ConsoleOutput.Plain ? failure.error : failure.output
-        def outputWithoutFailure = consoleType == ConsoleOutput.Plain ? failure.output : failure.error
+        // Check that the failure text appears either stdout or stderr
+        def outputWithFailure = stderrAttached ? failure.output : failure.error
+        def outputWithoutFailure = stderrAttached ? failure.error : failure.output
         def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeEmptyLines().removeAnsiChars().removeDebugPrefix().withNormalizedEol()
 
         outputWithFailure.contains("Build failed with an exception.")
@@ -56,8 +55,7 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")
 
-        def errorContent = stderrAttached ? failure.output : failure.error
-        errorContent.contains("BUILD FAILED")
+        outputWithFailure.contains("BUILD FAILED")
 
         where:
         level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]
