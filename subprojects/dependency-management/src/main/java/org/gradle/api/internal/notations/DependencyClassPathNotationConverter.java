@@ -155,6 +155,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     abstract class GeneratedFileCollection extends CompositeFileCollection {
 
         private final String displayName;
+        private FileCollection generatedCollection;
 
         public GeneratedFileCollection(String notation) {
             this.displayName = notation + " files";
@@ -171,7 +172,10 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             if (context instanceof BuildDependenciesOnlyFileCollectionResolveContext) {
                 return;
             }
-            context.add(generateFileCollection());
+            if (generatedCollection == null) {
+                generatedCollection = generateFileCollection();
+            }
+            context.add(generatedCollection);
         }
 
         abstract FileCollection generateFileCollection();
