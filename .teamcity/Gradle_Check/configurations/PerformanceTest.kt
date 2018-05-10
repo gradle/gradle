@@ -17,7 +17,6 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
         build/report-*-performance-tests.zip => .
     """.trimIndent()
     detectHangingBuilds = false
-    maxRunningBuilds = 2
 
     if (type == PerformanceTestType.test) {
         features {
