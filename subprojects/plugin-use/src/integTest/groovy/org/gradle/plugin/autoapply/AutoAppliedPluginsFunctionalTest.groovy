@@ -161,6 +161,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
     }
 
     private void withInteractiveConsole() {
+        executer.withTestConsoleAttached()
         executer.withStdinPipe().withForceInteractive(true)
     }
 
