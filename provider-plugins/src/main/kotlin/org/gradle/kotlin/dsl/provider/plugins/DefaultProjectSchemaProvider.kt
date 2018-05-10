@@ -56,7 +56,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
-    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
+    fun collectSchemaOf(target: Any, targetType: TypeOf<*>, collectConventions: Boolean = true) {
         if (target is ExtensionAware) {
             accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
@@ -65,7 +65,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
                 }
             }
         }
-        if (target is HasConvention) {
+        if (collectConventions && target is HasConvention) {
             accessibleConventionsSchema(target.convention.plugins).forEach { name, type ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
@@ -73,7 +73,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
         }
         if (target is Project) {
             sourceSetsOf(target)?.forEach { sourceSet ->
-                collectSchemaOf(sourceSet, typeOfSourceSet)
+                collectSchemaOf(sourceSet, typeOfSourceSet, collectConventions = false)
             }
         }
     }

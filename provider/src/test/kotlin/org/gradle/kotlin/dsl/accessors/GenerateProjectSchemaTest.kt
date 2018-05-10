@@ -133,11 +133,7 @@ val groovyProjectSchema: ProjectSchema<String> =
                 "org.gradle.api.tasks.GroovyRuntime",
                 "ext",
                 "org.gradle.api.plugins.ExtraPropertiesExtension"))),
-        conventions = javaProjectSchema.conventions + listOf(
-            ProjectSchemaEntry(
-                "org.gradle.api.tasks.SourceSet",
-                "groovy",
-                "org.gradle.api.internal.tasks.DefaultGroovySourceSet")),
+        conventions = javaProjectSchema.conventions,
         configurations = javaProjectSchema.configurations)
 
 
@@ -177,8 +173,5 @@ val kotlinDslProjectSchema: ProjectSchema<String> =
                 "org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension",
                 "ext",
                 "org.gradle.api.plugins.ExtraPropertiesExtension"))),
-        conventions = javaProjectSchema.conventions + listOf(
-            ProjectSchemaEntry(
-                "org.gradle.api.tasks.SourceSet",
-                "kotlin", "org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet")),
+        conventions = javaProjectSchema.conventions,
         configurations = (javaProjectSchema.configurations + listOf("embeddedKotlin", "kapt", "kaptTest")).sorted())

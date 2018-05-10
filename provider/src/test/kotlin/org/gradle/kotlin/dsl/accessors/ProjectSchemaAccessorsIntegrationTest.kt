@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.accessors
 
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
@@ -509,48 +508,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
-    }
-
-    @Test
-    fun `can access source sets conventions registered by declared core plugins via jit accessors`() {
-
-        withBuildScript("""
-            plugins {
-                groovy
-            }
-
-            java.sourceSets["main"].groovy {
-                groovy.srcDir("some/path")
-            }
-
-            val main by java.sourceSets
-            main.groovy.groovy {
-                srcDir("another/path")
-            }
-
-            val configured = main.groovy.groovy.srcDirs
-            val expected = linkedSetOf(file("src/main/groovy"), file("some/path"), file("another/path"))
-            require(configured == expected)
-        """)
-
-        build("help")
-    }
-
-    @Test
-    fun `can access source sets conventions registered by declared external plugins via jit accessors`() {
-        withBuildScript("""
-            plugins {
-                kotlin("jvm") version "$embeddedKotlinVersion"
-            }
-
-            val other by java.sourceSets.creating {
-                kotlin.kotlin.setSrcDirs(setOf("src/other/kotlin"))
-            }
-
-            require(other.kotlin.kotlin.srcDirs == linkedSetOf(file("src/other/kotlin")))
-        """)
-
-        build("help")
     }
 
     private
