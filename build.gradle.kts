@@ -73,6 +73,12 @@ tasks {
     }
 }
 
+allprojects {
+    repositories {
+        maven(url = "https://repo.gradle.org/gradle/repo")
+    }
+}
+
 artifactory {
     setContextUrl("https://repo.gradle.org/gradle")
     publish(delegateClosureOf<PublisherConfig> {
