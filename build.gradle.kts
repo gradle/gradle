@@ -31,7 +31,7 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "0.17.3"
+    version = "0.17.4-SNAPSHOT"
     createOpenTestReportTasks()
 }
 
