@@ -24,8 +24,6 @@ import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 
-import org.gradle.api.internal.HasConvention
-
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
@@ -56,7 +54,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
     val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
 
-    fun collectSchemaOf(target: Any, targetType: TypeOf<*>, collectConventions: Boolean = true) {
+    fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
             accessibleExtensionsSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
@@ -65,15 +63,13 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): ExtensionConventionSche
                 }
             }
         }
-        if (collectConventions && target is HasConvention) {
+        if (target is Project) {
             accessibleConventionsSchema(target.convention.plugins).forEach { name, type ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
                 collectSchemaOf(target.convention.plugins[name]!!, type)
             }
-        }
-        if (target is Project) {
             sourceSetsOf(target)?.forEach { sourceSet ->
-                collectSchemaOf(sourceSet, typeOfSourceSet, collectConventions = false)
+                collectSchemaOf(sourceSet, typeOfSourceSet)
             }
         }
     }
