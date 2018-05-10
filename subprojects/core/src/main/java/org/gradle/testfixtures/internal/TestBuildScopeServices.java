@@ -28,9 +28,9 @@ import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -72,7 +72,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
             }
 
             @Override
-            public BuildController nestedBuildController(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
+            public StandAloneNestedBuild nestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
                 throw new UnsupportedOperationException();
             }
         };

@@ -15,10 +15,12 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.Transformer
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
@@ -32,7 +34,7 @@ class GradleBuildTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def buildFactory = Mock(NestedBuildFactory)
-    def buildController = Mock(BuildController)
+    def build = Mock(StandAloneNestedBuild)
     def gradle = Mock(GradleInternal)
     def services = Mock(ServiceRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
@@ -40,7 +42,7 @@ class GradleBuildTest extends Specification {
     GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory])
 
     def setup() {
-        _ * buildController.getGradle() >> gradle
+        _ * build.getGradle() >> gradle
         _ * gradle.getServices() >> services
         _ * services.get(BuildOperationExecutor) >> buildOperationExecutor
         _ * buildOperationExecutor.currentOperation >> buildOperation
@@ -67,25 +69,10 @@ class GradleBuildTest extends Specification {
 
         then:
 
-        1 * buildFactory.nestedBuildController(_, _) >> { BuildDefinition buildDefinition, BuildIdentifier buildIdentifier ->
+        1 * buildFactory.nestedBuildTree(_, _) >> { BuildDefinition buildDefinition, BuildIdentifier buildIdentifier ->
             assert buildDefinition.startParameter == task.startParameter
-            buildController
+            build
         }
-        1 * buildController.run() >> gradle
-        1 * buildController.stop()
-    }
-
-    void cleansUpOnBuildFailure() {
-        def failure = new RuntimeException()
-
-        when:
-        task.build()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * buildFactory.nestedBuildController(_, _) >> buildController
-        1 * buildController.run() >> { throw failure }
-        1 * buildController.stop()
+        1 * build.run(_) >> { Transformer transformer -> transformer.transform(Stub(BuildController)) }
     }
 }
