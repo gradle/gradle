@@ -73,7 +73,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
         assertTestKitGenerationOutput(output)
     }
 
-    @Timeout(120)
+    @Timeout(300)
     def "Gradle API and TestKit dependency JAR files are the same when run by concurrent tasks within one build"() {
         given:
         setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
