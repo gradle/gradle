@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+
 
 abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest{
     def setup() {

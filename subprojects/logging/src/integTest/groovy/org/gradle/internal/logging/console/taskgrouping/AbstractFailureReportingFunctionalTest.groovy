@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console.taskgrouping
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.LogContent
 import spock.lang.Unroll
 
