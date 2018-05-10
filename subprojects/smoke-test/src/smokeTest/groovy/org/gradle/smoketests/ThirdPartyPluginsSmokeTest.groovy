@@ -62,7 +62,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':shadowJar').outcome == SUCCESS
 
         where:
-        version << ["2.0.3"]
+        version << ["2.0.4"]
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
@@ -101,7 +101,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id 'java'
                 id 'application'
-                id "com.bmuschko.docker-java-application" version "3.2.5"
+                id "com.bmuschko.docker-java-application" version "3.2.8"
             }
 
             mainClassName = 'org.gradle.JettyMain'
@@ -128,7 +128,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '1.0.4.RELEASE'
+                id 'io.spring.dependency-management' version '1.0.5.RELEASE'
             }
 
             ${mavenCentralRepository()}
@@ -152,12 +152,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.output.contains('org.springframework:spring-core -> 4.0.3.RELEASE')
     }
 
-    @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin/2.0.0.RELEASE')
+    @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
-                id "org.springframework.boot" version "2.0.0.RELEASE"
+                id "org.springframework.boot" version "2.0.1.RELEASE"
             }
         """.stripIndent()
 
@@ -187,7 +187,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             
             plugins { 
                 id 'java'
-                id 'io.spring.dependency-management' version '1.0.4.RELEASE' 
+                id 'io.spring.dependency-management' version '1.0.5.RELEASE' 
             }
             
             ${mavenCentralRepository()}
@@ -277,7 +277,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
-                id 'org.gosu-lang.gosu' version '0.3.6'
+                id 'org.gosu-lang.gosu' version '0.3.9'
             }
 
             ${mavenCentralRepository()}
@@ -342,7 +342,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         GitFileRepository.init(testProjectDir.root)
         buildFile << """
             plugins {
-                id "org.ajoberstar.grgit" version "2.1.1"
+                id "org.ajoberstar.grgit" version "2.2.0"
             }
 
             def sourceFile = file("sourceFile")
