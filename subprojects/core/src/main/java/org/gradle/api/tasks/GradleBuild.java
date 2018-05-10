@@ -16,10 +16,12 @@
 package org.gradle.api.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 
 import javax.annotation.Nullable;
@@ -151,11 +153,13 @@ public class GradleBuild extends ConventionTask {
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter());
-        BuildController buildController = nestedBuildFactory.nestedBuildController(buildDefinition, new DefaultBuildIdentifier(buildDefinition.getStartParameter().getCurrentDir().getName()));
-        try {
-            buildController.run();
-        } finally {
-            buildController.stop();
-        }
+        StandAloneNestedBuild nestedBuild = nestedBuildFactory.nestedBuildTree(buildDefinition, new DefaultBuildIdentifier(buildDefinition.getStartParameter().getCurrentDir().getName()));
+        nestedBuild.run(new Transformer<Void, BuildController>() {
+            @Override
+            public Void transform(BuildController buildController) {
+                buildController.run();
+                return null;
+            }
+        });
     }
 }

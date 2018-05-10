@@ -33,6 +33,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
@@ -42,14 +43,10 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -217,7 +214,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
 
         @Override
-        public BuildController nestedBuildController(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
+        public StandAloneNestedBuild nestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
             StartParameter startParameter = buildDefinition.getStartParameter();
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
@@ -230,76 +227,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                     userHomeDirServiceRegistry.release(userHomeServices);
                 }
             }));
-            return new NestedBuildController(new GradleBuildController(childInstance));
+            return new RootOfNestedBuildTree(buildIdentifier, new GradleBuildController(childInstance));
         }
 
         public void setParent(DefaultGradleLauncher parent) {
             this.parent = parent;
-        }
-
-        private class NestedBuildController implements BuildController {
-
-            private final BuildController delegate;
-
-            NestedBuildController(BuildController delegate) {
-                this.delegate = delegate;
-            }
-
-            @Override
-            public void stop() {
-                delegate.stop();
-            }
-
-            @Override
-            public GradleInternal getGradle() {
-                return delegate.getGradle();
-            }
-
-            @Override
-            public GradleInternal run() {
-                BuildOperationExecutor executor = getGradle().getServices().get(BuildOperationExecutor.class);
-                return executor.call(new CallableBuildOperation<GradleInternal>() {
-                    @Override
-                    public GradleInternal call(BuildOperationContext context) {
-                        GradleInternal gradleInternal = delegate.run();
-                        context.setResult(new RunNestedBuildBuildOperationType.Result() {
-                        });
-                        return gradleInternal;
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor.displayName("Run nested build")
-                            .details(new RunNestedBuildBuildOperationType.Details() {
-                                @Override
-                                public String getBuildPath() {
-                                    return getGradle().getIdentityPath().getPath();
-                                }
-                            });
-                    }
-                });
-            }
-
-            @Override
-            public GradleInternal configure() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean hasResult() {
-                return delegate.hasResult();
-            }
-
-            @Nullable
-            @Override
-            public Object getResult() {
-                return delegate.getResult();
-            }
-
-            @Override
-            public void setResult(@Nullable Object result) {
-                delegate.setResult(result);
-            }
         }
     }
 }
