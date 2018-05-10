@@ -25,7 +25,7 @@ buildscript {
 
 plugins {
     base
-    id("com.jfrog.artifactory") version "4.1.1"
+    id("com.jfrog.artifactory") version "4.7.2"
     id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
 }
 
