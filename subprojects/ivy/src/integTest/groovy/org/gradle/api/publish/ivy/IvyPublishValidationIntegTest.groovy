@@ -16,9 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import javax.xml.namespace.QName
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
+
+import javax.xml.namespace.QName
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
@@ -35,7 +36,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def status = identifier.safeForFileName().decorate("status")
         def module = ivyRepo.module(organisation, moduleName, version)
 
-        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
+        settingsFile << "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
             apply plugin: 'java'
@@ -101,7 +102,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         def conf = identifier.safeForFileName().decorate("conf").replace(",", "")
         def classifier = identifier.safeForFileName().decorate("classifier")
 
-        settingsFile.text = "rootProject.name = '${sq(moduleName)}'"
+        settingsFile << "rootProject.name = '${sq(moduleName)}'"
         buildFile.text = """
             apply plugin: 'ivy-publish'
 

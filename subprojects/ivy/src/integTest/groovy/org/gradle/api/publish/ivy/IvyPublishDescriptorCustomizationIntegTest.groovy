@@ -200,7 +200,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
+        failure.assertHasDescription("A problem occurred evaluating root project 'publish'.")
         failure.assertHasCause("Invalid ivy extra info element name: '${name}'")
 
         where:
@@ -229,7 +229,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project 'publish'.")
+        failure.assertHasDescription("A problem occurred evaluating root project 'publish'.")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(23)
         failure.assertHasCause("Cannot add an extra info element with null ")

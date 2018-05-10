@@ -23,7 +23,10 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
      void runSamplesFrom(String dir) {
         util.findSamples(dir) { file, sample, tagSuffix ->
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
-            def fileToTest = tagSuffix == 'Settings' ? testFile('settings.gradle') : testFile('build.gradle')
+            def buildFile = testFile('build.gradle')
+            def settingsFile = testFile('settings.gradle')
+            FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+            def fileToTest = tagSuffix == 'Settings' ? settingsFile : buildFile
             fileToTest.text = sample
             executer.withTasks('help').withArguments("-s").run()
             fileToTest.delete()
