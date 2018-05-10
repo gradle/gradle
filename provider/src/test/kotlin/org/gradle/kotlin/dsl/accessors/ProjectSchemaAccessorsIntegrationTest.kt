@@ -366,11 +366,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
                     rootExtension.extensions.add("nestedExtension", rootExtensionNestedExtension)
                     rootExtensionNestedExtension.extensions.add("deepExtension", listOf("foo", "bar"))
-                    rootExtensionNestedExtension.convention.plugins.put("deepConvention", listOf(23, 42))
 
-                    rootExtension.convention.plugins.put("nestedConvention", rootExtensionNestedConvention)
                     rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
-                    rootExtensionNestedConvention.convention.plugins.put("deepConvention", mapOf(23 to 42))
 
                     val rootConvention = MyConvention("root")
                     val rootConventionNestedExtension = MyExtension("nested-in-convention")
@@ -380,11 +377,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
                     rootConvention.extensions.add("nestedExtension", rootConventionNestedExtension)
                     rootConventionNestedExtension.extensions.add("deepExtension", listOf("bazar", "cathedral"))
-                    rootConventionNestedExtension.convention.plugins.put("deepConvention", listOf(42, 23))
 
-                    rootConvention.convention.plugins.put("nestedConvention", rootConventionNestedConvention)
                     rootConventionNestedConvention.extensions.add("deepExtension", mapOf("bazar" to "cathedral"))
-                    rootConventionNestedConvention.convention.plugins.put("deepConvention", mapOf(42 to 23))
                 }
             }
 
@@ -410,12 +404,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 nestedExtension {
                     require(value == "nested-in-extension", { "rootExtension.nestedExtension" })
                     require(deepExtension == listOf("foo", "bar"), { "rootExtension.nestedExtension.deepExtension" })
-                    require(deepConvention == listOf(23, 42), { "rootExtension.nestedExtension.deepConvention" })
-                }
-                nestedConvention {
-                    require(value == "nested-in-extension", { "rootExtension.nestedConvention" })
-                    require(deepExtension == mapOf("foo" to "bar"), { "rootExtension.nestedExtension.deepExtension" })
-                    require(deepConvention == mapOf(23 to 42), { "rootExtension.nestedExtension.deepConvention" })
                 }
             }
 
@@ -423,12 +411,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 nestedExtension {
                     require(value == "nested-in-convention", { "rootConvention.nestedExtension" })
                     require(deepExtension == listOf("bazar", "cathedral"), { "rootConvention.nestedExtension.deepExtension" })
-                    require(deepConvention == listOf(42, 23), { "rootConvention.nestedExtension.deepConvention" })
-                }
-                nestedConvention {
-                    require(value == "nested-in-convention", { "rootConvention.nestedConvention" })
-                    require(deepExtension == mapOf("bazar" to "cathedral"), { "rootConvention.nestedExtension.deepExtension" })
-                    require(deepConvention == mapOf(42 to 23), { "rootConvention.nestedExtension.deepConvention" })
                 }
             }
         """)
