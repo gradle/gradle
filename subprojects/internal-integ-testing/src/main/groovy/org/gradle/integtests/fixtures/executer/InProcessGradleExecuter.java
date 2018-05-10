@@ -375,6 +375,16 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return COMMON_TMP;
     }
 
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        return withErrorsOnStdout();
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
+        return this;
+    }
+
     private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();

@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 /**
@@ -133,23 +132,5 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             gradleExecuter.reset();
         }
         return super.reset();
-    }
-
-    @Override
-    public GradleExecuter withTestConsoleAttached() {
-        if (isEmbedded()) {
-            return super.withTestConsoleAttached();
-        } else {
-            return super.withTestConsoleAttached().withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
-        }
-    }
-
-    @Override
-    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
-        if (isEmbedded()) {
-            return super.withTestConsoleAttachedToStdoutOnly();
-        } else {
-            return super.withTestConsoleAttachedToStdoutOnly().withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
-        }
     }
 }

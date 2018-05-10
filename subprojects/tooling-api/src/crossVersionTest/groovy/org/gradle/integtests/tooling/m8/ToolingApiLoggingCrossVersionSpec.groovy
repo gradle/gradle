@@ -153,6 +153,8 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
+            .withTestConsoleAttached()
+            .withArgument("--console=plain")
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }
