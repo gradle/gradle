@@ -126,6 +126,7 @@ class AutoAppliedPluginsFunctionalTest extends AbstractIntegrationSpec {
         buildFile << dummyBuildFile()
 
         when:
+        executer.withArgument("--debug")
         def gradleHandle = startBuildWithBuildScanCommandLineOption()
 
         then:
