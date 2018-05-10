@@ -28,52 +28,62 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
 
     @Override
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
-        return delegate.assertHasLineNumber(lineNumber);
+        delegate.assertHasLineNumber(lineNumber);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasFileName(String filename) {
-        return delegate.assertHasFileName(filename);
+        delegate.assertHasFileName(filename);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasCause(String description) {
-        return delegate.assertHasCause(description);
+        delegate.assertHasCause(description);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertThatCause(Matcher<String> matcher) {
-        return delegate.assertThatCause(matcher);
+        delegate.assertThatCause(matcher);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasDescription(String context) {
-        return delegate.assertHasDescription(context);
+        delegate.assertHasDescription(context);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-        return delegate.assertThatDescription(matcher);
+        delegate.assertThatDescription(matcher);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasResolution(String resolution) {
-        return delegate.assertHasResolution(resolution);
+        delegate.assertHasResolution(resolution);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasNoCause(String description) {
-        return delegate.assertHasNoCause(description);
+        delegate.assertHasNoCause(description);
+        return this;
     }
 
     @Override
     public ExecutionFailure assertHasNoCause() {
-        return delegate.assertHasNoCause();
+        delegate.assertHasNoCause();
+        return this;
     }
 
     @Override
     public ExecutionFailure assertTestsFailed() {
-        return delegate.assertTestsFailed();
+        delegate.assertTestsFailed();
+        return this;
     }
 
     @Override

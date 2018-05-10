@@ -18,12 +18,12 @@ package org.gradle.api.internal.buildevents
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 
-class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Rich
-    String failureMessage = buildFailedStyled
+class VerboseConsoleAttachedToStdoutBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Verbose
+    String failureMessage = buildFailed
     String successMessage = buildSuccessStyled
 
     def setup() {
-        attachTestConsole()
+        attachTestConsoleToStdoutOnly()
     }
 }

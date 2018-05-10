@@ -161,12 +161,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
-        String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
-        String actualText = postBuild.withNormalizedEol();
-        if (!actualText.contains(expectedText)) {
-            failOnMissingOutput("Did not find expected text in post-build output.", "Post-build output", expectedText, actualText);
-        }
-        return this;
+        return assertContentContains(postBuild.withNormalizedEol(), expectedOutput, "Post-build output");
     }
 
     @Override
@@ -178,17 +173,18 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
-    private ExecutionResult assertContentContains(String actualText, String expectedOutput) {
+    @Override
+    public ExecutionResult assertContentContains(String actualText, String expectedOutput, String label) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (!actualText.contains(expectedText)) {
-            failOnMissingOutput("Did not find expected text in build output.", "Build output", expectedOutput, actualText);
+            failOnMissingOutput("Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
         }
         return this;
     }
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        return assertContentContains(getMainContent().withNormalizedEol(), expectedOutput);
+        return assertContentContains(getMainContent().withNormalizedEol(), expectedOutput, "Build output");
     }
 
     @Override
@@ -198,7 +194,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput);
+        return assertContentContains(getError(), expectedOutput, "Error output");
     }
 
     public String getError() {

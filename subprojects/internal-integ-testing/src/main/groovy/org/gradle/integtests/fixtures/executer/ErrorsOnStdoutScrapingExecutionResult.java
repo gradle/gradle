@@ -50,7 +50,8 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
-        return assertOutputContains(expectedOutput);
+        assertContentContains(getOutput(), expectedOutput, "Build output");
+        return this;
     }
 
     @Override
@@ -60,22 +61,32 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
-        return delegate.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
+        delegate.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
+        return this;
     }
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        return delegate.assertOutputContains(expectedOutput);
+        delegate.assertOutputContains(expectedOutput);
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
+        delegate.assertContentContains(content, expectedOutput, label);
+        return this;
     }
 
     @Override
     public ExecutionResult assertNotOutput(String expectedOutput) {
-        return delegate.assertNotOutput(expectedOutput);
+        delegate.assertNotOutput(expectedOutput);
+        return this;
     }
 
     @Override
     public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
-        return delegate.assertHasPostBuildOutput(expectedOutput);
+        delegate.assertHasPostBuildOutput(expectedOutput);
+        return this;
     }
 
     @Override
@@ -85,27 +96,32 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
-        return delegate.assertTasksExecutedInOrder(taskPaths);
+        delegate.assertTasksExecutedInOrder(taskPaths);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        return delegate.assertTasksExecuted(taskPaths);
+        delegate.assertTasksExecuted(taskPaths);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTaskExecuted(String taskPath) {
-        return delegate.assertTaskExecuted(taskPath);
+        delegate.assertTaskExecuted(taskPath);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTaskNotExecuted(String taskPath) {
-        return delegate.assertTaskNotExecuted(taskPath);
+        delegate.assertTaskNotExecuted(taskPath);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTaskOrder(Object... taskPaths) {
-        return delegate.assertTaskOrder(taskPaths);
+        delegate.assertTaskOrder(taskPaths);
+        return this;
     }
 
     @Override
@@ -115,21 +131,25 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        return delegate.assertTasksSkipped(taskPaths);
+        delegate.assertTasksSkipped(taskPaths);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        return delegate.assertTasksSkipped(taskPath);
+        delegate.assertTasksSkipped(taskPath);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        return delegate.assertTasksNotSkipped(taskPaths);
+        delegate.assertTasksNotSkipped(taskPaths);
+        return this;
     }
 
     @Override
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        return delegate.assertTasksNotSkipped(taskPath);
+        delegate.assertTasksNotSkipped(taskPath);
+        return this;
     }
 }

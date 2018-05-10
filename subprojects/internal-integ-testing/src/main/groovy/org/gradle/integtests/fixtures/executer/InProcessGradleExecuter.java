@@ -464,6 +464,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
+            outputResult.assertContentContains(content, expectedOutput, label);
+            return null;
+        }
+
+        @Override
         public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
             outputResult.assertHasPostBuildOutput(expectedOutput);
             return this;
