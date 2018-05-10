@@ -34,7 +34,63 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
     @Unroll
-    def "can write to System.out and System.err around build invocation with #console console"() {
+    def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
+        given:
+        temporaryFolder.file("settings.gradle") << '''
+            // Use System.out and System.err in the build
+            println("settings out 1")
+            System.out.println("settings out 2")
+            System.err.println("settings err 1")
+        '''
+
+        when:
+        System.out.println("BEFORE OUT")
+        System.err.println("BEFORE ERR")
+
+        def result1 = executer
+            .inDirectory(temporaryFolder.testDirectory)
+            .withTasks("help")
+            .withErrorsOnStdout()
+            .withConsole(console)
+            .run()
+
+        System.out.println("AFTER OUT")
+        System.err.println("AFTER ERR")
+
+        def result2 = executer
+            .inDirectory(temporaryFolder.testDirectory)
+            .withTasks("help")
+            .withErrorsOnStdout()
+            .withConsole(console)
+            .run()
+
+        then:
+        [result1, result2].each {
+            it.assertNotOutput("BEFORE")
+            it.assertNotOutput("AFTER")
+            it.assertOutputContains("settings out 1")
+            it.assertOutputContains("settings out 2")
+            it.assertHasErrorOutput("settings err 1")
+        }
+
+        and:
+        outputs.stdOut.contains("BEFORE OUT")
+        stripped(outputs.stdOut).contains(result1.output)
+        stripped(outputs.stdOut).contains(result2.output)
+        outputs.stdOut.contains("AFTER OUT")
+
+        and:
+        outputs.stdErr.contains("BEFORE ERR")
+        stripped(outputs.stdOut).contains(result1.error)
+        stripped(outputs.stdOut).contains(result2.error)
+        outputs.stdErr.contains("AFTER ERR")
+
+        where:
+        console << [ConsoleOutput.Plain, ConsoleOutput.Rich, ConsoleOutput.Verbose]
+    }
+
+    @Unroll
+    def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:
         temporaryFolder.file("settings.gradle") << '''
             // Use System.out and System.err in the build
@@ -79,8 +135,8 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
 
         and:
         outputs.stdErr.contains("BEFORE ERR")
-        stripped(outputs.stdOut).contains(result1.error)
-        stripped(outputs.stdOut).contains(result2.error)
+        stripped(outputs.stdErr).contains(result1.error)
+        stripped(outputs.stdErr).contains(result2.error)
         outputs.stdErr.contains("AFTER ERR")
 
         where:
