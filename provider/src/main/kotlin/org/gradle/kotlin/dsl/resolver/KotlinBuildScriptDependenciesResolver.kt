@@ -126,7 +126,7 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
                 }
             else ->
                 dependenciesFrom(response, buildscriptBlockHash).also {
-                    report.warning("There were some errors during script dependencies resolution, using best effort dependencies")
+                    report.warning("There were some errors during script dependencies resolution, some dependencies might be missing")
                     log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
                 }
         }
