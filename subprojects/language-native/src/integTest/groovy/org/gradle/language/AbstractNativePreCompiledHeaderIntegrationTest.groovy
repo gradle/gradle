@@ -34,6 +34,23 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         buildFile << app.extraConfiguration
     }
 
+    def "clean build with PCH does not fail"() {
+        given:
+        writeStandardSourceFiles()
+
+        when:
+        buildFile << preCompiledHeaderComponent()
+
+        then:
+        args("--info")
+        succeeds "helloSharedLibrary"
+        libAndPCHTasksExecuted()
+        pchCompiledOnceForEach([ PCHHeaderDirName ])
+
+        expect:
+        succeeds("clean", "helloSharedLibrary")
+    }
+
     def "can set a precompiled header on a source set for a source header in the headers directory" () {
         given:
         writeStandardSourceFiles(path)
