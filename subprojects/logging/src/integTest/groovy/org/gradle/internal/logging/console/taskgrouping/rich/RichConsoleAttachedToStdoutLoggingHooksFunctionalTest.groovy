@@ -17,9 +17,9 @@
 package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
+import org.gradle.internal.logging.console.taskgrouping.AbstractLoggingHooksFunctionalTest
 
-class RichConsoleAttachedToStdoutLoggingHooksFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
+class RichConsoleAttachedToStdoutLoggingHooksFunctionalTest extends AbstractLoggingHooksFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 
     def setup() {

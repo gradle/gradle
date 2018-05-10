@@ -1401,11 +1401,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withTestConsoleAttached() {
         expectErrorsOnStdout = true;
-        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+        return this;
     }
 
     @Override
     public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
-        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+        return this;
     }
 }
