@@ -156,10 +156,10 @@ Some error
         then:
         def e2 = thrown(AssertionError)
         error(e2).startsWith(error('''
-            Did not find expected text in build output.
+            Did not find expected text in error output.
             Expected: broken
              
-            Build output:
+            Error output:
             =======
              
             Some error
