@@ -1,3 +1,36 @@
+The Gradle team is pleased to announce Gradle 4.8.
+
+First and foremost, this release of Gradle features [dependency locking](#locking-of-dynamic-dependencies): a mechanism for locking dependency versions which allows builds to become reproducible in the face of dynamic versions or version ranges. 
+Read the [user manual chapter on dependency locking](userguide/dependency_locking.html) to learn how to take advantage of this exciting new feature.
+ 
+The publishing plugins gets some much-needed improvements in this release:
+
+ * The Signing Plugin now supports [signing all artifacts of a publication](#signing-publications).
+ * The Maven Publish Plugin now provides a dedicated, type-safe [DSL to customize the POM generated](#customizing-the-generated-pom) as part of a Maven publication.
+ * Configuration-wide [dependency excludes are now published](#configuration-wide-dependency-excludes-are-now-published)
+
+The `maven-publish` and `ivy-publish` plugins are now considered stable and the `maven` plugin deprecated — please migrate.
+
+User experience for [incremental annotation processing is improved](#improved-incremental-annotation-processing). 
+Compilation will no longer fail when a processor does something that Gradle detects will not work incrementally. 
+Unused non-incremental processors no longer prevent incremental compilation. 
+Finally, annotation processors are now able to decide dynamically if they are incremental or not. 
+This allows processors with extension mechanisms to check extensions for incrementality before enabling incremental annotation processing.
+
+New native plugins continue to improve with [better control over system include path](#better-control-over-system-include-path-for-native-compilation) for native compilation and [other improvements](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48). 
+
+This release introduces 2 new APIs that facilitate immutable tasks: APIs to create [tasks with constructor arguments](#create-tasks-with-constructor-arguments) and [immutable file collections](#immutable-file-collections). 
+
+We hope you build happiness with Gradle 4.8, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
+
+## Upgrade instructions
+
+Switch your build to use Gradle 4.8 RC1 quickly by updating your wrapper properties:
+
+    gradle wrapper --gradle-version=4.8-rc-1
+
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -17,25 +50,13 @@ You first enable locking on configurations:
         lockAllConfigurations()
     }
 
-You then run a build, telling Gradle to persiste lock state:
+You then run a build, telling Gradle to persist lock state:
 
     gradle test --write-locks
 
-From this point onwards, all configurations that have a lock state will fail to resolve if changes are made to their dependencies.
+From this point onward, all configurations that have a lock state will fail to resolve if changes are made to their dependencies.
 
 Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
-
-### Continuing development of Native ecosystem
-
-[The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48) to improve and evolve the native ecosystem support for Gradle.
-
-### CodeNarc upgrade
-
-The default version of CodeNarc used by the [`codenarc plugin`](userguide/codenarc_plugin.html) is [`1.1`](https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-11-jan-2018).
-
-### Ant upgrade
-
-The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.11.html).
 
 ### Signing Publications
 
@@ -92,12 +113,26 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
 
 The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
 
+### Improved incremental annotation processing
+
+This version of Gradle provides the following improvements to [incremental annotation processing APIs](userguide/java_plugin.html#sec:incremental_annotation_processing).
+
+ * Compilation will no longer fail when a processor does something that Gradle knows won't work incrementally. Instead Gradle will simply do a full recompile and inform the user about the problem.
+ * Unused non-incremental processors will no longer prevent incremental compilation. This means that incremental and non-incremental processors can be safely packaged together. As long as the user doesn't use the non-incremental processor in their code, everything will remain incremental.
+ * Processors will be able to decide dynamically if they are incremental or not. Some annotation processors have extension mechanisms that first need to check all extensions for incrementality before they can opt-in. This new mechanism will supersede the META-INF registration.
+ 
+If you maintain a annotation processor, please read [the documentation](userguide/java_plugin.html#sec:incremental_annotation_processing) to learn how to enable incremental annotation processing for your library. 
+
+### Better control over system include path for native compilation
+
+[The Gradle Native project continues](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48) to improve and evolve the native ecosystem support for Gradle.
+
 ### TextResources can now be fetched from a URI
 
 Text resources like a common checkstyle configuration file can now be fetched directly from a URI. Gradle will apply the same caching that it does for remote build scripts.
 
     checkstyle {
-        config = resources.text.fromUri("http://company.com/checkstyle-config.xml)"
+        config = resources.text.fromUri("http://company.com/checkstyle-config.xml")
     }
 
 
@@ -143,6 +178,14 @@ It is now possible to create immutable file collections by using [`ProjectLayout
 There is also a new method for creating configurable file collections, [`ProjectLayout.configurableFiles(Object...)`](javadoc/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object...-), which will replace `Project.files()` in the long run.
 `FileCollection`s created by `ProjectLayout.files()` are performing slightly better and should be used whenever mutability is not required.
 For example, they fit nice when creating tasks with constructor arguments.
+
+### CodeNarc upgrade
+
+The default version of CodeNarc used by the [`codenarc plugin`](userguide/codenarc_plugin.html) is [`1.1`](https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-11-jan-2018).
+
+### Ant upgrade
+
+The embedded version of Ant used by Gradle is [`1.9.11`](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.11.html).
 
 ## Promoted features
 
@@ -271,7 +314,7 @@ This is no longer the case and thus may cause modules to be excluded from a depe
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Lucas Smaira](https://github.com/lsmaira) Introduce support for running phased actions (gradle/gradle#4533)
-- [Filip Hrisafov](filiphr) Add support for URI backed TextResource (gradle/gradle#2760)
+- [Filip Hrisafov](https://github.com/filiphr) Add support for URI backed TextResource (gradle/gradle#2760)
 - [Florian Nègre](https://github.com/fnegre) Fix distribution plugin documentation (gradle/gradle#4880)
 - [Andrew Potter](https://github.com/apottere) Update pluginManagement documentation to mention global configuration options (gradle/gradle#4999)
 - [Patrik Erdes](https://github.com/patrikerdes) Fail the build if a referenced init script does not exist (gradle/gradle#4845)
