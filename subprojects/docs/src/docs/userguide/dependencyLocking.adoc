@@ -143,7 +143,7 @@ However, if that configuration happens to be resolved in the future at a time wh
 [[locking_limitations]]
 === Locking limitations
 
-* It is currently not possible to lock the <<sec:applying_plugins_buildscript,`classpath` configuration>> used for build plugins.
+* It is currently not possible to lock the <<sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins.
 * Locking can not be applied to source dependencies.
 
 === Nebula locking plugin
