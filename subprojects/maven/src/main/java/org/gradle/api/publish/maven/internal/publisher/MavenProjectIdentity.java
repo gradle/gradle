@@ -16,18 +16,14 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
+import org.gradle.api.provider.Provider;
+
 public interface MavenProjectIdentity {
 
-    String getGroupId();
+    Provider<String> getGroupId();
 
-    void setGroupId(String groupId);
+    Provider<String> getArtifactId();
 
-    String getArtifactId();
-
-    void setArtifactId(String artifactId);
-
-    String getVersion();
-
-    void setVersion(String version);
+    Provider<String> getVersion();
 
 }

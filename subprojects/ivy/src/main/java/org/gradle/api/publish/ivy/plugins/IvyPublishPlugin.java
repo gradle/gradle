@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -59,7 +58,6 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  *
  * @since 1.3
  */
-@Incubating
 public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
@@ -86,9 +84,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
-        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-        extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
-        createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+            @Override
+            public void execute(PublishingExtension extension) {
+                extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
+                createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+            }
+        });
     }
 
     private void createTasksLater(final Project project, final PublishingExtension publishingExtension, final DirectoryProperty buildDir) {

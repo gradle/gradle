@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
 import org.junit.Rule
@@ -25,7 +25,7 @@ import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProper
 import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_ENDPOINT_PROPERTY
 import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_SERVICE_PATH_PROPERTY
 
-class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
+class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest {
 
     String mavenVersion = "1.45"
     String projectName = "publishGcsTest"
@@ -36,6 +36,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractIntegrationSpec {
     public final GcsServer server = new GcsServer(temporaryFolder)
 
     def setup() {
+        disableModuleMetadataPublishing()
         executer.withArgument('-i')
         executer.withArgument("-D${GCS_ENDPOINT_PROPERTY}=${server.uri}")
         executer.withArgument("-D${GCS_SERVICE_PATH_PROPERTY}=/")

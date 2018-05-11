@@ -30,7 +30,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumVersion = "4.3.1"
-        runner.targetVersions = ["4.8-20180506235948+0000"]
+        runner.targetVersions = ["4.8-20180510001718+0000"]
 
         when:
         def result = runner.run()
@@ -44,8 +44,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         'k9AndroidBuild'    | '1g'   | false    | null       | null | 'assembleDebug'
 //        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'clean k9mail:assembleDebug'
         'largeAndroidBuild' | '4g'   | true     | null       | null | 'help'
-//        FIXME wolfs: re-enable the test as soon as the regression has been fixed
-//        'largeAndroidBuild' | '4g'   | true     | null       | null | 'assembleDebug'
+        'largeAndroidBuild' | '4g'   | true     | null       | null | 'assembleDebug'
         'largeAndroidBuild' | '4g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
     }
 }

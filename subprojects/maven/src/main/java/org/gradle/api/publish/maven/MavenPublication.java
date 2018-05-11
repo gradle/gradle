@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.internal.HasInternalProtocol;
@@ -100,7 +99,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 1.4
  */
-@Incubating
 @HasInternalProtocol
 public interface MavenPublication extends Publication {
 

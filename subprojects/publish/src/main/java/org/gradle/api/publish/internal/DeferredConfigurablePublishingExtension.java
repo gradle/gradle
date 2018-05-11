@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
+package org.gradle.api.publish.internal;
 
-/**
- * A handler for an intermediate result obtained by a {@link PhasedBuildActionExecuter}.
- *
- * @param <T> The result type.
- * @since 4.8
- */
-@Incubating
-public interface PhasedResultHandler<T> {
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.plugins.DeferredConfigurable;
+import org.gradle.api.publish.PublicationContainer;
 
-    /**
-     * Handles successful completion of the action.
-     *
-     * @param result the result
-     */
-    void onComplete(T result);
+@DeferredConfigurable
+public class DeferredConfigurablePublishingExtension extends DefaultPublishingExtension {
+
+    public DeferredConfigurablePublishingExtension(RepositoryHandler repositories, PublicationContainer publications) {
+        super(repositories, publications);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling;
 
-package org.gradle.integtests.tooling.r48;
+import org.gradle.api.Incubating;
 
-import org.gradle.tooling.PhasedResultHandler;
+/**
+ * A handler for an intermediate result obtained by a {@link BuildActionExecuter}.
+ *
+ * @param <T> The result type.
+ * @since 4.8
+ */
+@Incubating
+public interface IntermediateResultHandler<T> {
 
-public class PhasedResultHandlerCollector implements PhasedResultHandler<String> {
-    private String result = null;
-
-    @Override
-    public void onComplete(String result) {
-        this.result = result;
-    }
-
-    public String getResult() {
-        return result;
-    }
+    /**
+     * Handles successful completion of the action.
+     *
+     * @param result the result
+     */
+    void onComplete(T result);
 }

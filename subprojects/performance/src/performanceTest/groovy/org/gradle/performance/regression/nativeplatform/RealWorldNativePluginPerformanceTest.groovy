@@ -22,12 +22,14 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["4.8-20180506235948+0000"]
+        runner.targetVersions = ["4.8-20180510001718+0000"]
         runner.minimumVersion = "4.0"
     }
 

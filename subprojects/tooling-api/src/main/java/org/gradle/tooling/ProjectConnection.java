@@ -135,7 +135,7 @@ public interface ProjectConnection {
     <T> ModelBuilder<T> model(Class<T> modelType);
 
     /**
-     * Creates an executer which can be used to run the given action. The action is serialized into the build
+     * Creates an executer which can be used to run the given action when the build has finished. The action is serialized into the build
      * process and executed, then its result is serialized back to the caller.
      *
      * <p>Requires Gradle 1.8 or later.</p>
@@ -144,6 +144,7 @@ public interface ProjectConnection {
      * @param <T> The result type.
      * @return The builder.
      * @since 1.8
+     * @see #action() if you want to hook into different points of the build lifecycle.
      */
     @Incubating
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction);
@@ -158,7 +159,7 @@ public interface ProjectConnection {
      * @since 4.8
      */
     @Incubating
-    PhasedBuildActionExecuter.Builder action();
+    BuildActionExecuter.Builder action();
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

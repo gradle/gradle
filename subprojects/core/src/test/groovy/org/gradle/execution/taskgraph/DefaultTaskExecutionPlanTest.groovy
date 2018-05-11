@@ -184,7 +184,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
         executionPlan.clear()
 
         then:
-        executionPlan.tasks == []
+        allTasks == ([] as Set)
         executedTasks == []
     }
 
@@ -234,7 +234,7 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
     @Override
     protected void executes(Object... expectedTasks) {
-        assert executionPlan.tasks == expectedTasks as List
+        assert executionPlan.tasks as List == expectedTasks as List
         assert expectedTasks == expectedTasks as List
     }
 

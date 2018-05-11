@@ -65,7 +65,7 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
 
         then:
         1 * lifecycleListener.afterStart()
@@ -90,7 +90,7 @@ class DefaultRootBuildStateTest extends Specification {
         result == null
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * action.transform(!null) >> { BuildController controller ->
             return null
         }
@@ -105,7 +105,7 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
             assert controller.run() == gradle
@@ -122,7 +122,7 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
             assert controller.configure() == gradle
@@ -146,7 +146,7 @@ class DefaultRootBuildStateTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
         1 * launcher.stop()
     }
@@ -162,7 +162,7 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * action.transform(!null) >> { BuildController controller -> throw failure }
         1 * lifecycleListener.beforeComplete()
         1 * launcher.stop()
@@ -179,7 +179,7 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> { throw failure }
         1 * action.transform(!null) >> { BuildController controller ->
             controller.run()
@@ -199,7 +199,7 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> { throw failure }
         1 * action.transform(!null) >> { BuildController controller ->
             controller.configure()
@@ -217,7 +217,7 @@ class DefaultRootBuildStateTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(buildDefinition, build.buildIdentifier, buildRequestContext, sessionServices) >> launcher
+        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.configuredBuild >> { throw new RuntimeException() }
         1 * action.transform(!null) >> { BuildController controller ->
             try {

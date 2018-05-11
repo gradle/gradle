@@ -31,8 +31,8 @@ import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -164,7 +164,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public NestedBuildState addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
         if (buildDefinition.getName() == null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
@@ -177,6 +177,15 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         });
         addBuild(build);
         return build;
+    }
+
+    @Override
+    public StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+        if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
+            throw new UnsupportedOperationException("Not yet implemented."); // but should be
+        }
+        BuildIdentifier buildIdentifier = idFor(buildDefinition.getStartParameter().getCurrentDir().getName());
+        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, nestedBuildFactory);
     }
 
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {

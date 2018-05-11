@@ -13,23 +13,25 @@
 // limitations under the License.
 
 [[publishing_maven]]
-== Maven Publishing (new)
+== Maven Publish Plugin
 
 
 [NOTE]
 ====
-This chapter describes the new <<feature_lifecycle,incubating>> Maven publishing support provided by the Maven Publish Plugin. Eventually this new publishing support will replace publishing via the `Upload` task.
+This chapter describes the new Maven publishing support provided by the Maven Publish Plugin. This new publishing support is the preferred option for publishing artifacts and will eventually replace publishing via the `Upload` task.
 
-If you are looking for documentation on the original Maven publishing support using the `Upload` task please see <<artifact_management>>.
+If you are looking for documentation on the original Maven publishing support using the `Upload` task please see the chapters on <<artifact_management, publishing artifacts>> and the <<maven_plugin, old Maven Plugin>>.
 ====
 
-This chapter describes how to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository. A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies>>) and other tools that understand the Maven repository format.
+The Maven Publish Plugin provides the ability to publish build artifacts to an http://maven.apache.org/[Apache Maven] repository. A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies>>) and other tools that understand the Maven repository format.
 
 
-[[sec:the_mavenpublish_plugin]]
-=== The Maven Publish Plugin
+[[publishing_maven:usage]]
+=== Usage
 
-The ability to publish in the Maven format is provided by the Maven Publish Plugin. It uses an extension on the project named `publishing` of type api:org.gradle.api.publish.PublishingExtension[]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with api:org.gradle.api.publish.maven.MavenPublication[] publications and api:org.gradle.api.artifacts.repositories.MavenArtifactRepository[] repositories.
+The Maven Publish Plugin uses an extension on the project named `publishing` of type api:org.gradle.api.publish.PublishingExtension[]. This extension provides a container of named publications and a container of named repositories. The Maven Publish Plugin works with api:org.gradle.api.publish.maven.MavenPublication[] publications and api:org.gradle.api.artifacts.repositories.MavenArtifactRepository[] repositories.
+
+To use the Maven Publish Plugin, include the following in your build script:
 
 ++++
 <sample id="publishing_maven:apply_plugin" dir="maven-publish/quickstart" title="Applying the Maven Publish Plugin">
@@ -129,7 +131,7 @@ Maven restricts 'groupId' and 'artifactId' to a limited character set (`[A-Za-z0
 
 The only Unicode values that are explicitly prohibited are `\`, `/` and any ISO control character. Supplied values are validated early in publication.
 
-[[sec:customizing_the_generated_pom]]
+[[sec:modifying_the_generated_pom]]
 ==== Customizing the generated POM
 
 The generated POM file can be customized before publishing. For example, when publishing a library to Maven Central you will need to set certain metadata. The Maven Publish Plugin provides a DSL for that purpose. Please see api:org.gradle.api.publish.maven.MavenPom[] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
@@ -300,3 +302,58 @@ The result is that the following artifacts will be published:
 * The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
 
 The <<signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
+
+[[publishing_maven:deferred_configuration]]
+=== Removal of deferred configuration behavior
+
+[NOTE]
+====
+Gradle 5.0 will change the behavior of the publishing {} block. Read on to find out how you can make your build compatible today.
+====
+
+Until Gradle 4.7, the `publishing {}` block was implicitly treated as if all the logic inside it was executed after the project is evaluated.
+This caused quite a bit of confusion, because it was the only block that behaved that way.
+As part of the stabilization effort in Gradle 4.8, we are deprecating this behavior and asking all users to migrate their build.
+
+The new, stable behavior can be switched on by adding the following to your settings file:
+
+    enableFeaturePreview('STABLE_PUBLISHING')
+
+We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates.
+In most cases everything should work as before and you are done.
+
+If the coordinates change unexpectedly, you may have some logic inside your publishing block or in a plugin that is depending on the deferred configuration behavior.
+For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
+
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                artifactId = jar.baseName
+            }
+        }
+    }
+}
+----
+
+This kind of logic must be wrapped in an `afterEvaluate {}` block to make it work going forward.
+
+
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.baseName
+                }
+            }
+        }
+    }
+}
+----

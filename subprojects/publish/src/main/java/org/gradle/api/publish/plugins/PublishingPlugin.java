@@ -17,11 +17,12 @@
 package org.gradle.api.publish.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -30,9 +31,11 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
+import org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -41,7 +44,6 @@ import javax.inject.Inject;
  *
  * @since 1.3
  */
-@Incubating
 public class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
@@ -50,19 +52,22 @@ public class PublishingPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
     private final ProjectPublicationRegistry projectPublicationRegistry;
+    private final FeaturePreviews featurePreviews;
+    private final DocumentationRegistry documentationRegistry;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry projectPublicationRegistry) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ProjectPublicationRegistry projectPublicationRegistry, FeaturePreviews featurePreviews, DocumentationRegistry documentationRegistry) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.projectPublicationRegistry = projectPublicationRegistry;
+        this.featurePreviews = featurePreviews;
+        this.documentationRegistry = documentationRegistry;
     }
 
     public void apply(final Project project) {
         RepositoryHandler repositories = publicationServices.createRepositoryHandler();
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
-        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
-
+        PublishingExtension extension = project.getExtensions().create(PublishingExtension.class, PublishingExtension.NAME, determineExtensionClass(), repositories, publications);
         project.getTasks().createLater(PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -78,6 +83,21 @@ public class PublishingPlugin implements Plugin<Project> {
             }
         });
         bridgeToSoftwareModelIfNeeded((ProjectInternal) project);
+    }
+
+    private Class<? extends PublishingExtension> determineExtensionClass() {
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
+            return DefaultPublishingExtension.class;
+        } else {
+            DeprecationLogger.nagUserWith(
+                "As part of making the publishing plugins stable, the 'deferred configurable' behavior of the 'publishing {}' block is now deprecated. " +
+                    "Please add 'enableFeaturePreview('STABLE_PUBLISHING')' to your settings file and do a test run by publishing to a local repository. " +
+                    "If all artifacts are published as expected, there is nothing else to do. " +
+                    "If the published artifacts change unexpectedly, please see the migration guide for more details: " + documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven:deferred_configuration") + ". " +
+                    "Gradle 5.0 will switch this flag on by default."
+            );
+            return DeferredConfigurablePublishingExtension.class;
+        }
     }
 
     private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {

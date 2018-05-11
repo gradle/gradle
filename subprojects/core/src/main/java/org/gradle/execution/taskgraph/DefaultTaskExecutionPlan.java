@@ -531,8 +531,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
-    public List<Task> getTasks() {
-        return new ArrayList<Task>(executionPlan.keySet());
+    public Set<Task> getTasks() {
+        return executionPlan.keySet();
     }
 
     @Override

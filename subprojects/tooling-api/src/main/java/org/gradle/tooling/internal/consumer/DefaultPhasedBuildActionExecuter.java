@@ -17,10 +17,8 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
-import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.PhasedBuildActionExecuter;
-import org.gradle.tooling.PhasedResultHandler;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
@@ -28,10 +26,9 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter> implements PhasedBuildActionExecuter {
+public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperation<DefaultPhasedBuildActionExecuter> implements BuildActionExecuter<Void> {
     private final PhasedBuildAction phasedBuildAction;
     private final AsyncConsumerActionExecutor connection;
 
@@ -48,22 +45,23 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
     }
 
     @Override
-    public PhasedBuildActionExecuter forTasks(String... tasks) {
+    public BuildActionExecuter<Void> forTasks(String... tasks) {
         operationParamsBuilder.setTasks(tasks != null ? Arrays.asList(tasks) : null);
         return getThis();
     }
 
     @Override
-    public PhasedBuildActionExecuter forTasks(Iterable<String> tasks) {
+    public BuildActionExecuter<Void> forTasks(Iterable<String> tasks) {
         operationParamsBuilder.setTasks(tasks != null ? CollectionUtils.toList(tasks) : null);
         return getThis();
     }
 
     @Override
-    public void run()  throws GradleConnectionException, IllegalStateException {
+    public Void run() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
         run(handler);
         handler.getResult();
+        return null;
     }
 
     @Override
@@ -86,43 +84,5 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
         })));
     }
 
-    static class Builder implements PhasedBuildActionExecuter.Builder {
-        @Nullable private PhasedBuildAction.BuildActionWrapper<?> projectsLoadedAction = null;
-        @Nullable private PhasedBuildAction.BuildActionWrapper<?> buildFinishedAction = null;
 
-        private final AsyncConsumerActionExecutor connection;
-        private final ConnectionParameters parameters;
-
-        Builder(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
-            this.connection = connection;
-            this.parameters = parameters;
-        }
-
-        @Override
-        public <T> Builder projectsLoaded(BuildAction<T> action, PhasedResultHandler<? super T> handler) throws IllegalArgumentException {
-            if (projectsLoadedAction != null) {
-                throw getException("ProjectsLoadedAction");
-            }
-            projectsLoadedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
-            return Builder.this;
-        }
-
-        @Override
-        public <T> Builder buildFinished(BuildAction<T> action, PhasedResultHandler<? super T> handler) throws IllegalArgumentException {
-            if (buildFinishedAction != null) {
-                throw getException("BuildFinishedAction");
-            }
-            buildFinishedAction = new DefaultPhasedBuildAction.DefaultBuildActionWrapper<T>(action, handler);
-            return Builder.this;
-        }
-
-        @Override
-        public PhasedBuildActionExecuter build() {
-            return new DefaultPhasedBuildActionExecuter(new DefaultPhasedBuildAction(projectsLoadedAction, buildFinishedAction), connection, parameters);
-        }
-
-        private static IllegalArgumentException getException(String phase) {
-            return new IllegalArgumentException(String.format("%s has already been added. Only one action per phase is allowed.", phase));
-        }
-    }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
 
@@ -26,11 +26,11 @@ import javax.annotation.Nullable;
  * Adapts individual result handlers of actions in a {@link PhasedBuildAction} to a unified listener to be provided to the connection.
  */
 public class DefaultPhasedActionResultListener implements PhasedActionResultListener {
-    @Nullable private final PhasedResultHandler<?> projectsLoadedHandler;
-    @Nullable private final PhasedResultHandler<?> buildFinishedHandler;
+    @Nullable private final IntermediateResultHandler<?> projectsLoadedHandler;
+    @Nullable private final IntermediateResultHandler<?> buildFinishedHandler;
 
-    public DefaultPhasedActionResultListener(@Nullable PhasedResultHandler<?> projectsLoadedHandler,
-                                             @Nullable PhasedResultHandler<?> buildFinishedHandler) {
+    public DefaultPhasedActionResultListener(@Nullable IntermediateResultHandler<?> projectsLoadedHandler,
+                                             @Nullable IntermediateResultHandler<?> buildFinishedHandler) {
         this.projectsLoadedHandler = projectsLoadedHandler;
         this.buildFinishedHandler = buildFinishedHandler;
     }
@@ -46,7 +46,7 @@ public class DefaultPhasedActionResultListener implements PhasedActionResultList
         }
     }
 
-    private <T> void onComplete(Object result, @Nullable PhasedResultHandler<T> handler) {
+    private <T> void onComplete(Object result, @Nullable IntermediateResultHandler<T> handler) {
         if (handler != null) {
             handler.onComplete((T) result);
         }

@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.IntermediateResultHandler;
 
 import javax.annotation.Nullable;
 
@@ -45,9 +45,9 @@ public class DefaultPhasedBuildAction implements PhasedBuildAction {
 
     static class DefaultBuildActionWrapper<T> implements BuildActionWrapper<T> {
         private final BuildAction<T> buildAction;
-        private final PhasedResultHandler<? super T> resultHandler;
+        private final IntermediateResultHandler<? super T> resultHandler;
 
-        DefaultBuildActionWrapper(BuildAction<T> buildAction, PhasedResultHandler<? super T> resultHandler) {
+        DefaultBuildActionWrapper(BuildAction<T> buildAction, IntermediateResultHandler<? super T> resultHandler) {
             this.buildAction = buildAction;
             this.resultHandler = resultHandler;
         }
@@ -58,7 +58,7 @@ public class DefaultPhasedBuildAction implements PhasedBuildAction {
         }
 
         @Override
-        public PhasedResultHandler<? super T> getHandler() {
+        public IntermediateResultHandler<? super T> getHandler() {
             return resultHandler;
         }
     }

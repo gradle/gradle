@@ -29,4 +29,10 @@ enableFeaturePreview("GRADLE_METADATA")
 enableFeaturePreview("IMPROVED_POM_SUPPORT")
 """
     }
+
+    static void enableStablePublishing(File settings) {
+        settings << """
+enableFeaturePreview("STABLE_PUBLISHING")
+"""
+    }
 }

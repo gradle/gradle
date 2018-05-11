@@ -35,6 +35,10 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         testDirectory.file('settings.gradle.kts')
     }
 
+    def setup() {
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+    }
+
     def "can customize POM using Kotlin DSL"() {
         given:
         settingsFile << 'rootProject.name = "customizePom"'

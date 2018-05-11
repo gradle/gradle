@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -36,7 +35,6 @@ import javax.inject.Inject;
  *
  * @since 1.4
  */
-@Incubating
 public class PublishToMavenRepository extends AbstractPublishToMaven {
 
     private MavenArtifactRepository repository;

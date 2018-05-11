@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
@@ -27,6 +28,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK
 
@@ -112,7 +114,23 @@ class InitBuildSpec extends Specification {
         e.message == "The requested test framework 'spock' is not supported in 'basic' setup type"
     }
 
-    private void supportedType(String type, ProjectInitDescriptor projectSetupDescriptor) {
+    def "should throw exception if requested DSL is not supported for the specified type"() {
+        given:
+        supportedType(BuildInitTypeIds.POM, projectSetupDescriptor)
+        projectSetupDescriptor.supports(KOTLIN) >> false
+        init.type = BuildInitTypeIds.POM
+        init.dsl = "kotlin"
+
+        when:
+        init.setupProjectLayout()
+
+        then:
+        GradleException e = thrown()
+        e.message == "The requested DSL 'kotlin' is not supported in 'pom' setup type"
+    }
+
+    private void supportedType(String type, BuildInitDsl dsl = GROOVY, ProjectInitDescriptor projectSetupDescriptor) {
+        projectSetupDescriptor.supports(dsl) >> true
         projectLayoutRegistry.supports(type) >> true
         projectLayoutRegistry.get(type) >> projectSetupDescriptor
     }
