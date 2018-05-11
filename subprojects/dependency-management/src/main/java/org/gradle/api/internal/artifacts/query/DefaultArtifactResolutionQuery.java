@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.query;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -47,6 +50,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.resolve.caching.CachingRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -70,6 +74,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
     private final ImmutableAttributesFactory attributesFactory;
+    private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
@@ -78,13 +83,15 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     public DefaultArtifactResolutionQuery(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                           ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
                                           ComponentTypeRegistry componentTypeRegistry,
-                                          ImmutableAttributesFactory attributesFactory) {
+                                          ImmutableAttributesFactory attributesFactory,
+                                          CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
         this.attributesFactory = attributesFactory;
+        this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
     public ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds) {
@@ -121,7 +128,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ResolutionStrategyInternal resolutionStrategy = configurationContainer.detachedConfiguration().getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), ImmutableAttributes.EMPTY, null, attributesFactory);
+        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);

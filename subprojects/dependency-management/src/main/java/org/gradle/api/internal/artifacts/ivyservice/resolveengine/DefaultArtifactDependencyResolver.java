@@ -16,6 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -52,6 +55,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resolve.caching.CachingRuleExecutor;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
@@ -73,6 +77,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ImmutableAttributesFactory attributesFactory;
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionParser versionParser;
+    private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -83,7 +88,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              ComponentSelectorConverter componentSelectorConverter,
                                              ImmutableAttributesFactory attributesFactory,
                                              VersionSelectorScheme versionSelectorScheme,
-                                             VersionParser versionParser) {
+                                             VersionParser versionParser,
+                                             CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -94,6 +100,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.attributesFactory = attributesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionParser = versionParser;
+        this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
     @Override
@@ -131,7 +138,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
             }
         }
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
-        resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), resolveContext.getAttributes(), consumerSchema, attributesFactory));
+        resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), resolveContext.getAttributes(), consumerSchema, attributesFactory, componentMetadataSupplierRuleExecutor));
         return new ComponentResolversChain(resolvers, artifactTypeRegistry);
     }
 
