@@ -18,23 +18,28 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 
-public class InstantiatingAction<T> implements Action<T> {
-    private final Class<? extends Action<T>> rule;
-    private final Object[] params;
-    private final Instantiator instantiator;
-    private final ExceptionHandler<T> exceptionHandler;
+public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
 
-    public InstantiatingAction(Class<? extends Action<T>> rule, Object[] params, Instantiator instantiator, ExceptionHandler<T> exceptionHandler) {
+    private final ConfigurableRule<DETAILS> rule;
+    private final Instantiator instantiator;
+    private final ExceptionHandler<DETAILS> exceptionHandler;
+
+    public InstantiatingAction(ConfigurableRule<DETAILS> rule,
+                               Instantiator instantiator,
+                               ExceptionHandler<DETAILS> exceptionHandler) {
         this.rule = rule;
-        this.params = params;
         this.instantiator = instantiator;
         this.exceptionHandler = exceptionHandler;
     }
 
+    public ConfigurableRule<DETAILS> getRule() {
+        return rule;
+    }
+
     @Override
-    public void execute(T target) {
+    public void execute(DETAILS target) {
         try {
-            Action<T> instance = instantiator.newInstance(rule, params);
+            Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams());
             instance.execute(target);
         } catch (Throwable t) {
             exceptionHandler.handleException(target, t);

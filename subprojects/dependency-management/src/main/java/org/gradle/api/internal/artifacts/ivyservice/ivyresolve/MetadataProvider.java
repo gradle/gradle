@@ -20,9 +20,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataBuilder;
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -40,6 +40,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.text.TreeFormatter;
 
@@ -65,28 +66,27 @@ public class MetadataProvider {
             return cachedComponentMetadata.orNull();
         }
 
-        ComponentMetadataSupplier componentMetadataSupplier = resolveState == null ? null : resolveState.getComponentMetadataSupplier();
-        if (componentMetadataSupplier != null) {
-            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(DefaultModuleVersionIdentifier.newId(resolveState.getId()), resolveState.getAttributesFactory());
-            ComponentMetadataSupplierDetails details = new ComponentMetadataSupplierDetails() {
+        ComponentMetadata metadata = null;
+        if (resolveState != null) {
+            InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier = resolveState.getComponentMetadataSupplier();
+            ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
+            metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, new Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails>() {
                 @Override
-                public ModuleComponentIdentifier getId() {
-                    return resolveState.getId();
+                public ComponentMetadata transform(BuildableComponentMetadataSupplierDetails details) {
+                    return details.getExecutionResult();
                 }
-
+            }, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
                 @Override
-                public ComponentMetadataBuilder getResult() {
-                    return builder;
+                public BuildableComponentMetadataSupplierDetails transform(ModuleVersionIdentifier id) {
+                    final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory());
+                    return new BuildableComponentMetadataSupplierDetails(builder);
                 }
-
-            };
-            componentMetadataSupplier.execute(details);
-            if (builder.mutated) {
-                ComponentMetadata metadata = builder.build();
-                metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);
-                cachedComponentMetadata = Optional.of(metadata);
-                return metadata;
-            }
+            });
+        }
+        if (metadata != null) {
+            metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);
+            cachedComponentMetadata = Optional.of(metadata);
+            return metadata;
         }
         if (resolve()) {
             ComponentMetadataAdapter adapter = new ComponentMetadataAdapter(getMetaData());
@@ -208,4 +208,29 @@ public class MetadataProvider {
 
     }
 
+    private class BuildableComponentMetadataSupplierDetails implements ComponentMetadataSupplierDetails {
+        private final SimpleComponentMetadataBuilder builder;
+
+        public BuildableComponentMetadataSupplierDetails(SimpleComponentMetadataBuilder builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        public ModuleComponentIdentifier getId() {
+            return resolveState.getId();
+        }
+
+        @Override
+        public ComponentMetadataBuilder getResult() {
+            return builder;
+        }
+
+        public ComponentMetadata getExecutionResult() {
+            if (builder.mutated) {
+                return builder.build();
+            }
+            return null;
+        }
+
+    }
 }

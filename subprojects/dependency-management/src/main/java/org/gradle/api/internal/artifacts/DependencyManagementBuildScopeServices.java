@@ -18,6 +18,10 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -71,6 +75,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -97,6 +102,8 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resolve.caching.CachingRuleExecutor;
+import org.gradle.internal.resolve.caching.DefaultInMemoryCachingRuleExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
@@ -113,6 +120,7 @@ import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -308,7 +316,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ComponentSelectorConverter componentSelectorConverter,
                                                                 ImmutableAttributesFactory attributesFactory,
                                                                 VersionSelectorScheme versionSelectorScheme,
-                                                                VersionParser versionParser) {
+                                                                VersionParser versionParser,
+                                                                CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -317,7 +326,7 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            attributesFactory, versionSelectorScheme, versionParser);
+            attributesFactory, versionSelectorScheme, versionParser, componentMetadataSupplierRuleExecutor);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
@@ -381,4 +390,15 @@ class DependencyManagementBuildScopeServices {
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
     }
+
+    CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter) {
+        Transformer<Serializable, ModuleVersionIdentifier> transformer = new Transformer<Serializable, ModuleVersionIdentifier>() {
+            @Override
+            public String transform(ModuleVersionIdentifier moduleVersionIdentifier) {
+                return moduleVersionIdentifier.toString();
+            }
+        };
+        return new DefaultInMemoryCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata>(snapshotter, transformer);
+    }
+
 }

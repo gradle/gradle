@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
@@ -30,20 +31,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
-        buildFile << """
-          import javax.inject.Inject
-     
-          if (project.hasProperty('refreshDynamicVersions')) {
-                configurations.all {
-                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
-                }
-          }
-          
-          dependencies {
-              conf group: "group", name: "projectA", version: "1.+"
-              conf group: "group", name: "projectB", version: "latest.release"
-          }
-          """
+        addDependenciesTo(buildFile)
 
         repository {
             'group:projectA' {
@@ -990,9 +978,64 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
+    def "can cache the result of processing a rule accross projects"() {
+        settingsFile << """
+            include 'b'
+        """
+        def otherBuildFile = file('b/build.gradle')
+        otherBuildFile << """
+            $repositoryDeclaration
 
-    private SimpleSupplierInteractions withPerVersionStatusSupplier() {
-        buildFile << """
+            configurations {
+                conf
+            }
+        """
+        addDependenciesTo(otherBuildFile)
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(file("buildSrc/src/main/groovy/MP.groovy"))
+        otherBuildFile << supplierDeclaration('MP')
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps', '--debug'
+
+        then:
+        noExceptionThrown()
+        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:2.2"
+        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:1.1"
+    }
+
+
+    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile) {
+        file << """import org.gradle.api.artifacts.ComponentMetadataSupplier
+          import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+          import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
+          import javax.inject.Inject
+          
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -1054,6 +1097,23 @@ group:projectB:2.2;release
             }
         }
         true
+    }
+
+    void addDependenciesTo(TestFile buildFile) {
+        buildFile << """
+          import javax.inject.Inject
+     
+          if (project.hasProperty('refreshDynamicVersions')) {
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+                }
+          }
+          
+          dependencies {
+              conf group: "group", name: "projectA", version: "1.+"
+              conf group: "group", name: "projectB", version: "latest.release"
+          }
+          """
     }
 
     interface SupplierInteractions {
