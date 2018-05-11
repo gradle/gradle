@@ -33,12 +33,12 @@ import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.provider.spi.AccessorsClassPath
 import org.gradle.kotlin.dsl.provider.spi.KotlinScriptBasePluginsApplicator
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
-import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.lang.IllegalArgumentException
 

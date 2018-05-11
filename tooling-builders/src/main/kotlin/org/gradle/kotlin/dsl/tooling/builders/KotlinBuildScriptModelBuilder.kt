@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.initScriptClassPathFor
 import org.gradle.kotlin.dsl.provider.spi.AccessorsClassPath
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget

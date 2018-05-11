@@ -22,7 +22,7 @@ import org.gradle.api.Project
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 
 import java.io.File
 import java.io.Serializable

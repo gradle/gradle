@@ -35,10 +35,10 @@ import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
 import org.gradle.kotlin.dsl.provider.spi.loadMultiProjectSchemaFrom
 import org.gradle.kotlin.dsl.provider.spi.primitiveKotlinTypeNames
 import org.gradle.kotlin.dsl.provider.spi.PROJECT_SCHEMA_RESOURCE_PATH
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
-import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
