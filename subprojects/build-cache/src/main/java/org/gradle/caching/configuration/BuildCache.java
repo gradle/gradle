@@ -34,12 +34,12 @@ public interface BuildCache {
     void setEnabled(boolean enabled);
 
     /**
-     * Returns whether pushing to the build cache is enabled.
+     * Returns whether storing in build cache is enabled.
      */
     boolean isPush();
 
     /**
-     * Sets whether pushing to the build cache is enabled.
+     * Sets whether storing in the build cache is enabled.
      */
     void setPush(boolean enabled);
 }
