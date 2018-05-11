@@ -13,15 +13,12 @@
 // limitations under the License.
 
 [[artifact_management]]
-== Publishing artifacts
-
+== Legacy publishing
 
 [NOTE]
 ====
 
-This chapter describes the _original_ publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced. This new mechanism introduces some new concepts and features that make Gradle publishing even more powerful and is now the preferred option for publishing artifacts.
-
-You can read about the new publishing plugins in <<publishing_ivy>> and <<publishing_maven>>.
+This chapter describes the _original_ publishing mechanism available in Gradle 1.0, which has since been superseded by <<publishing_overview,an alternative model>>. The approach detailed in this chapter — based on api:org.gradle.api.tasks.Upload[] tasks — should not be used in new builds. We cover it in order to help users work with and update existing builds that use it.
 
 ====
 
