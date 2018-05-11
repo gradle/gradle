@@ -50,6 +50,8 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.IGradlePropertiesLoader
 import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.internal.Factory
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathHasher
@@ -66,7 +68,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.time.Clock
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
@@ -116,6 +117,7 @@ class BuildScopeServicesTest extends Specification {
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
         sessionServices.get(BuildOperationExecutor) >> Mock(BuildOperationExecutor)
         sessionServices.get(BuildStartedTime) >> BuildStartedTime.startingAt(0)
+        sessionServices.get(BuildStateRegistry) >> Mock(BuildStateRegistry)
         def parentListenerManager = Mock(ListenerManager)
         sessionServices.get(ListenerManager) >> parentListenerManager
         parentListenerManager.createChild() >> listenerManager

@@ -53,6 +53,13 @@ public interface BuildStateRegistry {
     void registerRootBuild(SettingsInternal settings);
 
     /**
+     * Notification that the root build is about to be configured.
+     *
+     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
+     */
+    void beforeConfigureRootBuild();
+
+    /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
