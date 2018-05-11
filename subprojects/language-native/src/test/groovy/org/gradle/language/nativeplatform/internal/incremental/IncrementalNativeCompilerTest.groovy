@@ -72,6 +72,7 @@ class IncrementalNativeCompilerTest extends Specification {
         and:
         spec.incrementalCompile >> false
         spec.getSourceFiles() >> sources
+        spec.getPreCompiledHeader() >> null
 
         and:
         def result = compiler.doCleanIncrementalCompile(spec)
@@ -79,6 +80,7 @@ class IncrementalNativeCompilerTest extends Specification {
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
         1 * outputs.previousOutputFiles >> Sets.newHashSet(outputFile)
+        1 * spec.setSourceFilesForPch(_)
         0 * spec._
         1 * delegateCompiler.execute(spec) >> WorkResults.didWork(false)
 
