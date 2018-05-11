@@ -33,7 +33,7 @@ It will have no impact on <<sub:declaring_dependency_with_changing_version,chang
 
 === Enabling locking on configurations
 
-Locking of a configuration happens through the `ResolutionStrategy`:
+Locking of a configuration happens through the api:org.gradle.api.artifacts.ResolutionStrategy[]:
 
 ++++
 <sample id="locking-one" dir="userguide/dependencyManagement/dependencyLocking/lockingSingleConfiguration" title="Locking a specific configuration">
