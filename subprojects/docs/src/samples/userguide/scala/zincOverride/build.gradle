@@ -4,14 +4,14 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET all-dependency
+// tag::all-dependency[]
 configurations.all {
     resolutionStrategy.force "org.scala-lang:scala-library:2.11.12"
 }
-// END SNIPPET all-dependency
+// end::all-dependency[]
 
-// START SNIPPET zinc-dependency
+// tag::zinc-dependency[]
 configurations.zinc {
     resolutionStrategy.force "org.scala-lang:scala-library:2.10.5"
 }
-// END SNIPPET zinc-dependency
+// end::zinc-dependency[]

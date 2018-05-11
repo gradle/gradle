@@ -22,7 +22,7 @@ import java.util.Arrays;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
-// START SNIPPET custom-task-implementation
+// tag::custom-task-implementation[]
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 
@@ -66,4 +66,4 @@ public class UrlProcess extends DefaultTask {
         CONSOLE, FILE
     }
 }
-// END SNIPPET custom-task-implementation
+// end::custom-task-implementation[]

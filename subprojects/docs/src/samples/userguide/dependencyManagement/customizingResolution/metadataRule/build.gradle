@@ -13,7 +13,7 @@ configurations {
     config6
 }
 
-// START SNIPPET latest-selector
+// tag::latest-selector[]
 dependencies {
     config1 "org.sample:client:latest.integration"
     config2 "org.sample:client:latest.release"
@@ -26,9 +26,9 @@ task listConfigs {
         configurations.config2.each { println it.name }
     }
 }
-// END SNIPPET latest-selector
+// end::latest-selector[]
 
-// START SNIPPET custom-status-scheme
+// tag::custom-status-scheme[]
 class CustomStatusRule implements ComponentMetadataRule {
     @Override
     void execute(ComponentMetadataContext context) {
@@ -45,7 +45,7 @@ dependencies {
         all(CustomStatusRule)
     }
 }
-// END SNIPPET custom-status-scheme
+// end::custom-status-scheme[]
 
 task listApi {
     doLast {
@@ -53,7 +53,7 @@ task listApi {
     }
 }
 
-// START SNIPPET custom-status-scheme-module
+// tag::custom-status-scheme-module[]
 class ModuleStatusRule implements ComponentMetadataRule {
     @Override
     void execute(ComponentMetadataContext context) {
@@ -67,7 +67,7 @@ dependencies {
         withModule('org.sample:lib', ModuleStatusRule)
     }
 }
-// END SNIPPET custom-status-scheme-module
+// end::custom-status-scheme-module[]
 
 task listLib {
     doLast {
@@ -75,7 +75,7 @@ task listLib {
     }
 }
 
-// START SNIPPET ivy-component-metadata-rule
+// tag::ivy-component-metadata-rule[]
 class IvyComponentRule implements ComponentMetadataRule {
     @Override
     void execute(ComponentMetadataContext context) {
@@ -91,7 +91,7 @@ dependencies {
         withModule("org.sample:lib", IvyComponentRule)
     }
 }
-// END SNIPPET ivy-component-metadata-rule
+// end::ivy-component-metadata-rule[]
 
 task listWithIvyRule {
     doLast {
@@ -99,7 +99,7 @@ task listWithIvyRule {
     }
 }
 
-// START SNIPPET config-component-metadata-rule
+// tag::config-component-metadata-rule[]
 class ConfiguredRule implements ComponentMetadataRule {
     String param
 
@@ -124,7 +124,7 @@ dependencies {
     }
 }
 
-// END SNIPPET config-component-metadata-rule
+// end::config-component-metadata-rule[]
 
 task listWithConfiguredRule {
     doLast {

@@ -1,4 +1,4 @@
-// START SNIPPET configuration-injection
+// tag::configuration-injection[]
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse-wtp'
@@ -17,4 +17,4 @@ subprojects {
         manifest.attributes provider: 'gradle'
     }
 }
-// END SNIPPET configuration-injection
+// end::configuration-injection[]

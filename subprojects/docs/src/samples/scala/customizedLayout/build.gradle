@@ -12,7 +12,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET custom-source-locations
+// tag::custom-source-locations[]
 sourceSets {
     main {
         scala {
@@ -25,4 +25,4 @@ sourceSets {
         }
     }
 }
-// END SNIPPET custom-source-locations
+// end::custom-source-locations[]

@@ -1,19 +1,19 @@
-// START SNIPPET use-checkstyle-plugin
+// tag::use-checkstyle-plugin[]
 apply plugin: 'checkstyle'
-// END SNIPPET use-checkstyle-plugin
-// START SNIPPET use-codenarc-plugin
+// end::use-checkstyle-plugin[]
+// tag::use-codenarc-plugin[]
 apply plugin: 'codenarc'
-// END SNIPPET use-codenarc-plugin
-// START SNIPPET use-findbugs-plugin
+// end::use-codenarc-plugin[]
+// tag::use-findbugs-plugin[]
 apply plugin: 'findbugs'
-// END SNIPPET use-findbugs-plugin
-// START SNIPPET use-pmd-plugin
+// end::use-findbugs-plugin[]
+// tag::use-pmd-plugin[]
 apply plugin: 'pmd'
-// END SNIPPET use-pmd-plugin
-// START SNIPPET use-jdepend-plugin
+// end::use-pmd-plugin[]
+// tag::use-jdepend-plugin[]
 apply plugin: 'jdepend'
-// END SNIPPET use-jdepend-plugin
-// START SNIPPET customize-checkstyle-report
+// end::use-jdepend-plugin[]
+// tag::customize-checkstyle-report[]
 tasks.withType(Checkstyle) {
     reports {
         xml.enabled false
@@ -21,8 +21,8 @@ tasks.withType(Checkstyle) {
         html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
     }
 }
-// END SNIPPET customize-checkstyle-report
-// START SNIPPET customize-findbugs-report
+// end::customize-checkstyle-report[]
+// tag::customize-findbugs-report[]
 tasks.withType(FindBugs) {
     reports {
         xml.enabled false
@@ -30,7 +30,7 @@ tasks.withType(FindBugs) {
         html.stylesheet resources.text.fromFile('config/xsl/findbugs-custom.xsl')
     }
 }
-// END SNIPPET customize-findbugs-report
+// end::customize-findbugs-report[]
 apply plugin: 'java'
 apply plugin: 'groovy'
 

@@ -20,7 +20,7 @@ project(':project1') {
        compile 'org.slf4j:slf4j-api:1.7.10'
     }
 
-    // START SNIPPET customize-identity
+    // tag::customize-identity[]
     publishing {
         publications {
             maven(MavenPublication) {
@@ -32,7 +32,7 @@ project(':project1') {
             }
         }
     }
-    // END SNIPPET customize-identity
+    // end::customize-identity[]
 }
 
 project(':project2') {
@@ -40,7 +40,7 @@ project(':project2') {
        compile 'commons-collections:commons-collections:3.2.2', project(':project1')
     }
 
-    // START SNIPPET multiple-publications
+    // tag::multiple-publications[]
     group = "org.gradle.sample"
     version = "2.3"
 
@@ -64,5 +64,5 @@ project(':project2') {
             }
         }
     }
-    // END SNIPPET multiple-publications
+    // end::multiple-publications[]
 }

@@ -130,9 +130,9 @@ Adds a link to the given page on the Gradle web site. This will be replaced by a
 
 The sample source files can contain snippets which can be included in the documentation, in place of the entire source file.
 
-    // START SNIPPET something
+    // tag::something[]
     some code
-    // END SNIPPET something
+    // end::something[]
 
     some other code
 

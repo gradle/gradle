@@ -14,10 +14,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET force-compilation
+// tag::force-compilation[]
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.with {
         force = true
     }
 }
-// END SNIPPET force-compilation
+// end::force-compilation[]

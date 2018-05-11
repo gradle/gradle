@@ -5,7 +5,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
 import static org.junit.Assert.*
 
-// START SNIPPET test-task
+// tag::test-task[]
 class GreetingTaskTest {
     @Test
     public void canAddTaskToProject() {
@@ -14,4 +14,4 @@ class GreetingTaskTest {
         assertTrue(task instanceof GreetingTask)
     }
 }
-// END SNIPPET test-task
+// end::test-task[]

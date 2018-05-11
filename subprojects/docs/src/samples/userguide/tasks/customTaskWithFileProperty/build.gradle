@@ -1,4 +1,4 @@
-// START SNIPPET task
+// tag::task[]
 class GreetingToFileTask extends DefaultTask {
 
     def destination
@@ -14,9 +14,9 @@ class GreetingToFileTask extends DefaultTask {
         file.write 'Hello!'
     }
 }
-// END SNIPPET task
+// end::task[]
 
-// START SNIPPET config
+// tag::config[]
 task greet(type: GreetingToFileTask) {
     destination = { project.greetingFile }
 }
@@ -28,4 +28,4 @@ task sayGreeting(dependsOn: greet) {
 }
 
 ext.greetingFile = "$buildDir/hello.txt"
-// END SNIPPET config
+// end::config[]

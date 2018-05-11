@@ -16,7 +16,7 @@
 
 package org.gradle.sample
 
-// START SNIPPET functional-test-spock
+// tag::functional-test-spock[]
 import org.gradle.testkit.runner.GradleRunner
 import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
@@ -52,4 +52,4 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":helloWorld").outcome == SUCCESS
     }
 }
-// END SNIPPET functional-test-spock
+// end::functional-test-spock[]

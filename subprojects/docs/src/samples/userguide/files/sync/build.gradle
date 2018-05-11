@@ -1,8 +1,8 @@
 configurations { runtime }
 
-// START SNIPPET copy-dependencies
+// tag::copy-dependencies[]
 task libs(type: Sync) {
     from configurations.runtime
     into "${buildDir}/libs"
 }
-// END SNIPPET copy-dependencies
+// end::copy-dependencies[]

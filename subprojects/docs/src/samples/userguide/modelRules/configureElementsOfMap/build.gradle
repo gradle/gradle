@@ -15,7 +15,7 @@ class PersonRules extends RuleSource {
 
 apply plugin: PersonRules
 
-// START SNIPPET create-and-configure
+// tag::create-and-configure[]
 model {
     people {
         john(Person) {
@@ -33,7 +33,7 @@ model {
         }
     }
 }
-// END SNIPPET create-and-configure
+// end::create-and-configure[]
 
 model {
     tasks {

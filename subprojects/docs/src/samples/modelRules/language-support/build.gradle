@@ -1,4 +1,4 @@
-// START SNIPPET model-language-support
+// tag::model-language-support[]
 apply plugin: 'java-lang'
 
 //Creating LanguageSourceSets via rules
@@ -33,4 +33,4 @@ model {
         paidSources.create("resources", JvmResourceSet)
     }
 }
-// END SNIPPET model-language-support
+// end::model-language-support[]

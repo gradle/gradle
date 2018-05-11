@@ -9,7 +9,7 @@ interface Person {
     String getLastName()
 }
 
-// START SNIPPET configure-and-create-rules
+// tag::configure-and-create-rules[]
 model {
     person {
         println "configuring person"
@@ -22,7 +22,7 @@ model {
         lastName = "Smith"
     }
 }
-// END SNIPPET configure-and-create-rules
+// end::configure-and-create-rules[]
 model {
     tasks {
         showPerson(Task) {

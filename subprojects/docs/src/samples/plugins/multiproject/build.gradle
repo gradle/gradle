@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// START SNIPPET plugins-on-subprojects
+// tag::plugins-on-subprojects[]
 plugins {
   id "org.gradle.sample.hello" version "1.0.0" apply false
   id "org.gradle.sample.goodbye" version "1.0.0" apply false
@@ -28,4 +28,4 @@ subprojects { subproject ->
         apply plugin: 'org.gradle.sample.goodbye'
     }
 }
-// END SNIPPET plugins-on-subprojects
+// end::plugins-on-subprojects[]

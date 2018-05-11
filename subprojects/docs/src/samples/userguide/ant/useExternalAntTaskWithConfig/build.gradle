@@ -2,7 +2,7 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET define-classpath
+// tag::define-classpath[]
 configurations {
     pmd
 }
@@ -10,9 +10,9 @@ configurations {
 dependencies {
     pmd group: 'pmd', name: 'pmd', version: '4.2.5'
 }
-// END SNIPPET define-classpath
+// end::define-classpath[]
 
-// START SNIPPET use-classpath
+// tag::use-classpath[]
 task check {
     doLast {
         ant.taskdef(name: 'pmd',
@@ -26,4 +26,4 @@ task check {
         }
     }
 }
-// END SNIPPET use-classpath
+// end::use-classpath[]

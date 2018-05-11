@@ -1,4 +1,4 @@
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 plugins {
     id 'play'
 }
@@ -15,7 +15,7 @@ repositories {
         layout "ivy"
     }
 }
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 dependencies {
     play 'commons-lang:commons-lang:2.6'

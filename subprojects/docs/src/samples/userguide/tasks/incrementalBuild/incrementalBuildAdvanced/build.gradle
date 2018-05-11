@@ -2,9 +2,9 @@ import org.example.*
 
 apply plugin: "base"
 
-// START SNIPPET failed-inferred-task-dep
+// tag::failed-inferred-task-dep[]
 apply plugin: "java"
-// END SNIPPET failed-inferred-task-dep
+// end::failed-inferred-task-dep[]
 
 repositories {
     jcenter()
@@ -15,7 +15,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
-// START SNIPPET custom-task-class
+// tag::custom-task-class[]
 task processTemplates(type: ProcessTemplates) {
     templateEngine = TemplateEngineType.FREEMARKER
     templateData = new TemplateData("test", [year: 2012])
@@ -23,9 +23,9 @@ task processTemplates(type: ProcessTemplates) {
 
     sources fileTree("src/templates")
 }
-// END SNIPPET custom-task-class
+// end::custom-task-class[]
 
-// START SNIPPET task-arg-method
+// tag::task-arg-method[]
 task copyTemplates(type: Copy) {
     into "$buildDir/tmp"
     from "src/templates"
@@ -33,52 +33,52 @@ task copyTemplates(type: Copy) {
 
 task processTemplates2(type: ProcessTemplates) {
     // ...
-// END SNIPPET task-arg-method
+// end::task-arg-method[]
     templateEngine = TemplateEngineType.FREEMARKER
     templateData = new TemplateData("test", [year: 2012])
     outputDir = file("$buildDir/genOutput")
-// START SNIPPET task-arg-method
+// tag::task-arg-method[]
     sources copyTemplates
 }
-// END SNIPPET task-arg-method
+// end::task-arg-method[]
 
-// START SNIPPET failed-inferred-task-dep
+// tag::failed-inferred-task-dep[]
 
 task badInstrumentClasses(type: Instrument) {
     classFiles = fileTree(compileJava.destinationDir)
     destinationDir = file("$buildDir/instrumented")
 }
-// END SNIPPET failed-inferred-task-dep
+// end::failed-inferred-task-dep[]
 
-// START SNIPPET inferred-task-dep
+// tag::inferred-task-dep[]
 task instrumentClasses(type: Instrument) {
     classFiles = compileJava.outputs.files
     destinationDir = file("$buildDir/instrumented")
 }
-// END SNIPPET inferred-task-dep
+// end::inferred-task-dep[]
 
-// START SNIPPET inferred-task-dep-with-files
+// tag::inferred-task-dep-with-files[]
 task instrumentClasses2(type: Instrument) {
     classFiles = layout.files(compileJava)
     destinationDir = file("$buildDir/instrumented")
 }
-// END SNIPPET inferred-task-dep-with-files
+// end::inferred-task-dep-with-files[]
 
-// START SNIPPET inferred-task-dep-with-builtby
+// tag::inferred-task-dep-with-builtby[]
 task instrumentClassesBuiltBy(type: Instrument) {
     classFiles = fileTree(compileJava.destinationDir) {
         builtBy compileJava
     }
     destinationDir = file("$buildDir/instrumented")
 }
-// END SNIPPET inferred-task-dep-with-builtby
+// end::inferred-task-dep-with-builtby[]
 
-// START SNIPPET up-to-date-when
+// tag::up-to-date-when[]
 task alwaysInstrumentClasses(type: Instrument) {
     classFiles = layout.files(compileJava)
     destinationDir = file("$buildDir/instrumented")
     outputs.upToDateWhen { false }
 }
-// END SNIPPET up-to-date-when
+// end::up-to-date-when[]
 
 build.dependsOn processTemplates, processTemplates2

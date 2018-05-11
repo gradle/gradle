@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-//START SNIPPET dependency-constraints
+// tag::dependency-constraints[]
 dependencies {
     implementation 'org.apache.httpcomponents:httpclient'
     constraints {
@@ -16,7 +16,7 @@ dependencies {
         }
     }
 }
-//END SNIPPET dependency-constraints
+// end::dependency-constraints[]
 
 task copyLibs(type: Copy) {
     from configurations.compileClasspath

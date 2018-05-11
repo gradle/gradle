@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 plugins {
     id 'java'
 }
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
-// START SNIPPET use-community-plugin
+// tag::use-community-plugin[]
 plugins {
     id 'com.jfrog.bintray' version '0.4.1'
 }
-// END SNIPPET use-community-plugin
+// end::use-community-plugin[]
 
 

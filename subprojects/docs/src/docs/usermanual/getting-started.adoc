@@ -1,0 +1,6 @@
+include::installation.adoc[]
+
+[[sec:installation_getting_help]]
+=== Getting help
+
+You might check the user guide at `__GRADLE_HOME__/docs/userguide/userguide.html`. It is also available at link:https://docs.gradle.org[docs.gradle.org]. Typing `gradle help` prints the command line help. Typing `gradle tasks` shows all the tasks of a Gradle build.

@@ -1,10 +1,10 @@
-//START SNIPPET custom-repository
+// tag::custom-repository[]
 repositories {
     maven {
         url "http://repo.mycompany.com/maven2"
     }
 }
-//END SNIPPET custom-repository
+// end::custom-repository[]
 
 task checkRepositories {
     doLast {

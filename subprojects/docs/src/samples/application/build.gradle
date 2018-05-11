@@ -1,23 +1,23 @@
 apply plugin: 'java'
-// START SNIPPET use-plugin
+// tag::use-plugin[]
 apply plugin: 'application'
-// END SNIPPET use-plugin
+// end::use-plugin[]
 
 version = '1.0.2'
 
-// START SNIPPET mainClassName-conf
+// tag::mainClassName-conf[]
 mainClassName = "org.gradle.sample.Main"
-// END SNIPPET mainClassName-conf
+// end::mainClassName-conf[]
 
-// START SNIPPET application-defaultjvmargs
+// tag::application-defaultjvmargs[]
 applicationDefaultJvmArgs = ["-Dgreeting.language=en"]
-// END SNIPPET application-defaultjvmargs
+// end::application-defaultjvmargs[]
 
-// START SNIPPET executableDir-conf
+// tag::executableDir-conf[]
 executableDir = "custom_bin_dir"
-// END SNIPPET executableDir-conf
+// end::executableDir-conf[]
 
-// START SNIPPET distribution-spec
+// tag::distribution-spec[]
 task createDocs {
     def docs = file("$buildDir/docs")
     outputs.dir docs
@@ -36,7 +36,7 @@ distributions {
         }
     }
 }
-// END SNIPPET distribution-spec
+// end::distribution-spec[]
 
 repositories {
     mavenCentral()

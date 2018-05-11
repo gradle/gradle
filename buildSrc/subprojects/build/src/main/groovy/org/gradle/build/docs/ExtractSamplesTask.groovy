@@ -59,6 +59,55 @@ class ExtractSamplesTask extends DefaultTask {
         }
     }
 
+    /**
+     * Given an XML document, Generate HOCON .conf files in the proper location
+     */
+    private def generateSampleConf(Document doc) {
+        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider()
+        samplesXmlProvider.emptyDoc() << {
+            samples()
+        }
+        Element samplesXml = samplesXmlProvider.root.documentElement
+        doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each { Element element ->
+            String sampleId = element.'@id'
+            String srcDir = element.'@dir'
+            SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
+
+            samplesXml << { sample(id: sampleId, dir: srcDir) }
+
+            element.children().each { Element child ->
+                if (child.name() == 'output') {
+                    String executable = child.'@executable'
+                    String args = child.'@args'
+                    String outputFile = child.'@outputFile' ?: "${sampleId}.out"
+                    boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
+                    boolean ignoreLineOrder = child.'@ignoreLineOrder' ?: false
+                    boolean expectFailure = child.'@expectFailure' ?: false
+
+                    samplesXml << {
+                        def params = [id: sampleId, dir: srcDir, args: args, outputFile: outputFile,
+                                      ignoreExtraLines: ignoreExtraLines, ignoreLineOrder: ignoreLineOrder, expectFailure: expectFailure]
+
+                        if (executable != null && executable.length() > 0) {
+                            params['executable'] = executable
+                        }
+
+                        sample(params)
+                    }
+                } else if (child.name() == 'test') {
+                    String args = child.'@args'
+                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
+                } else if (child.name() == 'layout') {
+                    String args = child.'@after'
+                    Element sampleElement = samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
+                    layoutHandler.handleSample(child.text(), sampleElement)
+                }
+            }
+        }
+
+        samplesXmlProvider.write(destFile, true)
+    }
+
     def transformSamples(Document doc) {
         XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider()
         samplesXmlProvider.emptyDoc() << {

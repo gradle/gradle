@@ -14,11 +14,11 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-// START SNIPPET adjust-memory
+// tag::adjust-memory[]
 tasks.withType(ScalaCompile) {
     configure(scalaCompileOptions.forkOptions) {
         memoryMaximumSize = '1g'
         jvmArgs = ['-XX:MaxPermSize=512m']
     }
 }
-// END SNIPPET adjust-memory
+// end::adjust-memory[]

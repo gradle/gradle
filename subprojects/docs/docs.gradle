@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.asciidoctor.gradle.AsciidoctorTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
@@ -46,6 +47,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     javaScript.googleApis()
 }
 
@@ -67,6 +69,9 @@ configurations {
 }
 
 dependencies {
+    asciidoctor "org.gradle:docs-asciidoctor-extensions:0.0.1"
+    asciidoctor project.files("src/main/resources")
+
     userGuideTask 'xalan:xalan:2.7.1', 'xerces:xercesImpl:2.11.0'
     userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
     userGuideTask 'itext:itext:2.0.8'
@@ -98,7 +103,7 @@ ext {
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
-    distDocsDir = new File(buildDir, 'distDocs')
+    distDocsDir = new File(buildDir, 'distDocsAsciidoctor')
     samplesDir = file("$buildDir/samples")
     docbookSrc = new File(project.buildDir, 'src')
     samplesSrcDir = file('src/samples')
@@ -109,10 +114,10 @@ outputs.samples = files(samplesDir) {
     builtBy 'samples'
 }
 outputs.distDocs = files(distDocsDir) {
-    builtBy 'distDocs'
+    builtBy 'distDocsAsciidoctor'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'asciidoctor', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(CacheableAsciidoctorTask) {
@@ -173,9 +178,9 @@ tasks.withType(UserGuideTransformTask) {
         javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
         dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
     } else {
-        javadocUrl = '../javadoc'
-        dsldocUrl = '../dsl'
-    }
+    javadocUrl = '../javadoc'
+    dsldocUrl = '../dsl'
+}
 }
 
 tasks.withType(AssembleDslDocTask) {
@@ -238,8 +243,6 @@ task userguideStyleSheets(type: Copy) {
         eachFile { fcd -> fcd.path = fcd.path.replaceFirst('^docbook-xsl-[0-9\\.]+/', '') }
     }
 }
-
-tasks.remove(asciidoctor)
 
 def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
@@ -447,10 +450,74 @@ task distDocs(type: Docbook2Xhtml) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
+task distDocsAsciidoctor(type: AsciidoctorTask) {
+    sourceDir = new File(srcDocsDir, 'usermanual')
+    sources { include 'getting-started.adoc' }
+    outputDir = distDocsDir
+    separateOutputDirs = false
+    options doctype: 'book'
+    backends 'html5'
+}
+
+
 task userguide {
     dependsOn userguideHtml, userguideSingleHtml, userguidePdf
     description = 'Generates the userguide'
     group = 'documentation'
+}
+
+asciidoctor {
+    sourceDir = new File(srcDocsDir, 'usermanual')
+    sources { include '*.adoc' }
+    outputDir = userguideDir
+    separateOutputDirs = false
+    options doctype: 'book'
+    backends 'html5'
+
+    attributes stylesdir      : '../css/',
+        stylesheet            : 'manual.css',
+        imagesdir             : 'img',
+        nofooter              : true,
+        icons                 : null,
+        'note-caption'        : '&#128161;',
+        'tip-caption'         : '&#128161;',
+        'important-caption'   : '&#10071;️',
+        'caution-caption'     : '&#9888;',
+        'warning-caption'     : '&#9888;',
+        'source-highlighter'  : 'prettify',
+        // TODO: inline prettify code highlighting instead of CDN
+//        prettifydir           : '???',
+        sectanchors           : true,
+        sectlinks             : true,
+        linkattrs             : true,
+        reproducible          : '',
+        lang                  : 'en-US',
+        encoding              : 'utf-8',
+        idprefix              : '',
+        toc                   : 'auto',
+        toclevels             : 1,
+        'toc-title'           : 'Contents',
+        'gradle-home-url'     : 'https://gradle.org',
+        'java-api-url'        : 'https://docs.oracle.com/javase/7/docs/api',
+        'ant-manual-url'      : 'https://ant.apache.org/manual',
+        'guides-url'          : 'https://guides.gradle.org',
+        'gradle-version'      : version,
+        'groovy-dsl-path'     : "../dsl",
+        'javadoc-path'        : "../javadoc",
+        'samples-path'        : "../../samples"
+}
+
+task userManualPdf {
+    // TODO: user manual single to PDF
+}
+
+task userManual {
+    dependsOn asciidoctor, userManualPdf
+    description = 'Generates the userguide HTML and PDF'
+    group = 'documentation'
+
+    inputs.dir srcDocsDir
+    outputs.dir new File(distDocsDir, 'usermanual/asciidoc')
 }
 
 task editReleaseNotes() {
@@ -506,7 +573,7 @@ test {
 }
 
 task docs {
-    dependsOn javadocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+    dependsOn javadocAll, asciidoctor, distDocsAsciidoctor, samplesDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }

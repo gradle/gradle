@@ -4,15 +4,15 @@ repositories {
     mavenCentral()
 }
 
-// START SNIPPET jupiter-dependencies
+// tag::jupiter-dependencies[]
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
-// END SNIPPET jupiter-dependencies
+// end::jupiter-dependencies[]
 
-// START SNIPPET enabling-junit-platform
+// tag::enabling-junit-platform[]
 test {
     useJUnitPlatform()
 }
-// END SNIPPET enabling-junit-platform
+// end::enabling-junit-platform[]

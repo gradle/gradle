@@ -11,7 +11,7 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
-// START SNIPPET publishing
+// tag::publishing[]
 publishing {
     publications {
         binary(MavenPublication) {
@@ -34,9 +34,9 @@ publishing {
         }
     }
 }
-// END SNIPPET publishing
+// end::publishing[]
 
-// START SNIPPET task-config
+// tag::task-config[]
 tasks.withType(PublishToMavenRepository) {
     onlyIf {
         (repository == publishing.repositories.external &&
@@ -50,9 +50,9 @@ tasks.withType(PublishToMavenLocal) {
         publication == publishing.publications.binaryAndSources
     }
 }
-// END SNIPPET task-config
+// end::task-config[]
 
-// START SNIPPET shorthand-tasks
+// tag::shorthand-tasks[]
 task publishToExternalRepository {
     group = 'publishing'
     description = 'Publishes all Maven publications to the external Maven repository.'
@@ -60,7 +60,7 @@ task publishToExternalRepository {
         it.repository == publishing.repositories.external
     }
 }
-// END SNIPPET shorthand-tasks
+// end::shorthand-tasks[]
 task publishForDevelopment {
     group = 'publishing'
     description = 'Publishes all Maven publications to the internal Maven repository and the local Maven repository.'
