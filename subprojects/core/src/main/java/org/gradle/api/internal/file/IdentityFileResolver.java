@@ -54,4 +54,9 @@ public class IdentityFileResolver extends AbstractFileResolver {
     public String resolveAsRelativePath(Object path) {
         throw new UnsupportedOperationException(String.format("Cannot convert path %s to a relative path.", path));
     }
+
+    @Override
+    public boolean canResolveRelativePath() {
+        return false;
+    }
 }
