@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -67,6 +68,9 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         then:
         def root = CollectionUtils.single(operations.roots())
 
+        def resolve = operations.first(ResolveConfigurationDependenciesBuildOperationType) { r -> r.details.buildPath == ":" && r.details.projectPath == ":" && r.details.configurationName == "compileClasspath" }
+        resolve
+
         def loadOps = operations.all(LoadBuildBuildOperationType)
         loadOps.size() == 2
         loadOps[0].displayName == "Load build"
@@ -74,25 +78,26 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (dep)"
         // TODO - should have a buildPath associated
-        loadOps[1].parentId == root.id
+        loadOps[1].parentId == resolve.id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
         configureOps[0].displayName == "Configure build"
         configureOps[0].details.buildPath == ":"
         configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (dep)"
-        // TODO - should have a buildPath associated
-        configureOps[1].parentId == root.id
+        configureOps[1].displayName == "Configure build (:buildB)"
+        configureOps[1].details.buildPath == ":buildB"
+        configureOps[1].parentId == resolve.id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
         taskGraphOps[0].displayName == "Calculate task graph"
         taskGraphOps[0].details.buildPath == ":"
         taskGraphOps[0].parentId == root.id
+        taskGraphOps[0].children.contains(resolve)
         taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[1].details.buildPath == ":buildB"
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].parentId == taskGraphOps[0].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2

@@ -99,7 +99,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         taskGraphOps[0].parentId == root.id
         taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[1].details.buildPath == ":buildB"
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].parentId == taskGraphOps[0].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
