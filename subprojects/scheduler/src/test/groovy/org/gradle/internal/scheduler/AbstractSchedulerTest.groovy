@@ -16,10 +16,11 @@
 
 package org.gradle.internal.scheduler
 
+import com.google.common.base.Predicate
+import com.google.common.base.Predicates
 import com.google.common.collect.Lists
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.graph.DirectedGraph
@@ -48,7 +49,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     def graph = new Graph()
     def nodeExecutor = new TaskNodeExecutor()
     List<Node> nodesToExecute = []
-    Spec<? super Node> filter = Specs.satisfyAll()
+    Predicate<? super Node> filter = Predicates.alwaysTrue()
     boolean continueOnFailure
 
     GraphExecutionResult results
@@ -112,7 +113,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     protected void executeGraph(List<Node> entryNodes) {
         def scheduler = getScheduler()
         try {
-            results = scheduler.execute(graph, entryNodes, continueOnFailure, filter)
+            results = scheduler.execute(graph, entryNodes, continueOnFailure, filter, nodeExecutor)
         } finally {
             scheduler.close()
         }
@@ -186,7 +187,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void useFilter(Spec filter) {
-        this.filter = filter
+        this.filter = { node -> filter.isSatisfiedBy(node) }
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scheduler;
 
-import org.gradle.api.specs.Spec;
+import com.google.common.base.Predicate;
 
 import java.io.Closeable;
 import java.util.Collection;
@@ -26,7 +26,7 @@ public interface Scheduler extends Closeable {
      * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
      * that don't match the {@code filter}.
      */
-    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter);
+    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Predicate<? super Node> filter, NodeExecutor nodeExecutor);
 
     @Override
     void close();

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.scheduler;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildCancellationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,20 +64,18 @@ public class DefaultScheduler implements Scheduler {
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
     private final WorkerPool workerPool;
-    private final NodeExecutor nodeExecutor;
     private final CycleReporter cycleReporter;
     private final BuildCancellationToken cancellationToken;
     private boolean cancelled;
 
-    public DefaultScheduler(WorkerPool workerPool, NodeExecutor nodeExecutor, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
+    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
         this.workerPool = workerPool;
-        this.nodeExecutor = nodeExecutor;
         this.cycleReporter = cycleReporter;
         this.cancellationToken = cancellationToken;
     }
 
     @Override
-    public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Spec<? super Node> filter) {
+    public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Predicate<? super Node> filter, NodeExecutor nodeExecutor) {
         ImmutableList.Builder<Node> filteredNodes = ImmutableList.builder();
 
         Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, LIVE_EDGE_DETECTOR);
@@ -89,7 +87,7 @@ public class DefaultScheduler implements Scheduler {
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
         ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
 
-        executeLiveGraph(dag, continueOnFailure, executedNodes, failures);
+        executeLiveGraph(dag, nodeExecutor, continueOnFailure, executedNodes, failures);
         if (cancelled) {
             failures.add(new BuildCancelledException());
         }
@@ -121,14 +119,14 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void executeLiveGraph(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+    private void executeLiveGraph(Graph graph, NodeExecutor nodeExecutor, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         while (graph.hasNodes()) {
             if (cancellationToken.isCancellationRequested()) {
                 cancelExecution(graph, false);
                 break;
             }
 
-            scheduleWork(graph);
+            scheduleWork(graph, nodeExecutor);
             handleEvents(graph, continueOnFailure, executedNodes, failures);
         }
     }
@@ -177,7 +175,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void scheduleWork(Graph graph) {
+    private void scheduleWork(Graph graph, NodeExecutor nodeExecutor) {
         boolean expectAvailableWorkers = true;
         for (Node nodeToRun : graph.getRootNodes()) {
             if (runningNodes.contains(nodeToRun)) {
@@ -188,7 +186,7 @@ public class DefaultScheduler implements Scheduler {
                 case SHOULD_RUN:
                 case MUST_RUN:
                     if (expectAvailableWorkers) {
-                        if (!tryRunNode(graph, runningNodes, nodeToRun)) {
+                        if (!tryRunNode(graph, runningNodes, nodeToRun, nodeExecutor)) {
                             expectAvailableWorkers = false;
                         }
                     }
@@ -226,7 +224,7 @@ public class DefaultScheduler implements Scheduler {
      * Tries to run the given node.
      * @return whether the operation was successful.
      */
-    private boolean tryRunNode(Graph graph, Set<Node> runningNodes, final Node nodeToRun) {
+    private boolean tryRunNode(Graph graph, Set<Node> runningNodes, final Node nodeToRun, final NodeExecutor nodeExecutor) {
         System.out.printf("Checking node %s for conflicts with running nodes %s%n", nodeToRun, runningNodes);
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {

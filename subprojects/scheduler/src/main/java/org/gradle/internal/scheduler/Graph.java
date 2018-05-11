@@ -17,6 +17,7 @@
 package org.gradle.internal.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
@@ -26,7 +27,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.specs.Spec;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -192,7 +192,7 @@ public class Graph {
      * Creates a new graph with only the nodes available from the given entry nodes via
      * live edges.
      */
-    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Spec<? super Node> filter, ImmutableList.Builder<Node> filteredNodes, LiveEdgeDetector detector) {
+    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Predicate<? super Node> filter, ImmutableList.Builder<Node> filteredNodes, LiveEdgeDetector detector) {
         Set<Node> liveNodes = Sets.newLinkedHashSet();
         Graph liveGraph = new Graph();
         Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
@@ -201,7 +201,7 @@ public class Graph {
             if (node == null) {
                 break;
             }
-            if (!filter.isSatisfiedBy(node)) {
+            if (!filter.apply(node)) {
                 filteredNodes.add(node);
                 continue;
             }
