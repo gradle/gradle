@@ -18,6 +18,8 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildControllers {
+    void rootBuildOperationStarted();
+
     void startTaskExecution();
 
     void stopTaskExecution();
