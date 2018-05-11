@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.accessors.tasks
+package org.gradle.kotlin.dsl.provider.plugins.accessors.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.accessors.accessible
-import org.gradle.kotlin.dsl.accessors.forEachAccessor
-import org.gradle.kotlin.dsl.accessors.schemaFor
+import org.gradle.kotlin.dsl.provider.spi.AccessorsProvider
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 
 
@@ -35,10 +36,24 @@ open class PrintAccessors : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun printExtensions() {
-        schemaFor(project).withKotlinTypeStrings().map(::accessible).forEachAccessor {
-            println()
-            println(it)
-            println()
+        projectSchemaProvider.schemaFor(project).withKotlinTypeStrings().map(::accessible).let { accessibleSchema ->
+            accessorsProvider.forEachAccessorOf(accessibleSchema) {
+                println()
+                println(it)
+                println()
+            }
         }
     }
+
+    private
+    val projectSchemaProvider: ProjectSchemaProvider
+        get() = project.serviceOf()
+
+    private
+    val accessorsProvider: AccessorsProvider
+        get() = project.serviceOf()
+
+    private
+    fun accessible(type: String): TypeAccessibility =
+        TypeAccessibility.Accessible(type)
 }

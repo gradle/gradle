@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.reflect.TypeOf
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -26,8 +27,14 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.provider.spi.AccessorsClassPath
+import org.gradle.kotlin.dsl.provider.spi.InaccessibilityReason
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
+import org.gradle.kotlin.dsl.provider.spi.loadMultiProjectSchemaFrom
 import org.gradle.kotlin.dsl.provider.spi.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.provider.spi.PROJECT_SCHEMA_RESOURCE_PATH
 import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -62,13 +69,6 @@ fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
         buildAccessorsClassPathFor(project, classPath)
             ?: AccessorsClassPath.empty
     }
-
-
-data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
-    companion object {
-        val empty = AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
-    }
-}
 
 
 private
@@ -109,6 +109,16 @@ fun jitProjectSchemaOf(project: Project) =
     }
 
 
+internal
+fun schemaFor(project: Project): ProjectSchema<TypeOf<*>> =
+    projectSchemaProviderOf(project).schemaFor(project)
+
+
+private
+fun projectSchemaProviderOf(project: Project) =
+    project.serviceOf<ProjectSchemaProvider>()
+
+
 private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
@@ -130,31 +140,6 @@ fun buildAccessorsJarFor(projectSchema: ProjectSchema<String>, classPath: ClassP
 
         """.replaceIndent()
     })
-}
-
-
-internal
-sealed class TypeAccessibility {
-    data class Accessible(val type: String) : TypeAccessibility()
-    data class Inaccessible(val type: String, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
-}
-
-
-internal
-sealed class InaccessibilityReason {
-
-    data class NonPublic(val type: String) : InaccessibilityReason()
-    data class NonAvailable(val type: String) : InaccessibilityReason()
-    data class Synthetic(val type: String) : InaccessibilityReason()
-    data class TypeErasure(val type: String) : InaccessibilityReason()
-
-    val explanation
-        get() = when (this) {
-            is NonPublic -> "`$type` is not public"
-            is NonAvailable -> "`$type` is not available"
-            is Synthetic -> "`$type` is synthetic"
-            is TypeErasure -> "`$type` parameter types are missing"
-        }
 }
 
 
@@ -545,12 +530,3 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, writer: B
         }
     }
 }
-
-
-/**
- * Location of the project schema snapshot taken by the _kotlinDslAccessorsSnapshot_ task relative to the root project.
- *
- * @see org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
- */
-internal
-const val PROJECT_SCHEMA_RESOURCE_PATH = "gradle/project-schema.json"

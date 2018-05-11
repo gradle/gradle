@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.provider
+
+package org.gradle.kotlin.dsl.provider.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors
-import org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
+import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.PrintAccessors
+import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.UpdateProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.KotlinScriptBasePluginsApplicator
 
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.task
+
+class DefaultKotlinScriptBasePluginsApplicator : KotlinScriptBasePluginsApplicator {
+    override fun apply(project: Project) {
+        project.plugins.apply(KotlinScriptBasePlugin::class.java)
+    }
+}
 
 
 class KotlinScriptBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        rootProject.apply<KotlinScriptRootPlugin>()
-        task<PrintAccessors>("kotlinDslAccessorsReport")
+        rootProject.plugins.apply(KotlinScriptRootPlugin::class.java)
+        tasks.create("kotlinDslAccessorsReport", PrintAccessors::class.java)
     }
 }
 
 
 class KotlinScriptRootPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        task<UpdateProjectSchema>("kotlinDslAccessorsSnapshot")
+        tasks.create("kotlinDslAccessorsSnapshot", UpdateProjectSchema::class.java)
     }
 }
