@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.docs.releasenotes
+package org.gradle.docs
 
-import org.gradle.docs.SystemPropertyFiles
+class SystemPropertyFiles {
 
-class ReleaseNotesTestContext {
-
-    File getSourceFile() {
-        SystemPropertyFiles.get("org.gradle.docs.releasenotes.source")
-    }
-
-    File getRenderedFile() {
-        SystemPropertyFiles.get("org.gradle.docs.releasenotes.rendered")
+    static File get(String property) {
+        def value = System.getProperty(property)
+        assert value != null : "System property '$property' is not set"
+        def file = new File(value)
+        assert file.file : "File '$file' (from system property '$property') does not exist"
+        file
     }
 
 }

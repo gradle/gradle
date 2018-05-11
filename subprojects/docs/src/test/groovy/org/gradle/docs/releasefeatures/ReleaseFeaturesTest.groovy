@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.docs.releasenotes
+package org.gradle.docs.releasefeatures
 
 import org.gradle.docs.SystemPropertyFiles
+import spock.lang.Specification
 
-class ReleaseNotesTestContext {
+class ReleaseFeaturesTest extends Specification {
 
-    File getSourceFile() {
-        SystemPropertyFiles.get("org.gradle.docs.releasenotes.source")
+    def "release features must follow conventions"() {
+        given:
+        def featuresFile = SystemPropertyFiles.get("org.gradle.docs.releasefeatures")
+
+        when:
+        def featuresText = featuresFile.text
+
+        then:
+        def lines = featuresText.readLines()
+        lines.size() <= 10
+        lines.every { it.startsWith(" - ") }
+        lines.every { it.length() <= 80 }
     }
-
-    File getRenderedFile() {
-        SystemPropertyFiles.get("org.gradle.docs.releasenotes.rendered")
-    }
-
 }
