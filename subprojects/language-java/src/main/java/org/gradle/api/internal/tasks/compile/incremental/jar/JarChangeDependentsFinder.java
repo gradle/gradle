@@ -59,7 +59,7 @@ public class JarChangeDependentsFinder {
         if (jarChangeDetails.isRemoved()) {
             DependentsSet allClasses = previous.getAllClasses();
             if (allClasses.isDependencyToAll()) {
-                return DependentsSet.dependencyToAll("at least one of the classes of removed jar '" + jarArchive.file.getName() + "' requires it");
+                return allClasses;
             }
             //recompile all dependents of all the classes from jar
             return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));

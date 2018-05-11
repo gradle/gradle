@@ -22,10 +22,14 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 
 public class CompilationResultAnalyzer implements FileVisitor {
+    private static final Logger LOGGER = Logging.getLogger(CompilationResultAnalyzer.class);
+
     private final ClassDependenciesAnalyzer analyzer;
     private final ClassDependentsAccumulator accumulator;
     private final FileHasher hasher;
@@ -51,9 +55,16 @@ public class CompilationResultAnalyzer implements FileVisitor {
         }
 
         HashCode hash = hasher.hash(fileDetails);
-        ClassAnalysis analysis = analyzer.getClassAnalysis(hash, fileDetails);
+        try {
+            ClassAnalysis analysis = analyzer.getClassAnalysis(hash, fileDetails);
+            accumulator.addClass(fileDetails.getFile(), analysis);
+        } catch (Exception e) {
+            accumulator.fullRebuildNeeded("class file " + fileDetails.getName() + " could not be analyzed. See the debug log for more details");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Could not analyze class file " + fileDetails.getName(), e);
+            }
+        }
 
-        accumulator.addClass(fileDetails.getFile(), analysis);
     }
 
     public ClassSetAnalysisData getAnalysis() {
