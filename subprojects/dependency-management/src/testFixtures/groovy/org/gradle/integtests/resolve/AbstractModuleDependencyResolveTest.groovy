@@ -118,7 +118,11 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
     }
 
     void setMetadataSupplierClass(String clazz) {
-        buildFile << """
+        buildFile << supplierDeclaration(clazz)
+    }
+
+    String supplierDeclaration(String clazz) {
+        """
             repositories."${useIvy()?'ivy':'maven'}".metadataSupplier = $clazz
         """
     }

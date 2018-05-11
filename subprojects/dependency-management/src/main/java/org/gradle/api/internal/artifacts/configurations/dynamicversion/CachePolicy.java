@@ -31,6 +31,8 @@ public interface CachePolicy {
 
     boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
 
+    boolean mustRefreshModule(ResolvedModuleVersion resolvedModuleVersion, long ageMillis, boolean changing);
+
     boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
 
     boolean mustRefreshModuleArtifacts(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync);

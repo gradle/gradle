@@ -20,8 +20,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
-import org.gradle.api.artifacts.ComponentMetadataVersionLister;
+import org.gradle.api.artifacts.ComponentMetadataListerDetails;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.FeaturePreviews;
@@ -45,10 +45,10 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -197,9 +197,9 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
-        Factory<ComponentMetadataSupplier> supplierFactory = createComponentMetadataSupplierFactory(injector);
-        Factory<ComponentMetadataVersionLister> listerFactory = createComponentMetadataVersionLister(injector);
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplierFactory, listerFactory);
+        InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector);
+        InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister);
     }
 
     @Override
