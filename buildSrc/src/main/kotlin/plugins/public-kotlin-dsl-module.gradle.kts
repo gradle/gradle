@@ -21,7 +21,7 @@ import accessors.publishing
 import codegen.GenerateClasspathManifest
 
 /*
- * Configures a Gradle Kotlin DSL module for publication to artifactory.
+ * Configures a Gradle Kotlin DSL module for publication to repo.gradle.org.
  *
  * The published jar will:
  *  - be named after `base.archivesBaseName`
@@ -32,21 +32,30 @@ import codegen.GenerateClasspathManifest
 plugins {
     id("kotlin-dsl-module")
     `maven-publish`
-    id("com.jfrog.artifactory")
 }
 
-// with a jar named after `base.archivesBaseName`
-afterEvaluate {
-    publishing {
-        publications.create<MavenPublication>("mavenJava") {
-            artifactId = base.archivesBaseName
-            from(components["java"])
+publishing {
+
+    // with a jar named after `base.archivesBaseName`
+    publications.create<MavenPublication>("mavenJava") {
+        artifactId = base.archivesBaseName
+        from(components["java"])
+    }
+
+    repositories {
+        val targetRepoKey = "libs-${buildTagFor(project.version as String)}s-local"
+        maven(url = "https://repo.gradle.org/gradle/$targetRepoKey") {
+            authentication {
+                credentials {
+
+                    fun stringProperty(name: String): String? = project.findProperty(name) as? String
+
+                    username = stringProperty("artifactory_user") ?: "nouser"
+                    password = stringProperty("artifactory_password") ?: "nopass"
+                }
+            }
         }
     }
-}
-
-tasks.getByName("artifactoryPublish") {
-    dependsOn("jar")
 }
 
 // classpath manifest
@@ -58,3 +67,10 @@ val main by java.sourceSets
 main.output.dir(
     mapOf("builtBy" to generateClasspathManifest),
     generatedResourcesDir)
+
+fun buildTagFor(version: String): String =
+    when (version.substringAfterLast('-')) {
+        "SNAPSHOT" -> "snapshot"
+        else -> "release"
+    }
+

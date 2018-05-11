@@ -2,10 +2,6 @@ import groovy.lang.GroovyObject
 
 import org.jetbrains.gradle.ext.ProjectSettings
 
-import org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
-import org.jfrog.gradle.plugin.artifactory.dsl.ResolverConfig
-import org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask
-
 import java.time.LocalDate
 
 
@@ -25,7 +21,6 @@ buildscript {
 
 plugins {
     base
-    id("com.jfrog.artifactory") version "4.7.2"
     id("org.jetbrains.gradle.plugin.idea-ext") version "0.1"
 }
 
@@ -66,43 +61,11 @@ dependencies {
     }
 }
 
-tasks {
-    // Disable publication on root project
-    "artifactoryPublish"(ArtifactoryTask::class) {
-        skip = true
-    }
-}
-
 allprojects {
     repositories {
         maven(url = "https://repo.gradle.org/gradle/repo")
     }
 }
-
-artifactory {
-    setContextUrl("https://repo.gradle.org/gradle")
-    publish(delegateClosureOf<PublisherConfig> {
-        repository(delegateClosureOf<GroovyObject> {
-            val targetRepoKey = "libs-${buildTagFor(project.version as String)}s-local"
-            setProperty("repoKey", targetRepoKey)
-            setProperty("username", project.findProperty("artifactory_user") ?: "nouser")
-            setProperty("password", project.findProperty("artifactory_password") ?: "nopass")
-            setProperty("maven", true)
-        })
-        defaults(delegateClosureOf<GroovyObject> {
-            invokeMethod("publications", "mavenJava")
-        })
-    })
-    resolve(delegateClosureOf<ResolverConfig> {
-        setProperty("repoKey", "repo")
-    })
-}
-
-fun buildTagFor(version: String): String =
-    when (version.substringAfterLast('-')) {
-        "SNAPSHOT" -> "snapshot"
-        else -> "release"
-    }
 
 
 // -- Integration testing ----------------------------------------------
