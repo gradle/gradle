@@ -34,13 +34,18 @@ class NotificationsIntegrationTest extends AbstractIntegrationSpec {
         executer.withGradleUserHomeDir(customGradleUserHomeDir)
         executer.withWelcomeMessageEnabled()
         markerFile = new File(executer.gradleUserHomeDir, "notifications/$distribution.version.version/release-features.rendered")
-        welcomeMessage = """Welcome to Gradle $distribution.version.version!
+
+        welcomeMessage = "Welcome to Gradle $distribution.version.version!"
+        def features = readReleaseFeatures()
+        if (!features.isAllWhitespace()) {
+            welcomeMessage += """
 
 Here are the highlights of this release:
-${readReleaseFeatures()}
-"""
+$features"""
+        }
         if (!distribution.version.isSnapshot()) {
-            welcomeMessage += """${getReleaseNotesDetailsMessage(distribution.version)}
+            welcomeMessage += """
+${getReleaseNotesDetailsMessage(distribution.version)}
 """
         }
     }

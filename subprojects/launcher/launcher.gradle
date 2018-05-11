@@ -22,6 +22,7 @@ dependencies {
 
     compile libraries.asm.coordinates
     compile libraries.commons_io.coordinates
+    compile libraries.commons_lang.coordinates
     compile libraries.slf4j_api.coordinates
 
     integTestCompile project(':internalIntegTesting')
