@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.plugins.ide.idea
 
-/**
- * A build that is a child of some other build, and runs within the lifetime of that containing build.
- */
-public interface NestedBuildState extends BuildState {
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+
+class IdeaNestedBuildIntegrationTest extends AbstractIntegrationSpec {
+    def "can use GradleBuild task to run a build that applies the IDEA plugin"() {
+        buildFile << """
+            task go(type: GradleBuild) {
+                dir = 'other'
+            }
+        """
+        file("other/build.gradle") << """
+            apply plugin: 'idea'
+        """
+
+        expect:
+        succeeds("go")
+    }
 }

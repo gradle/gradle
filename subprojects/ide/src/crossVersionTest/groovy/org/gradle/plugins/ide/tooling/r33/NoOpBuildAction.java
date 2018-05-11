@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build;
+package org.gradle.plugins.ide.tooling.r33;
 
-/**
- * A build that is a child of some other build, and runs within the lifetime of that containing build.
- */
-public interface NestedBuildState extends BuildState {
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+
+public class NoOpBuildAction implements BuildAction<String> {
+    @Override
+    public String execute(BuildController controller) {
+        return "result";
+    }
 }

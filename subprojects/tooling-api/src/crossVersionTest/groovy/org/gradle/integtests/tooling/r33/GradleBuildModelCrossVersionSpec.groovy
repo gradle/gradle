@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
+import spock.lang.Issue
 
 @ToolingApiVersion(">=3.3")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
@@ -39,8 +40,38 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         GradleBuild model = loadToolingModel(GradleBuild)
 
         then:
+        model.rootProject.name == "root"
         model.includedBuilds.size() == 1
-        model.includedBuilds[0].projects.size() == 4
+        def includedBuild = model.includedBuilds[0]
+        includedBuild.rootProject.name == "includedBuild"
+        includedBuild.projects.size() == 4
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5167")
+    @TargetGradleVersion(">=3.3")
+    def "Included builds are present in the model when substitutions are used"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                rootProject.name = 'root'
+                includeBuild('includedBuild') { 
+                    dependencySubstitution { 
+                        substitute module('group:name') with project(':other') 
+                    } 
+                }
+            """
+        }
+        multiProjectBuildInSubFolder("includedBuild", ["a", "b", "c"])
+
+        when:
+        GradleBuild model = loadToolingModel(GradleBuild)
+
+        then:
+        model.rootProject.name == "root"
+        model.includedBuilds.size() == 1
+        def includedBuild = model.includedBuilds[0]
+        includedBuild.rootProject.name == "includedBuild"
+        includedBuild.projects.size() == 4
     }
 
     @TargetGradleVersion(">=3.1 <3.3")

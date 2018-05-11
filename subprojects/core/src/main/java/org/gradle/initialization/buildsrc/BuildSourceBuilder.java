@@ -27,7 +27,7 @@ import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildController;
@@ -113,7 +113,7 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
-        NestedBuildState nestedBuild = buildRegistry.addNestedBuild(buildDefinition, nestedBuildFactory);
+        StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, nestedBuildFactory);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
             public ClassPath transform(BuildController buildController) {
