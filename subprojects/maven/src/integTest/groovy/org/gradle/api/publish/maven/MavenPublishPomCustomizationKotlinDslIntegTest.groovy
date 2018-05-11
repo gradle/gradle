@@ -19,13 +19,10 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
-import static org.gradle.util.TestPrecondition.JDK9_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Ignore
-@Requires([KOTLIN_SCRIPT, JDK9_OR_EARLIER])
+@Requires([KOTLIN_SCRIPT])
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override
@@ -36,6 +33,10 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
     @Override
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle.kts')
+    }
+
+    def setup() {
+        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
     def "can customize POM using Kotlin DSL"() {
@@ -118,6 +119,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                 url.set("https://ci.example.org/")
                             }
                             distributionManagement {
+                                downloadUrl.set("https://example.org/download/")
                                 relocation {
                                     groupId.set("new-group")
                                     artifactId.set("new-artifact-id")

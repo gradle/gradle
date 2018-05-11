@@ -104,6 +104,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
                                 url = "https://ci.example.org/"
                             }
                             distributionManagement {
+                                downloadUrl = "https://example.org/download/"
                                 relocation {
                                     groupId = "new-group"
                                     artifactId = "new-artifact-id"
@@ -201,6 +202,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
         parsedPom.ciManagement.url.text() == "https://ci.example.org/"
 
         and:
+        parsedPom.distributionManagement.downloadUrl.text() == "https://example.org/download/"
         parsedPom.distributionManagement.relocation[0].groupId.text() == "new-group"
         parsedPom.distributionManagement.relocation[0].artifactId.text() == "new-artifact-id"
         parsedPom.distributionManagement.relocation[0].version.text() == "42"

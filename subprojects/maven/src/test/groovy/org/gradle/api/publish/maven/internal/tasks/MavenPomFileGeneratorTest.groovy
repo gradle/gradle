@@ -24,15 +24,15 @@ import org.gradle.api.provider.Property
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDistributionManagement
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomLicense
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomMailingList
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomOrganization
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectManagement
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomRelocation
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
-import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
-import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
@@ -47,6 +47,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
+    def instantiator = DirectInstantiator.INSTANCE
     def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {
@@ -121,11 +122,12 @@ class MavenPomFileGeneratorTest extends Specification {
             getCiManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
                 getSystem().set("Anthill")
             }}
-            getDistributionManagement() >> Mock(MavenPomDistributionManagementInternal) {
-                getRelocation() >> new DefaultMavenPomRelocation(objectFactory) {{
-                    getGroupId().set("org.example.new")
-                }}
-            }
+            getDistributionManagement() >> new DefaultMavenPomDistributionManagement(instantiator, objectFactory) {{
+                getDownloadUrl().set("https://example.org/download/")
+                relocation { r ->
+                    r.getGroupId().set("org.example.new")
+                }
+            }}
             getMailingLists() >> [new DefaultMavenPomMailingList(objectFactory) {{
                 getName().set("Users")
             }}]
