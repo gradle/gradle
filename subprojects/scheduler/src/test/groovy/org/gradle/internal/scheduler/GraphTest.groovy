@@ -97,7 +97,7 @@ class GraphTest extends Specification {
     def "can connect nodes via addEdgeIfAbsent"() {
         def source = addNode("source")
         def target = addNode("target")
-        def edge = new Edge(source, target, DEPENDENCY_OF)
+        def edge = new Edge(source, DEPENDENCY_OF, target)
 
         when:
         def added = graph.addEdgeIfAbsent(edge)
@@ -400,7 +400,7 @@ class GraphTest extends Specification {
     }
 
     private Edge addEdge(Node source, Node target, EdgeType type) {
-        def edge = new Edge(source, target, type)
+        def edge = new Edge(source, type, target)
         graph.addEdge(edge)
         return edge
     }

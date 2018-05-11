@@ -149,7 +149,7 @@ public class DefaultScheduler implements Scheduler {
                     if (finalizerDependency == finalized) {
                         return false;
                     }
-                    Edge finalizerDependencyConstraint = new Edge(finalized, finalizerDependency, AVOID_STARTING_BEFORE_FINALIZED);
+                    Edge finalizerDependencyConstraint = new Edge(finalized, AVOID_STARTING_BEFORE_FINALIZED, finalizerDependency);
                     if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
                         graph.addEdge(finalizerDependencyConstraint);
                     }
@@ -229,7 +229,7 @@ public class DefaultScheduler implements Scheduler {
         for (Node runningNode : runningNodes) {
             if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
                 System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
-                graph.addEdge(new Edge(runningNode, nodeToRun, MUST_NOT_RUN_WITH));
+                graph.addEdge(new Edge(runningNode, MUST_NOT_RUN_WITH, nodeToRun));
                 return true;
             }
         }

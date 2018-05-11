@@ -21,7 +21,7 @@ public class Edge implements Comparable<Edge> {
     private final Node target;
     private final EdgeType type;
 
-    public Edge(Node source, Node target, EdgeType type) {
+    public Edge(Node source, EdgeType type, Node target) {
         this.source = source;
         this.target = target;
         this.type = type;

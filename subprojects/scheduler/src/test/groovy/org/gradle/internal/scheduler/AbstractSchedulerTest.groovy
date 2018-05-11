@@ -162,16 +162,16 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     @Override
     protected void relationships(Map options, def task) {
         options.dependsOn?.each { TaskNode dependency ->
-            graph.addEdge(new Edge(dependency, task as TaskNode, DEPENDENCY_OF))
+            graph.addEdge(new Edge(dependency, DEPENDENCY_OF, task as TaskNode))
         }
         options.mustRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task as TaskNode, MUST_COMPLETE_BEFORE))
+            graph.addEdge(new Edge(predecessor, MUST_COMPLETE_BEFORE, task as TaskNode))
         }
         options.shouldRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, task as TaskNode, SHOULD_COMPLETE_BEFORE))
+            graph.addEdge(new Edge(predecessor, SHOULD_COMPLETE_BEFORE, task as TaskNode))
         }
         options.finalizedBy?.each { TaskNode finalizer ->
-            graph.addEdge(new Edge(task as TaskNode, finalizer, FINALIZED_BY))
+            graph.addEdge(new Edge(task as TaskNode, FINALIZED_BY, finalizer))
         }
     }
 
