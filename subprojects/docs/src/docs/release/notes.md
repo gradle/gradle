@@ -21,6 +21,10 @@ New native plugins continue to improve with [better control over system include 
 
 This release introduces 2 new APIs that facilitate immutable tasks: APIs to create [tasks with constructor arguments](#create-tasks-with-constructor-arguments) and [immutable file collections](#immutable-file-collections). 
 
+Gradle 4.8 includes Kotlin DSL 0.17.4 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner script compilation and TestKit support.
+At the same time the IntelliJ IDEA Kotlin Plugin fixed many long standing build script editing related issues.
+See details and examples in the [Kotlin DSL v0.17 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4).
+
 We hope you build happiness with Gradle 4.8, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
 
 ## Upgrade instructions
@@ -308,6 +312,14 @@ Previously, `Signature.setFile()` could be used to replace the file used for pub
 
 Previously, a Maven POM with an `exclusion` missing either the `groupId` or the `artifactId` was ignored by Gradle.
 This is no longer the case and thus may cause modules to be excluded from a dependency graph that were previously included.
+
+### Changes to the Gradle Kotlin DSL
+
+The Kotlin DSL now respects the JSR-305 package annotations.
+As a result, annotated Java elements whose types were previously seen as Kotlin platform types, thus non-nullable, will now be seen as effectively either non-nullable or nullable types depending on the JSR-305 annotations.
+This change could cause script compilation errors.
+
+See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4) for more information.
 
 ## External contributions
 
