@@ -18,8 +18,17 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public interface IncludedBuildControllers {
+    /**
+     * Notify the controllers that the root build operation has started.
+     * Should be using something like {@link org.gradle.initialization.RootBuildLifecycleListener} however, this is currently called outside the root build operation.
+     */
     void rootBuildOperationStarted();
 
+    void populateTaskGraphs();
+
+    /**
+     * Starts running any scheduled tasks. Does nothing when {@link #populateTaskGraphs()} has not been called to schedule the tasks.
+     */
     void startTaskExecution();
 
     void stopTaskExecution();

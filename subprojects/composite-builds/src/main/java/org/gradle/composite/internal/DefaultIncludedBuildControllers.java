@@ -55,29 +55,19 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
         IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
         final DefaultIncludedBuildController newBuildController = new DefaultIncludedBuildController(build);
         buildControllers.put(buildId, newBuildController);
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                CurrentBuildOperationRef.instance().set(rootBuildOperation);
-                try {
-                    newBuildController.run();
-                } finally {
-                    CurrentBuildOperationRef.instance().set(null);
-                }
-            }
-        });
+        executorService.submit(new BuildOpRunnable(newBuildController, rootBuildOperation));
         return newBuildController;
     }
 
     @Override
     public void startTaskExecution() {
-        populateTaskGraphs();
         for (IncludedBuildController buildController : buildControllers.values()) {
             buildController.startTaskExecution();
         }
     }
 
-    private void populateTaskGraphs() {
+    @Override
+    public void populateTaskGraphs() {
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
@@ -104,5 +94,25 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     public void stop() {
         CompositeStoppable.stoppable(buildControllers.values()).stop();
         executorService.stop();
+    }
+
+    private static class BuildOpRunnable implements Runnable {
+        private final DefaultIncludedBuildController newBuildController;
+        private final BuildOperationRef rootBuildOperation;
+
+        BuildOpRunnable(DefaultIncludedBuildController newBuildController, BuildOperationRef rootBuildOperation) {
+            this.newBuildController = newBuildController;
+            this.rootBuildOperation = rootBuildOperation;
+        }
+
+        @Override
+        public void run() {
+            CurrentBuildOperationRef.instance().set(rootBuildOperation);
+            try {
+                newBuildController.run();
+            } finally {
+                CurrentBuildOperationRef.instance().set(null);
+            }
+        }
     }
 }

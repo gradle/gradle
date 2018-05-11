@@ -92,7 +92,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[1].parentId == root.id
         taskGraphOps[2].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[2].details.buildPath == ":buildB"
-        taskGraphOps[2].parentId == root.id
+        taskGraphOps[2].parentId == taskGraphOps[1].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
@@ -169,7 +169,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[2].parentId == root.id
         taskGraphOps[3].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[3].details.buildPath == ":buildB"
-        taskGraphOps[3].parentId == root.id
+        taskGraphOps[3].parentId == taskGraphOps[2].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 4
