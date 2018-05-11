@@ -91,6 +91,7 @@ gradlebuildJava {
 
 ext {
     srcDocsDir = file('src/docs')
+    releaseFeaturesFile = file("$srcDocsDir/release/release-features.txt")
     userguideSrcDir = new File(srcDocsDir, 'userguide')
     asciidocSanitizeStylesheet = file("$srcDocsDir/stylesheets/asciidocSanitize.xsl")
     asciidocOutputDir = new File(buildDir, 'asciidoc/userguide')
@@ -488,7 +489,7 @@ tasks.addRule("view«Doc Task Name» - Opens entry point") { String taskName ->
 }
 
 task copyReleaseFeatures(type: Copy) {
-    from 'src/docs/release/release-features.txt'
+    from releaseFeaturesFile
     into generatedResourcesDir
 }
 
@@ -501,6 +502,7 @@ test {
     inputs.property "systemProperties", [:]
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.markdownFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
+    systemProperty "org.gradle.docs.releasefeatures", releaseFeaturesFile
 }
 
 task docs {
