@@ -121,7 +121,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // Set the only visible included builds from the root build
         settings.getGradle().setIncludedBuilds(modelElements);
         registerProjects(includedBuilds);
-        registerSubstitutions(includedBuilds);
+    }
+
+    @Override
+    public void beforeConfigureRootBuild() {
+        registerSubstitutions(includedBuilds.values());
     }
 
     private void registerProjects(Collection<IncludedBuildState> includedBuilds) {

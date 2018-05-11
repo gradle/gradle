@@ -121,7 +121,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProject == null) {
+                if (settings == null) {
                     // Not known yet
                     return null;
                 }
@@ -130,7 +130,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProject.getName());
+                this.identityPath = parentIdentityPath.child(settings.getRootProject().getName());
             }
         }
         return identityPath;

@@ -149,7 +149,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
 
         // evaluate hierarchies
         op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
@@ -159,7 +159,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
 
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == op(RunBuildBuildOperationType.Details).id
-        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(RunBuildBuildOperationType.Details).id
+        op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 

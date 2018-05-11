@@ -65,7 +65,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (buildB)"
         // TODO should have a buildPath associated
-        loadOps[1].parentId == root.id
+        loadOps[1].parentId == loadOps[0].id
         loadOps[2].displayName == "Load build (:buildB:buildSrc)"
         loadOps[2].details.buildPath == ":buildB:buildSrc"
         loadOps[2].parentId == buildSrcOps[0].id
@@ -75,12 +75,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[0].displayName == "Configure build (:buildB:buildSrc)"
         configureOps[0].details.buildPath == ":buildB:buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
-        configureOps[1].displayName == "Configure build (buildB)"
-        // TODO - should have a buildPath associated
+        configureOps[1].displayName == "Configure build"
+        configureOps[1].details.buildPath == ":"
         configureOps[1].parentId == root.id
-        configureOps[2].displayName == "Configure build"
-        configureOps[2].details.buildPath == ":"
-        configureOps[2].parentId == root.id
+        configureOps[2].displayName == "Configure build (:buildB)"
+        configureOps[2].details.buildPath == ":buildB"
+        configureOps[2].parentId == configureOps[1].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
@@ -136,25 +136,25 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[1].parentId == buildSrcOps[0].id
         loadOps[2].displayName == "Load build (buildB)"
         // TODO should have a buildPath associated
-        loadOps[2].parentId == root.id
+        loadOps[2].parentId == loadOps[0].id
         loadOps[3].displayName == "Load build (:buildB:buildSrc)"
         loadOps[3].details.buildPath == ":buildB:buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
-        configureOps[0].displayName == "Configure build (buildSrc)"
+        configureOps[0].displayName == "Configure build (:buildSrc)"
         configureOps[0].details.buildPath == ":buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
         configureOps[1].displayName == "Configure build (:buildB:buildSrc)"
         configureOps[1].details.buildPath == ":buildB:buildSrc"
         configureOps[1].parentId == buildSrcOps[1].id
-        configureOps[2].displayName == "Configure build (buildB)"
-        // TODO - should have a buildPath associated
+        configureOps[2].displayName == "Configure build"
+        configureOps[2].details.buildPath == ":"
         configureOps[2].parentId == root.id
-        configureOps[3].displayName == "Configure build"
-        configureOps[3].details.buildPath == ":"
-        configureOps[3].parentId == root.id
+        configureOps[3].displayName == "Configure build (:buildB)"
+        configureOps[3].details.buildPath == ":buildB"
+        configureOps[3].parentId == configureOps[2].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 4

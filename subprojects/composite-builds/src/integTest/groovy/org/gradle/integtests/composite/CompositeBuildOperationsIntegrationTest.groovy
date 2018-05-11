@@ -81,16 +81,16 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (buildB)"
         loadOps[1].details.buildPath == ":buildB"
-        loadOps[1].parentId == root.id
+        loadOps[1].parentId == loadOps[0].id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (buildB)"
-        configureOps[0].details.buildPath == ":buildB"
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
         configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build"
-        configureOps[1].details.buildPath == ":"
-        configureOps[1].parentId == root.id
+        configureOps[1].displayName == "Configure build (:buildB)"
+        configureOps[1].details.buildPath == ":buildB"
+        configureOps[1].parentId == configureOps[0].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
