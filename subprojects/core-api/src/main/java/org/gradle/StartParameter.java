@@ -77,7 +77,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
-    private File gradleHomeDir;
+    protected File gradleHomeDir;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
