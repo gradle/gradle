@@ -26,8 +26,6 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -37,6 +35,7 @@ import org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -46,8 +45,6 @@ import javax.inject.Inject;
  * @since 1.3
  */
 public class PublishingPlugin implements Plugin<Project> {
-
-    private static final Logger LOGGER = Logging.getLogger(PublishingPlugin.class);
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
@@ -92,12 +89,11 @@ public class PublishingPlugin implements Plugin<Project> {
         if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
             return DefaultPublishingExtension.class;
         } else {
-            LOGGER.warn(
-                "As part of making the publishing plugins stable, we are removing the 'deferred configurable' behavior of the 'publishing {}' block.\n" +
-                    "We don't want to silently break your build, so we need your help for the migration.\n" +
-                    "Please add 'enableFeaturePreview('STABLE_PUBLISHING')' to your settings file and do a test run by publishing to a local repository.\n" +
-                    "If all artifacts are published as expected, there is nothing else to do.\n" +
-                    "If the published artifacts change unexpectedly, please see the migration guide for more details: " + documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven:deferred_configuration") + "\n" +
+            DeprecationLogger.nagUserWith(
+                "As part of making the publishing plugins stable, the 'deferred configurable' behavior of the 'publishing {}' block is now deprecated. " +
+                    "Please add 'enableFeaturePreview('STABLE_PUBLISHING')' to your settings file and do a test run by publishing to a local repository. " +
+                    "If all artifacts are published as expected, there is nothing else to do. " +
+                    "If the published artifacts change unexpectedly, please see the migration guide for more details: " + documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven:deferred_configuration") + ". " +
                     "Gradle 5.0 will switch this flag on by default."
             );
             return DeferredConfigurablePublishingExtension.class;

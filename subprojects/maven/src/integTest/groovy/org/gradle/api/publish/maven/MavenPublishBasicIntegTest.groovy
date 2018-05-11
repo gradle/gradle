@@ -27,7 +27,7 @@ import spock.lang.Ignore
  * Tests “simple” maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
-    private static final String DEFERRED_CONFIGURATION_WARNING = "we are removing the 'deferred configurable' behavior"
+    private static final String DEFERRED_CONFIGURATION_WARNING = "the 'deferred configurable' behavior of the 'publishing {}' block is now deprecated"
 
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
@@ -254,12 +254,13 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     def "asks the user to activate the stable publishing feature preview"() {
 
         given:
-        settingsFile << "rootProject.name = 'root'"
+        settingsFile.text = "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
         """
 
         when:
+        executer.expectDeprecationWarning()
         succeeds("help")
 
         then:

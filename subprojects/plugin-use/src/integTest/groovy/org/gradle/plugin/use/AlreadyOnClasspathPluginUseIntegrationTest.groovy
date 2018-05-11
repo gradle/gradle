@@ -17,6 +17,7 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 
 class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
@@ -271,6 +272,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
     }
 
     private void withBinaryPluginBuild(String projectPath = ".", TestKitSpec testKitSpec = null) {
+        FeaturePreviewsFixture.enableStablePublishing(file("$projectPath/settings.gradle"))
         file("$projectPath/src/main/groovy/my/MyPlugin.groovy") << """
 
             package my
