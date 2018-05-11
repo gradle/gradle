@@ -150,13 +150,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             configurations {
                 conf {
                    attributes.attribute(quality, 'qa')
-                   // TODO: this shouldn't be necessary, because ideally we should consider attributes
-                   // during version listing too
-                   resolutionStrategy.componentSelection.all { ComponentSelection selection, ComponentMetadata md ->
-                      if (md.attributes.getAttribute(quality) != 'qa') {
-                         selection.reject('Not approved by QA')
-                      }
-                   }
                 }
             }
             
