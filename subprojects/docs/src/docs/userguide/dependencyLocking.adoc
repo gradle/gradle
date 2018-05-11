@@ -140,6 +140,7 @@ The resolution may cause other module versions to update, as dictated by the Gra
 If you only perform the second step above, then locking will effectively no longer be applied.
 However, if that configuration happens to be resolved in the future at a time where lock state is persisted, it will once again be locked.
 
+[[locking_limitations]]
 === Locking limitations
 
 * It is currently not possible to lock the <<sec:applying_plugins_buildscript,`classpath` configuration>> used for build plugins.
