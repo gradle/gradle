@@ -77,7 +77,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     private File gradleUserHomeDir;
-    private File gradleHomeDir;
+    protected File gradleHomeDir;
     private File settingsFile;
     private boolean useEmptySettings;
     private File buildFile;
@@ -223,7 +223,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.searchUpwards = searchUpwards;
         p.projectProperties = new HashMap<String, String>(projectProperties);
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
-        p.gradleHomeDir = gradleHomeDir;
         p.initScripts = new ArrayList<File>(initScripts);
         p.includedBuilds = new ArrayList<File>(includedBuilds);
         p.dryRun = dryRun;
@@ -242,6 +241,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     protected StartParameter prepareNewBuild(StartParameter p) {
+        p.gradleHomeDir = gradleHomeDir;
         p.gradleUserHomeDir = gradleUserHomeDir;
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
