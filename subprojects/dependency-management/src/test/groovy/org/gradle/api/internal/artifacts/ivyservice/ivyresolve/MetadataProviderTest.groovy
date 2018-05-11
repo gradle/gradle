@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class MetadataProviderTest extends Specification {
     def dep = Stub(DependencyMetadata)
@@ -259,9 +260,9 @@ class MetadataProviderTest extends Specification {
 
         then:
         InvalidUserDataException ex = thrown()
-        ex.message == """Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans:
+        ex.message == toPlatformLineSeparators("""Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans:
   - Attribute 'integer' has type class java.lang.Integer
-  - Attribute 'long' has type class java.lang.Long"""
+  - Attribute 'long' has type class java.lang.Long""")
     }
 
 }

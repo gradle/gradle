@@ -203,7 +203,7 @@ Supplying metadata for module org:testB:2
         """
         def files = [:]
         moduleToVersions.each { module, json ->
-            def file = temporaryFolder.createFile("metadata-${module}.json")
+            def file = temporaryFolder.createFile("metadata-${module.replace(':', '_')}.json")
             file.setText(json, 'utf-8')
             files[module] = file
         }
