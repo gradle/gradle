@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.accessors.tasks
+package org.gradle.kotlin.dsl.provider.plugins.accessors.tasks
 
 import groovy.json.JsonOutput.prettyPrint
 
@@ -23,9 +23,11 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.accessors.multiProjectKotlinStringSchemaFor
-import org.gradle.kotlin.dsl.accessors.toJson
-import org.gradle.kotlin.dsl.accessors.PROJECT_SCHEMA_RESOURCE_PATH
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.provider.spi.PROJECT_SCHEMA_RESOURCE_PATH
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
+import org.gradle.kotlin.dsl.provider.spi.toJson
+import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 
 import java.io.File
 
@@ -46,7 +48,7 @@ open class UpdateProjectSchema : DefaultTask() {
 
     private
     val schema by lazy {
-        multiProjectKotlinStringSchemaFor(project)
+        projectSchemaProvider.multiProjectSchemaFor(project).mapValues { it.value.withKotlinTypeStrings() }
     }
 
     @Suppress("unused")
@@ -54,4 +56,8 @@ open class UpdateProjectSchema : DefaultTask() {
     fun generateProjectSchema() {
         destinationFile.writeText(prettyPrint(toJson(schema)))
     }
+
+    private
+    val projectSchemaProvider: ProjectSchemaProvider
+        get() = project.serviceOf()
 }

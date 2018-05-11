@@ -20,6 +20,7 @@ import org.gradle.api.internal.HasConvention
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
 import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
+import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens

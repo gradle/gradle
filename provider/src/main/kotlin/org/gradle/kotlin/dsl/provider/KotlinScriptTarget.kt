@@ -30,8 +30,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
-import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
+import org.gradle.kotlin.dsl.provider.spi.AccessorsClassPath
+import org.gradle.kotlin.dsl.provider.spi.KotlinScriptBasePluginsApplicator
+import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
@@ -97,7 +99,7 @@ fun projectScriptTarget(
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
         onPrepare = {
             afterEvaluate {
-                plugins.apply(KotlinScriptBasePlugin::class.java)
+                serviceOf<KotlinScriptBasePluginsApplicator>().apply(this)
             }
         })
 

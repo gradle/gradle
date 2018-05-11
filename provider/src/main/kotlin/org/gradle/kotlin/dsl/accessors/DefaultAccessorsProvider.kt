@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.service.ServiceRegistry
+package org.gradle.kotlin.dsl.accessors
+
+import org.gradle.kotlin.dsl.provider.spi.AccessorsProvider
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
 
 
-inline fun <reified T : Any> ServiceRegistry.get(): T =
-    this[T::class.java]!!
+class DefaultAccessorsProvider : AccessorsProvider {
+
+    override fun forEachAccessorOf(accessibleSchema: ProjectSchema<TypeAccessibility>, action: (String) -> Unit) =
+        accessibleSchema.forEachAccessor(action)
+}

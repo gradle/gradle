@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.plugins
-
-import org.gradle.internal.service.ServiceRegistration
-import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
-
-
-class KotlinDslProviderPluginsServiceRegistry : AbstractPluginServiceRegistry() {
-
-    override fun registerGradleUserHomeServices(registration: ServiceRegistration) {
-        registration.addProvider(GradleUserHomeServices)
-    }
-}
+package org.gradle.kotlin.dsl.accessors
 
 
 internal
 object GradleUserHomeServices {
 
     @Suppress("unused")
-    fun createProjectSchemaProvider() =
-        DefaultProjectSchemaProvider()
-
-    @Suppress("unused")
-    fun createKotlinScriptBasePluginsApplicator() =
-        DefaultKotlinScriptBasePluginsApplicator()
+    fun createAccessorsProvider() =
+        DefaultAccessorsProvider()
 }

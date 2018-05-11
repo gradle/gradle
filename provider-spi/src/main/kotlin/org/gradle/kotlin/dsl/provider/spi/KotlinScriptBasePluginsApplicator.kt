@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.invocation.Gradle
+package org.gradle.kotlin.dsl.provider.spi
 
-import org.gradle.kotlin.dsl.provider.spi.get
+import org.gradle.api.Project
 
 
-inline fun <reified T : Any> Gradle.serviceOf(): T =
-    (gradle as GradleInternal).services.get()
+interface KotlinScriptBasePluginsApplicator {
+
+    fun apply(project: Project)
+}
