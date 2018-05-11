@@ -28,7 +28,7 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
         isWildcard ->
             upperBound?.let(::kotlinTypeStringFor) ?: "Any"
         else ->
-            toString().let { knownPublicTypes[it] ?: primitiveTypeStrings[it] ?: it }
+            toString().let { primitiveTypeStrings[it] ?: it }
     }
 }
 
@@ -57,8 +57,3 @@ val primitiveTypeStrings =
 
 
 val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()
-
-
-private
-val knownPublicTypes = mapOf(
-    "org.jetbrains.kotlin.gradle.internal.KotlinSourceSetImpl" to "org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet")
