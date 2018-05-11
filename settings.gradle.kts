@@ -1,5 +1,3 @@
-enableFeaturePreview("STABLE_PUBLISHING")
-
 rootProject.name = "gradle-kotlin-dsl"
 
 include(
