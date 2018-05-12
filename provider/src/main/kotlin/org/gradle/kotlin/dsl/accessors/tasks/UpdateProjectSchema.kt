@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.plugins.accessors.tasks
+package org.gradle.kotlin.dsl.accessors.tasks
 
 import groovy.json.JsonOutput.prettyPrint
 

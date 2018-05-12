@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.plugins.accessors.tasks
+package org.gradle.kotlin.dsl.accessors.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -22,8 +22,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.accessors.accessible
 import org.gradle.kotlin.dsl.accessors.forEachAccessor
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.accessors.withKotlinTypeStrings
+import org.gradle.kotlin.dsl.support.serviceOf
 
 
 open class PrintAccessors : DefaultTask() {

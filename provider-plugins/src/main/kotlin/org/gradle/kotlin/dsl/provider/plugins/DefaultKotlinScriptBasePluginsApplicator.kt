@@ -19,8 +19,8 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.PrintAccessors
-import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.UpdateProjectSchema
+import org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors
+import org.gradle.kotlin.dsl.accessors.tasks.UpdateProjectSchema
 import org.gradle.kotlin.dsl.provider.KotlinScriptBasePluginsApplicator
 
 

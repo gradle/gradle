@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
 
+internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
     val seen = SeenAccessorSpecs()
     extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->

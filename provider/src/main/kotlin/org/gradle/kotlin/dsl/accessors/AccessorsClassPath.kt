@@ -442,6 +442,7 @@ fun typeErasure(type: String): InaccessibilityReason =
     InaccessibilityReason.TypeErasure(type)
 
 
+internal
 fun accessible(type: String): TypeAccessibility =
     TypeAccessibility.Accessible(type)
 
