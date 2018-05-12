@@ -253,7 +253,7 @@ class NamedDomainObjectCollectionExtensionsTest {
         }
         val domainObject: DomainObject by container
 
-        val error = assertFailsWith(IllegalStateException::class) {
+        val error = assertFailsWith(IllegalArgumentException::class) {
             println(domainObject)
         }
         assertThat(
