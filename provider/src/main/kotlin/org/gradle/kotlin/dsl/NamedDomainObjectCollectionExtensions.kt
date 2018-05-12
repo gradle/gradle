@@ -39,8 +39,7 @@ import kotlin.reflect.KProperty
 inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String) =
     getByName(name).let {
         it as? T
-            ?: throw IllegalArgumentException(
-                "Element '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.qualifiedName}'.")
+            ?: throw illegalElementType(this, name, T::class, it::class)
     }
 
 
