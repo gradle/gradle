@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.spi
+package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 
-interface KotlinScriptBasePluginsApplicator {
-
-    fun apply(project: Project)
-}
+inline fun <reified T : Any> Project.serviceOf(): T =
+    (this as ProjectInternal).services.get()

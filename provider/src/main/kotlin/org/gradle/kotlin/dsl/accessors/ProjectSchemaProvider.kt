@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.spi
+package org.gradle.kotlin.dsl.accessors
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper

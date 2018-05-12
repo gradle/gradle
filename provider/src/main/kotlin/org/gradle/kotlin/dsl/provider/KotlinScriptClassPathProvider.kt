@@ -30,10 +30,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
-import org.gradle.kotlin.dsl.provider.spi.serviceOf
 import org.gradle.kotlin.dsl.support.ProgressMonitor
 import org.gradle.kotlin.dsl.support.minus
 import org.gradle.kotlin.dsl.support.root
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.util.GFileUtils.moveFile
 

@@ -11,5 +11,5 @@ base {
 dependencies {
     compileOnly(gradleApi())
 
-    compile(project(":provider-spi"))
+    compile(project(":provider"))
 }
