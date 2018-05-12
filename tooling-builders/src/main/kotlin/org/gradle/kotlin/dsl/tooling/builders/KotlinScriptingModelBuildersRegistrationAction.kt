@@ -19,7 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.configuration.project.ProjectConfigureAction
 
-import org.gradle.kotlin.dsl.provider.spi.serviceOf
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 

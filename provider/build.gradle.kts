@@ -13,7 +13,6 @@ base {
 dependencies {
     compileOnly(gradleApi())
 
-    compile(project(":provider-spi"))
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("reflect"))

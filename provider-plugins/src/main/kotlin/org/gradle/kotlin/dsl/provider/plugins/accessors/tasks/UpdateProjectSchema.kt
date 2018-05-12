@@ -23,11 +23,11 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
-import org.gradle.kotlin.dsl.provider.spi.PROJECT_SCHEMA_RESOURCE_PATH
-import org.gradle.kotlin.dsl.provider.spi.serviceOf
-import org.gradle.kotlin.dsl.provider.spi.toJson
-import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
+import org.gradle.kotlin.dsl.accessors.PROJECT_SCHEMA_RESOURCE_PATH
+import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.toJson
+import org.gradle.kotlin.dsl.accessors.withKotlinTypeStrings
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import java.io.File
 

@@ -27,18 +27,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeader
-import org.gradle.kotlin.dsl.provider.spi.AccessorsClassPath
-import org.gradle.kotlin.dsl.provider.spi.InaccessibilityReason
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
-import org.gradle.kotlin.dsl.provider.spi.TypeAccessibility
-import org.gradle.kotlin.dsl.provider.spi.loadMultiProjectSchemaFrom
-import org.gradle.kotlin.dsl.provider.spi.primitiveKotlinTypeNames
-import org.gradle.kotlin.dsl.provider.spi.PROJECT_SCHEMA_RESOURCE_PATH
-import org.gradle.kotlin.dsl.provider.spi.serviceOf
-import org.gradle.kotlin.dsl.provider.spi.withKotlinTypeStrings
 import org.gradle.kotlin.dsl.support.compileToJar
 import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
@@ -69,6 +60,13 @@ fun accessorsClassPathFor(project: Project, classPath: ClassPath) =
         buildAccessorsClassPathFor(project, classPath)
             ?: AccessorsClassPath.empty
     }
+
+
+data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
+    companion object {
+        val empty = AccessorsClassPath(ClassPath.EMPTY, ClassPath.EMPTY)
+    }
+}
 
 
 private
@@ -148,6 +146,29 @@ fun availableProjectSchemaFor(projectSchema: ProjectSchema<String>, classPath: C
     TypeAccessibilityProvider(classPath).use { accessibilityProvider ->
         projectSchema.map(accessibilityProvider::accessibilityForType)
     }
+
+
+sealed class TypeAccessibility {
+    data class Accessible(val type: String) : TypeAccessibility()
+    data class Inaccessible(val type: String, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
+}
+
+
+sealed class InaccessibilityReason {
+
+    data class NonPublic(val type: String) : InaccessibilityReason()
+    data class NonAvailable(val type: String) : InaccessibilityReason()
+    data class Synthetic(val type: String) : InaccessibilityReason()
+    data class TypeErasure(val type: String) : InaccessibilityReason()
+
+    val explanation
+        get() = when (this) {
+            is NonPublic -> "`$type` is not public"
+            is NonAvailable -> "`$type` is not available"
+            is Synthetic -> "`$type` is synthetic"
+            is TypeErasure -> "`$type` parameter types are missing"
+        }
+}
 
 
 private
@@ -421,7 +442,6 @@ fun typeErasure(type: String): InaccessibilityReason =
     InaccessibilityReason.TypeErasure(type)
 
 
-internal
 fun accessible(type: String): TypeAccessibility =
     TypeAccessibility.Accessible(type)
 
@@ -530,3 +550,9 @@ fun writeAccessorsFor(projectSchema: ProjectSchema<TypeAccessibility>, writer: B
         }
     }
 }
+
+
+/**
+ * Location of the project schema snapshot taken by the _kotlinDslAccessorsSnapshot_ task relative to the root project.
+ */
+const val PROJECT_SCHEMA_RESOURCE_PATH = "gradle/project-schema.json"

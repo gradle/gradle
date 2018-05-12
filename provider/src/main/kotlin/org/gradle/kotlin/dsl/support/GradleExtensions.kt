@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.invocation.Gradle
 
-import org.gradle.kotlin.dsl.provider.spi.get
-
 
 inline fun <reified T : Any> Gradle.serviceOf(): T =
     (gradle as GradleInternal).services.get()

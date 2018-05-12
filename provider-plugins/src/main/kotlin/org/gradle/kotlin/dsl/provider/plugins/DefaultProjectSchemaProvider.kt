@@ -24,9 +24,9 @@ import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
-import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaProvider
+import org.gradle.kotlin.dsl.accessors.ProjectSchema
+import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
+import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {

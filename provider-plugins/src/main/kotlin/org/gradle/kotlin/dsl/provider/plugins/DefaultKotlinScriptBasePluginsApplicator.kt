@@ -21,7 +21,7 @@ import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.PrintAccessors
 import org.gradle.kotlin.dsl.provider.plugins.accessors.tasks.UpdateProjectSchema
-import org.gradle.kotlin.dsl.provider.spi.KotlinScriptBasePluginsApplicator
+import org.gradle.kotlin.dsl.provider.KotlinScriptBasePluginsApplicator
 
 
 class DefaultKotlinScriptBasePluginsApplicator : KotlinScriptBasePluginsApplicator {

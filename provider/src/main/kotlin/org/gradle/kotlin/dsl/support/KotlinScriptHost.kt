@@ -26,7 +26,6 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.service.ServiceRegistry
 
-import org.gradle.kotlin.dsl.provider.spi.get
 import org.gradle.kotlin.dsl.fileOperationsFor
 import org.gradle.kotlin.dsl.invoke
 
