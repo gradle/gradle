@@ -253,7 +253,7 @@ The Java plugin adds a number of <<managing_dependency_configurations,dependency
 [NOTE]
 ====
 
-To find information on the `api` configuration, please consult the <<java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects, Dependency Management Tutorial>>.
+To find information on the `api` configuration, please consult the <<sec:java_library_separation, Java Library Plugin>> reference documentation and the <<dependency_management_for_java_projects, Dependency Management Tutorial>>.
 
 ====
 
