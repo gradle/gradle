@@ -74,6 +74,73 @@ class NamedDomainObjectCollectionExtensionsTest {
     }
 
     @Test
+    fun `can configure existing element by getting`() {
+
+        val element = DomainObject()
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { getByName("domainObject") } doReturn element
+        }
+
+        container { // invoke syntax
+            @Suppress("unused_variable")
+            val domainObject by getting { foo = "foo" }
+            assertThat(element.foo, equalTo("foo"))
+        }
+
+        container.apply { // regular syntax
+            @Suppress("unused_variable")
+            val domainObject by getting { foo = "bar" }
+            assertThat(element.foo, equalTo("bar"))
+        }
+    }
+
+    @Test
+    fun `can add element by creating`() {
+
+        val fooObject = DomainObject()
+        val barObject = DomainObject()
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { create("foo") } doReturn fooObject
+            on { getByName("foo") } doReturn fooObject
+            on { create("bar") } doReturn barObject
+            on { getByName("bar") } doReturn barObject
+        }
+
+        container { // invoke syntax
+            val foo by creating
+            assertThat(foo.foo, nullValue())
+        }
+
+        container.apply { // regular syntax
+            val bar by creating
+            assertThat(bar.foo, nullValue())
+        }
+    }
+
+    @Test
+    fun `can add and configure element by creating`() {
+
+        val fooObject = DomainObject()
+        val barObject = DomainObject()
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { create("foo") } doReturn fooObject
+            on { getByName("foo") } doReturn fooObject
+            on { create("bar") } doReturn barObject
+            on { getByName("bar") } doReturn barObject
+        }
+
+        container { // invoke syntax
+            val foo by creating { foo = "foo" }
+            assertThat(foo.foo, equalTo("foo"))
+        }
+
+        container.apply { // regular syntax
+            val bar by creating { foo = "bar" }
+            assertThat(bar.foo, equalTo("bar"))
+        }
+    }
+
+    @Test
     fun `can access existing typed element by getting`() {
 
         val element = DomainObject()
@@ -112,27 +179,6 @@ class NamedDomainObjectCollectionExtensionsTest {
     }
 
     @Test
-    fun `can configure existing element by getting`() {
-
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { getByName("domainObject") } doReturn element
-        }
-
-        container { // invoke syntax
-            @Suppress("unused_variable")
-            val domainObject by getting { foo = "foo" }
-            assertThat(element.foo, equalTo("foo"))
-        }
-
-        container.apply { // regular syntax
-            @Suppress("unused_variable")
-            val domainObject by getting { foo = "bar" }
-            assertThat(element.foo, equalTo("bar"))
-        }
-    }
-
-    @Test
     fun `can configure existing typed element by getting`() {
 
         val element = DomainObject()
@@ -150,6 +196,52 @@ class NamedDomainObjectCollectionExtensionsTest {
             @Suppress("unused_variable")
             val domainObject by getting(DomainObject::class) { foo = "bar" }
             assertThat(element.foo, equalTo("bar"))
+        }
+    }
+
+    @Test
+    fun `can add typed element by creating`() {
+
+        val fooObject = DomainObject()
+        val barObject = DomainObject()
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { create("foo", DomainObject::class.java) } doReturn fooObject
+            on { getByName("foo") } doReturn fooObject
+            on { create("bar", DomainObject::class.java) } doReturn barObject
+            on { getByName("bar") } doReturn barObject
+        }
+
+        container { // invoke syntax
+            val foo by creating(DomainObject::class)
+            assertThat(foo.foo, nullValue())
+        }
+
+        container.apply { // regular syntax
+            val bar by creating(DomainObject::class)
+            assertThat(bar.foo, nullValue())
+        }
+    }
+
+    @Test
+    fun `can add and configure typed element by creating`() {
+
+        val fooObject = DomainObject()
+        val barObject = DomainObject()
+        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+            on { create("foo", DomainObject::class.java) } doReturn fooObject
+            on { getByName("foo") } doReturn fooObject
+            on { create("bar", DomainObject::class.java) } doReturn barObject
+            on { getByName("bar") } doReturn barObject
+        }
+
+        container { // invoke syntax
+            val foo by creating(DomainObject::class) { foo = "foo" }
+            assertThat(foo.foo, equalTo("foo"))
+        }
+
+        container.apply { // regular syntax
+            val bar by creating(DomainObject::class) { foo = "bar" }
+            assertThat(bar.foo, equalTo("bar"))
         }
     }
 

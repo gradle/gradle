@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
@@ -46,7 +47,19 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  */
 class NamedDomainObjectContainerScope<T : Any>(
     private val container: NamedDomainObjectContainer<T>
-) : NamedDomainObjectContainer<T> by container {
+) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
+
+    override fun <U : T> create(name: String, type: Class<U>): U =
+        polymorphicDomainObjectContainer().create(name, type)
+
+    override fun <U : T> create(name: String, type: Class<U>, configuration: Action<in U>): U =
+        polymorphicDomainObjectContainer().create(name, type, configuration)
+
+    override fun <U : T> maybeCreate(name: String, type: Class<U>): U =
+        polymorphicDomainObjectContainer().maybeCreate(name, type)
+
+    override fun <U : T> containerWithType(type: Class<U>): NamedDomainObjectContainer<U> =
+        polymorphicDomainObjectContainer().containerWithType(type)
 
     /**
      * @see [NamedDomainObjectContainer.maybeCreate]
@@ -73,35 +86,15 @@ class NamedDomainObjectContainerScope<T : Any>(
         polymorphicDomainObjectContainer().maybeCreate(this, type.java)
 
     /**
-     * Provides a property delegate that creates elements of the given [type].
+     * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].
+     *
+     * We must rely on the dynamic cast and possible runtime failure here due to a Kotlin extension member limitation.
+     * Kotlin currently can't disambiguate between invoke operators with more specific receivers in a type hierarchy.
+     *
+     * See https://youtrack.jetbrains.com/issue/KT-15711
      */
-    fun <U : T> creating(type: KClass<U>) =
-        polymorphicDomainObjectContainer().creating(type)
-
-    /**
-     * Provides a property delegate that creates elements of the given [type] with the given [configuration].
-     */
-    fun <U : T> creating(type: KClass<U>, configuration: U.() -> Unit) =
-        polymorphicDomainObjectContainer().creating(type, configuration)
-
-    /**
-     * Provides a property delegate that gets elements of the given [type].
-     */
-    fun <U : T> getting(type: KClass<U>) =
-        polymorphicDomainObjectContainer().getting(type)
-
-    /**
-     * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
-     */
-    fun <U : T> getting(type: KClass<U>, configuration: U.() -> Unit) =
-        polymorphicDomainObjectContainer().getting(type, configuration)
-
     private
     fun polymorphicDomainObjectContainer() =
-        // We must rely on the dynamic cast and possible runtime failure here
-        // due to a Kotlin extension member limitation.
-        // Kotlin currently can't disambiguate between invoke operators with
-        // more specific receivers in a type hierarchy.
         container as? PolymorphicDomainObjectContainer<T>
             ?: throw IllegalArgumentException("Container '$container' is not polymorphic.")
 }

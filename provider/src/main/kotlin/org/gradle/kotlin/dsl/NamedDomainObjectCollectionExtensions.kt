@@ -25,6 +25,42 @@ import kotlin.reflect.KProperty
 
 
 /**
+ * Locates an object by name and casts it to the expected type [T].
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected type [T], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String) =
+    getByName(name).let {
+        it as? T
+            ?: throw IllegalArgumentException(
+                "Element '$name' of type '${it::class.java.name}' cannot be cast to '${T::class.qualifiedName}'.")
+    }
+
+
+/**
+ * Locates an object by name and casts it to the expected type [T] then configures it.
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected type [T], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @param configure configuration action to apply to the object before returning it
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, configure: T.() -> Unit) =
+    getByName<T>(name).also(configure)
+
+
+/**
  * Idiomatic way of referring to an existing element in a collection
  * via a delegate property.
  *
