@@ -163,7 +163,7 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can access existing element by getting with type`() {
 
         val element = DomainObject()
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+        val container = mock<NamedDomainObjectContainer<Any>> {
             on { getByName("domainObject") } doReturn element
         }
 
@@ -182,7 +182,7 @@ class NamedDomainObjectCollectionExtensionsTest {
     fun `can configure existing typed element by getting`() {
 
         val element = DomainObject()
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
+        val container = mock<NamedDomainObjectContainer<Any>> {
             on { getByName("domainObject") } doReturn element
         }
 

@@ -175,14 +175,14 @@ class PolymorphicDomainObjectContainerDelegateProvider<T : Any, U : T>(
 /**
  * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
  */
-fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>, configuration: U.() -> Unit) =
+fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, configuration: U.() -> Unit) =
     PolymorphicDomainObjectContainerGettingDelegateProvider(this, type, configuration)
 
 
 /**
  * Provides a property delegate that gets elements of the given [type].
  */
-fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>) =
+fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
     PolymorphicDomainObjectContainerGettingDelegate(this, type)
 
 
@@ -190,7 +190,7 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getting(type: KClass<U>
  * A property delegate that gets elements of the given [type] in the given [container].
  */
 class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
-    val container: PolymorphicDomainObjectContainer<T>,
+    val container: NamedDomainObjectContainer<T>,
     val type: KClass<U>
 ) {
 
@@ -204,7 +204,7 @@ class PolymorphicDomainObjectContainerGettingDelegate<T : Any, U : T>(
  * and applies the given [configuration].
  */
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
-    val container: PolymorphicDomainObjectContainer<T>,
+    val container: NamedDomainObjectContainer<T>,
     val type: KClass<U>,
     val configuration: U.() -> Unit
 ) {
@@ -213,12 +213,12 @@ class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
         container.apply {
             getByName(property.name, type).configuration()
-        } as PolymorphicDomainObjectContainer<U>
+        } as NamedDomainObjectContainer<U>
 }
 
 
 private
-fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.getByName(name: String, type: KClass<U>): U =
+fun <T : Any, U : T> NamedDomainObjectContainer<T>.getByName(name: String, type: KClass<U>): U =
     getByName(name).let {
         type.safeCast(it)
             ?: throw illegalElementType(this, name, type, it::class)
