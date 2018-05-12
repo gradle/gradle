@@ -21,7 +21,9 @@ import org.gradle.api.UnknownDomainObjectException
 
 import org.gradle.kotlin.dsl.support.illegalElementType
 
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.safeCast
 
 
 /**
@@ -40,6 +42,25 @@ inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name
     getByName(name).let {
         it as? T
             ?: throw illegalElementType(this, name, T::class, it::class)
+    }
+
+
+/**
+ * Locates an object by name and casts it to the expected [type].
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected [type], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @param type expected type
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+fun <T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, type: KClass<T>): T =
+    getByName(name).let {
+        type.safeCast(it)
+            ?: throw illegalElementType(this, name, type, it::class)
     }
 
 

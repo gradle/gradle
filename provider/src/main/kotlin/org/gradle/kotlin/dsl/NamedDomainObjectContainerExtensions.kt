@@ -20,11 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
 
-import org.gradle.kotlin.dsl.support.illegalElementType
-
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.safeCast
 
 
 /**
@@ -215,11 +212,3 @@ class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>(
             getByName(property.name, type).configuration()
         } as NamedDomainObjectContainer<U>
 }
-
-
-private
-fun <T : Any, U : T> NamedDomainObjectContainer<T>.getByName(name: String, type: KClass<U>): U =
-    getByName(name).let {
-        type.safeCast(it)
-            ?: throw illegalElementType(this, name, type, it::class)
-    }
