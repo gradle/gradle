@@ -37,7 +37,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         LocalComponentRegistry localComponentRegistry = gradle.getServices().get(LocalComponentRegistry.class);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
 
-        ProjectComponentIdentifier foreignIdentifier = build.idToReferenceProjectFromAnotherBuild(projectIdentifier.getProjectPath());
+        ProjectComponentIdentifier foreignIdentifier = build.idToReferenceProjectFromAnotherBuild(projectIdentifier);
         return createCompositeCopy(foreignIdentifier, originalComponent);
     }
 

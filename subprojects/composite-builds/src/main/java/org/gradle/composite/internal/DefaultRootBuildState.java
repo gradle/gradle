@@ -18,15 +18,14 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildController;
@@ -34,7 +33,7 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
-class DefaultRootBuildState implements RootBuildState {
+class DefaultRootBuildState extends AbstractBuildState implements RootBuildState {
     private final BuildDefinition buildDefinition;
     private final BuildRequestContext requestContext;
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -92,11 +91,6 @@ class DefaultRootBuildState implements RootBuildState {
     @Override
     public BuildIdentifier getBuildIdentifier() {
         return DefaultBuildIdentifier.ROOT;
-    }
-
-    @Override
-    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-        return DefaultProjectComponentIdentifier.newProjectId(getBuildIdentifier(), projectPath.getPath());
     }
 
     @Override

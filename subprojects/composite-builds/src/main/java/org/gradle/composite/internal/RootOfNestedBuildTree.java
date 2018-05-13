@@ -19,16 +19,16 @@ package org.gradle.composite.internal;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
+import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
@@ -38,7 +38,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.util.Path;
 
-public class RootOfNestedBuildTree implements StandAloneNestedBuild {
+public class RootOfNestedBuildTree extends AbstractBuildState implements StandAloneNestedBuild {
     private final BuildIdentifier buildIdentifier;
     private final GradleLauncher gradleLauncher;
 
@@ -68,15 +68,11 @@ public class RootOfNestedBuildTree implements StandAloneNestedBuild {
     }
 
     @Override
-    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-        return DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, projectPath.getPath());
-    }
-
-    @Override
     public <T> T run(final Transformer<T, ? super BuildController> buildAction) {
         final BuildController buildController = new GradleBuildController(gradleLauncher);
         try {
             final GradleInternal gradle = gradleLauncher.getGradle();
+            gradle.getServices().get(BuildStateRegistry.class).register(this);
             BuildOperationExecutor executor = gradle.getServices().get(BuildOperationExecutor.class);
             return executor.call(new CallableBuildOperation<T>() {
                 @Override
