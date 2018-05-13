@@ -53,3 +53,19 @@ inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
 @Suppress("extension_shadowed_by_member")
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String) =
     create(name, U::class.java)
+
+
+/**
+ * Creates a domain object with the specified name and type if it does not exists, and adds it to the container.
+ *
+ * @param name the name of the domain object to be created
+ * @param <U> the type of the domain object to be created
+ * @return the created domain object
+ * @throws [InvalidUserDataException] if a domain object with the specified name already
+ * exists or the container does not support creating a domain object with the specified
+ * type
+ * @throws [ClassCastException] if a domain object with the specified name exists with a different type
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.maybeCreate(name: String) =
+    maybeCreate(name, U::class.java)

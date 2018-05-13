@@ -21,7 +21,63 @@ import org.gradle.api.UnknownDomainObjectException
 
 import org.gradle.kotlin.dsl.support.illegalElementType
 
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.safeCast
+
+
+/**
+ * Locates an object by name and casts it to the expected type [T].
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected type [T], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+@Suppress("extension_shadowed_by_member")
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String) =
+    getByName(name).let {
+        it as? T
+            ?: throw illegalElementType(this, name, T::class, it::class)
+    }
+
+
+/**
+ * Locates an object by name and casts it to the expected [type].
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected [type], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @param type expected type
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+fun <T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, type: KClass<T>): T =
+    getByName(name).let {
+        type.safeCast(it)
+            ?: throw illegalElementType(this, name, type, it::class)
+    }
+
+
+/**
+ * Locates an object by name and casts it to the expected type [T] then configures it.
+ *
+ * If an object with the given [name] is not found, [UnknownDomainObjectException] is thrown.
+ * If the object is found but cannot be cast to the expected type [T], [IllegalArgumentException] is thrown.
+ *
+ * @param name object name
+ * @param configure configuration action to apply to the object before returning it
+ * @return the object, never null
+ * @throws [UnknownDomainObjectException] When the given object is not found.
+ * @throws [IllegalArgumentException] When the given object cannot be cast to the expected type.
+ */
+inline fun <reified T : Any> NamedDomainObjectCollection<out Any>.getByName(name: String, configure: T.() -> Unit) =
+    getByName<T>(name).also(configure)
 
 
 /**
