@@ -51,7 +51,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') { 
                     dependencySubstitution { 
-                        substitute module('group:name') with project(':other') 
+                        substitute module('group:name') with project(':') 
                     } 
                 }
             """
@@ -93,7 +93,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') { 
                     dependencySubstitution { 
-                        substitute module('group:name') with project(':other') 
+                        substitute module('group:name') with project(':') 
                     } 
                 }
             """
@@ -135,7 +135,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') { 
                     dependencySubstitution { 
-                        substitute module('group:name') with project(':other') 
+                        substitute module('group:name') with project(':') 
                     } 
                 }
             """

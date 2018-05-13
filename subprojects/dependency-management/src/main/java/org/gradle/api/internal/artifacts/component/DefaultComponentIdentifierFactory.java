@@ -19,24 +19,24 @@ package org.gradle.api.internal.artifacts.component;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.util.Path;
 
 public class DefaultComponentIdentifierFactory implements ComponentIdentifierFactory {
-    private final BuildIdentity buildIdentity;
+    private final BuildState currentBuild;
 
-    public DefaultComponentIdentifierFactory(BuildIdentity buildIdentity) {
-        this.buildIdentity = buildIdentity;
+    public DefaultComponentIdentifierFactory(BuildState currentBuild) {
+        this.currentBuild = currentBuild;
     }
 
     public ComponentIdentifier createComponentIdentifier(Module module) {
         String projectPath = module.getProjectPath();
 
         if (projectPath != null) {
-            return new DefaultProjectComponentIdentifier(buildIdentity.getCurrentBuild(), projectPath);
+            return currentBuild.getIdentifierForProject(Path.path(projectPath));
         }
 
         return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());
@@ -44,11 +44,11 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
 
     @Override
     public ProjectComponentSelector createProjectComponentSelector(String projectPath) {
-        return DefaultProjectComponentSelector.newSelector(buildIdentity.getCurrentBuild(), projectPath);
+        return DefaultProjectComponentSelector.newSelector(currentBuild.getIdentifierForProject(Path.path(projectPath)));
     }
 
     @Override
     public ProjectComponentIdentifier createProjectComponentIdentifier(ProjectComponentSelector selector) {
-        return new DefaultProjectComponentIdentifier(((DefaultProjectComponentSelector)selector).getBuildIdentifier(), selector.getProjectPath());
+        return ((DefaultProjectComponentSelector) selector).toIdentifier();
     }
 }

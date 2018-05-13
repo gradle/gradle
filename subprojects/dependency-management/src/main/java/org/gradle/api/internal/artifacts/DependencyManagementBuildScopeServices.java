@@ -125,8 +125,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
-        return new DefaultComponentIdentifierFactory(buildIdentity);
+    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity, BuildStateRegistry buildRegistry) {
+        return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(buildIdentity.getCurrentBuild()));
     }
 
     DependencyFactory createDependencyFactory(

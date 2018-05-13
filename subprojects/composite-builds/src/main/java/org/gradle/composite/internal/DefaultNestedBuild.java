@@ -25,12 +25,13 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
-class DefaultNestedBuild implements StandAloneNestedBuild {
+class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
     private final BuildDefinition buildDefinition;
     private final NestedBuildFactory nestedBuildFactory;
     private final BuildStateListener buildStateListener;

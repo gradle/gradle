@@ -49,15 +49,19 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def rootBuild = registry.addRootBuild(Stub(BuildDefinition), Stub(BuildRequestContext))
         !rootBuild.implicitBuild
         rootBuild.buildIdentifier == DefaultBuildIdentifier.ROOT
+
+        registry.getBuild(rootBuild.buildIdentifier).is(rootBuild)
     }
 
     def "can add an explicit included build"() {
         def dir = tmpDir.createDir("b1")
         def buildDefinition = build(dir)
         def includedBuild = Stub(IncludedBuildState)
+        def buildIdentifier = new DefaultBuildIdentifier("b1")
+        includedBuild.buildIdentifier >> buildIdentifier
 
         given:
-        includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition, false, _) >> includedBuild
+        includedBuildFactory.createBuild(buildIdentifier, buildDefinition, false, _) >> includedBuild
 
         expect:
         def result = registry.addExplicitBuild(buildDefinition, nestedBuildFactory)
@@ -65,6 +69,9 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild]
+
+        registry.getBuild(buildIdentifier).is(includedBuild)
+        registry.getIncludedBuild(buildIdentifier).is(includedBuild)
     }
 
     def "can add multiple explicit included build"() {
@@ -117,6 +124,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2, includedBuild3]
+
+        registry.getBuild(id1).is(includedBuild1)
     }
 
     def "can add the same explicit included build multiple times"() {
@@ -156,6 +165,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
         nestedBuild.implicitBuild
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
+
+        registry.getBuild(nestedBuild.buildIdentifier).is(nestedBuild)
     }
 
     def "can add multiple nested builds with same name"() {

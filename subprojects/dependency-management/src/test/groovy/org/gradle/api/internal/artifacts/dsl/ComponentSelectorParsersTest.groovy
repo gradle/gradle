@@ -26,6 +26,7 @@ import org.gradle.initialization.BuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers.multiParser
@@ -110,7 +111,9 @@ public class ComponentSelectorParsersTest extends Specification {
         def services = new DefaultServiceRegistry()
         services.add(BuildIdentity, buildIdentity)
         def project = Mock(ProjectInternal) {
-            getPath() >> ":bar"
+            getIdentityPath() >> Path.path(":id:bar")
+            getProjectPath() >> Path.path(":bar")
+            getName() >> "name"
             getServices() >> services
         }
         def v = multiParser().parseNotation(project) as List

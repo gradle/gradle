@@ -45,10 +45,9 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':buildB:buildSrc:runtimeClasspath'.")
-        // TODO - incorrect project path
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
-    project :buildSrc""")
+    project :buildB:buildSrc""")
     }
 
     def "includes build identifier in task failure error message"() {

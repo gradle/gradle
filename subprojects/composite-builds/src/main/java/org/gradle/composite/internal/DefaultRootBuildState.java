@@ -25,6 +25,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildController;
@@ -32,7 +33,7 @@ import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
-class DefaultRootBuildState implements RootBuildState {
+class DefaultRootBuildState extends AbstractBuildState implements RootBuildState {
     private final BuildDefinition buildDefinition;
     private final BuildRequestContext requestContext;
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -46,6 +47,11 @@ class DefaultRootBuildState implements RootBuildState {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
         this.parentServices = parentServices;
+    }
+
+    @Override
+    public String toString() {
+        return "root build";
     }
 
     @Override

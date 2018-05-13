@@ -119,6 +119,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                 url.set("https://ci.example.org/")
                             }
                             distributionManagement {
+                                downloadUrl.set("https://example.org/download/")
                                 relocation {
                                     groupId.set("new-group")
                                     artifactId.set("new-artifact-id")

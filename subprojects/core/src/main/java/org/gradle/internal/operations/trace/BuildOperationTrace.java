@@ -362,7 +362,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private class LoggingListener extends BuildAdapter implements BuildOperationListener {
 
-        // This is a workaround for https://github.com/gradle/gradle/issues/3873
+        // This is a workaround for https://github.com/gradle/gradle/issues/4241
         // Several early typed operations have `buildPath` property,
         // the value of which can only be determined after the settings file for the build has loaded.
         //

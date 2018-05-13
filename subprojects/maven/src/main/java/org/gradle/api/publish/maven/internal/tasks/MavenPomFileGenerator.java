@@ -190,6 +190,7 @@ public class MavenPomFileGenerator {
 
     private DistributionManagement convertDistributionManagement(MavenPomDistributionManagementInternal source) {
         DistributionManagement target = new DistributionManagement();
+        target.setDownloadUrl(source.getDownloadUrl().getOrNull());
         if (source.getRelocation() != null) {
             target.setRelocation(convertRelocation(source.getRelocation()));
         }

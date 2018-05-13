@@ -108,6 +108,20 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
+    public BuildState getBuild(BuildIdentifier buildIdentifier) {
+        BuildState buildState = builds.get(buildIdentifier);
+        if (buildState == null) {
+            throw new IllegalArgumentException("Could not find " + buildIdentifier);
+        }
+        return buildState;
+    }
+
+    @Override
+    public void register(BuildState build) {
+        addBuild(build);
+    }
+
+    @Override
     public void registerRootBuild(SettingsInternal settings) {
         validateIncludedBuilds(settings);
 
@@ -121,7 +135,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // Set the only visible included builds from the root build
         settings.getGradle().setIncludedBuilds(modelElements);
         registerProjects(includedBuilds);
-        registerSubstitutions(includedBuilds);
+    }
+
+    @Override
+    public void beforeConfigureRootBuild() {
+        registerSubstitutions(includedBuilds.values());
     }
 
     private void registerProjects(Collection<IncludedBuildState> includedBuilds) {
