@@ -69,7 +69,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
             if (sourceBuild.equals(nextTarget)) {
                 candidateCycle.add(nextTarget);
-                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), Path.ROOT.getPath());
+                ProjectComponentSelector selector = new DefaultProjectComponentSelector(candidateCycle.get(0), Path.ROOT, Path.ROOT, ":");
                 throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
             }
 

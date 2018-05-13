@@ -42,11 +42,11 @@ class ModuleDependencyBuilderTest extends Specification {
 
     def "builds dependency for nonIdea root project"() {
         when:
-        def dependency = builder.create(newProjectId("build-1",":"), 'compile')
+        def dependency = builder.create(newProjectId("build-1",":a"), 'compile')
 
         then:
         dependency.scope == 'compile'
-        dependency.name == "build-1"
+        dependency.name == "a"
 
         and:
         artifactRegistry.getIdeProject(_, _) >> null

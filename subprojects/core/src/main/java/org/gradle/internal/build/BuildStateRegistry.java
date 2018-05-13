@@ -40,10 +40,15 @@ public interface BuildStateRegistry {
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
-     * Locates an included build by {@link BuildIdentifier}, if present.
+     * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
     @Nullable
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
+
+    /**
+     * Locates a build.
+     */
+    BuildState getBuild(BuildIdentifier buildIdentifier);
 
     /**
      * Notification that the settings have been loaded for the root build.
@@ -78,4 +83,6 @@ public interface BuildStateRegistry {
      * Creates a new nested build tree.
      */
     StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+
+    void register(BuildState build);
 }

@@ -108,7 +108,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         build.loadedSettings >> settings
         build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.getIdentityPathForProject(_) >> { Path path -> path }
-        build.getIdentifierForProject(_) >> { Path path -> DefaultProjectComponentIdentifier.newProjectId(DefaultBuildIdentifier.ROOT, path.path) }
+        build.getIdentifierForProject(_) >> { Path path -> new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, path, path, "??") }
         return build
     }
 }

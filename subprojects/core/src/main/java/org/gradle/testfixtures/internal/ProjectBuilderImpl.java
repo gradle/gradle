@@ -42,7 +42,9 @@ import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -83,7 +85,10 @@ public class ProjectBuilderImpl {
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
-        project.getServices().get(ProjectStateRegistry.class).register(new TestRootBuild(), project);
+
+        BuildState build = project.getServices().get(BuildStateRegistry.class).getBuild(DefaultBuildIdentifier.ROOT);
+        project.getServices().get(ProjectStateRegistry.class).register(build, project);
+
         return project;
     }
 
@@ -112,7 +117,9 @@ public class ProjectBuilderImpl {
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
-        gradle.getServices().get(ProjectStateRegistry.class).register(new TestRootBuild(), project);
+        TestRootBuild build = new TestRootBuild();
+        project.getServices().get(BuildStateRegistry.class).register(build);
+        project.getServices().get(ProjectStateRegistry.class).register(build, project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
@@ -163,7 +170,7 @@ public class ProjectBuilderImpl {
         return projectDir;
     }
 
-    private static class TestRootBuild implements BuildState {
+    private static class TestRootBuild extends AbstractBuildState {
         @Override
         public BuildIdentifier getBuildIdentifier() {
             return DefaultBuildIdentifier.ROOT;
@@ -186,7 +193,11 @@ public class ProjectBuilderImpl {
 
         @Override
         public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-            return DefaultProjectComponentIdentifier.newProjectId(getBuildIdentifier(), projectPath.getPath());
+            String name = projectPath.getName();
+            if (name == null) {
+                name = "root";
+            }
+            return new DefaultProjectComponentIdentifier(getBuildIdentifier(), projectPath, projectPath, name);
         }
     }
 }

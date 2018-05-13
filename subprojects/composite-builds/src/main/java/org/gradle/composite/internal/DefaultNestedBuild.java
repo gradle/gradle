@@ -20,19 +20,18 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
-class DefaultNestedBuild implements StandAloneNestedBuild {
+class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
     private final BuildDefinition buildDefinition;
     private final NestedBuildFactory nestedBuildFactory;
     private final BuildStateListener buildStateListener;
@@ -86,10 +85,5 @@ class DefaultNestedBuild implements StandAloneNestedBuild {
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return getLoadedSettings().getGradle().getRootProject().getProjectRegistry().getProject(projectPath.getPath()).getIdentityPath();
-    }
-
-    @Override
-    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
-        return DefaultProjectComponentIdentifier.newProjectId(getBuildIdentifier(), projectPath.getPath());
     }
 }
