@@ -88,9 +88,9 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -125,8 +125,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity, BuildStateRegistry buildRegistry) {
-        return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(buildIdentity.getCurrentBuild()));
+    ComponentIdentifierFactory createComponentIdentifierFactory(BuildState currentBuild, BuildStateRegistry buildRegistry) {
+        return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(currentBuild.getBuildIdentifier()));
     }
 
     DependencyFactory createDependencyFactory(
@@ -324,8 +324,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentity buildIdentity) {
-        return new DefaultProjectLocalComponentProvider(projectStateRegistry, projectRegistry, metaDataBuilder, moduleIdentifierFactory, buildIdentity.getCurrentBuild());
+    LocalComponentProvider createProjectComponentProvider(ProjectStateRegistry projectStateRegistry, ProjectRegistry<ProjectInternal> projectRegistry, LocalComponentMetadataBuilder metaDataBuilder, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildState currentBuild) {
+        return new DefaultProjectLocalComponentProvider(projectStateRegistry, projectRegistry, metaDataBuilder, moduleIdentifierFactory, currentBuild.getBuildIdentifier());
     }
 
     LocalComponentRegistry createLocalComponentRegistry(List<LocalComponentProvider> providers) {

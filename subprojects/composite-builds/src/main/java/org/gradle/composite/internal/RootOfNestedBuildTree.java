@@ -44,7 +44,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements StandAl
 
     public RootOfNestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, NestedBuildFactory buildFactory) {
         this.buildIdentifier = buildIdentifier;
-        this.gradleLauncher = buildFactory.nestedBuildTree(buildDefinition, buildIdentifier);
+        this.gradleLauncher = buildFactory.nestedBuildTree(buildDefinition, this);
     }
 
     @Override

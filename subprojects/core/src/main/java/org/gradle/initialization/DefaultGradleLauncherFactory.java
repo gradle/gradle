@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
@@ -31,6 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildevents.BuildLogger;
@@ -81,12 +81,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         this.crossBuildSessionScopeServices = crossBuildSessionScopeServices;
     }
 
-    private GradleLauncher createChildInstance(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
+    private GradleLauncher createChildInstance(BuildDefinition buildDefinition, BuildState build, GradleLauncher parent, BuildTreeScopeServices buildTreeScopeServices, List<?> servicesToStop) {
         ServiceRegistry services = parent.getGradle().getServices();
         BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class));
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
-        return doNewInstance(buildDefinition, buildIdentifier, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
+        return doNewInstance(buildDefinition, build, parent, cancellationToken, requestMetaData, buildEventConsumer, buildTreeScopeServices, servicesToStop);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         BuildTreeScopeServices buildTreeScopeServices = (BuildTreeScopeServices) parentRegistry;
 
-        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build.getBuildIdentifier(), null,
+        DefaultGradleLauncher launcher = doNewInstance(buildDefinition, build, null,
             requestContext.getCancellationToken(),
             requestContext, requestContext.getEventConsumer(), buildTreeScopeServices,
             ImmutableList.of(new Stoppable() {
@@ -124,7 +124,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(BuildDefinition buildDefinition,
-                                                BuildIdentifier buildIdentifier,
+                                                BuildState build,
                                                 @Nullable GradleLauncher parent,
                                                 BuildCancellationToken cancellationToken,
                                                 BuildRequestMetaData requestMetaData,
@@ -137,7 +137,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
-        serviceRegistry.add(BuildIdentity.class, new DefaultBuildIdentity(buildIdentifier));
+        serviceRegistry.add(BuildState.class, build);
         NestedBuildFactoryImpl nestedBuildFactory = new NestedBuildFactoryImpl(buildTreeScopeServices);
         serviceRegistry.add(NestedBuildFactory.class, nestedBuildFactory);
 
@@ -210,17 +210,17 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         @Override
         public GradleLauncher nestedInstance(BuildDefinition buildDefinition, NestedBuildState build) {
-            return createChildInstance(buildDefinition, build.getBuildIdentifier(), parent, buildTreeScopeServices, ImmutableList.of());
+            return createChildInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of());
         }
 
         @Override
-        public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
+        public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedBuildState build) {
             StartParameter startParameter = buildDefinition.getStartParameter();
             final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
             BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken);
             BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices);
-            return createChildInstance(buildDefinition, buildIdentifier, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
+            return createChildInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
                 @Override
                 public void stop() {
                     userHomeDirServiceRegistry.release(userHomeServices);

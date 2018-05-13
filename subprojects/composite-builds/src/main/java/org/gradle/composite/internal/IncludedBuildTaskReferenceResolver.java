@@ -23,16 +23,16 @@ import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildState;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 
     private final IncludedBuildTaskGraph includedBuilds;
-    private final BuildIdentity buildIdentity;
+    private final BuildIdentifier currentBuild;
 
-    public IncludedBuildTaskReferenceResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
+    public IncludedBuildTaskReferenceResolver(IncludedBuildTaskGraph includedBuilds, BuildState currentBuild) {
         this.includedBuilds = includedBuilds;
-        this.buildIdentity = buildIdentity;
+        this.currentBuild = currentBuild.getBuildIdentifier();
     }
 
     @Override
@@ -43,10 +43,9 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
 
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
 
-        final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
         final BuildIdentifier targetBuild = ref.getBuildIdentifier();
 
-        includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
+        includedBuilds.addTask(currentBuild, targetBuild, ref.getTaskPath());
 
         String delegateTaskName = ref.getName();
         Task task = tasks.findByName(delegateTaskName);

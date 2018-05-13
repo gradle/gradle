@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
@@ -110,8 +110,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     public static ProjectComponentSelector newSelector(Project project) {
         ProjectInternal projectInternal = (ProjectInternal) project;
-        BuildIdentity buildIdentity = projectInternal.getServices().get(BuildIdentity.class);
-        return new DefaultProjectComponentSelector(buildIdentity.getCurrentBuild(), projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName());
+        BuildIdentifier currentBuild = projectInternal.getServices().get(BuildState.class).getBuildIdentifier();
+        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName());
     }
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier) {

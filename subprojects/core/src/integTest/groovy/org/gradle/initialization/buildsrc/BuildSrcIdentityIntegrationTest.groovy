@@ -19,6 +19,42 @@ package org.gradle.initialization.buildsrc
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
+    def "includes build identifier in logging output"() {
+        file("buildSrc/build.gradle") << """
+            println "configuring \$project.path"
+            classes.doLast { t ->
+                println "classes of \$t.path"
+            }
+        """
+
+        when:
+        run()
+
+        then:
+        outputContains("> Configure project :buildSrc")
+        result.groupedOutput.task(":buildSrc:classes").output.contains("classes of :classes")
+    }
+
+    def "includes configured root project name in build identifier in logging output"() {
+        file("buildSrc/settings.gradle") << """
+            rootProject.name = 'someLib'
+        """
+
+        file("buildSrc/build.gradle") << """
+            println "configuring \$project.path"
+            classes.doLast { t ->
+                println "classes of \$t.path"
+            }
+        """
+
+        when:
+        run()
+
+        then:
+        outputContains("> Configure project :buildSrc")
+        result.groupedOutput.task(":buildSrc:classes").output.contains("classes of :classes")
+    }
+
     def "includes build identifier in error message on failure to resolve dependencies of build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
