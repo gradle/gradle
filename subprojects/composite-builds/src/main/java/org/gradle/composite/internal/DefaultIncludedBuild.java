@@ -123,6 +123,11 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     }
 
     @Override
+    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+        return DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, projectPath.getPath());
+    }
+
+    @Override
     public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
         if (resolvedDependencySubstitutions) {
             throw new IllegalStateException("Cannot configure included build after dependency substitutions are resolved.");

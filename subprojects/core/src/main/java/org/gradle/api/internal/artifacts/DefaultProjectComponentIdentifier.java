@@ -16,11 +16,8 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final BuildIdentifier buildIdentifier;
@@ -95,10 +92,4 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     public static ProjectComponentIdentifier newProjectId(BuildIdentifier buildIdentifier, String projectPath) {
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
-
-    public static ProjectComponentIdentifier newProjectId(Project project) {
-        BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
-        return new DefaultProjectComponentIdentifier(buildId, project.getPath());
-    }
-
 }

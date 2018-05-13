@@ -19,11 +19,13 @@ package org.gradle.testfixtures.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -180,6 +182,11 @@ public class ProjectBuilderImpl {
         @Override
         public Path getIdentityPathForProject(Path projectPath) {
             return projectPath;
+        }
+
+        @Override
+        public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+            return DefaultProjectComponentIdentifier.newProjectId(getBuildIdentifier(), projectPath.getPath());
         }
     }
 }

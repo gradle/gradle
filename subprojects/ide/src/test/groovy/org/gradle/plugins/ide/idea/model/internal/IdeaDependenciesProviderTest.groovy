@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
@@ -28,7 +29,7 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final childProject = TestUtil.createChildProject(project, "child", new File("."))
     private final artifactRegistry = Stub(IdeArtifactRegistry)
-    private final dependenciesProvider = new IdeaDependenciesProvider(artifactRegistry)
+    private final dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry))
 
     def setup() {
         _ * artifactRegistry.getIdeProject(_, _) >> { Class c, def m ->
@@ -219,7 +220,6 @@ class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider(artifactRegistry)
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
         def extraConfiguration = project.configurations.create('extraConfiguration')
