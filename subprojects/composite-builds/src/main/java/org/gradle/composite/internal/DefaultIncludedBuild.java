@@ -112,6 +112,11 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
+    public NestedBuildFactory getNestedBuildFactory() {
+        return getGradleLauncher().getGradle().getServices().get(NestedBuildFactory.class);
+    }
+
+    @Override
     public Path getIdentityPathForProject(Path projectPath) {
         GradleInternal parentBuild = getLoadedSettings().getGradle().getParent();
         Path rootPath;

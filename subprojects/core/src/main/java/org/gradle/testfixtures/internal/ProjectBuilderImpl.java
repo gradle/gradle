@@ -41,6 +41,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -191,6 +192,11 @@ public class ProjectBuilderImpl {
 
         @Override
         public SettingsInternal getLoadedSettings() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NestedBuildFactory getNestedBuildFactory() {
             throw new UnsupportedOperationException();
         }
 

@@ -19,17 +19,33 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.util.Path;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
+ *
+ * Implementations are not yet entirely thread-safe, but should be.
  */
 public interface BuildState {
     BuildIdentifier getBuildIdentifier();
 
+    /**
+     * Is this an implicit build? An implicit build is one that is managed by Gradle and which is not addressable by user build logic.
+     */
     boolean isImplicitBuild();
 
+    /**
+     * The configured settings object for this build, if available.
+     *
+     * This should not be exposed directly, but should be behind some method that coordinates access from multiple threads.
+     */
     SettingsInternal getLoadedSettings() throws IllegalStateException;
+
+    /**
+     * Returns the factory to use to create children of this build.
+     */
+    NestedBuildFactory getNestedBuildFactory();
 
     /**
      * Calculates the identity path for a project in this build.

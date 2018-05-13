@@ -24,29 +24,25 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
-class DefaultRootBuildState extends AbstractBuildState implements RootBuildState {
-    private final BuildDefinition buildDefinition;
-    private final BuildRequestContext requestContext;
-    private final GradleLauncherFactory gradleLauncherFactory;
+class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
-    private final ServiceRegistry parentServices;
     private SettingsInternal settings;
+    private GradleLauncher gradleLauncher;
 
     DefaultRootBuildState(BuildDefinition buildDefinition, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory, ListenerManager listenerManager, ServiceRegistry parentServices) {
-        this.buildDefinition = buildDefinition;
-        this.requestContext = requestContext;
-        this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
-        this.parentServices = parentServices;
+        gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, requestContext, parentServices);
     }
 
     @Override
@@ -55,19 +51,19 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     }
 
     @Override
+    public void stop() {
+        gradleLauncher.stop();
+    }
+
+    @Override
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(buildDefinition, this, requestContext, parentServices);
         final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
+        RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
+        buildLifecycleListener.afterStart();
         try {
-            RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
-            buildLifecycleListener.afterStart();
-            try {
-                return buildAction.transform(buildController);
-            } finally {
-                buildLifecycleListener.beforeComplete();
-            }
+            return buildAction.transform(buildController);
         } finally {
-            buildController.stop();
+            buildLifecycleListener.beforeComplete();
         }
     }
 
@@ -81,6 +77,11 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
             throw new IllegalStateException("Settings have not been attached to this build yet.");
         }
         return settings;
+    }
+
+    @Override
+    public NestedBuildFactory getNestedBuildFactory() {
+        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override

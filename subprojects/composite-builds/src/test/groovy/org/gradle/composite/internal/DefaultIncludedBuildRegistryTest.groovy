@@ -23,7 +23,9 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -61,10 +63,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         includedBuild.buildIdentifier >> buildIdentifier
 
         given:
+        registry.register(rootBuild())
         includedBuildFactory.createBuild(buildIdentifier, buildDefinition, false, _) >> includedBuild
 
         expect:
-        def result = registry.addExplicitBuild(buildDefinition, nestedBuildFactory)
+        def result = registry.addIncludedBuild(buildDefinition)
         result == includedBuild
 
         registry.hasIncludedBuilds()
@@ -83,12 +86,13 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild2 = Stub(IncludedBuildState)
 
         given:
+        registry.register(rootBuild())
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition1, false, _) >> includedBuild1
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b2"), buildDefinition2, false, _) >> includedBuild2
 
         expect:
-        registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
-        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory)
+        registry.addIncludedBuild(buildDefinition1)
+        registry.addIncludedBuild(buildDefinition2)
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2]
@@ -113,14 +117,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         includedBuild3.buildIdentifier >> id3
 
         given:
+        registry.register(rootBuild())
         includedBuildFactory.createBuild(id1, buildDefinition1, false, _) >> includedBuild1
         includedBuildFactory.createBuild(id2, buildDefinition2, false, _) >> includedBuild2
         includedBuildFactory.createBuild(id3, buildDefinition3, false, _) >> includedBuild3
 
         expect:
-        registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
-        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory)
-        registry.addExplicitBuild(buildDefinition3, nestedBuildFactory)
+        registry.addIncludedBuild(buildDefinition1)
+        registry.addIncludedBuild(buildDefinition2)
+        registry.addIncludedBuild(buildDefinition3)
 
         registry.hasIncludedBuilds()
         registry.includedBuilds as List == [includedBuild1, includedBuild2, includedBuild3]
@@ -134,10 +139,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildDefinition2 = build(dir)
 
         given:
-        def includedBuild = registry.addExplicitBuild(buildDefinition1, nestedBuildFactory)
+        registry.register(rootBuild())
+        def includedBuild = registry.addIncludedBuild(buildDefinition1)
 
         expect:
-        registry.addExplicitBuild(buildDefinition2, nestedBuildFactory) is includedBuild
+        registry.addIncludedBuild(buildDefinition2) is includedBuild
     }
 
     def "can add an implicit included build"() {
@@ -146,10 +152,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def includedBuild = Stub(IncludedBuildState)
 
         given:
+        registry.register(rootBuild())
         includedBuildFactory.createBuild(new DefaultBuildIdentifier("b1"), buildDefinition, true, _) >> includedBuild
 
         expect:
-        def result = registry.addImplicitBuild(buildDefinition, nestedBuildFactory)
+        def result = registry.addImplicitIncludedBuild(buildDefinition)
         result == includedBuild
 
         registry.hasIncludedBuilds()
@@ -162,7 +169,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         buildDefinition.name >> "nested"
 
         expect:
-        def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(BuildState))
         nestedBuild.implicitBuild
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
 
@@ -175,17 +182,21 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         buildDefinition.name >> "nested"
 
         expect:
-        def nestedBuild1 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        def nestedBuild1 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
         nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
 
-        def nestedBuild2 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        def nestedBuild2 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
         nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
 
-        def nestedBuild3 = registry.addNestedBuild(buildDefinition, Stub(NestedBuildFactory))
+        def nestedBuild3 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
         nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
     }
 
     def build(File rootDir) {
         return BuildDefinition.fromStartParameterForBuild(StartParameter.newInstance(), rootDir, DefaultPluginRequests.EMPTY)
+    }
+
+    def rootBuild() {
+        return Stub(RootBuildState)
     }
 }

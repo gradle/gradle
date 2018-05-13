@@ -40,6 +40,7 @@ class DefaultNestedBuildTest extends Specification {
     DefaultNestedBuild build
 
     def setup() {
+        _ * factory.nestedInstance(buildDefinition, _) >> launcher
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
@@ -49,23 +50,25 @@ class DefaultNestedBuildTest extends Specification {
         build = new DefaultNestedBuild(buildIdentifier, buildDefinition, factory, Stub(BuildStateListener))
     }
 
-    def "creates launcher and runs action after notifying listeners"() {
+    def "stops launcher on stop"() {
+        when:
+        build.stop()
+
+        then:
+        1 * launcher.stop()
+    }
+
+    def "runs action and returns result"() {
         when:
         def result = build.run(action)
 
         then:
         result == '<result>'
 
-        and:
-        1 * factory.nestedInstance(buildDefinition, build) >> launcher
-
         then:
         1 * action.transform(!null) >> { BuildController controller ->
             '<result>'
         }
-
-        then:
-        1 * launcher.stop()
     }
 
     def "can have null result"() {
@@ -76,10 +79,8 @@ class DefaultNestedBuildTest extends Specification {
         result == null
 
         and:
-        1 * factory.nestedInstance(buildDefinition, build) >> launcher
         1 * action.transform(!null) >> { BuildController controller ->
             return null
         }
-        1 * launcher.stop()
     }
 }
