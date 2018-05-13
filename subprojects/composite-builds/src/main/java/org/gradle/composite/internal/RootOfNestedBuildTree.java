@@ -19,9 +19,11 @@ package org.gradle.composite.internal;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.GradleLauncher;
@@ -63,6 +65,11 @@ public class RootOfNestedBuildTree implements StandAloneNestedBuild {
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
+    }
+
+    @Override
+    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+        return DefaultProjectComponentIdentifier.newProjectId(buildIdentifier, projectPath.getPath());
     }
 
     @Override

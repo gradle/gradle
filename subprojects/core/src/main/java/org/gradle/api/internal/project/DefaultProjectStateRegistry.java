@@ -17,11 +17,12 @@ package org.gradle.api.internal.project;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
 
@@ -33,15 +34,17 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
+    private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
 
-    public void registerProjects(BuildState build) {
+    public void registerProjects(BuildState owner) {
         synchronized (lock) {
-            for (DefaultProjectDescriptor descriptor : build.getLoadedSettings().getProjectRegistry().getAllProjects()) {
-                Path identityPath = build.getIdentityPathForProject(descriptor.path());
-                ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newProjectId(build.getBuildIdentifier(), descriptor.getPath());
-                ProjectStateImpl projectState = new ProjectStateImpl(build, identityPath, descriptor.getName(), projectComponentIdentifier);
+            for (DefaultProjectDescriptor descriptor : owner.getLoadedSettings().getProjectRegistry().getAllProjects()) {
+                Path identityPath = owner.getIdentityPathForProject(descriptor.path());
+                ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(descriptor.path());
+                ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, descriptor.getName(), projectIdentifier);
                 projectsByPath.put(identityPath, projectState);
-                projectsById.put(projectComponentIdentifier, projectState);
+                projectsById.put(projectIdentifier, projectState);
+                projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), descriptor.path()), projectState);
             }
         }
     }
@@ -49,9 +52,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public void register(BuildState owner, ProjectInternal project) {
         synchronized (lock) {
-            ProjectStateImpl projectState = new ProjectStateImpl(owner, project.getIdentityPath(), project.getName(), DefaultProjectComponentIdentifier.newProjectId(project));
+            Path identityPath = project.getIdentityPath();
+            ProjectComponentIdentifier projectIdentifier = owner.getIdentifierForProject(project.getProjectPath());
+            ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, project.getName(), projectIdentifier);
             projectsByPath.put(projectState.projectIdentityPath, projectState);
             projectsById.put(projectState.identifier, projectState);
+            projectsByCompId.put(Pair.of(owner.getBuildIdentifier(), project.getProjectPath()), projectState);
         }
     }
 
@@ -79,6 +85,17 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             ProjectStateImpl projectState = projectsById.get(identifier);
             if (projectState == null) {
                 throw new IllegalArgumentException(identifier.getDisplayName() + " not found.");
+            }
+            return projectState;
+        }
+    }
+
+    @Override
+    public ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath) {
+        synchronized (lock) {
+            ProjectStateImpl projectState = projectsByCompId.get(Pair.of(buildIdentifier, projectPath));
+            if (projectState == null) {
+                throw new IllegalArgumentException(buildIdentifier + " project " + projectPath + " not found.");
             }
             return projectState;
         }

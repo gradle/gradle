@@ -18,9 +18,11 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -46,6 +48,11 @@ class DefaultRootBuildState implements RootBuildState {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.listenerManager = listenerManager;
         this.parentServices = parentServices;
+    }
+
+    @Override
+    public String toString() {
+        return "root build";
     }
 
     @Override
@@ -85,6 +92,11 @@ class DefaultRootBuildState implements RootBuildState {
     @Override
     public BuildIdentifier getBuildIdentifier() {
         return DefaultBuildIdentifier.ROOT;
+    }
+
+    @Override
+    public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+        return DefaultProjectComponentIdentifier.newProjectId(getBuildIdentifier(), projectPath.getPath());
     }
 
     @Override
