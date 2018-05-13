@@ -109,7 +109,10 @@ public class ProjectBuilderImpl {
         ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
         BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken());
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestBuildScopeServices topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestRootBuild build = new TestRootBuild();
+        topLevelRegistry.add(BuildState.class, build);
+
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -118,7 +121,6 @@ public class ProjectBuilderImpl {
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
-        TestRootBuild build = new TestRootBuild();
         project.getServices().get(BuildStateRegistry.class).register(build);
         project.getServices().get(ProjectStateRegistry.class).register(build, project);
 

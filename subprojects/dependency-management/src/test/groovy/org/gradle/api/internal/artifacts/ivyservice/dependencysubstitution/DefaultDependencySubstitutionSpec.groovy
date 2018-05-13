@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.BuildIdentity
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
@@ -88,7 +88,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         project.name >> "bar"
 
         def services = new DefaultServiceRegistry()
-        services.add(BuildIdentity, Stub(BuildIdentity))
+        services.add(BuildState, Stub(BuildState))
 
         when:
         details.useTarget(project)

@@ -25,7 +25,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
-import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
@@ -110,12 +109,6 @@ class ToolingApiDistributionResolver {
         def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY, new DefaultBuildCancellationToken())
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
-        topLevelRegistry.add(BuildIdentity, new BuildIdentity() {
-            @Override
-            BuildIdentifier getCurrentBuild() {
-                return DefaultBuildIdentifier.ROOT
-            }
-        })
         topLevelRegistry.add(NestedBuildFactory, {} as NestedBuildFactory)
         topLevelRegistry.get(BuildStateRegistry).register(new EmptyBuild())
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))

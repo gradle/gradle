@@ -31,7 +31,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.composite.internal.IncludedBuildTaskReference;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildState;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
@@ -44,11 +44,11 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final FileOperations fileOperations;
     private final ProjectComponentIdentifier currentProject;
 
-    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
+    public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildState currentBuild) {
         this.store = store;
         this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
-        currentProject = projectRegistry.stateFor(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath()).getComponentIdentifier();
+        currentProject = projectRegistry.stateFor(currentBuild.getBuildIdentifier(), domainObjectContext.getProjectPath()).getComponentIdentifier();
     }
 
     @Override
