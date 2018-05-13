@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @ToolingApiVersion(">=3.3")
@@ -50,7 +49,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
     @TargetGradleVersion(">=3.3")
-    @Ignore
     def "Included builds are present in the model when substitutions are used"() {
         given:
         singleProjectBuildInRootFolder("root") {

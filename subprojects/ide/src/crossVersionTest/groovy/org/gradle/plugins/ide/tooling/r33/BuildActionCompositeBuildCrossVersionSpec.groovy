@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.tooling.r33
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @ToolingApiVersion('>=3.3')
@@ -44,7 +43,6 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    @Ignore
     def "Can run no-op build action against root of composite build with substitutions"() {
         given:
         singleProjectBuildInRootFolder("root") {
@@ -86,7 +84,6 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    @Ignore
     def "Can fetch build scoped models from included builds with substitutions"() {
         given:
         singleProjectBuildInRootFolder("root") {
@@ -128,7 +125,6 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    @Ignore
     def "Can fetch project scoped models from included builds with substitutions"() {
         given:
         multiProjectBuildInRootFolder("root", ["a", "b"]) {
