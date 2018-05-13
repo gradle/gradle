@@ -200,21 +200,36 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setClasspath(externalDependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
+        eclipseProject.setClasspathContainers(classpathContainers);
+        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
 
+        populateEclipseProjectTasks(eclipseProject, tasksFactory.getTasks(project));
+        populateEclipseProject(eclipseProject, eclipseModel);
+        populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
+
+        for (Project childProject : project.getChildProjects().values()) {
+            populate(childProject);
+        }
+    }
+
+    private static void populateEclipseProjectTasks(DefaultEclipseProject eclipseProject, Iterable<Task> projectTasks) {
+        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
+        for (Task t : projectTasks) {
+            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
+        }
+        eclipseProject.setTasks(tasks);
+    }
+
+    private static void populateEclipseProject(DefaultEclipseProject eclipseProject, EclipseModel eclipseModel) {
         List<DefaultEclipseLinkedResource> linkedResources = new LinkedList<DefaultEclipseLinkedResource>();
         for (Link r : eclipseModel.getProject().getLinkedResources()) {
             linkedResources.add(new DefaultEclipseLinkedResource(r.getName(), r.getType(), r.getLocation(), r.getLocationUri()));
         }
         eclipseProject.setLinkedResources(linkedResources);
 
-        List<DefaultEclipseTask> tasks = new ArrayList<DefaultEclipseTask>();
-        for (Task t : tasksFactory.getTasks(project)) {
-            tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
-        }
-        eclipseProject.setTasks(tasks);
 
         List<DefaultEclipseProjectNature> natures = new ArrayList<DefaultEclipseProjectNature>();
-        for(String n: eclipseModel.getProject().getNatures()) {
+        for (String n : eclipseModel.getProject().getNatures()) {
             natures.add(new DefaultEclipseProjectNature(n));
         }
         eclipseProject.setProjectNatures(natures);
@@ -228,21 +243,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), arguments));
         }
         eclipseProject.setBuildCommands(buildCommands);
-        EclipseJdt jdt = eclipseModel.getJdt();
+    }
+
+    private static void populateEclipseProjectJdt(DefaultEclipseProject eclipseProject, EclipseJdt jdt) {
         if (jdt != null) {
             eclipseProject.setJavaSourceSettings(new DefaultEclipseJavaSourceSettings()
                 .setSourceLanguageLevel(jdt.getSourceCompatibility())
                 .setTargetBytecodeVersion(jdt.getTargetCompatibility())
                 .setJdk(DefaultInstalledJdk.current())
             );
-        }
-
-        eclipseProject.setClasspathContainers(classpathContainers);
-
-        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
-
-        for (Project childProject : project.getChildProjects().values()) {
-            populate(childProject);
         }
     }
 
