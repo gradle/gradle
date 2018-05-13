@@ -20,7 +20,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -31,12 +30,10 @@ import java.util.List;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
-    private final NestedBuildFactory nestedBuildFactory;
     private final BuildStateRegistry buildRegistry;
 
-    public CompositeBuildSettingsLoader(SettingsLoader delegate, NestedBuildFactory nestedBuildFactory, BuildStateRegistry buildRegistry) {
+    public CompositeBuildSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry) {
         this.delegate = delegate;
-        this.nestedBuildFactory = nestedBuildFactory;
         this.buildRegistry = buildRegistry;
     }
 
@@ -49,7 +46,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         if (!includedBuilds.isEmpty()) {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 // TODO: Allow builds to inject into explicitly included builds
-                IncludedBuildState includedBuild = buildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
+                BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), includedBuildSpec.rootDir, DefaultPluginRequests.EMPTY);
+                IncludedBuildState includedBuild = buildRegistry.addIncludedBuild(buildDefinition);
                 includedBuildSpec.configurer.execute(includedBuild.getModel());
             }
         }
@@ -57,7 +55,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         // Add all included builds from the command-line
         for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
             // TODO: Allow builds to inject into explicitly included builds
-            buildRegistry.addExplicitBuild(BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY), nestedBuildFactory);
+            BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(gradle.getStartParameter(), rootDir, DefaultPluginRequests.EMPTY);
+            buildRegistry.addIncludedBuild(buildDefinition);
         }
 
         // Lock-in explicitly included builds

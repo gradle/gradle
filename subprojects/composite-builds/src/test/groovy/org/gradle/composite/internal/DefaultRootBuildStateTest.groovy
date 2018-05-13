@@ -42,14 +42,17 @@ class DefaultRootBuildStateTest extends Specification {
     def action = Mock(Transformer)
     def sessionServices = Mock(ServiceRegistry)
     def buildDefinition = Mock(BuildDefinition)
-    def build = new DefaultRootBuildState(buildDefinition, buildRequestContext, factory, listenerManager, sessionServices)
+    DefaultRootBuildState build
 
     def setup() {
+        _ * factory.newInstance(buildDefinition, _, buildRequestContext, sessionServices) >> launcher
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
         _ * sessionServices.get(WorkerLeaseService) >> new TestWorkerLeaseService()
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
+
+        build = new DefaultRootBuildState(buildDefinition, buildRequestContext, factory, listenerManager, sessionServices)
     }
 
     def "has identifier"() {
@@ -57,15 +60,20 @@ class DefaultRootBuildStateTest extends Specification {
         build.buildIdentifier == DefaultBuildIdentifier.ROOT
     }
 
-    def "creates launcher and runs action after notifying listeners"() {
+    def "stops launcher on stop"() {
+        when:
+        build.stop()
+
+        then:
+        1 * launcher.stop()
+    }
+
+    def "runs action after notifying listeners"() {
         when:
         def result = build.run(action)
 
         then:
         result == '<result>'
-
-        and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
 
         then:
         1 * lifecycleListener.afterStart()
@@ -77,9 +85,6 @@ class DefaultRootBuildStateTest extends Specification {
 
         then:
         1 * lifecycleListener.beforeComplete()
-
-        then:
-        1 * launcher.stop()
     }
 
     def "can have null result"() {
@@ -90,11 +95,9 @@ class DefaultRootBuildStateTest extends Specification {
         result == null
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * action.transform(!null) >> { BuildController controller ->
             return null
         }
-        1 * launcher.stop()
     }
 
     def "runs build when requested by action"() {
@@ -105,13 +108,11 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
             assert controller.run() == gradle
             return '<result>'
         }
-        1 * launcher.stop()
     }
 
     def "configures build when requested by action"() {
@@ -122,13 +123,11 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> gradle
         1 * action.transform(!null) >> { BuildController controller ->
             assert controller.configure() == gradle
             return '<result>'
         }
-        1 * launcher.stop()
     }
 
     def "cannot request configuration after build has been run"() {
@@ -146,9 +145,7 @@ class DefaultRootBuildStateTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> gradle
-        1 * launcher.stop()
     }
 
     def "forwards action failure and cleans up"() {
@@ -162,10 +159,8 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * action.transform(!null) >> { BuildController controller -> throw failure }
         1 * lifecycleListener.beforeComplete()
-        1 * launcher.stop()
     }
 
     def "forwards build failure and cleans up"() {
@@ -179,13 +174,11 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.executeTasks() >> { throw failure }
         1 * action.transform(!null) >> { BuildController controller ->
             controller.run()
         }
         1 * lifecycleListener.beforeComplete()
-        1 * launcher.stop()
     }
 
     def "forwards configure failure and cleans up"() {
@@ -199,13 +192,11 @@ class DefaultRootBuildStateTest extends Specification {
         e == failure
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getConfiguredBuild() >> { throw failure }
         1 * action.transform(!null) >> { BuildController controller ->
             controller.configure()
         }
         1 * lifecycleListener.beforeComplete()
-        1 * launcher.stop()
     }
 
     def "cannot run after configuration failure"() {
@@ -217,7 +208,6 @@ class DefaultRootBuildStateTest extends Specification {
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(buildDefinition, build, buildRequestContext, sessionServices) >> launcher
         1 * launcher.configuredBuild >> { throw new RuntimeException() }
         1 * action.transform(!null) >> { BuildController controller ->
             try {
@@ -228,6 +218,5 @@ class DefaultRootBuildStateTest extends Specification {
             controller.run()
         }
         1 * lifecycleListener.beforeComplete()
-        1 * launcher.stop()
     }
 }

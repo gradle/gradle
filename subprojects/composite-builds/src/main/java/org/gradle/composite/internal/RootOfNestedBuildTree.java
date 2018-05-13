@@ -63,6 +63,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements StandAl
     }
 
     @Override
+    public NestedBuildFactory getNestedBuildFactory() {
+        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+    }
+
+    @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
     }

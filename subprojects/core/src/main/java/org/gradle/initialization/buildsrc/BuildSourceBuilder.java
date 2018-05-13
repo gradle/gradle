@@ -25,7 +25,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
@@ -49,7 +49,7 @@ public class BuildSourceBuilder {
     };
     public static final String BUILD_SRC = "buildSrc";
 
-    private final NestedBuildFactory nestedBuildFactory;
+    private final BuildState currentBuild;
     private final ClassLoaderScope classLoaderScope;
     private final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -57,8 +57,8 @@ public class BuildSourceBuilder {
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry) {
-        this.nestedBuildFactory = nestedBuildFactory;
+    public BuildSourceBuilder(BuildState currentBuild, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry) {
+        this.currentBuild = currentBuild;
         this.classLoaderScope = classLoaderScope;
         this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -113,7 +113,7 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
-        StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, nestedBuildFactory);
+        StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
             public ClassPath transform(BuildController buildController) {
