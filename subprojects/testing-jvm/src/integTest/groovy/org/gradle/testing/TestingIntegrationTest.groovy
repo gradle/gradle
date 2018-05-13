@@ -510,8 +510,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
         """
-        and:
 
+        and:
         file('src/test/java/SecurityManagerInstallationTest.java') << """
             import org.junit.Test;
             import java.security.Permission;
@@ -533,6 +533,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds "test"
     }
