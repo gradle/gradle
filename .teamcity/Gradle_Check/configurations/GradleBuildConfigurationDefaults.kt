@@ -78,6 +78,12 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
     buildType.failureConditions {
         executionTimeoutMin = timeout
     }
+
+    if (os == OS.linux || os == OS.macos) {
+        buildType.params {
+            param("env.LC_ALL", "en_US.UTF-8")
+        }
+    }
 }
 
 fun BuildFeatures.publishBuildStatusToGithub() {
