@@ -102,6 +102,14 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             return null;
         }
         final ConfigurableRule<DETAILS> rule = action.getRule();
+        if (rule.isCacheable()) {
+            return tryFromCache(key, action, detailsToResult, onCacheMiss, cachePolicy, rule);
+        } else {
+            return executeRule(key, action, detailsToResult, onCacheMiss);
+        }
+    }
+
+    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRule<DETAILS> rule) {
         final ValueSnapshot snapshot = snapshotter.snapshot(
             new Object[]{
                 ketToSnapshottable.transform(key),
@@ -120,13 +128,18 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
                 LOGGER.debug("Invalidating result for rule {} and key {} in cache", rule, key);
             }
         }
-        D details = onCacheMiss.transform(key);
-        action.execute(details);
-        RESULT result = detailsToResult.transform(details);
+
+        RESULT result = executeRule(key, action, detailsToResult, onCacheMiss);
         if (result != null) {
             store.put(snapshot, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), result));
         }
         return result;
+    }
+
+    private <D extends DETAILS> RESULT executeRule(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss) {
+        D details = onCacheMiss.transform(key);
+        action.execute(details);
+        return detailsToResult.transform(details);
     }
 
     @Override

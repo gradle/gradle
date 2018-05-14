@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 
 @RequiredFeatures([
     // we only need to check without experimental, it doesn't depend on this flag
@@ -241,10 +240,9 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    @Ignore("Caching of metadata rules means that we won't get to the network after the first run")
     def "can use --offline to use cached result after remote failure"() {
         given:
-        def supplierInteractions = withPerVersionStatusSupplier()
+        def supplierInteractions = withPerVersionStatusSupplier(buildFile, false)
 
         when:
         repositoryInteractions {
@@ -385,12 +383,14 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         then:
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
-        when: "Passes without making network request when offline thanks to cached result"
+        when: "Fails without making network request when offline"
         resetExpectations()
         executer.withArgument('--offline')
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        fails 'checkDeps'
+
+        failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
     def "reports and recovers from remote failure"() {
@@ -629,7 +629,9 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
     def "can use a single remote request to get status of multiple components"() {
         given:
-        buildFile << """
+        buildFile << """import org.gradle.api.artifacts.CacheableRule
+
+          @CacheableRule
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -1028,12 +1030,14 @@ group:projectB:2.2;release
     }
 
 
-    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile) {
+    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile, boolean cacheable = true) {
         file << """import org.gradle.api.artifacts.ComponentMetadataSupplier
           import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
           import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
           import javax.inject.Inject
+          import org.gradle.api.artifacts.CacheableRule
           
+          ${cacheable?'@CacheableRule':''}
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -1069,7 +1073,9 @@ group:projectB:2.2;release
 
         buildFile << """
         import org.gradle.api.internal.project.ProjectInternal
+        import org.gradle.api.artifacts.CacheableRule
 
+        @CacheableRule
         class MP implements ComponentMetadataSupplier {
             void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id

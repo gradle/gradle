@@ -17,6 +17,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.artifacts.CacheableRule;
 import org.gradle.api.internal.DefaultActionConfiguration;
 
 import java.util.Arrays;
@@ -26,10 +27,16 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
 
     private final Class<? extends Action<DETAILS>> rule;
     private final Object[] ruleParams;
+    private final boolean cacheable;
 
     private DefaultConfigurableRule(Class<? extends Action<DETAILS>> rule, Object[] ruleParams) {
         this.rule = rule;
         this.ruleParams = ruleParams;
+        this.cacheable = hasCacheableAnnotation(rule);
+    }
+
+    private static <DETAILS> boolean hasCacheableAnnotation(Class<? extends Action<DETAILS>> rule) {
+        return JavaReflectionUtil.getAnnotation(rule, CacheableRule.class) != null;
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule) {
@@ -54,6 +61,11 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     @Override
     public Object[] getRuleParams() {
         return ruleParams;
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return cacheable;
     }
 
     @Override
