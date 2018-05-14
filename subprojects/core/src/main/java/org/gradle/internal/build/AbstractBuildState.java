@@ -24,6 +24,11 @@ import org.gradle.util.Path;
 
 public abstract class AbstractBuildState implements BuildState {
     @Override
+    public String toString() {
+        return getBuildIdentifier().toString();
+    }
+
+    @Override
     public ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
         BuildIdentifier buildIdentifier = getBuildIdentifier();
         Path identityPath = getIdentityPathForProject(projectPath);

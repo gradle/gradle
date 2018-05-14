@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -28,6 +29,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.invocation.BuildController;
@@ -40,16 +42,27 @@ import org.gradle.util.Path;
 
 public class RootOfNestedBuildTree extends AbstractBuildState implements StandAloneNestedBuild {
     private final BuildIdentifier buildIdentifier;
+    private final Path identityPath;
+    private final BuildState owner;
     private final GradleLauncher gradleLauncher;
+    private String buildName;
 
-    public RootOfNestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, NestedBuildFactory buildFactory) {
+    public RootOfNestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier, Path identityPath, BuildState owner) {
         this.buildIdentifier = buildIdentifier;
-        this.gradleLauncher = buildFactory.nestedBuildTree(buildDefinition, this);
+        this.identityPath = identityPath;
+        this.owner = owner;
+        this.buildName = buildDefinition.getName() == null ? buildIdentifier.getName() : buildDefinition.getName();
+        this.gradleLauncher = owner.getNestedBuildFactory().nestedBuildTree(buildDefinition, this);
     }
 
     @Override
     public BuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return identityPath;
     }
 
     @Override
@@ -68,6 +81,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements StandAl
     }
 
     @Override
+    public Path getCurrentPrefixForProjectsInChildBuilds() {
+        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildName);
+    }
+
+    @Override
     public Path getIdentityPathForProject(Path projectPath) {
         return gradleLauncher.getGradle().getIdentityPath().append(projectPath);
     }
@@ -83,6 +101,11 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements StandAl
                 @Override
                 public T call(BuildOperationContext context) {
                     gradle.addBuildListener(new BuildAdapter() {
+                        @Override
+                        public void settingsEvaluated(Settings settings) {
+                            buildName = settings.getRootProject().getName();
+                        }
+
                         @Override
                         public void projectsLoaded(Gradle g) {
                             gradle.getServices().get(ProjectStateRegistry.class).registerProjects(RootOfNestedBuildTree.this);

@@ -22,14 +22,17 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultNestedBuildTest extends Specification {
+    def owner = Mock(BuildState)
     def factory = Mock(NestedBuildFactory)
     def launcher = Mock(GradleLauncher)
     def gradle = Mock(GradleInternal)
@@ -40,6 +43,8 @@ class DefaultNestedBuildTest extends Specification {
     DefaultNestedBuild build
 
     def setup() {
+        _ * owner.nestedBuildFactory >> factory
+        _ * owner.currentPrefixForProjectsInChildBuilds >> Path.path(":owner")
         _ * factory.nestedInstance(buildDefinition, _) >> launcher
         _ * buildDefinition.name >> "nested"
         _ * sessionServices.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
@@ -47,7 +52,7 @@ class DefaultNestedBuildTest extends Specification {
         _ * launcher.gradle >> gradle
         _ * gradle.services >> sessionServices
 
-        build = new DefaultNestedBuild(buildIdentifier, buildDefinition, factory, Stub(BuildStateListener))
+        build = new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, Stub(BuildStateListener))
     }
 
     def "stops launcher on stop"() {

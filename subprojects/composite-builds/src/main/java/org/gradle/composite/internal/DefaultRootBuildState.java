@@ -46,8 +46,18 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     }
 
     @Override
-    public String toString() {
-        return "root build";
+    public BuildIdentifier getBuildIdentifier() {
+        return DefaultBuildIdentifier.ROOT;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return Path.ROOT;
+    }
+
+    @Override
+    public boolean isImplicitBuild() {
+        return false;
     }
 
     @Override
@@ -85,17 +95,12 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     }
 
     @Override
+    public Path getCurrentPrefixForProjectsInChildBuilds() {
+        return Path.ROOT;
+    }
+
+    @Override
     public Path getIdentityPathForProject(Path path) {
         return path;
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return DefaultBuildIdentifier.ROOT;
-    }
-
-    @Override
-    public boolean isImplicitBuild() {
-        return false;
     }
 }

@@ -39,6 +39,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
@@ -56,9 +57,10 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildIdentifier buildIdentifier;
+    private final Path identityPath;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
-    private final NestedBuildFactory gradleLauncherFactory;
+    private final BuildState owner;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
@@ -69,12 +71,23 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner, WorkerLeaseRegistry.WorkerLease parentLease) {
         this.buildIdentifier = buildIdentifier;
+        this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
-        this.gradleLauncherFactory = launcherFactory;
+        this.owner = owner;
         this.parentLease = parentLease;
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return identityPath;
     }
 
     @Override
@@ -107,13 +120,17 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+    public NestedBuildFactory getNestedBuildFactory() {
+        return getGradleLauncher().getGradle().getServices().get(NestedBuildFactory.class);
     }
 
     @Override
-    public NestedBuildFactory getNestedBuildFactory() {
-        return getGradleLauncher().getGradle().getServices().get(NestedBuildFactory.class);
+    public Path getCurrentPrefixForProjectsInChildBuilds() {
+        if (name != null) {
+            return owner.getCurrentPrefixForProjectsInChildBuilds().child(name);
+        } else {
+            return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildIdentifier.getName());
+        }
     }
 
     @Override
@@ -196,7 +213,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
             // Use a defensive copy of the build definition, as it may be mutated during build execution
-            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance(), this);
+            gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
         }
         return gradleLauncher;
     }
@@ -236,11 +253,6 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private void markAsNotReusable() {
         // Hang on to the launcher, as other builds in progress may still have references to this build, for example through dependency resolution, even though the tasks of this build have completed
         discardLauncher = true;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("includedBuild[%s]", getProjectDir());
     }
 
     @Override
