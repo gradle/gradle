@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.internal.logging.console.taskgrouping.verbose
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleCompositeBuildGroupedTaskFunctionalTest
 
-class RichConsoleExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
-    ConsoleOutput consoleType = ConsoleOutput.Rich
+class VerboseConsoleAttachedToStdoutCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleCompositeBuildGroupedTaskFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Verbose
+
+    def setup() {
+        attachTestConsoleToStdoutOnly()
+    }
 }

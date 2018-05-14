@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.tasks.console
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
 
 @Issue("https://github.com/gradle/gradle/issues/2009")
-abstract class AbstractExecOutputIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String EXPECTED_OUTPUT = "Hello, World!"
     private static final String EXPECTED_ERROR = "Goodbye, World!"
-
-    abstract ConsoleOutput getConsoleType()
 
     def "Project.javaexec output is grouped with its task output"() {
         given:
@@ -52,7 +49,8 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractIntegrationSpec
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
-        output.contains(EXPECTED_ERROR)
+        def errorOutput = stderrAttached ? output : result.getError()
+        errorOutput.contains(EXPECTED_ERROR)
     }
 
     def "JavaExec task output is grouped with its task output"() {
@@ -75,7 +73,8 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractIntegrationSpec
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
-        output.contains(EXPECTED_ERROR)
+        def errorOutput = stderrAttached ? output : result.getError()
+        errorOutput.contains(EXPECTED_ERROR)
     }
 
     def "Project.exec output is grouped with its task output"() {

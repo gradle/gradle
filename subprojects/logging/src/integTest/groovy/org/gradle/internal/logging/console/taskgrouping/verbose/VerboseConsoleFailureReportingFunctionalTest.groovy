@@ -22,4 +22,8 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractFailureReporting
 
 class VerboseConsoleFailureReportingFunctionalTest extends AbstractFailureReportingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
+
+    def setup() {
+        attachTestConsole()
+    }
 }

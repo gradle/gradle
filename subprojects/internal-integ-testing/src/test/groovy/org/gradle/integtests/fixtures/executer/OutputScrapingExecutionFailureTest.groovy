@@ -116,15 +116,18 @@ broken!
         given:
         def output = """
 Some message
-Some error
 
 FAILURE: broken
 
 * Exception is:
 Some.Failure
 """
+        def errorOutput = """
+Some error
+"""
+
         when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, errorOutput)
 
         then:
         failure.assertOutputContains("Some message")
@@ -143,7 +146,6 @@ Some.Failure
             =======
              
             Some message
-            Some error
              
             Output:
         '''))
@@ -154,13 +156,12 @@ Some.Failure
         then:
         def e2 = thrown(AssertionError)
         error(e2).startsWith(error('''
-            Did not find expected text in build output.
+            Did not find expected text in error output.
             Expected: broken
              
-            Build output:
+            Error output:
             =======
              
-            Some message
             Some error
              
             Output:
