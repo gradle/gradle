@@ -46,9 +46,17 @@ Add-->
 ### Locking of dynamic dependencies
 
 Gradle now provides a mechanism for locking dynamic versions.
-It enables builds to become reproducible even when declaring dependencies using version ranges.
+It makes builds reproducible even when declaring dependencies using version ranges.
 
-You first enable locking on configurations:
+This enables, amongst others, the following scenarios:
+
+* Companies dealing with multi repositories no longer need to rely on `-SNAPSHOT` or changing dependencies,
+which sometimes result in cascading failures when a dependency introduces a bug or incompatibility.
+Now dependencies can be declared against major or minor version range, enabling to test with the latest versions on CI while leveraging locking for stable developer builds.
+* Teams that want to always use the latest of their dependencies can use dynamic versions, locking their dependencies only for releases.
+The release tag will contain the lock files, allowing that build to be fully reproducible when bug fixes need to be developed.
+
+In order to use dependency locking, you first enable it on configurations:
 
     dependencyLocking {
         lockAllConfigurations()
@@ -58,7 +66,11 @@ You then run a build, telling Gradle to persist lock state:
 
     gradle test --write-locks
 
-From this point onward, all configurations that have a lock state will fail to resolve if changes are made to their dependencies.
+Assuming you add the lock files to source control, from this point onward, all configurations that have a lock state will resolve the locked versions.
+
+Changes to published dependencies will not impact your build, you will have to re-generate or update the lock before they are considered as dependencies.
+Similarly, changes to your build script that would impact the resolved set of dependencies will cause it to fail,
+ensuring the dependencies do not change without a matching update in the lock file.
 
 Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
 
