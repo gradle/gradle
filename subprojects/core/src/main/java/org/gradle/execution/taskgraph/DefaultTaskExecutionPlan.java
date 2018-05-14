@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -89,13 +90,12 @@ import java.util.TreeSet;
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> tasksInUnknownState = new LinkedHashSet<TaskInfo>();
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
-    private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
+    private Map<Task, TaskInfo> executionPlan;
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
     private final TaskInfoFactory nodeFactory = new TaskInfoFactory(failureCollector);
     private Spec<? super Task> filter = Specs.satisfyAll();
-    private List<Task> allTasks;
 
     private boolean continueOnFailure;
 
@@ -266,6 +266,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void determineExecutionPlan() {
+        executionPlan = new LinkedHashMap<Task, TaskInfo>();
         List<TaskInfoInVisitingSegment> nodeQueue = Lists.newArrayList(Iterables.transform(entryTasks, new Function<TaskInfo, TaskInfoInVisitingSegment>() {
             private int index;
 
@@ -349,8 +350,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         executionQueue.clear();
+        executionPlan = ImmutableMap.copyOf(executionPlan);
         executionQueue.addAll(executionPlan.values());
-        allTasks = null;
     }
 
     @Override
@@ -521,8 +522,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void clear() {
         nodeFactory.clear();
         entryTasks.clear();
-        allTasks = null;
-        executionPlan.clear();
+        executionPlan = null;
         executionQueue.clear();
         projectLocks.clear();
         failureCollector.clearFailures();
@@ -535,10 +535,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public List<Task> getTasks() {
-        if (allTasks == null) {
-            allTasks = ImmutableList.copyOf(executionPlan.keySet());
-        }
-        return allTasks;
+        return executionPlan == null ? ImmutableList.<Task>of() : ImmutableList.copyOf(executionPlan.keySet());
     }
 
     @Override
