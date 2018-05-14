@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.impldeps
 import org.gradle.api.Plugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Timeout
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
