@@ -35,8 +35,8 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.Cast;
 import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -196,7 +196,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     public boolean hasTask(Task task) {
         ensurePopulated();
-        return taskExecutionPlan.getTasks().contains(task);
+        return taskExecutionPlan.hasTask(task);
     }
 
     public boolean hasTask(String path) {

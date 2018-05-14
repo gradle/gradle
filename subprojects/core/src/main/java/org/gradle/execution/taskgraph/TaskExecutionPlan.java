@@ -50,6 +50,8 @@ public interface TaskExecutionPlan extends Describable {
     @Incubating
     Set<Task> getDependencies(Task task);
 
+    boolean hasTask(Task task);
+
     /**
      * @return The list of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
      */

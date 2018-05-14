@@ -534,6 +534,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
+    public boolean hasTask(Task task) {
+        return executionPlan.containsKey(task);
+    }
+
+    @Override
     public List<Task> getTasks() {
         return executionPlan == null ? ImmutableList.<Task>of() : ImmutableList.copyOf(executionPlan.keySet());
     }
