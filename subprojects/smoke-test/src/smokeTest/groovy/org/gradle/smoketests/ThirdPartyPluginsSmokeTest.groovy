@@ -283,7 +283,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.6'
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.14.9'
             }
             """.stripIndent()
 
