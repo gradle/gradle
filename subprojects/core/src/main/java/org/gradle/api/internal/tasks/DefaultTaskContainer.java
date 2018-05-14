@@ -34,6 +34,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
@@ -331,6 +332,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+        Task task = findByNameWithoutRules(name);
+        if (task == null || !type.isAssignableFrom(task.getClass())) {
+            ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
+            if (taskProvider == null || !type.isAssignableFrom(taskProvider.getType())) {
+                throw createNotFoundException(name);
+            }
+        }
+
         return new TaskLookupProvider<T>(type, name);
     }
 
