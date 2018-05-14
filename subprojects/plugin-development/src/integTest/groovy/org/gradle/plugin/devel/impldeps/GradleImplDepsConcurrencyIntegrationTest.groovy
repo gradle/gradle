@@ -21,6 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 4
@@ -75,8 +76,6 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
         assertTestKitGenerationOutput(output)
     }
 
-    @Timeout(300)
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "Gradle API and TestKit dependency JAR files are the same when run by concurrent tasks within one build"() {
         given:
         setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
