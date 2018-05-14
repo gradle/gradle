@@ -335,9 +335,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Task task = findByNameWithoutRules(name);
         if (task == null || !type.isAssignableFrom(task.getClass())) {
             ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
-            if (taskProvider == null || !type.isAssignableFrom(taskProvider.getType())) {
+            if (taskProvider == null) {
                 throw createNotFoundException(name);
+            } else if (!type.isAssignableFrom(taskProvider.getType())) {
+                throw new IllegalArgumentException(String.format("Task with name '%s' found but have a type mismatch, found %s expected %s, in %s.", name, taskProvider.getType().getName(), type.getName(), project));
             }
+            return (TaskProvider<T>)taskProvider;
         }
 
         return new TaskLookupProvider<T>(type, name);
