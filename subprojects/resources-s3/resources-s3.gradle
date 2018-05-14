@@ -29,6 +29,13 @@ gradlebuildJava {
     moduleType = ModuleType.PLUGIN
 }
 
+tasks.withType(Test) {
+    def javaVersion = rootProject.availableJavaInstallations.javaInstallationForTest.javaVersion
+    if (javaVersion.java9Compatible) {
+        jvmArgs '--add-modules', 'java.xml.bind'
+    }
+}
+
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
     policy = WhenNotEmpty.REPORT
