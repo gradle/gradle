@@ -22,10 +22,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -44,6 +46,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMet
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCacheProvider;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.SuppliedComponentMetadataSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.InMemoryModuleArtifactCache;
@@ -75,6 +78,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.vcs.VcsDependencyResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -91,6 +95,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.BuildIdentity;
@@ -103,7 +108,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.CachingRuleExecutor;
-import org.gradle.internal.resolve.caching.DefaultInMemoryCachingRuleExecutor;
+import org.gradle.internal.resolve.caching.CrossBuildCachingRuleExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
@@ -391,14 +396,46 @@ class DependencyManagementBuildScopeServices {
         return SimpleMapInterner.threadSafe();
     }
 
-    CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter) {
-        Transformer<Serializable, ModuleVersionIdentifier> transformer = new Transformer<Serializable, ModuleVersionIdentifier>() {
-            @Override
-            public String transform(ModuleVersionIdentifier moduleVersionIdentifier) {
-                return moduleVersionIdentifier.toString();
-            }
-        };
-        return new DefaultInMemoryCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata>(snapshotter, transformer);
+
+    SuppliedComponentMetadataSerializer createSuppliedComponentMetadataSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer) {
+        ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        return new SuppliedComponentMetadataSerializer(moduleVersionIdentifierSerializer, attributeContainerSerializer);
     }
 
+    CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,
+                                                                                                                                                            CacheRepository cacheRepository,
+                                                                                                                                                            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+                                                                                                                                                            final BuildCommencedTimeProvider timeProvider,
+                                                                                                                                                            SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
+        return new CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata>(
+            "md-supplier",
+            cacheRepository,
+            cacheDecoratorFactory,
+            snapshotter,
+            timeProvider,
+            new CrossBuildCachingRuleExecutor.EntryValidator<ComponentMetadata>() {
+                @Override
+                public boolean isValid(CachePolicy policy, final CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata> entry) {
+                    long age = timeProvider.getCurrentTime() - entry.getTimestamp();
+                    final ComponentMetadata result = entry.getResult();
+                    boolean mustRefreshModule = policy.mustRefreshModule(new ResolvedModuleVersion() {
+                        @Override
+                        public ModuleVersionIdentifier getId() {
+                            return result.getId();
+                        }
+                    },
+                        age,
+                        result.isChanging());
+                    return !mustRefreshModule;
+                }
+            },
+            new Transformer<Serializable, ModuleVersionIdentifier>() {
+                @Override
+                public Serializable transform(ModuleVersionIdentifier moduleVersionIdentifier) {
+                    return moduleVersionIdentifier.toString();
+                }
+            },
+            suppliedComponentMetadataSerializer
+        );
+    }
 }

@@ -81,7 +81,7 @@ public class MetadataProvider {
                     final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory());
                     return new BuildableComponentMetadataSupplierDetails(builder);
                 }
-            });
+            }, resolveState.getCachePolicy());
         }
         if (metadata != null) {
             metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);

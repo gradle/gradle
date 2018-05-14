@@ -17,6 +17,7 @@ package org.gradle.internal.resolve.caching;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
@@ -42,7 +43,7 @@ public class DefaultInMemoryCachingRuleExecutor<KEY, DETAILS, RESULT> implements
     }
 
     @Override
-    public <D extends DETAILS> RESULT execute(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss) {
+    public <D extends DETAILS> RESULT execute(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy) {
         if (action == null) {
             return null;
         }

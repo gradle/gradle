@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -80,14 +81,16 @@ public class DynamicVersionResolver {
     private final ImmutableAttributesFactory attributesFactory;
     private final ComponentMetadataProcessor componentMetadataProcessor;
     private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor;
+    private final CachePolicy cachePolicy;
 
-    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
+    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.versionParser = versionParser;
         this.metaDataFactory = metaDataFactory;
         this.attributesFactory = attributesFactory;
         this.componentMetadataProcessor = componentMetadataProcessor;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
+        this.cachePolicy = cachePolicy;
     }
 
     public void add(ModuleComponentRepository repository) {
@@ -102,7 +105,7 @@ public class DynamicVersionResolver {
 
         List<RepositoryResolveState> resolveStates = Lists.newArrayListWithCapacity(repositories.size());
         for (ModuleComponentRepository repository : repositories) {
-            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, attributesFactory, componentMetadataSupplierRuleExecutor));
+            resolveStates.add(new RepositoryResolveState(versionedComponentChooser, dependency, repository, versionSelector, rejectedVersionSelector, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, attributesFactory, componentMetadataSupplierRuleExecutor, cachePolicy));
         }
 
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
@@ -244,10 +247,11 @@ public class DynamicVersionResolver {
         private final ComponentMetadataProcessor componentMetadataProcessor;
         private final ImmutableAttributesFactory attributesFactory;
         private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> metadataSupplierRuleExecutor;
+        private final CachePolicy cachePolicy;
         private ModuleComponentIdentifier firstRejected = null;
 
 
-        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, VersionParser versionParser, AttributeContainer consumerAttributes, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, ImmutableAttributesFactory attributesFactory1, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> metadataSupplierRuleExecutor) {
+        public RepositoryResolveState(VersionedComponentChooser versionedComponentChooser, ModuleDependencyMetadata dependency, ModuleComponentRepository repository, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, VersionParser versionParser, AttributeContainer consumerAttributes, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, ImmutableAttributesFactory attributesFactory1, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> metadataSupplierRuleExecutor, CachePolicy cachePolicy) {
             this.versionedComponentChooser = versionedComponentChooser;
             this.dependency = dependency;
             this.versionSelector = versionSelector;
@@ -257,6 +261,7 @@ public class DynamicVersionResolver {
             this.componentMetadataProcessor = componentMetadataProcessor;
             this.attributesFactory = attributesFactory1;
             this.metadataSupplierRuleExecutor = metadataSupplierRuleExecutor;
+            this.cachePolicy = cachePolicy;
             this.attemptCollector = new AttemptCollector();
             this.consumerAttributes = buildAttributes(consumerAttributes, attributesFactory);
             versionListingResult = new VersionListResult(dependency, repository);
@@ -338,7 +343,7 @@ public class DynamicVersionResolver {
             for (String version : versionListingResult.result.getVersions()) {
                 CandidateResult candidateResult = candidateComponents.get(version);
                 if (candidateResult == null) {
-                    candidateResult = new CandidateResult(dependency, version, repository, attemptCollector, versionParser, componentMetadataProcessor, attributesFactory, metadataSupplierRuleExecutor);
+                    candidateResult = new CandidateResult(dependency, version, repository, attemptCollector, versionParser, componentMetadataProcessor, attributesFactory, metadataSupplierRuleExecutor, cachePolicy);
                     candidateComponents.put(version, candidateResult);
                 }
                 candidates.add(candidateResult);
@@ -370,12 +375,14 @@ public class DynamicVersionResolver {
         private boolean searchedLocally;
         private boolean searchedRemotely;
         private final DefaultBuildableModuleComponentMetaDataResolveResult result = new DefaultBuildableModuleComponentMetaDataResolveResult();
+        private final CachePolicy cachePolicy;
 
-        public CandidateResult(ModuleDependencyMetadata dependencyMetadata, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector, VersionParser versionParser, ComponentMetadataProcessor componentMetadataProcessor, ImmutableAttributesFactory attributesFactory, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> supplierRuleExecutor) {
+        public CandidateResult(ModuleDependencyMetadata dependencyMetadata, String version, ModuleComponentRepository repository, AttemptCollector attemptCollector, VersionParser versionParser, ComponentMetadataProcessor componentMetadataProcessor, ImmutableAttributesFactory attributesFactory, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> supplierRuleExecutor, CachePolicy cachePolicy) {
             this.dependencyMetadata = dependencyMetadata;
             this.componentMetadataProcessor = componentMetadataProcessor;
             this.attributesFactory = attributesFactory;
             this.supplierRuleExecutor = supplierRuleExecutor;
+            this.cachePolicy = cachePolicy;
             this.version = versionParser.transform(version);
             this.repository = repository;
             this.attemptCollector = attemptCollector;
@@ -430,6 +437,11 @@ public class DynamicVersionResolver {
         @Override
         public CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> getComponentMetadataSupplierExecutor() {
             return supplierRuleExecutor;
+        }
+
+        @Override
+        public CachePolicy getCachePolicy() {
+            return cachePolicy;
         }
 
         private void process(ModuleComponentRepositoryAccess access, DefaultBuildableModuleComponentMetaDataResolveResult result) {

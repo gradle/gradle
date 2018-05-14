@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.resolve.caching.CachingRuleExecutor;
@@ -38,4 +39,6 @@ public interface ModuleComponentResolveState extends Versioned {
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
 
     CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> getComponentMetadataSupplierExecutor();
+
+    CachePolicy getCachePolicy();
 }

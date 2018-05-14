@@ -84,7 +84,8 @@ public class ResolveIvyFactory {
                                      ComponentMetadataProcessor metadataProcessor,
                                      AttributeContainer consumerAttributes,
                                      AttributesSchema attributesSchema,
-                                     ImmutableAttributesFactory attributesFactory, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
+                                     ImmutableAttributesFactory attributesFactory,
+                                     CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
         if (repositories.isEmpty()) {
             return new NoRepositoriesResolver();
         }
@@ -92,8 +93,8 @@ public class ResolveIvyFactory {
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
         startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor);
+        UserResolverChain moduleResolver = new UserResolverChain(versionSelectorScheme, versionComparator, resolutionStrategy.getComponentSelection(), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionSelectorScheme, versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -132,8 +133,8 @@ public class ResolveIvyFactory {
     private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final UserResolverChain delegate;
 
-        public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesSchema attributesSchema, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
-            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor);
+        public ParentModuleLookupResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesSchema attributesSchema, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessor componentMetadataProcessor, CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+            this.delegate = new UserResolverChain(versionSelectorScheme, versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
         }
 
         public void add(ModuleComponentRepository moduleComponentRepository) {
