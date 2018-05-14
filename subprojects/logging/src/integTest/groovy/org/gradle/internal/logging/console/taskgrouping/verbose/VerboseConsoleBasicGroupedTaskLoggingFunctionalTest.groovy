@@ -21,8 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTask
 
 class VerboseConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
-
-    def setup() {
-        attachTestConsole()
-    }
 }

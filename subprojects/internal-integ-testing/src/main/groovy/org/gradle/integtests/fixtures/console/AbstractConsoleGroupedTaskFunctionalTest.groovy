@@ -19,36 +19,47 @@ package org.gradle.integtests.fixtures.console
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.executer.ConsoleAttachment
+import org.junit.Assume
+import org.junit.runner.RunWith
 
 /**
  * A base class for testing the console.
  */
+@RunWith(ConsoleAttachmentTestRunner.class)
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
+    static ConsoleAttachment consoleAttachment
+
     protected boolean consoleAttached
     protected boolean stderrAttached
 
     def setup() {
+        // TODO - rich/verbose consoles currently exhibit slightly different behavior than these tests expect when no console is attached
+        Assume.assumeFalse(consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose))
+
+        switch(consoleAttachment) {
+            case ConsoleAttachment.NOT_ATTACHED:
+                consoleAttached = false
+                stderrAttached = false
+                break
+            case ConsoleAttachment.ATTACHED:
+                consoleAttached = true
+                stderrAttached = true
+                executer.withTestConsoleAttached()
+                break
+            case ConsoleAttachment.ATTACHED_STDOUT_ONLY:
+                consoleAttached = true
+                stderrAttached = false
+                executer.withTestConsoleAttachedToStdoutOnly()
+                break
+            default:
+                throw new IllegalArgumentException()
+        }
+
         executer.beforeExecute {
             it.withConsole(consoleType)
         }
     }
 
     abstract ConsoleOutput getConsoleType()
-
-    def attachTestConsole() {
-        executer.withTestConsoleAttached()
-        consoleAttached = true
-        stderrAttached = true
-    }
-
-    def attachTestConsoleToStdoutOnly() {
-        executer.withTestConsoleAttachedToStdoutOnly()
-        consoleAttached = true
-        stderrAttached = false
-    }
-
-    def notAttachedToConsole() {
-        consoleAttached = false
-        stderrAttached = false
-    }
 }

@@ -21,8 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleDeprecati
 
 class VerboseConsoleDeprecationMessageGroupedTaskFunctionalTest extends AbstractConsoleDeprecationMessageGroupedTaskFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
-
-    def setup() {
-        attachTestConsole()
-    }
 }

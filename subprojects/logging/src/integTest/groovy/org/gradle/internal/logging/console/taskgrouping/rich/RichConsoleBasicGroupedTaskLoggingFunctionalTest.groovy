@@ -25,10 +25,6 @@ import spock.lang.Issue
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 
-    def setup() {
-        attachTestConsole()
-    }
-
     @Issue("gradle/gradle#2038")
     def "tasks with no actions are not displayed"() {
         given:
@@ -91,7 +87,10 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
     def "configure project group header is printed red if configuration fails with additional failures"() {
         given:
         buildFile << """
-            afterEvaluate { throw new RuntimeException("After Evaluate Failure...") }
+            afterEvaluate { 
+                println "executing after evaluate..."
+                throw new RuntimeException("After Evaluate Failure...") 
+            }
             throw new RuntimeException('Config Failure...')
         """
         executer.withStacktraceDisabled()
