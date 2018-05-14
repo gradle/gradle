@@ -19,7 +19,7 @@ This allows processors with extension mechanisms to check extensions for increme
 
 New native plugins continue to improve with [better control over system include path](#better-control-over-system-include-path-for-native-compilation) for native compilation and [other improvements](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48). 
 
-This release introduces 2 new APIs that facilitate immutable tasks: APIs to create [tasks with constructor arguments](#create-tasks-with-constructor-arguments) and [immutable file collections](#immutable-file-collections). 
+This release introduces 2 new APIs that facilitate configuring tasks already when they are created: APIs to create [tasks with constructor arguments](#create-tasks-with-constructor-arguments) and [immutable file collections](#immutable-file-collections).
 
 Gradle 4.8 includes Kotlin DSL 0.17.4 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time and TestKit support.
 At the same time the IntelliJ IDEA Kotlin Plugin fixed many long standing build script editing related issues.
@@ -143,7 +143,9 @@ Text resources like a common checkstyle configuration file can now be fetched di
 ### Create tasks with constructor arguments
 
 You can now create a task and pass values to its constructor.
-In order to pass values to the constructor, you must annotate the relevant constructor with `@javax.inject.Inject`.
+This can be useful for tasks created by plugins that should not be configured directly by users.
+
+In order to pass values to the constructor, the constructor has to be annotated with `@javax.inject.Inject`.
 Given the following `Task` class:
 
     class CustomTask extends DefaultTask {
