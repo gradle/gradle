@@ -324,6 +324,14 @@ This change could cause script compilation errors.
 
 See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4) for more information.
 
+### Changes to plain console behavior
+
+In Gradle 4.7, the plain console was changed so that task output was grouped and it was easy to determine which task produced a given item of output.
+With this change, error messages were also grouped and sent to the standard output stream so that they could also be grouped with other task output.
+Unfortunately, this made it impossible to redirect error messages to a different file handle and while it improved the experience for console users, it worsened the experience for others who preferred to keep error output separate.
+We have changed this behavior now so that error messages are only grouped on standard output when a console is attached to both standard output and standard error.
+In all other scenarios, error messages are sent to standard error similar to how they were handled in versions previous to Gradle 4.7. 
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
