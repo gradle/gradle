@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.reflect;
+package org.gradle.api.artifacts;
 
-import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
-public interface ConfigurableRule<DETAILS> {
-    Class<? extends Action<DETAILS>> getRuleClass();
-    Object[] getRuleParams();
-    boolean isCacheable();
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Denotates a rule which execution is subject to caching.
+ * @since 4.9
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+@Incubating
+public @interface CacheableRule {
 }
