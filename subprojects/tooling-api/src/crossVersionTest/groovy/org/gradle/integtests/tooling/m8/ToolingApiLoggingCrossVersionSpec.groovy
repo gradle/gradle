@@ -151,12 +151,16 @@ project.logger.debug("debug logging");
     }
 
     private ExecutionResult runUsingCommandLine() {
-        targetDist.executer(temporaryFolder, getBuildContext())
+        def executer = targetDist.executer(temporaryFolder, getBuildContext())
             .requireGradleDistribution()
             .withTestConsoleAttached()
-            .withArgument("--console=plain")
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
-            .run()
+
+        if (targetVersion.baseVersion >= GradleVersion.version("4.0")) {
+            executer.withArgument("--console=plain")
+        }
+
+        return executer.run()
     }
 
     String normaliseOutput(String output) {
