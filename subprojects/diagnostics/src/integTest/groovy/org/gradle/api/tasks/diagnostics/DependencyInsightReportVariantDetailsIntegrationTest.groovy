@@ -211,4 +211,69 @@ org:leaf:1.0
 """
     }
 
+    def "correctly reports attributes declared on dependencies"() {
+        given:
+        mavenRepo.module('org', 'testA', '1.0').publish()
+        mavenRepo.module('org', 'testB', '1.0').publish()
+
+        buildFile << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                }
+            }
+            dependencies {
+                components {
+                    all {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                        }
+                    }
+                }
+                conf('org:testA:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                    }
+                }
+                conf('org:testB:+') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                    }
+                }
+            }
+            
+        """
+
+        when:
+        run 'dependencyInsight', "--dependency", "test", "--configuration", "conf"
+
+        then:
+        // TODO:DAZ This demonstrates issue #5401
+        outputContains """
+org:testA:1.0
+   variant "default" [
+      custom            = dep_value (compatible with: conf_value)
+      org.gradle.status = release (not requested)
+   ]
+\\--- conf
+
+org:testB:1.0
+   variant "default" [
+      custom            = dep_value (compatible with: conf_value)
+      org.gradle.status = release (not requested)
+   ]
+
+org:testB:+ -> 1.0
+\\--- conf
+"""
+
+    }
+
+
 }
