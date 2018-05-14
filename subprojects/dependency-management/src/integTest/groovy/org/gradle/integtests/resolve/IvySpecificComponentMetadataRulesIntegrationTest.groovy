@@ -49,7 +49,7 @@ task resolve {
 """
     }
 
-    def "can access Ivy metadata by accepting parameter of type IvyModuleDescriptor"() {
+    def "can access Ivy metadata"() {
         given:
         repository {
             'org.test:projectA:1.0' {
@@ -63,18 +63,34 @@ task resolve {
 
         buildFile <<
             """
-def ruleInvoked = false
+import java.util.concurrent.atomic.AtomicBoolean
 
-dependencies {
-    components {
-        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
-            ruleInvoked = true
+def ruleInvoked = new AtomicBoolean()
+
+class IvyRule implements ComponentMetadataRule {
+    AtomicBoolean ruleInvoked
+
+    IvyRule(AtomicBoolean ruleInvoked) {
+        this.ruleInvoked = ruleInvoked
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+            ruleInvoked.set(true)
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.extraInfo.get('foo') == 'fooValue'
             assert descriptor.extraInfo.get('${ns('foo').namespace}', 'foo') == 'fooValue'
             assert descriptor.branch == 'someBranch'
             assert descriptor.ivyStatus == 'release'
-        }
+    }
+}
+
+dependencies {
+    components {
+        all(IvyRule, {
+            params(ruleInvoked)
+        })
     }
 }
 
@@ -105,14 +121,30 @@ resolve.doLast { assert ruleInvoked }
 
         buildFile <<
             """
-def ruleInvoked = false
+import java.util.concurrent.atomic.AtomicBoolean
+
+def ruleInvoked = new AtomicBoolean()
+
+class IvyRule implements ComponentMetadataRule {
+    AtomicBoolean ruleInvoked
+
+    IvyRule(AtomicBoolean ruleInvoked) {
+        this.ruleInvoked = ruleInvoked
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+            ruleInvoked.set(true)
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
+            descriptor.extraInfo.get('foo')
+    }
+}
 
 dependencies {
     components {
-        all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
-            ruleInvoked = true
-            descriptor.extraInfo.get('foo')
-        }
+        all(IvyRule, {
+            params(ruleInvoked)
+        })
     }
 }
 
@@ -131,7 +163,7 @@ resolve.doLast { assert ruleInvoked }
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(48)
+        failure.assertHasLineNumber(57)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
@@ -153,16 +185,32 @@ resolve.doLast { assert ruleInvoked }
 
         buildFile <<
             """
-def ruleInvoked = false
+import java.util.concurrent.atomic.AtomicBoolean
 
-dependencies {
-    components {
-        all { details, IvyModuleDescriptor descriptor ->
-            ruleInvoked = true
+def ruleInvoked = new AtomicBoolean()
+
+class IvyRule implements ComponentMetadataRule {
+    AtomicBoolean ruleInvoked
+
+    IvyRule(AtomicBoolean ruleInvoked) {
+        this.ruleInvoked = ruleInvoked
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+            ruleInvoked.set(true)
+            def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.branch == '${sq(branch)}'
             details.statusScheme = [ '${sq(status)}' ]
             assert descriptor.ivyStatus == '${sq(status)}'
-        }
+    }
+}
+
+dependencies {
+    components {
+        all(IvyRule, {
+            params(ruleInvoked)
+        })
     }
 }
 

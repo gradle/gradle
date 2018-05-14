@@ -48,12 +48,25 @@ $repoDeclaration
 configurations {
     modules
 }
+
+class SavingRule implements ComponentMetadataRule {
+    Project project;
+
+    public SavingRule(Project project) {
+        this.project = project
+    }
+
+    public void execute(ComponentMetadataContext context) {
+        project.file(context.details.id.name).text = context.details.changing
+    }
+}
+
 dependencies {
     modules "org.test:moduleB:1.0-SNAPSHOT"
     components {
-        all { details ->
-            file(details.id.name).text = details.changing
-        }
+        all(SavingRule, {
+            params(project)
+        })
     }
 }
 task resolve {

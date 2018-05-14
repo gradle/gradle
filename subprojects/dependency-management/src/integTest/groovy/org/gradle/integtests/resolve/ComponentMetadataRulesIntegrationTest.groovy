@@ -50,18 +50,22 @@ task resolve {
         repository {
             'org.test:projectA:1.0'()
         }
-        buildFile <<
-"""
+        buildFile << """
+
+class AssertingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert context.details.id.group == "org.test"
+            assert context.details.id.name == "projectA"
+            assert context.details.id.version == "1.0"
+            assert context.details.status == "$defaultStatus"
+            assert context.details.statusScheme == ["integration", "milestone", "release"]
+            assert !context.details.changing
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            assert details.id.group == "org.test"
-            assert details.id.name == "projectA"
-            assert details.id.version == "1.0"
-            assert details.status == "$defaultStatus"
-            assert details.statusScheme == ["integration", "milestone", "release"]
-            assert !details.changing
-        }
+        all(AssertingRule)
     }
 }
 """
@@ -84,18 +88,26 @@ dependencies {
 
         buildFile <<
                 """
+class UpdatingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            context.details.status "integration.changed" // verify that 'details' is enhanced
+            context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
+            context.details.changing = true
+    }
+}
+
+class VerifyingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert context.details.status == "integration.changed"
+            assert context.details.statusScheme == ["integration.changed", "milestone.changed", "release.changed"]
+            assert context.details.changing
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            details.status "integration.changed" // verify that 'details' is enhanced
-            details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
-            details.changing = true
-        }
-        all { ComponentMetadataDetails details ->
-            assert details.status == "integration.changed"
-            assert details.statusScheme == ["integration.changed", "milestone.changed", "release.changed"]
-            assert details.changing
-        }
+        all(UpdatingRule)
+        all(VerifyingRule)
     }
 }
 """
@@ -118,17 +130,21 @@ dependencies {
 
         buildFile <<
                 """
+class UpdatingRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert !context.details.changing
+            assert context.details.status == "$defaultStatus"
+            assert context.details.statusScheme == ["integration", "milestone", "release"]
+
+            context.details.changing = true
+            context.details.status = "release.changed"
+            context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
+    }
+}
+
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            assert !details.changing
-            assert details.status == "$defaultStatus"
-            assert details.statusScheme == ["integration", "milestone", "release"]
-
-            details.changing = true
-            details.status = "release.changed"
-            details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
-        }
+        all(UpdatingRule)
     }
 }
 """
@@ -151,6 +167,19 @@ dependencies {
         }
         buildFile << """
             ext.rulesInvoked = []
+
+            class VerifyingRule implements ComponentMetadataRule {
+                final List<String> rulesInvoked;
+                
+                public VerifyingRule(List<String> rulesInvoked) {
+                    this.rulesInvoked = rulesInvoked
+                }
+                
+                public void execute(ComponentMetadataContext context) {
+                    rulesInvoked << context.details.id.version
+                }
+            }
+
             dependencies {
                 components {
                     all { ComponentMetadataDetails details ->
@@ -164,6 +193,7 @@ dependencies {
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
                     all(new RuleObject('rulesInvoked': rulesInvoked))
+                    all(VerifyingRule, { params(rulesInvoked) })
                 }
             }
 
@@ -184,7 +214,7 @@ dependencies {
                 }
             }
 
-            resolve.doLast { assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ] }
+            resolve.doLast { assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0', '1.0' ] }
         """
 
         when:
@@ -205,6 +235,19 @@ dependencies {
         buildFile << """
             ext.rulesInvoked = []
             ext.rulesUninvoked = []
+
+            class VerifyingRule implements ComponentMetadataRule {
+                final List<String> rulesInvoked;
+                
+                public VerifyingRule(List<String> rulesInvoked) {
+                    this.rulesInvoked = rulesInvoked
+                }
+                
+                public void execute(ComponentMetadataContext context) {
+                    rulesInvoked << 4
+                }
+            }
+
             dependencies {
                 components {
                     withModule('org.test:projectA') { ComponentMetadataDetails details ->
@@ -220,6 +263,9 @@ dependencies {
                     }
                     withModule('org.test:projectB', new ActionRule('rulesInvoked': rulesUninvoked))
                     withModule('org.test:projectB', new RuleObject('rulesInvoked': rulesUninvoked))
+
+                    withModule('org.test:projectA', VerifyingRule, { params(rulesInvoked) })
+                    withModule('org.test:projectB', VerifyingRule, { params(rulesUninvoked) })
                 }
             }
 
@@ -241,7 +287,7 @@ dependencies {
             }
 
             resolve.doLast {
-                assert rulesInvoked.sort() == [ 1, 2, 3 ]
+                assert rulesInvoked.sort() == [ 1, 2, 3, 4 ]
                 assert rulesUninvoked.empty
             }
         """
@@ -324,6 +370,36 @@ resolve.doLast {
         succeeds 'resolve'
     }
 
+    def 'class based rule does not get access to IvyModuleDescriptor for Maven component'() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile << """
+class IvyRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert context.getDescriptor(IvyModuleDescriptor) ${GradleMetadataResolveRunner.useIvy()? '!=' : '=='} null
+    }
+}
+
+dependencies {
+    components {
+        all(IvyRule)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+    }
+
     @Ignore // In-memory caching of processed metadata does not respect project boundaries
     @Issue("gradle/gradle#4261")
     def "different projects can apply different metadata rules for the same component"() {
@@ -337,6 +413,16 @@ rootProject.name = 'root'
 include 'sub'
 """
         buildFile << """
+class AddDependencyRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                add('org.test:projectB:1.0')
+            }
+        }
+    }
+}
+
 project (':sub') {
     $repositoryDeclaration
 
@@ -350,13 +436,7 @@ project (':sub') {
 
         // Component metadata rule that applies only to the 'sub' project
         components {
-            withModule('org.test:projectA') {
-                allVariants {
-                    withDependencies {
-                        add 'org.test:projectB:1.0'
-                    }
-                }
-            }
+            withModule('org.test:projectA', AddDependencyRule)
         }
     }
     task res {

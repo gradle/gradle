@@ -44,15 +44,18 @@ repositories {
 """
 $repoDeclaration
 configurations { compile }
+class StatusRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+            assert context.details.status == context.details.id.name == "projectA" ? "release" : "integration"
+            assert context.details.statusScheme == ['integration', 'milestone', 'release']
+    }
+}
 dependencies {
     compile 'group1:projectA:1.0'
     compile 'group2:projectB:2.0-SNAPSHOT'
     compile 'group2:projectC:${c.publishArtifactVersion}'
     components {
-        all {
-            assert it.status == it.id.name == "projectA" ? "release" : "integration"
-            assert it.statusScheme == ['integration', 'milestone', 'release']
-        }
+        all(StatusRule)
     }
 }
 
