@@ -316,11 +316,11 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        IllegalStateException e = thrown()
-        e.message == 'Timeout waiting for concurrent jobs to complete.'
+        operation.stop.duration in approx(200)
 
         and:
-        operation.stop.duration in approx(200)
+        IllegalStateException e = thrown()
+        e.message == 'Timeout waiting for concurrent jobs to complete.'
     }
 
     def stopScheduledExecutorRethrowsFirstRunnableExecutionException() {
