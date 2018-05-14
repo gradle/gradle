@@ -40,7 +40,7 @@ class ConsoleAttachmentTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected String getDisplayName() {
-            return attachment.toString()
+            return attachment.description
         }
 
         @Override
