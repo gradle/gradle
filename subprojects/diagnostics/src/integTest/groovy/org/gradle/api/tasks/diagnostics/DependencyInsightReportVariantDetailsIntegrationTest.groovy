@@ -254,18 +254,17 @@ org:leaf:1.0
         run 'dependencyInsight', "--dependency", "test", "--configuration", "conf"
 
         then:
-        // TODO:DAZ This demonstrates issue #5401
         outputContains """
 org:testA:1.0
    variant "default" [
-      custom            = dep_value (compatible with: conf_value)
+      custom            = dep_value
       org.gradle.status = release (not requested)
    ]
 \\--- conf
 
 org:testB:1.0
    variant "default" [
-      custom            = dep_value (compatible with: conf_value)
+      custom            = dep_value
       org.gradle.status = release (not requested)
    ]
 
