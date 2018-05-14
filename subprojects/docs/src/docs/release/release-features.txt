@@ -1,4 +1,4 @@
  - Dependency locking
  - Maven Publish and Ivy Publish plugins improved and marked stable
  - Incremental annotation processing enhancements
- - Immutable task APIs
+ - APIs to configure tasks at creation time
