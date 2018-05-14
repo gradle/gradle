@@ -721,6 +721,129 @@ class DefaultTaskContainerTest extends Specification {
         container.maybeCreate("task", CustomTask) == task
     }
 
+    void "getByNameLater fails if unknown task is requested"() {
+        when:
+        container.getByNameLater(DefaultTask, "unknown")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
+    }
+
+    void "getByNameLater fails if eagerly created task type is not a subtype"() {
+        given:
+        taskFactory.create("task", DefaultTask) >> task("task")
+        container.create("task", DefaultTask)
+
+        when:
+        container.getByNameLater(CustomTask, "task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+    }
+
+    void "getByNameLater fails if lazily created task type is not a subtype"() {
+        container.createLater("task", DefaultTask)
+
+        when:
+        container.getByNameLater(CustomTask, "task")
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' found but have a type mismatch, found ${DefaultTask.name} expected ${CustomTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can getByNameLater for eagerly created task subtype"() {
+        given:
+        taskFactory.create("task", CustomTask) >> task("task")
+        container.create("task", CustomTask)
+
+        when:
+        container.getByNameLater(Task, "task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can getByNameLater for lazily created task subtype"() {
+        container.createLater("task", CustomTask)
+
+        when:
+        container.getByNameLater(Task, "task")
+
+        then:
+        noExceptionThrown()
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can getByNameLater if task is eagerly created before"() {
+        given:
+        taskFactory.create("task", DefaultTask) >> task("task")
+        container.create("task", DefaultTask)
+
+        when:
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can getByNameLater if task is lazily created before"() {
+        given:
+        container.createLater("task", DefaultTask)
+
+        when:
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        noExceptionThrown()
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can getByNameLater if eagerly created task type gets overwrite"() {
+        given:
+        taskFactory.create("task", CustomTask) >> task("task", CustomTask)
+        taskFactory.create("task", DefaultTask) >> task("task", DefaultTask)
+        container.create("task", CustomTask)
+
+        when:
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+
+        when:
+        container.create([name: "task", type: DefaultTask, overwrite: true])
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can getByNameLater if lazy created task gets overwrite"() {
+        given:
+        container.createLater("task", CustomTask)
+
+        when:
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' found but have a type mismatch, found ${CustomTask.name} expected ${DefaultTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
+        0 * taskFactory.create("task", CustomTask)
+
+        when:
+        container.create([name: "task", type: DefaultTask, overwrite: true])
+        container.getByNameLater(DefaultTask, "task")
+
+        then:
+        noExceptionThrown()
+        1 * taskFactory.create("task", DefaultTask) >> task("task")
+    }
+
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)
