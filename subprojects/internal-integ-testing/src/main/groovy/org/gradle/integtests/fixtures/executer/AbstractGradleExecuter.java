@@ -43,6 +43,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -129,6 +130,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
+    protected ConsoleAttachment consoleAttachment = ConsoleAttachment.NOT_ATTACHED;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -397,6 +399,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (renderWelcomeMessage) {
             executer.withWelcomeMessageEnabled();
+        }
+
+        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+            executer.withTestConsoleAttached();
+        }
+
+        if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
+            executer.withTestConsoleAttachedToStdoutOnly();
         }
 
         return executer;
@@ -993,7 +1003,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            return doRun();
+            ExecutionResult result = doRun();
+            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+                result = new ErrorsOnStdoutScrapingExecutionResult(result);
+            }
+            return result;
         } finally {
             finished();
         }
@@ -1063,7 +1077,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            return doRunWithFailure();
+            ExecutionFailure executionFailure = doRunWithFailure();
+            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+                executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
+            }
+            return executionFailure;
         } finally {
             finished();
         }
@@ -1376,5 +1394,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 //        rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        consoleAttachment = ConsoleAttachment.ATTACHED;
+        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
+        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
+        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+    }
+
+    enum ConsoleAttachment {
+        NOT_ATTACHED, ATTACHED, ATTACHED_STDOUT_ONLY
     }
 }

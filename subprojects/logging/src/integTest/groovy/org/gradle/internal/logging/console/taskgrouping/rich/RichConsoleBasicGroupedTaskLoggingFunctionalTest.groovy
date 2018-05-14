@@ -25,6 +25,10 @@ import spock.lang.Issue
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
 
+    def setup() {
+        attachTestConsole()
+    }
+
     @Issue("gradle/gradle#2038")
     def "tasks with no actions are not displayed"() {
         given:

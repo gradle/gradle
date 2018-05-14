@@ -22,4 +22,8 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractFailureReporting
 
 class RichConsoleFailureReportingFunctionalTest extends AbstractFailureReportingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
+
+    def setup() {
+        attachTestConsole()
+    }
 }

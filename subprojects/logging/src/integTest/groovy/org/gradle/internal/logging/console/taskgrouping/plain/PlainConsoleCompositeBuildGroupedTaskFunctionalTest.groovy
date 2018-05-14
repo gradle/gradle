@@ -21,4 +21,8 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleComposite
 
 class PlainConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleCompositeBuildGroupedTaskFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
+
+    def setup() {
+        attachTestConsole()
+    }
 }
