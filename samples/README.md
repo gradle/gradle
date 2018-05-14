@@ -37,6 +37,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
  - [`source-control`](./source-control): demonstrates how to use external [source dependencies](https://github.com/gradle/gradle-native/issues/42)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
+ - [`testkit`](./testkit): demonstrates how to test a Gradle plugin written in Kotlin using [TestKit](https://docs.gradle.org/current/userguide/test_kit.html)
 
 Set up dev environment
 ----------------------
