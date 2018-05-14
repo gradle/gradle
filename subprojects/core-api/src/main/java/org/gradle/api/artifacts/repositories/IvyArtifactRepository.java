@@ -153,7 +153,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *     }
      * }
      * </pre>
-     * <p>The available pattern tokens are listed as part of <a href="http://ant.apache.org/ivy/history/latest-milestone/concept.html#patterns">Ivy's Main Concepts documentation</a>.</p>
+     * <p>The available pattern tokens are listed as part of <a href="http://ant.apache.org/ivy/history/master/concept.html#patterns">Ivy's Main Concepts documentation</a>.</p>
      *
      * @param layoutName The name of the layout to use.
      * @param config The action used to configure the layout.

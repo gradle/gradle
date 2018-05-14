@@ -40,8 +40,9 @@ public class JarSnapshot {
         final Set<String> result = new HashSet<String>();
         for (Map.Entry<String, HashCode> cls : getHashes().entrySet()) {
             String className = cls.getKey();
-            if (getAnalysis().isDependencyToAll(className)) {
-                return DependentsSet.dependencyToAll();
+            DependentsSet dependents = getAnalysis().getData().getDependents(className);
+            if (dependents.isDependencyToAll()) {
+                return dependents;
             }
             result.add(className);
         }

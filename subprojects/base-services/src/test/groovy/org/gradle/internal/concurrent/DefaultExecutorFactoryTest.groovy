@@ -301,7 +301,9 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
     }
 
     def stopScheduledExecutorThrowsExceptionOnTimeout() {
+        def latch = new CountDownLatch(1)
         def action = {
+            latch.countDown()
             thread.block()
         }
 
@@ -309,6 +311,7 @@ class DefaultExecutorFactoryTest extends ConcurrentSpec {
         def executor = factory.createScheduled('<display-name>', 1)
         executor.schedule(action, 0, TimeUnit.SECONDS)
         operation.stop {
+            latch.await()
             executor.stop(200, TimeUnit.MILLISECONDS)
         }
 

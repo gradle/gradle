@@ -3,9 +3,12 @@
 > Task :processResources
 > Task :classes
 > Task :jar
+> Task :javadoc
+> Task :javadocJar
+> Task :sourcesJar
 > Task :signMavenJavaPublication
 > Task :publishMavenJavaPublicationToMavenRepository
 > Task :publish
 
 BUILD SUCCESSFUL in 0s
-6 actionable tasks: 6 executed
+9 actionable tasks: 9 executed

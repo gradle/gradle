@@ -36,7 +36,7 @@ class TaskInfoFactoryTest extends Specification {
 
     void 'can create a node for a task'() {
         when:
-        def node = graph.createNode(a)
+        def node = graph.getOrCreateNode(a)
 
         then:
         !node.inKnownState
@@ -44,21 +44,22 @@ class TaskInfoFactoryTest extends Specification {
         node.mustSuccessors.empty
         node.dependencySuccessors.empty
         node.shouldSuccessors.empty
+        node.finalizingSuccessors.empty
         node.finalizers.empty
     }
 
     void 'caches node for a given task'() {
         when:
-        def node = graph.createNode(a)
+        def node = graph.getOrCreateNode(a)
 
         then:
-        graph.createNode(a).is(node)
+        graph.getOrCreateNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        graph.createNode(a)
-        graph.createNode(b)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
 
         then:
         graph.tasks == [a, b] as Set
@@ -66,9 +67,9 @@ class TaskInfoFactoryTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.createNode(a)
-        graph.createNode(b)
-        graph.createNode(c)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
+        graph.getOrCreateNode(c)
         graph.clear()
 
         then:

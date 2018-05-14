@@ -20,12 +20,23 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.provider.Property
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDistributionManagement
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomLicense
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomMailingList
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomOrganization
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectManagement
+import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
+import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,9 +44,11 @@ import spock.lang.Specification
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def projectIdentity = new DefaultMavenProjectIdentity("group-id", "artifact-id", "1.0")
+    def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
+    def instantiator = DirectInstantiator.INSTANCE
+    def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -56,9 +69,22 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
-    def "writes packaging"() {
+    def "does not require metadata to be configured"() {
+        given:
+        def mavenPom = Mock(MavenPomInternal) {
+            getPackaging() >> "pom"
+            getName() >> objectFactory.property(String)
+            getDescription() >> objectFactory.property(String)
+            getUrl() >> objectFactory.property(String)
+            getInceptionYear() >> objectFactory.property(String)
+            getLicenses() >> []
+            getDevelopers() >> []
+            getContributors() >> []
+            getMailingLists() >> []
+        }
+
         when:
-        generator.packaging = "pom"
+        generator.configureFrom(mavenPom)
 
         then:
         with (pom) {
@@ -66,12 +92,82 @@ class MavenPomFileGeneratorTest extends Specification {
         }
     }
 
+    def "writes metadata from configuration"() {
+        given:
+        def mavenPom = Mock(MavenPomInternal) {
+            getPackaging() >> "pom"
+            getName() >> propertyWithValue("my name")
+            getDescription() >> propertyWithValue("my description")
+            getUrl() >> propertyWithValue("http://example.org")
+            getInceptionYear() >> propertyWithValue("2018")
+            getLicenses() >> [new DefaultMavenPomLicense(objectFactory) {{
+                getName().set("GPL")
+                getUrl().set("http://www.gnu.org/licenses/gpl.html")
+            }}]
+            getOrganization() >> new DefaultMavenPomOrganization(objectFactory) {{
+                getName().set("Some Org")
+            }}
+            getDevelopers() >> [new DefaultMavenPomDeveloper(objectFactory) {{
+                getName().set("Alice")
+            }}]
+            getContributors() >> [new DefaultMavenPomDeveloper(objectFactory) {{
+                getName().set("Bob")
+            }}]
+            getScm() >> new DefaultMavenPomScm(objectFactory) {{
+                getConnection().set("http://cvs.example.org")
+            }}
+            getIssueManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
+                getSystem().set("Bugzilla")
+            }}
+            getCiManagement() >> new DefaultMavenPomProjectManagement(objectFactory) {{
+                getSystem().set("Anthill")
+            }}
+            getDistributionManagement() >> new DefaultMavenPomDistributionManagement(instantiator, objectFactory) {{
+                getDownloadUrl().set("https://example.org/download/")
+                relocation { r ->
+                    r.getGroupId().set("org.example.new")
+                }
+            }}
+            getMailingLists() >> [new DefaultMavenPomMailingList(objectFactory) {{
+                getName().set("Users")
+            }}]
+        }
+
+        when:
+        generator.configureFrom(mavenPom)
+
+        then:
+        with (pom) {
+            packaging == "pom"
+            name == "my name"
+            description == "my description"
+            inceptionYear == "2018"
+            url == "http://example.org"
+            licenses.license.name == "GPL"
+            licenses.license.url == "http://www.gnu.org/licenses/gpl.html"
+            organization.name == "Some Org"
+            developers.developer.name == "Alice"
+            contributors.contributor.name == "Bob"
+            scm.connection == "http://cvs.example.org"
+            issueManagement.system == "Bugzilla"
+            ciManagement.system == "Anthill"
+            distributionManagement.relocation.groupId == "org.example.new"
+            mailingLists.mailingList.name == "Users"
+        }
+    }
+
+    private <T> Property<T> propertyWithValue(T value) {
+        def property = objectFactory.property(T)
+        property.set(value)
+        return property
+    }
+
     def "encodes coordinates for XML and unicode"() {
         when:
         def groupId = 'group-ぴ₦ガき∆ç√∫'
         def artifactId = 'artifact-<tag attrib="value"/>-markup'
         def version = 'version-&"'
-        generator = new MavenPomFileGenerator(new DefaultMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
+        generator = new MavenPomFileGenerator(new ReadableMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
 
         then:
         with (pom) {

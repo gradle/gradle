@@ -346,11 +346,11 @@ If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task
 
 There are several options for publishing a JAR once it has been created:
 
- * the `uploadArchives` task — the <<artifact_management,original publishing mechansim>> — which works with both Ivy and (if you apply the <<maven_plugin,Maven Plugin>>) Maven
  * the <<publishing_maven,Maven Publish Plugin>>
  * the <<publishing_ivy,Ivy Publish Plugin>>
+ * the `uploadArchives` task — the <<artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin,Maven Plugin>>) Maven
 
-The latter two "Publish" plugins are the preferred options *unless* you need to sign POMs, for example when publishing to Maven Central. In that case, you need to use the original mechanism with the Maven Plugin.
+The former two "Publish" plugins are the preferred options.
 
 [[sec:jar_manifest]]
 ==== Modifying the JAR manifest

@@ -23,7 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.specs.Spec;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -109,7 +109,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
         for (IncludedBuild includedBuild : root.getGradle().getIncludedBuilds()) {
-            IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+            IncludedBuildState includedBuildInternal = (IncludedBuildState) includedBuild;
             applyEclipsePlugin(includedBuildInternal.getConfiguredBuild().getRootProject());
         }
     }

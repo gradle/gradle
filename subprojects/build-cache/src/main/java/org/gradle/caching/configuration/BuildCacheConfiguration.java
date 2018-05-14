@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 import javax.annotation.Nullable;
 
 /**
- * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html">build cache</a> for an entire Gradle build.
+ * Configuration for the <a href="https://docs.gradle.org/current/userguide/build_cache.html" target="_top">build cache</a> for an entire Gradle build.
  *
  * @since 3.5
  */

@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -27,7 +28,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -51,9 +52,11 @@ public class IdeaDependenciesProvider {
     public static final String SCOPE_MINUS = "minus";
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
+    private final ProjectComponentIdentifier currentProjectId;
 
-    public IdeaDependenciesProvider(IdeArtifactRegistry artifactRegistry) {
+    public IdeaDependenciesProvider(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
+        currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
     }
 
@@ -128,7 +131,6 @@ public class IdeaDependenciesProvider {
     private class IdeaDependenciesVisitor implements IdeDependencyVisitor {
         private final IdeaModule ideaModule;
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
-        private final ProjectComponentIdentifier currentProjectId;
         private final String scope;
 
         private final List<Dependency> projectDependencies = Lists.newLinkedList();
@@ -138,7 +140,6 @@ public class IdeaDependenciesProvider {
 
         private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
             this.ideaModule = ideaModule;
-            this.currentProjectId = DefaultProjectComponentIdentifier.newProjectId(ideaModule.getProject());
             this.scope = scope;
         }
 

@@ -214,6 +214,7 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
+                task jar {} // ignored
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
@@ -253,6 +254,7 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
+                task jar {} // ignored
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
@@ -296,6 +298,7 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
+                task classes {} // ignored
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {

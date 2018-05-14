@@ -42,7 +42,7 @@ public class SourceToNameConverter {
             }
         }
         throw new IllegalArgumentException(format("Unable to find source java class: '%s' because it does not belong to any of the source dirs: '%s'",
-                javaSourceClass, dirs));
+            javaSourceClass, dirs));
 
     }
 }

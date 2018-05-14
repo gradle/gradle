@@ -22,11 +22,7 @@ publishing {
     }
 }
 // START SNIPPET generate
-model {
-    tasks.generateDescriptorFileForIvyCustomPublication {
-        destination = file("$buildDir/generated-ivy.xml")
-    }
+generateDescriptorFileForIvyCustomPublication {
+    destination = file("$buildDir/generated-ivy.xml")
 }
 // END SNIPPET generate
-
-

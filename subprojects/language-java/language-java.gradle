@@ -36,7 +36,7 @@ classycle {
                        'org/gradle/external/javadoc/**']
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }
-

@@ -1,0 +1,15 @@
+> Task :generateDescriptorFileForBinaryAndSourcesPublication
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :sourcesJar
+> Task :publishBinaryAndSourcesPublicationToExternalRepository SKIPPED
+> Task :publishBinaryAndSourcesPublicationToInternalRepository
+> Task :generateDescriptorFileForBinaryPublication
+> Task :publishBinaryPublicationToExternalRepository
+> Task :publishBinaryPublicationToInternalRepository SKIPPED
+> Task :publish
+
+BUILD SUCCESSFUL in 0s
+8 actionable tasks: 8 executed

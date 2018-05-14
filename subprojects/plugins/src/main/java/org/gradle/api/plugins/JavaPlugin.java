@@ -272,8 +272,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         SourceSet main = pluginConvention.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
 
         SourceSet test = pluginConvention.getSourceSets().create(SourceSet.TEST_SOURCE_SET_NAME);
-        test.setCompileClasspath(project.files(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.files(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+        test.setCompileClasspath(project.getLayout().configurableFiles(main.getOutput(), project.getConfigurations().getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+        test.setRuntimeClasspath(project.getLayout().configurableFiles(test.getOutput(), main.getOutput(), project.getConfigurations().getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
         // Register the project's source set output directories
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
@@ -284,24 +284,32 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(JavaPluginConvention pluginConvention) {
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
+        project.getTasks().createLater(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
+            @Override
+            public void execute(Javadoc javadoc) {
+                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
+                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
+                javadoc.setSource(mainSourceSet.getAllJava());
 
-        SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        Javadoc javadoc = project.getTasks().create(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-        javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-        javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-        javadoc.setSource(mainSourceSet.getAllJava());
-        addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
+            }
+        });
     }
 
-    private void configureArchivesAndComponent(Project project, JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class);
-        jar.setDescription("Assembles a jar archive containing the main classes.");
-        jar.setGroup(BasePlugin.BUILD_GROUP);
-        jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
-
+    private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
+        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+            @Override
+            public void execute(Jar jar) {
+                jar.setDescription("Assembles a jar archive containing the main classes.");
+                jar.setGroup(BasePlugin.BUILD_GROUP);
+                jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
+            }
+        });
+        // TODO: Allow this to be added lazily
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
@@ -356,14 +364,24 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.BUILD_NEEDED_TASK_NAME).configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, true,
+                    JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
+        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME).configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                addDependsOnTaskInOtherProjects(task, false,
+                    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            }
+        });
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class, new Action<Test>() {
+        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -377,10 +395,20 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 });
             }
         });
-        Test test = project.getTasks().create(TEST_TASK_NAME, Test.class);
-        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(test);
-        test.setDescription("Runs the unit tests.");
-        test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
+        final Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
+            @Override
+            public void execute(Test test) {
+                test.setDescription("Runs the unit tests.");
+                test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+            }
+        });
+        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(test);
+            }
+        });
     }
 
     private void configureConfigurations(Project project) {

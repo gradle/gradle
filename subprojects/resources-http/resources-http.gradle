@@ -39,6 +39,8 @@ dependencies {
     implementation libraries.nekohtml.coordinates
 
     testImplementation testLibraries.jetty
+
+    testFixturesImplementation project(":internalIntegTesting")
 }
 
 gradlebuildJava {

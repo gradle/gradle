@@ -26,19 +26,19 @@ import java.util.Set;
 public interface DependencyLockingState {
 
     /**
-     * Indicates if there was lock state defined for the configuration
+     * Indicates if the lock state must be validated
      *
      * @return {@code true} if lock state was found, {@code false} otherwise
      */
-    boolean hasLockState();
+    boolean mustValidateLockState();
 
     /**
      * Returns the set of locking constraints found.
      * Note that an empty set can mean either that lock state was not defined or that lock state is an empty set.
-     * Disambiguation can be done by calling {@link #hasLockState()}.
+     * Disambiguation can be done by calling {@link #mustValidateLockState()}.
      *
      * @return a set of constraints
-     * @see #hasLockState()
+     * @see #mustValidateLockState()
      */
     Set<DependencyConstraint> getLockedDependencies();
 }

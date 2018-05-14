@@ -202,7 +202,7 @@ class SelectorStateResolverTest extends Specification {
 
         private static class ComponentVersionComparator implements Comparator<ComponentResolutionState> {
             private final Comparator<Version> versionComparator = new DefaultVersionComparator().asVersionComparator()
-            private final VersionParser versionParser = VersionParser.INSTANCE
+            private final VersionParser versionParser = new VersionParser()
 
             @Override
             int compare(ComponentResolutionState one, ComponentResolutionState two) {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
@@ -28,6 +29,10 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractIntegrationSpe
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
+
+    def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
 
     @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
     def "can use declare and resolve dependency with concrete version"() {

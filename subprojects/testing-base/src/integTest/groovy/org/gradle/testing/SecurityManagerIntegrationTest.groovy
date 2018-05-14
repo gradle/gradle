@@ -23,7 +23,7 @@ import spock.lang.Timeout
 import java.util.concurrent.TimeUnit
 
 class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
-    @Timeout(value = 90, unit = TimeUnit.SECONDS)
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
     def "should not hang when running with security manager"() {
         given:
         buildFile << """ 

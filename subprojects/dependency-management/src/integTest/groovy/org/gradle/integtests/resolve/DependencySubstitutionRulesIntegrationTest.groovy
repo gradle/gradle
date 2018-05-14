@@ -674,8 +674,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "get useful error message when replacing an external dependency with a project that does not exist"()
-    {
+    void "get useful error message when replacing an external dependency with a project that does not exist"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << """
@@ -701,9 +700,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails ":impl:checkDeps"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':impl:checkDeps'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':impl:conf'.")
-        failure.assertHasCause("project :doesnotexist not found.")
+        failure.assertHasDescription("A problem occurred evaluating root project 'depsub'.")
+        failure.assertHasCause("Project :doesnotexist not found.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"()
@@ -1151,7 +1149,7 @@ Required by:
             }
 
             configurations.conf.resolutionStrategy.dependencySubstitution {
-                substitute project(":foo") with module("org.gradle:test")
+                substitute project(":") with module("org.gradle:test")
             }
 """
 
@@ -1159,6 +1157,7 @@ Required by:
         fails "checkDeps"
 
         then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Must specify version for target of dependency substitution")
     }
 

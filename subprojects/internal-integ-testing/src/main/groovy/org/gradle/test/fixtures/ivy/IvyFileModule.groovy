@@ -397,10 +397,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.collect { d ->
-                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions, d.reason)
+                        new DependencySpec(d.organisation, d.module, d.revision, d.rejects, d.exclusions, d.reason, d.attributes)
                     },
                     v.dependencyConstraints + dependencyConstraints.collect { d ->
-                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects, d.reason)
+                        new DependencyConstraintSpec(d.organisation, d.module, d.revision, d.rejects, d.reason, d.attributes)
                     },
                     v.artifacts ?: defaultArtifacts,
                     v.capabilities

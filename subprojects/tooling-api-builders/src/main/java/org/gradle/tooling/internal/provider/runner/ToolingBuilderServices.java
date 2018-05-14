@@ -34,7 +34,8 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
                     Arrays.asList(
                         new BuildModelActionRunner(),
                         new TestExecutionRequestActionRunner(buildOperationListenerManager),
-                        new ClientProvidedBuildActionRunner()));
+                        new ClientProvidedBuildActionRunner(),
+                        new ClientProvidedPhasedActionRunner()));
             }
 
             ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration() {

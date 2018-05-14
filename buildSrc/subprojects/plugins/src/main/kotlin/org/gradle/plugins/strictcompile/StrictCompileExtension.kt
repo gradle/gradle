@@ -17,7 +17,7 @@ package org.gradle.plugins.strictcompile
 
 
 /**
- * Strict compilation options honored by [StrictCompilePlugin].
+ * Strict compilation options honored by [gradlebuild.Strict_compile_gradle].
  */
 open class StrictCompileExtension {
 

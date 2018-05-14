@@ -18,6 +18,7 @@ package org.gradle.invocation
 
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
@@ -30,7 +31,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.event.DefaultListenerManager
@@ -67,7 +68,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
-        _ * serviceRegistry.get(TaskGraphExecuter) >> Mock(TaskGraphExecuter)
+        _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
         _ * serviceRegistry.newInstance(TaskContainerInternal) >> Mock(TaskContainerInternal)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(Instantiator) >> Mock(Instantiator)
@@ -399,11 +400,11 @@ class DefaultGradleSpec extends Specification {
     def "has identity path"() {
         given:
         def child1 = classGenerator.newInstance(DefaultGradle, gradle, Stub(StartParameter), serviceRegistryFactory)
-        child1.rootProject = project('child1')
+        child1.settings = settings('child1')
 
         and:
         def child2 = classGenerator.newInstance(DefaultGradle, child1, Stub(StartParameter), serviceRegistryFactory)
-        child2.rootProject = project('child2')
+        child2.settings = settings('child2')
 
         expect:
         gradle.identityPath == Path.ROOT
@@ -412,6 +413,15 @@ class DefaultGradleSpec extends Specification {
     }
 
     def projectRegistry = new DefaultProjectRegistry()
+
+    private SettingsInternal settings(String rootProjectName) {
+        def rootProject = Stub(ProjectDescriptor)
+        rootProject.name >> rootProjectName
+
+        def settings = Stub(SettingsInternal)
+        settings.rootProject >> rootProject
+        return settings
+    }
 
     private ProjectInternal project(String name) {
         def project = Spy(DefaultProject, constructorArgs: [

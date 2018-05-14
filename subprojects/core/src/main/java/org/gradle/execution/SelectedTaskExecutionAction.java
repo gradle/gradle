@@ -28,19 +28,13 @@ import java.util.Set;
 public class SelectedTaskExecutionAction implements BuildExecutionAction {
     public void execute(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
-        TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
         if (gradle.getStartParameter().isContinueOnFailure()) {
-            taskGraph.useFailureHandler(new ContinueOnFailureHandler());
+            taskGraph.setContinueOnFailure(true);
         }
 
         taskGraph.addTaskExecutionGraphListener(new BindAllReferencesOfProjectsToExecuteListener());
         taskGraph.execute();
-    }
-
-    private static class ContinueOnFailureHandler implements TaskFailureHandler {
-        public void onTaskFailure(Task task) {
-            // Do nothing
-        }
     }
 
     private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener {

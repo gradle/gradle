@@ -89,6 +89,84 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         outputContains(":other:buildSrc:assemble")
     }
 
+    def "buildSrc can have nested build"() {
+        given:
+        file('buildSrc/src/main/java/Thing.java') << "class Thing { }"
+        file('buildSrc/build.gradle') << """
+            task otherBuild(type:GradleBuild) {
+                dir = '../other'
+                tasks = ['build']
+            }
+            classes.dependsOn(otherBuild)
+        """
+        file('other/build.gradle') << """
+            task build
+        """
+
+        when:
+        run()
+
+        then:
+        // TODO - Fix test fixtures to allow assertions on buildSrc tasks rather than relying on output scraping in tests
+        outputContains(":buildSrc:other:build")
+        outputContains(":buildSrc:otherBuild")
+    }
+
+    def "nested build can nest more builds"() {
+        given:
+        buildFile << """
+            task otherBuild(type:GradleBuild) {
+                dir = 'other'
+                tasks = ['otherBuild']
+            }
+        """
+        file('other/build.gradle') << """
+            task otherBuild(type:GradleBuild) {
+                dir = '../other2'
+                tasks = ['build']
+            }
+        """
+        file('other2/build.gradle') << """
+            task build
+        """
+
+        when:
+        run 'otherBuild'
+
+        then:
+        // TODO - Fix test fixtures to allow assertions on buildSrc tasks rather than relying on output scraping in tests
+        outputContains(":other:otherBuild")
+        outputContains(":other:other2:build")
+    }
+
+    def "nested build can contain project dependencies"() {
+        given:
+        buildFile << """
+            task otherBuild(type:GradleBuild) {
+                dir = 'other'
+                tasks = ['resolve']
+            }
+        """
+        file("other/settings.gradle") << """
+            include 'a', 'b'
+        """
+        file("other/build.gradle") << """
+            allprojects { configurations.create('default') }
+            dependencies { "default" project(':a') }
+            project(':a') {
+                dependencies { "default" project(':b') }
+            }
+            task resolve {
+                inputs.files configurations.default
+                doLast {
+                }
+            }
+        """
+
+        expect:
+        succeeds 'otherBuild'
+    }
+
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 

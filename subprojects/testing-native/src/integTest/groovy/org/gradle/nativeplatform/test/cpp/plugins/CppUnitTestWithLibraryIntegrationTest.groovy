@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.test.AbstractNativeUnitTestIntegrationTest
-import spock.lang.Unroll
 
 class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegrationTest {
     @Override
@@ -29,29 +27,52 @@ class CppUnitTestWithLibraryIntegrationTest extends AbstractNativeUnitTestIntegr
         """
     }
 
-    @Unroll
-    def "can run test executable using lifecycle task #task"() {
-        def app = new CppHelloWorldApp()
-        makeSingleProject()
+    @Override
+    protected void writeTests() {
+        file("src/main/cpp/lib.cpp") << """
+            #include <lib.h>
+            int lib() {
+                return 0;
+            }
+        """
+        file("src/main/headers/lib.h") << """
+            extern int lib();
+        """
+        file("src/test/headers/tests.h") << """
+        """
+        file("src/test/cpp/test_lib.cpp") << """
+            #include <lib.h>
+            #include <tests.h>
+            int main() {
+                return lib();
+            }
+        """
+    }
 
-        app.library.writeSources(file("src/main"))
-        app.simpleTestExecutable.writeSources(file("src/test"))
+    @Override
+    protected void changeTestImplementation() {
+        file("src/test/cpp/test_lib.cpp") << """
+            void test_func() { }
+        """
+    }
 
-        when:
-        succeeds(task)
-
-        then:
-        result.assertTasksExecuted(tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
-
-        where:
-        task    | expectedLifecycleTasks
-        "test"  | [":test"]
-        "check" | [":test", ":check"]
-        "build" | [":test", ":check", ":build", ":linkDebug", ":assemble"]
+    @Override
+    protected void assertTestCasesRan() {
+        // ok
     }
 
     @Override
     String[] getTasksToBuildAndRunUnitTest() {
-        return [":compileDebugCpp", ":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+        return [":compileTestCpp", ":linkTest", ":installTest", ":runTest"]
+    }
+
+    @Override
+    protected String[] getTasksToCompileComponentUnderTest() {
+        return [":compileDebugCpp"]
+    }
+
+    @Override
+    protected String[] getTasksToAssembleComponentUnderTest() {
+        return [":linkDebug"]
     }
 }

@@ -267,9 +267,9 @@ task retrieve(type: Sync) {
         // TODO - this error message isn't right: it found a version, it just happened to be missing. should really choose another version
         failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
 Searched in the following locations:
-    ${repo.getModuleMetaData("group", "projectA").uri}
-    ${projectA.pom.uri}
-    ${projectA.artifact.uri}
+  - ${repo.getModuleMetaData("group", "projectA").uri}
+  - ${projectA.pom.uri}
+  - ${projectA.artifact.uri}
 Required by:
 """)
 
@@ -402,7 +402,9 @@ Searched in the following locations:
         def projectA1 = repo1.module('group', 'projectA', '1.1').publish()
         def projectA2 = repo2.module('group', 'projectA', '1.5').publish()
 
-        executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        executer.beforeExecute {
+            executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
+        }
 
         buildFile << createBuildFile(repo1.uri, repo2.uri)
 

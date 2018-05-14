@@ -34,6 +34,7 @@ class LockFileReaderWriterTest extends Specification {
 
     def setup() {
         FileResolver resolver = Mock()
+        resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         lockFileReaderWriter = new LockFileReaderWriter(resolver)
     }
@@ -60,5 +61,33 @@ line2"""
 
         then:
         result == ['line1', 'line2']
+    }
+
+    def 'fails to read a lockfile if root could not be determined'() {
+        FileResolver resolver = Mock()
+        resolver.canResolveRelativePath() >> false
+        lockFileReaderWriter = new LockFileReaderWriter(resolver)
+
+        when:
+        lockFileReaderWriter.readLockFile('foo')
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.getMessage().contains('Dependency locking cannot be used for configuration')
+        ex.getMessage().contains('foo')
+    }
+
+    def 'fails to write a lockfile if root could not be determined'() {
+        FileResolver resolver = Mock()
+        resolver.canResolveRelativePath() >> false
+        lockFileReaderWriter = new LockFileReaderWriter(resolver)
+
+        when:
+        lockFileReaderWriter.writeLockFile('foo', [])
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.getMessage().contains('Dependency locking cannot be used for configuration')
+        ex.getMessage().contains('foo')
     }
 }

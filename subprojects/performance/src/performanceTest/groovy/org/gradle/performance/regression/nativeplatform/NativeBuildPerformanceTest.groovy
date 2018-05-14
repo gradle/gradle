@@ -22,54 +22,8 @@ import spock.lang.Unroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
-        runner.minimumVersion = '4.0'
-        runner.targetVersions = ["4.8-20180417000132+0000"]
-    }
-
-    @Unroll
-    def "clean assemble on #testProject"() {
-        given:
-        runner.testProject = testProject
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.runs = iterations
-        runner.warmUpRuns = iterations
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                       | maxMemory | iterations
-        "smallNative"                     | '256m'    | 40
-        "mediumNative"                    | '256m'    | null
-        "bigNative"                       | '1g'      | null
-        "multiNative"                     | '256m'    | null
-        "smallCppApp"                     | '256m'    | 40
-        "mediumCppApp"                    | '256m'    | null
-        "mediumCppAppWithMacroIncludes"   | '256m'    | null
-        "bigCppApp"                       | '256m'    | null
-        "smallCppMulti"                   | '256m'    | 40
-        "mediumCppMulti"                  | '256m'    | null
-        "mediumCppMultiWithMacroIncludes" | '256m'    | null
-        "bigCppMulti"                     | '1g'      | null
-    }
-
-    def "clean assemble on manyProjectsNative"() {
-        given:
-        runner.testProject = "manyProjectsNative"
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
-        runner.args = ["--parallel", "--max-workers=12"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
+        runner.minimumVersion = '4.1' // minimum version that contains new C++ plugins
+        runner.targetVersions = ["4.8-20180510001718+0000"]
     }
 
     @Unroll

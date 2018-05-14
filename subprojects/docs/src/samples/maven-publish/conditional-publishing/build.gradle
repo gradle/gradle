@@ -1,0 +1,70 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+// START SNIPPET publishing
+publishing {
+    publications {
+        binary(MavenPublication) {
+            from components.java
+        }
+        binaryAndSources(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        // change URLs to point to your repos, e.g. http://my.org/repo
+        maven {
+            name "external"
+            url "$buildDir/repos/external"
+        }
+        maven {
+            name "internal"
+            url "$buildDir/repos/internal"
+        }
+    }
+}
+// END SNIPPET publishing
+
+// START SNIPPET task-config
+tasks.withType(PublishToMavenRepository) {
+    onlyIf {
+        if (repository == publishing.repositories.external)
+            return publication == publishing.publications.binary
+        if (repository == publishing.repositories.internal)
+            return publication == publishing.publications.binaryAndSources
+        return false
+    }
+}
+tasks.withType(PublishToMavenLocal) {
+    onlyIf {
+        publication == publishing.publications.binaryAndSources
+    }
+}
+// END SNIPPET task-config
+
+// START SNIPPET shorthand-tasks
+task publishToExternalRepository {
+    group "publishing"
+    description "Publishes all Maven publications to Maven repository 'external'."
+    dependsOn tasks.withType(PublishToMavenRepository).matching {
+        it.repository == publishing.repositories.external
+    }
+}
+task publishForDevelopment {
+    group "publishing"
+    description "Publishes all Maven publications to Maven repository 'internal' and the local Maven repository."
+    dependsOn tasks.withType(PublishToMavenRepository).matching {
+        it.repository == publishing.repositories.internal
+    }
+    dependsOn tasks.withType(PublishToMavenLocal)
+}
+// END SNIPPET shorthand-tasks

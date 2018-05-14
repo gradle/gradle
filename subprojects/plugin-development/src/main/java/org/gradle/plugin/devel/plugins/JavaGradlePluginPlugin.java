@@ -35,7 +35,6 @@ import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -44,8 +43,6 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.model.Model;
-import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -192,13 +189,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
-                project.getPluginManager().apply(MavenPluginPublishingRules.class);
+                project.getPluginManager().apply(MavenPluginPublishPlugin.class);
             }
         });
         project.getPluginManager().withPlugin("ivy-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
-                project.getPluginManager().apply(IvyPluginPublishingRules.class);
+                project.getPluginManager().apply(IvyPluginPublishingPlugin.class);
             }
         });
     }
@@ -384,15 +381,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 String compileConfigurationName = testSourceSet.getCompileConfigurationName();
                 dependencies.add(compileConfigurationName, dependencies.gradleTestKit());
                 String runtimeConfigurationName = testSourceSet.getRuntimeConfigurationName();
-                dependencies.add(runtimeConfigurationName, project.files(pluginClasspathTask));
+                dependencies.add(runtimeConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
-        }
-    }
-
-    static class Rules extends RuleSource {
-        @Model
-        public GradlePluginDevelopmentExtension gradlePluginDevelopmentExtension(ExtensionContainer extensionContainer) {
-            return extensionContainer.getByType(GradlePluginDevelopmentExtension.class);
         }
     }
 

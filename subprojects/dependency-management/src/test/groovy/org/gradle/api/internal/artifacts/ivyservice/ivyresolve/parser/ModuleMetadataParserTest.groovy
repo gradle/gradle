@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -30,6 +29,8 @@ import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.util.TestUtil.attributes
 
 class ModuleMetadataParserTest extends Specification {
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
@@ -58,7 +59,7 @@ class ModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "0.3" }'), metadata)
+        parser.parse(resource('{ "formatVersion": "0.4" }'), metadata)
 
         then:
         0 * metadata._
@@ -70,7 +71,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v" },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
@@ -86,7 +87,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "attributes": {"foo": "bar", "org.gradle.status": "release" } },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
@@ -104,7 +105,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -119,7 +120,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
-        1 * variant.addDependency("g1", "m1", prefers("v1"), [], null)
+        1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY)
         0 * _
     }
 
@@ -131,7 +132,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -159,7 +160,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -199,7 +200,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -235,15 +236,15 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g0", "m0", emptyConstraint(), [], null)
-        1 * variant1.addDependency("g1", "m1", prefers("v1"), [], null)
-        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null)
-        1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"), null)
+        1 * variant1.addDependency("g0", "m0", emptyConstraint(), [], null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependency("g3", "m3", prefers("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null)
-        1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [], null)
-        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null)
-        1 * variant2.addDependency("g6", "m6", prefers("v6"), [], "v5 is buggy")
+        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g4", "m4", prefersAndRejects("v4", ["v5"]), [], null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependency("g6", "m6", prefers("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY)
         0 * _
     }
 
@@ -255,7 +256,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -286,14 +287,54 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependencyConstraint("g1", "m1", prefers("v1"), null)
-        1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"), null)
-        1 * variant1.addDependencyConstraint("g3", "m3", prefers("v3"), null)
+        1 * variant1.addDependencyConstraint("g1", "m1", prefers("v1"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependencyConstraint("g3", "m3", prefers("v3"), null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"), null)
-        1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]), null)
-        1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), null)
-        1 * variant2.addDependencyConstraint("g6", "m6", prefers("v6"), "v5 is buggy")
+        1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"), null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]), null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), null, ImmutableAttributes.EMPTY)
+        1 * variant2.addDependencyConstraint("g6", "m6", prefers("v6"), "v5 is buggy", ImmutableAttributes.EMPTY)
+        0 * _
+    }
+
+    def "parses content with dependency attributes"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    { 
+        "formatVersion": "0.4", 
+        "variants": [
+            {
+                "name": "api",
+                "dependencies": [ 
+                    { "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
+                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
+                ],
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "dependencyConstraints": [ 
+                    { "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
+                    { "version": { "prefers": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
+                ],
+                "name": "runtime"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        1 * variant1.addDependency("g1", "m1", prefers("v1"), [], null, attributes(custom: 'foo'))
+        1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, attributes(custom: 'foo', other:'bar'))
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * variant2.addDependencyConstraint("g1", "m1", prefers("v1"), null, attributes(custom: 'foo'))
+        1 * variant2.addDependencyConstraint("g2", "m2", prefers("v2"), null, attributes(custom: 'foo', other: 'bar'))
         0 * _
     }
 
@@ -305,7 +346,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -344,7 +385,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
         "variants": [
             {
@@ -368,7 +409,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api"
@@ -384,8 +425,8 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant1
-        1 * metadata.addVariant("runtime", attributes()) >> variant2
+        1 * metadata.addVariant("api", attributes([:])) >> variant1
+        1 * metadata.addVariant("runtime", attributes([:])) >> variant2
         0 * _
     }
 
@@ -397,7 +438,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -425,9 +466,9 @@ class ModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", prefers("v1"), [], null)
+        1 * variant1.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", prefers("v2"), [], null)
+        1 * variant2.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY)
         0 * _
     }
 
@@ -447,7 +488,7 @@ class ModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''{ 
-            "formatVersion": "0.3",
+            "formatVersion": "0.4",
             "otherString": "string",
             "otherNumber": 123,
             "otherBoolean": true,
@@ -466,7 +507,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -482,7 +523,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes())
+        1 * metadata.addVariant("api", attributes([:]))
         0 * metadata._
     }
 
@@ -493,7 +534,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -513,7 +554,7 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
+        1 * metadata.addVariant("api", attributes([:])) >> variant
         0 * metadata._
     }
 
@@ -524,7 +565,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.3", 
+        "formatVersion": "0.4", 
         "variants": [
             {
                 "name": "api",
@@ -548,8 +589,8 @@ class ModuleMetadataParserTest extends Specification {
 '''), metadata)
 
         then:
-        1 * metadata.addVariant("api", attributes()) >> variant
-        1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null)
+        1 * metadata.addVariant("api", attributes([:])) >> variant
+        1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY)
         0 * metadata._
     }
 
@@ -606,17 +647,7 @@ class ModuleMetadataParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse module metadata <resource>"
-        e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.3 only."
-    }
-
-    def attributes(Map<String, ?> values) {
-        def attrs = ImmutableAttributes.EMPTY
-        if (values) {
-            values.each { String key, Object value ->
-                attrs = TestUtil.attributesFactory().concat(attrs, Attribute.of(key, value.class), value)
-            }
-        }
-        return attrs
+        e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.4 only."
     }
 
     def resource(String content) {

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
@@ -46,9 +47,10 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
                                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                       AttributeContainerSerializer attributeContainerSerializer,
                                       MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                      IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+                                      IvyMutableModuleMetadataFactory ivyMetadataFactory,
+                                      Interner<String> stringInterner) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
         this.cacheLockingManager = cacheLockingManager;
     }
 

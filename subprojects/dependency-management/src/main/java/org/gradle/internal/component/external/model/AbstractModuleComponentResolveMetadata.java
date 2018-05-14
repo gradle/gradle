@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -37,7 +38,6 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +60,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     // Configurations are built on-demand, but only once.
     private final Map<String, DefaultConfigurationMetadata> configurations = Maps.newHashMap();
-    private ImmutableList<? extends ConfigurationMetadata> graphVariants;
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> graphVariants;
 
     AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -153,21 +153,21 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     /**
      * If there are no variants defined in the metadata, but the implementation knows how to provide variants it can do that here.
-     * If it can not provide variants, an empty list needs to be returned to fall back to traditional configuration selection.
+     * If it can not provide variants, absent must be returned to fall back to traditional configuration selection.
      */
-    protected ImmutableList<? extends ConfigurationMetadata> maybeDeriveVariants() {
-        return ImmutableList.of();
+    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+        return Optional.absent();
     }
 
-    private ImmutableList<? extends ConfigurationMetadata> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
+    private Optional<ImmutableList<? extends ConfigurationMetadata>> buildVariantsForGraphTraversal(List<? extends ComponentVariant> variants) {
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        List<VariantBackedConfigurationMetadata> configurations = new ArrayList<VariantBackedConfigurationMetadata>(variants.size());
+        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<ConfigurationMetadata>();
         for (ComponentVariant variant : variants) {
             configurations.add(new VariantBackedConfigurationMetadata(getId(), variant, attributes, attributesFactory, variantMetadataRules));
         }
-        return ImmutableList.copyOf(configurations);
+        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(configurations.build());
     }
 
     @Nullable
@@ -227,9 +227,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public synchronized ImmutableList<? extends ConfigurationMetadata> getVariantsForGraphTraversal() {
+    public synchronized Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
         if (graphVariants == null) {
-            graphVariants = buildVariantsForGraphTraversal(variants);
+            graphVariants = buildVariantsForGraphTraversal(this.variants);
         }
         return graphVariants;
     }

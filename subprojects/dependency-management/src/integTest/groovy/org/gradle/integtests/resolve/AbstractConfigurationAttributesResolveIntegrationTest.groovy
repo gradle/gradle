@@ -439,8 +439,8 @@ include 'a', 'b'
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Configuration 'bar' in project :b does not match the consumer attributes
-Configuration 'bar':
+        failure.assertHasCause '''Variant 'bar' in project :b does not match the consumer attributes
+Variant 'bar':
   - Required buildType 'debug' and found incompatible value 'release'.
   - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -594,11 +594,11 @@ Configuration 'bar':
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Unable to find a matching configuration of project :b:
-  - Configuration 'bar':
+        failure.assertHasCause("""Unable to find a matching variant of project :b:
+  - Variant 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' but no value provided.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.""")
     }
@@ -649,12 +649,12 @@ Configuration 'bar':
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+        failure.assertHasCause("""Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar': Found buildType 'release' but wasn't required.
-  - Configuration 'foo':
+  - Variant 'bar': Found buildType 'release' but wasn't required.
+  - Variant 'foo':
       - Found buildType 'release' but wasn't required.
       - Found flavor 'free' but wasn't required.""")
     }
@@ -695,7 +695,16 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "Unable to find a matching configuration of project :b: None of the consumable configurations have attributes."
+        failure.assertHasCause """Unable to find a matching configuration of project :b:
+  - Configuration 'archives':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'bar':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided.
+  - Configuration 'foo':
+      - Required buildType 'debug' but no value provided.
+      - Required flavor 'free' but no value provided."""
     }
 
     def "does not select explicit configuration when it's not consumable"() {
@@ -794,11 +803,11 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause '''Unable to find a matching configuration of project :b:
-  - Configuration 'bar':
+        failure.assertHasCause '''Unable to find a matching variant of project :b:
+  - Variant 'bar':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found incompatible value 'paid'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -916,14 +925,14 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""Cannot choose between the following configurations of project :b:
+        failure.assertHasCause("""Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided.""")
     }
@@ -1028,12 +1037,12 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar': Required buildType 'debug' and found compatible value 'debug'.
-  - Configuration 'foo': Required buildType 'debug' and found compatible value 'debug'."""
+  - Variant 'bar': Required buildType 'debug' and found compatible value 'debug'.
+  - Variant 'foo': Required buildType 'debug' and found compatible value 'debug'."""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -1087,15 +1096,15 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1165,14 +1174,14 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :b:
+        failure.assertHasCause """Cannot choose between the following variants of project :b:
   - compile
   - debug
 All of them match the consumer attributes:
-  - Configuration 'compile':
+  - Variant 'compile':
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'debug':
+  - Variant 'debug':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided."""
     }
@@ -1507,15 +1516,15 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :c:
+        failure.assertHasCause """Cannot choose between the following variants of project :c:
   - foo
   - foo2
 All of them match the consumer attributes:
-  - Configuration 'foo':
+  - Variant 'foo':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'foo2':
+  - Variant 'foo2':
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1524,15 +1533,15 @@ All of them match the consumer attributes:
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause """Cannot choose between the following configurations of project :c:
+        failure.assertHasCause """Cannot choose between the following variants of project :c:
   - bar
   - bar2
 All of them match the consumer attributes:
-  - Configuration 'bar':
+  - Variant 'bar':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Configuration 'bar2':
+  - Variant 'bar2':
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""

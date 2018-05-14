@@ -48,7 +48,7 @@ class VisualStudioProjectRegistryTest extends Specification {
         registry.addProjectConfiguration(executableBinary)
 
         then:
-        1 * ideArtifactRegistry.registerIdeArtifact(_) >> { VisualStudioProjectMetadata m ->
+        1 * ideArtifactRegistry.registerIdeProject(_) >> { VisualStudioProjectMetadata m ->
             metadata = m
         }
         metadata.name == "mainExe"

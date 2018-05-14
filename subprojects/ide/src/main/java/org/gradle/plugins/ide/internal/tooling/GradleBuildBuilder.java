@@ -19,7 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.gradle.BasicGradleProject;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
@@ -54,7 +54,7 @@ public class GradleBuildBuilder implements ToolingModelBuilder {
         }
 
         for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            Gradle includedGradle = ((IncludedBuildInternal) includedBuild).getConfiguredBuild();
+            Gradle includedGradle = ((IncludedBuildState) includedBuild).getConfiguredBuild();
             DefaultGradleBuild convertedIncludedBuild = convert(includedGradle);
             model.addIncludedBuild(convertedIncludedBuild);
         }

@@ -437,10 +437,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, d.exclusions, d.reason)
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.rejects, d.exclusions, d.reason, d.attributes)
                     },
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->
-                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects, d.reason)
+                        new DependencyConstraintSpec(d.groupId, d.artifactId, d.version, d.rejects, d.reason, d.attributes)
                     },
                     v.artifacts?:defaultArtifacts,
                     v.capabilities

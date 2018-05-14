@@ -28,11 +28,57 @@ import org.gradle.api.Incubating;
 public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
     /**
+     * Builder for a a build action that hooks into different phases of the build.
+     *
+     * <p>A single {@link BuildAction} is allowed per build phase. Use composite actions if needed.
+     *
+     * @since 4.8
+     */
+    @Incubating
+    interface Builder {
+
+        /**
+         * Executes the given action after projects are loaded and sends its result to the given result handler.
+         *
+         * <p>Action will be executed after projects are loaded and Gradle will configure projects as necessary for the models requested.
+         *
+         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
+         *
+         * @param buildAction The action to run in the specified build phase.
+         * @param handler The handler to supply the result of the given action to.
+         * @param <T> The returning type of the action.
+         * @return The builder.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         */
+        <T> Builder projectsLoaded(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
+
+        /**
+         * Executes the given action after tasks are run and sends its result to the given result handler.
+         *
+         * <p>If the operation fails, build will fail with the appropriate exception. Handler won't be notified in case of failure.
+         *
+         * @param buildAction The action to run in the specified build phase.
+         * @param handler The handler to supply the result of the given action to.
+         * @param <T> The returning type of the action.
+         * @return The builder.
+         * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         */
+        <T> Builder buildFinished(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
+
+        /**
+         * Builds the executer from the added actions.
+         *
+         * @return The executer.
+         */
+        BuildActionExecuter<Void> build();
+    }
+
+    /**
      * Specifies the tasks to execute before executing the BuildAction.
      *
      * If not configured, null, or an empty array is passed, then no tasks will be executed.
      *
-     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created. An empty list will run the project's default tasks.
      * @return this
      * @since 3.5
      */
@@ -44,7 +90,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      *
      * If not configured, null, or an empty array is passed, then no tasks will be executed.
      *
-     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created. An empty list will run the project's default tasks.
      * @return this
      * @since 3.5
      */

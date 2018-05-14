@@ -52,4 +52,9 @@ class DefaultProjectConnectionTest extends Specification {
         then:
         1 * protocolConnection.stop()
     }
+
+    def "can create phased build action builder"() {
+        expect:
+        connection.action() instanceof DefaultBuildActionExecuter.Builder
+    }
 }

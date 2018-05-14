@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+// TODO make this work with pending elements
 public class FilteredList<T, S extends T> extends FilteredCollection<T, S> implements IndexedElementSource<S> {
     public FilteredList(ElementSource<T> collection, CollectionFilter<S> filter) {
         super(collection, filter);

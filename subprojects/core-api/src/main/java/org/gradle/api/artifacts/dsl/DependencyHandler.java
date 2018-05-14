@@ -18,12 +18,13 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.VariantTransform;
+import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -258,6 +259,7 @@ public interface DependencyHandler {
      * The dependency notation, in one of the notations described above.
      * @return The dependency.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation);
 
     /**

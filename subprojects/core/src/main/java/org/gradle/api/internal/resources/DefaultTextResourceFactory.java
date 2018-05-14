@@ -20,16 +20,19 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.internal.resource.TextResourceLoader;
 
 import java.nio.charset.Charset;
 
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
+    private final TextResourceLoader textResourceLoader;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
+        this.textResourceLoader = textResourceLoader;
     }
 
     public TextResource fromString(String string) {
@@ -51,5 +54,10 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     public TextResource fromArchiveEntry(Object archive, String entryPath) {
         return fromArchiveEntry(archive, entryPath, Charset.defaultCharset().name());
+    }
+
+    @Override
+    public TextResource fromUri(Object uri) {
+        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri));
     }
 }

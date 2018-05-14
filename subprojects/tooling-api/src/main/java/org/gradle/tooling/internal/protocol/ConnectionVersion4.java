@@ -22,6 +22,7 @@ package org.gradle.tooling.internal.protocol;
  * <ul>
  * <li>Implementations must be thread-safe.
  * <li>Implementations should implement {@link org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection}. This is used by all consumer versions from 2.6-rc-1.
+ * <li>Implementations should implement {@link InternalPhasedActionConnection}. This is used by all consumer versions from 4.8.
  * <li>Implementations should implement {@link InternalParameterAcceptingConnection}. This is used by all consumer versions from 4.4.
  * <li>Implementations should implement {@link InternalCancellableConnection#getModel(ModelIdentifier, InternalCancellationToken, BuildParameters)}.
  * This is used by all consumer versions from 2.1-rc-1.

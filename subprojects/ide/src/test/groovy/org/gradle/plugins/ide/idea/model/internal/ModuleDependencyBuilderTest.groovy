@@ -37,19 +37,19 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == "project-name"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
+        artifactRegistry.getIdeProject(_, _) >> null
     }
 
     def "builds dependency for nonIdea root project"() {
         when:
-        def dependency = builder.create(newProjectId("build-1",":"), 'compile')
+        def dependency = builder.create(newProjectId("build-1",":a"), 'compile')
 
         then:
         dependency.scope == 'compile'
-        dependency.name == "build-1"
+        dependency.name == "a"
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(_, _) >> null
+        artifactRegistry.getIdeProject(_, _) >> null
     }
 
     def "builds dependency for project"() {
@@ -66,6 +66,6 @@ class ModuleDependencyBuilderTest extends Specification {
         dependency.name == 'foo'
 
         and:
-        artifactRegistry.getIdeArtifactMetadata(IdeaModuleMetadata, projectId) >> moduleMetadata
+        artifactRegistry.getIdeProject(IdeaModuleMetadata, projectId) >> moduleMetadata
     }
 }

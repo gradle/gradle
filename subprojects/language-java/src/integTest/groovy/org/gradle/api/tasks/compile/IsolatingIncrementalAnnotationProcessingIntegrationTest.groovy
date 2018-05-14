@@ -218,40 +218,68 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
     def "processors must provide an originating element for each source element"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        java "@Thing class A {}"
+        withProcessor(new NonIncrementalProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        def a = java "@Thing class A {}"
+        outputs.snapshot { succeeds "compileJava" }
 
-        expect:
-        fails "compileJava"
+        when:
+        a.text = "@Thing class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
 
         and:
-        failure.assertHasErrorOutput("Generated type 'AThing' must have exactly one originating element, but had 0.")
+        outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
-    def "processors can't access resources"() {
+    def "processors can't read resources"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        java "@Thing class A {}"
+        withProcessor(new NonIncrementalProcessorFixture().readingResources().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        def a = java "@Thing class A {}"
+        outputs.snapshot { succeeds "compileJava" }
 
-        expect:
-        fails "compileJava"
+        when:
+        a.text = "@Thing class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
 
         and:
-        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to read resources.")
-        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to create resources.")
+        outputContains("Full recompilation is required because incremental annotation processors are not allowed to read resources.")
+    }
+
+    def "processors can't write resources"() {
+        given:
+        withProcessor(new NonIncrementalProcessorFixture().writingResources().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
+        def a = java "@Thing class A {}"
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        a.text = "@Thing class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
+
+        and:
+        outputContains("Full recompilation is required because incremental annotation processors are not allowed to create resources.")
     }
 
     def "processors cannot provide multiple originating elements"() {
         given:
         withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
-        java "@Service class A {}"
+        def a = java "@Service class A {}"
         java "@Service class B {}"
 
-        expect:
-        fails "compileJava"
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        a.text = "@Service class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
 
         and:
-        failure.assertHasErrorOutput("Generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+        outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 
     /**

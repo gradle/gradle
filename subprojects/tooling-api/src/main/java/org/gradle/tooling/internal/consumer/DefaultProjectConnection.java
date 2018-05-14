@@ -65,4 +65,8 @@ class DefaultProjectConnection implements ProjectConnection {
         return new DefaultBuildActionExecuter<T>(buildAction, connection, parameters);
     }
 
+    @Override
+    public BuildActionExecuter.Builder action() {
+        return new DefaultBuildActionExecuter.Builder(connection, parameters);
+    }
 }

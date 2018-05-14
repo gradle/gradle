@@ -16,12 +16,17 @@
 
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableGradleMetadata
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
+    @Override
+    def setup() {
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+    }
 
     def "signs single Maven publication"() {
         given:
@@ -54,7 +59,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
-    def "component can still be mutated after signing is configured"() {
+    def "component can still be mutated after signing is configured for a Maven publication"() {
         given:
         buildFile << """
             apply plugin: 'maven-publish'
@@ -81,6 +86,39 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
         then:
         ":signMavenJavaPublication" in nonSkippedTasks
+
+        and:
+        file("build", "libs", "sign-3.0.jar.asc").text
+        file("build", "libs", "sign-3.0.jar").text
+    }
+
+    def "component can still be mutated after signing is configured for an Ivy publication"() {
+        given:
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivyJava(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.ivyJava
+            }
+
+            version = 3.0
+        """
+
+        when:
+        run "signIvyJavaPublication"
+
+        then:
+        ":signIvyJavaPublication" in nonSkippedTasks
 
         and:
         file("build", "libs", "sign-3.0.jar.asc").text

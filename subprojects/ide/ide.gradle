@@ -27,7 +27,6 @@ dependencies {
     compile project(':plugins')
     compile project(':ear')
     compile project(':toolingApi')
-    compile project(':compositeBuilds')
     compile libraries.slf4j_api.coordinates
     compile libraries.inject.coordinates
 
@@ -45,6 +44,7 @@ testFixtures {
     from(':dependencyManagement')
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }

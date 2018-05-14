@@ -142,10 +142,10 @@ artifacts {
     dists allZip, binZip, srcZip
 }
 
-integTestTasks.all {
-    binaryDistributions.distributionsRequired = true
-    systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
-    systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
+integTestTasks.configureEachLater { task ->
+    task.binaryDistributions.distributionsRequired = true
+    task.systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
+    task.systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
 }
 
 apply from: 'binary-compatibility.gradle'

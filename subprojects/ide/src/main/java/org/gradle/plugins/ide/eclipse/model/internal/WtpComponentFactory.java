@@ -22,9 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
@@ -43,9 +42,11 @@ import java.util.Set;
 
 public class WtpComponentFactory {
     private final ProjectDependencyBuilder projectDependencyBuilder;
+    private final ProjectComponentIdentifier currentProjectId;
 
-    public WtpComponentFactory(Project project) {
-        projectDependencyBuilder = new ProjectDependencyBuilder(((ProjectInternal) project).getServices().get(IdeArtifactRegistry.class));
+    public WtpComponentFactory(Project project, IdeArtifactRegistry artifactRegistry, ProjectStateRegistry projectRegistry) {
+        projectDependencyBuilder = new ProjectDependencyBuilder(artifactRegistry);
+        currentProjectId = projectRegistry.stateFor(project).getComponentIdentifier();
     }
 
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
@@ -91,7 +92,6 @@ public class WtpComponentFactory {
 
     private class WtpDependenciesVisitor implements IdeDependencyVisitor {
         private final Project project;
-        private final ProjectComponentIdentifier currentProjectId;
         private final EclipseWtpComponent wtp;
         private final String deployPath;
         private final List<WbDependentModule> projectEntries = Lists.newArrayList();
@@ -104,7 +104,6 @@ public class WtpComponentFactory {
             this.project = project;
             this.wtp = wtp;
             this.deployPath = deployPath;
-            currentProjectId = DefaultProjectComponentIdentifier.newProjectId(project);
         }
 
         @Override

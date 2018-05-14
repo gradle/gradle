@@ -58,7 +58,8 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
-        options.add(new DependencyLockingOption());
+        options.add(new DependencyLockingWriteOption());
+        options.add(new DependencyLockingUpdateOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -310,16 +311,28 @@ public class StartParameterBuildOptions {
         }
     }
 
-    public static class DependencyLockingOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+    public static class DependencyLockingWriteOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "write-locks";
 
-        public DependencyLockingOption() {
+        public DependencyLockingWriteOption() {
             super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency resolution for locked configurations, ignoring existing locking information if it exists").incubating());
         }
 
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setWriteDependencyLocks(true);
+        }
+    }
+
+    public static class DependencyLockingUpdateOption extends ListBuildOption<StartParameterInternal> {
+
+        public DependencyLockingUpdateOption() {
+            super(null, CommandLineOptionConfiguration.create("update-locks", "Perform a partial update of the dependency lock, letting passed in module notations change version.").incubating());
+        }
+
+        @Override
+        public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
+            settings.setLockedDependenciesToUpdate(modulesToUpdate);
         }
     }
 }

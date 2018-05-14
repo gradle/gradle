@@ -18,6 +18,8 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.GUtil;
@@ -37,7 +39,11 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
     public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
-        super(fileResolver, executor);
+        this(fileResolver, executor, new DefaultBuildCancellationToken());
+    }
+
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(fileResolver, executor, buildCancellationToken);
     }
 
     public DefaultExecHandleBuilder executable(Object executable) {

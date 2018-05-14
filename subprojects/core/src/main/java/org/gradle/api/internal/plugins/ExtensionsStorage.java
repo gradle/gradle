@@ -24,6 +24,7 @@ import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -131,7 +132,8 @@ public class ExtensionsStorage {
     }
 
     private <T> ExtensionHolder<T> wrap(String name, TypeOf<T> publicType, T extension) {
-        if (isDeferredConfigurable(extension)) {
+        if (isDeferredConfigurable(extension) && !extension.getClass().getName().startsWith("org.gradle.api.publish.internal.DeferredConfigurablePublishingExtension")) {
+            DeprecationLogger.nagUserOfDeprecated("@DeferredConfigurable");
             return new DeferredConfigurableExtensionHolder<T>(name, publicType, extension);
         }
         return new ExtensionHolder<T>(name, publicType, extension);

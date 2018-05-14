@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -26,6 +27,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/scala/LibrarySuite.scala"
 
     @Unroll
+    @Ignore
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         succeeds('init', '--type', 'scala-library', '--dsl', scriptDsl.id)

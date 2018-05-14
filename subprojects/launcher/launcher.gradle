@@ -45,8 +45,8 @@ testFixtures {
     from(':toolingApi')
 }
 
-integTestTasks.all {
-    maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
+integTestTasks.configureEachLater { task ->
+    task.maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
 task configureJar {
@@ -66,6 +66,7 @@ task startScripts(type: GradleStartScriptGenerator) {
     launcherJar = jar.outputs.files
 }
 
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 testFilesCleanup {
-    errorWhenNotEmpty = false
+    policy = WhenNotEmpty.REPORT
 }

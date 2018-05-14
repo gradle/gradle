@@ -216,7 +216,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     @TaskAction
     public void link() {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDirectory().get().getAsFile());
+        cleaner.addDirToClean(getDestinationDirectory().get().getAsFile());
         cleaner.execute();
 
         if (getSource().isEmpty()) {

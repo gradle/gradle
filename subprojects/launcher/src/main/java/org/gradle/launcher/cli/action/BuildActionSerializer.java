@@ -91,6 +91,7 @@ public class BuildActionSerializer {
             nullableFileSerializer.write(encoder, startParameter.getSettingsFile());
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
+            nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
             encoder.writeBoolean(startParameter.isUseEmptySettings());
@@ -100,6 +101,7 @@ public class BuildActionSerializer {
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
+            stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
 
             // Flags
             encoder.writeBoolean(startParameter.isBuildProjectDependencies());
@@ -159,6 +161,7 @@ public class BuildActionSerializer {
             startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
+            startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
             startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
             startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
             if (decoder.readBoolean()) {
@@ -170,6 +173,7 @@ public class BuildActionSerializer {
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
             startParameter.setInitScripts(fileListSerializer.read(decoder));
+            startParameter.setLockedDependenciesToUpdate(stringListSerializer.read(decoder));
 
             // Flags
             startParameter.setBuildProjectDependencies(decoder.readBoolean());

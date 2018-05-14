@@ -19,14 +19,21 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.initialization.BuildIdentity
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestMetaData
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.NestedBuildFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
@@ -34,10 +41,10 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
+import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry
 import org.gradle.internal.service.scopes.ProjectScopeServices
@@ -45,6 +52,7 @@ import org.gradle.internal.time.Time
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
 class ToolingApiDistributionResolver {
@@ -99,15 +107,17 @@ class ToolingApiDistributionResolver {
         def gradleUserHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.gradleUserHomeDir)
         def buildRequestMetadata = new DefaultBuildRequestMetaData(Time.currentTimeMillis())
         def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalRegistry, startParameter)
-        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY)
+        def buildSessionServices = new BuildSessionScopeServices(gradleUserHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetadata, ClassPath.EMPTY, new DefaultBuildCancellationToken())
         def buildTreeScopeServices = new BuildTreeScopeServices(buildSessionServices)
         def topLevelRegistry = new BuildScopeServices(buildTreeScopeServices)
         topLevelRegistry.add(BuildIdentity, new BuildIdentity() {
             @Override
             BuildIdentifier getCurrentBuild() {
-                return new DefaultBuildIdentifier(":")
+                return DefaultBuildIdentifier.ROOT
             }
         })
+        topLevelRegistry.add(NestedBuildFactory, {} as NestedBuildFactory)
+        topLevelRegistry.get(BuildStateRegistry).register(new EmptyBuild())
         def projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         def workerLeaseService = buildSessionServices.get(WorkerLeaseService)
@@ -143,5 +153,32 @@ class ToolingApiDistributionResolver {
 
     void stop() {
         stopLater.stop()
+    }
+
+    static class EmptyBuild implements BuildState {
+        @Override
+        BuildIdentifier getBuildIdentifier() {
+            return DefaultBuildIdentifier.ROOT
+        }
+
+        @Override
+        boolean isImplicitBuild() {
+            return false
+        }
+
+        @Override
+        SettingsInternal getLoadedSettings() throws IllegalStateException {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Path getIdentityPathForProject(Path projectPath) {
+            return projectPath
+        }
+
+        @Override
+        ProjectComponentIdentifier getIdentifierForProject(Path projectPath) {
+            return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath, projectPath, projectPath.name ?: "root")
+        }
     }
 }

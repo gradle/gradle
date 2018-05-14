@@ -30,7 +30,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
 
     def "renders name for ModuleComponentSelector"() {
         given:
-        def requested = DefaultModuleComponentSelector.newSelector('org.mockito', 'mockito-core', new DefaultMutableVersionConstraint('1.0'))
+        def requested = DefaultModuleComponentSelector.newSelector('org.mockito', 'mockito-core', new DefaultMutableVersionConstraint('1.0'),)
 
         expect:
         dep(requested, DefaultModuleComponentIdentifier.newId('org.mockito', 'mockito-core', '1.0')).name == 'org.mockito:mockito-core:1.0'
