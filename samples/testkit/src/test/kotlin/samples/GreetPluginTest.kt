@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
+
 class GreetPluginTest {
 
     @Test
@@ -57,5 +58,4 @@ class GreetPluginTest {
     @Rule
     @JvmField
     val temporaryFolder = TemporaryFolder()
-
 }
