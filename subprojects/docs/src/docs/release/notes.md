@@ -9,7 +9,7 @@ The publishing plugins get some much-needed improvements in this release:
  * The Maven Publish Plugin now provides a dedicated, type-safe [DSL to customize the POM generated](#customizing-the-generated-pom) as part of a Maven publication.
  * Configuration-wide [dependency excludes are now published](#configuration-wide-dependency-excludes-are-now-published)
 
-The `maven-publish` and `ivy-publish` plugins are now considered stable and the `maven` plugin deprecated — please migrate.
+The `maven-publish` and `ivy-publish` plugins are now considered stable and use of the `maven` plugin is discouraged as it will eventually be deprecated — please migrate.
 
 User experience for [incremental annotation processing is improved](#improved-incremental-annotation-processing). 
 Compilation will no longer fail when a processor does something that Gradle detects will not work incrementally. 
