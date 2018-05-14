@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -94,6 +95,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
     private final TaskInfoFactory nodeFactory = new TaskInfoFactory(failureCollector);
     private Spec<? super Task> filter = Specs.satisfyAll();
+    private List<Task> allTasks;
 
     private boolean continueOnFailure;
 
@@ -348,7 +350,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
         executionQueue.clear();
         executionQueue.addAll(executionPlan.values());
-
+        allTasks = null;
     }
 
     @Override
@@ -519,6 +521,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void clear() {
         nodeFactory.clear();
         entryTasks.clear();
+        allTasks = null;
         executionPlan.clear();
         executionQueue.clear();
         projectLocks.clear();
@@ -532,7 +535,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public List<Task> getTasks() {
-        return new ArrayList<Task>(executionPlan.keySet());
+        if (allTasks == null) {
+            allTasks = ImmutableList.copyOf(executionPlan.keySet());
+        }
+        return allTasks;
     }
 
     @Override
