@@ -750,8 +750,8 @@ class DefaultTaskContainerTest extends Specification {
         container.getByNameLater(CustomTask, "task")
 
         then:
-        def ex = thrown(UnknownTaskException)
-        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' found but have a type mismatch, found ${DefaultTask.name} expected ${CustomTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
         0 * taskFactory.create("task", DefaultTask)
     }
 
@@ -831,8 +831,8 @@ class DefaultTaskContainerTest extends Specification {
         container.getByNameLater(DefaultTask, "task")
 
         then:
-        def ex = thrown(UnknownTaskException)
-        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' found but have a type mismatch, found ${CustomTask.name} expected ${DefaultTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
         0 * taskFactory.create("task", CustomTask)
 
         when:
