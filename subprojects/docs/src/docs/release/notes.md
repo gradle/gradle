@@ -3,7 +3,7 @@ The Gradle team is pleased to announce Gradle 4.8.
 First and foremost, this release of Gradle features [dependency locking](#locking-of-dynamic-dependencies): a mechanism for locking dependency versions which allows builds to become reproducible in the face of dynamic versions or version ranges. 
 Read the [user manual chapter on dependency locking](userguide/dependency_locking.html) to learn how to take advantage of this exciting new feature.
  
-The publishing plugins gets some much-needed improvements in this release:
+The publishing plugins get some much-needed improvements in this release:
 
  * The Signing Plugin now supports [signing all artifacts of a publication](#signing-publications).
  * The Maven Publish Plugin now provides a dedicated, type-safe [DSL to customize the POM generated](#customizing-the-generated-pom) as part of a Maven publication.
@@ -176,7 +176,7 @@ In a Kotlin build script, you can pass constructor arguments using the reified e
 
     tasks.create<CustomTask>("myTask", "hello", 42)
 
-More details are available in the [user guide](userguide/more_about_tasks.html#sec:passing_arguments_to_a_task_constructor)
+More details are available in the [User guide](userguide/more_about_tasks.html#sec:passing_arguments_to_a_task_constructor).
 
 ### Immutable file collections
 
