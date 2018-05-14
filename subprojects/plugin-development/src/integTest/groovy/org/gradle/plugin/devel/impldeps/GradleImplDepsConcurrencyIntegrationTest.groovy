@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.Plugin
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
 
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
@@ -74,6 +76,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     }
 
     @Timeout(300)
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "Gradle API and TestKit dependency JAR files are the same when run by concurrent tasks within one build"() {
         given:
         setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
