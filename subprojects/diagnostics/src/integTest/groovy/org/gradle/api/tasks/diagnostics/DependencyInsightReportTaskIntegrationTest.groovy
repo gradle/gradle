@@ -196,9 +196,6 @@ org:leaf2:2.5 (conflict resolution)
      \\--- conf
 
 org:leaf2:1.0 -> 2.5
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 +--- org:middle1:1.0
 |    \\--- org:toplevel:1.0
 |         \\--- conf
@@ -207,9 +204,6 @@ org:leaf2:1.0 -> 2.5
           \\--- conf
 
 org:leaf2:1.5 -> 2.5
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:toplevel2:1.0
      \\--- conf
 """
@@ -253,9 +247,6 @@ org:leaf:1.0 (forced)
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -307,17 +298,11 @@ org:leaf:1.0
           \\--- conf
 
 org:leaf:[1.0,2.0] -> 1.0
-   variant "default" [
-      org.gradle.status = integration (not requested)
-   ]
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
 
 org:leaf:latest.integration -> 1.0
-   variant "default" [
-      org.gradle.status = integration (not requested)
-   ]
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -363,9 +348,6 @@ org:leaf:1.0 (selected by rule)
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -421,9 +403,6 @@ org.test:bar:2.0 (why not?)
    ]
 
 org:bar:1.0 -> org.test:bar:2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf
 
 org:baz:1.0 (selected by rule)
@@ -438,9 +417,6 @@ org:foo:2.0 (because I am in control)
    ]
 
 org:foo:1.0 -> 2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf
 """
     }
@@ -483,9 +459,6 @@ org:foo:1.0 -> 2.0
    ]
 
 org:foo:1.0 -> org:bar:1.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf
 """
     }
@@ -529,16 +502,10 @@ org:new-leaf:77 (selected by rule)
    ]
 
 org:leaf:1.0 -> org:new-leaf:77
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:foo:2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -583,9 +550,6 @@ org:bar:2.0 (I am not sure I want to explain)
    ]
 
 org:bar:1.0 -> 2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf
 
 org:foo:2.0 (I want to)
@@ -594,9 +558,6 @@ org:foo:2.0 (I want to)
    ]
 
 org:foo:1.0 -> 2.0
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf
 """
     }
@@ -637,23 +598,14 @@ org:leaf:1.6
    ]
 
 org:leaf:1.+ -> 1.6
-   variant "default" [
-      org.gradle.status = integration (not requested)
-   ]
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,1.9] -> 1.6
-   variant "default" [
-      org.gradle.status = integration (not requested)
-   ]
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:latest.integration -> 1.6
-   variant "default" [
-      org.gradle.status = integration (not requested)
-   ]
 \\--- org:top:1.0
      \\--- conf
 """
@@ -697,9 +649,6 @@ org:leaf:2.0 (forced)
      \\--- conf
 
 org:leaf:1.0 -> 2.0
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:foo:1.0
      \\--- conf
 """
@@ -742,16 +691,10 @@ org:leaf:1.5 (forced)
    ]
 
 org:leaf:1.0 -> 1.5
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:foo:1.0
      \\--- conf
 
 org:leaf:2.0 -> 1.5
-   variant "runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -798,9 +741,6 @@ org:leaf:1.0 (forced)
      \\--- conf
 
 org:leaf:2.0 -> 1.0
-   variant "default+runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -1541,11 +1481,6 @@ foo:foo:1.0
    ]
 
 org:foo -> $selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
-   ]
 \\--- compileClasspath
 """
         where:
@@ -1596,11 +1531,6 @@ org:foo -> $selected
    ]
 
 org:foo -> $selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
-   ]
 \\--- compileClasspath
 """
         where:
@@ -1648,11 +1578,6 @@ org:foo -> $selected
    ]
 
 org:foo:$displayVersion -> $selected
-   variant "default" [
-      org.gradle.status = release (not requested)
-      Requested attributes not found in the selected variant:
-         org.gradle.usage  = java-api
-   ]
 \\--- compileClasspath
 """
         where:
@@ -1698,10 +1623,6 @@ org:foo:$displayVersion -> $selected
      \\--- compileClasspath
 
 org:leaf -> 1.0
-   variant "compile" [
-      org.gradle.status = release (not requested)
-      org.gradle.usage  = java-api
-   ]
 \\--- compileClasspath
 """
     }

@@ -22,14 +22,14 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionReasonHelper.getReasonDescription;
-
 public class DependencyReportHeader implements RenderableDependency {
     private final DependencyEdge dependency;
+    private final String description;
     private final ResolvedVariantResult selectedVariant;
 
-    public DependencyReportHeader(DependencyEdge dependency, ResolvedVariantResult extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult extraDetails) {
         this.dependency = dependency;
+        this.description = description;
         this.selectedVariant = extraDetails;
     }
 
@@ -45,7 +45,7 @@ public class DependencyReportHeader implements RenderableDependency {
 
     @Override
     public String getDescription() {
-        return getReasonDescription(dependency.getReason());
+        return description;
     }
 
     @Override
