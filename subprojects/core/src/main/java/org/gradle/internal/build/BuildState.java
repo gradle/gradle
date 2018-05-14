@@ -28,7 +28,15 @@ import org.gradle.util.Path;
  * Implementations are not yet entirely thread-safe, but should be.
  */
 public interface BuildState {
+    /**
+     * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
+     */
     BuildIdentifier getBuildIdentifier();
+
+    /**
+     * Returns an identifying path for this build. This path is fixed for the lifetime of the build.
+     */
+    Path getIdentityPath();
 
     /**
      * Is this an implicit build? An implicit build is one that is managed by Gradle and which is not addressable by user build logic.
@@ -48,12 +56,17 @@ public interface BuildState {
     NestedBuildFactory getNestedBuildFactory();
 
     /**
+     * Note: may change value over the lifetime of this build, as this is often a function of the name of the root project in the build and this is not known until the settings have been configured. A temporary value will be returned when child builds need to create projects for some reason.
+     */
+    Path getCurrentPrefixForProjectsInChildBuilds();
+
+    /**
      * Calculates the identity path for a project in this build.
      */
-    Path getIdentityPathForProject(Path projectPath);
+    Path getIdentityPathForProject(Path projectPath) throws IllegalStateException;
 
     /**
      * Calculates the identifier for a project in this build.
      */
-    ProjectComponentIdentifier getIdentifierForProject(Path projectPath);
+    ProjectComponentIdentifier getIdentifierForProject(Path projectPath) throws IllegalStateException;
 }

@@ -131,7 +131,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildSrc)"
+        loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ":buildSrc"
         loadOps[1].parentId == buildSrcOps[0].id
         loadOps[2].displayName == "Load build (buildB)"
