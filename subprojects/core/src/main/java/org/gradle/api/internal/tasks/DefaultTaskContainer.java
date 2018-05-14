@@ -31,6 +31,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
@@ -333,17 +334,27 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
         Task task = findByNameWithoutRules(name);
-        if (task == null || !type.isAssignableFrom(task.getClass())) {
+        if (task == null) {
             ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
             if (taskProvider == null) {
                 throw createNotFoundException(name);
             } else if (!type.isAssignableFrom(taskProvider.getType())) {
-                throw new IllegalArgumentException(String.format("Task with name '%s' found but have a type mismatch, found %s expected %s, in %s.", name, taskProvider.getType().getName(), type.getName(), project));
+                return createTypeMismatchException(name, taskProvider.getType(), type);
             }
             return (TaskProvider<T>)taskProvider;
+        } else if(!type.isAssignableFrom(task.getClass())) {
+            return createTypeMismatchException(name, getDeclaredTaskType(task), type);
         }
 
         return new TaskLookupProvider<T>(type, name);
+    }
+
+    private <T extends Task> TaskProvider<T> createTypeMismatchException(String name, Class<?> actualType, Class<?> expectedType) {
+        throw new IllegalArgumentException(String.format("Task with name '%s' exists in %s, but task does not have requested type. Found %s expected %s.", name, project, actualType.getName(), expectedType.getName()));
+    }
+
+    private Class getDeclaredTaskType(Task original) {
+        return new DslObject(original).getDeclaredType();
     }
 
     public Task resolveTask(String path) {

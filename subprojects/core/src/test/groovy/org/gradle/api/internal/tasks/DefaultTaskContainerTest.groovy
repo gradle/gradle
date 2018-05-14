@@ -739,8 +739,8 @@ class DefaultTaskContainerTest extends Specification {
         container.getByNameLater(CustomTask, "task")
 
         then:
-        def ex = thrown(UnknownTaskException)
-        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${DefaultTask.name} expected ${CustomTask.name}."
     }
 
     void "getByNameLater fails if lazily created task type is not a subtype"() {
@@ -751,7 +751,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' found but have a type mismatch, found ${DefaultTask.name} expected ${CustomTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
+        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${DefaultTask.name} expected ${CustomTask.name}."
         0 * taskFactory.create("task", DefaultTask)
     }
 
@@ -804,7 +804,8 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can getByNameLater if eagerly created task type gets overwrite"() {
         given:
-        taskFactory.create("task", CustomTask) >> task("task", CustomTask)
+        def customTask = task("task", CustomTask)
+        taskFactory.create("task", CustomTask) >> customTask
         taskFactory.create("task", DefaultTask) >> task("task", DefaultTask)
         container.create("task", CustomTask)
 
@@ -812,8 +813,8 @@ class DefaultTaskContainerTest extends Specification {
         container.getByNameLater(DefaultTask, "task")
 
         then:
-        def ex = thrown(UnknownTaskException)
-        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${customTask.class.name} expected ${DefaultTask.name}."
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
@@ -832,7 +833,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' found but have a type mismatch, found ${CustomTask.name} expected ${DefaultTask.name}, in Mock for type 'ProjectInternal' named '<project>'."
+        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${CustomTask.name} expected ${DefaultTask.name}."
         0 * taskFactory.create("task", CustomTask)
 
         when:
