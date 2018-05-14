@@ -42,6 +42,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DefaultDependencyLockingProvider provider
 
     def setup() {
+        resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         startParameter.getLockedDependenciesToUpdate() >> []
         provider = new DefaultDependencyLockingProvider(resolver, startParameter)
