@@ -56,7 +56,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         this.executorFactory = executorFactory;
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
-        int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
+        int numberOfParallelExecutors = parallelismConfiguration.isParallelProjectExecutionEnabled() ? parallelismConfiguration.getMaxWorkerCount() : 1;
         if (numberOfParallelExecutors < 1) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
