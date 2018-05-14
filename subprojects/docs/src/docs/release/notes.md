@@ -304,7 +304,8 @@ In previous releases of Gradle, an init script specified on the command line tha
 
 ### TaskContainer.remove() now actually removes the task
 
-TBD - previously this was broken, and plugins may accidentally rely on this behaviour.
+Previously, calling `TaskContainer.remove()` didn't _actually_ remove the task but now it does.
+Since plugins may have accidentally relied on this behavior, please check whether you're calling this method and, if so, verify your plugin works as expected.
 
 ### Signature.setFile() no longer changes the file to be published
 
