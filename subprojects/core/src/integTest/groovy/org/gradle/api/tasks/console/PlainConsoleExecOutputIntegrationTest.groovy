@@ -20,8 +20,4 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 
 class PlainConsoleExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-
-    def setup() {
-        attachTestConsole()
-    }
 }

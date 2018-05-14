@@ -22,8 +22,4 @@ class VerboseConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultL
     ConsoleOutput consoleType = ConsoleOutput.Verbose
     String failureMessage = buildFailedStyled
     String successMessage = buildSuccessStyled
-
-    def setup() {
-        attachTestConsole()
-    }
 }

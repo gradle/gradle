@@ -1407,8 +1407,4 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
         return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
     }
-
-    enum ConsoleAttachment {
-        NOT_ATTACHED, ATTACHED, ATTACHED_STDOUT_ONLY
-    }
 }

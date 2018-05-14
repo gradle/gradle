@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.console.taskgrouping.verbose
+package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleCompositeBuildGroupedTaskFunctionalTest
-
-class VerboseConsoleAttachedToStdoutCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleCompositeBuildGroupedTaskFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Verbose
-
-    def setup() {
-        attachTestConsoleToStdoutOnly()
-    }
+public enum ConsoleAttachment {
+    NOT_ATTACHED, ATTACHED, ATTACHED_STDOUT_ONLY
 }

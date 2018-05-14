@@ -20,8 +20,4 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 
 class VerboseConsoleExecOutputIntegrationTest extends AbstractExecOutputIntegrationTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
-
-    def setup() {
-        attachTestConsole()
-    }
 }
