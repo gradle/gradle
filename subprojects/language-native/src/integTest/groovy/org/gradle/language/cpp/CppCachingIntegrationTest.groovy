@@ -80,7 +80,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         buildType << [debug, release]
     }
 
-    def "compilation task is relocatable for release"() {
+    def "compilation task is relocatable"() {
 
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
@@ -89,31 +89,34 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         when:
         inDirectory(originalLocation)
-        withBuildCache().run compileTask(release)
+        withBuildCache().run compileTask(buildType)
 
         def snapshotsInOriginalLocation = snapshotObjects(originalLocation)
 
         then:
-        compileIsNotCached(release)
+        compileIsNotCached(buildType)
 
         when:
         executer.beforeExecute {
             inDirectory(newLocation)
         }
-        run compileTask(release)
+        run compileTask(buildType)
 
         then:
-        compileIsNotCached(release)
-        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        compileIsNotCached(buildType)
+        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
 
         when:
         run 'clean'
-        withBuildCache().run compileTask(release), installTask(release)
+        withBuildCache().run compileTask(buildType), installTask(buildType)
 
         then:
-        compileIsCached(release, newLocation)
-        assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
-        installation(newLocation.file("build/install/main/${release.toLowerCase()}")).exec().out == app.expectedOutput
+        compileIsCached(buildType, newLocation)
+        assertSameSnapshots(buildType, snapshotsInOriginalLocation, snapshotObjects(newLocation))
+        installation(newLocation.file("build/install/main/${buildType.toLowerCase()}")).exec().out == app.expectedOutput
+
+        where:
+        buildType << [debug, release]
     }
 
 
@@ -123,7 +126,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     void assertSameSnapshots(String buildType, Map<String, TestFile.Snapshot> snapshotsInOriginalLocation, Map<String, TestFile.Snapshot> snapshotsInNewLocation) {
         assert snapshotsInOriginalLocation.keySet() == snapshotsInNewLocation.keySet()
-        if (isNonRelocatableCompilation(buildType)) {
+        if (isNonRelocatableCompilation()) {
             return
         }
         snapshotsInOriginalLocation.each { path, originalSnapshot ->
@@ -132,13 +135,12 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         }
     }
 
-    private boolean isNonRelocatableCompilation(String buildType) {
-        nonDeterministicCompilation || isAbsolutePathsInFile(buildType)
+    private boolean isNonRelocatableCompilation() {
+        isNonDeterministicCompilation() || isAbsolutePathsInFile()
     }
 
-    boolean isAbsolutePathsInFile(String buildType) {
-        // TODO Making release also debuggable means the object files always have paths - we need a strategy for this
-        (buildType == release || debug) || clangOnLinux
+    boolean isAbsolutePathsInFile() {
+        clangOnLinux
     }
 
     static boolean isClangOnLinux() {
