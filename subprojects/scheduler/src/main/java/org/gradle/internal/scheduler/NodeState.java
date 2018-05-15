@@ -20,26 +20,36 @@ public enum NodeState {
     /**
      * Node can be executed once all its constraints have been fulfilled, but can later be cancelled.
      */
-    RUNNABLE,
+    RUNNABLE(true),
 
     /**
      * Node needs to run unless cancelled by an upstream failure. Entry tasks and their dependencies
      * are marked as such at build start.
      */
-    SHOULD_RUN,
+    SHOULD_RUN(true),
 
     /**
      * Node must be executed once all its constraints have been fulfilled, and cannot be cancelled.
      */
-    MUST_RUN,
+    MUST_RUN(true),
 
     /**
      * Node should not be executed, unless later re-activated as a finalizer.
      */
-    CANCELLED,
+    CANCELLED(false),
 
     /**
      * One of the node's dependencies has failed to execute, and should not be re-activated.
      */
-    DEPENDENCY_FAILED
+    DEPENDENCY_FAILED(false);
+
+    private final boolean executable;
+
+    NodeState(boolean executable) {
+        this.executable = executable;
+    }
+
+    public boolean isExecutable() {
+        return executable;
+    }
 }

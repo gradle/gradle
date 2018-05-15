@@ -21,6 +21,6 @@ import org.gradle.internal.scheduler.Scheduler
 
 class DefaultSchedulerTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(new ImmediateWorkerPool(), cancellationHandler)
+    Scheduler scheduler = new DefaultScheduler(null, cancellationHandler)
 
 }

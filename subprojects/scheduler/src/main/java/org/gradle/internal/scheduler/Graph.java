@@ -44,6 +44,10 @@ public class Graph {
         return !rootNodes.isEmpty() || !incomingEdges.isEmpty();
     }
 
+    public boolean containsNode(Node node) {
+        return rootNodes.contains(node) || incomingEdges.containsKey(node);
+    }
+
     public ImmutableList<Node> getAllNodes() {
         return ImmutableList.copyOf(Iterables.concat(rootNodes, incomingEdges.keySet()));
     }
@@ -53,12 +57,12 @@ public class Graph {
     }
 
     @VisibleForTesting
-    Collection<Edge> getIncomingEdges(Node target) {
+    public Collection<Edge> getIncomingEdges(Node target) {
         return incomingEdges.get(target);
     }
 
     @VisibleForTesting
-    Collection<Edge> getOutgoingEdges(Node source) {
+    public Collection<Edge> getOutgoingEdges(Node source) {
         return outgoingEdges.get(source);
     }
 

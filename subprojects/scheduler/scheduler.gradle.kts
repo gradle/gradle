@@ -24,6 +24,7 @@ plugins {
 
 dependencies {
     api(project(":baseServices"))
+    api(project(":coreApi"))
     api(library("inject"))
 
     implementation(library("slf4j_api"))

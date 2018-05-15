@@ -66,9 +66,11 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCacheCommandFactory;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
+import org.gradle.execution.workgraph.ConcurrentWorkCoordinator;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
@@ -80,6 +82,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
+import org.gradle.internal.scheduler.DefaultScheduler;
+import org.gradle.internal.scheduler.Scheduler;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -212,6 +216,28 @@ public class TaskExecutionServices {
                 taskOutputsRepository,
                 taskCacheKeyCalculator
             )
+        );
+    }
+
+    Scheduler createScheduler(
+        ParallelismConfigurationManager parallelismConfigurationManager,
+        ExecutorFactory executorFactory,
+        WorkerLeaseService workerLeaseService,
+        BuildCancellationToken cancellationToken,
+        ResourceLockCoordinationService coordinationService
+    ) {
+        ParallelismConfiguration parallelConfig = parallelismConfigurationManager.getParallelismConfiguration();
+        int parallelThreads = parallelConfig.getMaxWorkerCount();
+        if (parallelThreads < 1) {
+            throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
+        }
+        return new DefaultScheduler(
+            parallelConfig,
+            executorFactory,
+            workerLeaseService,
+            cancellationToken,
+            coordinationService,
+            new ConcurrentWorkCoordinator(workerLeaseService)
         );
     }
 

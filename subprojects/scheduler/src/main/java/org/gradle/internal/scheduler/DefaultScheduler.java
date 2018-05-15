@@ -22,15 +22,32 @@ import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.Transformer;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.TimeFormatting;
+import org.gradle.internal.time.Timer;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
+import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
@@ -49,26 +66,64 @@ public class DefaultScheduler implements Scheduler {
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
-    private final WorkerPool workerPool;
+    private final int executorCount;
+    private final ExecutorFactory executorFactory;
+    private final WorkerLeaseService workerLeaseService;
     private final BuildCancellationToken cancellationToken;
+    private final ResourceLockCoordinationService coordinationService;
+    private final ConcurrentNodeExecutionCoordinator concurrentNodeExecutionCoordinator;
+    private final List<TaskExecutorWorker> workers;
     private boolean cancelled;
 
-    public DefaultScheduler(WorkerPool workerPool, BuildCancellationToken cancellationToken) {
-        this.workerPool = workerPool;
+    public DefaultScheduler(
+            ParallelismConfiguration parallelismConfiguration,
+            ExecutorFactory executorFactory,
+            WorkerLeaseService workerLeaseService,
+            BuildCancellationToken cancellationToken,
+            ResourceLockCoordinationService coordinationService,
+            ConcurrentNodeExecutionCoordinator concurrentNodeExecutionCoordinator
+    ) {
+        this.executorFactory = executorFactory;
+        this.workerLeaseService = workerLeaseService;
         this.cancellationToken = cancellationToken;
+        this.coordinationService = coordinationService;
+        this.concurrentNodeExecutionCoordinator = concurrentNodeExecutionCoordinator;
+        int numberOfParallelExecutors = parallelismConfiguration.getMaxWorkerCount();
+        if (numberOfParallelExecutors < 1) {
+            throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
+        }
+
+        this.executorCount = numberOfParallelExecutors;
+        this.workers = Lists.newArrayListWithCapacity(numberOfParallelExecutors);
     }
 
     @Override
     public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor) {
-        ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
-        ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
+        // TODO Get name via Gradle.findIdentityPath()
+        ManagedExecutor executor = executorFactory.create("Task worker for '" + "gradle" + "'");
+        try {
+            WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
+            for (int index = 0; index < executorCount; index++) {
+                WorkerLease childLease = parentWorkerLease.createChild();
+                TaskExecutorWorker worker = new TaskExecutorWorker(index, childLease);
+                workers.add(worker);
+                executor.execute(worker);
+            }
 
-        execute(graph, nodeExecutor, continueOnFailure, executedNodes, failures);
-        if (cancelled) {
-            failures.add(new BuildCancelledException());
+            ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
+            ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
+
+            execute(graph, nodeExecutor, continueOnFailure, executedNodes, failures);
+            if (cancelled) {
+                failures.add(new BuildCancelledException());
+            }
+            return new GraphExecutionResult(executedNodes.build(), failures.build());
+        } finally {
+            for (TaskExecutorWorker worker : workers) {
+                worker.interrupt();
+            }
+            executor.stop();
         }
-
-        return new GraphExecutionResult(executedNodes.build(), failures.build());
     }
 
     private void cancelExecution(Graph graph, boolean cancelMustRun) {
@@ -95,42 +150,92 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void execute(Graph graph, NodeExecutor nodeExecutor, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+    private void execute(final Graph graph, final NodeExecutor nodeExecutor, final boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         while (graph.hasNodes()) {
-            if (cancellationToken.isCancellationRequested()) {
-                cancelExecution(graph, false);
+            scheduleWork(graph, nodeExecutor);
+            if (cancelled) {
                 break;
             }
-
-            scheduleWork(graph, nodeExecutor);
             handleEvents(graph, continueOnFailure, executedNodes, failures);
         }
     }
 
-    private void scheduleWork(Graph graph, NodeExecutor nodeExecutor) {
-        boolean expectAvailableWorkers = true;
-        for (Node nodeToRun : graph.getRootNodes()) {
-            if (runningNodes.contains(nodeToRun)) {
-                continue;
-            }
-            switch (nodeToRun.getState()) {
-                case RUNNABLE:
-                case SHOULD_RUN:
-                case MUST_RUN:
-                    if (expectAvailableWorkers) {
-                        if (!tryRunNode(graph, runningNodes, nodeToRun, nodeExecutor)) {
-                            expectAvailableWorkers = false;
-                        }
+    private void scheduleWork(final Graph graph, final NodeExecutor nodeExecutor) {
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                if (cancellationToken.isCancellationRequested()) {
+                    cancelExecution(graph, false);
+                    return FINISHED;
+                }
+
+                Iterator<Node> iRootNode = graph.getRootNodes().iterator();
+                // There are no root nodes to schedule
+                if (!iRootNode.hasNext()) {
+                    return FINISHED;
+                }
+
+                Iterator<TaskExecutorWorker> iWorker = workers.iterator();
+                TaskExecutorWorker worker = null;
+                while (true) {
+                    // Find a root node to allocate
+                    if (!iRootNode.hasNext()) {
+                        break;
                     }
-                    break;
-                case CANCELLED:
-                case DEPENDENCY_FAILED:
-                    eventQueue.add(new NodeFinishedEvent(nodeToRun));
-                    break;
-                default:
-                    throw new AssertionError();
+                    Node nodeToRun = iRootNode.next();
+                    if (runningNodes.contains(nodeToRun)) {
+                        continue;
+                    }
+
+                    // TODO These could be handled outside of the coordination-service lock
+                    if (!nodeToRun.getState().isExecutable()) {
+                        eventQueue.add(new NodeFinishedEvent(nodeToRun, null));
+                        continue;
+                    }
+
+                    // Allocate a worker
+                    if (worker == null) {
+                        if (!iWorker.hasNext()) {
+                            break;
+                        }
+                        TaskExecutorWorker candidate = iWorker.next();
+                        WorkerLease workerLease = candidate.getWorkerLease();
+                        if (!workerLease.tryLock()) {
+                            continue;
+                        }
+                        worker = candidate;
+                    }
+
+                    // Check if there is a node conflicting with the current one
+                    Node conflictingNode = concurrentNodeExecutionCoordinator.findConflictingNode(graph, nodeToRun, runningNodes);
+                    if (conflictingNode != null) {
+                        // Make sure we don't retry this node until the conflicting node is finished
+                        graph.addEdge(new Edge(conflictingNode, MUST_NOT_RUN_WITH, nodeToRun));
+                        continue;
+                    }
+
+                    // Lock the node
+                    ResourceLock nodeLock = concurrentNodeExecutionCoordinator.findLockFor(nodeToRun);
+                    if (nodeLock != null && !nodeLock.tryLock()) {
+                        continue;
+                    }
+
+                    // Run the node
+                    try {
+                        prepareToRunNode(nodeToRun, graph, runningNodes);
+                        worker.run(new NodeExecution(nodeToRun, nodeExecutor, nodeLock));
+                    } finally {
+                        // TODO Do we need to release the parent lease here?
+                        worker.getWorkerLease().unlock();
+                        worker = null;
+                    }
+                }
+                if (worker != null) {
+                    worker.getWorkerLease().unlock();
+                }
+                return FINISHED;
             }
-        }
+        });
     }
 
     private void handleEvents(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
@@ -145,6 +250,17 @@ public class DefaultScheduler implements Scheduler {
             failures.add(e);
             cancelExecution(graph, true);
         }
+
+        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            @Override
+            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                for (Event event : eventsBeingProcessed) {
+                    event.unlockIfNecessary();;
+                }
+                return FINISHED;
+            }
+        });
+
         for (Event event : eventsBeingProcessed) {
             System.out.printf("> Handling event %s%n", event);
             event.handle(graph, continueOnFailure, executedNodes, failures);
@@ -152,38 +268,7 @@ public class DefaultScheduler implements Scheduler {
         eventsBeingProcessed.clear();
     }
 
-    /**
-     * Tries to run the given node.
-     * @return whether the operation was successful.
-     */
-    private boolean tryRunNode(Graph graph, Set<Node> runningNodes, final Node nodeToRun, final NodeExecutor nodeExecutor) {
-        System.out.printf("Checking node %s for conflicts with running nodes %s%n", nodeToRun, runningNodes);
-        for (Node runningNode : runningNodes) {
-            if (!runningNode.canExecuteInParallelWith(nodeToRun)) {
-                System.out.printf("> Cannot run node %s with %s%n", nodeToRun, runningNode);
-                graph.addEdge(new Edge(runningNode, MUST_NOT_RUN_WITH, nodeToRun));
-                return true;
-            }
-        }
-
-        boolean workSubmittedSuccessfully = workerPool.tryRunWithAnAllocatedWorker(new Runnable() {
-            @Override
-            public void run() {
-                Throwable failure = nodeExecutor.execute(nodeToRun);
-                Event event;
-                if (failure == null) {
-                    event = new NodeFinishedEvent(nodeToRun);
-                } else {
-                    event = new NodeFailedEvent(nodeToRun, failure);
-                }
-                eventQueue.add(event);
-            }
-        });
-
-        if (!workSubmittedSuccessfully) {
-            return false;
-        }
-
+    private static void prepareToRunNode(Node nodeToRun, Graph graph, Set<Node> runningNodes) {
         graph.processOutgoingEdges(nodeToRun, new Graph.EdgeAction() {
             @Override
             public Graph.EdgeActionResult process(Edge edge) {
@@ -193,7 +278,15 @@ public class DefaultScheduler implements Scheduler {
                 switch (type) {
                     case FINALIZED_BY:
                     case AVOID_STARTING_BEFORE_FINALIZED:
-                        markAsMustRun(target);
+                        switch (target.getState()) {
+                            case RUNNABLE:
+                            case SHOULD_RUN:
+                            case CANCELLED:
+                                target.setState(MUST_RUN);
+                            default:
+                                // Otherwise it's either failed or already set to MUST_RUN
+                                break;
+                        }
                         break;
                     default:
                         break;
@@ -213,32 +306,28 @@ public class DefaultScheduler implements Scheduler {
                 }
             }
 
-            private void markAsMustRun(Node target) {
-                switch (target.getState()) {
-                    case RUNNABLE:
-                    case SHOULD_RUN:
-                    case CANCELLED:
-                        target.setState(MUST_RUN);
-                    default:
-                        // Otherwise it's either failed or already set to MUST_RUN
-                        break;
-                }
-            }
         });
         runningNodes.add(nodeToRun);
-        return true;
     }
 
     @Override
     public void close() {
-        workerPool.close();
     }
 
     private abstract class Event {
         protected final Node node;
+        @Nullable
+        private final ResourceLock lock;
 
-        protected Event(Node node) {
+        protected Event(Node node, @Nullable ResourceLock lock) {
             this.node = node;
+            this.lock = lock;
+        }
+
+        public void unlockIfNecessary() {
+            if (lock != null) {
+                lock.unlock();
+            }
         }
 
         public final void handle(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
@@ -259,8 +348,8 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private class NodeFinishedEvent extends Event {
-        public NodeFinishedEvent(Node node) {
-            super(node);
+        public NodeFinishedEvent(Node node, @Nullable ResourceLock lock) {
+            super(node, lock);
         }
 
         @Override
@@ -313,8 +402,8 @@ public class DefaultScheduler implements Scheduler {
     private class NodeFailedEvent extends Event {
         private final Throwable failure;
 
-        public NodeFailedEvent(Node node, Throwable failure) {
-            super(node);
+        public NodeFailedEvent(Node node, @Nullable ResourceLock lock, Throwable failure) {
+            super(node, lock);
             this.failure = failure;
         }
 
@@ -371,4 +460,105 @@ public class DefaultScheduler implements Scheduler {
 //            return String.format("SUSPENDED %s (%s)", node, node.getState());
 //        }
 //    }
+
+    private static class TaskExecutorWorker implements Runnable {
+        private final String name;
+        private final BlockingQueue<Runnable> workQueue = Queues.newArrayBlockingQueue(1);
+        private final WorkerLease workerLease;
+        private Thread thread;
+
+        public TaskExecutorWorker(int index, WorkerLease workerLease) {
+            this.name = "Worker #" + (index + 1);
+            this.workerLease = workerLease;
+        }
+
+        public WorkerLease getWorkerLease() {
+            return workerLease;
+        }
+
+        public void run(Runnable work) {
+            if (!workQueue.offer(work)) {
+                throw new IllegalStateException("There's already work being done by " + this);
+            }
+        }
+
+        // TODO Handle this more elegantly
+        public void interrupt() {
+            Thread thread = this.thread;
+            if (thread != null) {
+                thread.interrupt();
+            }
+        }
+
+        @Override
+        public void run() {
+            this.thread = Thread.currentThread();
+
+            AtomicLong busy = new AtomicLong(0);
+            Timer totalTimer = Time.startTimer();
+            Timer nodeTimer = Time.startTimer();
+
+            while (true) {
+                try {
+                    Runnable work = workQueue.take();
+
+                    nodeTimer.reset();
+                    WorkerLeaseRegistry.WorkerLeaseCompletion leaseCompletion = workerLease.startChild();
+                    try {
+                        work.run();
+                    } finally {
+                        leaseCompletion.leaseFinish();
+                    }
+
+                    long taskDuration = nodeTimer.getElapsedMillis();
+                    busy.addAndGet(taskDuration);
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("{} ({}) completed. Took {}.", work, Thread.currentThread(), TimeFormatting.formatDurationVerbose(taskDuration));
+                    }
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+
+            long total = totalTimer.getElapsedMillis();
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Task worker [{}] finished, busy: {}, idle: {}", Thread.currentThread(), TimeFormatting.formatDurationVerbose(busy.get()), TimeFormatting.formatDurationVerbose(total - busy.get()));
+            }
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    private class NodeExecution implements Runnable {
+        private final Node node;
+        private final NodeExecutor nodeExecutor;
+        private final ResourceLock lock;
+
+        public NodeExecution(Node node, NodeExecutor nodeExecutor, @Nullable ResourceLock lock) {
+            this.node = node;
+            this.nodeExecutor = nodeExecutor;
+            this.lock = lock;
+        }
+
+        @Override
+        public void run() {
+            Throwable failure = nodeExecutor.execute(node);
+            Event event;
+            if (failure == null) {
+                event = new NodeFinishedEvent(node, lock);
+            } else {
+                event = new NodeFailedEvent(node, lock, failure);
+            }
+            eventQueue.add(event);
+        }
+
+        @Override
+        public String toString() {
+            return node.toString();
+        }
+    }
 }

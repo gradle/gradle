@@ -23,7 +23,7 @@ import org.gradle.internal.scheduler.Scheduler
 
 class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(new ParallelWorkerPool(4), cancellationHandler)
+    Scheduler scheduler = new DefaultScheduler(null, cancellationHandler)
 
     def "schedules many tasks at once"() {
         given:

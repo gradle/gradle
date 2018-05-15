@@ -67,6 +67,7 @@ import org.gradle.internal.scan.BuildScanServices;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.scan.scopeids.DefaultBuildScanScopeIds;
+import org.gradle.internal.scheduler.Scheduler;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
@@ -75,6 +76,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -157,7 +159,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, taskExecuterFactory, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal);
+        Factory<Scheduler> schedulerFactory = new Factory<Scheduler>() {
+            @Nullable
+            @Override
+            public Scheduler create() {
+                return get(Scheduler.class);
+            }
+        };
+        return new DefaultTaskExecutionGraph(listenerManager, taskExecuterFactory, buildOperationExecutor, schedulerFactory);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

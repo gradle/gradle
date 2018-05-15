@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.workgraph
+package org.gradle.internal.scheduler;
 
-import org.gradle.internal.scheduler.WorkerPool
+import org.gradle.internal.resources.ResourceLock;
 
-class ImmediateWorkerPool implements WorkerPool {
-    @Override
-    boolean tryRunWithAnAllocatedWorker(Runnable action) {
-        action.run()
-        return true
-    }
+import javax.annotation.Nullable;
+import java.util.Collection;
 
-    @Override
-    void close() {
-    }
+public interface ConcurrentNodeExecutionCoordinator {
+    @Nullable
+    ResourceLock findLockFor(Node node);
+
+    @Nullable
+    Node findConflictingNode(Graph graph, Node nodeToRun, Collection<? extends Node> runningNodes);
 }

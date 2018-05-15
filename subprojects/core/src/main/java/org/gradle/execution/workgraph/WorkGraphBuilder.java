@@ -65,11 +65,15 @@ public class WorkGraphBuilder {
     private final Set<Task> requestedTasks = Sets.newLinkedHashSet();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
-    public void setFilter(Spec<? super Task> filter) {
-        this.filter = filter;
+    public void setFilter(@Nullable Spec<? super Task> filter) {
+        if (filter == null) {
+            this.filter = Specs.<Task>satisfyAll();
+        } else {
+            this.filter = filter;
+        }
     }
 
-    public void addTasks(Iterable<? extends TaskInternal> tasks) {
+    public void addTasks(Iterable<? extends Task> tasks) {
         Iterables.addAll(requestedTasks, tasks);
     }
 

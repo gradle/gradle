@@ -16,10 +16,16 @@
 
 package org.gradle.execution.workgraph;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
+import org.gradle.internal.scheduler.Edge;
+import org.gradle.internal.scheduler.EdgeType;
 import org.gradle.internal.scheduler.Graph;
+import org.gradle.internal.scheduler.Node;
+
+import java.util.Set;
 
 public class WorkGraph {
     private final Graph graph;
@@ -38,6 +44,14 @@ public class WorkGraph {
         return graph;
     }
 
+    public ImmutableSet<Task> getAllTasks() {
+        return taskNodes.keySet();
+    }
+
+    public ImmutableCollection<TaskNode> getAllNodes() {
+        return taskNodes.values();
+    }
+
     public ImmutableMap<Task, TaskNode> getTaskNodes() {
         return taskNodes;
     }
@@ -46,7 +60,50 @@ public class WorkGraph {
         return requestedNodes;
     }
 
+    public ImmutableSet<Task> getRequestedTasks() {
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (TaskNode requestedNode : requestedNodes) {
+            builder.add(requestedNode.getTask());
+        }
+        return builder.build();
+    }
+
     public ImmutableSet<Task> getFilteredTasks() {
         return filteredTasks;
+    }
+
+    public boolean hasTask(Task task) {
+        return taskNodes.containsKey(task);
+    }
+
+    public boolean hasTask(String path) {
+        for (Task task : taskNodes.keySet()) {
+            if (task.getPath().equals(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Set<Task> getTaskDependencies(Task task) {
+        TaskNode taskNode = taskNodes.get(task);
+        if (taskNode == null) {
+            throw new IllegalArgumentException("Task is not part of work graph: " + task);
+        }
+        final ImmutableSet.Builder<Task> dependencies = ImmutableSet.builder();
+        graph.walkIncomingEdgesFrom(taskNode, new Graph.EdgeWalkerAction() {
+            @Override
+            public boolean execute(Edge edge) {
+                if (edge.getType() == EdgeType.DEPENDENCY_OF) {
+                    Node source = edge.getSource();
+                    if (source instanceof TaskNode) {
+                        dependencies.add(((TaskNode) source).getTask());
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+        return dependencies.build();
     }
 }
