@@ -39,6 +39,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -46,8 +47,8 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 abstract class AbstractDependencyMetadataRulesTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
-    def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl)
-    def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl)
+    def notationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, SimpleMapInterner.notThreadSafe())
+    def constraintNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, SimpleMapInterner.notThreadSafe())
 
     @Shared versionIdentifier = new DefaultModuleVersionIdentifier("org.test", "producer", "1.0")
     @Shared componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)

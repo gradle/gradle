@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NestedBuildFactory;
 
 import javax.annotation.Nullable;
@@ -29,33 +30,59 @@ import java.util.Collection;
  */
 public interface BuildStateRegistry {
     /**
+     * Creates the root build of the build tree.
+     */
+    RootBuildState addRootBuild(BuildDefinition buildDefinition, BuildRequestContext requestContext);
+
+    /**
      * Returns all children of the root build.
      */
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
-     * Locates an included build by {@link BuildIdentifier}, if present.
+     * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
     @Nullable
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**
-     * Registers the root build of the build tree.
+     * Locates a build.
+     */
+    BuildState getBuild(BuildIdentifier buildIdentifier);
+
+    /**
+     * Notification that the settings have been loaded for the root build.
+     *
+     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
     void registerRootBuild(SettingsInternal settings);
 
     /**
-     * Registers an included build. An included build is-a child build whose projects and outputs are treated as part of the composite build.
+     * Notification that the root build is about to be configured.
+     *
+     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
+     */
+    void beforeConfigureRootBuild();
+
+    /**
+     * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
-     * Registers a child build that is not an included or implicit build.
+     * Creates a standalone nested build.
      */
-    NestedBuildState addNestedBuild(SettingsInternal settings);
+    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
 
     /**
-     * Registers an implicit build. An implicit build is-a child build whose outputs are used by dependency resolution.
+     * Creates an implicit build. An implicit build is-a nested build whose outputs are used by dependency resolution.
      */
     IncludedBuildState addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+
+    /**
+     * Creates a new nested build tree.
+     */
+    StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+
+    void register(BuildState build);
 }

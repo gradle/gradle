@@ -52,6 +52,7 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
 
+    testFixturesCompile(project(":resourcesHttp", "testFixturesUsageCompile"))
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 
@@ -64,6 +65,7 @@ testFixtures {
     from(":messaging")
     from(":modelCore")
     from(":versionControl")
+    from(":resourcesHttp")
 }
 
 testFilesCleanup {

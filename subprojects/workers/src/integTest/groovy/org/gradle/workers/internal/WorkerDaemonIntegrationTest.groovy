@@ -29,7 +29,7 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.CoreMatchers.notNullValue
 
-@Timeout(60)
+@Timeout(90)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     def "sets the working directory to the project directory by default during worker execution"() {
         withRunnableClassInBuildScript()

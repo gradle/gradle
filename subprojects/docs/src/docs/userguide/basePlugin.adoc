@@ -39,7 +39,9 @@ Plugins and build authors should attach their verification tasks, such as ones t
 Plugins and build authors should attach tasks that produce distributions and other consumable artifacts to this lifecycle task. For example, `jar` produces the consumable artifact for Java libraries. Attach tasks to this lifecycle task using `assemble.dependsOn(__task__)`.
 
 `build` — _lifecycle task_::
-(Depends on `assemble` and `check`) Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
+_Depends on_: `check`, `assemble`
++
+Intended to build everything, including running all tests, producing the production artifacts and generating documentation. You will probably rarely attach concrete tasks directly to `build` as `assemble` and `check` are typically more appropriate.
 
 `build__Configuration__` — task rule::
 Assembles those artifacts attached to the named configuration. For example, `buildArchives` will execute any task that is required to create any artifact attached to the `archives` configuration.

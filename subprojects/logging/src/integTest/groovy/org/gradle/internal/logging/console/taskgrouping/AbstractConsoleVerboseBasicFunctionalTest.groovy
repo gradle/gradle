@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+
 import static org.gradle.api.logging.configuration.ConsoleOutput.Plain
 import static org.gradle.api.logging.configuration.ConsoleOutput.Verbose
 

@@ -32,10 +32,12 @@ import java.util.List;
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final Dependency source;
+    private final boolean isTransitive;
 
     public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source) {
         this.delegate = delegate;
         this.source = source;
+        this.isTransitive = delegate.isTransitive();
     }
 
     @Override
@@ -75,7 +77,7 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
 
     @Override
     public boolean isTransitive() {
-        return delegate.isTransitive();
+        return isTransitive;
     }
 
     @Override

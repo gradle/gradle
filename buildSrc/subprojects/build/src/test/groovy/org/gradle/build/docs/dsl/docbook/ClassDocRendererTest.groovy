@@ -988,6 +988,58 @@ class ClassDocRendererTest extends XmlSpecification {
 </chapter>'''
     }
 
+    def rendersReadAndWriteOnlyProperties() {
+        def content = parse('''
+            <chapter>
+                <section><title>Properties</title>
+                    <table>
+                        <thead><tr><td>Name</td></tr></thead>
+                        <tr><td>readWriteProperty</td></tr>
+                        <tr><td>readOnlyProperty</td></tr>
+                        <tr><td>writeOnlyProperty</td></tr>
+                    </table>
+                </section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('Class', content: content)
+        PropertyDoc readWriteProperty = propertyDoc('readWriteProperty', readable: true, writeable: true)
+        PropertyDoc readOnlyProperty = propertyDoc('readOnlyProperty', readable: true, writeable: false)
+        PropertyDoc writeOnlyProperty = propertyDoc('writeOnlyProperty', readable: false, writeable: true)
+        _ * classDoc.classProperties >> [readWriteProperty, readOnlyProperty, writeOnlyProperty]
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
+
+        when:
+        def result = parse('<chapter/>', document)
+        withCategories {
+            renderer.merge(classDoc, result)
+        }
+
+        then:
+        formatTree(result).contains('''
+    <section>
+        <title>Property details</title>
+        <section id="readWriteProperty" role="detail">
+            <title>
+                <classname>SomeType</classname>
+                <literal>readWriteProperty</literal>
+            </title>
+            <para>comment</para>
+        </section>
+        <section id="readOnlyProperty" role="detail">
+            <title><classname>SomeType</classname> <literal>readOnlyProperty</literal> (read-only)</title>
+            <para>comment</para>
+        </section>
+        <section id="writeOnlyProperty" role="detail">
+            <title><classname>SomeType</classname> <literal>writeOnlyProperty</literal> (write-only)</title>
+            <para>comment</para>
+        </section>
+    </section>''')
+    }
+
     def linkRenderer() {
         LinkRenderer renderer = Mock()
         _ * renderer.link(!null, !null) >> {
@@ -1038,6 +1090,8 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * propDoc.incubating >> (args.incubating ?: false)
         _ * propDoc.additionalValues >> (args.attributes ?: [])
         _ * propMetaData.type >> new TypeMetaData(args.type ?: 'SomeType')
+        _ * propMetaData.readable >> (args.containsKey('readable') ? args.readable : true)
+        _ * propMetaData.writeable >> (args.containsKey('writeable') ? args.writeable : false)
         return propDoc
     }
 

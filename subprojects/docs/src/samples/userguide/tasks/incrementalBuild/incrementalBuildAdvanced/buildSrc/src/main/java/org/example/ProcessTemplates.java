@@ -19,7 +19,7 @@ public class ProcessTemplates extends DefaultTask {
         return this.templateEngine;
     }
 // START SNIPPET custom-task-class
-    private FileCollection sourceFiles = getProject().files();
+    private FileCollection sourceFiles = getProject().getLayout().files();
 
     @SkipWhenEmpty
     @InputFiles
@@ -38,7 +38,7 @@ public class ProcessTemplates extends DefaultTask {
 // START SNIPPET task-arg-method
     // ...
     public void sources(Task inputTask) {
-        this.sourceFiles = this.sourceFiles.plus(getProject().files(inputTask));
+        this.sourceFiles = this.sourceFiles.plus(getProject().getLayout().files(inputTask));
     }
     // ...
 // END SNIPPET task-arg-method

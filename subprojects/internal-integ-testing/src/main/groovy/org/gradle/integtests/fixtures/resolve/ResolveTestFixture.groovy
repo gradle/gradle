@@ -59,21 +59,27 @@ class ResolveTestFixture {
     /**
      * Injects the appropriate stuff into the build script.
      */
-    void prepare(String existingScript = '') {
+    void prepare(String additionalContent = '') {
+        def existingScript = buildFile.exists() ? buildFile.text : ""
+        def start = existingScript.indexOf("RESOLVE_TEST_FIXTURE_START") - 2
+        def end = existingScript.indexOf("RESOLVE_TEST_FIXTURE_END") + 25
+        if (start >= 0) {
+            existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
+        }
         def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-        buildFile << """
+        buildFile.text = existingScript + """//RESOLVE_TEST_FIXTURE_START
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
-$existingScript
+$additionalContent
 allprojects {
-    tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
+    tasks.createLater("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
-}
+}//RESOLVE_TEST_FIXTURE_END
 """
     }
 

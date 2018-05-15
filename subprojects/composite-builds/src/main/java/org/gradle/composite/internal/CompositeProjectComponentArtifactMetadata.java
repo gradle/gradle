@@ -91,7 +91,7 @@ class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifac
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 for (String task : tasks) {
-                    context.add(new IncludedBuildTaskReference(componentIdentifier.getBuild().getName(), task));
+                    context.add(new IncludedBuildTaskReference(componentIdentifier.getBuild(), task));
                 }
             }
         };

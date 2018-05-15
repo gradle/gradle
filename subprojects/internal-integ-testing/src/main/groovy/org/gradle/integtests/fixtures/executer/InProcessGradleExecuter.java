@@ -49,6 +49,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
@@ -103,7 +104,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -144,6 +144,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
+
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
             OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
@@ -188,6 +189,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
+        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+        } else if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
+            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+        }
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 
@@ -269,7 +275,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment == ConsoleAttachment.ATTACHED);
 
         return loggingManager;
     }
@@ -371,6 +377,18 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return COMMON_TMP;
     }
 
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        consoleAttachment = ConsoleAttachment.ATTACHED;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
+        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
+        return this;
+    }
+
     private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
@@ -393,7 +411,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void beforeExecute(Task task) {
-            assertTrue(planned.contains(task));
+            if (!planned.contains(task)) {
+                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
+            }
 
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {
@@ -459,6 +479,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionResult assertOutputContains(String expectedOutput) {
             outputResult.assertOutputContains(expectedOutput);
             return this;
+        }
+
+        @Override
+        public ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
+            outputResult.assertContentContains(content, expectedOutput, label);
+            return null;
         }
 
         @Override

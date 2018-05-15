@@ -17,7 +17,10 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
+import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Unroll
 import spock.util.environment.RestoreSystemProperties
@@ -26,6 +29,7 @@ class BuildScanConfigManagerTest extends Specification {
 
     boolean scanEnabled
     boolean scanDisabled
+    boolean anyStarted
 
     def attributes = Mock(BuildScanConfig.Attributes)
 
@@ -140,7 +144,15 @@ class BuildScanConfigManagerTest extends Specification {
             getSystemPropertiesArgs() >> { [:] }
         }
 
-        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(), { attributes })
+        def gradle = Mock(GradleInternal) {
+            getServices() >> Mock(ServiceRegistry) {
+                get(DeploymentRegistryInternal) >> Mock(DeploymentRegistryInternal) {
+                    isAnyStarted() >> anyStarted
+                }
+            }
+        }
+
+        new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(gradle), { attributes })
     }
 
     BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) {

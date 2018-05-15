@@ -52,19 +52,7 @@ import java.util.Set;
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
     @Override
     public Set<File> getFiles() {
-        List<? extends FileCollectionInternal> sourceCollections = getSourceCollections();
-        switch (sourceCollections.size()) {
-            case 0:
-                return Collections.emptySet();
-            case 1:
-                return sourceCollections.get(0).getFiles();
-            default:
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollection collection : sourceCollections) {
-                    builder.addAll(collection);
-                }
-                return builder.build();
-        }
+        return getFiles(getSourceCollections());
     }
 
     @Override
@@ -77,7 +65,22 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
                 return sourceCollections.get(0).iterator();
             default:
                 // Need to make sure we remove duplicates, so we can't just compose iterators from source collections
-                return getFiles().iterator();
+                return getFiles(sourceCollections).iterator();
+        }
+    }
+
+    private static Set<File> getFiles(List<? extends FileCollectionInternal> sourceCollections) {
+        switch (sourceCollections.size()) {
+            case 0:
+                return Collections.emptySet();
+            case 1:
+                return sourceCollections.get(0).getFiles();
+            default:
+                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
+                for (FileCollection collection : sourceCollections) {
+                    builder.addAll(collection);
+                }
+                return builder.build();
         }
     }
 
@@ -171,6 +174,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
                 return CompositeFileCollection.this.toString() + " dependencies";
             }
 
+            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 CompositeFileCollection.this.visitDependencies(context);
             }

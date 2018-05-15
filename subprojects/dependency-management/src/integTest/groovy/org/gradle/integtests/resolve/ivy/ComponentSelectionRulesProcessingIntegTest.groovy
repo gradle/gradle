@@ -404,7 +404,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
             configurations.add(configurations.conf.copy())
 
-            task('checkDeps') {
+            task('checkDeps', overwrite: true) {
                 doLast {
                     assert configurations.conf.files*.name == ['api-1.1.jar']
                     assert configurations.confCopy.files*.name == ['api-1.1.jar']

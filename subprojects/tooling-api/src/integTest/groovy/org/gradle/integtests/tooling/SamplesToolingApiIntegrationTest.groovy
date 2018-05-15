@@ -110,9 +110,6 @@ run {
 """ + buildScript.substring(index)
 
         buildFile.text = buildScript
-
-        // Add in an empty settings file to avoid searching up
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
     private void tweakPluginProject(File projectDir) {
@@ -128,9 +125,6 @@ repositories {
 """ + buildScript.substring(index)
 
         buildFile.text = buildScript
-
-        // Add in an empty settings file to avoid searching up
-        projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {

@@ -18,6 +18,7 @@
 package org.gradle.api.internal.tasks.compile.incremental
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec
@@ -29,7 +30,7 @@ class IncrementalCompilationInitializerTest extends Specification {
 
     def fileOperations = Mock(FileOperations)
     @Subject
-        initializer = new IncrementalCompilationInitializer(fileOperations)
+    def initializer = new IncrementalCompilationInitializer(fileOperations, Mock(FileTree))
 
     def "prepares patterns"() {
         PatternSet filesToDelete = Mock(PatternSet)
@@ -63,7 +64,7 @@ class IncrementalCompilationInitializerTest extends Specification {
         initializer.initializeCompilation(compileSpec, new RecompilationSpec())
 
         then:
-        1 * compileSpec.setSource { it.files.empty }
+        1 * compileSpec.setSourceFiles { it.files.empty }
     }
 
     def "configures empty classes when aggregated types empty"() {

@@ -86,9 +86,17 @@ The `--refresh-dependencies` option tells Gradle to ignore all cached entries fo
 [[sub:locking_dependency_versions]]
 === Locking dependency versions
 
-The use of <<sub:declaring_dependency_with_dynamic_version,dynamic dependencies>> in a build is convenient. The user does not need to know the latest version of a dependency and Gradle automatically uses new versions once they are published. However, dynamic dependencies make builds non-reproducible, as they can resolve to a different version at a later point in time. This makes it hard to reproduce old builds when debugging a problem. It can also disrupt development if a new, but incompatible version is selected. In the best case the CI build catches the problem and someone needs to investigate. In the worst case, the problem makes it to production unnoticed.
+The use of <<sub:declaring_dependency_with_dynamic_version,dynamic dependencies>> in a build is convenient.
+The user does not need to know the latest version of a dependency and Gradle automatically uses new versions once they are published.
+However, dynamic dependencies make builds non-reproducible, as they can resolve to a different version at a later point in time.
+This makes it hard to reproduce old builds when debugging a problem.
+It can also disrupt development if a new, but incompatible version is selected.
+In the best case the CI build catches the problem and someone needs to investigate.
+In the worst case, the problem makes it to production unnoticed.
 
-In the Gradle ecosystem, the link:https://github.com/nebula-plugins/gradle-dependency-lock-plugin[dependency lock plugin] currently solves this problem. The user can run a task that writes a file containing the resolved versions for every module dependency. This file is then checked in and the versions in it are used on all subsequent runs until the lock is updated or removed again.
+Gradle offers <<dependency_locking,dependency locking>> to solve this problem.
+The user can run a build asking to persist the resolved versions for every module dependency.
+This file is then checked in and the versions in it are used on all subsequent runs until the lock is updated or removed again.
 
 [[sub:versioning_file_dependencies]]
 === Versioning of file dependencies

@@ -64,6 +64,13 @@ public interface BuildScanConfig {
 
         boolean isRootProjectHasVcsMappings();
 
+        /**
+         * Whether any {@link org.gradle.deployment.internal.Deployment}s have been started in the current build session.
+         *
+         * @since 4.8
+         */
+        boolean isAnyDeploymentsStarted();
+
     }
 
 

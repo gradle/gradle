@@ -36,6 +36,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
 
     public TaskInfo(TaskInternal task) {
         this.task = task;
@@ -175,6 +176,10 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return finalizers;
     }
 
+    public TreeSet<TaskInfo> getFinalizingSuccessors() {
+        return finalizingSuccessors;
+    }
+
     public TreeSet<TaskInfo> getShouldSuccessors() {
         return shouldSuccessors;
     }
@@ -196,8 +201,13 @@ public class TaskInfo implements Comparable<TaskInfo> {
         mustSuccessors.add(toNode);
     }
 
+    public void addFinalizingSuccessor(TaskInfo finalized) {
+        finalizingSuccessors.add(finalized);
+    }
+
     public void addFinalizer(TaskInfo finalizerNode) {
         finalizers.add(finalizerNode);
+        finalizerNode.addFinalizingSuccessor(this);
     }
 
     public void addShouldSuccessor(TaskInfo toNode) {

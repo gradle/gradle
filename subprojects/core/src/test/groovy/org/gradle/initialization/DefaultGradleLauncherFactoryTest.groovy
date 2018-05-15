@@ -16,7 +16,10 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.internal.build.NestedBuildState
+import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -42,13 +45,14 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     final def globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
     final def userHomeServices = globalServices.get(GradleUserHomeScopeServiceRegistry).getServicesFor(tmpDir.createDir("user-home"))
     final def crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalServices, startParameter)
-    final def sessionServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, new DefaultBuildRequestMetaData(Time.currentTimeMillis()), ClassPath.EMPTY)
+    final def sessionServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, new DefaultBuildRequestMetaData(Time.currentTimeMillis()), ClassPath.EMPTY, new DefaultBuildCancellationToken())
     final def buildTreeServices = new BuildTreeScopeServices(sessionServices)
     final def listenerManager = globalServices.get(ListenerManager)
     final def progressLoggerFactory = globalServices.get(ProgressLoggerFactory)
     final def userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry)
     final def buildProgressLogger = globalServices.get(BuildProgressLogger)
     final def factory = new DefaultGradleLauncherFactory(userHomeScopeServiceRegistry, buildProgressLogger, crossBuildSessionScopeServices)
+    def requestContext = Stub(BuildRequestContext)
 
     def cleanup() {
         buildTreeServices.close()
@@ -60,13 +64,11 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     def "makes services from build context available as build scoped services"() {
         def cancellationToken = Stub(BuildCancellationToken)
         def eventConsumer = Stub(BuildEventConsumer)
-        def requestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-            getEventConsumer() >> eventConsumer
-        }
+        requestContext.cancellationToken >> cancellationToken
+        requestContext.eventConsumer >> eventConsumer
 
         expect:
-        def launcher = factory.newInstance(startParameter, requestContext, buildTreeServices)
+        def launcher = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), Stub(RootBuildState), requestContext, buildTreeServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
@@ -74,21 +76,33 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
+    def "makes build definition services available as build scoped services"() {
+        def identifier = Stub(BuildIdentifier)
+        def build = Stub(RootBuildState)
+        build.buildIdentifier >> identifier
+        def buildDefinition = BuildDefinition.fromStartParameter(startParameter)
+
+        expect:
+        def launcher = factory.newInstance(buildDefinition, build, requestContext, buildTreeServices)
+        launcher.gradle.parent == null
+        launcher.gradle.startParameter == startParameter
+        launcher.gradle.services.get(BuildDefinition) == buildDefinition
+        launcher.gradle.services.get(BuildIdentity).currentBuild == identifier
+    }
+
     def "reuses build context services for nested build"() {
         def cancellationToken = Stub(BuildCancellationToken)
         def clientMetaData = Stub(BuildClientMetaData)
         def eventConsumer = Stub(BuildEventConsumer)
-        def requestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-            getClient() >> clientMetaData
-            getEventConsumer() >> eventConsumer
-        }
+        requestContext.eventConsumer >> eventConsumer
+        requestContext.client >> clientMetaData
+        requestContext.cancellationToken >> cancellationToken
 
-        def parent = factory.newInstance(startParameter, requestContext, buildTreeServices)
+        def parent = factory.newInstance(BuildDefinition.fromStartParameter(startParameter), Stub(RootBuildState), requestContext, buildTreeServices)
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameterForBuild(startParameter, tmpDir.file("nested"), Stub(PluginRequests)))
+        def launcher = parent.gradle.services.get(NestedBuildFactory).nestedInstance(BuildDefinition.fromStartParameterForBuild(startParameter, tmpDir.file("nested"), Stub(PluginRequests)), Stub(NestedBuildState))
         launcher.gradle.parent == parent.gradle
 
         def request = launcher.gradle.services.get(BuildRequestMetaData)

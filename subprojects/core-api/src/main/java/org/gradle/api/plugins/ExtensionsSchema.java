@@ -54,6 +54,7 @@ public interface ExtensionsSchema extends Iterable<ExtensionsSchema.ExtensionSch
          *
          * @see DeferredConfigurable
          * @return {@code true} if the extension is a deferred configurable, {@code false} otherwise
+         * @deprecated without replacement.
          */
         boolean isDeferredConfigurable();
     }

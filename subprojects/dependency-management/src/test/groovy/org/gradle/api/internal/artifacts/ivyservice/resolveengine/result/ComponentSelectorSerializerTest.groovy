@@ -19,20 +19,25 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
-    private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
+    private final VersionParser versionParser = new VersionParser()
+    private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new AttributeContainerSerializer(TestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE))
 
     private ImmutableVersionConstraint constraint(String version, boolean strict = false) {
@@ -51,6 +56,62 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         Throwable t = thrown(IllegalArgumentException)
         t.message == 'Provided component selector may not be null'
+    }
+
+    def "serializes root project ProjectComponentSelector"() {
+        given:
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.ROOT, Path.ROOT, "rootProject")
+
+        when:
+        def result = serialize(selector, serializer)
+
+        then:
+        result.identityPath == selector.identityPath
+        result.projectPath == selector.projectPath
+        result.projectPath() == selector.projectPath()
+        result.projectName == selector.projectName
+    }
+
+    def "serializes root build ProjectComponentSelector"() {
+        given:
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.path(":a:b"), Path.path(":a:b"), "b")
+
+        when:
+        def result = serialize(selector, serializer)
+
+        then:
+        result.identityPath == selector.identityPath
+        result.projectPath == selector.projectPath
+        result.projectPath() == selector.projectPath()
+        result.projectName == selector.projectName
+    }
+
+    def "serializes other build root ProjectComponentSelector"() {
+        given:
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.path(":prefix:a:someProject"), Path.ROOT, "someProject")
+
+        when:
+        def result = serialize(selector, serializer)
+
+        then:
+        result.identityPath == selector.identityPath
+        result.projectPath == selector.projectPath
+        result.projectPath() == selector.projectPath()
+        result.projectName == selector.projectName
+    }
+
+    def "serializes other build ProjectComponentSelector"() {
+        given:
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.path(":prefix:a:b"), Path.path(":a:b"), "b")
+
+        when:
+        def result = serialize(selector, serializer)
+
+        then:
+        result.identityPath == selector.identityPath
+        result.projectPath == selector.projectPath
+        result.projectPath() == selector.projectPath()
+        result.projectName == selector.projectName
     }
 
     def "serializes ModuleComponentSelector"() {

@@ -105,7 +105,7 @@ public class BarTest {
         """
 
         when:
-        succeeds("test", "-Dtest.single=Foo")
+        succeeds("test", "--tests", "Foo*")
 
         then:
         //asserting on output because test results are kept in between invocations
@@ -113,14 +113,14 @@ public class BarTest {
         outputContains("executed Test test(FooTest)")
 
         when:
-        succeeds("test", "-Dtest.single=Bar")
+        succeeds("test", "--tests", "Bar*")
 
         then:
         outputContains("executed Test test(BarTest)")
         outputDoesNotContain("executed Test test(FooTest)")
 
         when:
-        succeeds("test", "-Dtest.single=Bar")
+        succeeds("test", "--tests", "Bar*")
 
         then:
         result.assertTaskSkipped(":test")

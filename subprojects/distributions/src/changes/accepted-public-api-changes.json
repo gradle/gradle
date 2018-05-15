@@ -1,17 +1,20 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.artifacts.ModuleDependency",
-            "member": "Class org.gradle.api.artifacts.ModuleDependency",
-            "acceptation": "Module dependencies now support attributes",
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "acceptation": "Metadata suppliers are extracted into their own interface",
             "changes": [
-                "org.gradle.api.attributes.HasConfigurableAttributes"
+                "org.gradle.api.artifacts.repositories.MetadataSupplierAware"
             ]
         },
         {
-            "type": "org.gradle.nativeplatform.OperatingSystemFamily",
-            "member": "Constructor org.gradle.nativeplatform.OperatingSystemFamily()",
-            "acceptation": "OperatingSystemFamily is now an abstract class"
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "acceptation": "Metadata suppliers are extracted into their own interface",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.MetadataSupplierAware"
+            ]
         }
     ]
 }

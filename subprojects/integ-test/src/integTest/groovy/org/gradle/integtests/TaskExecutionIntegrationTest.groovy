@@ -300,12 +300,14 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
 """
         when:
+        executer.expectDeprecationWarning()
         succeeds 'sometask'
 
         then:
         output.contains("explicit sometask")
 
         when:
+        executer.expectDeprecationWarning()
         succeeds 'someT'
 
         then:

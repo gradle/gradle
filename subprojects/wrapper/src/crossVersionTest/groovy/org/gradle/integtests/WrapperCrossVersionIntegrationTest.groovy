@@ -89,8 +89,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         println "use wrapper from $wrapperVersion to build using $executionVersion"
 
         buildFile << """
-
-task wrapper(type: Wrapper) {
+task wrapper (type: Wrapper, overwrite: true) {
     gradleVersion = '$executionVersion.version.version'
     distributionUrl = '${executionVersion.binDistribution.toURI()}'
 }

@@ -31,7 +31,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlackli
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
@@ -105,6 +108,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
@@ -121,35 +125,35 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
-        return new DefaultComponentIdentifierFactory(buildIdentity);
+    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity, BuildStateRegistry buildRegistry) {
+        return new DefaultComponentIdentifierFactory(buildRegistry.getBuild(buildIdentity.getCurrentBuild()));
     }
 
     DependencyFactory createDependencyFactory(
-            Instantiator instantiator,
-            ProjectAccessListener projectAccessListener,
-            StartParameter startParameter,
-            ClassPathRegistry classPathRegistry,
-            CurrentGradleInstallation currentGradleInstallation,
-            FileLookup fileLookup,
-            RuntimeShadedJarFactory runtimeShadedJarFactory,
-            ImmutableAttributesFactory attributesFactory
-    ) {
+        Instantiator instantiator,
+        ProjectAccessListener projectAccessListener,
+        StartParameter startParameter,
+        ClassPathRegistry classPathRegistry,
+        CurrentGradleInstallation currentGradleInstallation,
+        FileLookup fileLookup,
+        RuntimeShadedJarFactory runtimeShadedJarFactory,
+        ImmutableAttributesFactory attributesFactory,
+        SimpleMapInterner stringInterner) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
 
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation),
-            DependencyConstraintNotationParser.parser(instantiator),
-            new ClientModuleNotationParserFactory(instantiator).create(),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
+            DependencyConstraintNotationParser.parser(instantiator, stringInterner),
+            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             projectDependencyFactory,
             attributesFactory);
     }
 
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory, BuildOperationExecutor buildOperationExecutor) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, buildOperationExecutor, directoryFileTreeFactory);
+    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, directoryFileTreeFactory);
     }
 
     BuildCommencedTimeProvider createBuildTimeProvider() {
@@ -175,7 +179,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ModuleRepositoryCacheProvider createModuleRepositoryCacheProvider(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                                                      ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory) {
+                                                                      ArtifactCacheMetadata artifactCacheMetadata, AttributeContainerSerializer attributeContainerSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner) {
         ModuleRepositoryCaches caches = new ModuleRepositoryCaches(
             new DefaultModuleVersionsCache(
                 timeProvider,
@@ -188,7 +192,8 @@ class DependencyManagementBuildScopeServices {
                 moduleIdentifierFactory,
                 attributeContainerSerializer,
                 mavenMetadataFactory,
-                ivyMetadataFactory),
+                ivyMetadataFactory,
+                stringInterner),
             new DefaultModuleArtifactsCache(
                 timeProvider,
                 cacheLockingManager
@@ -279,7 +284,9 @@ class DependencyManagementBuildScopeServices {
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
                                               VersionSelectorScheme versionSelectorScheme,
                                               VersionComparator versionComparator,
-                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory, RepositoryBlacklister repositoryBlacklister) {
+                                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                              RepositoryBlacklister repositoryBlacklister,
+                                              VersionParser versionParser) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
@@ -288,7 +295,8 @@ class DependencyManagementBuildScopeServices {
             versionSelectorScheme,
             versionComparator,
             moduleIdentifierFactory,
-            repositoryBlacklister);
+            repositoryBlacklister,
+            versionParser);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
@@ -298,7 +306,9 @@ class DependencyManagementBuildScopeServices {
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
-                                                                ImmutableAttributesFactory attributesFactory) {
+                                                                ImmutableAttributesFactory attributesFactory,
+                                                                VersionSelectorScheme versionSelectorScheme,
+                                                                VersionParser versionParser) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -307,7 +317,7 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
-            attributesFactory);
+            attributesFactory, versionSelectorScheme, versionParser);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
@@ -328,6 +338,14 @@ class DependencyManagementBuildScopeServices {
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
         return new DefaultComponentSelectorConverter(moduleIdentifierFactory, componentIdentifierFactory, localComponentRegistry);
+    }
+
+    VersionParser createVersionParser() {
+        return new VersionParser();
+    }
+
+    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator, VersionParser versionParser) {
+        return new CachingVersionSelectorScheme(new DefaultVersionSelectorScheme(versionComparator, versionParser));
     }
 
     private static class VcsOrProjectResolverProviderFactory implements ResolverProviderFactory {
@@ -352,11 +370,15 @@ class DependencyManagementBuildScopeServices {
         }
     }
 
-    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory) {
-        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, nestedBuildFactory);
+    VcsDependencyResolver createVcsDependencyResolver(VcsWorkingDirectoryRoot vcsWorkingDirectoryRoot, ProjectDependencyResolver projectDependencyResolver, LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlSystemFactory versionControlSystemFactory, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, BuildStateRegistry buildRegistry, NestedBuildFactory nestedBuildFactory, VersionParser versionParser) {
+        return new VcsDependencyResolver(vcsWorkingDirectoryRoot, projectDependencyResolver, localComponentRegistry, vcsResolver, versionControlSystemFactory, versionSelectorScheme, versionComparator, buildRegistry, nestedBuildFactory, versionParser);
     }
 
     ResolverProviderFactory createVcsResolverProviderFactory(VcsDependencyResolver vcsDependencyResolver, ProjectDependencyResolver projectDependencyResolver, VcsResolver vcsResolver) {
         return new VcsOrProjectResolverProviderFactory(vcsDependencyResolver, projectDependencyResolver, vcsResolver);
+    }
+
+    SimpleMapInterner createStringInterner() {
+        return SimpleMapInterner.threadSafe();
     }
 }

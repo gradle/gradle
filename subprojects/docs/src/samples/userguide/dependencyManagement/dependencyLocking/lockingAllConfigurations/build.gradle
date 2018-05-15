@@ -1,0 +1,23 @@
+apply plugin: 'java'
+
+//START SNIPPET locking-all
+dependencyLocking {
+    lockAllConfigurations()
+}
+//END SNIPPET locking-all
+
+//START SNIPPET resolve-all
+task resolveAndLockAll {
+    doFirst {
+        assert gradle.startParameter.writeDependencyLocks
+    }
+    doLast {
+        configurations.each {
+            if (it.canBeResolved) {
+                // Any any custome filtering on the to be resolved configurations
+                it.resolve()
+            }
+        }
+    }
+}
+//END SNIPPET resolve-all

@@ -30,6 +30,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     @Nullable
     private final String requiredBranch;
 
+    private final int hashCode;
+
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              List<String> rejectedVersions) {
         this(preferredVersion, rejectedVersions, null);
@@ -53,6 +55,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
         this.requiredBranch = requiredBranch;
+        this.hashCode = super.hashCode();
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion) {
@@ -62,6 +65,12 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.preferredVersion = preferredVersion;
         this.rejectedVersions = ImmutableList.of();
         this.requiredBranch = null;
+        this.hashCode = super.hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
     }
 
     @Nullable

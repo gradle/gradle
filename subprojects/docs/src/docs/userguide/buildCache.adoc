@@ -107,8 +107,8 @@ and `:jar` being Copy-like tasks which are not cacheable since it is generally f
 === Cacheable tasks
 
 Since a task describes all of its inputs and outputs, Gradle can compute a _build cache key_ that uniquely defines the task's outputs based on its inputs.
-That build cache key is used to request previous outputs from a build cache or push new outputs to the build cache. If the previous build is already populated by someone else, e.g. your
-continuous integration server or other developers, you can avoid executing most tasks locally.
+That build cache key is used to request previous outputs from a build cache or store new outputs in the build cache.
+If the previous build outputs have been already stored in the cache by someone else, e.g. your continuous integration server or other developers, you can avoid executing most tasks locally.
 
 The following inputs contribute to the build cache key for a task in the same way that they do for <<sec:how_does_it_work,up-to-date checks>>:
 
@@ -199,7 +199,7 @@ You can configure the build cache by using the api:org.gradle.api.initialization
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
 If outputs are found in the remote cache, they are also stored in the local cache, so next time they will be found locally.
-Gradle pushes build outputs to any build cache that is enabled and has api:org.gradle.caching.configuration.BuildCache#isPush()[] set to `true`.
+Gradle stores ("pushes") build outputs in any build cache that is enabled and has api:org.gradle.caching.configuration.BuildCache#isPush()[] set to `true`.
 
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
@@ -263,8 +263,8 @@ This is a convenient workaround, but you shouldn’t use it as a long-term solut
 [[sec:build_cache_configure_use_cases]]
 ==== Configuration use cases
 
-The recommended use case for the build cache is that your continuous integration server populates the remote build cache with clean builds while developers pull
-from the remote build cache and push to a local build cache. The configuration would then look as follows.
+The recommended use case for the build cache is that your continuous integration server populates the remote build cache from clean builds while developers load from the remote build cache and store in the local build cache.
+The configuration would then look as follows.
 
 ++++
 <sample id="developerCiSetup" dir="buildCache/developer-ci-setup" title="Recommended setup for CI push use case">

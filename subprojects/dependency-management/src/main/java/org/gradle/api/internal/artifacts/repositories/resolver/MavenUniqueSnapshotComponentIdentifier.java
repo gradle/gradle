@@ -23,15 +23,18 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
  */
 public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleComponentIdentifier {
     private final String timestamp;
+    private final int hashCode;
 
     public MavenUniqueSnapshotComponentIdentifier(String group, String module, String version, String timestamp) {
         super(group, module, version);
         this.timestamp = timestamp;
+        this.hashCode = super.hashCode() + timestamp.hashCode();
     }
 
     public MavenUniqueSnapshotComponentIdentifier(ModuleComponentIdentifier baseIdentifier, String timestamp) {
         super(baseIdentifier.getGroup(), baseIdentifier.getModule(), baseIdentifier.getVersion());
         this.timestamp = timestamp;
+        this.hashCode = super.hashCode() + timestamp.hashCode();
     }
 
     @Override
@@ -41,7 +44,7 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
 
     @Override
     public int hashCode() {
-        return super.hashCode() + timestamp.hashCode();
+        return hashCode;
     }
 
     @Override

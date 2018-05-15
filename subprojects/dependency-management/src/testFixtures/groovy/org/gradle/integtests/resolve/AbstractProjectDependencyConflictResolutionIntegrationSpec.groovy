@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.util.Path
 import spock.lang.Unroll
 
 /**
@@ -182,7 +184,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         def projectId(String projectName) {
             def buildId = $buildId
             def projectPath = $projectPath
-            return new org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier(buildId, projectPath)
+            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).getIdentifierForProject(${Path.name}.path(projectPath))
         }
 """
     }

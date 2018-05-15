@@ -53,19 +53,19 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         assert otherType.isInstance(d)
     }
 
-    def canGetAllDomainObjectsForEmptyCollection() {
+    def "can get all domain objects for empty collection"() {
         expect:
         container.isEmpty()
         container.size() == 0
     }
 
-    def canIterateOverEmptyCollection() {
+    def "can iterate over empty collection"() {
         expect:
         def iterator = container.iterator()
         !iterator.hasNext()
     }
 
-    def elementAddedUsingProviderIsNotRealizedWhenAdded() {
+    def "element added using provider is not realized when added"() {
         def provider = Mock(ProviderInternal)
 
         when:
@@ -80,7 +80,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !container.empty
     }
 
-    def providerForElementIsNotQueriedWhenAnotherElementAdded() {
+    def "provider for element is not queried when another element added"() {
         def provider = Mock(ProviderInternal)
 
         given:
@@ -98,7 +98,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !container.empty
     }
 
-    def canCheckForMembership() {
+    def "can check for membership"() {
         given:
         container.add(b)
         container.add(a)
@@ -108,7 +108,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.contains(a)
     }
 
-    def providerForElementIsQueriedWhenMembershipChecked() {
+    def "provider for element is queried when membership checked"() {
         def provider = Mock(ProviderInternal)
 
         given:
@@ -125,7 +125,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         1 * provider.get() >> a
     }
 
-    def canGetAllDomainObjectsOrderedByOrderAdded() {
+    def "can get all domain objects ordered by order added"() {
         given:
         container.add(b)
         container.add(a)
@@ -135,7 +135,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container) == iterationOrder(b, a, c)
     }
 
-    def canIterateOverDomainObjectsOrderedByOrderAdded() {
+    def "can iterate over domain objects ordered by order added"() {
         container.add(b)
         container.add(a)
         container.add(c)
@@ -150,7 +150,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         seen == iterationOrder(b, a, c)
     }
 
-    def providerForElementIsQueriedWhenElementsIteratedButInsertionOrderIsNotRetained() {
+    def "provider for element is queried when elements iterated but insertion order is not retained"() {
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
 
@@ -172,7 +172,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def canGetFilteredCollectionContainingAllObjectsWhichHaveType() {
+    def "can get filtered collection containing all objects which have type"() {
         container.add(c)
         container.add(a)
         container.add(d)
@@ -182,7 +182,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container.withType(otherType)) == iterationOrder(d)
     }
 
-    def providerForElementIsQueriedWhenFilteredCollectionWithMatchingTypeCreated() {
+    def "provider for element is queried when filtered collection with matching type created"() {
         def provider = Mock(ProviderInternal)
 
         container.add(c)
@@ -212,7 +212,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * provider._
     }
 
-    def providerForElementIsNotQueriedWhenFilteredCollectionWithNonMatchingTypeCreated() {
+    def "provider for element is not queried when filtered collection with non matching type created"() {
         def provider = Mock(ProviderInternal)
 
         container.add(c)
@@ -242,7 +242,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * provider._
     }
 
-    def canExecuteActionForAllElementsInATypeFilteredCollection() {
+    def "can execute action for all elements in a type filtered collection"() {
         def action = Mock(Action)
 
         container.add(c)
@@ -263,7 +263,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
     }
 
-    def canExecuteClosureForAllElementsInATypeFilteredCollection() {
+    def "can execute closure for all elements in a type filtered collection"() {
         def seen = []
         def closure = { seen << it }
 
@@ -283,7 +283,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         seen == [c, a]
     }
 
-    def actionForAllElementsInATypeFilteredCollectionCanAddMoreElements() {
+    def "action for all elements in a type filtered collection can add more elements"() {
         def action = Mock(Action)
 
         container.add(c)
@@ -300,7 +300,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * action._
     }
 
-    def providerForElementIsQueriedAndActionExecutedForFilteredCollectionWithMatchingType() {
+    def "provider for element is queried and action executed for filtered collection with matching type"() {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -327,7 +327,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def providerForElementIsNotQueriedAndActionExecutedForFilteredCollectionWithNonMatchingType() {
+    def "provider for element is not queried and action executed for filtered collection with non matching type"() {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -351,7 +351,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def canExecuteActionToConfigureElementWhenElementIsRealized() {
+    def "can execute action to configure element when element is realized"() {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -389,7 +389,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def runsConfigureElementActionImmediatelyWhenElementAlreadyRealized() {
+    def "runs configure element action immediately when element already realized"() {
         def action = Mock(Action)
         def provider = Mock(ProviderInternal)
 
@@ -406,7 +406,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def runsConfigureElementActionImmediatelyWhenElementAddedDirectly() {
+    def "runs configure element action immediately when element added directly"() {
         def action = Mock(Action)
 
         given:
@@ -420,7 +420,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
-    def canExecuteActionToConfigureElementOfGivenTypeWhenElementIsRealized() {
+    def "can execute action to configure element of given type when element is realized"() {
         def action = Mock(Action)
         def provider1 = Mock(ProviderInternal)
         def provider2 = Mock(ProviderInternal)
@@ -453,4 +453,101 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
+    def "provider is not queried or element configured until collection is realized when lazy action is registered on type-filtered collection"() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+        def filtered = container.withType(type)
+
+        when:
+        filtered.configureEachLater(action)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        0 * action.execute(_)
+
+        when:
+        def result = toList(filtered)
+
+        then:
+        1 * provider1.get() >> a
+        1 * provider2.get() >> b
+        result == iterationOrder(a, b)
+
+        and:
+        1 * action.execute(a)
+        1 * action.execute(b)
+    }
+
+    def "only realized elements of given type are configured when lazy action is registered on type-filtered collection"() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> otherType
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+        def filtered = container.withType(type)
+
+        when:
+        filtered.configureEachLater(action)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+        0 * action.execute(_)
+
+        when:
+        def result = toList(filtered)
+
+        then:
+        0 * provider1.get() >> a
+        1 * provider2.get() >> b
+        result == iterationOrder(b)
+
+        and:
+        0 * action.execute(a)
+        1 * action.execute(b)
+    }
+
+    def "provider is queried but element not configured when lazy action is registered on non-matching filter"() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        given:
+        _ * provider1.type >> type
+        _ * provider2.type >> type
+        container.addLater(provider1)
+        container.addLater(provider2)
+        def filtered = container.matching { it == b }
+
+        when:
+        filtered.configureEachLater(action)
+
+        then:
+        0 * provider1.get()
+        0 * provider2.get()
+
+        when:
+        def result = toList(filtered)
+
+        then:
+        1 * provider1.get() >> a
+        1 * provider2.get() >> b
+        result == iterationOrder(b)
+
+        and:
+        0 * action.execute(a)
+        1 * action.execute(b)
+    }
 }

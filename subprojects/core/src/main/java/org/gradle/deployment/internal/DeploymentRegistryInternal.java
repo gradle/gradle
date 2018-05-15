@@ -26,5 +26,7 @@ public interface DeploymentRegistryInternal extends DeploymentRegistry {
      */
     Collection<Deployment> getRunningDeployments();
 
+    boolean isAnyStarted();
+
     ContinuousExecutionGate getExecutionGate();
 }

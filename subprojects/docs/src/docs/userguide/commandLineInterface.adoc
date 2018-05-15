@@ -467,6 +467,15 @@ Refresh the state of dependencies. Learn more about how to use this in the <<sec
 `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
+`--write-locks`::
+Indicates that all resolved configurations that are _lockable_ should have their lock state persisted.
+Learn more about this in <<dependency_locking,dependency locking>>.
+
+`--update-locks <group:name>[,<group:name>]*`::
+Indicates that versions for the specified modules have to be updated in the lock file.
+This flag also implies `--write-locks`.
+Learn more about this in <<dependency_locking,dependency locking>>.
+
 === Environment options
 You can customize many aspects about where build scripts, settings, caches, and so on through the options below. Learn more about customizing your <<build_environment, build environment>>.
 

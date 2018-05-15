@@ -83,4 +83,9 @@ public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
 
         return file;
     }
+
+    @Override
+    public boolean canResolveRelativePath() {
+        return true;
+    }
 }

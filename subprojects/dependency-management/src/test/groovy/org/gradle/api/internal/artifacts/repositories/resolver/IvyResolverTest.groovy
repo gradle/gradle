@@ -175,8 +175,8 @@ class IvyResolverTest extends Specification {
             false,
             Stub(FileStore),
             moduleIdentifierFactory,
-            Stub(org.gradle.internal.Factory)
-            ,
+            Stub(org.gradle.internal.Factory),
+            Stub(org.gradle.internal.Factory),
             metadataSources,
             metadataArtifactProvider).with {
             if (ivyPattern) {

@@ -27,7 +27,6 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
     CompilationOutputsFixture outputs
 
     def setup() {
-        executer.requireOwnGradleUserHomeDir()
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         buildFile << """
@@ -39,7 +38,7 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
     private File java(String... classBodies) {
         File out
         for (String body : classBodies) {
-            def className = (body =~ /(?s).*?class (\w+) .*/)[0][1]
+            def className = (body =~ /(?s).*?(?:class|interface|enum) (\w+) .*/)[0][1]
             assert className: "unable to find class name"
             def f = file("src/main/java/${className}.java")
             f.createFile()
@@ -213,10 +212,13 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
 
     @Unroll
     def "change to #retention retention annotation class recompiles #desc"() {
-        def annotationClass = file("src/main/java/SomeAnnotation.java") << """import java.lang.annotation.*;
-            @Retention(RetentionPolicy.$retention) public @interface SomeAnnotation {}
+        def annotationClass = file("src/main/java/SomeAnnotation.java") << """
+            import java.lang.annotation.*;
+
+            @Retention(RetentionPolicy.$retention) 
+            public @interface SomeAnnotation {}
         """
-        java "class A {}", "class B {}"
+        java "@SomeAnnotation class A {}", "class B {}"
         outputs.snapshot { run "compileJava" }
 
         when:
@@ -229,8 +231,101 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
         where:
         desc              | retention | expected
         'all'             | 'SOURCE'  | ['A', 'B', 'SomeAnnotation']
-        'annotation only' | 'CLASS'   | ['SomeAnnotation']
-        'annotation only' | 'RUNTIME' | ['SomeAnnotation']
+        'annotated types' | 'CLASS'   | ['SomeAnnotation', 'A']
+        'annotated types' | 'RUNTIME' | ['SomeAnnotation', 'A']
+    }
+
+    def "change to class referenced by an annotation recompiles annotated types"() {
+        java """
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.CLASS) 
+            public @interface B {
+                Class<?> value();
+            }
+        """
+        def a = java "class A {}"
+        java "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text += "/* change */"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "OnClass", "OnMethod", "OnParameter", "OnField")
+    }
+
+    def "change to class referenced by an array value in an annotation recompiles annotated types"() {
+        java """
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.CLASS) 
+            public @interface B {
+                Class<?>[] value();
+            }
+        """
+        def a = java "class A {}"
+        java "@B(A.class) class OnClass {}",
+            "class OnMethod { @B(A.class) void foo() {} }",
+            "class OnField { @B(A.class) String foo; }",
+            "class OnParameter { void foo(@B(A.class) int x) {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text += "/* change */"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "OnClass", "OnMethod", "OnParameter", "OnField")
+    }
+
+    def "change to enum referenced by an annotation recompiles annotated types"() {
+        java """
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.CLASS) 
+            public @interface B {
+                A value();
+            }
+        """
+        def a = java "enum A { FOO }"
+        java "@B(A.FOO) class OnClass {}",
+            "class OnMethod { @B(A.FOO) void foo() {} }",
+            "class OnField { @B(A.FOO) String foo; }",
+            "class OnParameter { void foo(@B(A.FOO) int x) {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text += "/* change */"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
+    }
+
+    def "change to value in nested annotation recompiles annotated types"() {
+        java """
+            import java.lang.annotation.*;
+            @Retention(RetentionPolicy.CLASS) 
+            public @interface B {
+                A value();
+            }
+        """
+        java "public @interface A { Class<?> value(); }"
+        def c = java "class C {}"
+        java "@B(@A(C.class)) class OnClass {}",
+            "class OnMethod { @B(@A(C.class)) void foo() {} }",
+            "class OnField { @B(@A(C.class)) String foo; }",
+            "class OnParameter { void foo(@B(@A(C.class)) int x) {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        c.text += "/* change */"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("C", "OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
     def "changed class with private constant does not incur full rebuild"() {
@@ -456,11 +551,13 @@ compileTestJava.options.incremental = true
     }
 
     def "reports source type that does not support detection of source root"() {
-        buildFile << "compileJava.source([file('extra-java'), file('other')])"
+        buildFile << "compileJava.source([file('extra-java'), file('other'), file('text-file.txt')])"
 
         java("class A extends B {}")
         file("extra-java/B.java") << "class B {}"
         file("extra-java/C.java") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
 
         outputs.snapshot { run "compileJava" }
 
@@ -471,7 +568,7 @@ compileTestJava.options.incremental = true
 
         then:
         outputs.recompiledClasses("A", "B", "C")
-        output.contains("Cannot infer source root(s) for input with type `ArrayList`. Supported types are `File`, `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
         output.contains(":compileJava - is not incremental. Unable to infer the source directories.")
     }
 
@@ -489,7 +586,6 @@ compileTestJava.options.incremental = true
     }
 
     @Issue("GRADLE-3426")
-    @NotYetImplemented
     def "supports Java 1.2 dependencies"() {
         java "class A {}"
 
@@ -498,7 +594,33 @@ compileTestJava.options.incremental = true
 dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 """
         expect:
-        run "compileJava"
+        succeeds "compileJava"
+    }
+
+    @Issue("GRADLE-3426")
+    def "fully recompiles when a non-analyzable jar is changed"() {
+        def a =  java """
+            import com.ibm.icu.util.Calendar;
+            class A {
+                Calendar cal;
+            }
+        """
+
+        buildFile << """
+            ${jcenterRepository()}
+            if (hasProperty("withIcu")) {
+                dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+            }
+
+        """
+        succeeds "compileJava", "-PwithIcu"
+
+        when:
+        a.text = "class A {}"
+
+        then:
+        succeeds "compileJava", "--info"
+        outputContains("Full recompilation is required because class file LocaleElements_zh__PINYIN.class could not be analyzed.")
     }
 
     @Issue("GRADLE-3495")

@@ -24,6 +24,25 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "rootProject.name='root'"
     }
 
+    def "nested afterEvaluate is honored asynchronously"() {
+        given:
+        buildFile << """
+            afterEvaluate {
+                println "> Outer"
+                afterEvaluate {
+                    println "Inner"
+                }
+                println "< Outer"
+            }
+        """
+
+        when:
+        succeeds 'help'
+
+        then:
+        output =~ /> Outer\s+< Outer\s+Inner/
+    }
+
     def "if two exceptions occur, prints an info about both without stacktrace"() {
         given:
         buildFile << """
@@ -38,7 +57,6 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}. Run with --stacktrace for details of the afterEvaluate {} error.")
         failure.assertNotOutput("after evaluate failure")
-        !failure.hasErrorOutput("configure failure")
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("configure failure")
         failure.assertHasNoCause("after evaluate failure")
@@ -57,7 +75,6 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("Project evaluation failed including an error in afterEvaluate {}.\njava.lang.RuntimeException: after evaluate failure")
-        !failure.hasErrorOutput("configure failure")
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("configure failure")
         failure.assertHasNoCause("after evaluate failure")

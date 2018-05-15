@@ -32,6 +32,7 @@ public class AnnotationProcessingResult implements Serializable {
     private HashMap<String, Set<String>> generatedTypesByOrigin = new LinkedHashMap<String, Set<String>>();
     private Set<String> aggregatedTypes = new HashSet<String>();
     private Set<String> generatedTypesDependingOnAllOthers = new HashSet<String>();
+    private String fullRebuildCause;
 
     public void addGeneratedType(String name, Set<String> originatingElements) {
         for (String originatingElement : originatingElements) {
@@ -65,5 +66,13 @@ public class AnnotationProcessingResult implements Serializable {
      */
     public Set<String> getGeneratedAggregatingTypes() {
         return generatedTypesDependingOnAllOthers;
+    }
+
+    public void setFullRebuildCause(String fullRebuildCause) {
+        this.fullRebuildCause = fullRebuildCause;
+    }
+
+    public String getFullRebuildCause() {
+        return fullRebuildCause;
     }
 }

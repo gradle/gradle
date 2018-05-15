@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
@@ -26,6 +27,10 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
 
 class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
+
+    def setup() {
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
+    }
 
     def "can publish the binaries and headers of a library to a Maven repository"() {
         def lib = new CppLib()
@@ -261,7 +266,8 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         given:
         def repoDir = file("repo")
         def producer = file("producer")
-        producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        def producerSettings = producer.file("settings.gradle") << "include 'card', 'shuffle'"
+        FeaturePreviewsFixture.enableStablePublishing(producerSettings)
         producer.file("build.gradle") << """
             subprojects {
                 apply plugin: 'cpp-library'
@@ -480,6 +486,38 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    def "can adjust publication coordiantes"() {
+        def lib = new CppLib()
+
+        given:
+        buildFile << """
+            apply plugin: 'cpp-library'
+            apply plugin: 'maven-publish'
+            
+            group = 'some.group'
+            version = '1.2'
+            library {
+                baseName = 'test'
+            }
+            publishing {
+                repositories { maven { url 'repo' } }
+                publications.withType(MavenPublication) {
+                    artifactId = "\${artifactId}-adjusted"
+                }
+            }
+"""
+        lib.writeToProject(testDirectory)
+
+        when:
+        run('publish')
+
+        then:
+        def repo = new MavenFileRepository(file("repo"))
+        def main = repo.module('some.group', 'test-adjusted', '1.2')
+        main.assertPublished()
+        main.assertArtifactsPublished("test-adjusted-1.2-cpp-api-headers.zip", "test-adjusted-1.2.pom", "test-adjusted-1.2.module")
+    }
+
     def "private headers are not visible to consumer"() {
         def lib = new CppLib()
         def repoDir = file("repo")
@@ -588,6 +626,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
 
         def repoDir = file("repo")
         def producer = file("greeting")
+        def producerSettings = producer.file("settings.gradle")
+        FeaturePreviewsFixture.enableStablePublishing(producerSettings)
         producer.file("build.gradle") << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
@@ -609,6 +649,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         run('publish')
 
         def consumer = file("consumer").createDir()
+        consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
             repositories { maven { url '${repoDir.toURI()}' } }

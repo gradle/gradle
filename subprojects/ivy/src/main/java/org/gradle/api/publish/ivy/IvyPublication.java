@@ -17,10 +17,9 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
@@ -88,7 +87,6 @@ import org.gradle.api.publish.Publication;
  *
  * @since 1.3
  */
-@Incubating
 @HasInternalProtocol
 public interface IvyPublication extends Publication {
 

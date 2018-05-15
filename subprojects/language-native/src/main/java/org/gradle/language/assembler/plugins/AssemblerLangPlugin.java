@@ -28,6 +28,7 @@ import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
+import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 
@@ -65,6 +66,11 @@ public class AssemblerLangPlugin implements Plugin<Project> {
         @Override
         public String getLanguageName() {
             return "asm";
+        }
+
+        @Override
+        public ToolType getToolType() {
+            return ToolType.ASSEMBLER;
         }
 
         @Override

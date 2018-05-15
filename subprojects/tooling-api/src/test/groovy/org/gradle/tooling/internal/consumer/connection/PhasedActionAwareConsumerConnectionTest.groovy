@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
-import org.gradle.tooling.PhasedResultHandler
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.PhasedBuildAction
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
@@ -86,19 +86,13 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
 
     def "delegates to connection to run phased action"() {
         def projectsLoadedAction = Mock(BuildAction)
-        def projectsLoadedHandler = Mock(PhasedResultHandler)
-        def projectsEvaluatedAction = Mock(BuildAction)
-        def projectsEvaluatedHandler = Mock(PhasedResultHandler)
+        def projectsLoadedHandler = Mock(IntermediateResultHandler)
         def buildFinishedAction = Mock(BuildAction)
-        def buildFinishedHandler = Mock(PhasedResultHandler)
+        def buildFinishedHandler = Mock(IntermediateResultHandler)
         def phasedAction = Stub(PhasedBuildAction) {
             getProjectsLoadedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
                 getAction() >> projectsLoadedAction
                 getHandler() >> projectsLoadedHandler
-            }
-            getProjectsEvaluatedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
-                getAction() >> projectsEvaluatedAction
-                getHandler() >> projectsEvaluatedHandler
             }
             getBuildFinishedAction() >> Stub(PhasedBuildAction.BuildActionWrapper) {
                 getAction() >> buildFinishedAction
@@ -119,7 +113,6 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
             assert params == parameters
 
             def actionResult1 = protocolAction.getProjectsLoadedAction().execute(buildController)
-            def actionResult2 = protocolAction.getProjectsEvaluatedAction().execute(buildController)
             def actionResult3 = protocolAction.getBuildFinishedAction().execute(buildController)
             listener.onResult(new PhasedActionResult<Object>() {
                 @Override
@@ -130,17 +123,6 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
                 @Override
                 PhasedActionResult.Phase getPhase() {
                     return PhasedActionResult.Phase.PROJECTS_LOADED
-                }
-            })
-            listener.onResult(new PhasedActionResult<Object>() {
-                @Override
-                Object getResult() {
-                    return actionResult2
-                }
-
-                @Override
-                PhasedActionResult.Phase getPhase() {
-                    return PhasedActionResult.Phase.PROJECTS_EVALUATED
                 }
             })
             listener.onResult(new PhasedActionResult<Object>() {
@@ -159,11 +141,9 @@ class PhasedActionAwareConsumerConnectionTest extends Specification {
             }
         }
         1 * projectsLoadedAction.execute(_) >> 'result1'
-        1 * projectsEvaluatedAction.execute(_) >> 'result2'
-        1 * buildFinishedAction.execute(_) >> 'result3'
+        1 * buildFinishedAction.execute(_) >> 'result2'
         1 * projectsLoadedHandler.onComplete('result1')
-        1 * projectsEvaluatedHandler.onComplete('result2')
-        1 * buildFinishedHandler.onComplete('result3')
+        1 * buildFinishedHandler.onComplete('result2')
     }
 
     def "adapts phased action build action failure"() {

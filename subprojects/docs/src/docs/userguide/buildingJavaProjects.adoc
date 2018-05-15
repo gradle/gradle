@@ -15,7 +15,7 @@
 [[building_java_projects]]
 == Building Java & JVM projects
 
-Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same directory structure for source files and resources, and it works with Maven-compatible repositories.
+Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
 We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin,Groovy>> and <<scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the <<tutorial_java_projects,Java Quickstart>> first as it will give you a good overview of the basics.
 
@@ -34,7 +34,7 @@ By applying the Java Plugin, you get a whole host of features:
 
  * A `compileJava` task that compiles all the Java source files under _src/main/java_
  * A `compileTestJava` task for source files under _src/test/java_
- * A `test` task that runs the unit tests from _src/test/java_
+ * A `test` task that runs the tests from _src/test/java_
  * A `jar` task that packages the `main` compiled classes and resources from _src/main/resources_ into a single JAR named _<project>-<version>.jar_
  * A `javadoc` task that generates Javadoc for the `main` classes
 
@@ -57,7 +57,7 @@ Gradle's Java support was the first to introduce a new concept for building sour
 Source sets are a powerful concept that tie together several aspects of compilation:
 
  * the source files and where they're located
- * the compilation classpath, including any required dependencies
+ * the compilation classpath, including any required dependencies (via Gradle <<sub:terminology_configuration,configurations>>)
  * where the compiled class files are placed
  
 You can see how these relate to one another in this diagram:
@@ -94,14 +94,17 @@ As before, the shaded boxes represent properties of the source set, which in thi
 
 In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing,Java testing>> chapter.
 
-Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. That said, most projects <<sec:custom_java_source_sets,define new source sets>> for those other test types because they require special setup or classpaths.
+Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. The alternative approach is to <<sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
 
+ * You want to keep the tests separate from one another for aesthetics and manageability
+ * The different test types require different compilation or runtime classpaths or some other difference in setup
+
+You can see an example of this approach in the Java testing chapter, which shows you <<sec:configuring_java_integration_tests,how to set up integration tests>> in a project.
+ 
 You'll learn more about source sets and the features they provide in:
 
  * _<<sec:custom_java_source_set_paths,Customizing file and directory locations>>_
  * _<<sec:configuring_java_integration_tests,Configuring Java integration tests>>_
-
-We also discuss when and how to <<sec:custom_java_source_sets,create your own custom source sets>>.
 
 [[sec:java_dependency_management_overview]]
 === Managing your dependencies 
@@ -114,7 +117,7 @@ Specifying the dependencies for your Java project requires just three pieces of 
  * What it's needed for, e.g. compilation or running
  * Where to look for it
 
-The first two are specified in a `dependencies {}` block and the second in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of http://hibernate.org/[Hibernate] Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
+The first two are specified in a `dependencies {}` block and the third in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of http://hibernate.org/[Hibernate] Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
 
 ++++
 <sample id="javaPluginDependencyMgmt" dir="userguide/java/basic" title="Declaring dependencies">
@@ -346,11 +349,11 @@ If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task
 
 There are several options for publishing a JAR once it has been created:
 
- * the `uploadArchives` task — the <<artifact_management,original publishing mechansim>> — which works with both Ivy and (if you apply the <<maven_plugin,Maven Plugin>>) Maven
  * the <<publishing_maven,Maven Publish Plugin>>
  * the <<publishing_ivy,Ivy Publish Plugin>>
+ * the `uploadArchives` task — the <<artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin,Maven Plugin>>) Maven
 
-The latter two "Publish" plugins are the preferred options *unless* you need to sign POMs, for example when publishing to Maven Central. In that case, you need to use the original mechanism with the Maven Plugin.
+The former two "Publish" plugins are the preferred options.
 
 [[sec:jar_manifest]]
 ==== Modifying the JAR manifest
@@ -428,9 +431,9 @@ The unique aspect of library projects is that they are used (or "consumed") by o
 
 Gradle manages this distinction via the <<java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-NOTE:  that the Java Library Plugin automatically applies the standard Java Plugin as well.
+NOTE: The Java Library Plugin automatically applies the standard Java Plugin as well.
 
-You can learn more about these configurations and other aspects of building Java libraries in the plugin's chapter. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
+If you're unsure of the difference between an API and implementation dependency, the <<sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
 
 [[sec:building_java_applications]]
 === Building Java applications
@@ -464,6 +467,6 @@ This is done by the `war` task, which effectively replaces the `jar` task — al
 There is no core support for running your web application directly from the build, but we do recommend that you try the https://plugins.gradle.org/plugin/org.gretty[Gretty] community plugin, which provides an embedded Servlet container.
 
 [[sec:building_java_enterprise_apps]]
-=== Building Java enterprise applications
+=== Building Java EE applications
 
 Java enterprise systems have changed a lot over the years, but if you're still deploying to JEE application servers, you can make use of the <<ear_plugin,Ear Plugin>>. This adds conventions and a task for building EAR files. The plugin's chapter has more details.

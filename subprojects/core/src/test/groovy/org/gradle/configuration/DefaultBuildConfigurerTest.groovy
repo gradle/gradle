@@ -19,6 +19,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
+import org.gradle.internal.build.BuildStateRegistry
 import spock.lang.Specification
 
 class DefaultBuildConfigurerTest extends Specification {
@@ -26,7 +27,8 @@ class DefaultBuildConfigurerTest extends Specification {
     private gradle = Mock(GradleInternal)
     private rootProject = Mock(ProjectInternal)
     private projectConfigurer = Mock(ProjectConfigurer)
-    private configurer = new DefaultBuildConfigurer(projectConfigurer)
+    private buildRegistry = Mock(BuildStateRegistry)
+    private configurer = new DefaultBuildConfigurer(projectConfigurer, buildRegistry)
 
     def setup() {
         gradle.startParameter >> startParameter

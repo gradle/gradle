@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -25,8 +26,11 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Usage
+import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
@@ -35,6 +39,7 @@ import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
+import org.gradle.api.tasks.TaskOutputs
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -87,7 +92,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         then:
         publication.artifacts.empty
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile] as Set
         publication.dependencies.empty
     }
 
@@ -105,7 +110,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.from(componentWithArtifact(artifact))
 
         then:
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile, artifactFile] as Set
         publication.artifacts == [ivyArtifact] as Set
 
         and:
@@ -135,7 +140,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.from(componentWithDependency(moduleDependency))
 
         then:
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile] as Set
         publication.artifacts.empty
 
         and:
@@ -167,7 +172,7 @@ class DefaultIvyPublicationTest extends Specification {
         publication.from(componentWithDependency(projectDependency))
 
         then:
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile] as Set
         publication.artifacts.empty
 
         and:
@@ -224,7 +229,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         then:
         publication.artifacts == [ivyArtifact] as Set
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile, artifactFile] as Set
     }
 
     def "attaches and configures artifacts parsed by notation parser"() {
@@ -245,7 +250,7 @@ class DefaultIvyPublicationTest extends Specification {
 
         then:
         publication.artifacts == [ivyArtifact] as Set
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile, artifactFile] as Set
+        publication.publishableArtifacts.files.files == [ivyDescriptorFile, artifactFile] as Set
     }
 
     def "can use setter to replace existing artifacts set on configuration"() {
@@ -283,7 +288,7 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorArtifact(createArtifact(ivyDescriptorFile))
+        publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
         when:
         publication.publishableArtifacts.files.files
@@ -320,6 +325,41 @@ class DefaultIvyPublicationTest extends Specification {
         publication.identity.revision == "revision2"
     }
 
+
+    def "Gradle metadata artifact is added for components with variants"() {
+        given:
+        def publication = createPublication()
+        publication.from(Stub(SoftwareComponentInternal, additionalInterfaces: [ComponentWithVariants]))
+
+        and:
+        publication.publishableArtifacts.files.contains(moduleDescriptorFile)
+    }
+
+    def "Gradle metadata artifact is not added for publications without a component"() {
+        given:
+        def publication = createPublication()
+
+        and:
+        publication.publishableArtifacts.files.isEmpty()
+    }
+
+    def "Gradle metadata artifact is only added for components without variants if feature preview is enabled"() {
+        given:
+        def publication = createPublication()
+        if (previewEnabled) {
+            featurePreviews.enableFeature(FeaturePreviews.Feature.GRADLE_METADATA)
+        }
+        publication.from(createComponent([], []))
+
+        and:
+        publication.publishableArtifacts.files.contains(moduleDescriptorFile) == metadataFileExpected
+
+        where:
+        previewEnabled | metadataFileExpected
+        true           | true
+        false          | false
+    }
+
     def createPublication() {
         def publication = instantiator.newInstance(DefaultIvyPublication,
             "pub-name",
@@ -331,9 +371,19 @@ class DefaultIvyPublicationTest extends Specification {
             attributesFactory,
             featurePreviews
         )
-        publication.setIvyDescriptorArtifact(createArtifact(ivyDescriptorFile))
-        publication.setGradleModuleDescriptorArtifact(createArtifact(moduleDescriptorFile))
+        publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
+        publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))
         return publication
+    }
+
+    def createArtifactGenerator(File file) {
+        return Stub(Task) {
+            getOutputs() >> Stub(TaskOutputs) {
+                getFiles() >> Stub(FileCollection) {
+                    getSingleFile() >> file
+                }
+            }
+        }
     }
 
     def createArtifact(File file) {

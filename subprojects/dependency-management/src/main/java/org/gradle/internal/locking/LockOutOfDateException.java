@@ -22,7 +22,7 @@ public class LockOutOfDateException extends RuntimeException {
 
     public static LockOutOfDateException createLockOutOfDateException(String configurationName, Iterable<String> errors) {
         TreeFormatter treeFormatter = new TreeFormatter();
-        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date:");
+        treeFormatter.node("Dependency lock state for configuration '" + configurationName + "' is out of date");
         treeFormatter.startChildren();
         for (String error : errors) {
             treeFormatter.node(error);

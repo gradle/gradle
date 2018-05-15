@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -83,7 +84,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
-        project.getTasks().withType(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
+        project.getTasks().configureEachLater(AbstractArchiveTask.class, new Action<AbstractArchiveTask>() {
             public void execute(AbstractArchiveTask task) {
                 ConventionMapping taskConventionMapping = task.getConventionMapping();
 
@@ -173,6 +174,11 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().getByName(ASSEMBLE_TASK_NAME).dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+        project.getTasks().getByNameLater(Task.class, ASSEMBLE_TASK_NAME).configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
+            }
+        });
     }
 }

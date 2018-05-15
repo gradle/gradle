@@ -22,7 +22,6 @@ public interface IncludedBuildController {
 
     boolean isComplete(String taskPath);
 
-
     void startTaskExecution();
     void stopTaskExecution();
 

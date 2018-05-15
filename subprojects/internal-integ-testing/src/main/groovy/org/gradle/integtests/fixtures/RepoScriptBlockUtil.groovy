@@ -81,6 +81,15 @@ class RepoScriptBlockUtil {
         """
     }
 
+    static String mavenCentralRepositoryMirrorUrl() {
+        def url = MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+        if (url.endsWith('/')) {
+            url
+        } else {
+            url + '/'
+        }
+    }
+
     static String jcenterRepositoryDefinition() {
         MirroredRepository.JCENTER.repositoryDefinition
     }
@@ -113,7 +122,8 @@ class RepoScriptBlockUtil {
         }.join("")
         mirrors << """
             import groovy.transform.CompileStatic
-
+            import groovy.transform.CompileDynamic
+            
             apply plugin: MirrorPlugin
 
             @CompileStatic
@@ -127,9 +137,15 @@ class RepoScriptBlockUtil {
                             withMirrors(project.repositories)
                         }
                     }
-        
-                    gradle.settingsEvaluated { Settings settings ->
-                        withMirrors(settings.pluginManagement.repositories)
+                    maybeConfigurePluginManagement(gradle)
+                }
+
+                @CompileDynamic
+                void maybeConfigurePluginManagement(Gradle gradle) {
+                    if (gradle.gradleVersion >= "4.4") {
+                        gradle.settingsEvaluated { Settings settings ->
+                            withMirrors(settings.pluginManagement.repositories)
+                        }
                     }
                 }
                 

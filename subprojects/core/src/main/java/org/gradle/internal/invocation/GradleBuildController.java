@@ -17,7 +17,6 @@ package org.gradle.internal.invocation;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.GradleLauncher;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.Collections;
@@ -74,7 +73,7 @@ public class GradleBuildController implements BuildController {
     public GradleInternal run() {
         return doBuild(new Callable<GradleInternal>() {
             @Override
-            public GradleInternal call() throws Exception {
+            public GradleInternal call() {
                 return getLauncher().executeTasks();
             }
         });
@@ -92,14 +91,10 @@ public class GradleBuildController implements BuildController {
     }
 
     private GradleInternal doBuild(final Callable<GradleInternal> build) {
-        GradleInternal gradle = getGradle();
-        BuildOperationExecutor buildOperationExecutor = gradle.getServices().get(BuildOperationExecutor.class);
-        gradle.setBuildOperation(buildOperationExecutor.getCurrentOperation());
         try {
             // TODO:pm Move this to RunAsBuildOperationBuildActionRunner when BuildOperationWorkerRegistry scope is changed
             return workerLeaseService.withLocks(Collections.singleton(workerLeaseService.getWorkerLease()), build);
         } finally {
-            gradle.setBuildOperation(null);
             state = State.Completed;
         }
     }

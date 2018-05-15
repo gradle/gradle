@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -37,27 +38,22 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
-
 public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     private final IdeArtifactStore store;
     private final ProjectStateRegistry projectRegistry;
-    private final DomainObjectContext domainObjectContext;
-    private final BuildIdentity buildIdentity;
     private final FileOperations fileOperations;
+    private final ProjectComponentIdentifier currentProject;
 
     public DefaultIdeArtifactRegistry(IdeArtifactStore store, ProjectStateRegistry projectRegistry, FileOperations fileOperations, DomainObjectContext domainObjectContext, BuildIdentity buildIdentity) {
         this.store = store;
         this.projectRegistry = projectRegistry;
         this.fileOperations = fileOperations;
-        this.domainObjectContext = domainObjectContext;
-        this.buildIdentity = buildIdentity;
+        currentProject = projectRegistry.stateFor(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath()).getComponentIdentifier();
     }
 
     @Override
-    public void registerIdeProject(final IdeProjectMetadata ideProjectMetadata) {
-        ProjectComponentIdentifier projectId = newProjectId(buildIdentity.getCurrentBuild(), domainObjectContext.getProjectPath().getPath());
-        store.put(projectId, ideProjectMetadata);
+    public void registerIdeProject(IdeProjectMetadata ideProjectMetadata) {
+        store.put(currentProject, ideProjectMetadata);
     }
 
     @Nullable
@@ -78,6 +74,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     @Override
     public <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type) {
         List<Reference<T>> result = Lists.newArrayList();
+        BuildIdentifier currentBuild = currentProject.getBuild();
         for (ProjectState project : projectRegistry.getAllProjects()) {
             if (project.getOwner().isImplicitBuild()) {
                 // Do not include implicit builds in workspace
@@ -89,7 +86,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                     final T metadata = type.cast(ideProjectMetadata);
                     // Need to use different APIs to reference a required task from outside the current build
                     // There should be one mechanism rather than two.
-                    if (projectId.getBuild().equals(buildIdentity.getCurrentBuild())) {
+                    if (projectId.getBuild().equals(currentBuild)) {
                         result.add(new MetadataFromThisBuild<T>(metadata, projectId));
                     } else {
                         result.add(new MetadataFromOtherBuild<T>(metadata, projectId));
@@ -168,7 +165,7 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
                     for (Task task : get().getGeneratorTasks()) {
-                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild().getName(), task.getPath()));
+                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild(), task.getPath()));
                     }
                 }
             };

@@ -23,6 +23,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     private final ModuleIdentifier id;
     private final String version;
+    private final int hashCode;
 
     public DefaultModuleVersionIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
@@ -30,12 +31,16 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         assert version != null : "version cannot be null";
         this.id = DefaultModuleIdentifier.newId(group, name);
         this.version = version;
+        this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }
 
     public DefaultModuleVersionIdentifier(ModuleIdentifier id, String version) {
         assert version != null : "version cannot be null";
         this.id = id;
         this.version = version;
+        // pre-compule the hashcode as it's going to be used anyway, and this object
+        // is used as a key in several hash maps
+        this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }
 
     public String getGroup() {
@@ -77,7 +82,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     @Override
     public int hashCode() {
-        return 31 * id.hashCode() ^ version.hashCode();
+        return hashCode;
     }
 
     public ModuleIdentifier getModule() {

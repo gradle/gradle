@@ -29,7 +29,6 @@ import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -39,6 +38,7 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
@@ -52,11 +52,10 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier.newProjectId;
-
-public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
+public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
+    private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
     private final NestedBuildFactory gradleLauncherFactory;
@@ -70,7 +69,8 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public DefaultIncludedBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+    public DefaultIncludedBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory launcherFactory, WorkerLeaseRegistry.WorkerLease parentLease) {
+        this.buildIdentifier = buildIdentifier;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.gradleLauncherFactory = launcherFactory;
@@ -95,7 +95,7 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
     @Override
     public TaskReference task(String path) {
         Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
-        return new IncludedBuildTaskReference(getName(), path);
+        return new IncludedBuildTaskReference(getBuildIdentifier(), path);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     @Override
     public BuildIdentifier getBuildIdentifier() {
-        return new DefaultBuildIdentifier(getName());
+        return buildIdentifier;
     }
 
     @Override
@@ -152,17 +152,18 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
-        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = idForProjectInThisBuild(project.getPath());
+        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(buildIdentifier, project.getIdentityPath(), project.getProjectPath(), project.getName());
+        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
         ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
-        availableModules.add(Pair.of(moduleId, componentIdentifier));
+        availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
 
-    public ProjectComponentIdentifier idForProjectInThisBuild(String projectPath) {
-        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild work in the root build
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getName()), projectPath);
+    @Override
+    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
+        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild and BuildIdentifier.name work in dependency results
+        DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(buildIdentifier.getName(), getName()), original.getIdentityPath(), original.projectPath(), original.getProjectName());
     }
 
     @Override
@@ -189,7 +190,8 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     private GradleLauncher getGradleLauncher() {
         if (gradleLauncher == null) {
-            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance());
+            // Use a defensive copy of the build definition, as it may be mutated during build execution
+            gradleLauncher = gradleLauncherFactory.nestedInstance(buildDefinition.newInstance(), this);
         }
         return gradleLauncher;
     }

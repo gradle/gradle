@@ -70,6 +70,14 @@ class PreferJavaRuntimeVariant extends EmptySchema {
                         Set<Usage> candidates = details.getCandidateValues();
                         if (candidates.equals(DEFAULT_JAVA_USAGES)) {
                             details.closestMatch(RUNTIME_USAGE);
+                        } else {
+                            // slower path: let's see if the candidates are either null (missing) or one of the standard usages
+                            for (Usage candidate : candidates) {
+                                if (candidate != null && !DEFAULT_JAVA_USAGES.contains(candidate)) {
+                                    return;
+                                }
+                            }
+                            details.closestMatch(RUNTIME_USAGE);
                         }
                     }
                 }

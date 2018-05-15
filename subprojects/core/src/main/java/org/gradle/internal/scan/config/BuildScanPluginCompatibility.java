@@ -16,6 +16,8 @@
 
 package org.gradle.internal.scan.config;
 
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.util.VersionNumber;
 
 class BuildScanPluginCompatibility {
@@ -29,17 +31,31 @@ class BuildScanPluginCompatibility {
     public static final String UNSUPPORTED_VCS_MAPPINGS_MESSAGE =
         "Build scans are not supported when using VCS mappings. It may be supported when using newer versions of the build scan plugin.";
 
+    public static final VersionNumber MIN_VERSION_AWARE_OF_DEPLOYMENTS = VersionNumber.parse("1.13.3");
+    public static final String UNSUPPORTED_CONTINUOUS_BUILD_MESSAGE =
+        "Build scan data will not be captured due to this build being part of a Continuous Build.";
+
     // Used just to test the mechanism
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
 
+    private final GradleInternal gradle;
+
+    BuildScanPluginCompatibility(GradleInternal gradle) {
+        this.gradle = gradle;
+    }
+
     String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
-        if (pluginVersion.compareTo(MIN_SUPPORTED_VERSION) < 0) {
+        if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
             return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
         }
 
-        if (pluginVersion.compareTo(MIN_VERSION_AWARE_OF_VCS_MAPPINGS) < 0 && attributes.isRootProjectHasVcsMappings()) {
+        if (isEarlierThan(pluginVersion, MIN_VERSION_AWARE_OF_VCS_MAPPINGS) && attributes.isRootProjectHasVcsMappings()) {
             return UNSUPPORTED_VCS_MAPPINGS_MESSAGE;
+        }
+
+        if (isEarlierThan(pluginVersion, MIN_VERSION_AWARE_OF_DEPLOYMENTS) && isAnyDeploymentsStarted(gradle)) {
+            return UNSUPPORTED_CONTINUOUS_BUILD_MESSAGE;
         }
 
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
@@ -47,6 +63,15 @@ class BuildScanPluginCompatibility {
         }
 
         return null;
+    }
+
+    private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
+        return pluginVersion.compareTo(minSupportedVersion) < 0;
+    }
+
+    static boolean isAnyDeploymentsStarted(GradleInternal gradle) {
+        DeploymentRegistryInternal deploymentRegistry = gradle.getServices().get(DeploymentRegistryInternal.class);
+        return deploymentRegistry.isAnyStarted();
     }
 
     UnsupportedBuildScanPluginVersionException unsupportedVersionException() {
