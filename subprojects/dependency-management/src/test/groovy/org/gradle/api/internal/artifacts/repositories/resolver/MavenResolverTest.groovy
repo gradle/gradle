@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.ComponentMetadataListerDetails
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
@@ -28,10 +30,13 @@ import org.gradle.internal.component.external.model.FixedComponentArtifacts
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.reflect.ConfigurableRule
+import org.gradle.internal.reflect.InstantiatingAction
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
@@ -136,7 +141,9 @@ class MavenResolverTest extends Specification {
             }
         }
 
+        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
-        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), Stub(org.gradle.internal.Factory), Stub(org.gradle.internal.Factory))
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister)
     }
 }

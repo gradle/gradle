@@ -43,7 +43,7 @@ public class DefaultCachePolicySpec extends Specification {
     private static final int WEEK = DAY * 7;
     private static final int FOREVER = Integer.MAX_VALUE
 
-    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory(), metadataSupplierCache)
+    DefaultCachePolicy cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
 
     def "will cache default"() {
         expect:
