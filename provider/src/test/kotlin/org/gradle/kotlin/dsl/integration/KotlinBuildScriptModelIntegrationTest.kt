@@ -11,7 +11,6 @@ import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -146,7 +145,6 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
 
-    @Ignore("See #110")
     @Test
     fun `can fetch classpath of script plugin with buildscript block`() {
 
