@@ -533,6 +533,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
+        boolean failed = false;
 
         public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
@@ -546,10 +547,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public T getOrNull() {
             if (task == null) {
                 task = type.cast(findByNameWithoutRules(name));
-                if (task == null) {
-                    task = createTask(name, type, NO_ARGS);
-                    statistics.lazyTaskRealized(type);
-                    add(task);
+                if (task == null && !failed) {
+                    try {
+                        task = createTask(name, type, NO_ARGS);
+                        statistics.lazyTaskRealized(type);
+                        add(task);
+                    } catch (RuntimeException ex) {
+                        failed = true;
+                        throw ex;
+                    }
                 }
             }
             return task;
@@ -566,7 +572,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                task = type.cast(getByName(name));
+                task = type.cast(findByName(name));
             }
             return task;
         }
