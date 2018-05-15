@@ -52,6 +52,16 @@ val clean: Delete by tasks
 clean.delete(apiExtensionsOutputDir)
 
 
+// -- Version manifest properties --------------------------------------
+val versionsManifestOutputDir = file("$buildDir/versionsManifest")
+val writeVersionsManifest by tasks.creating(WriteProperties::class) {
+    outputFile = versionsManifestOutputDir.resolve("gradle-kotlin-dsl-versions.properties")
+    property("provider", version)
+    property("kotlin", kotlinVersion)
+}
+java.sourceSets["main"].output.dir(mapOf("builtBy" to writeVersionsManifest), versionsManifestOutputDir)
+
+
 // -- Testing ----------------------------------------------------------
 val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
