@@ -63,7 +63,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
         val kotlinScriptSource = KotlinScriptSource(scriptSource)
         val script = compile(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope)
-        script(scriptTarget.`object`)
+        script()
     }
 
     private

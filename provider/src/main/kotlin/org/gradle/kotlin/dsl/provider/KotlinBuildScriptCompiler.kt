@@ -46,7 +46,7 @@ import kotlin.reflect.KClass
 
 
 internal
-typealias KotlinScript = (Any) -> Unit
+typealias KotlinScript = () -> Unit
 
 
 internal
@@ -133,9 +133,7 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun asKotlinScript(script: () -> Unit): KotlinScript = {
-        script()
-    }
+    fun asKotlinScript(script: () -> Unit) = script
 
     private
     fun prepareForCompilation() {
