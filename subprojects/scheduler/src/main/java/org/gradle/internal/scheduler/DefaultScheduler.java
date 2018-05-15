@@ -161,6 +161,9 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void scheduleWork(final Graph graph, final NodeExecutor nodeExecutor) {
+        final ImmutableList<Node> rootNodes = graph.getRootNodes();
+        System.out.printf(">> Scheduling root nodes: %s%n", rootNodes);
+
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -169,7 +172,7 @@ public class DefaultScheduler implements Scheduler {
                     return FINISHED;
                 }
 
-                Iterator<Node> iRootNode = graph.getRootNodes().iterator();
+                Iterator<Node> iRootNode = rootNodes.iterator();
                 // There are no root nodes to schedule
                 if (!iRootNode.hasNext()) {
                     return FINISHED;
@@ -189,7 +192,16 @@ public class DefaultScheduler implements Scheduler {
 
                     // TODO These could be handled outside of the coordination-service lock
                     if (!nodeToRun.getState().isExecutable()) {
-                        eventQueue.add(new NodeFinishedEvent(nodeToRun, null));
+                        enqueue(new NodeFinishedEvent(nodeToRun, null));
+                        continue;
+                    }
+
+                    // Check if there is a node conflicting with the current one
+                    Node conflictingNode = concurrentNodeExecutionCoordinator.findConflictingNode(graph, nodeToRun, runningNodes);
+                    if (conflictingNode != null) {
+                        // Make sure we don't retry this node until the conflicting node is finished
+                        System.out.printf(">> Found conflict between %s and %s%n", nodeToRun, conflictingNode);
+                        graph.addEdge(new Edge(conflictingNode, MUST_NOT_RUN_WITH, nodeToRun));
                         continue;
                     }
 
@@ -201,36 +213,37 @@ public class DefaultScheduler implements Scheduler {
                         TaskExecutorWorker candidate = iWorker.next();
                         WorkerLease workerLease = candidate.getWorkerLease();
                         if (!workerLease.tryLock()) {
+                            System.out.printf(">> Failed to secure lease for %s%n", candidate);
                             continue;
                         }
                         worker = candidate;
-                    }
-
-                    // Check if there is a node conflicting with the current one
-                    Node conflictingNode = concurrentNodeExecutionCoordinator.findConflictingNode(graph, nodeToRun, runningNodes);
-                    if (conflictingNode != null) {
-                        // Make sure we don't retry this node until the conflicting node is finished
-                        graph.addEdge(new Edge(conflictingNode, MUST_NOT_RUN_WITH, nodeToRun));
-                        continue;
+                        System.out.printf(">> Acquired lease for %s%n", worker);
                     }
 
                     // Lock the node
                     ResourceLock nodeLock = concurrentNodeExecutionCoordinator.findLockFor(nodeToRun);
-                    if (nodeLock != null && !nodeLock.tryLock()) {
-                        continue;
+                    if (nodeLock != null) {
+                        if (!nodeLock.tryLock()) {
+                            System.out.printf(">> Failed to secure project lock for %s%n", nodeToRun);
+                            continue;
+                        }
+                        System.out.printf(">> Acquired lock %s for %s%n", nodeLock, nodeToRun);
                     }
 
                     // Run the node
                     try {
+                        System.out.printf(">> Running %s%n", nodeToRun);
                         prepareToRunNode(nodeToRun, graph, runningNodes);
                         worker.run(new NodeExecution(nodeToRun, nodeExecutor, nodeLock));
                     } finally {
                         // TODO Do we need to release the parent lease here?
+                        System.out.printf(">> Releasing lease for %s: %s%n", worker, nodeToRun);
                         worker.getWorkerLease().unlock();
                         worker = null;
                     }
                 }
                 if (worker != null) {
+                    System.out.printf(">> Releasing lease for %s (no suitable work found)%n", worker);
                     worker.getWorkerLease().unlock();
                 }
                 return FINISHED;
@@ -262,7 +275,7 @@ public class DefaultScheduler implements Scheduler {
         });
 
         for (Event event : eventsBeingProcessed) {
-            System.out.printf("> Handling event %s%n", event);
+            System.out.printf(">> Handling event %s%n", event);
             event.handle(graph, continueOnFailure, executedNodes, failures);
         }
         eventsBeingProcessed.clear();
@@ -310,6 +323,11 @@ public class DefaultScheduler implements Scheduler {
         runningNodes.add(nodeToRun);
     }
 
+    public void enqueue(Event event) {
+        System.out.printf(">> Enqueuing event %s (%s)%n", event, Thread.currentThread().getName());
+        eventQueue.add(event);
+    }
+
     @Override
     public void close() {
     }
@@ -327,6 +345,7 @@ public class DefaultScheduler implements Scheduler {
         public void unlockIfNecessary() {
             if (lock != null) {
                 lock.unlock();
+                System.out.printf(">> Unlocked %s for %s%n", lock, node);
             }
         }
 
@@ -504,9 +523,11 @@ public class DefaultScheduler implements Scheduler {
 
                     nodeTimer.reset();
                     WorkerLeaseRegistry.WorkerLeaseCompletion leaseCompletion = workerLease.startChild();
+                    System.out.printf(">> Starting child lease for %s: %s%n", this, work);
                     try {
                         work.run();
                     } finally {
+                        System.out.printf(">> Finished child lease for %s: %s%n", this, work);
                         leaseCompletion.leaseFinish();
                     }
 
@@ -553,7 +574,7 @@ public class DefaultScheduler implements Scheduler {
             } else {
                 event = new NodeFailedEvent(node, lock, failure);
             }
-            eventQueue.add(event);
+            enqueue(event);
         }
 
         @Override

@@ -94,4 +94,9 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     public String getDisplayName() {
         return displayName;
     }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
 }

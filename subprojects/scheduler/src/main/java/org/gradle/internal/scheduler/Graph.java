@@ -66,7 +66,7 @@ public class Graph {
         return outgoingEdges.get(source);
     }
 
-    public Iterable<Node> getRootNodes() {
+    public ImmutableList<Node> getRootNodes() {
         return ImmutableList.copyOf(rootNodes);
     }
 
