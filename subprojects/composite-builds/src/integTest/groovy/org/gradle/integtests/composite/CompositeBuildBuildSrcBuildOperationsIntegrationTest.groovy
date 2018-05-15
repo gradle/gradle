@@ -22,6 +22,7 @@ import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.util.CollectionUtils
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -40,9 +41,13 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
-    def "generates configure, task graph and run tasks operations for buildSrc of included builds"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
+        buildB.file("buildSrc/setings.gradle") << """
+            ${settings}
+        """
 
         when:
         execute(buildA, ":jar", [])
@@ -102,11 +107,20 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[1].parentId == root.id
         runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == root.id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "generates configure, task graph and run tasks operations when all builds have buildSrc"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
+        buildB.file("buildSrc/setings.gradle") << """
+            ${settings}
+        """
 
         buildA.file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
 
@@ -181,5 +195,10 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[2].parentId == root.id
         runTasksOps[3].displayName == "Run tasks (:buildB)"
         runTasksOps[3].parentId == root.id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 }
