@@ -25,18 +25,20 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.util.CollectionUtils
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "generates configure, task graph and run tasks operations for source dependency build"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations for source dependency build with #display"() {
         given:
         repo.file("settings.gradle") << """
-            rootProject.name = 'buildB'
+            ${settings}
         """
         repo.file("build.gradle") << """
             apply plugin: 'java'
@@ -49,7 +51,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         settingsFile << """
             sourceControl {
                 vcsMappings {
-                    withModule("org.test:buildB") {
+                    withModule("org.test:${buildName}") {
                         from(GitVersionControlSpec) {
                             url = uri("${repo.url}")
                         }
@@ -59,7 +61,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         """
         buildFile << """
             apply plugin: 'java'
-            dependencies { implementation 'org.test:buildB:1.2' }
+            dependencies { implementation 'org.test:${buildName}:1.2' }
         """
 
         when:
@@ -76,7 +78,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (dep)"
+        loadOps[1].displayName == "Load build (buildB)"
         // TODO - should have a buildPath associated
         loadOps[1].parentId == resolve.id
 
@@ -85,8 +87,8 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         configureOps[0].displayName == "Configure build"
         configureOps[0].details.buildPath == ":"
         configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (:buildB)"
-        configureOps[1].details.buildPath == ":buildB"
+        configureOps[1].displayName == "Configure build (:${buildName})"
+        configureOps[1].details.buildPath == ":${buildName}"
         configureOps[1].parentId == resolve.id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
@@ -95,15 +97,20 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         taskGraphOps[0].details.buildPath == ":"
         taskGraphOps[0].parentId == root.id
         taskGraphOps[0].children.contains(resolve)
-        taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
-        taskGraphOps[1].details.buildPath == ":buildB"
+        taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
+        taskGraphOps[1].details.buildPath == ":${buildName}"
         taskGraphOps[1].parentId == taskGraphOps[0].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
         runTasksOps[0].displayName == "Run tasks"
         runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks (:buildB)"
+        runTasksOps[1].displayName == "Run tasks (:${buildName})"
         runTasksOps[1].parentId == root.id
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 }

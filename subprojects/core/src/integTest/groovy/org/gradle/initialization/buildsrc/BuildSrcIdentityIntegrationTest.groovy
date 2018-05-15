@@ -17,15 +17,18 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
-    def "includes build identifier in logging output"() {
+    @Unroll
+    def "includes build identifier in logging output with #display"() {
         file("buildSrc/build.gradle") << """
             println "configuring \$project.path"
             classes.doLast { t ->
                 println "classes of \$t.path"
             }
         """
+        file("buildSrc/settings.gradle") << settings << "\n"
 
         when:
         run()
@@ -33,32 +36,49 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("> Configure project :buildSrc")
         result.groupedOutput.task(":buildSrc:classes").output.contains("classes of :classes")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes configured root project name in build identifier in logging output"() {
+    @Unroll
+    def "includes build identifier in dependency report with #display"() {
         file("buildSrc/settings.gradle") << """
-            rootProject.name = 'someLib'
+            $settings
+            include 'b1', 'b2'
         """
 
         file("buildSrc/build.gradle") << """
-            println "configuring \$project.path"
-            classes.doLast { t ->
-                println "classes of \$t.path"
-            }
+            allprojects { apply plugin: 'java' }
+            dependencies { implementation project(':b1') }
+            project(':b1') { dependencies { implementation project(':b2') } }
+            classes.dependsOn tasks.dependencies
         """
 
         when:
         run()
 
         then:
-        outputContains("> Configure project :buildSrc")
-        result.groupedOutput.task(":buildSrc:classes").output.contains("classes of :classes")
+        outputContains("""
+runtimeClasspath - Runtime classpath of source set 'main'.
+\\--- project :buildSrc:b1
+     \\--- project :buildSrc:b2
+""")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes build identifier in error message on failure to resolve dependencies of build"() {
+    @Unroll
+    def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
         given:
+        file("buildSrc/settings.gradle") << settings << "\n"
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
             repositories {
@@ -92,9 +112,16 @@ Required by:
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':buildSrc:runtimeClasspath'.")
         failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes build identifier in task failure error message"() {
+    @Unroll
+    def "includes build identifier in task failure error message with #display"() {
+        file("buildSrc/settings.gradle") << settings << "\n"
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
             classes.doLast {
@@ -108,11 +135,18 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildSrc:classes'.")
         failure.assertHasCause("broken")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes build identifier in dependency resolution results"() {
+    @Unroll
+    def "includes build identifier in dependency resolution results with #display"() {
         given:
         file("buildSrc/settings.gradle") << """
+            ${settings}
             include 'a'
         """
         file("buildSrc/build.gradle") << """
@@ -133,10 +167,21 @@ Required by:
                 assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'
+
+                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
+                assert selectors.size() == 1
+                assert selectors[0].displayName == 'project :buildSrc:a'
+                assert selectors[0].buildName == 'buildSrc'
+                assert selectors[0].projectPath == ':a'
             }
         """
 
         expect:
         succeeds()
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 }
