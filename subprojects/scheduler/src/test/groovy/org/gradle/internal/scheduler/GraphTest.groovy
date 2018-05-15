@@ -16,9 +16,7 @@
 
 package org.gradle.internal.scheduler
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.CircularReferenceException
-import org.gradle.internal.Cast
 import spock.lang.Specification
 
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF
@@ -174,8 +172,7 @@ class GraphTest extends Specification {
         then:
         def ex = thrown CircularReferenceException
         ex.message == "Circular dependency between the following tasks:\nThere was a cycle"
-        1 * cycleReporter.reportCycle(_) >> { List args ->
-            Collection<Node> cycle = Cast.uncheckedCast(args[0])
+        1 * cycleReporter.reportCycle(_ as Graph, _ as Collection<Node>) >> { Graph graph, Collection<Node> cycle ->
             assert cycle as Set == ([a, b, c] as Set)
             return "There was a cycle"
         }
@@ -223,13 +220,13 @@ class GraphTest extends Specification {
         then:
         def ex = thrown CircularReferenceException
         ex.message == "Circular dependency between the following tasks:\nThere was a cycle"
-        1 * cycleReporter.reportCycle(_) >> { List args ->
-            Collection<Node> cycle = Cast.uncheckedCast(args[0])
+        1 * cycleReporter.reportCycle(_ as Graph, _ as Collection<Node>) >> { Graph graph, Collection<Node> cycle ->
             assert cycle as Set == ([a, b, c, d] as Set)
             return "There was a cycle"
         }
         0 * _
     }
+
     /*
      * a -> b => c -> d
      * c -> a
@@ -259,54 +256,30 @@ class GraphTest extends Specification {
     def "retains no live nodes when no entry nodes are given"() {
         addNode("a")
         addNode("b")
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([], { node -> true}, filteredNodes, detector)
+        graph.removeDeadNodes([], detector)
 
         then:
-        live.allNodes == []
-        live.rootNodes == []
-        live.allEdges == []
-        filteredNodes.build() == []
+        graph.allNodes == []
+        graph.rootNodes == []
+        graph.allEdges == []
         0 * _
-
     }
 
     def "ignores dead node"() {
         def a = addNode("a")
         addNode("b")
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([a], { node -> true }, filteredNodes, detector)
+        graph.removeDeadNodes([a], detector)
 
         then:
-        live.allNodes == [a]
-        live.rootNodes == [a]
-        live.allEdges == []
-        filteredNodes.build() == []
-        0 * _
-    }
-
-    def "ignores filtered node"() {
-        def a = addNode("a")
-        def b = addNode("b")
-        def ab = addEdge(a, b, DEPENDENCY_OF)
-        def filteredNodes = ImmutableList.builder()
-        def detector = Mock(Graph.LiveEdgeDetector)
-
-        when:
-        def live = graph.retainLiveNodes([b], { node -> node != a }, filteredNodes, detector)
-
-        then:
-        live.allNodes == [b]
-        live.rootNodes == [b]
-        live.allEdges == []
-        filteredNodes.build() == [a]
-        1 * detector.isIncomingEdgeLive(ab) >> true
+        graph.allNodes == [a]
+        graph.rootNodes == [a]
+        graph.allEdges == []
         0 * _
     }
 
@@ -314,17 +287,15 @@ class GraphTest extends Specification {
         def a = addNode("a")
         def b = addNode("b")
         def ab = addEdge(a, b, DEPENDENCY_OF)
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([b], { node -> true }, filteredNodes, detector)
+        graph.removeDeadNodes([b], detector)
 
         then:
-        live.allNodes == [a, b]
-        live.rootNodes == [a]
-        live.allEdges == [ab]
-        filteredNodes.build() == []
+        graph.allNodes == [a, b]
+        graph.rootNodes == [a]
+        graph.allEdges == [ab]
         1 * detector.isIncomingEdgeLive(ab) >> true
         0 * _
     }
@@ -333,16 +304,15 @@ class GraphTest extends Specification {
         def finalized = addNode("finalized")
         def finalizer = addNode("finalizer")
         def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([finalized], { node -> true }, filteredNodes, detector)
+        graph.removeDeadNodes([finalized], detector)
 
         then:
-        live.allNodes == [finalized, finalizer]
-        live.rootNodes == [finalized]
-        live.allEdges == [finalizerEdge]
+        graph.allNodes == [finalized, finalizer]
+        graph.rootNodes == [finalized]
+        graph.allEdges == [finalizerEdge]
         1 * detector.isOutgoingEdgeLive(finalizerEdge) >> true
         0 * _
     }
@@ -353,21 +323,19 @@ class GraphTest extends Specification {
         def finalizerDependency = addNode("finalizerDependency")
         def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
         def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENCY_OF)
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([finalized], { node -> true }, filteredNodes, detector)
+        graph.removeDeadNodes([finalized], detector)
 
         then:
-        live.allNodes == [finalized, finalizerDependency, finalizer]
-        live.rootNodes == [finalized, finalizerDependency]
-        live.allEdges == [finalizerEdge, finalizerDependentEdge]
+        graph.allNodes == [finalized, finalizerDependency, finalizer]
+        graph.rootNodes == [finalized, finalizerDependency]
+        graph.allEdges == [finalizerEdge, finalizerDependentEdge]
         1 * detector.isOutgoingEdgeLive(finalizerEdge) >> true
         1 * detector.isIncomingEdgeLive(finalizerDependentEdge) >> true
         0 * _
     }
-
 
     def "retains finalizer of finalizer dependencies"() {
         def finalized = addNode("finalized")
@@ -377,16 +345,15 @@ class GraphTest extends Specification {
         def finalizerEdge = addEdge(finalized, finalizer, FINALIZED_BY)
         def finalizerDependentEdge = addEdge(finalizerDependency, finalizer, DEPENDENCY_OF)
         def finalizerDependencyFinalizerEdge = addEdge(finalizerDependency, finalizerDependencyFinalizer, FINALIZED_BY)
-        def filteredNodes = ImmutableList.builder()
         def detector = Mock(Graph.LiveEdgeDetector)
 
         when:
-        def live = graph.retainLiveNodes([finalized], { node -> true }, filteredNodes, detector)
+        graph.removeDeadNodes([finalized], detector)
 
         then:
-        live.allNodes == [finalized, finalizerDependency, finalizer, finalizerDependencyFinalizer]
-        live.rootNodes == [finalized, finalizerDependency]
-        live.allEdges == [finalizerEdge, finalizerDependentEdge, finalizerDependencyFinalizerEdge]
+        graph.allNodes == [finalized, finalizerDependency, finalizer, finalizerDependencyFinalizer]
+        graph.rootNodes == [finalized, finalizerDependency]
+        graph.allEdges == [finalizerEdge, finalizerDependentEdge, finalizerDependencyFinalizerEdge]
         1 * detector.isOutgoingEdgeLive(finalizerEdge) >> true
         1 * detector.isIncomingEdgeLive(finalizerDependentEdge) >> true
         1 * detector.isOutgoingEdgeLive(finalizerDependencyFinalizerEdge) >> true

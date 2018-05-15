@@ -19,5 +19,5 @@ package org.gradle.internal.scheduler;
 import java.util.Collection;
 
 public interface CycleReporter {
-    String reportCycle(Collection<Node> cycle);
+    String reportCycle(Graph graph, Collection<Node> cycle);
 }

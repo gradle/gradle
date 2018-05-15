@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+@NonNullApi
+package org.gradle.execution.workgraph;
 
-class DefaultSchedulerTest extends AbstractSchedulerTest {
-
-    Scheduler scheduler = new DefaultScheduler(new ImmediateWorkerPool(), cycleReporter, cancellationHandler)
-
-}
+import org.gradle.api.NonNullApi;

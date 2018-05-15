@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+package org.gradle.execution.workgraph;
 
-class TaskNodeExecutor implements NodeExecutor {
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.internal.scheduler.Node;
+import org.gradle.internal.scheduler.NodeExecutor;
+
+public class TaskNodeExecutor implements NodeExecutor {
+    private final TaskExecuter taskExecuter;
+
+    public TaskNodeExecutor(TaskExecuter taskExecuter) {
+        this.taskExecuter = taskExecuter;
+    }
+
     @Override
-    Throwable execute(Node node) {
-        println "Executing $node"
-        return ((TaskNode) node).failure
+    public Throwable execute(Node node) {
+        if (!(node instanceof TaskNode)) {
+            throw new IllegalArgumentException("Must be TaskNode: " + node);
+        }
+        return null;
     }
 }

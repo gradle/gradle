@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+package org.gradle.execution.workgraph
+
+import org.gradle.internal.scheduler.WorkerPool
 
 class ImmediateWorkerPool implements WorkerPool {
     @Override

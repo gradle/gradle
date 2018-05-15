@@ -19,28 +19,16 @@ package org.gradle.internal.scheduler;
 import java.util.List;
 
 public class GraphExecutionResult {
-    private final List<Node> liveNodes;
     private final List<Node> executedNodes;
-    private final List<Node> filteredNodes;
     private final List<Throwable> failures;
 
-    public GraphExecutionResult(List<Node> liveNodes, List<Node> executedNodes, List<Node> filteredNodes, List<Throwable> failures) {
-        this.liveNodes = liveNodes;
+    public GraphExecutionResult(List<Node> executedNodes, List<Throwable> failures) {
         this.executedNodes = executedNodes;
-        this.filteredNodes = filteredNodes;
         this.failures = failures;
-    }
-
-    public List<Node> getLiveNodes() {
-        return liveNodes;
     }
 
     public List<Node> getExecutedNodes() {
         return executedNodes;
-    }
-
-    public List<Node> getFilteredNodes() {
-        return filteredNodes;
     }
 
     public List<Throwable> getFailures() {

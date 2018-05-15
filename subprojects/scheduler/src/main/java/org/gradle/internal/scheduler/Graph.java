@@ -17,7 +17,6 @@
 package org.gradle.internal.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
@@ -27,6 +26,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.internal.Actions;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -127,7 +127,7 @@ public class Graph {
                 // Report cycle
                 List<Node> path = Lists.newArrayList();
                 addAncestorsToPath(parents, source, path);
-                String message = cycleReporter.reportCycle(path);
+                String message = cycleReporter.reportCycle(this, path);
                 throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", message));
             }
             dag.addEdge(edge);
@@ -143,6 +143,7 @@ public class Graph {
                 continue;
             }
             dag.addEdge(removableEdge);
+            // TODO Need to track all weak parents, not just one
             parents.put(target, source);
         }
 
@@ -189,26 +190,19 @@ public class Graph {
     }
 
     /**
-     * Creates a new graph with only the nodes available from the given entry nodes via
-     * live edges.
+     * Removes nodes with their incoming edges that are not accessible from the given entry nodes via live edges.
      */
-    public Graph retainLiveNodes(Collection<? extends Node> entryNodes, Predicate<? super Node> filter, ImmutableList.Builder<Node> filteredNodes, LiveEdgeDetector detector) {
+    public void removeDeadNodes(Collection<? extends Node> entryNodes, LiveEdgeDetector detector) {
         Set<Node> liveNodes = Sets.newLinkedHashSet();
-        Graph liveGraph = new Graph();
         Deque<Node> queue = new ArrayDeque<Node>(entryNodes);
         while (true) {
             Node node = queue.poll();
             if (node == null) {
                 break;
             }
-            if (!filter.apply(node)) {
-                filteredNodes.add(node);
-                continue;
-            }
             if (!liveNodes.add(node)) {
                 continue;
             }
-            liveGraph.addNode(node);
             for (Edge incoming : incomingEdges.get(node)) {
                 Node source = incoming.getSource();
                 if (!liveNodes.contains(source) && detector.isIncomingEdgeLive(incoming)) {
@@ -222,13 +216,17 @@ public class Graph {
                 }
             }
         }
-        for (Edge edge : incomingEdges.values()) {
-            if (liveNodes.contains(edge.getSource())
-                && liveNodes.contains(edge.getTarget())) {
-                liveGraph.addEdge(edge);
+        for (Edge edge : Lists.newArrayList(incomingEdges.values())) {
+            if (!liveNodes.contains(edge.getSource())
+                || !liveNodes.contains(edge.getTarget())) {
+                removeEdge(edge);
             }
         }
-        return liveGraph;
+        for (Node node : getAllNodes()) {
+            if (!liveNodes.contains(node)) {
+                removeNodeWithOutgoingEdges(node, Actions.doNothing());
+            }
+        }
     }
 
     public interface LiveEdgeDetector {

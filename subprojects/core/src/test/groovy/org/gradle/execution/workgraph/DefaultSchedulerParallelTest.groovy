@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+package org.gradle.execution.workgraph
 
 import com.google.common.collect.Sets
+import org.gradle.api.internal.TaskInternal
+import org.gradle.internal.scheduler.DefaultScheduler
+import org.gradle.internal.scheduler.Scheduler
 
 class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(new ParallelWorkerPool(4), cycleReporter, cancellationHandler)
+    Scheduler scheduler = new DefaultScheduler(new ParallelWorkerPool(4), cancellationHandler)
 
     def "schedules many tasks at once"() {
         given:
@@ -54,9 +57,9 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
         executesBatches([a, b, c, d], [e, f, g, h])
     }
 
-    void executesBatches(List<Node>... batches) {
-        def actualNodes = new ArrayDeque<Node>(results.executedNodes)
-        def expectedBatches = new ArrayDeque<List<Node>>(batches as List)
+    void executesBatches(List<TaskInternal>... batches) {
+        def actualNodes = new ArrayDeque<TaskInternal>(results.executedNodes*.task)
+        def expectedBatches = new ArrayDeque<List<TaskInternal>>(batches as List)
         while (!expectedBatches.isEmpty()) {
             def expectedBatch = expectedBatches.remove()
             assert actualNodes.size() >= expectedBatch.size()

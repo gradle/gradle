@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler;
+package org.gradle.execution.workgraph
 
-import java.io.Closeable;
-import java.util.Collection;
+import org.gradle.internal.scheduler.DefaultScheduler
+import org.gradle.internal.scheduler.Scheduler
 
-public interface Scheduler extends Closeable {
-    /**
-     * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
-     * that don't match the {@code filter}.
-     */
-    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor);
+class DefaultSchedulerTest extends AbstractSchedulerTest {
 
-    @Override
-    void close();
+    Scheduler scheduler = new DefaultScheduler(new ImmediateWorkerPool(), cancellationHandler)
+
 }

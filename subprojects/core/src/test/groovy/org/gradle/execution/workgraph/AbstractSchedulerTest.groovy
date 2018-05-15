@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+package org.gradle.execution.workgraph
 
-import com.google.common.base.Predicate
-import com.google.common.base.Predicates
 import com.google.common.collect.Lists
 import org.gradle.api.BuildCancelledException
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.specs.Spec
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildCancellationToken
@@ -27,36 +27,62 @@ import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.scheduler.AbstractSchedulingTest
+import org.gradle.internal.scheduler.CycleReporter
+import org.gradle.internal.scheduler.Edge
+import org.gradle.internal.scheduler.Graph
+import org.gradle.internal.scheduler.GraphExecutionResult
+import org.gradle.internal.scheduler.Node
+import org.gradle.internal.scheduler.NodeExecutor
+import org.gradle.internal.scheduler.Scheduler
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF
 import static org.gradle.internal.scheduler.EdgeType.FINALIZED_BY
 import static org.gradle.internal.scheduler.EdgeType.MUST_COMPLETE_BEFORE
-import static org.gradle.internal.scheduler.EdgeType.SHOULD_COMPLETE_BEFORE
+import static org.gradle.util.TestUtil.createRootProject
 
+@CleanupTestDirectory
+@UsesNativeServices
 abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
+
+    // Naming the field "temporaryFolder" since that is the default field intercepted by the
+    // @CleanupTestDirectory annotation.
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    ProjectInternal root
+
     static final TASK_NODE_COMPARATOR = new Comparator<? super Node>() {
         @Override
         int compare(def a, def b) {
-            def result = a.project <=> b.project
-            if (result != 0) {
-                return result
-            }
-            return a.name <=> b.name
+            return a.task <=> b.task
         }
     }
 
     def cancellationHandler = Mock(BuildCancellationToken)
-    def graph = new Graph()
-    def nodeExecutor = new TaskNodeExecutor()
-    List<Node> nodesToExecute = []
-    Predicate<? super Node> filter = Predicates.alwaysTrue()
+    WorkGraphBuilder workGraphBuilder = new WorkGraphBuilder()
+    WorkGraph workGraph
+    List<TaskInternal> allTasks
     boolean continueOnFailure
+
+    Map<TaskInternal, Throwable> failingTasks = [:]
+    def nodeExecutor = new NodeExecutor() {
+        @Override
+        Throwable execute(Node node) {
+            println "Executing $node"
+            return failingTasks.get(node.task)
+        }
+    }
 
     GraphExecutionResult results
 
     def cycleReporter = new CycleReporter() {
         @Override
-        String reportCycle(Collection<Node> cycle) {
+        String reportCycle(Graph graph, Collection<Node> cycle) {
             def sortedCycle = Lists.newArrayList(cycle)
             Collections.sort(sortedCycle, TASK_NODE_COMPARATOR)
             DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<Node>(new GraphNodeRenderer<Node>() {
@@ -89,6 +115,10 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
         }
     }
 
+    def setup() {
+        root = createRootProject(temporaryFolder.testDirectory)
+    }
+
     abstract Scheduler getScheduler()
 
     def "stops returning tasks when build is cancelled"() {
@@ -110,10 +140,10 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
         e.message == 'Build cancelled.'
     }
 
-    protected void executeGraph(List<Node> entryNodes) {
+    protected void executeGraph() {
         def scheduler = getScheduler()
         try {
-            results = scheduler.execute(graph, entryNodes, continueOnFailure, filter, nodeExecutor)
+            results = scheduler.execute(workGraph.graph, workGraph.requestedNodes, continueOnFailure, nodeExecutor)
         } finally {
             scheduler.close()
         }
@@ -121,27 +151,29 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
     @Override
     protected void addToGraph(List tasks) {
-        nodesToExecute.addAll(tasks)
+        workGraphBuilder.addTasks(tasks)
     }
 
     @Override
     protected void determineExecutionPlan() {
-        executeGraph(nodesToExecute.empty ? graph.allNodes : nodesToExecute)
+        workGraph = workGraphBuilder.build(cycleReporter)
+        allTasks = workGraph.graph.allNodes*.task
+        executeGraph()
     }
 
     @Override
-    protected void executes(Object... expectedNodes) {
-        assert results.executedNodes == (expectedNodes as List)
+    protected void executes(Object... expectedTasks) {
+        assert results.executedNodes*.task == (expectedTasks as List)
     }
 
     @Override
     protected Set getAllTasks() {
-        return results.liveNodes as Set
+        return allTasks
     }
 
     @Override
     protected List getExecutedTasks() {
-        return results.executedNodes
+        return results.executedNodes*.task as List
     }
 
     @Override
@@ -150,44 +182,48 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected TaskNode task(Map options, String name) {
-        String project = options.project ?: ""
-        Exception failure = options.failure
-        def task = new TaskNode(project, name, failure)
-        graph.addNode(task)
+    protected TaskInternal task(Map options, String name) {
+        ProjectInternal project
+        String projectName = options.project
+        if (projectName) {
+            project = root.findProject(projectName)
+            if (project == null) {
+                def projectDir = temporaryFolder.testDirectory.createDir(projectName)
+                TestUtil.createChildProject(root, projectName, projectDir)
+            }
+        } else {
+            project = root
+        }
+        def task = project.tasks.create(name) as TaskInternal
         relationships(options, task)
+        Exception failure = options.failure
+        if (failure) {
+            failingTasks.put(task, failure)
+        }
         return task
     }
 
     @Override
     protected void relationships(Map options, def task) {
-        options.dependsOn?.each { TaskNode dependency ->
-            graph.addEdge(new Edge(dependency, DEPENDENCY_OF, task as TaskNode))
-        }
-        options.mustRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, MUST_COMPLETE_BEFORE, task as TaskNode))
-        }
-        options.shouldRunAfter?.each { TaskNode predecessor ->
-            graph.addEdge(new Edge(predecessor, SHOULD_COMPLETE_BEFORE, task as TaskNode))
-        }
-        options.finalizedBy?.each { TaskNode finalizer ->
-            graph.addEdge(new Edge(task as TaskNode, FINALIZED_BY, finalizer))
-        }
+        if (options.dependsOn) { task.dependsOn(options.dependsOn) }
+        if (options.mustRunAfter) { task.mustRunAfter(options.mustRunAfter) }
+        if (options.shouldRunAfter) { task.shouldRunAfter(options.shouldRunAfter) }
+        if (options.finalizedBy) { task.finalizedBy(options.finalizedBy) }
     }
 
     @Override
-    protected void filtered(Object... expectedNodes) {
-        assert results.filteredNodes == (expectedNodes as List)
+    protected void filtered(Object... expectedTasks) {
+        assert workGraph.filteredTasks == (expectedTasks as Set)
     }
 
     @Override
     protected filteredTask(String name) {
-        return task(fails: true, name)
+        return task(failure: new RuntimeException("fails"), name)
     }
 
     @Override
     protected void useFilter(Spec filter) {
-        this.filter = { node -> filter.isSatisfiedBy(node) }
+        workGraphBuilder.filter = filter
     }
 
     @Override

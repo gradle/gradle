@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.scheduler
+package org.gradle.execution.workgraph
 
 import com.google.common.collect.Queues
+import org.gradle.internal.scheduler.WorkerPool
 
 import java.util.concurrent.BlockingQueue
 

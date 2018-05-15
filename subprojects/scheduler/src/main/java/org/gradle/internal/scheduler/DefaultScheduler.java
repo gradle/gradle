@@ -16,7 +16,6 @@
 
 package org.gradle.internal.scheduler;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
@@ -32,9 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 
-import static org.gradle.internal.scheduler.EdgeType.AVOID_STARTING_BEFORE_FINALIZED;
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF;
-import static org.gradle.internal.scheduler.EdgeType.FINALIZED_BY;
 import static org.gradle.internal.scheduler.EdgeType.MUST_NOT_RUN_WITH;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.KEEP;
 import static org.gradle.internal.scheduler.Graph.EdgeActionResult.REMOVE;
@@ -48,51 +45,30 @@ public class DefaultScheduler implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
     private static final int MAX_WORKERS = 16;
     private static final int EVENTS_TO_PROCESS_AT_ONCE = 2 * MAX_WORKERS;
-    private static final Graph.LiveEdgeDetector LIVE_EDGE_DETECTOR = new Graph.LiveEdgeDetector() {
-        @Override
-        public boolean isIncomingEdgeLive(Edge edge) {
-            return edge.getType() == DEPENDENCY_OF;
-        }
-
-        @Override
-        public boolean isOutgoingEdgeLive(Edge edge) {
-            return edge.getType() == FINALIZED_BY;
-        }
-    };
 
     private final BlockingQueue<Event> eventQueue = Queues.newArrayBlockingQueue(MAX_WORKERS);
     private final Set<Node> runningNodes = Sets.newLinkedHashSet();
     private final List<Event> eventsBeingProcessed = Lists.newArrayListWithCapacity(EVENTS_TO_PROCESS_AT_ONCE);
     private final WorkerPool workerPool;
-    private final CycleReporter cycleReporter;
     private final BuildCancellationToken cancellationToken;
     private boolean cancelled;
 
-    public DefaultScheduler(WorkerPool workerPool, CycleReporter cycleReporter, BuildCancellationToken cancellationToken) {
+    public DefaultScheduler(WorkerPool workerPool, BuildCancellationToken cancellationToken) {
         this.workerPool = workerPool;
-        this.cycleReporter = cycleReporter;
         this.cancellationToken = cancellationToken;
     }
 
     @Override
-    public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, Predicate<? super Node> filter, NodeExecutor nodeExecutor) {
-        ImmutableList.Builder<Node> filteredNodes = ImmutableList.builder();
-
-        Graph liveGraph = graph.retainLiveNodes(entryNodes, filter, filteredNodes, LIVE_EDGE_DETECTOR);
-        connectFinalizerDependencies(liveGraph);
-        Graph dag = liveGraph.breakCycles(cycleReporter);
-        markEntryNodesAsShouldRun(dag, entryNodes);
-
-        ImmutableList<Node> liveNodes = dag.getAllNodes();
+    public GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor) {
         ImmutableList.Builder<Node> executedNodes = ImmutableList.builder();
         ImmutableList.Builder<Throwable> failures = ImmutableList.builder();
 
-        executeLiveGraph(dag, nodeExecutor, continueOnFailure, executedNodes, failures);
+        execute(graph, nodeExecutor, continueOnFailure, executedNodes, failures);
         if (cancelled) {
             failures.add(new BuildCancelledException());
         }
 
-        return new GraphExecutionResult(liveNodes, executedNodes.build(), filteredNodes.build(), failures.build());
+        return new GraphExecutionResult(executedNodes.build(), failures.build());
     }
 
     private void cancelExecution(Graph graph, boolean cancelMustRun) {
@@ -119,7 +95,7 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private void executeLiveGraph(Graph graph, NodeExecutor nodeExecutor, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+    private void execute(Graph graph, NodeExecutor nodeExecutor, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         while (graph.hasNodes()) {
             if (cancellationToken.isCancellationRequested()) {
                 cancelExecution(graph, false);
@@ -128,50 +104,6 @@ public class DefaultScheduler implements Scheduler {
 
             scheduleWork(graph, nodeExecutor);
             handleEvents(graph, continueOnFailure, executedNodes, failures);
-        }
-    }
-
-    private static void connectFinalizerDependencies(final Graph graph) {
-        for (Edge edge : graph.getAllEdges()) {
-            if (edge.getType() != FINALIZED_BY) {
-                continue;
-            }
-            final Set<Edge> edgesAddedFromFinalized = Sets.newHashSet();
-            final Node finalized = edge.getSource();
-            Node finalizer = edge.getTarget();
-            graph.walkIncomingEdgesFrom(finalizer, new Graph.EdgeWalkerAction() {
-                @Override
-                public boolean execute(Edge edge) {
-                    if (edge.getType() != DEPENDENCY_OF) {
-                        return false;
-                    }
-                    Node finalizerDependency = edge.getSource();
-                    if (finalizerDependency == finalized) {
-                        return false;
-                    }
-                    Edge finalizerDependencyConstraint = new Edge(finalized, AVOID_STARTING_BEFORE_FINALIZED, finalizerDependency);
-                    if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
-                        graph.addEdge(finalizerDependencyConstraint);
-                    }
-                    return true;
-                }
-            });
-        }
-    }
-
-    private static void markEntryNodesAsShouldRun(Graph graph, Iterable<? extends Node> entryNodes) {
-        for (Node entryNode : entryNodes) {
-            entryNode.setState(SHOULD_RUN);
-            graph.walkIncomingEdgesFrom(entryNode, new Graph.EdgeWalkerAction() {
-                @Override
-                public boolean execute(Edge edge) {
-                    if (edge.getType() != DEPENDENCY_OF) {
-                        return false;
-                    }
-                    edge.getSource().setState(SHOULD_RUN);
-                    return true;
-                }
-            });
         }
     }
 
