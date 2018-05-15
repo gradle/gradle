@@ -52,20 +52,20 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         if (Implementation.ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             String projectName = decoder.readString();
-            return new DefaultProjectComponentSelector(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+            return new DefaultProjectComponentSelector(buildIdentifier, Path.ROOT, Path.ROOT, projectName, readAttributes(decoder));
         } else if (Implementation.ROOT_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, projectPath, projectPath, projectPath.getName());
+            return new DefaultProjectComponentSelector(buildIdentifier, projectPath, projectPath, projectPath.getName(), readAttributes(decoder));
         } else if (Implementation.OTHER_BUILD_ROOT_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, Path.ROOT, identityPath.getName());
+            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, Path.ROOT, identityPath.getName(), readAttributes(decoder));
         } else if (Implementation.OTHER_BUILD_PROJECT.getId() == id) {
             BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
             Path identityPath = Path.path(decoder.readString());
             Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, projectPath, projectPath.getName());
+            return new DefaultProjectComponentSelector(buildIdentifier, identityPath, projectPath, projectPath.getName(), readAttributes(decoder));
         } else if (Implementation.MODULE.getId() == id) {
             return DefaultModuleComponentSelector.newSelector(decoder.readString(), decoder.readString(), readVersionConstraint(decoder), readAttributes(decoder));
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -109,19 +109,23 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getProjectName());
+            writeAttributes(encoder, projectComponentSelector.getAttributes());
         } else if (implementation == Implementation.ROOT_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getProjectPath());
+            writeAttributes(encoder, projectComponentSelector.getAttributes());
         } else if (implementation == Implementation.OTHER_BUILD_ROOT_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
+            writeAttributes(encoder, projectComponentSelector.getAttributes());
         } else if (implementation == Implementation.OTHER_BUILD_PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
             buildIdentifierSerializer.write(encoder, projectComponentSelector.getBuildIdentifier());
             encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
             encoder.writeString(projectComponentSelector.getProjectPath());
+            writeAttributes(encoder, projectComponentSelector.getAttributes());
         } else if (implementation == Implementation.LIBRARY) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) value;
             encoder.writeString(libraryComponentSelector.getProjectPath());

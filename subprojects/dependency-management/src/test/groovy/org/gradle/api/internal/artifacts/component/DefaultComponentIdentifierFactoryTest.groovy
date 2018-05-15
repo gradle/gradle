@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ProjectBackedModule
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -63,7 +64,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
     def "can create component identifier for project dependency in same build"() {
         given:
         def buildId = new DefaultBuildIdentifier("build")
-        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name")
+        def selector = new DefaultProjectComponentSelector(buildId, Path.path(":id:path"), Path.path(":project:path"), "name", ImmutableAttributes.EMPTY)
 
         when:
         def componentIdentifier = componentIdentifierFactory.createProjectComponentIdentifier(selector)

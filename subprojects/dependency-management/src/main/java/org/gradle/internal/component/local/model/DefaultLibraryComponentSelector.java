@@ -21,6 +21,8 @@ import com.google.common.base.Strings;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
 
@@ -80,6 +82,11 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
         }
 
         return false;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        return ImmutableAttributes.EMPTY;
     }
 
     @Override

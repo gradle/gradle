@@ -132,13 +132,13 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ModuleExclusion exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ArtifactTypeRegistry artifactTypeRegistry, final ModuleExclusion exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) component.getId();
             return projectStateRegistry.stateFor(projectId).withMutableState(new Factory<ArtifactSet>() {
                 @Override
                 public ArtifactSet create() {
-                    return DefaultArtifactSet.multipleVariants(component.getId(), component.getModuleVersionId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry, ImmutableAttributes.EMPTY);
+                    return DefaultArtifactSet.multipleVariants(component.getId(), component.getModuleVersionId(), component.getSource(), exclusions, configuration.getVariants(), component.getAttributesSchema(), self, allProjectArtifacts, artifactTypeRegistry, overriddenAttributes);
                 }
             });
         } else {

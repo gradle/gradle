@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
@@ -190,7 +189,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     private void restartUnattachedDependencies(ComponentState selected) {
-        if (unattachedDependencies.size()==1) {
+        if (unattachedDependencies.size() == 1) {
             unattachedDependencies.get(0).restart(selected);
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
@@ -240,10 +239,8 @@ class ModuleResolveState implements CandidateModule {
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
             ComponentSelector selector = selectorState.getDependencyMetadata().getSelector();
-            if (selector instanceof ModuleComponentSelector) {
-                ImmutableAttributes attributes = ((AttributeContainerInternal) ((ModuleComponentSelector) selector).getAttributes()).asImmutable();
-                dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
-            }
+            ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
+            dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
         } catch (AttributeMergingException e) {
             attributeMergingError = e;
         }
