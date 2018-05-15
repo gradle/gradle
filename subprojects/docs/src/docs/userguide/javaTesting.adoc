@@ -60,7 +60,7 @@ All you need to do in most cases is configure the appropriate compilation and ru
 </sample>
 ++++
 
-The `Test` task has many configuration options and we cover a significant number of them in the rest of the chapter.
+The api:org.gradle.api.tasks.testing.Test[] task has many generic configuration options as well as several framework-specific ones that you can find described in api:org.gradle.api.tasks.testing.junit.JUnitOptions[], api:org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions[] and api:org.gradle.api.tasks.testing.testng.TestNGOptions[]. We cover a significant number of them in the rest of the chapter.
 
 If you want to set up your own `Test` task with its own set of test classes, then the easiest approach is to create your own source set and `Test` task instance, as shown in _<<sec:configuring_java_integration_tests,Configuring integration tests>>_.
 
@@ -399,14 +399,14 @@ A common requirement for projects is to incorporate integration tests in one for
 
 The simplest way to add integration tests to your build is by taking these steps:
 
- 1. Create a new source set for them
+ 1. Create a new <<sec:java_source_sets,source set>> for them
  2. Add the dependencies you need to the appropriate configurations for that source set
  3. Configure the compilation and runtime classpaths for that source set
  4. Create a task to run the integration tests
 
 You may also need to perform some additional configuration depending on what form the integration tests take. We will discuss those as we go.
 
-Let's start with a practical example that implements the first three steps in a build script, centred around a new source set `intTest`:
+Let's start with a practical example that implements the first three steps in a build script, centered around a new source set `intTest`:
 
 ++++
 <sample id="practicalIntegTest" dir="userguide/java/basic" title="Setting up working integration tests">
@@ -425,7 +425,7 @@ The example also does the following, not all of which you may need for your spec
  * Makes the `intTestImplementation` configuration extend from `implementation`, which means that all the declared dependencies of the production code also become dependencies of the integration tests
  * Does the same for the `intTestRuntimeOnly` configuration
 
-In most cases, you want your integration tests to have access to the classes under test, which is why we ensure that those are included on the compilation and runtime classpaths. But certain types of test interact with an application as an executable or via HTTP for web applications. There is no need in those cases to add the production classes to the tests' classpaths.
+In most cases, you want your integration tests to have access to the classes under test, which is why we ensure that those are included on the compilation and runtime classpaths in this example. But some types of test interact with the production code in a different way. For example, you may have tests that run your application as an executable and verify the output. In the case of web applications, the tests may interact with your application via HTTP. Since the tests don't need direct access to the classes under test in such cases, you don't need to add the production classes to the test classpath.
 
 Another common step is to attach all the unit test dependencies to the integration tests as well — via `intTestImplementation.extendsFrom testImplementation` — but that only makes sense if the integration tests require _all_ or nearly all the same dependencies that the unit tests have.
 
@@ -455,7 +455,7 @@ If you want to skip the tests when running a build, you have a few options. You 
 
 This excludes the `test` task and any other task that it _exclusively_ depends on, i.e. no other task depends on the same task. Those tasks will not be marked "SKIPPED" by Gradle, but will simply not appear in the list of tasks executed.
 
-Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the `onlyIf()` method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
+Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the api:org.gradle.api.Task#onlyIf(org.gradle.api.specs.Spec)[] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
 ++++
 <sample id="skipTestsInBuildScript" dir="userguide/java/basic" title="Skipping the unit tests based on a project property">
