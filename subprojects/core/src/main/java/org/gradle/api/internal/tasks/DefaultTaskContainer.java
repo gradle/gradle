@@ -332,7 +332,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+    public <T extends Task> TaskProvider<T> get(Class<T> type, String name) throws InvalidUserDataException {
         Task task = findByNameWithoutRules(name);
         if (task == null) {
             ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);

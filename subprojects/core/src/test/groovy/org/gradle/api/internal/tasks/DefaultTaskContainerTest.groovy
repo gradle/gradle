@@ -569,7 +569,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.get(Task, "task")
 
         then:
         !provider.present
@@ -598,7 +598,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.get(Task, "task")
         and:
         provider.configure(deferredAction)
         then:
@@ -638,8 +638,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -668,8 +668,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -682,13 +682,13 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
-    void "fails later creation upon realizing through getByNameLater provider when creation rule throw exception"() {
+    void "fails later creation upon realizing through get() provider when creation rule throw exception"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
         def creationProvider = container.createLater("task", DefaultTask, action)
-        def provider = container.getByNameLater(DefaultTask, "task")
+        def provider = container.get(DefaultTask, "task")
 
         when:
         provider.get()
@@ -754,7 +754,7 @@ class DefaultTaskContainerTest extends Specification {
         !provider.isPresent()
 
         and:
-        !container.getByNameLater(DefaultTask, "task").isPresent()
+        !container.get(DefaultTask, "task").isPresent()
 
         and:
         container.findByName("task") == null
@@ -770,12 +770,12 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
-    void "fails later creation upon realizing through getByNameLater provider when task instantiation is unsuccessful"() {
+    void "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
         def action = Mock(Action)
 
         given:
         def creationProvider = container.createLater("task", DefaultTask, action)
-        def provider = container.getByNameLater(DefaultTask, "task")
+        def provider = container.get(DefaultTask, "task")
 
         when:
         provider.get()
@@ -823,8 +823,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -851,8 +851,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -878,8 +878,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -909,8 +909,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.getByNameLater(DefaultTask, "task").isPresent()
-        container.getByNameLater(DefaultTask, "task").get() == task
+        container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -923,14 +923,14 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
-    void "fails later creation upon realizing through getByNameLater provider when task configuration via configureEachLater is unsuccessful"() {
+    void "fails later creation upon realizing through get() provider when task configuration via configureEachLater is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
         container.configureEachLater(DefaultTask, action)
         def creationProvider = container.createLater("task", DefaultTask)
-        def provider = container.getByNameLater(DefaultTask, "task")
+        def provider = container.get(DefaultTask, "task")
 
         when:
         provider.get()
@@ -969,7 +969,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task")
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.get(Task, "task")
 
         then:
         provider.present
@@ -1060,33 +1060,33 @@ class DefaultTaskContainerTest extends Specification {
         container.maybeCreate("task", CustomTask) == task
     }
 
-    void "getByNameLater fails if unknown task is requested"() {
+    void "get() fails if unknown task is requested"() {
         when:
-        container.getByNameLater(DefaultTask, "unknown")
+        container.get(DefaultTask, "unknown")
 
         then:
         def ex = thrown(UnknownTaskException)
         ex.message == "Task with name 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
-    void "getByNameLater fails if eagerly created task type is not a subtype"() {
+    void "get() fails if eagerly created task type is not a subtype"() {
         given:
         taskFactory.create("task", DefaultTask) >> task("task")
         container.create("task", DefaultTask)
 
         when:
-        container.getByNameLater(CustomTask, "task")
+        container.get(CustomTask, "task")
 
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${DefaultTask.name} expected ${CustomTask.name}."
     }
 
-    void "getByNameLater fails if lazily created task type is not a subtype"() {
+    void "get() fails if lazily created task type is not a subtype"() {
         container.createLater("task", DefaultTask)
 
         when:
-        container.getByNameLater(CustomTask, "task")
+        container.get(CustomTask, "task")
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -1094,54 +1094,54 @@ class DefaultTaskContainerTest extends Specification {
         0 * taskFactory.create("task", DefaultTask)
     }
 
-    void "can getByNameLater for eagerly created task subtype"() {
+    void "can get() for eagerly created task subtype"() {
         given:
         taskFactory.create("task", CustomTask) >> task("task")
         container.create("task", CustomTask)
 
         when:
-        container.getByNameLater(Task, "task")
+        container.get(Task, "task")
 
         then:
         noExceptionThrown()
     }
 
-    void "can getByNameLater for lazily created task subtype"() {
+    void "can get() for lazily created task subtype"() {
         container.createLater("task", CustomTask)
 
         when:
-        container.getByNameLater(Task, "task")
+        container.get(Task, "task")
 
         then:
         noExceptionThrown()
         0 * taskFactory.create("task", DefaultTask)
     }
 
-    void "can getByNameLater if task is eagerly created before"() {
+    void "can get() if task is eagerly created before"() {
         given:
         taskFactory.create("task", DefaultTask) >> task("task")
         container.create("task", DefaultTask)
 
         when:
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         noExceptionThrown()
     }
 
-    void "can getByNameLater if task is lazily created before"() {
+    void "can get() if task is lazily created before"() {
         given:
         container.createLater("task", DefaultTask)
 
         when:
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         noExceptionThrown()
         0 * taskFactory.create("task", DefaultTask)
     }
 
-    void "can getByNameLater if eagerly created task type gets overwrite"() {
+    void "can get() if eagerly created task type gets overwrite"() {
         given:
         def customTask = task("task", CustomTask)
         taskFactory.create("task", CustomTask) >> customTask
@@ -1149,7 +1149,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", CustomTask)
 
         when:
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -1157,18 +1157,18 @@ class DefaultTaskContainerTest extends Specification {
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         noExceptionThrown()
     }
 
-    void "can getByNameLater if lazy created task gets overwrite"() {
+    void "can get() if lazy created task gets overwrite"() {
         given:
         container.createLater("task", CustomTask)
 
         when:
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         def ex = thrown(IllegalArgumentException)
@@ -1177,7 +1177,7 @@ class DefaultTaskContainerTest extends Specification {
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.getByNameLater(DefaultTask, "task")
+        container.get(DefaultTask, "task")
 
         then:
         noExceptionThrown()

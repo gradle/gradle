@@ -174,7 +174,7 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().getByNameLater(Task.class, ASSEMBLE_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().get(Task.class, ASSEMBLE_TASK_NAME).configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
