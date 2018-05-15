@@ -49,7 +49,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
-        def errorOutput = stderrAttached ? output : result.getError()
+        def errorOutput = consoleAttachment.isStderrAttached() ? output : result.getError()
         errorOutput.contains(EXPECTED_ERROR)
     }
 
@@ -73,7 +73,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         then:
         def output = result.groupedOutput.task(':run').output
         output.contains(EXPECTED_OUTPUT)
-        def errorOutput = stderrAttached ? output : result.getError()
+        def errorOutput = consoleAttachment.isStderrAttached() ? output : result.getError()
         errorOutput.contains(EXPECTED_ERROR)
     }
 

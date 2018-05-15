@@ -30,26 +30,17 @@ import org.junit.runner.RunWith
 abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     static ConsoleAttachment consoleAttachment
 
-    protected boolean consoleAttached
-    protected boolean stderrAttached
-
     def setup() {
         // TODO - rich/verbose consoles currently exhibit slightly different behavior than these tests expect when no console is attached
         Assume.assumeFalse(consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose))
 
         switch(consoleAttachment) {
             case ConsoleAttachment.NOT_ATTACHED:
-                consoleAttached = false
-                stderrAttached = false
                 break
             case ConsoleAttachment.ATTACHED:
-                consoleAttached = true
-                stderrAttached = true
                 executer.withTestConsoleAttached()
                 break
             case ConsoleAttachment.ATTACHED_STDOUT_ONLY:
-                consoleAttached = true
-                stderrAttached = false
                 executer.withTestConsoleAttachedToStdoutOnly()
                 break
             default:

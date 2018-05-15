@@ -43,8 +43,8 @@ abstract class AbstractFailureReportingFunctionalTest extends AbstractConsoleGro
         failure.assertHasCause("broken")
 
         // Check that the failure text appears either stdout or stderr
-        def outputWithFailure = stderrAttached ? failure.output : failure.error
-        def outputWithoutFailure = stderrAttached ? failure.error : failure.output
+        def outputWithFailure = consoleAttachment.isStderrAttached() ? failure.output : failure.error
+        def outputWithoutFailure = consoleAttachment.isStderrAttached() ? failure.error : failure.output
         def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeEmptyLines().removeAnsiChars().removeDebugPrefix().withNormalizedEol()
 
         outputWithFailure.contains("Build failed with an exception.")
