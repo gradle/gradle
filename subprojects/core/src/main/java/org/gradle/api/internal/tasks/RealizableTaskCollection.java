@@ -29,6 +29,7 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -216,6 +217,10 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public void configureEach(Action<? super T> action) {
         delegate.configureEach(action);
+    }
+
+    public void configureEach(Closure action) {
+        delegate.configureEach(ConfigureUtil.configureUsing(action));
     }
 
     @Override
