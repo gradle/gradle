@@ -312,7 +312,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Javadoc.class).configureEach( new Action<Javadoc>() {
+        project.getTasks().withType(Javadoc.class).configureEach(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {

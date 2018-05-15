@@ -126,7 +126,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc() {
-        project.getTasks().withType(Groovydoc.class).configureEach( new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class).configureEach(new Action<Groovydoc>() {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
