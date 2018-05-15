@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -136,5 +137,52 @@ dependencies {
         level           | resolvedVersion
         'release'       | '1.0'
         'integration'   | '1.0-SNAPSHOT'
+    }
+
+    @Ignore
+    def "can lock a unique SNAPSHOT module"() {
+        def uniqueSnapshotModule = mavenRepo.module('org', 'unique', '1.0-SNAPSHOT').publish()
+
+        buildFile << """
+group "org"
+version "1.0"
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+configurations {
+    lockedConf {
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+}
+
+dependencies {
+    lockedConf 'org:unique:1.0-SNAPSHOT'
+}
+
+task resolve(type: Copy) {
+    from configurations.lockedConf
+    into 'libs'
+}
+"""
+
+        when: // Resolve and write locks
+        succeeds 'resolve', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile("lockedConf", ["org:unique:1.0-SNAPSHOT:20100101.120001-1"])
+        file('libs').assertHasDescendants("unique-1.0-20100101.120001-1.jar")
+
+        when: // Publish new snapshot, and resolve again with the lock file
+        uniqueSnapshotModule.publishWithChangedContent()
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        file('libs').assertHasDescendants("unique-1.0-20100101.120001-1.jar")
     }
 }
