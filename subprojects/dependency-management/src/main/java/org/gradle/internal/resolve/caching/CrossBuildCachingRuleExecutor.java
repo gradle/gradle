@@ -31,6 +31,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.reflect.ConfigurableRule;
 import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -82,18 +83,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private Serializer<CachedEntry<RESULT>> createEntrySerializer(final Serializer<RESULT> resultSerializer) {
-        return new Serializer<CachedEntry<RESULT>>() {
-            @Override
-            public CachedEntry<RESULT> read(Decoder decoder) throws Exception {
-                return new CachedEntry<RESULT>(decoder.readLong(), resultSerializer.read(decoder));
-            }
-
-            @Override
-            public void write(Encoder encoder, CachedEntry<RESULT> value) throws Exception {
-                encoder.writeLong(value.timestamp);
-                resultSerializer.write(encoder, value.result);
-            }
-        };
+        return new CacheEntrySerializer<RESULT>(resultSerializer);
     }
 
     @Override
@@ -176,4 +166,22 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         boolean isValid(CachePolicy policy, CachedEntry<RESULT> entry);
     }
 
+    private static class CacheEntrySerializer<RESULT> extends AbstractSerializer<CachedEntry<RESULT>> {
+        private final Serializer<RESULT> resultSerializer;
+
+        public CacheEntrySerializer(Serializer<RESULT> resultSerializer) {
+            this.resultSerializer = resultSerializer;
+        }
+
+        @Override
+        public CachedEntry<RESULT> read(Decoder decoder) throws Exception {
+            return new CachedEntry<RESULT>(decoder.readLong(), resultSerializer.read(decoder));
+        }
+
+        @Override
+        public void write(Encoder encoder, CachedEntry<RESULT> value) throws Exception {
+            encoder.writeLong(value.timestamp);
+            resultSerializer.write(encoder, value.result);
+        }
+    }
 }
