@@ -36,24 +36,11 @@ To use the Java plugin, include the following in your build script:
 The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
 
 [[javalayout]]
-`src/main/java`::
-Production Java source.
+include::javaProjectMainLayout.adoc[]
 
-`src/main/resources`::
-Production resources, such as XML and properties files.
+include::javaProjectTestLayout.adoc[]
 
-`src/test/java`::
-Test Java source.
-
-`src/test/resources`::
-Test resources.
-
-`src/__sourceSet__/java`::
-Java source for the source set named _sourceSet_.
-
-`src/__sourceSet__/resources`::
-Resources for the source set named _sourceSet_.
-
+include::javaProjectGenericLayout.adoc[]
 
 [[sec:changing_java_project_layout]]
 ==== Changing the project layout
