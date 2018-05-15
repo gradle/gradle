@@ -41,6 +41,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### `EclipseProject` tasks defined for `gradle eclipse` may now run in Buildship
+
+The [EclipseClasspath](https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.eclipse.model.EclipseClasspath.html) and [EclipseProject](https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html) tasks both accept `beforeMerged` and `whenMerged` closures, for advanced Eclipse-specific customisation.
+
+Previous versions of Gradle did not execute the closures defined in `EclipseProject` when invoked from Buildship (only those in `EclipseClasspath`). Now Gradle executes them both, similarly to when invoked from the command-line.
+
+This leads to a potential change of behavior in this scenario:
+ - These closures were defined for use with `gradle eclipse`
+ - The gradle project was later imported into Eclipse, but these definitions were not removed.
+
+The code in these closures will now become active in the `Gradle -> Refresh Gradle Project` action.
+
 <!--
 ### Example breaking change
 -->
@@ -58,6 +70,7 @@ Plugins or build scripts attempting to do this will now get a runtime exception.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Luke Usherwood](https://github.com/lukeu) Fix `ClassCastException` when generating Eclipse files for Gradle (gradle/gradle#5278)
+- [Luke Usherwood](https://github.com/lukeu) Make Buildship's "Refresh Gradle Project" action honour more of the `EclipseProject` task (eclipse/buildship#694)
 - [Theodore Ni](https://github.com/tjni) Reduce string allocations when working with paths. (gradle/gradle#5543)
 - [Theodore Ni](https://github.com/tjni) Suppress redundant warning message (gradle/gradle#5544)
 - [Lars Grefer](https://github.com/larsgrefer) Remove dependencies between `javadoc` tasks of dependent Java projects (gradle/gradle#5221)
