@@ -20,16 +20,23 @@ import com.google.common.collect.ImmutableMap
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataSupplier
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.reflect.DefaultConfigurableRule
+import org.gradle.internal.reflect.InstantiatingAction
+import org.gradle.internal.resolve.caching.SimpleRuleExecutor
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class MetadataProviderTest extends Specification {
@@ -42,6 +49,13 @@ class MetadataProviderTest extends Specification {
     def metaData = Stub(ModuleComponentResolveMetadata)
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new MetadataProvider(resolveState)
+    def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
+
+    def setup() {
+        resolveState.getCachePolicy() >> cachePolicy
+        resolveState.getComponentMetadataSupplierExecutor() >> new SimpleRuleExecutor()
+        resolveState.attributesFactory >> TestUtil.attributesFactory()
+    }
 
     def "caches metadata result"() {
         when:
@@ -84,8 +98,9 @@ class MetadataProviderTest extends Specification {
         !metadataProvider.usable
     }
 
-    def "can provide component metadata" () {
+    def "can provide component metadata"() {
         given:
+        resolveState.id >> Stub(ModuleComponentIdentifier)
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
@@ -99,7 +114,7 @@ class MetadataProviderTest extends Specification {
         componentMetadata.metadata == metaData
     }
 
-    def "can provide Ivy descriptor" () {
+    def "can provide Ivy descriptor"() {
         given:
         def extraInfo = [:]
         extraInfo.put(new NamespaceId("baz", "foo"), "extraInfoValue")
@@ -124,7 +139,7 @@ class MetadataProviderTest extends Specification {
         returned.extraInfo.get("foo") == "extraInfoValue"
     }
 
-    def "returns null when not Ivy descriptor" () {
+    def "returns null when not Ivy descriptor"() {
         given:
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -139,17 +154,14 @@ class MetadataProviderTest extends Specification {
     def "can use a metadata rule to provide metadata"() {
         given:
         resolveState.id >> id
-        resolveState.attributesFactory >> TestUtil.attributesFactory()
         resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
             processMetadata(_) >> { args -> args[0] }
         }
-        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
-            execute(_) >> { args ->
-                def builder = args[0].result
-                builder.status = 'foo'
-                builder.statusScheme = ['foo', 'bar']
-            }
-        }
+        resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
+            DefaultConfigurableRule.of(TestSupplier),
+            TestUtil.instantiatorFactory().inject(),
+            Stub(InstantiatingAction.ExceptionHandler)
+        )
 
         when:
         def componentMetadata = metadataProvider.componentMetadata
@@ -167,19 +179,16 @@ class MetadataProviderTest extends Specification {
         }
         given:
         resolveState.id >> id
-        resolveState.attributesFactory >> TestUtil.attributesFactory()
         resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
             processMetadata(_) >> { args ->
                 processedMetadata
             }
         }
-        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
-            execute(_) >> { args ->
-                def builder = args[0].result
-                builder.status = 'foo'
-                builder.statusScheme = ['foo', 'bar']
-            }
-        }
+        resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
+            DefaultConfigurableRule.of(TestSupplier),
+            TestUtil.instantiatorFactory().inject(),
+            Stub(InstantiatingAction.ExceptionHandler)
+        )
 
         when:
         def componentMetadata = metadataProvider.componentMetadata
@@ -192,27 +201,16 @@ class MetadataProviderTest extends Specification {
 
 
     def "can mutate attributes using a metadata supplier"() {
-        def stringAttribute = Attribute.of("test", String)
-        def booleanAttribute = Attribute.of("bool", Boolean)
-        def unsetAttribute = Attribute.of("unset", String)
-
         given:
         resolveState.id >> id
-        resolveState.attributesFactory >> TestUtil.attributesFactory()
         resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
             processMetadata(_) >> { args -> args[0] }
         }
-        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
-            execute(_) >> { args ->
-                def builder = args[0].result
-                builder.status = 'foo'
-                builder.statusScheme = ['foo', 'bar']
-                builder.attributes {
-                    it.attribute(stringAttribute, "test value")
-                    it.attribute(booleanAttribute, true)
-                }
-            }
-        }
+        resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
+            DefaultConfigurableRule.of(TestSupplier),
+            TestUtil.instantiatorFactory().inject(),
+            Stub(InstantiatingAction.ExceptionHandler)
+        )
 
         when:
         def componentMetadata = metadataProvider.componentMetadata
@@ -224,36 +222,22 @@ class MetadataProviderTest extends Specification {
 
         and:
         def attributes = componentMetadata.attributes
-        attributes.getAttribute(stringAttribute) == 'test value'
-        attributes.getAttribute(booleanAttribute) == true
-        attributes.getAttribute(unsetAttribute) == null
+        attributes.getAttribute(TestSupplier.STRING_ATTRIBUTE) == 'test value'
+        attributes.getAttribute(TestSupplier.BOOLEAN_ATTRIBUTE) == true
+        attributes.getAttribute(TestSupplier.UNSET_ATTRIBUTE) == null
     }
 
     def "validates that user supplied attributes are desugared"() {
-        def stringAttribute = Attribute.of("test", String)
-        def booleanAttribute = Attribute.of("bool", Boolean)
-        def invalidAttribute1 = Attribute.of("integer", Integer)
-        def invalidAttribute2 = Attribute.of("long", Long)
-
         given:
         resolveState.id >> id
-        resolveState.attributesFactory >> TestUtil.attributesFactory()
         resolveState.componentMetadataProcessor >> Mock(ComponentMetadataProcessor) {
             processMetadata(_) >> { args -> args[0] }
         }
-        resolveState.componentMetadataSupplier >> Mock(ComponentMetadataSupplier) {
-            execute(_) >> { args ->
-                def builder = args[0].result
-                builder.status = 'foo'
-                builder.statusScheme = ['foo', 'bar']
-                builder.attributes {
-                    it.attribute(stringAttribute, "test value")
-                    it.attribute(booleanAttribute, true)
-                    it.attribute(invalidAttribute1, 123)
-                }
-                builder.attributes.attribute(invalidAttribute2, 456L)
-            }
-        }
+        resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
+            DefaultConfigurableRule.of(TestSupplierWithInvalidAttributes),
+            TestUtil.instantiatorFactory().inject(),
+            Stub(InstantiatingAction.ExceptionHandler)
+        )
 
         when:
         metadataProvider.componentMetadata
@@ -263,6 +247,38 @@ class MetadataProviderTest extends Specification {
         ex.message == toPlatformLineSeparators("""Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans:
   - Attribute 'integer' has type class java.lang.Integer
   - Attribute 'long' has type class java.lang.Long""")
+    }
+
+    static class TestSupplier implements ComponentMetadataSupplier {
+        final static Attribute<String> STRING_ATTRIBUTE = Attribute.of("test", String)
+        final static Attribute<Boolean> BOOLEAN_ATTRIBUTE = Attribute.of("bool", Boolean)
+        final static Attribute<String> UNSET_ATTRIBUTE = Attribute.of("unset", String)
+
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+            def builder = details.result
+            builder.status = 'foo'
+            builder.statusScheme = ['foo', 'bar']
+            builder.attributes {
+                it.attribute(STRING_ATTRIBUTE, "test value")
+                it.attribute(BOOLEAN_ATTRIBUTE, true)
+            }
+        }
+    }
+
+    static class TestSupplierWithInvalidAttributes extends TestSupplier {
+        final static Attribute<Integer> INVALID_ATTRIBUTE1 = Attribute.of("integer", Integer)
+        final static Attribute<Long> INVALID_ATTRIBUTE2 = Attribute.of("long", Long)
+
+        @Override
+        void execute(ComponentMetadataSupplierDetails details) {
+            super.execute(details)
+            def builder = details.result
+            builder.attributes {
+                it.attribute(INVALID_ATTRIBUTE1, 123)
+            }
+            builder.attributes.attribute(INVALID_ATTRIBUTE2, 456L)
+        }
     }
 
 }

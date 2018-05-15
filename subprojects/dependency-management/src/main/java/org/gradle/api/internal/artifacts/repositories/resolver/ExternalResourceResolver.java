@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
@@ -170,6 +171,11 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     @Override
     public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
         return componentMetadataSupplierFactory;
+    }
+
+    @VisibleForTesting
+    public InstantiatingAction<ComponentMetadataListerDetails> getProvidedVersionLister() {
+        return providedVersionLister;
     }
 
     @Override
