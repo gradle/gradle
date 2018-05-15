@@ -539,7 +539,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void configure(final Action<? super T> action) {
-            configureEachLater(new Action<Task>() {
+            configureEach(new Action<Task>() {
                 private boolean alreadyExecuted = false;
 
                 @Override

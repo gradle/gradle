@@ -871,7 +871,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEachLater configuration rule"
+        ex.message == "Failing configureEach configuration rule"
 
         and:
         container.findByName("task") != null
@@ -883,7 +883,7 @@ class DefaultTaskContainerTest extends Specification {
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEachLater configuration rule") }
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
     }
 
     void "fails later creation upon realizing through createLater provider when task configuration via configureEachLater is unsuccessful"() {
@@ -899,7 +899,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEachLater configuration rule"
+        ex.message == "Failing configureEach configuration rule"
 
         and:
         provider.isPresent()
@@ -914,7 +914,7 @@ class DefaultTaskContainerTest extends Specification {
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEachLater configuration rule") }
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
         when:
         provider.get()
@@ -937,7 +937,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEachLater configuration rule"
+        ex.message == "Failing configureEach configuration rule"
 
         and:
         provider.isPresent()
@@ -952,7 +952,7 @@ class DefaultTaskContainerTest extends Specification {
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEachLater configuration rule") }
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
         when:
         provider.get()

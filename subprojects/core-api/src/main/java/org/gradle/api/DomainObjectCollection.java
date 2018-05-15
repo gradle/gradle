@@ -147,10 +147,20 @@ public interface DomainObjectCollection<T> extends Collection<T> {
     /**
      * Configures each element in this collection using the given action, as each element is required. Actions are run in the order added.
      *
+     * @param action A {@link Action} that can configure the element when required.
+     * @since 4.9
+     */
+    @Incubating
+    void configureEach(Action<? super T> action);
+
+    /**
+     * Configures each element in this collection using the given action, as each element is required. Actions are run in the order added.
+     *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param action A {@link Action} that can configure the element when required.
      * @since 4.8
+     * TODO: Remove
      */
     @Incubating
     void configureEachLater(Action<? super T> action);
@@ -163,6 +173,8 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param type The type of element.
      * @param action A {@link Action} that can configure the element when required.
      * @since 4.8
+     *
+     * TODO: Remove
      */
     @Incubating
     <S extends T> void configureEachLater(Class<S> type, Action<? super S> action);

@@ -110,7 +110,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         // Eventually, this should only realize "help"
         buildFile << """
             def configuredTasks = []
-            tasks.configureEachLater {
+            tasks.configureEach {
                 configuredTasks << it
             }
             

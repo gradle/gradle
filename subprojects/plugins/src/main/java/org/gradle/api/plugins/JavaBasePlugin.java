@@ -294,7 +294,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        project.getTasks().configureEachLater(AbstractCompile.class, new Action<AbstractCompile>() {
+        project.getTasks().withType(AbstractCompile.class).configureEach(new Action<AbstractCompile>() {
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
@@ -312,7 +312,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().configureEachLater(Javadoc.class, new Action<Javadoc>() {
+        project.getTasks().withType(Javadoc.class).configureEach( new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -359,7 +359,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
+        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             public void execute(final Test test) {
                 configureTestDefaults(test, project, convention);
             }

@@ -214,8 +214,8 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
-    public void configureEachLater(Action<? super T> action) {
-        delegate.configureEachLater(action);
+    public void configureEach(Action<? super T> action) {
+        delegate.configureEach(action);
     }
 
     @Override
