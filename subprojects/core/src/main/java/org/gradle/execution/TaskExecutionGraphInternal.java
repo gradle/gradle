@@ -20,6 +20,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
@@ -27,7 +28,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Sets the filter to use when adding tasks to this graph. Only those tasks which are accepted by the given filter
      * will be added to this graph.
      */
-    void useFilter(Spec<? super Task> filter);
+    void useFilter(@Nullable Spec<? super Task> filter);
 
     /**
      * Adds the given tasks and their dependencies to this graph. Tasks are executed in an arbitrary order. The tasks
