@@ -54,7 +54,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (buildSrc)"
+        configureOps[0].displayName == "Configure build (:buildSrc)"
         configureOps[0].details.buildPath == ":buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
         configureOps[1].displayName == "Configure build"

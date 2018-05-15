@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
+import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
@@ -51,7 +52,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
+public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildIdentifier buildIdentifier;
@@ -151,16 +152,18 @@ public class DefaultIncludedBuild implements IncludedBuildState, ConfigurableInc
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(buildIdentifier, project.getPath());
+        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(buildIdentifier, project.getIdentityPath(), project.getProjectPath(), project.getName());
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
         ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
 
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(String projectPath) {
+    @Override
+    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
         // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild and BuildIdentifier.name work in dependency results
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(buildIdentifier.getName(), getName()), projectPath);
+        DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(buildIdentifier.getName(), getName()), original.getIdentityPath(), original.projectPath(), original.getProjectName());
     }
 
     @Override

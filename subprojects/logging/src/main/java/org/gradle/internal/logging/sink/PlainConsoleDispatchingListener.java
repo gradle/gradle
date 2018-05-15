@@ -17,17 +17,18 @@
 package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
 class PlainConsoleDispatchingListener implements OutputEventListener {
     private final OutputEventListener stderrChain;
     private final OutputEventListener stdoutChain;
+    private final boolean redirectStderr;
 
-    public PlainConsoleDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain) {
+    public PlainConsoleDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain, boolean redirectStderr) {
         this.stderrChain = stderrChain;
         this.stdoutChain = stdoutChain;
+        this.redirectStderr = redirectStderr;
     }
 
     @Override
@@ -37,14 +38,15 @@ class PlainConsoleDispatchingListener implements OutputEventListener {
             stdoutChain.onOutput(event);
         } else if (event.getLogLevel() != LogLevel.ERROR) {
             stdoutChain.onOutput(event);
-        } else if ((event instanceof CategorisedOutputEvent) && ((CategorisedOutputEvent) event).getCategory().equals("org.gradle.internal.buildevents.BuildExceptionReporter")) {
-            // Only forward the failure report to the error stream
-            // TODO - should attempt to flush the output stream prior to writing to the error stream
-            stderrChain.onOutput(event);
         } else {
-            // Write anything that isn't the build failure report to the output stream
+            // Write anything that isn't the build failure report to the output stream if there is a console attached.
             // This is to avoid interleaving of error and non-error output generated at approximately the same time, as the process stdout and stderr may be forwarded on different pipes and so ordering is lost
-            stdoutChain.onOutput(event);
+            // TODO - should attempt to flush the output stream prior to writing to the error stream
+            if (redirectStderr) {
+                stdoutChain.onOutput(event);
+            } else {
+                stderrChain.onOutput(event);
+            }
         }
     }
 }

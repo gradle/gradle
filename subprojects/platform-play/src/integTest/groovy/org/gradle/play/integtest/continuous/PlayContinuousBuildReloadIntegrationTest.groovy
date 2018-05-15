@@ -42,7 +42,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
     }
 
     protected int waitForBuildFinish() {
-        waitForConditionSatisfied { output -> output ==~ /(?s).*BUILD (FAILED|SUCCESSFUL) in.*/ }
+        waitForConditionSatisfied { output -> output ==~ /(?s).*Waiting for changes.*/ }
     }
 
     private int waitForConditionSatisfied(Closure predicate){

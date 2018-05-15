@@ -1,5 +1,20 @@
 {
     "acceptedApiChanges": [
-        
+        {
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "acceptation": "Metadata suppliers are extracted into their own interface",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.MetadataSupplierAware"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "acceptation": "Metadata suppliers are extracted into their own interface",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.MetadataSupplierAware"
+            ]
+        }
     ]
 }

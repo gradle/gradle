@@ -26,6 +26,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.Test
@@ -61,7 +62,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());
         assertFalse(dependencyMetaData.isForce());
-        assertEquals(new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, ":"), dependencyMetaData.getSelector());
+        assertEquals(new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), dependencyMetaData.getSelector());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 

@@ -28,7 +28,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     CompilationOutputsFixture impl
 
     def setup() {
-        executer.requireOwnGradleUserHomeDir()
         impl = new CompilationOutputsFixture(file("impl/build/classes"))
 
         buildFile << """

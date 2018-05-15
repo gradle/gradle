@@ -149,14 +149,24 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
+        attachConsole(outputStream, errorStream, consoleOutput, true);
+    }
+
+    @Override
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStderr) {
         synchronized (lock) {
             if (consoleOutput == ConsoleOutput.Plain) {
-                addPlainConsole(new StreamBackedStandardOutputListener(outputStream), new StreamBackedStandardOutputListener(errorStream));
+                addPlainConsole(new StreamBackedStandardOutputListener(outputStream), new StreamBackedStandardOutputListener(errorStream), consoleAttachedToStderr);
             } else {
                 ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
                 OutputStreamWriter writer = new OutputStreamWriter(outputStream);
                 Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-                addRichConsole(console, true, true, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
+                addRichConsole(console, true, consoleAttachedToStderr, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
+                // For in-process console testing when stderr is not attached, we need to attach our own error stream to get error messages
+                if (!consoleAttachedToStderr) {
+                    addChain(onError(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(errorStream)))));
+                    removeSystemErrAsLoggingDestination();
+                }
             }
         }
     }
@@ -246,16 +256,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         return addConsoleChain(consoleChain, stdout, stderr);
     }
 
-    public OutputEventRenderer addPlainConsole() {
-        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr));
+    public OutputEventRenderer addPlainConsole(boolean redirectStderr) {
+        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr), redirectStderr);
     }
 
-    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+    private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr) {
         final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
         final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
         OutputEventListener consoleChain = new ThrottlingOutputEventListener(
             new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(new PlainConsoleDispatchingListener(stderrChain, stdoutChain), new PrettyPrefixedLogHeaderFormatter(), true)
+                new GroupingProgressLogEventGenerator(new PlainConsoleDispatchingListener(stderrChain, stdoutChain, redirectStderr), new PrettyPrefixedLogHeaderFormatter(), true)
             ),
             clock
         );

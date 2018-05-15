@@ -44,7 +44,7 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
-    private Map<File, IncludeDirectives> sourceFileIncludeDirectives;
+    private List<File> sourceFilesForPch = new ArrayList<File>();
     private String preCompiledHeader;
     private DiscoveredInputRecorder discoveredInputRecorder;
 
@@ -222,12 +222,12 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     }
 
     @Override
-    public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
-        return sourceFileIncludeDirectives;
+    public List<File> getSourceFilesForPch() {
+        return sourceFilesForPch;
     }
 
     @Override
-    public void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map) {
-        this.sourceFileIncludeDirectives = map;
+    public void setSourceFilesForPch(List<File> sourceFilesForPch) {
+        this.sourceFilesForPch = sourceFilesForPch;
     }
 }

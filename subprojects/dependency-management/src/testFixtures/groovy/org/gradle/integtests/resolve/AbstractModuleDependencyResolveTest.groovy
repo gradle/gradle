@@ -117,6 +117,30 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
     }
 
+    void setMetadataSupplierClass(String clazz) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".metadataSupplier = $clazz
+        """
+    }
+
+    void setMetadataSupplierClassWithParams(String clazz, String... params) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".setMetadataSupplier($clazz) { ${params.collect { "params($it)" }.join(';')} }
+        """
+    }
+
+    void setMetadataListerClass(String clazz) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".componentVersionsLister = $clazz
+        """
+    }
+
+    void setMetadataListerClassWithParams(String clazz, String... params) {
+        buildFile << """
+            repositories."${useIvy()?'ivy':'maven'}".setComponentVersionsLister($clazz) { ${params.collect { "params($it)" }.join(';')} }
+        """
+    }
+
     def getRepositoryDeclaration() {
         useIvy() ? ivyRepository : mavenRepository
     }

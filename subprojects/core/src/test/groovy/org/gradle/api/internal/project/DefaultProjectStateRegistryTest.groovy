@@ -17,6 +17,8 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildState
@@ -50,6 +52,10 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         registry.stateFor(root.componentIdentifier).is(root)
         registry.stateFor(p1.componentIdentifier).is(p1)
         registry.stateFor(p2.componentIdentifier).is(p2)
+
+        registry.stateFor(build.buildIdentifier, Path.ROOT).is(root)
+        registry.stateFor(build.buildIdentifier, Path.path(":p1")).is(p1)
+        registry.stateFor(build.buildIdentifier, Path.path(":p2")).is(p2)
     }
 
     def "one thread can access state at a time"() {
@@ -100,7 +106,9 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         def build = Stub(BuildState)
         build.loadedSettings >> settings
+        build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.getIdentityPathForProject(_) >> { Path path -> path }
+        build.getIdentifierForProject(_) >> { Path path -> new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, path, path, "??") }
         return build
     }
 }

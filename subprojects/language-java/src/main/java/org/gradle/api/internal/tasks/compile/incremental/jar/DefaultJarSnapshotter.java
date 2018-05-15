@@ -22,6 +22,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 
@@ -30,6 +32,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 class DefaultJarSnapshotter {
+    private static final Logger LOGGER = Logging.getLogger(DefaultJarSnapshotter.class);
+
     private final StreamHasher hasher;
     private final ClassDependenciesAnalyzer analyzer;
 
@@ -42,34 +46,57 @@ class DefaultJarSnapshotter {
         final Map<String, HashCode> hashes = Maps.newHashMap();
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
 
-        jarArchive.contents.visit(new FileVisitor() {
-            public void visitDir(FileVisitDetails dirDetails) {
+        try {
+            jarArchive.contents.visit(new JarVisitor(accumulator, hashes));
+        } catch (Exception e) {
+            accumulator.fullRebuildNeeded("jar file " + jarArchive.file.getName() + " could not be analyzed. See the debug log for more details");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Could not analyze jar file " + jarArchive.file.getName(), e);
             }
-
-            public void visitFile(FileVisitDetails fileDetails) {
-                if (!fileDetails.getName().endsWith(".class")) {
-                    return;
-                }
-
-                HashCode classFileHash;
-                InputStream inputStream = fileDetails.open();
-                try {
-                    classFileHash = hasher.hash(inputStream);
-                } finally {
-                    try {
-                        inputStream.close();
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-
-                ClassAnalysis analysis = analyzer.getClassAnalysis(classFileHash, fileDetails);
-                accumulator.addClass(analysis);
-
-                hashes.put(analysis.getClassName(), classFileHash);
-            }
-        });
+        }
 
         return new JarSnapshot(new JarSnapshotData(hash, hashes, accumulator.getAnalysis()));
+    }
+
+    private class JarVisitor implements FileVisitor {
+        private final ClassDependentsAccumulator accumulator;
+        private final Map<String, HashCode> hashes;
+
+        public JarVisitor(ClassDependentsAccumulator accumulator, Map<String, HashCode> hashes) {
+            this.accumulator = accumulator;
+            this.hashes = hashes;
+        }
+
+        public void visitDir(FileVisitDetails dirDetails) {
+        }
+
+        public void visitFile(FileVisitDetails fileDetails) {
+            if (!fileDetails.getName().endsWith(".class")) {
+                return;
+            }
+
+            HashCode classFileHash;
+            InputStream inputStream = fileDetails.open();
+            try {
+                classFileHash = hasher.hash(inputStream);
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            try {
+                ClassAnalysis analysis = analyzer.getClassAnalysis(classFileHash, fileDetails);
+                accumulator.addClass(fileDetails.getFile(), analysis);
+                hashes.put(analysis.getClassName(), classFileHash);
+            } catch (Exception e) {
+                accumulator.fullRebuildNeeded("class file " + fileDetails.getName() + " could not be analyzed. See the debug log for more details");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Could not analyze class file " + fileDetails.getName(), e);
+                }
+            }
+        }
     }
 }

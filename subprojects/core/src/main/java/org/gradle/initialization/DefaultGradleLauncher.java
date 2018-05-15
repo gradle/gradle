@@ -251,8 +251,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     public String getBuildPath() {
                         return gradle.getIdentityPath().toString();
                     }
-                })
-                .parent(getGradle().getBuildOperation());
+                });
         }
     }
 
@@ -278,7 +277,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     public String getBuildPath() {
                         return getGradle().getIdentityPath().toString();
                     }
-                }).parent(gradle.getBuildOperation());
+                });
         }
     }
 
@@ -293,6 +292,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             taskGraph.populate();
+
+            if (!isNestedBuild()) {
+                IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
+                buildControllers.populateTaskGraphs();
+            }
+
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
                 public List<String> getRequestedTaskPaths() {
@@ -323,7 +328,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     public String getBuildPath() {
                         return getGradle().getIdentityPath().getPath();
                     }
-                }).parent(getGradle().getBuildOperation());
+                });
         }
     }
 
@@ -340,7 +345,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Run tasks")).parent(getGradle().getBuildOperation());
+            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
         }
     }
 

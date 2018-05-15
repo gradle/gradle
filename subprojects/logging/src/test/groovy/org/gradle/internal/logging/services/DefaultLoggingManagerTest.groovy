@@ -489,7 +489,7 @@ public class DefaultLoggingManagerTest extends Specification {
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, true)
         0 * loggingRouter._
 
         when:
@@ -516,7 +516,7 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
 
         then:
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose)
+        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, true)
         0 * loggingRouter._
 
         when:

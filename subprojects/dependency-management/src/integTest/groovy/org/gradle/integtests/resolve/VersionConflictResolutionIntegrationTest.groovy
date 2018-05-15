@@ -1553,4 +1553,38 @@ task checkDeps(dependsOn: configurations.compile) {
         then:
         noExceptionThrown()
     }
+
+    @Issue("gradle/gradle-private#1268")
+    def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
+        settingsFile << """
+            include "testlib", "common"
+        """
+
+        buildFile << """
+            subprojects {
+                apply plugin: 'java-library'
+                configurations.all {
+                   resolutionStrategy.failOnVersionConflict()
+                }
+            }
+        """
+
+        file("testlib/build.gradle") << """
+            dependencies {
+                api project(':common') // cycle causes resolution to fail, but shouldn't
+            }
+        """
+
+        file("common/build.gradle") << """
+            dependencies {
+                testImplementation project(':testlib')
+            }
+        """
+
+        when:
+        run 'common:dependencies', '--configuration', 'testCompileClasspath'
+
+        then:
+        noExceptionThrown()
+    }
 }

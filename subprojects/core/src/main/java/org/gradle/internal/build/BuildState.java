@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.util.Path;
 
@@ -28,7 +29,15 @@ public interface BuildState {
 
     boolean isImplicitBuild();
 
-    SettingsInternal getLoadedSettings();
+    SettingsInternal getLoadedSettings() throws IllegalStateException;
 
+    /**
+     * Calculates the identity path for a project in this build.
+     */
     Path getIdentityPathForProject(Path projectPath);
+
+    /**
+     * Calculates the identifier for a project in this build.
+     */
+    ProjectComponentIdentifier getIdentifierForProject(Path projectPath);
 }

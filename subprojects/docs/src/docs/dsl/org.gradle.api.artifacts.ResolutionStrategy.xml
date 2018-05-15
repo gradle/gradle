@@ -50,6 +50,9 @@
             <tr>
                 <td>componentSelection</td>
             </tr>
+            <tr>
+                <td>activateDependencyLocking</td>
+            </tr>
         </table>
     </section>
 </section>

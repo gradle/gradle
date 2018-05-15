@@ -78,6 +78,15 @@ public interface ExecutionResult {
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
+     * Asserts that the given content includes the given log message.
+     *
+     * @param content The content to check
+     * @param expectedOutput The expected log message, with line endings normalized to a newline character.
+     * @param label The label to use when printing a failure
+     */
+    ExecutionResult assertContentContains(String content, String expectedOutput, String label);
+
+    /**
      * Asserts that this result does not include the given log message anywhere in the build output.
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.

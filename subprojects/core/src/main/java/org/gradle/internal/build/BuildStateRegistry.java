@@ -40,10 +40,15 @@ public interface BuildStateRegistry {
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
-     * Locates an included build by {@link BuildIdentifier}, if present.
+     * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
      */
     @Nullable
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
+
+    /**
+     * Locates a build.
+     */
+    BuildState getBuild(BuildIdentifier buildIdentifier);
 
     /**
      * Notification that the settings have been loaded for the root build.
@@ -51,6 +56,13 @@ public interface BuildStateRegistry {
      * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
     void registerRootBuild(SettingsInternal settings);
+
+    /**
+     * Notification that the root build is about to be configured.
+     *
+     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
+     */
+    void beforeConfigureRootBuild();
 
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
@@ -71,4 +83,6 @@ public interface BuildStateRegistry {
      * Creates a new nested build tree.
      */
     StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+
+    void register(BuildState build);
 }

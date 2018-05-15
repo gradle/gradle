@@ -30,26 +30,6 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
-    def "clean assemble on #testProject"() {
-        given:
-        runner.testProject = testProject
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | maxMemory
-        'mediumSwiftMulti' | '1G'
-        'bigSwiftApp'      | '1G'
-    }
-
-    @Unroll
     def "up-to-date assemble on #testProject"() {
         given:
         runner.testProject = testProject

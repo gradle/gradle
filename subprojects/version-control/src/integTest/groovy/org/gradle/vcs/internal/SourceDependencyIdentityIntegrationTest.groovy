@@ -66,10 +66,9 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':buildB:compileJava'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildB:compileClasspath'.")
-        // TODO - incorrect project path
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
-    project :dep""")
+    project :buildB""")
     }
 
     def "includes build identifier in task failure error message"() {
@@ -100,8 +99,7 @@ Required by:
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
-                // TODO - should be 'buildA'
-                assert components[0].projectName == ':'
+                assert components[0].projectName == 'buildA'
                 assert components[1].build.name == 'buildB'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'

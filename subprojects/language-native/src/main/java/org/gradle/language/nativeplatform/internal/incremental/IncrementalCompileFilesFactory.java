@@ -65,7 +65,6 @@ public class IncrementalCompileFilesFactory {
         private final BuildableCompilationState current = new BuildableCompilationState();
         private final List<File> toRecompile = new ArrayList<File>();
         private final Set<File> existingHeaders = new HashSet<File>();
-        private final Map<File, IncludeDirectives> includeDirectivesMap = new HashMap<File, IncludeDirectives>();
         private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
         private boolean hasUnresolvedHeaders;
 
@@ -75,7 +74,7 @@ public class IncrementalCompileFilesFactory {
 
         @Override
         public IncrementalCompilation getResult() {
-            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), existingHeaders, hasUnresolvedHeaders, includeDirectivesMap);
+            return new DefaultIncrementalCompilation(current.snapshot(), toRecompile, getRemovedSources(), existingHeaders, hasUnresolvedHeaders);
         }
 
         @Override
@@ -120,7 +119,6 @@ public class IncrementalCompileFilesFactory {
             result.collectFilesInto(includedFiles, new HashSet<File>());
             SourceFileState newState = new SourceFileState(fileSnapshot.getContent().getContentMd5(), result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes, ImmutableSet.copyOf(includedFiles));
             current.setState(sourceFile, newState);
-            includeDirectivesMap.put(sourceFile, result.includeDirectives);
             if (newState.isHasUnresolved()) {
                 hasUnresolvedHeaders = true;
             }

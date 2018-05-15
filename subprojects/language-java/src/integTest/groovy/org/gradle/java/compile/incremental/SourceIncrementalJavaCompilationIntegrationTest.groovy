@@ -27,7 +27,6 @@ class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegratio
     CompilationOutputsFixture outputs
 
     def setup() {
-        executer.requireOwnGradleUserHomeDir()
         outputs = new CompilationOutputsFixture(file("build/classes"))
 
         buildFile << """
@@ -587,7 +586,6 @@ compileTestJava.options.incremental = true
     }
 
     @Issue("GRADLE-3426")
-    @NotYetImplemented
     def "supports Java 1.2 dependencies"() {
         java "class A {}"
 
@@ -596,7 +594,33 @@ compileTestJava.options.incremental = true
 dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
 """
         expect:
-        run "compileJava"
+        succeeds "compileJava"
+    }
+
+    @Issue("GRADLE-3426")
+    def "fully recompiles when a non-analyzable jar is changed"() {
+        def a =  java """
+            import com.ibm.icu.util.Calendar;
+            class A {
+                Calendar cal;
+            }
+        """
+
+        buildFile << """
+            ${jcenterRepository()}
+            if (hasProperty("withIcu")) {
+                dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+            }
+
+        """
+        succeeds "compileJava", "-PwithIcu"
+
+        when:
+        a.text = "class A {}"
+
+        then:
+        succeeds "compileJava", "--info"
+        outputContains("Full recompilation is required because class file LocaleElements_zh__PINYIN.class could not be analyzed.")
     }
 
     @Issue("GRADLE-3495")

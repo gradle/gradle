@@ -217,7 +217,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput);
+        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, true);
+    }
+
+    @Override
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStderr) {
+        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleAttachedToStderr);
     }
 
     @Override
@@ -269,8 +274,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, consoleOutput));
         }
 
-        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput));
+        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStderr) {
+            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleAttachedToStderr));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -409,17 +414,19 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final OutputStream outputStream;
         private final OutputStream errorStream;
         private final ConsoleOutput consoleOutput;
+        private final boolean consoleAttachedToStderr;
 
-        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
+        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStderr) {
             this.loggingRouter = loggingRouter;
             this.outputStream = outputStream;
             this.errorStream = errorStream;
             this.consoleOutput = consoleOutput;
+            this.consoleAttachedToStderr = consoleAttachedToStderr;
         }
 
         @Override
         public void run() {
-            loggingRouter.attachConsole(outputStream, errorStream, consoleOutput);
+            loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleAttachedToStderr);
         }
 
         @Override
@@ -433,7 +440,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             ConsoleAttachment that = (ConsoleAttachment) o;
 
-            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput;
+            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput && consoleAttachedToStderr == that.consoleAttachedToStderr;
         }
 
         @Override

@@ -46,7 +46,6 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
@@ -76,7 +75,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private boolean projectsLoaded;
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
-    private BuildOperationRef operation;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -123,7 +121,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             if (parent == null) {
                 identityPath = Path.ROOT;
             } else {
-                if (rootProject == null) {
+                if (settings == null) {
                     // Not known yet
                     return null;
                 }
@@ -132,7 +130,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
                     // Not known yet
                     return null;
                 }
-                this.identityPath = parentIdentityPath.child(rootProject.getName());
+                this.identityPath = parentIdentityPath.child(settings.getRootProject().getName());
             }
         }
         return identityPath;
@@ -144,22 +142,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
             throw new IllegalStateException("Identity path already set");
         }
         identityPath = path;
-    }
-
-    @Override
-    public BuildOperationRef getBuildOperation() {
-        if (operation != null) {
-            return operation;
-        }
-        if (parent != null) {
-            return parent.getBuildOperation();
-        }
-        return null;
-    }
-
-    @Override
-    public void setBuildOperation(BuildOperationRef operation) {
-        this.operation = operation;
     }
 
     @Override

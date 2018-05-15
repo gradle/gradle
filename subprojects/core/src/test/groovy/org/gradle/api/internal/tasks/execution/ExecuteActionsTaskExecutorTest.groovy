@@ -28,6 +28,7 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.id.UniqueId
@@ -58,7 +59,7 @@ class ExecuteActionsTaskExecutorTest extends Specification {
     final taskExecutionTime = 1L
     final originExecutionMetadata = new OriginTaskExecutionMetadata(buildInvocationId, taskExecutionTime)
 
-    def executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker, new BuildInvocationScopeId(buildInvocationId))
+    def executer = new ExecuteActionsTaskExecuter(internalListener, publicListener, buildOperationExecutor, asyncWorkTracker, new BuildInvocationScopeId(buildInvocationId), new DefaultBuildCancellationToken())
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

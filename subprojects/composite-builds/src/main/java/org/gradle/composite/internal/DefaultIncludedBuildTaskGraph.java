@@ -49,6 +49,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
+        includedBuilds.populateTaskGraphs();
         includedBuilds.startTaskExecution();
 
         getBuildController(targetBuild).awaitCompletion(taskPath);
@@ -68,7 +69,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
             if (sourceBuild.equals(nextTarget)) {
                 candidateCycle.add(nextTarget);
-                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), Path.ROOT.getPath());
+                ProjectComponentSelector selector = new DefaultProjectComponentSelector(candidateCycle.get(0), Path.ROOT, Path.ROOT, ":");
                 throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
             }
 
