@@ -94,7 +94,7 @@ public class PublishingPlugin implements Plugin<Project> {
                     "Please add 'enableFeaturePreview('STABLE_PUBLISHING')' to your settings file and do a test run by publishing to a local repository. " +
                     "If all artifacts are published as expected, there is nothing else to do. " +
                     "If the published artifacts change unexpectedly, please see the migration guide for more details: " + documentationRegistry.getDocumentationFor("publishing_maven", "publishing_maven:deferred_configuration") + ". " +
-                    "Gradle 5.0 will switch this flag on by default."
+                    "In Gradle 5.0 the flag will be removed and the new behavior will become the default."
             );
             return DeferredConfigurablePublishingExtension.class;
         }

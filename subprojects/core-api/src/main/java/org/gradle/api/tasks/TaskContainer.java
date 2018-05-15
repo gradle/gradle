@@ -59,7 +59,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     Task getByPath(String path) throws UnknownTaskException;
 
     /**
-     * Locates a task by type and name, without triggering its creation or configuration.
+     * Locates a task by type and name, without triggering its creation or configuration, failing if there is no such object.
      *
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
