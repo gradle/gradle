@@ -299,10 +299,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.setMetadataSupplier(CustomMetadataSupplier)
 
         when:
-        def resolver = repository.createResolver()
+        def supplier = repository.createResolver().componentMetadataSupplier
 
         then:
-        resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
+        supplier.rule.ruleClass == CustomMetadataSupplier
+        supplier.rule.ruleParams == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -316,11 +317,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         when:
         def resolver = repository.createResolver()
-        def supplier = resolver.createMetadataSupplier()
+        def supplier = resolver.getComponentMetadataSupplier()
 
         then:
-        supplier instanceof CustomMetadataSupplierWithParams
-        supplier.s == "a"
+        supplier.rule.ruleClass == CustomMetadataSupplierWithParams
+        supplier.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -333,10 +334,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.setComponentVersionsLister(CustomVersionLister)
 
         when:
-        def lister = repository.createResolver().createVersionLister()
+        def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister instanceof CustomVersionLister
+        lister.rule.ruleClass == CustomVersionLister
+        lister.rule.ruleParams == [] as Object[]
     }
 
     def "can inject configuration into a custom version lister"() {
@@ -349,11 +351,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
 
         when:
-        def lister = repository.createResolver().createVersionLister()
+        def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister instanceof CustomVersionListerWithParams
-        lister.s == "a"
+        lister.rule.ruleClass == CustomVersionListerWithParams
+        lister.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Specs
@@ -31,6 +34,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
+import org.gradle.internal.resolve.caching.CachingRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.rules.ClosureBackedRuleAction
@@ -46,6 +50,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
     def consumerAttributes = ImmutableAttributes.EMPTY
+    def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema)
 
@@ -238,22 +243,24 @@ class DefaultVersionedComponentChooserTest extends Specification {
         if (notation.indexOf('+') > 0) {
             1 * selectedComponentResult.notMatched(d.id)
         } else {
-            1 * selectedComponentResult.doesNotMatchConsumerAttributes({ it.id == d.id &&
-                it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
-                    .with { match ->
+            1 * selectedComponentResult.doesNotMatchConsumerAttributes({
+                it.id == d.id &&
+                    it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                        .with { match ->
                         assert match.requestedValue.get() == 'red'
                         assert match.found.get() == 'blue'
                         match
-                }
+                    }
             })
         }
-        1 * selectedComponentResult.doesNotMatchConsumerAttributes({ it.id == c.id &&
-            it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
-                .with { match ->
-                assert match.requestedValue.get() == 'red'
-                assert match.found.get() == 'green'
-                match
-            }
+        1 * selectedComponentResult.doesNotMatchConsumerAttributes({
+            it.id == c.id &&
+                it.matchingDescription.find { it.requestedAttribute == Attribute.of('color', String) }
+                    .with { match ->
+                    assert match.requestedValue.get() == 'red'
+                    assert match.found.get() == 'green'
+                    match
+                }
         })
         1 * selectedComponentResult.matches(b.id)
         0 * _
@@ -338,6 +345,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.version >> version("1.3")
         1 * b.resolve() >> resolvedWithFailure()
         1 * b.getComponentMetadataSupplier()
+        1 * b.getId() >> Stub(ModuleComponentIdentifier)
+        1 * b.getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
+        1 * b.getCachePolicy() >> cachePolicy
+        1 * b.getAttributesFactory() >> TestUtil.attributesFactory()
 
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id)
@@ -381,8 +392,20 @@ class DefaultVersionedComponentChooserTest extends Specification {
             } else {
                 resolve() >> resolvedWithStatus(status, attributes)
             }
+            getComponentMetadataSupplier() >> null
+            getCachePolicy() >> cachePolicy
+            getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
         }
         return c
+    }
+
+    CachingRuleExecutor componentMetadataSupplierExecutor() {
+        Mock(CachingRuleExecutor) {
+            execute(_, _, _, _, _) >> { args ->
+                def (key, rule, converter, producer, cachePolicy) = args
+                converter.transform(producer.transform(key))
+            }
+        }
     }
 
     def version(String version) {
