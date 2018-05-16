@@ -20,12 +20,12 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 
-class PlainConsoleDispatchingListener implements OutputEventListener {
+class ErrorOutputDispatchingListener implements OutputEventListener {
     private final OutputEventListener stderrChain;
     private final OutputEventListener stdoutChain;
     private final boolean redirectStderr;
 
-    public PlainConsoleDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain, boolean redirectStderr) {
+    public ErrorOutputDispatchingListener(OutputEventListener stderrChain, OutputEventListener stdoutChain, boolean redirectStderr) {
         this.stderrChain = stderrChain;
         this.stdoutChain = stdoutChain;
         this.redirectStderr = redirectStderr;

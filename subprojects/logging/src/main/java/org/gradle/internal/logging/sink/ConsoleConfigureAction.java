@@ -22,7 +22,7 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
-import org.gradle.internal.nativeintegration.console.StdoutOnlyConsoleMetadata;
+import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.OutputStream;
@@ -31,6 +31,7 @@ import java.io.OutputStreamWriter;
 public class ConsoleConfigureAction {
     public static final String TEST_CONSOLE_PROPERTY = "org.gradle.internal.console.test-console";
     public static final String CONSOLE_BOTH = "both";
+    public static final String CONSOLE_NEITHER = "neither";
     public static final String CONSOLE_STDOUT_ONLY = "stdout";
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
@@ -51,7 +52,7 @@ public class ConsoleConfigureAction {
     }
 
     private static boolean shouldForce(ConsoleMetaData consoleMetaData) {
-        return consoleMetaData == null || consoleMetaData == FallbackConsoleMetaData.INSTANCE || consoleMetaData == StdoutOnlyConsoleMetadata.INSTANCE;
+        return consoleMetaData == null || consoleMetaData instanceof TestConsoleMetadata;
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer) {
@@ -72,9 +73,11 @@ public class ConsoleConfigureAction {
         String testConsole = System.getProperty(TEST_CONSOLE_PROPERTY);
         if (testConsole != null) {
             if (testConsole.equals(CONSOLE_BOTH)) {
-                return FallbackConsoleMetaData.INSTANCE;
+                return TestConsoleMetadata.BOTH;
+            } else if (testConsole.equals(CONSOLE_NEITHER)) {
+                return TestConsoleMetadata.NEITHER;
             } else if (testConsole.equals(CONSOLE_STDOUT_ONLY)) {
-                return StdoutOnlyConsoleMetadata.INSTANCE;
+                return TestConsoleMetadata.STDOUT_ONLY;
             }
         }
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
@@ -99,6 +102,8 @@ public class ConsoleConfigureAction {
             OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : AnsiConsoleUtil.wrapOutputStream(originalStdErr));
             Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
             renderer.addRichConsole(console, false, true, consoleMetaData, verbose);
+        } else {
+            renderer.addRichConsole(null, false, false, consoleMetaData, verbose);
         }
     }
 }

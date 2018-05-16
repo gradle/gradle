@@ -21,6 +21,6 @@ import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 
 class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
-    String failureMessage = consoleAttachment == ConsoleAttachment.ATTACHED ? buildFailedStyled : buildFailed
-    String successMessage = buildSuccessStyled
+    String failureMessage = buildFailedStyled.errorOutput
+    String successMessage = buildSuccessStyled.output
 }

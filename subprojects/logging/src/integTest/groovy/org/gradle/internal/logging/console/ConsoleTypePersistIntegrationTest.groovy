@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
     def "--console can be persisted in gradle.properties"() {
+        executer.withTestConsoleAttached()
+
         given:
         buildFile << """
             task assertConsoleType { 
@@ -34,7 +36,7 @@ class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('assertConsoleType', "-Pexpected=Auto")
         then:
-        assertDoesNotHaveAnsiEscapeSequence()
+        assertHasAnsiEscapeSequence()
 
         when:
         file('gradle.properties') << 'org.gradle.console=rich'

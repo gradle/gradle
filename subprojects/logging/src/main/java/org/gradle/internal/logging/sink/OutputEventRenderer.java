@@ -149,24 +149,29 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        attachConsole(outputStream, errorStream, consoleOutput, true);
+        attachConsole(outputStream, errorStream, consoleOutput, true, true);
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStderr) {
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean stdoutAttachedToAConsole, boolean stderrAttachedToAConsole) {
         synchronized (lock) {
+            StandardOutputListener outputListener = new StreamBackedStandardOutputListener(outputStream);
+            StandardOutputListener errorListener = new StreamBackedStandardOutputListener(errorStream);
             if (consoleOutput == ConsoleOutput.Plain) {
-                addPlainConsole(new StreamBackedStandardOutputListener(outputStream), new StreamBackedStandardOutputListener(errorStream), consoleAttachedToStderr);
+                addPlainConsole(outputListener, errorListener, stderrAttachedToAConsole);
             } else {
                 ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
-                OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                Console console = new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-                addRichConsole(console, true, consoleAttachedToStderr, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
-                // For in-process console testing when stderr is not attached, we need to attach our own error stream to get error messages
-                if (!consoleAttachedToStderr) {
-                    addChain(onError(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(errorStream)))));
-                    removeSystemErrAsLoggingDestination();
+                Console console;
+                if (stdoutAttachedToAConsole) {
+                    OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
+                } else if (stderrAttachedToAConsole) {
+                    OutputStreamWriter writer = new OutputStreamWriter(errorStream);
+                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
+                } else {
+                    console = null;
                 }
+                addRichConsole(console, stdoutAttachedToAConsole, stderrAttachedToAConsole, outputListener, errorListener, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
             }
         }
     }
@@ -238,56 +243,87 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    public OutputEventRenderer addRichConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        return addRichConsole(console, stdout, stderr, consoleMetaData, false);
+    public OutputEventRenderer addRichConsole(Console console, boolean stdoutAttachedToConsole, boolean stderrAttachedToConsole, ConsoleMetaData consoleMetaData) {
+        return addRichConsole(console, stdoutAttachedToConsole, stderrAttachedToConsole, consoleMetaData, false);
     }
 
-    public OutputEventRenderer addRichConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
-        final OutputEventListener consoleChain = new ThrottlingOutputEventListener(
+    public OutputEventRenderer addRichConsole(Console console, boolean stdoutAttachedToConsole, boolean stderrAttachedToConsole, ConsoleMetaData consoleMetaData, boolean verbose) {
+        return addRichConsole(console, stdoutAttachedToConsole, stderrAttachedToConsole, new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr), consoleMetaData, verbose);
+    }
+
+    private OutputEventRenderer addRichConsole(Console console, boolean stdoutAttachedToConsole, boolean stderrAttachedToConsole, StandardOutputListener outputListener, StandardOutputListener errorListener, ConsoleMetaData consoleMetaData, boolean verbose) {
+        OutputEventListener consoleChain;
+        if (stdoutAttachedToConsole && stderrAttachedToConsole) {
+            OutputEventListener consoleListener = new StyledTextOutputBackedRenderer(console.getBuildOutputArea());
+            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
+        } else if (stdoutAttachedToConsole) {
+            OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
+            OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), false);
+            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
+        } else if (stderrAttachedToConsole) {
+            OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener));
+            OutputEventListener consoleListener = new ErrorOutputDispatchingListener(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), stdoutChain, false);
+            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
+        } else {
+            consoleChain = getPlainConsoleChain(outputListener, errorListener, false, verbose);
+        }
+
+        return addConsoleChain(consoleChain);
+    }
+
+    private OutputEventListener getRichConsoleChain(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
+        return throttled(
             new UserInputConsoleRenderer(
                 new BuildStatusRenderer(
                     new WorkInProgressRenderer(
                         new BuildLogLevelFilterRenderer(
-                            new GroupingProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getBuildOutputArea()), new PrettyPrefixedLogHeaderFormatter(), verbose)),
-                        console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(consoleMetaData), new ConsoleLayoutCalculator(consoleMetaData)),
-                    console.getStatusBar(), console, consoleMetaData),
-                console),
-            clock);
-        return addConsoleChain(consoleChain, stdout, stderr);
+                            new GroupingProgressLogEventGenerator(consoleListener, new PrettyPrefixedLogHeaderFormatter(), verbose)
+                        ),
+                        console.getBuildProgressArea(),
+                        new DefaultWorkInProgressFormatter(consoleMetaData),
+                        new ConsoleLayoutCalculator(consoleMetaData)
+                    ),
+                console.getStatusBar(), console, consoleMetaData),
+            console)
+        );
     }
 
     public OutputEventRenderer addPlainConsole(boolean redirectStderr) {
-        return addPlainConsole(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr), redirectStderr);
+        return addConsoleChain(getPlainConsoleChain(redirectStderr));
     }
 
     private OutputEventRenderer addPlainConsole(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr) {
-        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
-        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
-        OutputEventListener consoleChain = new ThrottlingOutputEventListener(
-            new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(new PlainConsoleDispatchingListener(stderrChain, stdoutChain, redirectStderr), new PrettyPrefixedLogHeaderFormatter(), true)
-            ),
-            clock
-        );
-
-        return addConsoleChain(consoleChain, true, true);
+        return addConsoleChain(getPlainConsoleChain(outputListener, errorListener, redirectStderr, true));
     }
 
-    private OutputEventRenderer addConsoleChain(OutputEventListener consoleChain, boolean stdout, boolean stderr) {
+    private OutputEventListener getPlainConsoleChain(boolean redirectStderr) {
+        return getPlainConsoleChain(new StreamBackedStandardOutputListener((Appendable) originalStdOut), new StreamBackedStandardOutputListener((Appendable)originalStdErr), redirectStderr, true);
+    }
+
+    private OutputEventListener getPlainConsoleChain(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr, boolean verbose) {
+        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)), clock);
+        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
+
+        return throttled(
+            new BuildLogLevelFilterRenderer(
+                new GroupingProgressLogEventGenerator(
+                    new ErrorOutputDispatchingListener(stderrChain, stdoutChain, redirectStderr),
+                    new PrettyPrefixedLogHeaderFormatter(),
+                    verbose
+                )
+            )
+        );
+    }
+
+    private OutputEventListener throttled(OutputEventListener consoleChain) {
+        return new ThrottlingOutputEventListener(consoleChain, clock);
+    }
+
+    private OutputEventRenderer addConsoleChain(OutputEventListener consoleChain) {
         synchronized (lock) {
-            if (stdout && stderr) {
-                this.console = consoleChain;
-                removeSystemOutAsLoggingDestination();
-                removeSystemErrAsLoggingDestination();
-            } else if (stdout) {
-                this.console = onNonError(consoleChain);
-                removeSystemOutAsLoggingDestination();
-            } else if (stderr) {
-                this.console = onError(consoleChain);
-                removeSystemErrAsLoggingDestination();
-            } else {
-                this.console = consoleChain;
-            }
+            this.console = consoleChain;
+            removeSystemOutAsLoggingDestination();
+            removeSystemErrAsLoggingDestination();
             addChain(this.console);
         }
         return this;

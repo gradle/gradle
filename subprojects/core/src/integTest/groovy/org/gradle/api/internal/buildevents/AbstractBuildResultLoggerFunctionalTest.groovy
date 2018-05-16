@@ -24,8 +24,8 @@ import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunction
 abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest implements RichConsoleStyling {
     protected final String buildFailed = 'BUILD FAILED'
     protected final String buildSuccess = 'BUILD SUCCESSFUL'
-    protected final String buildFailedStyled = styled(buildFailed, Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
-    protected final String buildSuccessStyled = styled(buildSuccess, Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD)
+    protected final StyledOutput buildFailedStyled = styled(buildFailed, Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
+    protected final StyledOutput buildSuccessStyled = styled(buildSuccess, Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD)
 
     def setup() {
         executer.withStackTraceChecksDisabled()

@@ -16,17 +16,25 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-public enum StdoutOnlyConsoleMetadata implements ConsoleMetaData {
-    INSTANCE;
+public enum TestConsoleMetadata implements ConsoleMetaData {
+    BOTH(true, true), NEITHER(false, false), STDOUT_ONLY(true, false);
+
+    private final boolean attachedToStdout;
+    private final boolean attachedToStderr;
+
+    TestConsoleMetadata(boolean attachedToStdout, boolean attachedToStderr) {
+        this.attachedToStdout = attachedToStdout;
+        this.attachedToStderr = attachedToStderr;
+    }
 
     @Override
     public boolean isStdOut() {
-        return true;
+        return attachedToStdout;
     }
 
     @Override
     public boolean isStdErr() {
-        return false;
+        return attachedToStderr;
     }
 
     @Override

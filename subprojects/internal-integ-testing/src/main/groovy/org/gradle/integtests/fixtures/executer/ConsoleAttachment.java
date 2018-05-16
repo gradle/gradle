@@ -19,15 +19,16 @@ package org.gradle.integtests.fixtures.executer;
 public enum ConsoleAttachment {
     NOT_ATTACHED("not attached to a console", false, false),
     ATTACHED("console attached to both stdout and stderr", true, true),
+    ATTACHED_NEITHER("console detected but not attached to either stdout or stderr", false, false),
     ATTACHED_STDOUT_ONLY("console attached to stdout only", true, false);
 
     private final String description;
-    private final boolean consoleAttached;
+    private final boolean stdoutAttached;
     private final boolean stderrAttached;
 
-    ConsoleAttachment(String description, boolean consoleAttached, boolean stderrAttached) {
+    ConsoleAttachment(String description, boolean stdoutAttached, boolean stderrAttached) {
         this.description = description;
-        this.consoleAttached = consoleAttached;
+        this.stdoutAttached = stdoutAttached;
         this.stderrAttached = stderrAttached;
     }
 
@@ -35,11 +36,13 @@ public enum ConsoleAttachment {
         return description;
     }
 
-    public boolean isConsoleAttached() {
-        return consoleAttached;
-    }
-
     public boolean isStderrAttached() {
         return stderrAttached;
     }
+
+    public boolean isStdoutAttached() {
+        return stdoutAttached;
+    }
+
+
 }

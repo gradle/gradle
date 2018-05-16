@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.fixtures.console
 
+import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.ConsoleAttachment
-import org.junit.Assume
 import org.junit.runner.RunWith
 
 /**
@@ -31,26 +31,38 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
     static ConsoleAttachment consoleAttachment
 
     def setup() {
-        // TODO - rich/verbose consoles currently exhibit slightly different behavior than these tests expect when no console is attached
-        Assume.assumeFalse(consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose))
-
-        switch(consoleAttachment) {
-            case ConsoleAttachment.NOT_ATTACHED:
-                break
-            case ConsoleAttachment.ATTACHED:
-                executer.withTestConsoleAttached()
-                break
-            case ConsoleAttachment.ATTACHED_STDOUT_ONLY:
-                executer.withTestConsoleAttachedToStdoutOnly()
-                break
-            default:
-                throw new IllegalArgumentException()
-        }
-
+        executer.withTestConsoleAttached(consoleAttachment)
         executer.beforeExecute {
             it.withConsole(consoleType)
         }
     }
 
+    boolean errorsShouldAppearOnStdout() {
+        // If stderr is attached to the console or if we'll use the fallback console
+        return consoleAttachment.isStderrAttached() || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose))
+    }
+
     abstract ConsoleOutput getConsoleType()
+
+    protected StyledOutput styled(String plainOutput, Ansi.Color color, Ansi.Attribute... attributes) {
+        return new StyledOutput(plainOutput, color, attributes)
+    }
+
+    public class StyledOutput {
+        private final String plainOutput
+        private final String styledOutput
+
+        StyledOutput(String plainOutput, Ansi.Color color, Ansi.Attribute... attributes) {
+            this.plainOutput = plainOutput
+            this.styledOutput = styledText(plainOutput, color, attributes)
+        }
+
+        public String getOutput() {
+            return consoleAttachment.stdoutAttached ? styledOutput : plainOutput
+        }
+
+        public String getErrorOutput() {
+            return consoleAttachment.stderrAttached ? styledOutput : plainOutput
+        }
+    }
 }
