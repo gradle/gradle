@@ -44,7 +44,6 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         withBuildSrc()
 
-        // TODO: buildscript.dependencies (#180)
         val settingsDependency = withFile("settings-dependency.jar", "")
         val settings = withFile("my.settings.gradle.kts", """
             buildscript {
@@ -67,8 +66,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
-        //TODO: buildscript.dependencies (#180)
-        // assertIncludes(classPath, settingsDependency)
+        assertIncludes(classPath, settingsDependency)
         assertExcludes(classPath, projectDependency)
     }
 
