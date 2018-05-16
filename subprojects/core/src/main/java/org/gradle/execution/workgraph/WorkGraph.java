@@ -29,12 +29,14 @@ import java.util.Set;
 
 public class WorkGraph {
     private final Graph graph;
+    private final Graph originalGraph;
     private final ImmutableMap<Task, TaskNode> taskNodes;
     private final ImmutableSet<TaskNode> requestedNodes;
     private final ImmutableSet<Task> filteredTasks;
 
     public WorkGraph(Graph graph, ImmutableMap<Task, TaskNode> taskNodes, ImmutableSet<TaskNode> requestedNodes, ImmutableSet<Task> filteredTasks) {
         this.graph = graph;
+        this.originalGraph = new Graph(graph);
         this.taskNodes = taskNodes;
         this.requestedNodes = requestedNodes;
         this.filteredTasks = filteredTasks;
@@ -91,7 +93,7 @@ public class WorkGraph {
             throw new IllegalArgumentException("Task is not part of work graph: " + task);
         }
         final ImmutableSet.Builder<Task> dependencies = ImmutableSet.builder();
-        graph.walkIncomingEdgesFrom(taskNode, new Graph.EdgeWalkerAction() {
+        originalGraph.walkIncomingEdgesFrom(taskNode, new Graph.EdgeWalkerAction() {
             @Override
             public boolean execute(Edge edge) {
                 if (edge.getType() == EdgeType.DEPENDENCY_OF) {

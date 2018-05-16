@@ -38,9 +38,31 @@ import java.util.Queue;
 import java.util.Set;
 
 public class Graph {
-    private final SetMultimap<Node, Edge> incomingEdges = LinkedHashMultimap.create();
-    private final SetMultimap<Node, Edge> outgoingEdges = LinkedHashMultimap.create();
-    private final Set<Node> rootNodes = Sets.newLinkedHashSet();
+    private final SetMultimap<Node, Edge> incomingEdges;
+    private final SetMultimap<Node, Edge> outgoingEdges;
+    private final Set<Node> rootNodes;
+
+    public Graph() {
+        this(
+            LinkedHashMultimap.<Node, Edge>create(),
+            LinkedHashMultimap.<Node, Edge>create(),
+            Sets.<Node>newLinkedHashSet()
+        );
+    }
+
+    public Graph(Graph graph) {
+        this(
+            LinkedHashMultimap.create(graph.incomingEdges),
+            LinkedHashMultimap.create(graph.outgoingEdges),
+            Sets.newLinkedHashSet(graph.rootNodes)
+        );
+    }
+
+    private Graph(SetMultimap<Node, Edge> incomingEdges, SetMultimap<Node, Edge> outgoingEdges, Set<Node> rootNodes) {
+        this.incomingEdges = incomingEdges;
+        this.outgoingEdges = outgoingEdges;
+        this.rootNodes = rootNodes;
+    }
 
     public boolean hasNodes() {
         return !rootNodes.isEmpty() || !incomingEdges.isEmpty();
