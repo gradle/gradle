@@ -52,7 +52,7 @@ Beyond incremental builds described in <<sec:up_to_date_checks>>, Gradle can sav
 Task outputs can be reused between builds on one computer or even between builds running on different computers via a build cache.
 
 We have focused on the use case where users have an organization-wide remote build cache that is populated regularly by continuous integration builds.
-Developers and other continuous integration agents should pull cache entries from the remote build cache.
+Developers and other continuous integration agents should load cache entries from the remote build cache.
 We expect that developers will not be allowed to populate the remote build cache, and all continuous integration builds populate the build cache after running the `clean` task.
 
 For your build to play well with task output caching it must work well with the <<sec:up_to_date_checks,incremental build>> feature.
@@ -232,7 +232,7 @@ For more details on what the protocol looks like see api:org.gradle.caching.http
 Note that by using the following configuration the local build cache will be used for storing build outputs while the local and the remote build cache will be used for retrieving build outputs.
 
 ++++
-<sample id="httpBuildCache" dir="buildCache/http-build-cache" title="Pull from HttpBuildCache">
+<sample id="httpBuildCache" dir="buildCache/http-build-cache" title="Load from HttpBuildCache">
     <sourcefile file="settings.gradle" snippet="http-build-cache"/>
 </sample>
 ++++
