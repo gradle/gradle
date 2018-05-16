@@ -594,7 +594,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final GradleException failure;
         private final String fileName;
         private final String lineNumber;
-        private final String description;
+        private final List<String> descriptions = new ArrayList<String>();
 
         public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
             super(tasks, skippedTasks, outputFailure);
@@ -606,28 +606,45 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (matcher.find()) {
                 fileName = matcher.group(1);
                 lineNumber = matcher.group(3);
-                description = failure.getMessage().substring(matcher.end()).trim();
+                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
             } else {
                 fileName = "";
                 lineNumber = "";
-                description = failure.getMessage().trim();
+                descriptions.add(failure.getMessage().trim());
+            }
+            if (failure instanceof MultipleBuildFailures) {
+                for (Throwable cause : ((MultipleBuildFailures) failure).getCauses()) {
+                    matcher = LOCATION_PATTERN.matcher(cause.getMessage());
+                    if (matcher.find()) {
+                        descriptions.add(cause.getMessage().substring(matcher.end()).trim());
+                    } else {
+                        descriptions.add(cause.getMessage().trim());
+                    }
+                }
             }
         }
 
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
-            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
             outputFailure.assertHasLineNumber(lineNumber);
+            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
             return this;
         }
 
         public ExecutionFailure assertHasFileName(String filename) {
-            assertThat(this.fileName, equalTo(filename));
             outputFailure.assertHasFileName(filename);
+            assertThat(this.fileName, equalTo(filename));
             return this;
         }
 
         public ExecutionFailure assertHasResolution(String resolution) {
             outputFailure.assertHasResolution(resolution);
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertHasFailureSummary(String context) {
+            outputFailure.assertHasFailureSummary(context);
+            assertThat(failure.getMessage(), equalTo(context));
             return this;
         }
 
@@ -637,10 +654,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+            outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
             assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
-            outputFailure.assertThatCause(matcher);
             return this;
         }
 
@@ -659,6 +676,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public ExecutionFailure assertHasNoCause(String description) {
+            outputFailure.assertHasNoCause(description);
             Matcher<Throwable> matcher = hasMessage(containsString(description));
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
@@ -667,18 +685,17 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                     throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
                 }
             }
-            outputFailure.assertHasNoCause(description);
             return this;
         }
 
         public ExecutionFailure assertHasNoCause() {
+            outputFailure.assertHasNoCause();
             if (failure instanceof LocationAwareException) {
                 LocationAwareException exception = (LocationAwareException) failure;
                 assertThat(exception.getReportableCauses(), isEmpty());
             } else {
                 assertThat(failure.getCause(), nullValue());
             }
-            outputFailure.assertHasNoCause();
             return this;
         }
 
@@ -688,8 +705,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-            assertThat(description, normalizedLineSeparators(matcher));
             outputFailure.assertThatDescription(matcher);
+            assertThat(descriptions, hasItem(normalizedLineSeparators(matcher)));
             return this;
         }
 
