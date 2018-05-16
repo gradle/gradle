@@ -27,7 +27,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
-import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.TextResourceScriptSource
 
@@ -49,6 +48,7 @@ import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.kotlin.dsl.findPlugin
+import org.gradle.kotlin.dsl.provider.KotlinScriptFactory
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -162,15 +162,6 @@ fun initScriptModelBuilder(scriptFile: File, project: Project) = project.run {
 
 
 private
-fun scriptHandlerFactoryOf(gradle: Gradle) = gradle.serviceOf<ScriptHandlerFactory>()
-
-
-private
-fun textResourceScriptSource(description: String, scriptFile: File) =
-    TextResourceScriptSource(BasicTextResourceLoader().loadFile(description, scriptFile))
-
-
-private
 fun settingsScriptModelBuilder(project: Project) = project.run {
     KotlinScriptTargetModelBuilder(
         project = project,
@@ -189,11 +180,6 @@ fun projectScriptModelBuilder(project: Project) =
 
 
 private
-fun sourceLookupScriptHandlersFor(project: Project) =
-    project.hierarchy.map { it.buildscript }.toList()
-
-
-private
 fun defaultScriptModelBuilder(scriptFile: File, project: ProjectInternal): KotlinScriptTargetModelBuilder {
 
     val scriptSource = textResourceScriptSource("script plugin", scriptFile)
@@ -201,10 +187,16 @@ fun defaultScriptModelBuilder(scriptFile: File, project: ProjectInternal): Kotli
     val scriptScope = baseScope.createChild("model:${scriptFile.toURI()}")
     val scriptHandler = scriptHandlerFactoryOf(project).create(scriptSource, scriptScope)
 
-    project
-        .serviceOf<ScriptPluginFactory>()
-        .create(scriptSource, scriptHandler, scriptScope, scriptScope.parent, false)
-        .apply(project)
+    kotlinScriptFactoryOf(project)
+        .kotlinScriptFor(
+            target = project,
+            scriptSource = scriptSource,
+            scriptHandler = scriptHandler,
+            baseScope = baseScope,
+            targetScope = scriptScope,
+            topLevelScript = false,
+            inClassPathMode = true)
+        .invoke()
 
     return KotlinScriptTargetModelBuilder(
         project = project,
@@ -214,8 +206,28 @@ fun defaultScriptModelBuilder(scriptFile: File, project: ProjectInternal): Kotli
 
 
 private
+fun kotlinScriptFactoryOf(project: ProjectInternal) =
+    project.serviceOf<KotlinScriptFactory>()
+
+
+private
 fun scriptHandlerFactoryOf(project: ProjectInternal) =
     project.serviceOf<ScriptHandlerFactory>()
+
+
+private
+fun scriptHandlerFactoryOf(gradle: Gradle) =
+    gradle.serviceOf<ScriptHandlerFactory>()
+
+
+private
+fun textResourceScriptSource(description: String, scriptFile: File) =
+    TextResourceScriptSource(BasicTextResourceLoader().loadFile(description, scriptFile))
+
+
+private
+fun sourceLookupScriptHandlersFor(project: Project) =
+    project.hierarchy.map { it.buildscript }.toList()
 
 
 private
