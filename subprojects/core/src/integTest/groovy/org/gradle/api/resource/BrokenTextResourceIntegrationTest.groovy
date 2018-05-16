@@ -38,6 +38,9 @@ class TextTask extends DefaultTask {
 
 task text(type: TextTask)
 """
+        executer.beforeExecute {
+            executer.requireOwnGradleUserHomeDir()
+        }
     }
 
     def "reports read of missing text file"() {

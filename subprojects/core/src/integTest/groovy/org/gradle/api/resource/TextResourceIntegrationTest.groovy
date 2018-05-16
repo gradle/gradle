@@ -29,6 +29,12 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    def setup() {
+        executer.beforeExecute {
+            executer.requireOwnGradleUserHomeDir()
+        }
+    }
+
     def "string backed text resource"() {
         when:
         run("stringText")
