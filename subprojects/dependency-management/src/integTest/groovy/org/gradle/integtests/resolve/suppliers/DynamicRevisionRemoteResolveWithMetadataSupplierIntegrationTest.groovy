@@ -1029,8 +1029,152 @@ group:projectB:2.2;release
         outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:1.1"
     }
 
+    def "changing the implementation of a rule invalidates the cache"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
 
-    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile, boolean cacheable = true) {
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+        when:
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputDoesNotContain("Providing metadata for group:projectB:1.1")
+
+        when:
+        metadataFile.text = ''
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        supplierInteractions = withPerVersionStatusSupplier(metadataFile, true, "println 'Alternate implementation'")
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+        outputContains("Alternate implementation")
+
+    }
+
+
+    def "caching is repository aware"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+        when:
+        // stop the daemon to make sure that when we run the build again
+        // it's fetched from the persistent cache
+        run '--stop'
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputDoesNotContain("Providing metadata for group:projectB:1.1")
+
+        when:
+        run '--stop'
+        // bust the artifact cache because we don't want to fall into the smart behavior
+        // of reusing metadata from cache for a different repository
+        new File(executer.gradleUserHomeDir, 'caches/modules-2').deleteDir()
+
+        resetExpectations()
+        // Changing the host makes Gradle consider that the 2 repositories are distinct
+        buildFile.text = buildFile.text.replaceAll("(?m)http://localhost", "http://127.0.0.1")
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        run 'checkDeps'
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+    }
+
+    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile, boolean cacheable = true, String implementationChange = '') {
         file << """import org.gradle.api.artifacts.ComponentMetadataSupplier
           import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
           import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
@@ -1055,6 +1199,7 @@ group:projectB:2.2;release
                     details.result.status = new String(it.bytes)
                 }
                 count++
+                $implementationChange
             }
           }
 

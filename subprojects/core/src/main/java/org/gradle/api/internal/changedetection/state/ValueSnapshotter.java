@@ -169,6 +169,12 @@ public class ValueSnapshotter implements IsolatableFactory {
         if (value instanceof NamedObjectInstantiator.Managed) {
             return new ManagedNamedTypeSnapshot((Named)value);
         }
+        if (value instanceof ValueSnapshottable) {
+            return ((ValueSnapshottable) value).snapshot();
+        }
+        if (value instanceof ValueSnapshot) {
+            return (ValueSnapshot) value;
+        }
 
         // Fall back to serialization
         return serialize(value);

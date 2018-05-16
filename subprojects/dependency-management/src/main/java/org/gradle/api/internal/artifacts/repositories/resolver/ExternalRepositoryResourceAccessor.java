@@ -17,6 +17,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.changedetection.state.StringValueSnapshot;
+import org.gradle.api.internal.changedetection.state.ValueSnapshot;
+import org.gradle.api.internal.changedetection.state.ValueSnapshottable;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
@@ -25,7 +28,7 @@ import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import java.io.InputStream;
 import java.net.URI;
 
-public class ExternalRepositoryResourceAccessor implements RepositoryResourceAccessor {
+public class ExternalRepositoryResourceAccessor implements RepositoryResourceAccessor, ValueSnapshottable {
     private final URI rootUri;
     private final ExternalResourceAccessor resourceResolver;
 
@@ -41,5 +44,10 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
         if (resource != null) {
             resource.withContent(action);
         }
+    }
+
+    @Override
+    public ValueSnapshot snapshot() {
+        return new StringValueSnapshot(rootUri.toString());
     }
 }
