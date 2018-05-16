@@ -97,34 +97,26 @@ The Groovy plugin adds the following dependencies to tasks added by the Java plu
 The Groovy plugin assumes the project layout shown in <<groovylayout>>. All the Groovy source directories can contain Groovy _and_ Java code. The Java source directories may only contain Java source code.footnote:[We are using the same conventions as introduced by Russel Winder's Gant tool (https://gant.github.io/[]).] None of these directories need to exist or have anything in them; the Groovy plugin will simply compile whatever it finds.
 
 [[groovylayout]]
-.Groovy plugin - project layout
-[cols="a,a,a", options="header"]
-|===
-| Directory
-|
-| Meaning
-
 include::javaProjectMainLayout.adoc[]
-|  `src/main/groovy`
-|
-| Production Groovy sources. May also contain Java sources for joint compilation.
+
+`src/main/groovy`::
+Production Groovy source. May also contain Java source files for joint compilation.
 
 include::javaProjectTestLayout.adoc[]
-|  `src/test/groovy`
-|
-| Test Groovy sources. May also contain Java sources for joint compilation.
+
+`src/test/groovy`::
+Test Groovy source. May also contain Java source files for joint compilation.
 
 include::javaProjectGenericLayout.adoc[]
-|  `src/__sourceSet__/groovy`
-|
-| Groovy sources for the given source set. May also contain Java sources for joint compilation.
-|===
+
+`src/__sourceSet__/groovy`::
+Groovy source files for the given source set. May also contain Java source files for joint compilation.
 
 
 [[sec:changing_groovy_project_layout]]
 ==== Changing the project layout
 
-Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test sources.
+Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
@@ -268,7 +260,7 @@ The Groovy plugin adds a api:org.gradle.api.tasks.compile.GroovyCompile[] task f
 [[sec:groovy_cross_compilation]]
 === Compiling and testing for Java 6 or Java 7
 
-The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Groovy compiler will always be executed with the same version of Java that was used to start Gradle. You should set `sourceCompatibility` and `targetCompatibility` to `1.6` or `1.7`. If you also have Java source files, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties"/>
