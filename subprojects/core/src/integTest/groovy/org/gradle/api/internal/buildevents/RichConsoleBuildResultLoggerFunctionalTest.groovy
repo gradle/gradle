@@ -17,7 +17,6 @@
 package org.gradle.api.internal.buildevents
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 
 class RichConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich

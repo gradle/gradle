@@ -149,29 +149,29 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        attachConsole(outputStream, errorStream, consoleOutput, true, true);
+        attachConsole(outputStream, errorStream, consoleOutput, FallbackConsoleMetaData.INSTANCE);
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean stdoutAttachedToAConsole, boolean stderrAttachedToAConsole) {
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
         synchronized (lock) {
             StandardOutputListener outputListener = new StreamBackedStandardOutputListener(outputStream);
             StandardOutputListener errorListener = new StreamBackedStandardOutputListener(errorStream);
             if (consoleOutput == ConsoleOutput.Plain) {
-                addPlainConsole(outputListener, errorListener, stderrAttachedToAConsole);
+                addPlainConsole(outputListener, errorListener, consoleMetadata != null && consoleMetadata.isStdErr());
             } else {
-                ConsoleMetaData consoleMetaData = FallbackConsoleMetaData.INSTANCE;
+                consoleMetadata = consoleMetadata == null ? FallbackConsoleMetaData.INSTANCE : consoleMetadata;
                 Console console;
-                if (stdoutAttachedToAConsole) {
+                if (consoleMetadata.isStdOut()) {
                     OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
-                } else if (stderrAttachedToAConsole) {
+                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetadata, true);
+                } else if (consoleMetadata.isStdErr()) {
                     OutputStreamWriter writer = new OutputStreamWriter(errorStream);
-                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetaData, true);
+                    console =new AnsiConsole(writer, writer, getColourMap(), consoleMetadata, true);
                 } else {
                     console = null;
                 }
-                addRichConsole(console, stdoutAttachedToAConsole, stderrAttachedToAConsole, outputListener, errorListener, consoleMetaData, consoleOutput == ConsoleOutput.Verbose);
+                addRichConsole(console, consoleMetadata.isStdOut(), consoleMetadata.isStdErr(), outputListener, errorListener, consoleMetadata, consoleOutput == ConsoleOutput.Verbose);
             }
         }
     }

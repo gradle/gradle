@@ -16,20 +16,21 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
+
 public enum ConsoleAttachment {
-    NOT_ATTACHED("not attached to a console", false, false),
-    ATTACHED("console attached to both stdout and stderr", true, true),
-    ATTACHED_NEITHER("console detected but not attached to either stdout or stderr", false, false),
-    ATTACHED_STDOUT_ONLY("console attached to stdout only", true, false);
+    NOT_ATTACHED("not attached to a console", null),
+    ATTACHED("console attached to both stdout and stderr", TestConsoleMetadata.BOTH),
+    ATTACHED_NEITHER("console detected but not attached to either stdout or stderr", TestConsoleMetadata.NEITHER),
+    ATTACHED_STDOUT_ONLY("console attached to stdout only", TestConsoleMetadata.STDOUT_ONLY);
 
     private final String description;
-    private final boolean stdoutAttached;
-    private final boolean stderrAttached;
+    ConsoleMetaData consoleMetaData;
 
-    ConsoleAttachment(String description, boolean stdoutAttached, boolean stderrAttached) {
+    ConsoleAttachment(String description, ConsoleMetaData consoleMetaData) {
         this.description = description;
-        this.stdoutAttached = stdoutAttached;
-        this.stderrAttached = stderrAttached;
+        this.consoleMetaData = consoleMetaData;
     }
 
     public String getDescription() {
@@ -37,12 +38,14 @@ public enum ConsoleAttachment {
     }
 
     public boolean isStderrAttached() {
-        return stderrAttached;
+        return consoleMetaData != null && consoleMetaData.isStdErr();
     }
 
     public boolean isStdoutAttached() {
-        return stdoutAttached;
+        return consoleMetaData != null && consoleMetaData.isStdOut();
     }
 
-
+    public ConsoleMetaData getConsoleMetaData() {
+        return consoleMetaData;
+    }
 }

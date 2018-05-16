@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
     def "--console can be persisted in gradle.properties"() {
@@ -36,7 +37,12 @@ class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds('assertConsoleType', "-Pexpected=Auto")
         then:
-        assertHasAnsiEscapeSequence()
+        // For the in-process executer, we force auto to use the plain console rather than defaulting to the rich console
+        if (GradleContextualExecuter.embedded) {
+            assertDoesNotHaveAnsiEscapeSequence()
+        } else {
+            assertHasAnsiEscapeSequence()
+        }
 
         when:
         file('gradle.properties') << 'org.gradle.console=rich'

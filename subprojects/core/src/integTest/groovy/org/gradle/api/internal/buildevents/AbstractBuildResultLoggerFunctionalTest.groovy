@@ -19,6 +19,7 @@ package org.gradle.api.internal.buildevents
 import org.fusesource.jansi.Ansi
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest.StyledOutput
 
 @SuppressWarnings("IntegrationTestFixtures")
 abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest implements RichConsoleStyling {

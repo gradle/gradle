@@ -19,6 +19,7 @@ package org.gradle.internal.logging;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.io.OutputStream;
@@ -60,11 +61,10 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * @param outputStream Receives formatted output.
      * @param errorStream Receives formatted error output. Note that this steam may not necessarily be used, depending on the console mode requested.
-     * @param consoleAttachedToStdout Whether or not there is a console attached to stdout.
-     * @param consoleAttachedToStderr Whether or not there is a console attached to stderr.
+     * @param consoleMetadata The metadata associated with this console
      * @param consoleOutput The output format.
      */
-    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, boolean consoleAttachedToStdout, boolean consoleAttachedToStderr);
+    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
