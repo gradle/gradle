@@ -46,6 +46,10 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
         }
     }
 
+    public Instantiator getInstantiator() {
+        return instantiator;
+    }
+
     public interface ExceptionHandler<U> {
         void handleException(U target, Throwable throwable);
     }
