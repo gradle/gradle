@@ -28,11 +28,13 @@ import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.internal.Actions;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 public class Graph {
@@ -66,8 +68,8 @@ public class Graph {
         return outgoingEdges.get(source);
     }
 
-    public ImmutableList<Node> getRootNodes() {
-        return ImmutableList.copyOf(rootNodes);
+    public Queue<Node> queueRootNodes() {
+        return new ArrayDeque<Node>(rootNodes);
     }
 
     public void addNode(Node node) {
@@ -77,12 +79,15 @@ public class Graph {
         rootNodes.add(node);
     }
 
-    public void processOutgoingEdges(Node node, EdgeAction action) {
+    public void processOutgoingEdges(Node node, @Nullable Queue<Node> rootNodes, EdgeAction action) {
         Set<Edge> outgoingFromNode = outgoingEdges.get(node);
         if (!outgoingFromNode.isEmpty()) {
             for (Edge outgoing : Lists.newArrayList(outgoingFromNode)) {
                 if (action.process(outgoing) == EdgeActionResult.REMOVE) {
-                    removeEdge(outgoing);
+                    Node newRootNode = removeEdge(outgoing);
+                    if (rootNodes != null && newRootNode != null) {
+                        rootNodes.add(newRootNode);
+                    }
                 }
             }
         }
@@ -264,7 +269,11 @@ public class Graph {
         return true;
     }
 
-    private void removeEdge(Edge edge) {
+    /**
+     * Removes an edge and returns its target in case it became a new root node.
+     */
+    @Nullable
+    private Node removeEdge(Edge edge) {
         Node source = edge.getSource();
         Node target = edge.getTarget();
         if (!incomingEdges.remove(target, edge)) {
@@ -275,7 +284,9 @@ public class Graph {
         }
         if (!incomingEdges.containsKey(target)) {
             rootNodes.add(target);
+            return target;
         }
+        return null;
     }
 
     public interface EdgeAction {
