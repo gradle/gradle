@@ -72,10 +72,6 @@ ensuring the dependencies do not change without a matching update in the lock fi
 
 Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
 
-### Configuration time reduction
-
-We eliminated some configuration bottlenecks, which improved configuration time by 10-15% in our performance builds across Java and Android projects. The Gradle build saw a 12% improvement (1.7 seconds to 1.5 seconds). Configuration time improvements speed up IDE import and IDE interactions with multi-project builds with many subprojects.
-
 ### Signing Publications
 
 The [Signing Plugin](userguide/signing_plugin.html) now supports signing all artifacts of a publication, e.g. when publishing artifacts to a Maven or Ivy repository.
