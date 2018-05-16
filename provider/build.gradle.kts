@@ -59,8 +59,9 @@ val writeVersionsManifest by tasks.creating(WriteProperties::class) {
     property("provider", version)
     property("kotlin", kotlinVersion)
 }
-java.sourceSets["main"].output.dir(mapOf("builtBy" to writeVersionsManifest), versionsManifestOutputDir)
-
+val processResources by tasks.getting(ProcessResources::class) {
+    from(writeVersionsManifest)
+}
 
 // -- Testing ----------------------------------------------------------
 val prepareIntegrationTestFixtures by rootProject.tasks
