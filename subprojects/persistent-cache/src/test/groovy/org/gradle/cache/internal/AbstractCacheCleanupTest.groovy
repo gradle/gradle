@@ -31,17 +31,6 @@ class AbstractCacheCleanupTest extends Specification {
         persistentCache.reservedCacheFiles >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
     }
 
-    def "filters for cache entry files"() {
-        expect:
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
-        AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
-
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("0"*32).touch())
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
-        !AbstractCacheCleanup.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
-    }
-
     def "deletes files"() {
         def cacheEntries = [
             createCacheEntry(),
