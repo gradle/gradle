@@ -15,6 +15,7 @@
  */
 package gradlebuild
 
+import org.gradle.internal.impldep.aQute.bnd.osgi.Constants.options
 import org.gradle.plugins.strictcompile.StrictCompileExtension
 
 val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")
@@ -29,11 +30,11 @@ afterEvaluate {
         if (strictCompile.ignoreDeprecations) strictCompilerArgs + ignoreDeprecationsArg
         else strictCompilerArgs
 
-    tasks.withType<JavaCompile> {
+    tasks.withType(JavaCompile::class.java).configureEach {
         options.compilerArgs.addAll(compilerArgs)
     }
 
-    tasks.withType<GroovyCompile> {
+    tasks.withType(GroovyCompile::class.java).configureEach {
         options.compilerArgs.addAll(compilerArgs)
     }
 }

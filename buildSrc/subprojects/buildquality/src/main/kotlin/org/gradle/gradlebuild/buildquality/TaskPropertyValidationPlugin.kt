@@ -89,7 +89,7 @@ fun Project.addValidateTask() =
                 "codeQuality" {
                     dependsOn(validateTask)
                 }
-                withType<Test> {
+                withType(Test::class.java).configureEach {
                     shouldRunAfter(validateTask)
                 }
             }
