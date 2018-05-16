@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
-
 import org.gradle.kotlin.dsl.*
 import useAllDistribution
 import java.util.concurrent.Callable
@@ -42,12 +41,12 @@ import java.util.concurrent.Callable
 open class IntTestImagePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val intTestImage by tasks.creating(Sync::class) {
+        val intTestImage = tasks.createLater("intTestImage", Sync::class.java) {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
 
-        tasks.configureEachLater(DistributionTest::class.java) {
+        tasks.withType(DistributionTest::class.java).configureEach {
             dependsOn(intTestImage)
         }
 
@@ -60,13 +59,20 @@ open class IntTestImagePlugin : Plugin<Project> {
         }
 
         if (useAllDistribution) {
-            val unpackAllDistribution by tasks.creating(Sync::class) {
+            val unpackedPath = layout.buildDirectory.file("tmp/unpacked-all-distribution/gradle-$version")
+
+            val unpackAllDistribution = tasks.createLater("unpackAllDistribution", Sync::class.java) {
                 dependsOn(":distributions:allZip")
-                from(Callable { zipTree(rootProject.project("distributions").tasks.getByName<Zip>("allZip").archivePath) })
-                into("$buildDir/tmp/unpacked-all-distribution")
+                // TODO: This should be modelled as a publication
+                from(Callable {
+                    val distributionsProject = rootProject.project("distributions")
+                    val allZip = distributionsProject.tasks.getByName<Zip>("allZip")
+                    zipTree(allZip.archivePath)
+                })
+                into(unpackedPath)
             }
-            val unpackedPath = "${unpackAllDistribution.destinationDir}/gradle-$version"
-            intTestImage.apply {
+
+            intTestImage.configure {
                 dependsOn(unpackAllDistribution)
                 from(unpackedPath)
             }
@@ -84,12 +90,14 @@ open class IntTestImagePlugin : Plugin<Project> {
                         selfRuntime(this@afterEvaluate)
                     }
                 }
-                intTestImage.apply {
+                intTestImage.configure {
                     into("bin") {
                         from(Callable { project(":launcher").tasks.getByName("startScripts").outputs.files })
+                        // TODO: This is probably supposed to be fileMode = ...
                         Integer.parseInt("0755", 8)
                     }
 
+                    // TODO: Model these as publications of different types of distributions
                     val runtimeClasspathConfigurations = (rootProject.configurations["coreRuntime"]
                         + rootProject.configurations["coreRuntimeExtensions"]
                         + selfRuntime

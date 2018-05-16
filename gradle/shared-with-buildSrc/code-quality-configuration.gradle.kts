@@ -1,3 +1,5 @@
+import java.io.File
+
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -91,7 +93,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
         configFile = codeQualityConfigDir.resolve("codenarc.xml")
     }
 
-    tasks.configureEachLater(CodeNarc::class.java) {
+    tasks.withType(CodeNarc::class.java).configureEach {
         reports.xml.isEnabled = true
         if (name.contains("IntegTest")) {
             configFile = codeQualityConfigDir.resolve("codenarc-integtests.xml")
@@ -107,7 +109,7 @@ fun Project.configureCodeQualityTasks() {
             dependsOn(codeQualityTasks)
         }
     }
-    tasks.configureEachLater(Test::class.java) {
+    tasks.withType(Test::class.java).configureEach {
         shouldRunAfter(codeQualityTasks)
     }
 }

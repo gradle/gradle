@@ -383,7 +383,7 @@ tasks.createLater("archivePerformanceProject", Copy) {
     from "src/templates/$name"
 }
 
-tasks.configureEachLater(JvmProjectGeneratorTask) {
+tasks.withType(JvmProjectGeneratorTask).configureEach {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
@@ -393,7 +393,7 @@ tasks.configureEachLater(JvmProjectGeneratorTask) {
 // The Android Studio performance tests use custom model classes which need to be found in
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
-androidRemoteProjects.all {
+androidRemoteProjects.configureEach {
     dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
     doLast {
         file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text

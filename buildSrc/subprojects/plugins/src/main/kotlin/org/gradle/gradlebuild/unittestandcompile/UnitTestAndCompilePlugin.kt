@@ -36,11 +36,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.internal.jvm.Jvm
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.extra
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import testLibraries
 import testLibrary
@@ -77,11 +73,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
-            tasks.configureEachLater(JavaCompile::class.java) {
+            tasks.withType(JavaCompile::class.java).configureEach {
                 options.isIncremental = true
                 configureCompileTask(this, options, availableJavaInstallations)
             }
-            tasks.configureEachLater(GroovyCompile::class.java) {
+            tasks.withType(GroovyCompile::class.java).configureEach {
                 groovyOptions.encoding = "utf-8"
                 configureCompileTask(this, options, availableJavaInstallations)
             }
@@ -107,9 +103,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.createLater("classpathManifest", ClasspathManifest::class.java) {
-            // do nothing
-        }
+        val classpathManifest = tasks.createLater("classpathManifest", ClasspathManifest::class.java)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 
@@ -149,7 +143,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureJarTasks() {
-        tasks.configureEachLater(Jar::class.java) {
+        tasks.withType(Jar::class.java).configureEach {
             version = rootProject.extra["baseVersion"] as String
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
@@ -161,7 +155,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.configureTests() {
         val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
 
-        tasks.configureEachLater(Test::class.java) {
+        tasks.withType(Test::class.java).configureEach {
             maxParallelForks = project.maxParallelForks
             jvmArgumentProviders.add(createCiEnvironmentProvider(this))
             executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath

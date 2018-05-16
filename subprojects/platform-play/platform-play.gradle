@@ -40,7 +40,7 @@ integTest {
     exclude 'org/gradle/play/prepare/**'
 }
 
-task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
+def integTestPrepare = tasks.createLater("integTestPrepare", org.gradle.gradlebuild.test.integrationtests.IntegrationTest) {
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
     if (BuildEnvironment.isCiServer) {
         systemProperties['org.gradle.integtest.multiversion'] = 'all'
@@ -49,7 +49,7 @@ task integTestPrepare(type: org.gradle.gradlebuild.test.integrationtests.Integra
     maxParallelForks = 1
 }
 
-tasks.configureEachLater(org.gradle.gradlebuild.test.integrationtests.IntegrationTest) { task ->
+tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest).configureEach { task ->
     if (task != integTestPrepare) {
         task.dependsOn(integTestPrepare)
     }
