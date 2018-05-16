@@ -43,7 +43,6 @@ import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptFactory
 import org.gradle.kotlin.dsl.provider.KotlinScriptOption
-import org.gradle.kotlin.dsl.provider.initScriptClassPathFor
 
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
@@ -170,17 +169,19 @@ fun projectScriptModelBuilder(project: Project) =
 
 
 private
-fun initScriptModelBuilder(scriptFile: File, project: Project) = project.run {
+fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project.run {
 
-    val gradleInternal = gradle as GradleInternal
-    val scriptSource = textResourceScriptSource("initialization script", scriptFile)
-    val baseScope = gradleInternal.classLoaderScope
-    val scriptScope = baseScope.createChild("model:${scriptFile.toURI()}")
-    val scriptHandler = scriptHandlerFactoryOf(gradle).create(scriptSource, scriptScope)
+    val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
+        target = gradle,
+        scriptFile = scriptFile,
+        baseScope = gradle.classLoaderScope,
+        scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
+        project = project
+    )
 
     KotlinScriptTargetModelBuilder(
         project = project,
-        scriptClassPath = initScriptClassPathFor(gradleInternal, scriptHandler, scriptSource),
+        scriptClassPath = scriptClassPath,
         sourceLookupScriptHandlers = listOf(scriptHandler))
 }
 
