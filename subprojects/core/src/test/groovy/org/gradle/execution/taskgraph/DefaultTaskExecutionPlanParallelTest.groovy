@@ -586,6 +586,38 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         destroyerRunsFirst(a, c, b)
     }
 
+    def "finalizer runs after the last task to be finalized"() {
+        def projectA = createChildProject(project, "a")
+        given:
+        Task finalizer = projectA.task("finalizer")
+        Task a = projectA.task("a", type: Async)
+        Task b = createChildProject(project, "b").task("b", type: Async)
+        [a, b]*.finalizedBy(finalizer)
+
+        when:
+        addToGraphAndPopulate(a, b)
+        def firstInfo = selectNextTaskInfo()
+        def secondInfo = selectNextTaskInfo()
+
+        then:
+        firstInfo.task == a
+        secondInfo.task == b
+        selectNextTask() == null
+
+        when:
+        executionPlan.taskComplete(firstInfo)
+
+        then:
+        selectNextTask() == null
+
+        when:
+        executionPlan.taskComplete(secondInfo)
+        def finalizerInfo = selectNextTaskInfo()
+
+        then:
+        finalizerInfo.task == finalizer
+    }
+
     def "handles an exception while walking the task graph when an enforced task is present"() {
         given:
         Task finalizer = project.task("finalizer", type: BrokenTask)
