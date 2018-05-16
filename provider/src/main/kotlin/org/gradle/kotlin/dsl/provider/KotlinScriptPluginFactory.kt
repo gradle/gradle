@@ -24,6 +24,8 @@ import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.ScriptSource
 
+import java.util.*
+
 import javax.inject.Inject
 
 
@@ -40,7 +42,21 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     ): ScriptPlugin =
 
         KotlinScriptPlugin(scriptSource) { target ->
-            val script = kotlinScriptFactory.kotlinScriptFor(target, scriptSource, scriptHandler, baseScope, targetScope, topLevelScript, inClassPathMode())
-            script()
+
+            kotlinScriptFactory
+                .kotlinScriptFor(
+                    target,
+                    scriptSource,
+                    scriptHandler,
+                    targetScope,
+                    baseScope,
+                    topLevelScript,
+                    kotlinScriptOptions())
+                .invoke()
         }
+
+    private
+    fun kotlinScriptOptions(): EnumSet<KotlinScriptOption> =
+        if (inClassPathMode()) EnumSet.of(KotlinScriptOption.IgnoreErrors)
+        else EnumSet.noneOf(KotlinScriptOption::class.java)
 }

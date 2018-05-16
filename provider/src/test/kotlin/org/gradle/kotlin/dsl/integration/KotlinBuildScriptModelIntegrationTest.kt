@@ -2,9 +2,11 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.not
@@ -155,9 +157,18 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             buildscript {
                 dependencies { classpath(files("${scriptPluginDependency.name}")) }
             }
+
+            // Shouldn't be evaluated
+            throw IllegalStateException()
         """)
 
-        val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
+        val model = kotlinBuildScriptModelFor(projectRoot, scriptPlugin)
+        assertThat(
+            "Script body shouldn't be evaluated",
+            model.exceptions,
+            equalTo(emptyList()))
+
+        val scriptPluginClassPath = model.canonicalClassPath
         assertThat(
             scriptPluginClassPath.map { it.name },
             hasItem(scriptPluginDependency.name))

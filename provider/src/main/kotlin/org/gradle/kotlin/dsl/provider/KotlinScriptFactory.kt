@@ -22,6 +22,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import java.util.*
 
 
 interface KotlinScriptFactory {
@@ -30,11 +31,17 @@ interface KotlinScriptFactory {
         target: Any,
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
-        baseScope: ClassLoaderScope,
         targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope,
         topLevelScript: Boolean,
-        inClassPathMode: Boolean
+        options: EnumSet<KotlinScriptOption>
     ): KotlinScript
+}
+
+
+enum class KotlinScriptOption {
+    IgnoreErrors,
+    SkipBody
 }
 
 
@@ -51,27 +58,25 @@ class StandardKotlinScriptFactory(
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
 ) : KotlinScriptFactory {
 
-    override fun kotlinScriptFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, baseScope: ClassLoaderScope, targetScope: ClassLoaderScope, topLevelScript: Boolean, inClassPathMode: Boolean): KotlinScript {
-        val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        val kotlinScriptSource = KotlinScriptSource(scriptSource)
-        return compile(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope, inClassPathMode)
-    }
-
-    private
-    fun compile(
-        scriptTarget: KotlinScriptTarget<Any>,
-        scriptSource: KotlinScriptSource,
+    override fun kotlinScriptFor(
+        target: Any,
+        scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
-        inClassPathMode: Boolean
-    ): KotlinScript =
+        topLevelScript: Boolean,
+        options: EnumSet<KotlinScriptOption>
+    ): KotlinScript {
 
-        compilerFor(scriptTarget, scriptSource, scriptHandler, targetScope, baseScope).run {
-
-            if (inClassPathMode) compileForClassPath()
-            else compile()
+        val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
+        val kotlinScriptSource = KotlinScriptSource(scriptSource)
+        return compilerFor(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope).run {
+            if (KotlinScriptOption.IgnoreErrors in options)
+                compileForClassPath(executeBody = KotlinScriptOption.SkipBody !in options)
+            else
+                compile()
         }
+    }
 
     private
     fun compilerFor(

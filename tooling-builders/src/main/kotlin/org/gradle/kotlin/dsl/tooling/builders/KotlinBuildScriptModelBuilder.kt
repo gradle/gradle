@@ -36,24 +36,30 @@ import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
-import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
+import org.gradle.kotlin.dsl.findPlugin
+
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
+import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
+import org.gradle.kotlin.dsl.provider.KotlinScriptFactory
+import org.gradle.kotlin.dsl.provider.KotlinScriptOption
 import org.gradle.kotlin.dsl.provider.initScriptClassPathFor
-import org.gradle.kotlin.dsl.resolver.SourcePathProvider
+
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
+import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
+
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
+
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-import org.gradle.kotlin.dsl.findPlugin
-import org.gradle.kotlin.dsl.provider.KotlinScriptFactory
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 import java.io.File
 import java.io.Serializable
+import java.util.*
 
 import kotlin.coroutines.experimental.buildSequence
 
@@ -192,10 +198,10 @@ fun defaultScriptModelBuilder(scriptFile: File, project: ProjectInternal): Kotli
             target = project,
             scriptSource = scriptSource,
             scriptHandler = scriptHandler,
-            baseScope = baseScope,
             targetScope = scriptScope,
+            baseScope = baseScope,
             topLevelScript = false,
-            inClassPathMode = true)
+            options = EnumSet.of(KotlinScriptOption.IgnoreErrors, KotlinScriptOption.SkipBody))
         .invoke()
 
     return KotlinScriptTargetModelBuilder(
