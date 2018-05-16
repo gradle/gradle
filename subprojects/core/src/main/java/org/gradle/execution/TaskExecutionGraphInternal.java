@@ -20,6 +20,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
 
+import java.util.Collection;
 import java.util.Set;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
@@ -42,8 +43,9 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
 
     /**
      * Executes the tasks in this graph. Discards the contents of this graph when completed.
+     * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
      */
-    void execute();
+    void execute(Collection<? super Throwable> taskFailures);
 
     /**
      * Sets whether execution should continue if a task fails.
@@ -54,7 +56,6 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Set of requested tasks.
      */
     Set<Task> getRequestedTasks();
-
 
     /**
      * Set of requested tasks.

@@ -28,6 +28,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
+import java.util.Collection;
 import java.util.Map;
 
 class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControllers {
@@ -80,10 +81,15 @@ class DefaultIncludedBuildControllers implements Stoppable, IncludedBuildControl
     }
 
     @Override
-    public void stopTaskExecution() {
+    public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
         for (IncludedBuildController buildController : buildControllers.values()) {
-            buildController.stopTaskExecution();
+            buildController.stopTaskExecution(taskFailures);
         }
+    }
+
+    @Override
+    public void finishBuild() {
+        CompositeStoppable.stoppable(buildControllers.values()).stop();
         buildControllers.clear();
         for (IncludedBuildState includedBuild : buildRegistry.getIncludedBuilds()) {
             includedBuild.finishBuild();

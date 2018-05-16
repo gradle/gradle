@@ -26,6 +26,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -178,6 +179,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         GradleInternal parentBuild = parent == null ? null : parent.getGradle();
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, parentBuild, startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
+
+        IncludedBuildControllers includedBuildControllers;
+        if (parent == null) {
+            includedBuildControllers = buildTreeScopeServices.get(IncludedBuildControllers.class);
+        } else {
+            includedBuildControllers = IncludedBuildControllers.EMPTY;
+        }
         DefaultGradleLauncher gradleLauncher = new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
@@ -192,7 +200,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
             serviceRegistry,
-            servicesToStop
+            servicesToStop,
+            includedBuildControllers
         );
         nestedBuildFactory.setParent(gradleLauncher);
         nestedBuildFactory.setBuildCancellationToken(cancellationToken);

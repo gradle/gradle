@@ -34,6 +34,7 @@ import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,13 +67,13 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     }
 
     @Override
-    public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+    public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, Collection<? super Throwable> taskFailures) {
         ManagedExecutor executor = executorFactory.create("Task worker for '" + taskExecutionPlan.getDisplayName() + "'");
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
             new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService).run();
-            awaitCompletion(taskExecutionPlan);
+            awaitCompletion(taskExecutionPlan, taskFailures);
         } finally {
             executor.stop();
         }
@@ -81,12 +82,12 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
     /**
      * Blocks until all tasks in the plan have been processed. This method will only return when every task in the plan has either completed, failed or been skipped.
      */
-    private void awaitCompletion(final TaskExecutionPlan taskExecutionPlan) {
+    private void awaitCompletion(final TaskExecutionPlan taskExecutionPlan, final Collection<? super Throwable> taskFailures) {
         coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 if (taskExecutionPlan.allTasksComplete()) {
-                    taskExecutionPlan.rethrowFailures();
+                    taskExecutionPlan.collectFailures(taskFailures);
                     return FINISHED;
                 } else {
                     return RETRY;

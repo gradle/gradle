@@ -18,6 +18,7 @@ package org.gradle.execution;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
 
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultBuildExecuter implements BuildExecuter {
@@ -26,11 +27,13 @@ public class DefaultBuildExecuter implements BuildExecuter {
     public DefaultBuildExecuter(Iterable<? extends BuildExecutionAction> executionActions) {
         this.executionActions = Lists.newArrayList(executionActions);
     }
-    public void execute(GradleInternal gradle) {
-        execute(gradle, 0);
+
+    @Override
+    public void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures) {
+        execute(gradle, 0, taskFailures);
     }
 
-    private void execute(final GradleInternal gradle, final int index) {
+    private void execute(final GradleInternal gradle, final int index, final Collection<? super Throwable> taskFailures) {
         if (index >= executionActions.size()) {
             return;
         }
@@ -40,9 +43,9 @@ public class DefaultBuildExecuter implements BuildExecuter {
             }
 
             public void proceed() {
-                execute(gradle, index + 1);
+                execute(gradle, index + 1, taskFailures);
             }
 
-        });
+        }, taskFailures);
     }
 }

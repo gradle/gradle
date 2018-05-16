@@ -50,7 +50,7 @@ public class DryRunBuildExecutionActionTest extends Specification {
         taskGraph.getAllTasks() >> toList(task1, task2)
 
         when:
-        action.execute(executionContext)
+        action.execute(executionContext, [])
 
         then:
         textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED$EOL{$category}:task2 {progressstatus}SKIPPED$EOL"
@@ -64,7 +64,7 @@ public class DryRunBuildExecutionActionTest extends Specification {
         startParameter.isDryRun() >> false
 
         when:
-        action.execute(executionContext)
+        action.execute(executionContext, [])
 
         then:
         1 * executionContext.proceed()

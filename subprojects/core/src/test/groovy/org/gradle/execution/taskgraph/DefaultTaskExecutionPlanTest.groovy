@@ -596,6 +596,7 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     }
 
     def "stops returning tasks on task execution failure"() {
+        def failures = []
         RuntimeException exception = new RuntimeException("failure")
 
         when:
@@ -607,14 +608,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == exception
+        failures == [exception]
     }
 
     def "stops returning tasks when build is cancelled"() {
+        def failures = []
         Task a = task("a")
         Task b = task("b")
 
@@ -626,14 +627,15 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == []
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        BuildCancelledException e = thrown()
-        e.message == 'Build cancelled.'
+        failures.size() == 1
+        failures[0] instanceof BuildCancelledException
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
+        def failures = []
         RuntimeException failure = new RuntimeException("failure")
         Task a = task("a", failure: failure)
         Task b = task("b")
@@ -645,14 +647,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "stops execution on task failure when failure handler indicates that execution should stop"() {
+        def failures = []
         RuntimeException failure = new RuntimeException("failure")
         Task a = task("a", failure: failure)
         Task b = task("b")
@@ -664,14 +666,14 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
+        def failures = []
         RuntimeException failure = new RuntimeException()
         Task a = task("a", failure: failure)
         Task b = task("b")
@@ -684,15 +686,15 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, b]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     @Unroll
     def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
+        def failures = []
         RuntimeException failure = new RuntimeException()
         Task a = task("a", failure: failure)
         Task b = task("b", (orderingRule): [a])
@@ -705,17 +707,17 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, b]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
 
         where:
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
+        def failures = []
         RuntimeException failure = new RuntimeException()
         final Task a = task("a", failure: failure)
         final Task b = task("b", dependsOn: [a])
@@ -729,11 +731,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executedTasks == [a, c]
 
         when:
-        executionPlan.rethrowFailures()
+        executionPlan.collectFailures(failures)
 
         then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "clear removes all tasks"() {
