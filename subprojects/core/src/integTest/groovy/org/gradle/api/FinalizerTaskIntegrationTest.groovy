@@ -18,9 +18,11 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     void 'finalizer tasks are scheduled as expected'() {
@@ -206,6 +208,45 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedInOrder ':a', ':b', ':c'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5415")
+    void 'finalizers are executed after the last task to be finalized'() {
+        settingsFile << """
+            include "a"
+            include "b"
+        """
+        buildFile << """
+            configure(project(':a')) {
+                task finalizer {
+                    doLast {
+                        sleep 100
+                    }
+                }
+                
+                task foo {
+                    finalizedBy finalizer
+                    doLast {
+                        sleep 500
+                    }
+                }
+            }
+            
+            configure(project(':b')) {
+                task foo {
+                    finalizedBy ':a:finalizer'
+                    doLast {
+                        sleep 1000
+                    }
+                }
+            }
+        """
+
+        when:
+        run "foo", "--parallel"
+
+        then:
+        result.assertTaskOrder(any(":a:foo", ":b:foo"), ":a:finalizer")
     }
 
     private void setupProject() {
