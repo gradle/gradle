@@ -33,29 +33,39 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
  *
  * <p> Example:
  * <pre class='autoTested'>
+ * class StatusRule implements ComponentMetadataRule {
+ *     {@literal @}Override
+ *     void execute(ComponentMetadataContext context) {
+ *         def details = context.details
+ *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
+ *         if (details.id.group == "org.foo") {
+ *             def version = details.id.version
+ *             // assuming status is last part of version string
+ *             details.status = version.substring(version.lastIndexOf("-") + 1)
+ *             details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+ *         }
+ *     }
+ * }
+ * class ChangingRule implements ComponentMetadataRule {
+ *     {@literal @}Override
+ *     void execute(ComponentMetadataContext context) {
+ *         // Treat all components as changing
+ *         context.details.changing = true
+ *     }
+ * }
  * dependencies {
  *     components {
- *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
- *         all { ComponentMetadataDetails details -&gt;
- *             if (details.id.group == "org.foo") {
- *                 def version = details.id.version
- *                 // assuming status is last part of version string
- *                 details.status = version.substring(version.lastIndexOf("-") + 1)
- *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
- *             }
- *         }
+ *         // Apply the status rule to all components
+ *         all(StatusRule)
  *
- *         // Treat all components in the module "org.foo:bar" as changing
- *         withModule("org.foo:bar") { ComponentMetadataDetails details -&gt;
- *             details.changing = true
- *         }
+ *         // Apply the changing rule to the module "org.foo:bar"
+ *         withModule("org.foo:bar", ChangingRule)
  *     }
  * }
  * </pre>
  *
  * @since 1.8
  */
-@Incubating
 public interface ComponentMetadataHandler {
     /**
      * Adds a rule action that may modify the metadata of any resolved software component.
@@ -63,6 +73,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
@@ -83,6 +94,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Closure<?> rule);
 
     /**
@@ -100,6 +112,7 @@ public interface ComponentMetadataHandler {
      * @param ruleSource  the rule source object to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Object ruleSource);
 
     /**
@@ -110,6 +123,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule);
 
     /**
@@ -122,6 +136,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
@@ -131,6 +146,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
 
     /**
@@ -142,6 +158,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Closure<?> rule);
 
     /**
@@ -153,6 +170,7 @@ public interface ComponentMetadataHandler {
      * @param ruleSource the rule source object to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
     /**
@@ -164,6 +182,7 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule);
 
     /**
@@ -175,5 +194,6 @@ public interface ComponentMetadataHandler {
      *
      * @since 4.9
      */
+    @Incubating
     ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 }
