@@ -46,10 +46,6 @@ import kotlin.reflect.KClass
 
 
 internal
-typealias KotlinScript = () -> Unit
-
-
-internal
 data class PluginsBlockMetadata(val lineNumber: Int)
 
 
@@ -72,7 +68,7 @@ class KotlinScriptSource(val source: ScriptSource) {
 
 
 internal
-class KotlinBuildScriptCompiler(
+class KotlinScriptCompiler(
     private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
     private val scriptSource: KotlinScriptSource,
@@ -133,7 +129,7 @@ class KotlinBuildScriptCompiler(
         }
 
     private
-    fun asKotlinScript(script: () -> Unit) = script
+    fun asKotlinScript(script: KotlinScript) = script
 
     private
     fun prepareForCompilation() {
