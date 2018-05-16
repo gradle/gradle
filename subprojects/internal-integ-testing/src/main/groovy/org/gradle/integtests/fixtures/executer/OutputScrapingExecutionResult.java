@@ -51,6 +51,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final LogContent error;
     private final LogContent mainContent;
     private final LogContent postBuild;
+    private final LogContent errorContent;
     private GroupedOutputFixture groupedOutputFixture;
     private Set<String> tasks;
 
@@ -91,6 +92,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
+        this.errorContent = error.removeAnsiChars();
     }
 
     public String getOutput() {
@@ -194,7 +196,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput, "Error output");
+        return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
     }
 
     public String getError() {

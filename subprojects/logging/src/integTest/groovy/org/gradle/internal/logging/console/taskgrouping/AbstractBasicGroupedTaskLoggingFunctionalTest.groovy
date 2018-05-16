@@ -59,6 +59,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         then:
         result.groupedOutput.taskCount == 3
         if (errorsShouldAppearOnStdout()) {
+            // both stdout and stderr are attached to the console
             assert result.groupedOutput.task(':1:log').output == "Error from 1\nOutput from 1\nDone with 1\nDone with 1"
             assert result.groupedOutput.task(':2:log').output == "Error from 2\nOutput from 2\nDone with 2\nDone with 2"
             assert result.groupedOutput.task(':3:log').output == "Error from 3\nOutput from 3\nDone with 3\nDone with 3"

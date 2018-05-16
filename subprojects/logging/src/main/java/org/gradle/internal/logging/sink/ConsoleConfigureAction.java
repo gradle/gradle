@@ -33,6 +33,7 @@ public class ConsoleConfigureAction {
     public static final String CONSOLE_BOTH = "both";
     public static final String CONSOLE_NEITHER = "neither";
     public static final String CONSOLE_STDOUT_ONLY = "stdout";
+    public static final String CONSOLE_STDERR_ONLY = "stderr";
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Auto) {
@@ -78,6 +79,8 @@ public class ConsoleConfigureAction {
                 return TestConsoleMetadata.NEITHER;
             } else if (testConsole.equals(CONSOLE_STDOUT_ONLY)) {
                 return TestConsoleMetadata.STDOUT_ONLY;
+            } else if (testConsole.equals(CONSOLE_STDERR_ONLY)) {
+                return TestConsoleMetadata.STDERR_ONLY;
             }
         }
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);

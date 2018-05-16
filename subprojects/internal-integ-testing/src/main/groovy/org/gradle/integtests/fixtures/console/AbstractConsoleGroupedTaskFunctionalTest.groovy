@@ -39,7 +39,11 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
 
     boolean errorsShouldAppearOnStdout() {
         // If stderr is attached to the console or if we'll use the fallback console
-        return consoleAttachment.isStderrAttached() || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose))
+        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || usesFallbackConsole()
+    }
+
+    boolean usesFallbackConsole() {
+        return consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose)
     }
 
     abstract ConsoleOutput getConsoleType()

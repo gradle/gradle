@@ -49,7 +49,6 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;

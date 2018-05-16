@@ -1411,6 +1411,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_NEITHER);
             case ATTACHED_STDOUT_ONLY:
                 return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+            case ATTACHED_STDERR_ONLY:
+                return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDERR_ONLY);
             default:
                 throw new IllegalArgumentException();
         }
@@ -1418,6 +1420,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private boolean errorsShouldAppearOnStdout() {
         // If stderr is attached to the console or if we'll use the fallback console
-        return consoleAttachment.isStderrAttached() || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
+        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
     }
 }

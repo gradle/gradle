@@ -23,7 +23,8 @@ public enum ConsoleAttachment {
     NOT_ATTACHED("not attached to a console", null),
     ATTACHED("console attached to both stdout and stderr", TestConsoleMetadata.BOTH),
     ATTACHED_NEITHER("console detected but not attached to either stdout or stderr", TestConsoleMetadata.NEITHER),
-    ATTACHED_STDOUT_ONLY("console attached to stdout only", TestConsoleMetadata.STDOUT_ONLY);
+    ATTACHED_STDOUT_ONLY("console attached to stdout only", TestConsoleMetadata.STDOUT_ONLY),
+    ATTACHED_STDERR_ONLY("console attached to stderr only", TestConsoleMetadata.STDERR_ONLY);
 
     private final String description;
     ConsoleMetaData consoleMetaData;

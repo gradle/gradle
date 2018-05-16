@@ -17,7 +17,10 @@
 package org.gradle.internal.nativeintegration.console;
 
 public enum TestConsoleMetadata implements ConsoleMetaData {
-    BOTH(true, true), NEITHER(false, false), STDOUT_ONLY(true, false);
+    BOTH(true, true),
+    NEITHER(false, false),
+    STDOUT_ONLY(true, false),
+    STDERR_ONLY(false, true);
 
     private final boolean attachedToStdout;
     private final boolean attachedToStderr;

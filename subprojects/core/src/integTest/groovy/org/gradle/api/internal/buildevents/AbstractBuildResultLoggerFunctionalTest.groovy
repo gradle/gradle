@@ -42,7 +42,7 @@ abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractConsoleGr
         fails('fail')
 
         then:
-        failure.assertHasErrorOutput(failureMessage)
+        failure.hasErrorOutput(failureMessage)
     }
 
     def "Failure message is logged with appropriate styling"() {
@@ -54,7 +54,7 @@ abstract class AbstractBuildResultLoggerFunctionalTest extends AbstractConsoleGr
         fails('fail')
 
         then:
-        failure.assertHasErrorOutput(failureMessage)
+        failure.hasErrorOutput(failureMessage)
     }
 
     def "Success message is logged with appropriate styling"() {
