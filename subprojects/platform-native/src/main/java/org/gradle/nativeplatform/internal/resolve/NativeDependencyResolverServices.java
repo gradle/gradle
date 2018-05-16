@@ -17,15 +17,16 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.internal.prebuilt.PrebuiltLibraryBinaryLocator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NativeDependencyResolverServices {
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectModelResolver projectModelResolver, Instantiator instantiator) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(projectModelResolver));
+        locators.add(new ProjectLibraryBinaryLocator(projectModelResolver, instantiator));
         locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
         return new CachingLibraryBinaryLocator(new ChainedLibraryBinaryLocator(locators));
     }

@@ -61,8 +61,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
-
-    private final Instantiator instantiator;
     private final Namer<? super T> namer;
     private final Index<T> index;
 
@@ -73,8 +71,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
 
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store);
-        this.instantiator = instantiator;
+        super(type, store, instantiator);
         this.namer = namer;
         this.index = new UnfilteredIndex<T>();
         index();
@@ -87,8 +84,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
-        super(type, store, eventRegister);
-        this.instantiator = instantiator;
+        super(type, store, eventRegister, instantiator);
         this.namer = namer;
         this.index = index;
     }
@@ -202,10 +198,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return (Namer) this.namer;
     }
 
-    protected Instantiator getInstantiator() {
-        return instantiator;
-    }
-
     protected <S extends T> Index<S> filteredIndex(CollectionFilter<S> filter) {
         return index.filter(filter);
     }
@@ -214,6 +206,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
      * Creates a filtered version of this collection.
      */
     protected <S extends T> DefaultNamedDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
+        Instantiator instantiator = getInstantiator();
         return instantiator.newInstance(DefaultNamedDomainObjectCollection.class, this, filter, instantiator, namer);
     }
 

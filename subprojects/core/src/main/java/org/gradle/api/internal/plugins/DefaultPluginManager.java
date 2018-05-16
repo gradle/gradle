@@ -62,7 +62,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
-        this.pluginContainer = new DefaultPluginContainer(pluginRegistry, this);
+        this.pluginContainer = instantiator.newInstance(DefaultPluginContainer.class, pluginRegistry, this, instantiator);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -199,7 +199,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
-            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class);
+            pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, instantiator);
             idMappings.put(pluginId, pluginsForId);
             for (PluginImplementation<?> plugin : plugins.values()) {
                 if (plugin.isAlsoKnownAs(pluginId)) {

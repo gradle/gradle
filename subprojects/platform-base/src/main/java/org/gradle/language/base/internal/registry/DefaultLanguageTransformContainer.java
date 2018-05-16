@@ -18,10 +18,11 @@ package org.gradle.language.base.internal.registry;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultLanguageTransformContainer extends DefaultDomainObjectSet<LanguageTransform<?, ?>> implements LanguageTransformContainer {
-    public DefaultLanguageTransformContainer() {
-        super(getLanguageTransformType());
+    public DefaultLanguageTransformContainer(Instantiator instantiator) {
+        super(getLanguageTransformType(), instantiator);
     }
 
     private static Class<LanguageTransform<?, ?>> getLanguageTransformType() {

@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -29,9 +31,11 @@ import javax.annotation.Nullable;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
+    private final Instantiator instantiator;
 
-    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver) {
+    public ProjectLibraryBinaryLocator(ProjectModelResolver projectModelResolver, Instantiator instantiator) {
         this.projectModelResolver = projectModelResolver;
+        this.instantiator = instantiator;
     }
 
     // Converts the binaries of a project library into regular binary instances
@@ -49,7 +53,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
             return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
-        DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
+        DomainObjectSet<NativeLibraryBinary> binaries = Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectSet.class, NativeLibraryBinary.class, instantiator));
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.collections.IndexedElementSource;
 import org.gradle.api.internal.collections.ListElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectList<T> {
+    @SuppressWarnings("unused")
     public DefaultNamedDomainObjectList(DefaultNamedDomainObjectList<? super T> objects, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
         super(objects, filter, instantiator, namer);
     }
@@ -130,12 +132,17 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
 
     @Override
     public NamedDomainObjectList<T> matching(Spec<? super T> spec) {
-        return new DefaultNamedDomainObjectList<T>(this, createFilter(spec), getInstantiator(), getNamer());
+        return filtered(createFilter(spec));
     }
 
     @Override
     public <S extends T> NamedDomainObjectList<S> withType(Class<S> type) {
-        return new DefaultNamedDomainObjectList<S>(this, createFilter(type), getInstantiator(), getNamer());
+        return filtered(createFilter(type));
+    }
+
+    protected <S extends T> DefaultNamedDomainObjectList<S> filtered(CollectionFilter<S> filter) {
+        Instantiator instantiator = getInstantiator();
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultNamedDomainObjectList.class, this, filter, instantiator, getNamer()));
     }
 
     @Override

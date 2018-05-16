@@ -24,6 +24,8 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,10 +44,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
     private final DefaultDomainObjectSet<T> backingSet;
 
-    public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
-        //noinspection unchecked
-        DefaultDomainObjectSet<T> backingSet = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>());
+    public static <T> CompositeDomainObjectSet<T> create(Instantiator instantiator, Class<T> type, DomainObjectCollection<? extends T>... collections) {
+        DefaultDomainObjectSet<T> backingSet = Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectSet.class, type, new DomainObjectCompositeCollection<T>(), instantiator));
+        // TODO: Does this need to be decorated too?
         CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(backingSet);
+
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }

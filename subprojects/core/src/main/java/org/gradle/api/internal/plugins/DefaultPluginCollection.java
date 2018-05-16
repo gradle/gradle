@@ -23,18 +23,22 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 
 class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
-    DefaultPluginCollection(Class<T> type) {
-        super(type);
+    DefaultPluginCollection(Class<T> type, Instantiator instantiator) {
+        super(type, instantiator);
     }
 
-    private DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter) {
-        super(collection, filter);
+    @SuppressWarnings("unused")
+    DefaultPluginCollection(DefaultPluginCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator) {
+        super(collection, filter, instantiator);
     }
 
     protected <S extends T> DefaultPluginCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultPluginCollection<S>(this, filter);
+        Instantiator instantiator = getInstantiator();
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultPluginCollection.class, this, filter, instantiator));
     }
 
     public <S extends T> PluginCollection<S> withType(Class<S> type) {

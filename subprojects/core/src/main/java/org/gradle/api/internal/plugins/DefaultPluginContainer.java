@@ -23,6 +23,7 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.util.Collection;
@@ -39,8 +40,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private final PluginRegistry pluginRegistry;
     private final PluginManagerInternal pluginManager;
 
-    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager) {
-        super(Plugin.class);
+    public DefaultPluginContainer(PluginRegistry pluginRegistry, final PluginManagerInternal pluginManager, Instantiator instantiator) {
+        super(Plugin.class, instantiator);
         this.pluginRegistry = pluginRegistry;
         this.pluginManager = pluginManager;
     }

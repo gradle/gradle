@@ -45,6 +45,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.type.SignatureType;
 
@@ -89,9 +90,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     private Signatory signatory;
 
     private boolean required = true;
-    private final DefaultDomainObjectSet<Signature> signatures = new DefaultDomainObjectSet<Signature>(Signature.class);
+    private final DefaultDomainObjectSet<Signature> signatures;
 
     public Sign() {
+        signatures = new DefaultDomainObjectSet<Signature>(Signature.class, getInstantiator());
+
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(new Spec<Task>() {
             @Override
@@ -354,6 +357,12 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     @Inject
     protected FileCollectionFactory getFileCollectionFactory() {
+        // Implementation provided by decoration
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Instantiator getInstantiator() {
         // Implementation provided by decoration
         throw new UnsupportedOperationException();
     }

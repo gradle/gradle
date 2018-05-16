@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
@@ -38,8 +39,8 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
-    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser, FileCollectionFactory fileCollectionFactory) {
-        super(MavenArtifact.class);
+    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        super(MavenArtifact.class, instantiator);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());

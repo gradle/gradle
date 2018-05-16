@@ -62,7 +62,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
     private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
-    private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    private final DomainObjectSet<LanguageSourceSet> inputSourceSets;
     private final BinaryTasksCollection tasks;
     private final MutableModelNode componentNode;
     private final MutableModelNode sources;
@@ -93,7 +93,8 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         super(validate(info).componentId, info.publicType);
         this.publicType = info.publicType;
         this.componentNode = info.componentNode;
-        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
+        this.inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class, info.instantiator);
+        this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory, info.instantiator);
 
         MutableModelNode modelNode = info.modelNode;
         sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODELTYPE, "sources");

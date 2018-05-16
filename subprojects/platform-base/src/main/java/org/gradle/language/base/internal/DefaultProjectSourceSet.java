@@ -16,11 +16,12 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 
 public class DefaultProjectSourceSet extends DefaultDomainObjectSet<LanguageSourceSet> implements ProjectSourceSet {
-    public DefaultProjectSourceSet() {
-        super(LanguageSourceSet.class);
+    public DefaultProjectSourceSet(Instantiator instantiator) {
+        super(LanguageSourceSet.class, instantiator);
     }
 }

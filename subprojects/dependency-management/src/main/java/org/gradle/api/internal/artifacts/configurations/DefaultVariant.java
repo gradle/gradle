@@ -32,6 +32,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public class DefaultVariant implements ConfigurationVariantInternal {
@@ -45,12 +46,13 @@ public class DefaultVariant implements ConfigurationVariantInternal {
                           AttributeContainerInternal parentAttributes,
                           NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                           FileCollectionFactory fileCollectionFactory,
-                          ImmutableAttributesFactory cache) {
+                          ImmutableAttributesFactory cache,
+                          Instantiator instantiator) {
         this.parentDisplayName = parentDisplayName;
         this.name = name;
         attributes = cache.mutable(parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
-        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class), fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class, instantiator), fileCollectionFactory);
     }
 
     @Override

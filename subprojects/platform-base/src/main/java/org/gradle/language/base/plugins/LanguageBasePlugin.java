@@ -53,7 +53,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
         @Model
         ProjectSourceSet sources(Instantiator instantiator) {
-            return instantiator.newInstance(DefaultProjectSourceSet.class);
+            return instantiator.newInstance(DefaultProjectSourceSet.class, instantiator);
         }
     }
 }

@@ -189,7 +189,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         @Override
         public ConfigurationVariant create(String name) {
             if (canCreate) {
-                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory);
+                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, instantiator);
             } else {
                 throw new InvalidUserCodeException("Cannot create variant '" + name + "' after " + displayName + " has been resolved");
             }

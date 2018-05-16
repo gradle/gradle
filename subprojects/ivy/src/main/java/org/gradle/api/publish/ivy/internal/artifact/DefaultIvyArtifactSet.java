@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyArtifactSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
@@ -39,8 +40,8 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
-    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser, FileCollectionFactory fileCollectionFactory) {
-        super(IvyArtifact.class);
+    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        super(IvyArtifact.class, instantiator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());

@@ -32,6 +32,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -44,13 +45,14 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     private final Class<? extends T> type;
     private final CollectionEventRegister<T> eventRegister;
     private final ElementSource<T> store;
+    private final Instantiator instantiator;
     private ImmutableActionSet<Void> mutateAction = ImmutableActionSet.empty();
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store) {
-        this(type, store, new BroadcastingCollectionEventRegister<T>(type));
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator) {
+        this(type, store, new BroadcastingCollectionEventRegister<T>(type), instantiator);
     }
 
-    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
+    protected DefaultDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator) {
         this.type = type;
         this.store = store;
         this.eventRegister = eventRegister;
@@ -60,10 +62,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 doAdd(provider.get());
             }
         });
+        this.instantiator = instantiator;
     }
 
-    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, CollectionFilter<T> filter) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
+    @SuppressWarnings("unused")
+    protected DefaultDomainObjectCollection(DefaultDomainObjectCollection<? super T> collection, Instantiator instantiator, CollectionFilter<T> filter) {
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), instantiator);
+    }
+
+    protected Instantiator getInstantiator() {
+        return instantiator;
     }
 
     public Class<? extends T> getType() {
@@ -91,7 +99,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     protected <S extends T> DefaultDomainObjectCollection<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectCollection<S>(this, filter);
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectCollection.class, this, instantiator, filter));
     }
 
     protected <S extends T> ElementSource<S> filteredStore(final CollectionFilter<S> filter) {

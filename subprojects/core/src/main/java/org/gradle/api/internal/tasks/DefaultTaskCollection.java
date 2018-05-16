@@ -38,6 +38,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         this.project = project;
     }
 
+    @SuppressWarnings("unused")
     public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
         super(collection, filter, instantiator, NAMER);
         this.project = project;

@@ -119,6 +119,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final Instantiator instantiator;
     private MavenArtifact pomArtifact;
     private MavenArtifact moduleMetadataArtifact;
     private Task moduleDescriptorGenerator;
@@ -132,14 +133,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory) {
+        this.instantiator = instantiator;
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory);
-        metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory);
-        derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory);
-        publishableArtifacts = new CompositePublicationArtifactSet<MavenArtifact>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, instantiator);
+        metadataArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, instantiator);
+        derivedArtifacts = new DefaultPublicationArtifactSet<MavenArtifact>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, instantiator);
+        publishableArtifacts = new CompositePublicationArtifactSet<MavenArtifact>(instantiator, MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
         this.featurePreviews = featurePreviews;
     }
@@ -414,7 +416,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 return artifact.getFile().exists();
             }
         });
-        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
+        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(instantiator, MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
         return new MavenNormalizedPublication(name, pom.getPackaging(), getPomArtifact(), projectIdentity, artifactsToBePublished, determineMainArtifact());
     }
 

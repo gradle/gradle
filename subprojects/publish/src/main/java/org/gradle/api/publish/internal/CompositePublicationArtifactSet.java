@@ -21,13 +21,14 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.internal.reflect.Instantiator;
 
 public class CompositePublicationArtifactSet<T extends PublicationArtifact> extends DelegatingDomainObjectSet<T> implements PublicationArtifactSet<T> {
 
     private final FileCollection files;
 
-    public CompositePublicationArtifactSet(Class<T> type, PublicationArtifactSet<T>... artifactSets) {
-        super(CompositeDomainObjectSet.create(type, artifactSets));
+    public CompositePublicationArtifactSet(Instantiator instantiator, Class<T> type, PublicationArtifactSet<T>... artifactSets) {
+        super(CompositeDomainObjectSet.create(instantiator, type, artifactSets));
         FileCollection[] fileCollections = new FileCollection[artifactSets.length];
         for (int i = 0; i < artifactSets.length; i++) {
             fileCollections[i] = artifactSets[i].getFiles();

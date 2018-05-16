@@ -106,6 +106,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final FeaturePreviews featurePreviews;
+    private final Instantiator instantiator;
     private IvyArtifact ivyDescriptorArtifact;
     private Task moduleDescriptorGenerator;
     private IvyArtifact gradleModuleDescriptorArtifact;
@@ -120,16 +121,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews) {
         this.name = name;
+        this.instantiator = instantiator;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.featurePreviews = featurePreviews;
-        mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
-        metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory);
-        derivedArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory);
-        publishableArtifacts = new CompositePublicationArtifactSet<IvyArtifact>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
-        ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
+        mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, instantiator);
+        metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, instantiator);
+        derivedArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, instantiator);
+        publishableArtifacts = new CompositePublicationArtifactSet<IvyArtifact>(instantiator, IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, instantiator);
         descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this);
     }
 
@@ -387,7 +389,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return artifact.getFile().exists();
             }
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
+        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(instantiator, IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
         return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
     }
 

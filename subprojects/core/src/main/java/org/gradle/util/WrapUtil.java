@@ -58,7 +58,7 @@ public class WrapUtil {
      * Wraps the given items in a mutable domain object set.
      */
     public static <T> DomainObjectSet<T> toDomainObjectSet(Class<T> type, T... items) {
-        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type);
+        DefaultDomainObjectSet<T> set = new DefaultDomainObjectSet<T>(type, DirectInstantiator.INSTANCE);
         set.addAll(Arrays.asList(items));
         return set;
     }

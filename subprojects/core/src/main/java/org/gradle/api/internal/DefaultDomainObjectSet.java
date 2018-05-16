@@ -23,31 +23,34 @@ import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSource;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
-    public DefaultDomainObjectSet(Class<? extends T> type) {
-        super(type, new IterationOrderRetainingSetElementSource<T>());
+    public DefaultDomainObjectSet(Class<? extends T> type, Instantiator instantiator) {
+        super(type, new IterationOrderRetainingSetElementSource<T>(), instantiator);
     }
 
-    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store) {
-        super(type, store);
+    public DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator) {
+        super(type, store, instantiator);
     }
 
-    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter) {
-        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter));
+    protected DefaultDomainObjectSet(DefaultDomainObjectSet<? super T> store, CollectionFilter<T> filter, Instantiator instantiator) {
+        this(filter.getType(), store.filteredStore(filter), store.filteredEvents(filter), instantiator);
     }
 
-    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister) {
-        super(type, store, eventRegister);
+    protected DefaultDomainObjectSet(Class<? extends T> type, ElementSource<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator) {
+        super(type, store, eventRegister, instantiator);
     }
 
     @Override
     protected <S extends T> DefaultDomainObjectSet<S> filtered(CollectionFilter<S> filter) {
-        return new DefaultDomainObjectSet<S>(this, filter);
+        Instantiator instantiator = getInstantiator();
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultDomainObjectSet.class, this, filter, instantiator));
     }
 
     @Override

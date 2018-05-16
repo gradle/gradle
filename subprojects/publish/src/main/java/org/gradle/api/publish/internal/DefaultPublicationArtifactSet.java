@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -33,8 +34,8 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
     private final String name;
     private final FileCollection files;
 
-    public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory) {
-        super(type);
+    public DefaultPublicationArtifactSet(Class<T> type, String name, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        super(type, instantiator);
         this.name = name;
         files = fileCollectionFactory.create(new AbstractTaskDependency() {
             @Override

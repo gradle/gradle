@@ -25,7 +25,7 @@ public class DefaultVisualStudioExtension implements VisualStudioExtensionIntern
     private final VisualStudioProjectRegistry projectRegistry;
 
     public DefaultVisualStudioExtension(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry) {
-        this.projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator, ideArtifactRegistry);
+        this.projectRegistry = instantiator.newInstance(VisualStudioProjectRegistry.class, fileResolver, instantiator, ideArtifactRegistry);
     }
 
     @Override

@@ -17,9 +17,10 @@
 package org.gradle.api.publish.ivy.internal.dependency;
 
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultIvyDependencySet extends DefaultDomainObjectSet<IvyDependencyInternal> {
-    public DefaultIvyDependencySet() {
-        super(IvyDependencyInternal.class);
+    public DefaultIvyDependencySet(Instantiator instantiator) {
+        super(IvyDependencyInternal.class, instantiator);
     }
 }
