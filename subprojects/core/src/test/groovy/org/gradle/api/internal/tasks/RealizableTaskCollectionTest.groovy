@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.TaskCollection
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
@@ -25,6 +26,8 @@ import spock.lang.Specification
 
 class RealizableTaskCollectionTest extends Specification {
 
+    def instantiator = DirectInstantiator.INSTANCE
+    
     def "realizes a nodes link of a given type"() {
         given:
         ModelRegistryHelper registry = new ModelRegistryHelper()
@@ -37,7 +40,7 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path)).realizeRuleTaskTypes()
+        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path), instantiator).realizeRuleTaskTypes()
 
         then:
         registry.state(taskPath) == ModelNode.State.GraphClosed
@@ -61,7 +64,7 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        def collection = new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path))
+        def collection = new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path), instantiator)
         collection.realizeRuleTaskTypes()
 
         then:
@@ -82,7 +85,7 @@ class RealizableTaskCollectionTest extends Specification {
 
 
         when:
-        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path))
+        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path), instantiator)
         collection.realizeRuleTaskTypes()
         collection.realizeRuleTaskTypes()
 
