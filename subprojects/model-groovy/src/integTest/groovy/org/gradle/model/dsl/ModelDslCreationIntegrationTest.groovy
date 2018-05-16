@@ -104,7 +104,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "echo"
-        failure.assertHasDescription('Exception thrown while executing model rule: thing1(Thing) { ... } @ build.gradle line 9, column 17')
+        failure.assertHasCause('Exception thrown while executing model rule: thing1(Thing) { ... } @ build.gradle line 9, column 17')
         failure.assertHasCause('No such property: unknown for class: Thing')
     }
 
