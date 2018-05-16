@@ -61,17 +61,16 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     /**
      * Locates a task by type and name, without triggering its creation or configuration, failing if there is no such object.
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param type The task type
      * @param name The task name
      * @param <T> The task type
      * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
      * @throws InvalidUserDataException If a task with the given name and type is not defined.
-     * @since 4.8
+     * @since 4.9
      */
     @Incubating
-    <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException;
+    <T extends Task> TaskProvider<T> get(Class<T> type, String name) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method

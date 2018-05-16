@@ -360,7 +360,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.addLater(provider1)
 
         when:
-        container.configureEachLater(action)
+        container.configureEach(action)
 
         then:
         0 * _
@@ -399,7 +399,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         when:
-        container.configureEachLater(action)
+        container.configureEach(action)
 
         then:
         1 * action.execute(a)
@@ -410,7 +410,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def action = Mock(Action)
 
         given:
-        container.configureEachLater(action)
+        container.configureEach(action)
 
         when:
         container.add(a)
@@ -466,7 +466,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def filtered = container.withType(type)
 
         when:
-        filtered.configureEachLater(action)
+        filtered.configureEach(action)
 
         then:
         0 * provider1.get()
@@ -499,7 +499,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def filtered = container.withType(type)
 
         when:
-        filtered.configureEachLater(action)
+        filtered.configureEach(action)
 
         then:
         0 * provider1.get()
@@ -532,7 +532,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def filtered = container.matching { it == b }
 
         when:
-        filtered.configureEachLater(action)
+        filtered.configureEach(action)
 
         then:
         0 * provider1.get()
