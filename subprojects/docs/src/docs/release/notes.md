@@ -360,6 +360,7 @@ We would like to thank the following community members for making contributions 
 - [Emmanuel Debanne](https://github.com/debanne) Upgrade CodeNarc to version 1.1 (gradle/gradle#4917)
 - [Alexandre Bouthinon](https://github.com/alexandrebouthinon) Fix NullPointerException (gradle/gradle#5199)
 - [Paul Eddie](https://github.com/paul-eeoc) Fix typo (gradle/gradle#5180)
+
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->
