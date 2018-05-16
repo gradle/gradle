@@ -16,13 +16,20 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.cache.internal.FixedAgeOldestCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
+import static java.util.concurrent.TimeUnit.DAYS
+import static java.util.concurrent.TimeUnit.MILLISECONDS
+import static java.util.concurrent.TimeUnit.SECONDS
+
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    private final static long MAX_CACHE_AGE_IN_DAYS = FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -1346,6 +1353,88 @@ allprojects {
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
+    def "cleans up cache"() {
+        given:
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer)
+                    }
+                }
+                task resolve {
+                    def artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                    inputs.files artifacts.artifactFiles
+                    doLast {
+                        println "files: " + artifacts.artifactFiles.collect { it.name }
+                        println "ids: " + artifacts.collect { it.id.displayName }
+                        println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    }
+                }
+            }
+
+            class FileSizer extends ArtifactTransform {
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \$input.name to \$output.name into \$outputDirectory"
+                    output.text = String.valueOf(input.length())
+                    return [output]
+                }
+            }
+
+            project(':lib') {
+                task jar1(type: Jar) {            
+                    archiveName = 'lib1.jar'
+                }
+                task jar2(type: Jar) {            
+                    archiveName = 'lib2.jar'
+                }
+                artifacts {
+                    compile jar1
+                    compile jar2
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+        """
+
+        when:
+        createExecuter()
+        succeeds ":app:resolve"
+
+        then:
+        outputContains("files: [lib1.jar.txt, lib2.jar.txt]")
+        outputContains("ids: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
+        outputContains("components: [project :lib, project :lib]")
+        output.count("Transforming") == 2
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        isTransformed("lib2.jar", "lib2.jar.txt")
+
+        and:
+        def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt").assertExists()
+
+        when:
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        markForCleanup(gcFile)
+        markForCleanup(outputDir1)
+        succeeds "tasks"
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+    }
+
     void isTransformed(String from, String to) {
         def dirs = outputDirs(from, to)
         if (dirs.size() == 0) {
@@ -1367,7 +1456,7 @@ allprojects {
 
     List<TestFile> outputDirs(String from, String to) {
         List<TestFile> dirs = []
-        def baseDir = executer.gradleUserHomeDir.file("/caches/transforms-1/files-1.1/" + from).absolutePath + File.separator
+        def baseDir = cacheDir.file("files-1.1", from).absolutePath + File.separator
         def pattern = Pattern.compile("Transforming " + Pattern.quote(from) + " to " + Pattern.quote(to) + " into (" + Pattern.quote(baseDir) + "\\w+)")
         for (def line : output.readLines()) {
             def matcher = pattern.matcher(line)
@@ -1376,6 +1465,18 @@ allprojects {
             }
         }
         return dirs
+    }
+
+    TestFile getGcFile() {
+        return cacheDir.file("gc.properties")
+    }
+
+    TestFile getCacheDir() {
+        return executer.gradleUserHomeDir.file("caches", "transforms-1")
+    }
+
+    void markForCleanup(File file) {
+        file.lastModified = System.currentTimeMillis() - DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS + 1)
     }
 
 }

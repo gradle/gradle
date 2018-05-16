@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
@@ -28,6 +29,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.NonReservedCacheFileFilter;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -44,6 +47,14 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +66,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
+    private final File filesOutputDirectory;
     private final FileStore<String> fileStore;
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
@@ -63,10 +75,11 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     public DefaultTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
-        File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
         cache = cacheRepository
             .cache(transformsStoreDirectory)
+            .withCleanup(new TransformedFileCacheCleanup())
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
@@ -98,7 +111,13 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     }
 
     @Override
-    public List<File> getResult(final File inputFile, HashCode inputsHash, final BiFunction<List<File>, File, File> transformer) {
+    public List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
+        List<File> result = getOrLoadResult(inputFile, inputsHash, transformer);
+        markAccessedByTouchingTopmostOutputDirectory(result);
+        return result;
+    }
+
+    private List<File> getOrLoadResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
         final CacheKey resultHash = getCacheKey(inputFile, inputsHash);
         List<File> files = resultHashToResult.get(resultHash);
         if (files != null) {
@@ -159,6 +178,29 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private CacheKey getCacheKey(File inputFile, HashCode inputsHash) {
         Snapshot inputFileSnapshot = fileSystemSnapshotter.snapshotAll(inputFile);
         return new CacheKey(inputFileSnapshot, inputsHash);
+    }
+
+    @SuppressWarnings("Since15")
+    private void markAccessedByTouchingTopmostOutputDirectory(List<File> files) {
+        if (files.isEmpty()) {
+            return;
+        }
+        Path baseDir = filesOutputDirectory.toPath();
+        // all files share the same output directory so only taking into account the first one
+        Path relativePath = baseDir.relativize(files.get(0).toPath());
+        if (relativePath.getNameCount() >= 2) {
+            // touch output dir of accessed files so cache cleanup does not evict them
+            touch(baseDir.resolve(relativePath.subpath(0, 2)));
+        }
+    }
+
+    @SuppressWarnings("Since15")
+    private static void touch(Path file) {
+        try {
+            Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
@@ -222,6 +264,30 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         public void execute(File outputDir) {
             outputDir.mkdirs();
             result = ImmutableList.copyOf(transformer.apply(inputFile, outputDir));
+        }
+    }
+
+    private class TransformedFileCacheCleanup extends FixedAgeOldestCacheCleanup {
+
+        TransformedFileCacheCleanup() {
+            super(DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
+        }
+
+        @Override
+        protected File[] findEligibleFiles(PersistentCache persistentCache) {
+            List<File> result = new ArrayList<File>();
+            FileFilter filter = new NonReservedCacheFileFilter(persistentCache);
+            for (File fileInBaseDir : listFiles(filesOutputDirectory, filter)) {
+                if (fileInBaseDir.isDirectory()) {
+                    result.addAll(listFiles(fileInBaseDir, filter));
+                }
+            }
+            return result.toArray(new File[0]);
+        }
+
+        private List<File> listFiles(File baseDir, FileFilter filter) {
+            File[] files = baseDir.listFiles(filter);
+            return files == null ? Collections.<File>emptyList() : Arrays.asList(files);
         }
     }
 }

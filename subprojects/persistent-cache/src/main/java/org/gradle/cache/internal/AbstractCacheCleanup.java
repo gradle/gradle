@@ -25,14 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.util.List;
 
 public abstract class AbstractCacheCleanup implements CleanupAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCacheCleanup.class);
 
     @Override
-    public void clean(PersistentCache persistentCache) {
+    public final void clean(PersistentCache persistentCache) {
         File[] filesEligibleForCleanup = findEligibleFiles(persistentCache);
 
         if (filesEligibleForCleanup.length > 0) {
@@ -46,19 +45,8 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
 
     protected abstract List<File> findFilesToDelete(PersistentCache persistentCache, File[] filesEligibleForCleanup);
 
-    private static File[] findEligibleFiles(final PersistentCache persistentCache) {
-        // TODO: This doesn't descend subdirectories.
-        return persistentCache.getBaseDir().listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return !isReserved(persistentCache, file);
-            }
-        });
-    }
-
-    @VisibleForTesting
-    static boolean isReserved(PersistentCache persistentCache, File file) {
-        return persistentCache.getReservedCacheFiles().contains(file);
+    protected File[] findEligibleFiles(PersistentCache persistentCache) {
+        return persistentCache.getBaseDir().listFiles(new NonReservedCacheFileFilter(persistentCache));
     }
 
     @VisibleForTesting
