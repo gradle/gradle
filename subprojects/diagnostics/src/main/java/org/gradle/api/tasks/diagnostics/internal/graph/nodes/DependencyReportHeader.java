@@ -17,19 +17,24 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionReasonHelper.getReasonDescription;
-
-public class DependencyReportHeader implements RenderableDependency {
+public class DependencyReportHeader implements RenderableDependency, HasAttributes {
     private final DependencyEdge dependency;
+    private final String description;
     private final ResolvedVariantResult selectedVariant;
 
-    public DependencyReportHeader(DependencyEdge dependency, ResolvedVariantResult extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult extraDetails) {
         this.dependency = dependency;
+        this.description = description;
         this.selectedVariant = extraDetails;
     }
 
@@ -45,7 +50,7 @@ public class DependencyReportHeader implements RenderableDependency {
 
     @Override
     public String getDescription() {
-        return getReasonDescription(dependency.getReason());
+        return description;
     }
 
     @Override
@@ -61,5 +66,13 @@ public class DependencyReportHeader implements RenderableDependency {
     @Override
     public ResolvedVariantResult getResolvedVariant() {
         return selectedVariant;
+    }
+
+    @Override
+    public AttributeContainer getAttributes() {
+        ComponentSelector requested = dependency.getRequested();
+        return requested instanceof ModuleComponentSelector
+            ? ((ModuleComponentSelector) requested).getAttributes()
+            : ImmutableAttributes.EMPTY;
     }
 }
