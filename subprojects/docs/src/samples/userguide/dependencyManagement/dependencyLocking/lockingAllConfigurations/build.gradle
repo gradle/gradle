@@ -12,12 +12,10 @@ task resolveAndLockAll {
         assert gradle.startParameter.writeDependencyLocks
     }
     doLast {
-        configurations.each {
-            if (it.canBeResolved) {
-                // Any any custome filtering on the to be resolved configurations
-                it.resolve()
-            }
-        }
+        configurations.findAll {
+            // Add any custom filtering on the configurations to be resolved
+            it.canBeResolved
+        }.each { it.resolve() }
     }
 }
 //END SNIPPET resolve-all
