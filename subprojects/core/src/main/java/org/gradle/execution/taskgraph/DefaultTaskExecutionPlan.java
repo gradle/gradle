@@ -475,6 +475,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (precedingTasks.add(precedingTask)) {
                 // Any task that the preceding task must run after is also a preceding task.
                 candidateTasks.addAll(precedingTask.getMustSuccessors());
+                candidateTasks.addAll(precedingTask.getFinalizingSuccessors());
             }
         }
 
