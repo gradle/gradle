@@ -50,7 +50,7 @@ def integTestPrepare = tasks.createLater("integTestPrepare", org.gradle.gradlebu
 }
 
 tasks.withType(org.gradle.gradlebuild.test.integrationtests.IntegrationTest).configureEach { task ->
-    if (task != integTestPrepare) {
+    if (task.name != "integTestPrepare") {
         task.dependsOn(integTestPrepare)
     }
 }
