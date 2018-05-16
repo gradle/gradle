@@ -61,6 +61,6 @@ class DependencyLockingNotationConverter {
     }
 
     String convertToLockNotation(ModuleComponentIdentifier id) {
-        return id.getDisplayName();
+        return id.getGroup() + ":" + id.getModule() + ":" + id.getVersion();
     }
 }
