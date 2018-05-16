@@ -39,6 +39,12 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure assertHasFailureSummary(String context) {
+        delegate.assertHasFailureSummary(context);
+        return this;
+    }
+
+    @Override
     public ExecutionFailure assertHasCause(String description) {
         delegate.assertHasCause(description);
         return this;

@@ -109,8 +109,8 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskExecuted(":broken")
         result.assertTaskExecuted(":buildB:broken")
-        result.error.contains("Build completed with 2 failures.")
-        result.error.contains("Execution failed for task ':broken'.")
-        result.error.contains("Execution failed for task ':buildB:broken'.")
+        failure.assertHasFailureSummary("Build completed with 2 failures.")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
 }
