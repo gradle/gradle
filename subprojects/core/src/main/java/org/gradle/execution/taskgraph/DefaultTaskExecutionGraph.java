@@ -36,8 +36,8 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.Cast;
 import org.gradle.execution.TaskExecutionGraphInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -53,6 +53,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -122,13 +123,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ensurePopulated();
     }
 
-    public void execute() {
+    @Override
+    public void execute(Collection<? super Throwable> taskFailures) {
         Timer clock = Time.startTimer();
         ensurePopulated();
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new ExecuteTaskAction(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()));
+            taskPlanExecutor.process(taskExecutionPlan, new ExecuteTaskAction(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()), taskFailures);
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {

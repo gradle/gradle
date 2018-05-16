@@ -53,7 +53,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, worker)
+        executor.process(taskPlan, worker, [])
 
         then:
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
@@ -67,23 +67,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> false
         1 * taskPlan.allTasksComplete() >> true
-        1 * taskPlan.rethrowFailures()
-    }
-
-    def "rethrows task execution failure"() {
-        def failure = new RuntimeException()
-
-        given:
-        _ * taskPlan.rethrowFailures() >> { throw failure }
-
-        when:
-        executor.process(taskPlan, worker)
-
-        then:
-        def e = thrown(RuntimeException)
-        e == failure
-        1 * executorFactory.create(_) >> Mock(ManagedExecutor)
-        1 * taskPlan.allTasksComplete() >> true
+        1 * taskPlan.collectFailures([])
     }
 
     def "execution is canceled when cancellation requested"() {
@@ -97,7 +81,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         task.state >> state
 
         when:
-        executor.process(taskPlan, worker)
+        executor.process(taskPlan, worker, [])
 
         then:
         1 * taskPlan.getDisplayName() >> "task plan"
@@ -114,7 +98,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * taskPlan.cancelExecution()
         1 * taskPlan.hasWorkRemaining() >> false
         1 * taskPlan.allTasksComplete() >> true
-        1 * taskPlan.rethrowFailures()
+        1 * taskPlan.collectFailures([])
         0 * taskPlan._
     }
 }

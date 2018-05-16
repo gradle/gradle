@@ -23,6 +23,7 @@ import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -59,7 +60,10 @@ public interface TaskExecutionPlan extends Describable {
      */
     Set<Task> getFilteredTasks();
 
-    void rethrowFailures();
+    /**
+     * Collects the current set of task failures into the given collection.
+     */
+    void collectFailures(Collection<? super Throwable> failures);
 
     boolean allTasksComplete();
 

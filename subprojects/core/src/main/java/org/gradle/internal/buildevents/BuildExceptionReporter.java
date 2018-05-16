@@ -34,10 +34,12 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 /**
  * A {@link org.gradle.BuildListener} which reports the build exception, if any.
@@ -68,29 +70,18 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
 
     public void execute(Throwable failure) {
         if (failure instanceof MultipleBuildFailures) {
-            List<Throwable> flattenedFailures = new ArrayList<Throwable>();
-            flattenMultipleBuildFailures((MultipleBuildFailures) failure, flattenedFailures);
-            renderMultipleBuildExceptions(flattenedFailures);
+            List<? extends Throwable> flattenedFailures = ((MultipleBuildFailures) failure).getCauses();
+            renderMultipleBuildExceptions(failure.getMessage(), flattenedFailures);
             return;
         }
 
         renderSingleBuildException(failure);
     }
 
-    private void flattenMultipleBuildFailures(MultipleBuildFailures multipleFailures, List<Throwable> flattenedFailures) {
-        for (Throwable cause : multipleFailures.getCauses()) {
-            if (cause instanceof MultipleBuildFailures) {
-                flattenMultipleBuildFailures((MultipleBuildFailures)cause, flattenedFailures);
-            } else {
-                flattenedFailures.add(cause);
-            }
-        }
-    }
-
-    private void renderMultipleBuildExceptions(List<Throwable> flattenedFailures) {
+    private void renderMultipleBuildExceptions(String message, List<? extends Throwable> flattenedFailures) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
         output.println();
-        output.withStyle(Failure).format("FAILURE: Build completed with %s failures.", flattenedFailures.size());
+        output.withStyle(Failure).format("FAILURE: %s", message);
         output.println();
 
         for (int i = 0; i < flattenedFailures.size(); i++) {

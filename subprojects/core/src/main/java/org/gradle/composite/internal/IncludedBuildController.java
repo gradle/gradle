@@ -15,15 +15,22 @@
  */
 package org.gradle.composite.internal;
 
+import java.util.Collection;
+
 public interface IncludedBuildController {
     void queueForExecution(String taskPath);
 
     void awaitCompletion(String taskPath);
 
+    // Throws exception if failed
     boolean isComplete(String taskPath);
 
     void startTaskExecution();
-    void stopTaskExecution();
+
+    /**
+     * Awaits completion of task execution, collecting any task failures into the given collection.
+     */
+    void stopTaskExecution(Collection<? super Throwable> taskFailures);
 
     boolean populateTaskGraph();
 }

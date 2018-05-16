@@ -42,9 +42,7 @@ import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Pair;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
@@ -922,19 +920,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
-    public void rethrowFailures() {
+    public void collectFailures(Collection<? super Throwable> failures) {
         if (tasksCancelled) {
-            failureCollector.addFailure(new BuildCancelledException());
+            failures.add(new BuildCancelledException());
         }
-        if (failureCollector.getFailures().isEmpty()) {
-            return;
-        }
-
-        if (failureCollector.getFailures().size() > 1) {
-            throw new MultipleBuildFailures(failureCollector.getFailures());
-        }
-
-        throw UncheckedException.throwAsUncheckedException(failureCollector.getFailures().get(0));
+        failures.addAll(failureCollector.getFailures());
     }
 
     @Override

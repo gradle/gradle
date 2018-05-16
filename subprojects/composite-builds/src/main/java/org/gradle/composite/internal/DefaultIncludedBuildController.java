@@ -33,8 +33,10 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -49,6 +51,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     private final Map<String, TaskState> tasks = Maps.newLinkedHashMap();
     private final Set<String> tasksAdded = Sets.newHashSet();
+    private final List<Throwable> taskFailures = new ArrayList<Throwable>();
 
     // Fields guarded by lock
     private final Lock lock = new ReentrantLock();
@@ -105,8 +108,9 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     }
 
     @Override
-    public void stopTaskExecution() {
+    public void stopTaskExecution(Collection<? super Throwable> taskFailures) {
         stop();
+        taskFailures.addAll(this.taskFailures);
     }
 
     public void stop() {
@@ -278,9 +282,12 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             @Override
             public void afterExecute(Task task, org.gradle.api.tasks.TaskState state) {
                 String taskPath = task.getPath();
+                Throwable failure = state.getFailure();
                 if (tasksToExecute.contains(taskPath)) {
-                    Throwable failure = state.getFailure();
                     taskCompleted(taskPath, failure);
+                }
+                if (failure != null) {
+                    taskFailures.add(failure);
                 }
             }
         }

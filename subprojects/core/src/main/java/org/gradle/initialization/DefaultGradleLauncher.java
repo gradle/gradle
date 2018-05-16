@@ -30,6 +30,7 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -40,6 +41,7 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.util.Path;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -68,6 +70,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
     private final List<?> servicesToStop;
+    private final IncludedBuildControllers includedBuildControllers;
     private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
@@ -77,7 +80,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
                                  BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter,
-                                 BuildScopeServices buildServices, List<?> servicesToStop) {
+                                 BuildScopeServices buildServices, List<?> servicesToStop, IncludedBuildControllers includedBuildControllers) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -92,6 +95,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
+        this.includedBuildControllers = includedBuildControllers;
     }
 
     @Override
@@ -151,9 +155,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return;
         }
 
-        if (!isNestedBuild()) {
-            gradle.getServices().get(IncludedBuildControllers.class).stopTaskExecution();
-        }
+        includedBuildControllers.finishBuild();
 
         buildListener.buildFinished(result);
 
@@ -293,10 +295,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             final TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
             taskGraph.populate();
 
-            if (!isNestedBuild()) {
-                IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
-                buildControllers.populateTaskGraphs();
-            }
+            includedBuildControllers.populateTaskGraphs();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
@@ -335,12 +334,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private class ExecuteTasks implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
-            if (!isNestedBuild()) {
-                IncludedBuildControllers buildControllers = gradle.getServices().get(IncludedBuildControllers.class);
-                buildControllers.startTaskExecution();
+            includedBuildControllers.startTaskExecution();
+            List<Throwable> taskFailures = new ArrayList<Throwable>();
+            buildExecuter.execute(gradle, taskFailures);
+            includedBuildControllers.awaitTaskCompletion(taskFailures);
+            if (!taskFailures.isEmpty()) {
+                throw new MultipleBuildFailures(taskFailures);
             }
-
-            buildExecuter.execute(gradle);
         }
 
         @Override
