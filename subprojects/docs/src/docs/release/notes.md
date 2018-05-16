@@ -19,8 +19,6 @@ This allows processors with extension mechanisms to check extensions for increme
 
 New native plugins continue to improve with [better control over system include path](#better-control-over-system-include-path-for-native-compilation) for native compilation and [other improvements](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48). 
 
-This release introduces 2 new APIs that facilitate configuring tasks at creation time: APIs to create [tasks with constructor arguments](#create-tasks-with-constructor-arguments) and [immutable file collections](#immutable-file-collections).
-
 Gradle 4.8 includes Kotlin DSL 0.17.4 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time and TestKit support.
 At the same time the IntelliJ IDEA Kotlin Plugin fixed many long standing build script editing related issues.
 See details and examples in the [Kotlin DSL v0.17 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4).
