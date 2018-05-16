@@ -15,7 +15,10 @@
  */
 package org.gradle.internal.resolve.caching;
 
+import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.SnapshotSerializer;
@@ -31,6 +34,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.reflect.ConfigurableRule;
 import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -40,6 +44,7 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
 public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements CachingRuleExecutor<KEY, DETAILS, RESULT>, Closeable {
     private final static Logger LOGGER = Logging.getLogger(CrossBuildCachingRuleExecutor.class);
@@ -100,13 +105,18 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRule<DETAILS> rule) {
-        final ValueSnapshot snapshot = snapshotter.snapshot(
-            new Object[]{
-                ketToSnapshottable.transform(key),
-                rule.getRuleClass(),
-                rule.getRuleParams()
-            }
-        );
+        List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(4);
+        toBeSnapshotted.add(ketToSnapshottable.transform(key));
+        Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
+        Object[] ruleParams = rule.getRuleParams();
+
+        toBeSnapshotted.add(ruleClass);
+        toBeSnapshotted.add(ruleParams);
+        Instantiator instantiator = action.getInstantiator();
+        if (instantiator instanceof DependencyInjectingInstantiator) {
+            toBeSnapshotted.addAll(((DependencyInjectingInstantiator) instantiator).identifyInjectedServices(ruleClass, ruleParams));
+        }
+        final ValueSnapshot snapshot = snapshotter.snapshot(toBeSnapshotted);
         CachedEntry<RESULT> entry = store.get(snapshot);
         if (entry != null) {
             if (LOGGER.isDebugEnabled()) {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
@@ -57,27 +58,32 @@ public class DependencyInjectingInstantiator implements Instantiator {
         this.constructorCache = constructorCache;
     }
 
-    public <T> T newInstance(final Class<? extends T> type, Object... parameters) {
+    /**
+     * Returns the list of services that would be injected, if the class was instantiated. There's a
+     * bit of overhead here because if we need to instantiate the class later, we would re-execute the
+     * same code. However this code is going to be called only when caching is active, so hopefully the
+     * overhead is lower than executing the rule itself.
+     *
+     * @param type the type of the class to instantiate
+     * @param parameters the constructor parameters of this class (excluding injected services)
+     * @param <T> the type of the class
+     * @return the list of injected services
+     */
+    public <T> List<Object> identifyInjectedServices(Class<? extends T> type, Object... parameters) {
         try {
-            CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
-                @Override
-                public CachedConstructor transform(Class<?> aClass) {
-                    try {
-                        validateType(type);
-                        Class<? extends T> implClass = classGenerator.generate(type);
-                        Constructor<?> constructor = selectConstructor(type, implClass);
-                        constructor.setAccessible(true);
-                        return CachedConstructor.of(constructor);
-                    } catch (Throwable e) {
-                        return CachedConstructor.of(e);
-                    }
-                }
-            });
-            if (cached.error != null) {
-                throw cached.error;
-            }
-            Constructor<?> constructor = cached.constructor;
-            Object[] resolvedParameters = convertParameters(type, constructor, parameters);
+            Constructor<?> constructor = findConstructor(type);
+            List<Object> services = Lists.newArrayListWithExpectedSize(2);
+            convertParameters(type, constructor, parameters, services);
+            return services;
+        } catch (Throwable t) {
+            throw new ObjectInstantiationException(type, t);
+        }
+    }
+
+    public <T> T newInstance(Class<? extends T> type, Object... parameters) {
+        try {
+            Constructor<?> constructor = findConstructor(type);
+            Object[] resolvedParameters = convertParameters(type, constructor, parameters, null);
             try {
                 Object instance = constructor.newInstance(resolvedParameters);
                 if (instance instanceof WithServiceRegistry) {
@@ -92,7 +98,28 @@ public class DependencyInjectingInstantiator implements Instantiator {
         }
     }
 
-    private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters) {
+    private <T> Constructor<?> findConstructor(final Class<? extends T> type) throws Throwable {
+        CachedConstructor cached = constructorCache.get(type, new Transformer<CachedConstructor, Class<?>>() {
+            @Override
+            public CachedConstructor transform(Class<?> aClass) {
+                try {
+                    validateType(type);
+                    Class<? extends T> implClass = classGenerator.generate(type);
+                    Constructor<?> constructor = selectConstructor(type, implClass);
+                    constructor.setAccessible(true);
+                    return CachedConstructor.of(constructor);
+                } catch (Throwable e) {
+                    return CachedConstructor.of(e);
+                }
+            }
+        });
+        if (cached.error != null) {
+            throw cached.error;
+        }
+        return cached.constructor;
+    }
+
+    private <T> Object[] convertParameters(Class<T> type, Constructor<?> constructor, Object[] parameters, List<Object> injectedServices) {
         Class<?>[] parameterTypes = constructor.getParameterTypes();
         if (parameterTypes.length < parameters.length) {
             throw new IllegalArgumentException(String.format("Too many parameters provided for constructor for class %s. Expected %s, received %s.", type.getName(), parameterTypes.length, parameters.length));
@@ -112,6 +139,9 @@ public class DependencyInjectingInstantiator implements Instantiator {
                 pos++;
             } else {
                 currentParameter = services.find(serviceType);
+                if (currentParameter != null && injectedServices != null) {
+                    injectedServices.add(currentParameter);
+                }
             }
 
             if (currentParameter != null) {
