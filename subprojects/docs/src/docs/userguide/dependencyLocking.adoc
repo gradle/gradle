@@ -32,7 +32,7 @@ The release tag will contain the lock states, allowing that build to be fully re
 Locking is enabled per <<managing_dependency_configurations,dependency configuration>>.
 Once enabled, you must create an initial lock state.
 It will cause Gradle to verify that resolution results do not change, resulting in the same selected dependencies even if newer versions are produced.
-In case the lock state no longer matches the resolution result, the build will fail.
+Modifications to your build that would impact the resolved set of dependencies will cause it to fail.
 This makes sure that changes, either in published dependencies or build definitions, do not alter resolution without adapting the lock state.
 
 [NOTE]
@@ -158,7 +158,7 @@ However, if that configuration happens to be resolved in the future at a time wh
 === Locking limitations
 
 * It is currently not possible to lock the <<sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins.
-* Locking can not be applied to source dependencies.
+* Locking can not yet be applied to source dependencies.
 
 === Nebula locking plugin
 

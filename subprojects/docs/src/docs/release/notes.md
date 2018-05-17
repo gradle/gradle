@@ -64,10 +64,10 @@ You then run a build, telling Gradle to persist lock state:
 
     gradle test --write-locks
 
-Assuming you add the lock files to source control, from this point onward, all configurations that have a lock state will resolve the locked versions.
+From this point onward, for any build where the lock state is available to Gradle, all configurations that have a lock state will resolve the locked versions.
 
 Changes to published dependencies will not impact your build, you will have to re-generate or update the lock before they are considered as dependencies.
-Similarly, changes to your build script that would impact the resolved set of dependencies will cause it to fail,
+On the other hand, changes to your build script that would impact the resolved set of dependencies will cause it to fail,
 ensuring the dependencies do not change without a matching update in the lock file.
 
 Head over to the [dependency locking documentation](userguide/dependency_locking.html) for more details on using this feature.
