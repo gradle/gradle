@@ -229,7 +229,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         return "new URL('${server.uri}/${name}').text"
     }
 
-    private static void assertOutputContains(GradleHandle gradle, String str) {
+    protected static void assertOutputContains(GradleHandle gradle, String str) {
         ConcurrentTestUtil.poll(sleepTimeout/1000 as double) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
