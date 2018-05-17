@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -139,50 +138,41 @@ dependencies {
         'integration'   | '1.0-SNAPSHOT'
     }
 
-    @Ignore
-    def "can lock a unique SNAPSHOT module"() {
-        def uniqueSnapshotModule = mavenRepo.module('org', 'unique', '1.0-SNAPSHOT').publish()
+    def 'kind of locks snapshots but warns about it'() {
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
 
         buildFile << """
-group "org"
-version "1.0"
 dependencyLocking {
     lockAllConfigurations()
 }
 
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
 }
 configurations {
-    lockedConf {
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-    }
+    lockedConf
 }
 
 dependencies {
-    lockedConf 'org:unique:1.0-SNAPSHOT'
-}
-
-task resolve(type: Copy) {
-    from configurations.lockedConf
-    into 'libs'
+    lockedConf 'org:bar:1.0-SNAPSHOT'
 }
 """
 
-        when: // Resolve and write locks
-        succeeds 'resolve', '--write-locks'
+        when:
+        succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile("lockedConf", ["org:unique:1.0-SNAPSHOT:20100101.120001-1"])
-        file('libs').assertHasDescendants("unique-1.0-20100101.120001-1.jar")
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
+        outputContains('Dependency lock state for configuration \'lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
 
-        when: // Publish new snapshot, and resolve again with the lock file
-        uniqueSnapshotModule.publishWithChangedContent()
-
-        and:
-        succeeds 'resolve'
+        when:
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
 
         then:
-        file('libs').assertHasDescendants("unique-1.0-20100101.120001-1.jar")
+        succeeds 'dependencies'
     }
 }
