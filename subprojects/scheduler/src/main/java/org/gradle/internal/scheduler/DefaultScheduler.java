@@ -128,6 +128,7 @@ public class DefaultScheduler implements Scheduler {
             return true;
         }
 
+        loop:
         while (true) {
             // Find a root node to allocate
             Node nodeToRun = rootNodes.poll();
@@ -165,9 +166,22 @@ public class DefaultScheduler implements Scheduler {
             System.out.printf(">> Trying to run %s...%n", nodeToRun);
             // TODO Don't do this for revived nodes that have already been prepared once?
             prepareToRunNode(nodeToRun, graph, rootNodes);
-            runningNodes.add(nodeToRun);
             ResourceLock nodeLock = concurrentNodeExecutionCoordinator.findLockFor(nodeToRun);
-            worker.execute(nodeToRun, nodeLock);
+            NodeExecutionWorker.NodeSchedulingResult schedulingResult = worker.schedule(nodeToRun, nodeLock);
+            switch (schedulingResult) {
+                case NO_WORKER_LEASE:
+                    System.out.printf(">> Worker lease not available for %s, stopping scheduling round%n", nodeToRun);
+                    break loop;
+                case NO_RESOURCE_LOCK:
+                    System.out.printf(">> Resource lock not available for %s, scheduling next task%n", nodeToRun);
+                    break;
+                case STARTED:
+                    System.out.printf(">> Node %s started, scheduling next task%n", nodeToRun);
+                    runningNodes.add(nodeToRun);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
         }
         return true;
     }

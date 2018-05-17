@@ -26,6 +26,7 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
+import org.gradle.internal.scheduler.NodeExecutionWorker.NodeSchedulingResult;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -103,6 +105,7 @@ public class DefaultNodeExecutionWorkerService implements NodeExecutionWorkerSer
         private static final Logger LOGGER = LoggerFactory.getLogger(Worker.class);
         private final String name;
         private final BlockingQueue<NodeExecution> workQueue = Queues.newArrayBlockingQueue(1);
+        private final BlockingQueue<NodeSchedulingResult> schedulingResultQueue = Queues.newArrayBlockingQueue(1);
         private final NodeExecutor nodeExecutor;
         private final ResourceLockCoordinationService coordinationService;
         private final WorkerLease parentLease;
@@ -120,9 +123,14 @@ public class DefaultNodeExecutionWorkerService implements NodeExecutionWorkerSer
         }
 
         @Override
-        public void execute(Node node, @Nullable ResourceLock resourceLock) {
-            if (!workQueue.offer(new NodeExecution(node, nodeExecutor, resourceLock))) {
+        public NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock) {
+            if (!workQueue.offer(new NodeExecution(node, nodeExecutor, resourceLock, schedulingResultQueue))) {
                 throw new IllegalStateException("There's already work being done by " + this);
+            }
+            try {
+                return schedulingResultQueue.take();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
 
@@ -149,8 +157,7 @@ public class DefaultNodeExecutionWorkerService implements NodeExecutionWorkerSer
                     NodeExecution work = workQueue.take();
 
                     nodeTimer.reset();
-                    Event event = work.runWithLease(coordinationService, workerLease);
-                    eventQueue.add(event);
+                    work.runWithLease(coordinationService, workerLease, eventQueue);
                     long taskDuration = nodeTimer.getElapsedMillis();
                     busy.addAndGet(taskDuration);
                     if (LOGGER.isInfoEnabled()) {
@@ -174,38 +181,51 @@ public class DefaultNodeExecutionWorkerService implements NodeExecutionWorkerSer
         }
     }
 
+
     private static class NodeExecution {
         private final Node node;
         private final NodeExecutor nodeExecutor;
         private final ResourceLock resourceLock;
+        private final BlockingQueue<NodeSchedulingResult> nodeSchedulingResultQueue;
 
-        public NodeExecution(Node node, NodeExecutor nodeExecutor, @Nullable ResourceLock resourceLock) {
+        public NodeExecution(Node node, NodeExecutor nodeExecutor, @Nullable ResourceLock resourceLock, BlockingQueue<NodeSchedulingResult> nodeSchedulingResultQueue) {
             this.node = node;
             this.nodeExecutor = nodeExecutor;
             this.resourceLock = resourceLock;
+            this.nodeSchedulingResultQueue = nodeSchedulingResultQueue;
         }
 
-        public Event runWithLease(ResourceLockCoordinationService coordinationService, final WorkerLease workerLease) {
+        public void runWithLease(ResourceLockCoordinationService coordinationService, final WorkerLease workerLease, Queue<Event> eventQueue) {
             boolean acquiredLocks = coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
+                    NodeSchedulingResult schedulingResult;
                     if (!workerLease.tryLock()) {
                         System.out.printf("<<* Failed to secure lease %s for %s%n", workerLease, node);
-                        return FAILED;
+                        schedulingResult = NodeSchedulingResult.NO_WORKER_LEASE;
+                    } else {
+                        System.out.printf(">>* Acquired lease %s for %s%n", workerLease, node);
+                        if (resourceLock != null && !resourceLock.tryLock()) {
+                            System.out.printf("<<* Failed to acquire lock %s for %s, releasing lease %s%n", node, resourceLock, workerLease);
+                            workerLease.unlock();
+                            schedulingResult = NodeSchedulingResult.NO_RESOURCE_LOCK;
+                        } else {
+                            System.out.printf(">>* Acquired lock %s for %s%n", resourceLock, node);
+                            schedulingResult = NodeSchedulingResult.STARTED;
+                        }
                     }
-                    System.out.printf(">>* Acquired lease %s for %s%n", workerLease, node);
-                    if (resourceLock != null && !resourceLock.tryLock()) {
-                        System.out.printf("<<* Failed to acquire lock %s for %s, releasing lease %s%n", node, resourceLock, workerLease);
-                        workerLease.unlock();
-                        return FAILED;
+                    nodeSchedulingResultQueue.add(schedulingResult);
+                    switch (schedulingResult) {
+                        case STARTED:
+                            return FINISHED;
+                        default:
+                            return FAILED;
                     }
-                    System.out.printf(">>* Acquired lock %s for %s%n", resourceLock, node);
-                    return FINISHED;
                 }
             });
 
             if (!acquiredLocks) {
-                return new NodeSuspendedEvent(node);
+                return;
             }
 
             Throwable failure;
@@ -228,11 +248,13 @@ public class DefaultNodeExecutionWorkerService implements NodeExecutionWorkerSer
                 });
             }
 
+            Event event;
             if (failure == null) {
-                return new NodeFinishedEvent(node);
+                event = new NodeFinishedEvent(node);
             } else {
-                return new NodeFailedEvent(node, failure);
+                event = new NodeFailedEvent(node, failure);
             }
+            eventQueue.add(event);
         }
 
         @Override

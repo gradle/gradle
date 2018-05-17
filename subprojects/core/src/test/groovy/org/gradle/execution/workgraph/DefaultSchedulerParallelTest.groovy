@@ -26,7 +26,6 @@ import org.gradle.internal.scheduler.Node
 import org.gradle.internal.scheduler.NodeExecutionWorker
 import org.gradle.internal.scheduler.NodeExecutionWorkerService
 import org.gradle.internal.scheduler.NodeExecutor
-import org.gradle.internal.scheduler.NodeSuspendedEvent
 import org.gradle.internal.scheduler.Scheduler
 
 import javax.annotation.Nullable
@@ -70,11 +69,14 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
         private class Worker implements NodeExecutionWorker {
             @Override
-            void execute(Node node, @Nullable ResourceLock resourceLock) {
+            NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock) throws InterruptedException {
+                def result = Queues.<NodeSchedulingResult>newArrayBlockingQueue(1)
                 executor.execute {
                     if (resourceLock && !resourceLock.tryLock()) {
-                        eventQueue.add(new NodeSuspendedEvent(node))
+                        result.add(NodeSchedulingResult.NO_RESOURCE_LOCK)
                         return
+                    } else {
+                        result.add(NodeSchedulingResult.STARTED)
                     }
                     try {
                         executeNode(node, nodeExecutor, eventQueue)
@@ -83,6 +85,7 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
                     }
                     workers.add(Worker.this)
                 }
+                return result.take()
             }
         }
     }

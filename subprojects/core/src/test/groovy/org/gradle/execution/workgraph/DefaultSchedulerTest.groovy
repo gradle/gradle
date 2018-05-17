@@ -28,6 +28,8 @@ import org.gradle.internal.scheduler.Scheduler
 import javax.annotation.Nullable
 import java.util.concurrent.BlockingQueue
 
+import static org.gradle.internal.scheduler.NodeExecutionWorker.NodeSchedulingResult.STARTED
+
 class DefaultSchedulerTest extends AbstractSchedulerTest {
 
     Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new ImmediateWorkerService())
@@ -48,8 +50,9 @@ class DefaultSchedulerTest extends AbstractSchedulerTest {
         }
 
         @Override
-        void execute(Node node, @Nullable ResourceLock resourceLock) {
+        NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock) throws InterruptedException {
             executeNode(node, nodeExecutor, eventQueue)
+            return STARTED;
         }
 
         @Override

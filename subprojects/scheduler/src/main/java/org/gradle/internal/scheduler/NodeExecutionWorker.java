@@ -21,5 +21,9 @@ import org.gradle.internal.resources.ResourceLock;
 import javax.annotation.Nullable;
 
 public interface NodeExecutionWorker {
-    void execute(Node node, @Nullable ResourceLock resourceLock);
+    NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock);
+
+    enum NodeSchedulingResult {
+        STARTED, NO_WORKER_LEASE, NO_RESOURCE_LOCK
+    }
 }
