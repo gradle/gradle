@@ -26,8 +26,6 @@ enum JavaTestProject {
 
     LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g', false, false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
     LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m', false, false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
-
-    LARGE_MONOLITHIC_JAVA_PROJECT_KOTLIN_DSL("largeMonolithicJavaProjectKotlinDsl", 50000, 0, '4g', true, false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
     LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL("largeJavaMultiProjectKotlinDsl", 100, 500, '256m', true, false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),

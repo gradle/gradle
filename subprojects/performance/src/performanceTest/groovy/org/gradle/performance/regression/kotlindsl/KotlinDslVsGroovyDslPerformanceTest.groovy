@@ -22,8 +22,6 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT_KOTLIN_DSL
 
 @Category(PerformanceRegressionTest)
 class KotlinDslVsGroovyDslPerformanceTest extends Specification {
@@ -117,9 +115,8 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
         }
 
         where:
-        kotlinProject                            | groovyProject
-        LARGE_MONOLITHIC_JAVA_PROJECT_KOTLIN_DSL | LARGE_MONOLITHIC_JAVA_PROJECT
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | LARGE_JAVA_MULTI_PROJECT
+        kotlinProject                       | groovyProject
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | LARGE_JAVA_MULTI_PROJECT
     }
 
     private static BaselineVersion buildBaselineResults(CrossBuildPerformanceResults results, String name) {
