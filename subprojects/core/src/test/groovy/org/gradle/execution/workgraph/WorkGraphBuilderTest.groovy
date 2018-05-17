@@ -16,6 +16,7 @@
 
 package org.gradle.execution.workgraph
 
+import com.google.common.collect.Lists
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.internal.scheduler.CycleReporter
@@ -23,6 +24,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Unroll
 
 import static org.gradle.internal.scheduler.EdgeType.DEPENDENCY_OF
+import static org.gradle.internal.scheduler.EdgeType.SHOULD_COMPLETE_BEFORE
 
 class WorkGraphBuilderTest extends AbstractProjectBuilderSpec {
     def builder = new WorkGraphBuilder()
@@ -70,7 +72,7 @@ class WorkGraphBuilderTest extends AbstractProjectBuilderSpec {
         tasks(workGraph) == []
         edges(workGraph) == []
         requestedTasks(workGraph) == []
-        filteredTasks(workGraph) == []
+        filteredTasks(workGraph) == [a]
     }
 
     @Unroll
@@ -133,21 +135,64 @@ class WorkGraphBuilderTest extends AbstractProjectBuilderSpec {
         filteredTasks(workGraph) == [a]
     }
 
+    def "cyclic should run after ordering is ignored in complex task graph"() {
+        given:
+        def e = task("e")
+        def x = task("x", dependsOn: [e])
+        def a = task("a", shouldRunAfter: [x])
+        def b = task("b", shouldRunAfter: [a])
+        def c = task("c", shouldRunAfter: [b])
+        def f = task("f", dependsOn: [x], shouldRunAfter: [c])
+        def d = task("d", dependsOn: [f], shouldRunAfter: [c])
+        relationships(e, shouldRunAfter: [d])
+        def build = task("build", dependsOn: [x, a, b, c, d, e])
+        builder.addTasks([build])
+
+        when:
+        def workGraph = builder.build(cycleReporter)
+
+        then:
+        rootTasks(workGraph) == [b]
+        tasks(workGraph) == [a, b, build, c, d, e, f, x]
+        edges(workGraph) == [
+            [a, DEPENDENCY_OF, build],
+            [b, DEPENDENCY_OF, build],
+            [c, DEPENDENCY_OF, build],
+            [d, DEPENDENCY_OF, build],
+            [e, DEPENDENCY_OF, build],
+            [e, DEPENDENCY_OF, x],
+            [f, DEPENDENCY_OF, d],
+            [x, DEPENDENCY_OF, build],
+            [x, DEPENDENCY_OF, f],
+            [b, SHOULD_COMPLETE_BEFORE, c],
+            [c, SHOULD_COMPLETE_BEFORE, d],
+            [c, SHOULD_COMPLETE_BEFORE, f],
+            [d, SHOULD_COMPLETE_BEFORE, e],
+            [x, SHOULD_COMPLETE_BEFORE, a],
+        ]
+        requestedTasks(workGraph) == [build]
+        filteredTasks(workGraph) == []
+    }
+
     TaskInternal task(String name) {
         project.tasks.create(name) as TaskInternal
     }
 
     TaskInternal task(Map options, String name) {
         def task = task(name)
+        relationships(options, task)
+        return task
+    }
+
+    private static void relationships(Map options, task) {
         options.dependsOn?.each { task.dependsOn(it) }
         options.mustRunAfter?.each { task.mustRunAfter(it) }
         options.shouldRunAfter?.each { task.shouldRunAfter(it) }
         options.finalizedBy?.each { task.finalizedBy(it) }
-        return task
     }
 
     List<Task> tasks(WorkGraph workGraph) {
-        workGraph.graph.allNodes*.task
+        workGraph.graph.allNodes*.task.sort()
     }
 
     List<Task> rootTasks(WorkGraph workGraph) {
@@ -163,8 +208,19 @@ class WorkGraphBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     def edges(WorkGraph workGraph) {
-        workGraph.graph.allEdges.collect { edge ->
-            [edge.source.task, edge.type, edge.target.task]
-        }
+        Lists.newArrayList(workGraph.graph.allEdges)
+            .sort { a, b ->
+                def result = a.type <=> b.type
+                if (result == 0) {
+                    result = a.source.task <=> b.source.task
+                    if (result == 0) {
+                        result = a.target.task <=> b.target.task
+                    }
+                }
+                result
+            }
+            .collect { edge ->
+                [edge.source.task, edge.type, edge.target.task]
+            }
     }
 }
