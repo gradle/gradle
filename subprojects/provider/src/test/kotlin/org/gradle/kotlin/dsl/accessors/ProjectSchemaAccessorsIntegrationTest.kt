@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.withFolders
@@ -47,18 +48,18 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
                 }
             }
 
-            "app" {
+            fun FoldersDsl.withPlugin(plugin: String) =
                 withFile("build.gradle.kts", """
-                    plugins { id("app") }
+                    plugins { id("$plugin") }
                     my { name = "kotlin-dsl" }
                 """)
+
+            "app" {
+                withPlugin("app")
             }
 
             "lib" {
-                withFile("build.gradle.kts", """
-                    plugins { id("lib") }
-                    my { name = "kotlin-dsl" }
-                """)
+                withPlugin("lib")
             }
 
             withFile("settings.gradle.kts", """
