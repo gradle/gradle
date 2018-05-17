@@ -176,7 +176,8 @@ fun initScriptModelBuilder(scriptFile: File, project: ProjectInternal) = project
         scriptFile = scriptFile,
         baseScope = gradle.classLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = project
+        project = project,
+        resourceDescription = "initialization script"
     )
 
     KotlinScriptTargetModelBuilder(
@@ -204,7 +205,8 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
         scriptFile = scriptFile,
         baseScope = settings.rootClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = project
+        project = project,
+        resourceDescription = "settings file"
     )
 
     KotlinScriptTargetModelBuilder(
@@ -222,7 +224,8 @@ fun projectScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal) 
         scriptFile = scriptFile,
         baseScope = rootProject.baseClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(project),
-        project = project
+        project = project,
+        resourceDescription = "build file"
     )
 
     KotlinScriptTargetModelBuilder(
@@ -238,11 +241,12 @@ fun compilationClassPathForScriptPluginOf(
     scriptFile: File,
     baseScope: ClassLoaderScope,
     scriptHandlerFactory: ScriptHandlerFactory,
-    project: ProjectInternal
+    project: ProjectInternal,
+    resourceDescription: String
 ): Pair<ScriptHandlerInternal, ClassPath> {
 
-    val scriptSource = textResourceScriptSource("Kotlin script plugin", scriptFile)
-    val scriptScope = baseScope.createChild("model:${scriptFile.toURI()}")
+    val scriptSource = textResourceScriptSource(resourceDescription, scriptFile)
+    val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}")
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
     kotlinScriptFactoryOf(project)
