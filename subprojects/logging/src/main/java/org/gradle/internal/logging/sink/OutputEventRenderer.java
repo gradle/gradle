@@ -160,7 +160,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             if (consoleOutput == ConsoleOutput.Plain) {
                 addPlainConsole(outputListener, errorListener, consoleMetadata != null && (consoleMetadata.isStdErr() && consoleMetadata.isStdOut()));
             } else {
-                consoleMetadata = consoleMetadata == null ? FallbackConsoleMetaData.INSTANCE : consoleMetadata;
+                if (consoleMetadata == null) {
+                    consoleMetadata = FallbackConsoleMetaData.INSTANCE;
+                }
                 Console console;
                 if (consoleMetadata.isStdOut()) {
                     OutputStreamWriter writer = new OutputStreamWriter(outputStream);
