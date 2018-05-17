@@ -125,15 +125,10 @@ class ScriptCacheKey(
         if (this === other) {
             return true
         }
-        if (other == null || this::class != other::class) {
-            return false
-        }
-        val that = other as ScriptCacheKey
+        val that = other as? ScriptCacheKey ?: return false
         val thisParentLoader = parentClassLoader.get()
-        val thatParentLoader = that.parentClassLoader.get()
         return thisParentLoader != null
-            && thatParentLoader != null
-            && thisParentLoader == thatParentLoader
+            && thisParentLoader == that.parentClassLoader.get()
             && templateId == that.templateId
             && sourceHash == that.sourceHash
             && classPathHash.value == that.classPathHash.value
