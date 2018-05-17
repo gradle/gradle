@@ -383,11 +383,6 @@ class GraphTest extends Specification {
             this.name = name
         }
 
-        @Override
-        boolean canExecuteInParallelWith(Node other) {
-            throw new UnsupportedOperationException()
-        }
-
 
         @Override
         boolean equals(o) {

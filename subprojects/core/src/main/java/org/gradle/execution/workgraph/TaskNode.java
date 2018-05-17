@@ -31,14 +31,6 @@ public class TaskNode extends Node {
     }
 
     @Override
-    public boolean canExecuteInParallelWith(Node other) {
-        if (!(other instanceof TaskNode)) {
-            return true;
-        }
-        return !task.getProject().equals(((TaskNode) other).task.getProject());
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

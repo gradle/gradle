@@ -31,8 +31,6 @@ public abstract class Node {
         this.state = state;
     }
 
-    public abstract boolean canExecuteInParallelWith(Node other);
-
     @Override
     public abstract int hashCode();
 
