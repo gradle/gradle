@@ -91,15 +91,15 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "uri backed text resource"() {
-
         given:
+        def uuid = UUID.randomUUID()
         def resourceFile = file("web-file.txt")
-        server.expectGet("/myConfig.txt", resourceFile)
+        server.expectGet("/myConfig-${uuid}.txt", resourceFile)
         server.start()
 
         buildFile << """
             task uriText(type: MyTask) {
-                config = resources.text.fromUri("http://localhost:$server.port/myConfig.txt")
+                config = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt")
                 output = project.file("output.txt")
             }
 """
