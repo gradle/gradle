@@ -246,7 +246,8 @@ class KotlinScriptCompiler(
             scriptBlockForBody(),
             targetScope.localClassLoader,
             ::scriptBodyClassLoaderScope,
-            ::compileScriptBody)
+            ::compileScriptBody,
+            accessorsClassPath)
 
     private
     fun scriptBlockForBody() =
