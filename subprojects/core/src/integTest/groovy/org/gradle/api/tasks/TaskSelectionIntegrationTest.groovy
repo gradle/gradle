@@ -97,6 +97,22 @@ allprojects { task thing }
         result.assertTasksExecuted(":child:child:thing")
     }
 
+    def "can use camel case to match software model tasks"() {
+        buildFile << """
+            model { 
+                tasks {
+                    "sayHelloToUser"(DefaultTask) {
+                    }
+                }
+            }
+        """
+        when:
+        run "sHTU"
+
+        then:
+        result.assertTasksExecuted(":sayHelloToUser")
+    }
+
     def "executes project default tasks when none specified"() {
         settingsFile << "include 'a'"
 
