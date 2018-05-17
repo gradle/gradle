@@ -62,7 +62,7 @@ public interface ExecutionResult {
     ExecutionResult assertHasErrorOutput(String expectedOutput);
 
     /**
-     * Asserts that this result includes the given error log message in the raw output (including ansi characters). Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     * Asserts that this result includes the given error log message in the raw output (including ansi characters and build result message).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
@@ -85,7 +85,7 @@ public interface ExecutionResult {
     ExecutionResult assertOutputContains(String expectedOutput);
 
     /**
-     * Asserts that this result includes the given non-error log message (including ansi characters). Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     * Asserts that this result includes the given non-error log message (including ansi characters and build result message).
      *
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */

@@ -206,7 +206,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        return assertContentContains(getMainContent().getRawContent().withNormalizedEol(), expectedOutput, "Build output");
+        return assertContentContains(getOutput(), expectedOutput, "Build output");
     }
 
     public String getError() {
