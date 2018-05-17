@@ -90,7 +90,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
             'scala',
             'java-gradle-plugin',
 
-            'antlr',
             'maven-publish',
             'ivy-publish',
             'ear',
