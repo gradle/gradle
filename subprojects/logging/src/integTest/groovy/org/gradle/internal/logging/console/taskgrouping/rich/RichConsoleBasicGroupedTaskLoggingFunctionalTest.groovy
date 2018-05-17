@@ -56,7 +56,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.groupedOutput.task(':failing').output == 'hello'
-        result.output.contains(failingTask.output)
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed red if task failed and there is no output"() {
@@ -71,7 +71,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(failingTask.output)
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed white if task succeeds"() {
@@ -86,7 +86,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         succeeds('succeeding')
 
         then:
-        result.output.contains(succeedingTask.output)
+        result.assertRawOutputContains(succeedingTask.output)
     }
 
     def "configure project group header is printed red if configuration fails with additional failures"() {
@@ -104,6 +104,6 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(configuringProject.output)
+        result.assertRawOutputContains(configuringProject.output)
     }
 }
