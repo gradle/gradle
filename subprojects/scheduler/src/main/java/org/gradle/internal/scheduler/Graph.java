@@ -26,7 +26,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.internal.Actions;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -217,6 +216,9 @@ public class Graph {
     }
 
     public interface EdgeWalkerAction {
+        /**
+         * Returns {@code true} to continue walking, {@code false} otherwise.
+         */
         boolean execute(Edge edge);
     }
 
@@ -253,9 +255,14 @@ public class Graph {
                 removeEdge(edge);
             }
         }
-        for (Node node : getAllNodes()) {
+        for (final Node node : getAllNodes()) {
             if (!liveNodes.contains(node)) {
-                removeNodeWithOutgoingEdges(node, Actions.doNothing());
+                removeNodeWithOutgoingEdges(node, new Action<Edge>() {
+                    @Override
+                    public void execute(Edge edge) {
+                        throw new AssertionError("Node should have no edges left: " + node);
+                    }
+                });
             }
         }
     }

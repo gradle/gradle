@@ -143,26 +143,22 @@ public class WorkGraphBuilder {
 
     @Nullable
     private TaskNode addEdge(Graph graph, Map<Task, TaskNode> taskNodes, TaskNode sourceNode, EdgeType type, Task targetTask) {
-        if (filter.isSatisfiedBy(targetTask)) {
-            TaskNode targetNode = getOrCreateTaskNode(graph, taskNodes, targetTask);
-            if (targetNode != null) {
-                graph.addEdge(new Edge(sourceNode, type, targetNode));
-                return targetNode;
-            }
+        TaskNode targetNode = getOrCreateTaskNode(graph, taskNodes, targetTask);
+        if (targetNode == null) {
+            return null;
         }
-        return null;
+        graph.addEdge(new Edge(sourceNode, type, targetNode));
+        return targetNode;
     }
 
     @Nullable
     private TaskNode addEdge(Graph graph, Map<Task, TaskNode> taskNodes, Task sourceTask, EdgeType type, TaskNode targetNode) {
-        if (filter.isSatisfiedBy(sourceTask)) {
-            TaskNode sourceNode = getOrCreateTaskNode(graph, taskNodes, sourceTask);
-            if (sourceNode != null) {
-                graph.addEdge(new Edge(sourceNode, type, targetNode));
-                return sourceNode;
-            }
+        TaskNode sourceNode = getOrCreateTaskNode(graph, taskNodes, sourceTask);
+        if (sourceNode == null) {
+            return null;
         }
-        return null;
+        graph.addEdge(new Edge(sourceNode, type, targetNode));
+        return sourceNode;
     }
 
     @Nullable
@@ -206,8 +202,9 @@ public class WorkGraphBuilder {
                     Edge finalizerDependencyConstraint = new Edge(finalized, AVOID_STARTING_BEFORE_FINALIZED, finalizerDependency);
                     if (edgesAddedFromFinalized.add(finalizerDependencyConstraint)) {
                         graph.addEdge(finalizerDependencyConstraint);
+                        return true;
                     }
-                    return true;
+                    return false;
                 }
             });
         }

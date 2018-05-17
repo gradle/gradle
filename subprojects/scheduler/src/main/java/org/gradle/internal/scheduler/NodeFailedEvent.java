@@ -41,7 +41,6 @@ public class NodeFailedEvent extends AbstractNodeCompletionEvent {
             public void execute(Edge outgoing) {
                 Node target = outgoing.getTarget();
                 // TODO Handle remaining incoming edges when suspended node is skipped
-                // TODO Cancel everything if `--continue` is not enabled
                 if (outgoing.getType() == DEPENDENCY_OF) {
                     target.setState(DEPENDENCY_FAILED);
                 }

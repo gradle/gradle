@@ -103,32 +103,28 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void execute(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
-        boolean expectAvailableWorkers = true;
         while (graph.hasNodes()) {
-            if (expectAvailableWorkers) {
-                expectAvailableWorkers = scheduleWork(graph);
-            }
+            scheduleWork(graph);
             if (cancelled) {
                 break;
             }
-            expectAvailableWorkers |= handleEvents(graph, continueOnFailure, executedNodes, failures);
+            handleEvents(graph, continueOnFailure, executedNodes, failures);
         }
     }
 
-    private boolean scheduleWork(Graph graph) {
+    private void scheduleWork(Graph graph) {
         Queue<Node> rootNodes = graph.queueRootNodes();
         System.out.printf(">> Scheduling root nodes: %s%n", rootNodes);
 
         if (cancellationToken.isCancellationRequested()) {
             cancelExecution(graph, false);
-            return false;
+            return;
         }
 
         if (rootNodes.isEmpty()) {
-            return true;
+            return;
         }
 
-        loop:
         while (true) {
             // Find a root node to allocate
             Node nodeToRun = rootNodes.poll();
@@ -140,7 +136,6 @@ public class DefaultScheduler implements Scheduler {
                 continue;
             }
 
-            // TODO These could be handled outside of the coordination-service lock
             if (!nodeToRun.getState().isExecutable()) {
                 enqueue(new NodeFinishedEvent(nodeToRun));
                 continue;
@@ -159,7 +154,7 @@ public class DefaultScheduler implements Scheduler {
             NodeExecutionWorker worker = workerService.getNextAvailableWorker();
             if (worker == null) {
                 System.out.printf(">> No available worker found, stopping execution%n");
-                return false;
+                return;
             }
 
             // Run the node
@@ -171,7 +166,7 @@ public class DefaultScheduler implements Scheduler {
             switch (schedulingResult) {
                 case NO_WORKER_LEASE:
                     System.out.printf(">> Worker lease not available for %s, stopping scheduling round%n", nodeToRun);
-                    break loop;
+                    return;
                 case NO_RESOURCE_LOCK:
                     System.out.printf(">> Resource lock not available for %s, scheduling next task%n", nodeToRun);
                     break;
@@ -183,10 +178,9 @@ public class DefaultScheduler implements Scheduler {
                     throw new AssertionError();
             }
         }
-        return true;
     }
 
-    private boolean handleEvents(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+    private void handleEvents(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         try {
             // Wait for at least one event to arrive
             Event event = eventQueue.take();
@@ -199,15 +193,13 @@ public class DefaultScheduler implements Scheduler {
             cancelExecution(graph, true);
         }
 
-        boolean expectAvailableWorkers = false;
         for (Event event : eventsBeingProcessed) {
             System.out.printf(">> Handling event %s%n", event);
             runningNodes.remove(event.node);
-            expectAvailableWorkers |= event.handle(graph, continueOnFailure, executedNodes, failures);
+            event.handle(graph, continueOnFailure, executedNodes, failures);
         }
         eventsBeingProcessed.clear();
-        System.out.printf(">> Nodes after handling events: %s, expect workers: %s%n", graph.getAllNodes(), expectAvailableWorkers);
-        return expectAvailableWorkers;
+        System.out.printf(">> Nodes after handling events: %s%n", graph.getAllNodes());
     }
 
     private static void prepareToRunNode(Node nodeToRun, Graph graph, Queue<Node> rootNodes) {

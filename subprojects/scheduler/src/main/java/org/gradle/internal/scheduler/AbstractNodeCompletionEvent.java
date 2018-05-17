@@ -24,7 +24,7 @@ public abstract class AbstractNodeCompletionEvent extends Event {
     }
 
     @Override
-    public boolean handle(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+    public void handle(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
         switch (node.getState()) {
             case RUNNABLE:
             case SHOULD_RUN:
@@ -34,6 +34,6 @@ public abstract class AbstractNodeCompletionEvent extends Event {
             default:
                 break;
         }
-        return super.handle(graph, continueOnFailure, executedNodes, failures);
+        super.handle(graph, continueOnFailure, executedNodes, failures);
     }
 }

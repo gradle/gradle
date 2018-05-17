@@ -87,6 +87,7 @@ public class WorkGraph {
         return false;
     }
 
+    // TODO This should be done by a visitor instead
     public Set<Task> getTaskDependencies(Task task) {
         TaskNode taskNode = taskNodes.get(task);
         if (taskNode == null) {
