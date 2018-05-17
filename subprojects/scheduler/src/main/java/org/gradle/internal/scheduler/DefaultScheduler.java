@@ -137,7 +137,7 @@ public class DefaultScheduler implements Scheduler {
             }
 
             if (!nodeToRun.getState().isExecutable()) {
-                enqueue(new NodeFinishedEvent(nodeToRun));
+                eventQueue.add(new NodeFinishedEvent(nodeToRun));
                 continue;
             }
 
@@ -241,10 +241,5 @@ public class DefaultScheduler implements Scheduler {
                 }
             }
         });
-    }
-
-    public void enqueue(Event event) {
-        System.out.printf(">> Enqueuing event %s (%s)%n", event, Thread.currentThread().getName());
-        eventQueue.add(event);
     }
 }
