@@ -42,6 +42,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor.MAX_AGE
 
 import javax.inject.Inject
 
@@ -51,8 +52,9 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     CacheRepository cacheRepository
     InMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
+    long time = 0
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
-        getCurrentTime() >> 0
+        getCurrentTime() >> { time }
     }
     PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>> store = Mock()
     Serializer<ComponentMetadata> serializer
@@ -88,7 +90,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Expires entry when cache policy says must refresh = #mustRefresh - #scenario - #ruleClass")
+    @Unroll("Cache expiry check age=#age, refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
@@ -99,6 +101,10 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         if (ruleClass == TestSupplierWithService) {
             ruleServices << someService
         }
+        time = age
+        boolean expired = age > MAX_AGE
+        def reexecute = mustRefresh || expired
+
         when:
         withRule(ruleClass, ruleServices)
         execute(id)
@@ -106,10 +112,12 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(inputsSnapshot) >> cachedEntry
-        1 * cachedResult.isChanging() >> changing
-        1 * cachedResult.getId() >> id
-        1 * cachePolicy.mustRefreshModule({ it.id == id }, 0, changing) >> mustRefresh
-        if (mustRefresh) {
+        if (!expired) {
+            1 * cachedResult.isChanging() >> changing
+            1 * cachedResult.getId() >> id
+            1 * cachePolicy.mustRefreshModule({ it.id == id }, age, changing) >> mustRefresh
+        }
+        if (reexecute) {
             def details = Mock(ComponentMetadataSupplierDetails)
             1 * onCacheMiss.transform(id) >> details
             1 * detailsToResult.transform(details) >> Mock(ComponentMetadata)
@@ -120,23 +128,33 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         // would only call the rule again if must refresh == true, that is
         // to say when --refresh-dependencies is called. In other words if
         // the service provides an implicit input, a change in that input is
-        // not discovered
-        if (ruleClass == TestSupplierWithService && mustRefresh) {
+        // not discovered. To workaround this we have a hard limit of 24h set
+        if (ruleClass == TestSupplierWithService && reexecute) {
             1 * someService.provide()
         }
         0 * _
 
         where:
-        scenario                                           | changing | mustRefresh | ruleClass
-        'regular module caching'                           | false    | false       | TestSupplier
-        'regular module caching (--refresh-dependencies)'  | false    | true        | TestSupplier
-        'changing module caching'                          | true     | false       | TestSupplier
-        'changing module caching (--refresh-dependencies)' | true     | true        | TestSupplier
+        scenario                                           | changing | mustRefresh | age         | ruleClass
+        'regular module caching'                           | false    | false       | 0           | TestSupplier
+        'regular module caching (--refresh-dependencies)'  | false    | true        | 0           | TestSupplier
+        'changing module caching'                          | true     | false       | 0           | TestSupplier
+        'changing module caching (--refresh-dependencies)' | true     | true        | 0           | TestSupplier
 
-        'regular module caching'                           | false    | false       | TestSupplierWithService
-        'regular module caching (--refresh-dependencies)'  | false    | true        | TestSupplierWithService
-        'changing module caching'                          | true     | false       | TestSupplierWithService
-        'changing module caching (--refresh-dependencies)' | true     | true        | TestSupplierWithService
+        'regular module caching'                           | false    | false       | 0           | TestSupplierWithService
+        'regular module caching (--refresh-dependencies)'  | false    | true        | 0           | TestSupplierWithService
+        'changing module caching'                          | true     | false       | 0           | TestSupplierWithService
+        'changing module caching (--refresh-dependencies)' | true     | true        | 0           | TestSupplierWithService
+
+        'regular module caching'                           | false    | false       | MAX_AGE + 1 | TestSupplier
+        'regular module caching (--refresh-dependencies)'  | false    | true        | MAX_AGE + 1 | TestSupplier
+        'changing module caching'                          | true     | false       | MAX_AGE + 1 | TestSupplier
+        'changing module caching (--refresh-dependencies)' | true     | true        | MAX_AGE + 1 | TestSupplier
+
+        'regular module caching'                           | false    | false       | MAX_AGE + 1 | TestSupplierWithService
+        'regular module caching (--refresh-dependencies)'  | false    | true        | MAX_AGE + 1 | TestSupplierWithService
+        'changing module caching'                          | true     | false       | MAX_AGE + 1 | TestSupplierWithService
+        'changing module caching (--refresh-dependencies)' | true     | true        | MAX_AGE + 1 | TestSupplierWithService
     }
 
     void execute(ModuleVersionIdentifier id) {
