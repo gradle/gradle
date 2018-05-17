@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.query;
 
+import org.gradle.api.artifacts.ComponentMetadata;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -22,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
+import org.gradle.internal.resolve.caching.CachingRuleExecutor;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
     private final ConfigurationContainerInternal configurationContainer;
@@ -30,19 +34,22 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
     private final ImmutableAttributesFactory attributesFactory;
+    private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor;
 
     public DefaultArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer, RepositoryHandler repositoryHandler,
                                                  ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
-                                                 ComponentTypeRegistry componentTypeRegistry, ImmutableAttributesFactory attributesFactory) {
+                                                 ComponentTypeRegistry componentTypeRegistry, ImmutableAttributesFactory attributesFactory,
+                                                 CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
         this.attributesFactory = attributesFactory;
+        this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory);
+        return new DefaultArtifactResolutionQuery(configurationContainer, repositoryHandler, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, componentMetadataSupplierRuleExecutor);
     }
 }

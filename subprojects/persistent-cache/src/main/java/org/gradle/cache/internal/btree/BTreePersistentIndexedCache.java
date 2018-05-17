@@ -17,6 +17,7 @@ package org.gradle.cache.internal.btree;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -207,9 +208,7 @@ public class BTreePersistentIndexedCache<K, V> {
 
     private void rebuild() throws Exception {
         LOGGER.warn("{} is corrupt. Discarding.", this);
-        store.clear();
-        close();
-        doOpen();
+        clear();
     }
 
     public void verify() {
@@ -280,6 +279,16 @@ public class BTreePersistentIndexedCache<K, V> {
         if (!current.tailPos.isNull()) {
             IndexBlock tail = store.read(current.tailPos, IndexBlock.class);
             verifyTree(tail, "   " + prefix, blocks, maxValue, loadData);
+        }
+    }
+
+    public void clear() {
+        store.clear();
+        close();
+        try {
+            doOpen();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
