@@ -29,12 +29,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class ConsoleConfigureAction {
-    public static final String TEST_CONSOLE_PROPERTY = "org.gradle.internal.console.test-console";
-    public static final String CONSOLE_BOTH = "both";
-    public static final String CONSOLE_NEITHER = "neither";
-    public static final String CONSOLE_STDOUT_ONLY = "stdout";
-    public static final String CONSOLE_STDERR_ONLY = "stderr";
-
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Auto) {
             configureAutoConsole(renderer);
@@ -71,17 +65,9 @@ public class ConsoleConfigureAction {
     }
 
     private static ConsoleMetaData getConsoleMetaData() {
-        String testConsole = System.getProperty(TEST_CONSOLE_PROPERTY);
+        String testConsole = System.getProperty(TestConsoleMetadata.TEST_CONSOLE_PROPERTY);
         if (testConsole != null) {
-            if (testConsole.equals(CONSOLE_BOTH)) {
-                return TestConsoleMetadata.BOTH;
-            } else if (testConsole.equals(CONSOLE_NEITHER)) {
-                return TestConsoleMetadata.NEITHER;
-            } else if (testConsole.equals(CONSOLE_STDOUT_ONLY)) {
-                return TestConsoleMetadata.STDOUT_ONLY;
-            } else if (testConsole.equals(CONSOLE_STDERR_ONLY)) {
-                return TestConsoleMetadata.STDERR_ONLY;
-            }
+            return TestConsoleMetadata.valueOf(testConsole);
         }
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         return consoleDetector.getConsole();

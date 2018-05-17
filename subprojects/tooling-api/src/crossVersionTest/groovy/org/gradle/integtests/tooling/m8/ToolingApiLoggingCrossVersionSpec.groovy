@@ -160,6 +160,11 @@ project.logger.debug("debug logging");
             executer.withArgument("--console=plain")
         }
 
+        // We changed the test console system property value in 4.9
+        if (targetVersion.baseVersion == GradleVersion.version("4.8")) {
+            executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
+        }
+
         return executer.run()
     }
 

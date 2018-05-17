@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
 
 public enum ConsoleAttachment {
@@ -27,9 +26,9 @@ public enum ConsoleAttachment {
     ATTACHED_STDERR_ONLY("console attached to stderr only", TestConsoleMetadata.STDERR_ONLY);
 
     private final String description;
-    ConsoleMetaData consoleMetaData;
+    TestConsoleMetadata consoleMetaData;
 
-    ConsoleAttachment(String description, ConsoleMetaData consoleMetaData) {
+    ConsoleAttachment(String description, TestConsoleMetadata consoleMetaData) {
         this.description = description;
         this.consoleMetaData = consoleMetaData;
     }
@@ -46,7 +45,7 @@ public enum ConsoleAttachment {
         return consoleMetaData != null && consoleMetaData.isStdOut();
     }
 
-    public ConsoleMetaData getConsoleMetaData() {
+    public TestConsoleMetadata getConsoleMetaData() {
         return consoleMetaData;
     }
 }

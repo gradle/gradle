@@ -43,7 +43,6 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -1402,19 +1401,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected GradleExecuter configureConsoleCommandLineArgs() {
-        switch(consoleAttachment) {
-            case NOT_ATTACHED:
-                return this;
-            case ATTACHED:
-                return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
-            case ATTACHED_NEITHER:
-                return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_NEITHER);
-            case ATTACHED_STDOUT_ONLY:
-                return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
-            case ATTACHED_STDERR_ONLY:
-                return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDERR_ONLY);
-            default:
-                throw new IllegalArgumentException();
+        if (consoleAttachment == ConsoleAttachment.NOT_ATTACHED) {
+            return this;
+        } else {
+            return withCommandLineGradleOpts(consoleAttachment.getConsoleMetaData().getCommandLineArgument());
         }
     }
 
