@@ -229,6 +229,6 @@ public class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public String toString() {
-        return task.getPath();
+        return task.getIdentityPath().toString();
     }
 }

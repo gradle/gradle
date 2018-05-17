@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-
 
 class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -37,11 +35,16 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         dependency("org.test:buildB:1.0")
     }
 
-    @NotYetImplemented
-    def "does not run tasks when dependency fails"() {
+    def "does not run task when dependency in another build fails"() {
         given:
         buildB.file("src/main/java/B.java") << """
             broken!
+        """
+        buildA.buildFile << """
+            task other {
+                dependsOn configurations.compileClasspath
+            }
+            classes.dependsOn other
         """
         buildA.file("src/main/java/A.java") << """
             class A { }
@@ -52,14 +55,16 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         result.assertTaskExecuted(":buildB:compileJava")
-        failure.assertTaskNotExecuted(":compileJava")
-        failure.assertTaskNotExecuted(":classes")
-        failure.assertTaskNotExecuted(":jar")
-        failure.assertTaskNotExecuted(":assemble")
+        result.assertTaskNotExecuted(":compileJava")
+        result.assertTaskNotExecuted(":classes")
+        result.assertTaskNotExecuted(":jar")
+        result.assertTaskNotExecuted(":other")
+        result.assertTaskNotExecuted(":assemble")
+        failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:compileJava'.")
     }
 
-    def "build fails when finalizer task that is not a dependency of any other task fails"() {
+    def "build fails when finalizer task in included build that is not a dependency of any other task fails"() {
         given:
         buildB.buildFile << """
             task broken {
@@ -73,6 +78,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         result.assertTaskExecuted(":buildB:broken")
+        failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
 
@@ -109,7 +115,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskExecuted(":broken")
         result.assertTaskExecuted(":buildB:broken")
-        failure.assertHasFailureSummary("Build completed with 2 failures.")
+        failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }

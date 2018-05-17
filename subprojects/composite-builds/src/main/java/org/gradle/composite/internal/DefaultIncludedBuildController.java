@@ -26,6 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.IncludedBuildState;
@@ -44,6 +45,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.composite.internal.IncludedBuildTaskResource.State.FAILED;
+import static org.gradle.composite.internal.IncludedBuildTaskResource.State.SUCCESS;
+import static org.gradle.composite.internal.IncludedBuildTaskResource.State.WAITING;
 
 class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBuildController {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildController.class);
@@ -173,21 +178,26 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         try {
             TaskState taskState = tasks.get(task);
             taskState.status = failure == null ? TaskStatus.SUCCESS : TaskStatus.FAILED;
-            taskState.failure = failure;
             taskCompleted.signalAll();
         } finally {
             lock.unlock();
         }
     }
 
-    private void buildFailed(Collection<String> tasksExecuted, Throwable failure) {
+    private void tasksDone(Collection<String> tasksExecuted, BuildResult result) {
         lock.lock();
         try {
             for (String task : tasksExecuted) {
                 TaskState taskState = tasks.get(task);
                 if (taskState.status == TaskStatus.EXECUTING) {
                     taskState.status = TaskStatus.FAILED;
-                    taskState.failure = failure;
+                }
+            }
+            if (result.getFailure() != null) {
+                if (result.getFailure() instanceof MultipleBuildFailures) {
+                    taskFailures.addAll(((MultipleBuildFailures) result.getFailure()).getCauses());
+                } else {
+                    taskFailures.add(result.getFailure());
                 }
             }
             taskCompleted.signalAll();
@@ -213,7 +223,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
     public void awaitCompletion(String taskPath) {
         lock.lock();
         try {
-            while (!isComplete(taskPath)) {
+            while (getTaskState(taskPath) == WAITING) {
                 taskCompleted.await();
             }
         } catch (InterruptedException e) {
@@ -223,7 +233,8 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
     }
 
-    public boolean isComplete(String taskPath) {
+    @Override
+    public IncludedBuildTaskResource.State getTaskState(String taskPath) {
         lock.lock();
         try {
             TaskState state = tasks.get(taskPath);
@@ -231,9 +242,12 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                 throw new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
             }
             if (state.status == TaskStatus.FAILED) {
-                throw UncheckedException.throwAsUncheckedException(state.failure);
+                return FAILED;
             }
-            return state.status == TaskStatus.SUCCESS;
+            if (state.status == TaskStatus.SUCCESS) {
+                return SUCCESS;
+            }
+            return WAITING;
         } finally {
             lock.unlock();
         }
@@ -243,14 +257,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
     private static class TaskState {
         public BuildResult result;
-        public Throwable failure;
         public TaskStatus status = TaskStatus.QUEUED;
-
-        public void rethrowFailure() {
-            if (failure != null) {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            }
-        }
     }
 
     private class IncludedBuildExecutionListener extends BuildAdapter implements TaskExecutionGraphListener, BuildListener {
@@ -273,9 +280,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
 
         @Override
         public void buildFinished(BuildResult result) {
-            if (result.getFailure() != null) {
-                buildFailed(tasksToExecute, result.getFailure());
-            }
+            tasksDone(tasksToExecute, result);
         }
 
         private class TaskCompletionRecorder extends TaskExecutionAdapter {
@@ -285,9 +290,6 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
                 Throwable failure = state.getFailure();
                 if (tasksToExecute.contains(taskPath)) {
                     taskCompleted(taskPath, failure);
-                }
-                if (failure != null) {
-                    taskFailures.add(failure);
                 }
             }
         }

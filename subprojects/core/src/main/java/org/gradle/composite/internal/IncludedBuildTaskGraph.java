@@ -23,5 +23,5 @@ public interface IncludedBuildTaskGraph {
 
     void awaitCompletion(BuildIdentifier targetBuild, String taskPath);
 
-    boolean isComplete(BuildIdentifier targetBuild, String taskPath);
+    IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath);
 }
