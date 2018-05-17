@@ -265,13 +265,12 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param name The name of the task.
-     * @param <T> The task type
      * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.8
      */
     @Incubating
-    <T extends Task> TaskProvider<T> createLater(String name);
+    TaskProvider<Task> createLater(String name);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the

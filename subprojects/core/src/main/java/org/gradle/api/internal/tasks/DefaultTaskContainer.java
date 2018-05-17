@@ -304,7 +304,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> createLater(String name) {
+    public TaskProvider<Task> createLater(String name) {
         return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
