@@ -205,12 +205,17 @@ abstract class ScriptModelIntegrationTest : AbstractIntegrationTest() {
 
 internal
 fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-    classPathFor(projectDir, scriptFile).map(File::getCanonicalFile)
+    kotlinBuildScriptModelFor(projectDir, scriptFile).canonicalClassPath
 
 
 private
 fun classPathFor(projectDir: File, scriptFile: File?) =
     kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
+
+
+internal
+val KotlinBuildScriptModel.canonicalClassPath
+    get() = classPath.map(File::getCanonicalFile)
 
 
 internal

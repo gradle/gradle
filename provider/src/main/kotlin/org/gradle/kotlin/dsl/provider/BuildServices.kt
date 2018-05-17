@@ -18,10 +18,13 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+
 import org.gradle.cache.internal.GeneratedGradleJarCache
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
@@ -65,6 +68,24 @@ object BuildServices {
     @Suppress("unused")
     fun createClassPathModeExceptionCollector() =
         ClassPathModeExceptionCollector()
+
+    @Suppress("unused")
+    fun createKotlinScriptFactory(
+        classPathProvider: KotlinScriptClassPathProvider,
+        kotlinCompiler: CachingKotlinCompiler,
+        classloadingCache: KotlinScriptClassloadingCache,
+        pluginRequestsHandler: PluginRequestsHandler,
+        embeddedKotlinProvider: EmbeddedKotlinProvider,
+        classPathModeExceptionCollector: ClassPathModeExceptionCollector
+    ): KotlinScriptFactory =
+
+        StandardKotlinScriptFactory(
+            classPathProvider,
+            kotlinCompiler,
+            classloadingCache,
+            pluginRequestsHandler,
+            embeddedKotlinProvider,
+            classPathModeExceptionCollector)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
