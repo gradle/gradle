@@ -859,12 +859,12 @@ class DefaultTaskContainerTest extends Specification {
         1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule")}
     }
 
-    void "fails task creation when task configuration via configureEachLater is unsuccessful"() {
+    void "fails task creation when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
-        container.configureEachLater(DefaultTask, action)
+        container.withType(DefaultTask).configureEach(action)
 
         when:
         container.create("task", DefaultTask)
@@ -886,12 +886,12 @@ class DefaultTaskContainerTest extends Specification {
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
     }
 
-    void "fails later creation upon realizing through createLater provider when task configuration via configureEachLater is unsuccessful"() {
+    void "fails later creation upon realizing through createLater provider when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
-        container.configureEachLater(DefaultTask, action)
+        container.withType(DefaultTask).configureEach(action)
         def provider = container.createLater("task", DefaultTask)
 
         when:
@@ -923,12 +923,12 @@ class DefaultTaskContainerTest extends Specification {
         0 * _
     }
 
-    void "fails later creation upon realizing through get() provider when task configuration via configureEachLater is unsuccessful"() {
+    void "fails later creation upon realizing through get() provider when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
-        container.configureEachLater(DefaultTask, action)
+        container.withType(DefaultTask).configureEach(action)
         def creationProvider = container.createLater("task", DefaultTask)
         def provider = container.get(DefaultTask, "task")
 

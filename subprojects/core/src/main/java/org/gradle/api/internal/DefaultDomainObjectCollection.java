@@ -166,16 +166,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         }
     }
 
-    @Override
-    public void configureEachLater(Action<? super T> action) {
-        configureEach(action);
-    }
-
-    @Override
-    public <S extends T> void configureEachLater(Class<S> type, Action<? super S> action) {
-        withType(type).configureEach(action);
-    }
-
     public void all(Closure action) {
         all(toAction(action));
     }
