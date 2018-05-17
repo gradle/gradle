@@ -16,79 +16,14 @@
 
 package org.gradle.execution.workgraph
 
-import com.google.common.collect.Queues
 import com.google.common.collect.Sets
 import org.gradle.api.internal.TaskInternal
-import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.scheduler.DefaultScheduler
-import org.gradle.internal.scheduler.Event
-import org.gradle.internal.scheduler.Node
-import org.gradle.internal.scheduler.NodeExecutionWorker
-import org.gradle.internal.scheduler.NodeExecutionWorkerService
-import org.gradle.internal.scheduler.NodeExecutor
 import org.gradle.internal.scheduler.Scheduler
-
-import javax.annotation.Nullable
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new ParallelWorkerService(4))
-
-    private static class ParallelWorkerService implements NodeExecutionWorkerService {
-        private final BlockingQueue<Worker> workers;
-        private final ExecutorService executor
-        private NodeExecutor nodeExecutor
-        private BlockingQueue<Event> eventQueue
-
-        ParallelWorkerService(int threads) {
-            workers = Queues.newArrayBlockingQueue(threads)
-            executor = Executors.newFixedThreadPool(threads)
-            threads.times { index ->
-                workers.add(new Worker())
-            }
-        }
-
-        @Override
-        NodeExecutionWorker getNextAvailableWorker() {
-            return workers.poll()
-        }
-
-        @Override
-        void start(NodeExecutor nodeExecutor, BlockingQueue<Event> eventQueue) {
-            this.nodeExecutor = nodeExecutor
-            this.eventQueue = eventQueue
-        }
-
-        @Override
-        void close() {
-            executor.shutdownNow()
-        }
-
-        private class Worker implements NodeExecutionWorker {
-            @Override
-            NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock) throws InterruptedException {
-                def result = Queues.<NodeSchedulingResult>newArrayBlockingQueue(1)
-                executor.execute {
-                    if (resourceLock && !resourceLock.tryLock()) {
-                        result.add(NodeSchedulingResult.NO_RESOURCE_LOCK)
-                        return
-                    } else {
-                        result.add(NodeSchedulingResult.STARTED)
-                    }
-                    try {
-                        executeNode(node, nodeExecutor, eventQueue)
-                    } finally {
-                        resourceLock?.unlock()
-                    }
-                    workers.add(Worker.this)
-                }
-                return result.take()
-            }
-        }
-    }
+    Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new TestNodeExecutionWorkerService(4))
 
     def "schedules many tasks at once"() {
         given:
@@ -100,9 +35,11 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
         def f = task(project: "f", "task")
         def g = task(project: "g", "task")
         def h = task(project: "h", "task")
-        determineExecutionPlan()
 
-        expect:
+        when:
+        addToGraphAndPopulate([a, b, c, d, e, f, g, h])
+
+        then:
         executesBatches([a, b, c, d, e, f, g, h])
     }
 
@@ -116,9 +53,11 @@ class DefaultSchedulerParallelTest extends AbstractSchedulerTest {
         def f = task(project: "f", "task", dependsOn: [a, b, c, d])
         def g = task(project: "g", "task", dependsOn: [a, b, c, d])
         def h = task(project: "h", "task", dependsOn: [a, b, c, d])
-        determineExecutionPlan()
 
-        expect:
+        when:
+        addToGraphAndPopulate([a, b, c, d, e, f, g, h])
+
+        then:
         executesBatches([a, b, c, d], [e, f, g, h])
     }
 

@@ -32,31 +32,6 @@ import static org.gradle.internal.scheduler.NodeExecutionWorker.NodeSchedulingRe
 
 class DefaultSchedulerTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new ImmediateWorkerService())
+    Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new TestNodeExecutionWorkerService(1))
 
-    private static class ImmediateWorkerService implements NodeExecutionWorkerService, NodeExecutionWorker {
-        private NodeExecutor nodeExecutor
-        private BlockingQueue<Event> eventQueue
-
-        @Override
-        NodeExecutionWorker getNextAvailableWorker() {
-            return this
-        }
-
-        @Override
-        void start(NodeExecutor nodeExecutor, BlockingQueue<Event> eventQueue) {
-            this.eventQueue = eventQueue
-            this.nodeExecutor = nodeExecutor
-        }
-
-        @Override
-        NodeSchedulingResult schedule(Node node, @Nullable ResourceLock resourceLock) throws InterruptedException {
-            executeNode(node, nodeExecutor, eventQueue)
-            return STARTED;
-        }
-
-        @Override
-        void close() {
-        }
-    }
 }

@@ -66,7 +66,7 @@ abstract class AbstractSchedulingTest extends Specification {
         def a = task("a")
         def b = task("b")
         def c = task("c", dependsOn: [a, b])
-        def d = task("d")
+        def d = task("d", shouldRunAfter: [c])
         def e = task("e", dependsOn: [b, d])
 
         when:
