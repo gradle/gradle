@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
+import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -15,6 +16,58 @@ import java.io.File
 
 
 class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
+
+    @Test
+    fun `conflicting extensions across build scripts with same body`() {
+
+        projectRoot.withFolders {
+
+            "buildSrc" {
+
+                withFile("build.gradle.kts", """
+                    plugins {
+                        `kotlin-dsl`
+                        `java-gradle-plugin`
+                    }
+                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+                """)
+
+                "src/main/kotlin" {
+                    withFile("my/extensions.kt", """
+                        package my
+                        open class App { lateinit var name: String }
+                        open class Lib { lateinit var name: String }
+                    """)
+                    withFile("app.gradle.kts", """
+                        extensions.create("my", my.App::class.java)
+                    """)
+                    withFile("lib.gradle.kts", """
+                        extensions.create("my", my.Lib::class.java)
+                    """)
+                }
+            }
+
+            "app" {
+                withFile("build.gradle.kts", """
+                    plugins { id("app") }
+                    my { name = "kotlin-dsl" }
+                """)
+            }
+
+            "lib" {
+                withFile("build.gradle.kts", """
+                    plugins { id("lib") }
+                    my { name = "kotlin-dsl" }
+                """)
+            }
+
+            withFile("settings.gradle.kts", """
+                include("app", "lib")
+            """)
+        }
+
+        build("tasks")
+    }
 
     @Test
     fun `can configure deferred configurable extension`() {

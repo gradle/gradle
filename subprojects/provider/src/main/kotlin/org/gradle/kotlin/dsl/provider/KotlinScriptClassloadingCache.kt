@@ -21,6 +21,8 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 
 import org.gradle.internal.Cast.uncheckedCast
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
@@ -45,7 +47,10 @@ val logger = loggerFor<KotlinScriptPluginFactory>()
 
 
 internal
-class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuildInMemoryCacheFactory) {
+class KotlinScriptClassloadingCache @Inject constructor(
+    cacheFactory: CrossBuildInMemoryCacheFactory,
+    private val classpathHasher: ClasspathHasher
+) {
 
     private
     val cache: CrossBuildInMemoryCache<ScriptCacheKey, LoadedScriptClass<*>> = cacheFactory.newCache()
@@ -54,10 +59,11 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
         createClassLoaderScope: () -> ClassLoaderScope,
-        compile: (ScriptBlock<T>) -> CompiledScript<T>
+        compile: (ScriptBlock<T>) -> CompiledScript<T>,
+        additionalClassPath: ClassPath = ClassPath.EMPTY
     ): LoadedScriptClass<T> {
 
-        val key = cacheKeyFor(scriptBlock, parentClassLoader)
+        val key = cacheKeyFor(scriptBlock, parentClassLoader, additionalClassPath)
         val cached = cache.get(key)
         if (cached != null) {
             return uncheckedCast(cached)
@@ -74,8 +80,17 @@ class KotlinScriptClassloadingCache @Inject constructor(cacheFactory: CrossBuild
     }
 
     private
-    fun <T> cacheKeyFor(scriptBlock: ScriptBlock<T>, parentClassLoader: ClassLoader) =
-        ScriptCacheKey(scriptBlock.scriptTemplate.qualifiedName!!, scriptBlock.sourceHash, parentClassLoader)
+    fun <T> cacheKeyFor(
+        scriptBlock: ScriptBlock<T>,
+        parentClassLoader: ClassLoader,
+        additionalClassPath: ClassPath
+    ) =
+
+        ScriptCacheKey(
+            scriptBlock.scriptTemplate.qualifiedName!!,
+            scriptBlock.sourceHash,
+            parentClassLoader,
+            lazy { classpathHasher.hash(additionalClassPath) })
 
     private
     fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
@@ -99,7 +114,8 @@ private
 class ScriptCacheKey(
     private val templateId: String,
     private val sourceHash: HashCode,
-    parentClassLoader: ClassLoader
+    parentClassLoader: ClassLoader,
+    private val classPathHash: Lazy<HashCode>
 ) {
 
     private
@@ -120,6 +136,7 @@ class ScriptCacheKey(
             && thisParentLoader == thatParentLoader
             && templateId == that.templateId
             && sourceHash == that.sourceHash
+            && classPathHash.value == that.classPathHash.value
     }
 
     override fun hashCode(): Int {
