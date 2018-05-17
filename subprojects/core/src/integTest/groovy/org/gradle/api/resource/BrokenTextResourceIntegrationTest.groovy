@@ -80,14 +80,15 @@ task text(type: TextTask)
 
     def "reports read of missing uri resource"() {
         given:
-        server.expectGetMissing("/myConfig.txt")
+        def uuid = UUID.randomUUID()
+        server.expectGetMissing("/myConfig-${uuid}.txt")
         server.start()
         buildFile << """
-            text.text = resources.text.fromUri("http://localhost:$server.port/myConfig.txt")
+            text.text = resources.text.fromUri("http://localhost:$server.port/myConfig-${uuid}.txt")
 """
 
         expect:
         fails("text")
-        failure.assertHasCause("Could not read 'http://localhost:$server.port/myConfig.txt' as it does not exist.")
+        failure.assertHasCause("Could not read 'http://localhost:$server.port/myConfig-${uuid}.txt' as it does not exist.")
     }
 }

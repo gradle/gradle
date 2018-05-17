@@ -394,9 +394,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
    ]
 
 org:a:1 -> org:b:1
-   variant "default" [
-      org.gradle.status = release (not requested)
-   ]
 \\--- conf""")
 
         when:

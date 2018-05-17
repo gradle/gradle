@@ -20,7 +20,9 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
@@ -30,17 +32,20 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     private final Path projectPath;
     private final Path identityPath;
     private final String projectName;
+    private final ImmutableAttributes attributes;
     private String displayName;
 
-    public DefaultProjectComponentSelector(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName) {
+    public DefaultProjectComponentSelector(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName, ImmutableAttributes attributes) {
         assert buildIdentifier != null : "build cannot be null";
         assert identityPath != null : "identity path cannot be null";
         assert projectPath != null : "project path cannot be null";
         assert projectName != null : "project name cannot be null";
+        assert attributes != null : "attributes cannot be null";
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.projectPath = projectPath;
         this.projectName = projectName;
+        this.attributes = attributes;
     }
 
     public String getDisplayName() {
@@ -87,6 +92,11 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     @Override
+    public AttributeContainer getAttributes() {
+        return attributes;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -95,7 +105,13 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             return false;
         }
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-        return identityPath.equals(that.identityPath);
+        if (!identityPath.equals(that.identityPath)) {
+            return false;
+        }
+        if (!attributes.equals(that.attributes)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -109,14 +125,18 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public static ProjectComponentSelector newSelector(Project project) {
+        return newSelector(project, ImmutableAttributes.EMPTY);
+    }
+
+    public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         BuildIdentifier currentBuild = projectInternal.getServices().get(BuildState.class).getBuildIdentifier();
-        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName());
+        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes);
     }
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier) {
         DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName());
+        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), ImmutableAttributes.EMPTY);
     }
 
     public ProjectComponentIdentifier toIdentifier() {

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.util.Path;
 
 public class TestComponentIdentifiers {
@@ -45,6 +46,6 @@ public class TestComponentIdentifiers {
         if (name == null) {
             name = "root";
         }
-        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildName), path, path, name);
+        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildName), path, path, name, ImmutableAttributes.EMPTY);
     }
 }

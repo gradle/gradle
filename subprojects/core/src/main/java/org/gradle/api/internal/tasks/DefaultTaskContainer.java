@@ -400,11 +400,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public SortedSet<String> getNames() {
         SortedSet<String> names = super.getNames();
-        if (placeholders.isEmpty()) {
+        if (placeholders.isEmpty() && modelNode == null) {
             return names;
         }
         TreeSet<String> allNames = new TreeSet<String>(names);
         allNames.addAll(placeholders.keySet());
+        if (modelNode != null) {
+            allNames.addAll(modelNode.getLinkNames());
+        }
         return allNames;
     }
 

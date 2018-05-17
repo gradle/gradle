@@ -27,6 +27,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static java.util.Collections.emptySet
 import static org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint.strictConstraint
 
 class DefaultDependencyLockingProviderTest extends Specification {
@@ -55,7 +56,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
 
         when:
-        provider.persistResolvedDependencies('conf', modules)
+        provider.persistResolvedDependencies('conf', modules, emptySet())
 
         then:
         lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}org:bar:1.3
