@@ -40,7 +40,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.reflect.InstantiatingAction
-import org.gradle.internal.resolve.caching.CachingRuleExecutor
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -88,7 +88,7 @@ class ResolveIvyFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured" () {
         when:
-        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), TestUtil.attributesFactory(), Stub(CachingRuleExecutor))
+        def resolver = resolveIvyFactory.create(Stub(ResolutionStrategyInternal), Collections.emptyList(), Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), TestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -107,7 +107,7 @@ class ResolveIvyFactoryTest extends Specification {
         })
 
         when:
-        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), TestUtil.attributesFactory(), Stub(CachingRuleExecutor))
+        def resolver = resolveIvyFactory.create(resolutionStrategy, repositories, Stub(ComponentMetadataProcessor), ImmutableAttributes.EMPTY, Stub(AttributesSchemaInternal), TestUtil.attributesFactory(), Stub(ComponentMetadataSupplierRuleExecutor))
 
         then:
         assert resolver instanceof UserResolverChain

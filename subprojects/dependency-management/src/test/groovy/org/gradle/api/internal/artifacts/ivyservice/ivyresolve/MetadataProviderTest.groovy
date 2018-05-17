@@ -27,13 +27,18 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
+import org.gradle.cache.CacheRepository
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DefaultConfigurableRule
 import org.gradle.internal.reflect.InstantiatingAction
-import org.gradle.internal.resolve.caching.SimpleRuleExecutor
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.serialize.Serializer
+import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -50,10 +55,11 @@ class MetadataProviderTest extends Specification {
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new MetadataProvider(resolveState)
     def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
+    def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
 
     def setup() {
         resolveState.getCachePolicy() >> cachePolicy
-        resolveState.getComponentMetadataSupplierExecutor() >> new SimpleRuleExecutor()
+        resolveState.getComponentMetadataSupplierExecutor() >> ruleExecutor
         resolveState.attributesFactory >> TestUtil.attributesFactory()
     }
 

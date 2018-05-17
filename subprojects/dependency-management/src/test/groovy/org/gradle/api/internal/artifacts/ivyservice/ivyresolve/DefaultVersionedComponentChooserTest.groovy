@@ -34,7 +34,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.resolve.caching.CachingRuleExecutor
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.ComponentSelectionContext
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.rules.ClosureBackedRuleAction
@@ -399,8 +399,8 @@ class DefaultVersionedComponentChooserTest extends Specification {
         return c
     }
 
-    CachingRuleExecutor componentMetadataSupplierExecutor() {
-        Mock(CachingRuleExecutor) {
+    ComponentMetadataSupplierRuleExecutor componentMetadataSupplierExecutor() {
+        Mock(ComponentMetadataSupplierRuleExecutor) {
             execute(_, _, _, _, _) >> { args ->
                 def (key, rule, converter, producer, cachePolicy) = args
                 converter.transform(producer.transform(key))
