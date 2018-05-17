@@ -89,6 +89,6 @@ task text(type: TextTask)
 
         expect:
         fails("text")
-        failure.assertHasCause("Could not read 'http://localhost:$server.port/myConfig.txt' as it does not exist.")
+        failure.assertHasCause("Could not read 'http://localhost:$server.port/myConfig-${uuid}.txt' as it does not exist.")
     }
 }
