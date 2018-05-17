@@ -31,8 +31,7 @@ plugins {
 // including all sources
 val main by java.sourceSets
 afterEvaluate {
-    tasks.getByName("jar") {
-        this as Jar
+    tasks.getByName<Jar>("jar") {
         from(main.allSource)
         manifest.attributes.apply {
             put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")

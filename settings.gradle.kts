@@ -12,3 +12,12 @@ include(
     "test-fixtures",
     "samples-tests",
     "integ-tests")
+
+for (project in rootProject.children) {
+    project.apply {
+        projectDir = file("subprojects/$name")
+        buildFileName = "build.gradle.kts"
+        assert(projectDir.isDirectory)
+        assert(buildFile.isFile)
+    }
+}

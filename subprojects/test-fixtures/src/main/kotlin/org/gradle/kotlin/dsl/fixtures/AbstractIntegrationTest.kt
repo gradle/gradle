@@ -204,7 +204,7 @@ fun customInstallation() =
     } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 
-val rootProjectDir = File("..").canonicalFile!!
+val rootProjectDir = File("../..").canonicalFile!!
 
 
 val customInstallationBuildDir = File(rootProjectDir, "build/custom")
