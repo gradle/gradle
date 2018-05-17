@@ -17,17 +17,16 @@ package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.InvokerHelper;
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -37,6 +36,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceSet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
@@ -111,23 +111,20 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureScalaCompile(final Project project, final SourceSet sourceSet) {
-        String taskName = sourceSet.getCompileTaskName("scala");
-        final ScalaCompile scalaCompile = project.getTasks().create(taskName, ScalaCompile.class);
-        scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
-
-        Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-        ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
-        SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
-        scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
-        scalaCompile.setSource(scalaSourceSet.getScala());
-        project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(taskName);
-
-
-        // cannot use convention mapping because the resulting object won't be serializable
-        // cannot compute at task execution time because we need association with source set
-        project.getGradle().addBuildListener(new BuildAdapter() {
+        final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().createLater(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
             @Override
-            public void projectsEvaluated(Gradle gradle) {
+            public void execute(ScalaCompile scalaCompile) {
+                scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
+                Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
+                ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
+                SourceSetUtil.configureForSourceSet(sourceSet, scalaSourceSet.getScala(), scalaCompile, scalaCompile.getOptions(), project);
+                scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
+                scalaCompile.setSource(scalaSourceSet.getScala());
+
+
+                // cannot use convention mapping because the resulting object won't be serializable
+                // cannot compute at task execution time because we need association with source set
+                // TODO: Replace this with Providers
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                 if (incrementalOptions.getAnalysisFile() == null) {
                     String analysisFilePath = project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis";
@@ -140,10 +137,17 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 }
             }
         });
+
+        project.getTasks().get(Task.class, sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                task.dependsOn(scalaCompile);
+            }
+        });
     }
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaCompile.class, new Action<ScalaCompile>() {
+        project.getTasks().withType(ScalaCompile.class).configureEach(new Action<ScalaCompile>() {
             @Override
             public void execute(final ScalaCompile compile) {
                 compile.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
@@ -167,7 +171,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaDoc.class, new Action<ScalaDoc>() {
+        project.getTasks().withType(ScalaDoc.class).configureEach(new Action<ScalaDoc>() {
             @Override
             public void execute(final ScalaDoc scalaDoc) {
                 scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
