@@ -19,6 +19,8 @@ package org.gradle.performance.generator
 class TestProjectGeneratorConfiguration {
     String projectName
 
+    boolean useKotlinDsl
+
     String[] plugins
     String[] repositories
     String[] externalApiDependencies

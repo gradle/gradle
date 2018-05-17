@@ -24,23 +24,25 @@ import static org.gradle.performance.generator.CompositeConfiguration.composite
 @CompileStatic
 enum JavaTestProject {
 
-    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g', false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
-    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m', false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
+    LARGE_MONOLITHIC_JAVA_PROJECT("largeMonolithicJavaProject", 50000, 0, '4g', false, false, [assemble: productionFile('largeMonolithicJavaProject', -1), test: productionFile('largeMonolithicJavaProject', -1)]),
+    LARGE_JAVA_MULTI_PROJECT("largeJavaMultiProject", 100, 500, '256m', false, false, [assemble: productionFile('largeJavaMultiProject'), test: productionFile('largeJavaMultiProject', 450, 2250, 45000)]),
 
-    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
-    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", composite(false),100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
-    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", composite(true),100, 100, '256m', false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_MONOLITHIC_JAVA_PROJECT("mediumMonolithicJavaProject", 10000, 0, '4g', false, false, [assemble: productionFile('mediumMonolithicJavaProject', -1)]),
+    MEDIUM_JAVA_MULTI_PROJECT("mediumJavaMultiProject", 100, 100, '256m', false, false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_COMPOSITE_BUILD("mediumJavaCompositeBuild", composite(false),100, 100, '256m', false, false, [assemble: productionFile('mediumJavaMultiProject')]),
+    MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD("mediumJavaPredefinedCompositeBuild", composite(true),100, 100, '256m', false, false, [assemble: productionFile('mediumJavaMultiProject')]),
 
-    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
+    MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG("mediumJavaMultiProjectWithTestNG", 100, 100, '256m', false, true, [assemble: productionFile('mediumJavaMultiProjectWithTestNG'), test: productionFile('mediumJavaMultiProjectWithTestNG', 50, 250, 5000)]),
 
-    SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", 50, 10, '256m', false, [assemble: productionFile('smallJavaMultiProject')]),
+    SMALL_JAVA_MULTI_PROJECT("smallJavaMultiProject", 50, 10, '256m', false, false, [assemble: productionFile('smallJavaMultiProject')]),
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, CompositeConfiguration compositeConfiguration=null, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
+    JavaTestProject(String projectName, CompositeConfiguration compositeConfiguration=null, int sourceFiles, int subProjects, String compilerMemory, boolean useKotlinDsl, boolean useTestNG, Map<String, String> filesToUpdate) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
+
+        config.useKotlinDsl = useKotlinDsl
 
         config.plugins = ['java', 'eclipse', 'idea']
         config.repositories = [mavenCentralRepositoryDefinition()]
