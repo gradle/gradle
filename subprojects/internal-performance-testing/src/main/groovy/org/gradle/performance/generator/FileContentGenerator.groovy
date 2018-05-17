@@ -16,6 +16,8 @@
 
 package org.gradle.performance.generator
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+
 class FileContentGenerator {
 
     TestProjectGeneratorConfiguration config
@@ -28,26 +30,37 @@ class FileContentGenerator {
         def isRoot = subProjectNumber == null
         if (isRoot && config.subProjects > 0) {
             if (config.compositeBuild) {
-                return """
-                    tasks.create("clean") {
-                        dependsOn(gradle.includedBuilds${config.useKotlinDsl ? '.map { it.task(":clean") }' : '*.task(":clean")'})
+                if (config.dsl == KOTLIN) {
+                    return """
+                    task("clean") {
+                        dependsOn(gradle.includedBuilds.map { it.task(":clean") })
                     }
-                    tasks.create("assemble") {
-                        dependsOn(gradle.includedBuilds${config.useKotlinDsl ? '.map { it.task(":assemble") }' : '*.task(":assemble")'})
+                    task("assemble") {
+                        dependsOn(gradle.includedBuilds.map { it.task(":assemble") })
                     }
-                """
+                    """
+                } else {
+                    return """
+                    task clean {
+                        dependsOn gradle.includedBuilds*.task(":clean")
+                    }
+                    task assemble {
+                        dependsOn gradle.includedBuilds*.task(":assemble")
+                    }
+                    """
+                }
             }
             return ""
         }
         def missingJavaLibrarySupport = {
-            if (config.useKotlinDsl) {
+            if (config.dsl == KOTLIN) {
                 'val missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version("3.4")'
             } else {
                 "def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')"
             }
         }
         def compilerAndTestVariables = {
-            if (config.useKotlinDsl) {
+            if (config.dsl == KOTLIN) {
                 """
                     val compilerMemory: String by project
                     val testRunnerMemory: String by project
@@ -62,7 +75,7 @@ class FileContentGenerator {
             }
         }
         def tasksConfiguration = {
-            if (config.useKotlinDsl) {
+            if (config.dsl == KOTLIN) {
                 """
                 tasks.withType<JavaCompile> {
                     options.isFork = true
@@ -450,7 +463,7 @@ class FileContentGenerator {
     }
 
     private imperativelyApplyPlugin(String plugin) {
-        if (config.useKotlinDsl) {
+        if (config.dsl == KOTLIN) {
             return "apply(plugin = \"$plugin\")"
         }
         return "apply plugin: '$plugin'"
@@ -467,7 +480,7 @@ class FileContentGenerator {
             }.join("\n            ")
         }
         def configurations = {
-            if (config.useKotlinDsl) {
+            if (config.dsl == KOTLIN) {
                 """
                 if (missingJavaLibrarySupport) {
                     configurations {
@@ -509,17 +522,11 @@ class FileContentGenerator {
     }
 
     private directDependencyDeclaration(String configuration, String notation) {
-        if (config.useKotlinDsl) {
-            return "\"$configuration\"(\"$notation\")"
-        }
-        return "$configuration '$notation'"
+        config.dsl == KOTLIN ? "\"$configuration\"(\"$notation\")" : "$configuration '$notation'"
     }
 
     private projectDependencyDeclaration(String configuration, int projectNumber) {
-        if (config.useKotlinDsl) {
-            return "\"$configuration\"(${dependency(projectNumber)})"
-        }
-        return "$configuration ${dependency(projectNumber)}"
+        config.dsl == KOTLIN ? "\"$configuration\"(${dependency(projectNumber)})" : "$configuration ${dependency(projectNumber)}"
     }
 
     private dependency(int projectNumber) {

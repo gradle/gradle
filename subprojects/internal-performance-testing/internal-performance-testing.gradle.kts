@@ -38,6 +38,7 @@ dependencies {
 
     compile(library("groovy"))
     compile(project(":baseServices"))
+    compile(project(":buildInit"))
     compile(library("slf4j_api"))
     compile(project(":internalIntegTesting"))
     compile(library("jatl"))

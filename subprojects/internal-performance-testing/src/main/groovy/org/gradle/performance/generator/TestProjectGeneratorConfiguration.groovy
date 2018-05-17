@@ -16,10 +16,12 @@
 
 package org.gradle.performance.generator
 
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+
 class TestProjectGeneratorConfiguration {
     String projectName
 
-    boolean useKotlinDsl
+    BuildInitDsl dsl
 
     String[] plugins
     String[] repositories
