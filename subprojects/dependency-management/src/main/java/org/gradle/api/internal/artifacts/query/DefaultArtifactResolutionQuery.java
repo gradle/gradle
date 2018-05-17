@@ -16,9 +16,6 @@
 package org.gradle.api.internal.artifacts.query;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -50,7 +47,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.resolve.caching.CachingRuleExecutor;
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -74,7 +71,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
     private final ImmutableAttributesFactory attributesFactory;
-    private final CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor;
+    private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
     private Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
     private Class<? extends Component> componentType;
@@ -84,7 +81,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
                                           ResolveIvyFactory ivyFactory, GlobalDependencyResolutionRules metadataHandler,
                                           ComponentTypeRegistry componentTypeRegistry,
                                           ImmutableAttributesFactory attributesFactory,
-                                          CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
+                                          ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
         this.configurationContainer = configurationContainer;
         this.repositoryHandler = repositoryHandler;
         this.ivyFactory = ivyFactory;

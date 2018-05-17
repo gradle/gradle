@@ -18,16 +18,10 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
@@ -107,8 +101,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resolve.caching.CachingRuleExecutor;
-import org.gradle.internal.resolve.caching.CrossBuildCachingRuleExecutor;
+import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
@@ -125,7 +118,6 @@ import org.gradle.vcs.internal.VcsResolver;
 import org.gradle.vcs.internal.VcsWorkingDirectoryRoot;
 import org.gradle.vcs.internal.VersionControlSystemFactory;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -322,7 +314,7 @@ class DependencyManagementBuildScopeServices {
                                                                 ImmutableAttributesFactory attributesFactory,
                                                                 VersionSelectorScheme versionSelectorScheme,
                                                                 VersionParser versionParser,
-                                                                CachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> componentMetadataSupplierRuleExecutor) {
+                                                                ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -402,40 +394,11 @@ class DependencyManagementBuildScopeServices {
         return new SuppliedComponentMetadataSerializer(moduleVersionIdentifierSerializer, attributeContainerSerializer);
     }
 
-    CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,
-                                                                                                                                                            CacheRepository cacheRepository,
-                                                                                                                                                            InMemoryCacheDecoratorFactory cacheDecoratorFactory,
-                                                                                                                                                            final BuildCommencedTimeProvider timeProvider,
-                                                                                                                                                            SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
-        return new CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata>(
-            "md-supplier",
-            cacheRepository,
-            cacheDecoratorFactory,
-            snapshotter,
-            timeProvider,
-            new CrossBuildCachingRuleExecutor.EntryValidator<ComponentMetadata>() {
-                @Override
-                public boolean isValid(CachePolicy policy, final CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata> entry) {
-                    long age = timeProvider.getCurrentTime() - entry.getTimestamp();
-                    final ComponentMetadata result = entry.getResult();
-                    boolean mustRefreshModule = policy.mustRefreshModule(new ResolvedModuleVersion() {
-                        @Override
-                        public ModuleVersionIdentifier getId() {
-                            return result.getId();
-                        }
-                    },
-                        age,
-                        result.isChanging());
-                    return !mustRefreshModule;
-                }
-            },
-            new Transformer<Serializable, ModuleVersionIdentifier>() {
-                @Override
-                public Serializable transform(ModuleVersionIdentifier moduleVersionIdentifier) {
-                    return moduleVersionIdentifier.toString();
-                }
-            },
-            suppliedComponentMetadataSerializer
-        );
+    ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,
+                                                                                      CacheRepository cacheRepository,
+                                                                                      InMemoryCacheDecoratorFactory cacheDecoratorFactory,
+                                                                                      final BuildCommencedTimeProvider timeProvider,
+                                                                                      SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
+        return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 }
