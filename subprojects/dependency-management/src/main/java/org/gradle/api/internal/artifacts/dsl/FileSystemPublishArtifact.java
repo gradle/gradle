@@ -73,7 +73,6 @@ public class FileSystemPublishArtifact implements PublishArtifact {
     private ArtifactFile getValue() {
         if (artifactFile == null) {
             artifactFile = new ArtifactFile(getFile(), version);
-
         }
         return artifactFile;
     }
