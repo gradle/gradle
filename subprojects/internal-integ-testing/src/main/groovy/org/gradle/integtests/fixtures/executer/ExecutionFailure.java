@@ -23,11 +23,9 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasFileName(String filename);
 
     /**
-     * Asserts that the reported failure has the given summary (ie the bit after 'FAILURE: ').
-     *
-     * <p>Error messages are normalized to use new-line char as line separator.
+     * Asserts that the given number of failures are present.
      */
-    ExecutionFailure assertHasFailureSummary(String context);
+    ExecutionFailure assertHasFailures(int count);
 
     /**
      * Asserts that the reported failure has the given cause (ie the bit after the description).

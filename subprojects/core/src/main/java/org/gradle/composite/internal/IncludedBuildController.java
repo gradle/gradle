@@ -22,8 +22,7 @@ public interface IncludedBuildController {
 
     void awaitCompletion(String taskPath);
 
-    // Throws exception if failed
-    boolean isComplete(String taskPath);
+    IncludedBuildTaskResource.State getTaskState(String taskPath);
 
     void startTaskExecution();
 

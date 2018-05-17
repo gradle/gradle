@@ -79,8 +79,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these
- * methods.
+ * A reusable implementation of TaskExecutionPlan. The {@link #addToTaskGraph(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
 public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
@@ -90,7 +89,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
-    private final TaskInfoFactory nodeFactory = new TaskInfoFactory(failureCollector);
+    private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private boolean continueOnFailure;

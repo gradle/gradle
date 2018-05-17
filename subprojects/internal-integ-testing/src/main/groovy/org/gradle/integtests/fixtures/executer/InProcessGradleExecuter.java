@@ -648,9 +648,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
-        public ExecutionFailure assertHasFailureSummary(String context) {
-            outputFailure.assertHasFailureSummary(context);
-            assertThat(failure.getMessage(), equalTo(context));
+        public ExecutionFailure assertHasFailures(int count) {
+            outputFailure.assertHasFailures(count);
+            if (count == 1) {
+                assertFalse(failure instanceof MultipleBuildFailures);
+            } else {
+                assertEquals(((MultipleBuildFailures)failure).getCauses().size(), count);
+            }
             return this;
         }
 

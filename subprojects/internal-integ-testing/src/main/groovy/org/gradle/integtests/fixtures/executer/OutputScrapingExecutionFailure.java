@@ -207,8 +207,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     @Override
-    public ExecutionFailure assertHasFailureSummary(String context) {
-        assertThat(this.summary, equalTo(context));
+    public ExecutionFailure assertHasFailures(int count) {
+        assertThat(this.descriptions.size(), equalTo(count));
+        if (count == 1) {
+            assertThat(summary, equalTo("Build failed with an exception."));
+        } else {
+            assertThat(summary, equalTo(String.format("Build completed with %s failures.", count)));
+        }
         return this;
     }
 

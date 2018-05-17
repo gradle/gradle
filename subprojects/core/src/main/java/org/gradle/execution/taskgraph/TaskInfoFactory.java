@@ -20,6 +20,7 @@ package org.gradle.execution.taskgraph;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
+import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,11 +28,6 @@ import java.util.Set;
 
 public class TaskInfoFactory {
     private final Map<Task, TaskInfo> nodes = new HashMap<Task, TaskInfo>();
-    private final TaskFailureCollector failureCollector;
-
-    public TaskInfoFactory(TaskFailureCollector failureCollector) {
-        this.failureCollector = failureCollector;
-    }
 
     public Set<Task> getTasks() {
         return nodes.keySet();
@@ -41,7 +37,7 @@ public class TaskInfoFactory {
         TaskInfo node = nodes.get(task);
         if (node == null) {
             if (task instanceof IncludedBuildTaskResource) {
-                node = new TaskResourceTaskInfo((TaskInternal) task, failureCollector);
+                node = new TaskResourceTaskInfo((TaskInternal) task);
             } else {
                 node = new TaskInfo((TaskInternal) task);
             }
@@ -55,12 +51,10 @@ public class TaskInfoFactory {
     }
 
     private static class TaskResourceTaskInfo extends TaskInfo {
-        private final TaskFailureCollector failureCollector;
-        private boolean complete;
+        private State state = State.WAITING;
 
-        public TaskResourceTaskInfo(TaskInternal task, TaskFailureCollector failureCollector) {
+        public TaskResourceTaskInfo(TaskInternal task) {
             super(task);
-            this.failureCollector = failureCollector;
             doNotRequire();
         }
 
@@ -70,23 +64,24 @@ public class TaskInfoFactory {
         }
 
         @Override
+        public boolean isSuccessful() {
+            return state == State.SUCCESS;
+        }
+
+        @Override
+        public boolean isFailed() {
+            return state == State.FAILED;
+        }
+
+        @Override
         public boolean isComplete() {
-            if (complete) {
+            if (state != State.WAITING) {
                 return true;
             }
 
             IncludedBuildTaskResource task = (IncludedBuildTaskResource) getTask();
-            try {
-                complete = task.isComplete();
-            } catch (Exception e) {
-                complete = true;
-
-                // The failures need to be explicitly collected here, since the wrapper task is never added to the execution plan,
-                // and thus doesn't have failures collected in the usual way on execution.
-                failureCollector.addFailure(e);
-            }
-
-            return complete;
+            state = task.getTaskState();
+            return state != State.WAITING;
         }
     }
 }

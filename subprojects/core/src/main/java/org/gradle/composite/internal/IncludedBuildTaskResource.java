@@ -20,6 +20,9 @@ package org.gradle.composite.internal;
  * A resource produced by a task in an included build.
  */
 public interface IncludedBuildTaskResource {
-    // Throws exception if failed
-    boolean isComplete();
+    enum State {
+        WAITING, SUCCESS, FAILED
+    }
+
+    State getTaskState();
 }

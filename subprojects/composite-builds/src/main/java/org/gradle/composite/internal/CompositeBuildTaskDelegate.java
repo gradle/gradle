@@ -53,7 +53,7 @@ public class CompositeBuildTaskDelegate extends DefaultTask implements IncludedB
 
     @Internal
     @Override
-    public boolean isComplete() {
-        return taskGraph.isComplete(build, taskPath);
+    public State getTaskState() {
+        return taskGraph.getTaskState(build, taskPath);
     }
 }
