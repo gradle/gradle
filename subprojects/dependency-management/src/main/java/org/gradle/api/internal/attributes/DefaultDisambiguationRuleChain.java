@@ -24,9 +24,9 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.internal.DefaultActionConfiguration;
-import org.gradle.internal.reflect.DefaultConfigurableRule;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -37,21 +37,21 @@ import java.util.Set;
 public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChain<T>, DisambiguationRule<T> {
     private final List<Action<? super MultipleCandidatesDetails<T>>> rules = Lists.newArrayList();
     private final Instantiator instantiator;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultDisambiguationRuleChain(Instantiator instantiator) {
+    public DefaultDisambiguationRuleChain(Instantiator instantiator, IsolatableFactory isolatableFactory) {
         this.instantiator = instantiator;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
-        configureAction.execute(configuration);
-        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule, configureAction), instantiator, new ExceptionHandler<T>(rule)));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule, configureAction), instantiator, new ExceptionHandler<T>(rule), isolatableFactory));
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
-        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule), instantiator, new ExceptionHandler<T>(rule)));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule), instantiator, new ExceptionHandler<T>(rule), isolatableFactory));
     }
 
     @Override

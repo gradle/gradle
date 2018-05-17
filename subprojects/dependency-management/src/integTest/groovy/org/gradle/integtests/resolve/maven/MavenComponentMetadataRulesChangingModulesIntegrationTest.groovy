@@ -50,23 +50,15 @@ configurations {
 }
 
 class SavingRule implements ComponentMetadataRule {
-    Project project;
-
-    public SavingRule(Project project) {
-        this.project = project
-    }
-
     public void execute(ComponentMetadataContext context) {
-        project.file(context.details.id.name).text = context.details.changing
+        new File(context.details.id.name).text = context.details.changing
     }
 }
 
 dependencies {
     modules "org.test:moduleB:1.0-SNAPSHOT"
     components {
-        all(SavingRule, {
-            params(project)
-        })
+        all(SavingRule)
     }
 }
 task resolve {

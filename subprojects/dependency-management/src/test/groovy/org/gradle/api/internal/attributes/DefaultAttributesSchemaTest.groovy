@@ -29,7 +29,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultAttributesSchemaTest extends Specification {
-    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+    def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
     def factory = TestUtil.attributesFactory()
 
     @Unroll
@@ -290,7 +290,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "merging creates schema with additional attributes defined by producer"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
 
         def attr1 = Attribute.of("a", String)
         def attr2 = Attribute.of("b", Integer)
@@ -309,7 +309,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers compatibility rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
 
         def attr = Attribute.of("a", Flavor)
 
@@ -322,7 +322,7 @@ class DefaultAttributesSchemaTest extends Specification {
     }
 
     def "uses the producers selection rules when the consumer does not express an opinion"() {
-        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory())
+        def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), TestUtil.valueSnapshotter())
 
         def attr = Attribute.of("a", Flavor)
 

@@ -169,14 +169,10 @@ dependencies {
             ext.rulesInvoked = []
 
             class VerifyingRule implements ComponentMetadataRule {
-                final List<String> rulesInvoked;
-                
-                public VerifyingRule(List<String> rulesInvoked) {
-                    this.rulesInvoked = rulesInvoked
-                }
+                static boolean ruleInvoked
                 
                 public void execute(ComponentMetadataContext context) {
-                    rulesInvoked << context.details.id.version
+                    ruleInvoked = true
                 }
             }
 
@@ -193,7 +189,7 @@ dependencies {
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
                     all(new RuleObject('rulesInvoked': rulesInvoked))
-                    all(VerifyingRule, { params(rulesInvoked) })
+                    all(VerifyingRule)
                 }
             }
 
@@ -214,7 +210,10 @@ dependencies {
                 }
             }
 
-            resolve.doLast { assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0', '1.0' ] }
+            resolve.doLast { 
+                assert rulesInvoked == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
+                assert VerifyingRule.ruleInvoked 
+            }
         """
 
         when:
@@ -236,15 +235,19 @@ dependencies {
             ext.rulesInvoked = []
             ext.rulesUninvoked = []
 
-            class VerifyingRule implements ComponentMetadataRule {
-                final List<String> rulesInvoked;
-                
-                public VerifyingRule(List<String> rulesInvoked) {
-                    this.rulesInvoked = rulesInvoked
-                }
+            class InvokedRule implements ComponentMetadataRule {
+                static boolean ruleInvoked
                 
                 public void execute(ComponentMetadataContext context) {
-                    rulesInvoked << 4
+                    ruleInvoked = true
+                }
+            }
+
+            class NotInvokedRule implements ComponentMetadataRule {
+                static boolean ruleInvoked
+                
+                public void execute(ComponentMetadataContext context) {
+                    ruleInvoked = true
                 }
             }
 
@@ -264,8 +267,8 @@ dependencies {
                     withModule('org.test:projectB', new ActionRule('rulesInvoked': rulesUninvoked))
                     withModule('org.test:projectB', new RuleObject('rulesInvoked': rulesUninvoked))
 
-                    withModule('org.test:projectA', VerifyingRule, { params(rulesInvoked) })
-                    withModule('org.test:projectB', VerifyingRule, { params(rulesUninvoked) })
+                    withModule('org.test:projectA', InvokedRule)
+                    withModule('org.test:projectB', NotInvokedRule)
                 }
             }
 
@@ -287,8 +290,10 @@ dependencies {
             }
 
             resolve.doLast {
-                assert rulesInvoked.sort() == [ 1, 2, 3, 4 ]
+                assert rulesInvoked.sort() == [ 1, 2, 3 ]
                 assert rulesUninvoked.empty
+                assert InvokedRule.ruleInvoked
+                assert !NotInvokedRule.ruleInvoked
             }
         """
 

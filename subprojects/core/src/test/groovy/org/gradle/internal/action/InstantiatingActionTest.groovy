@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect
+package org.gradle.internal.action
 
 import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
+import org.gradle.internal.action.DefaultConfigurableRule
+import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -45,7 +47,8 @@ class InstantiatingActionTest extends Specification {
                 }
             }),
             TestUtil.instantiatorFactory().decorate(),
-            shouldNotFail
+            shouldNotFail,
+            TestUtil.valueSnapshotter()
         )
 
         then:
@@ -70,7 +73,8 @@ class InstantiatingActionTest extends Specification {
         def action = new InstantiatingAction<Details>(
             DefaultConfigurableRule.of(RuleWithInjectedParams),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail
+            shouldNotFail,
+            TestUtil.valueSnapshotter()
         )
 
         then:
@@ -101,7 +105,8 @@ class InstantiatingActionTest extends Specification {
                 }
             }),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail
+            shouldNotFail,
+            TestUtil.valueSnapshotter()
         )
 
         then:

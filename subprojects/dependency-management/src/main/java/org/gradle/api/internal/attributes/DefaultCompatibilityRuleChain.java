@@ -21,8 +21,9 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.CompatibilityRuleChain;
-import org.gradle.internal.reflect.DefaultConfigurableRule;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
 
@@ -32,9 +33,11 @@ import java.util.List;
 public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<T>, CompatibilityRule<T> {
     private final List<Action<? super CompatibilityCheckDetails<T>>> rules = Lists.newArrayList();
     private final Instantiator instantiator;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultCompatibilityRuleChain(Instantiator instantiator) {
+    public DefaultCompatibilityRuleChain(Instantiator instantiator, IsolatableFactory isolatableFactory) {
         this.instantiator = instantiator;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -51,12 +54,12 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
 
     @Override
     public void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(DefaultConfigurableRule.<CompatibilityCheckDetails<T>>of(rule, configureAction), instantiator, new ExceptionHandler<T>(rule)));
+        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(DefaultConfigurableRule.<CompatibilityCheckDetails<T>>of(rule, configureAction), instantiator, new ExceptionHandler<T>(rule), isolatableFactory));
     }
 
     @Override
     public void add(final Class<? extends AttributeCompatibilityRule<T>> rule) {
-        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(DefaultConfigurableRule.<CompatibilityCheckDetails<T>>of(rule), instantiator, new ExceptionHandler<T>(rule)));
+        rules.add(new InstantiatingAction<CompatibilityCheckDetails<T>>(DefaultConfigurableRule.<CompatibilityCheckDetails<T>>of(rule), instantiator, new ExceptionHandler<T>(rule), isolatableFactory));
     }
 
     @Override

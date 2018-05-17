@@ -29,10 +29,11 @@ import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.ConfigurableRule;
-import org.gradle.internal.reflect.DefaultConfigurableRule;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.ConfigurableRule;
+import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
@@ -85,12 +86,12 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
         this.componentMetadataListerRule = DefaultConfigurableRule.of(lister, configureAction);
     }
 
-    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator) {
-        return createRuleAction(instantiator, componentMetadataSupplierRule);
+    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        return createRuleAction(instantiator, isolatableFactory, componentMetadataSupplierRule);
     }
 
-    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(final Instantiator instantiator) {
-        return createRuleAction(instantiator, componentMetadataListerRule);
+    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        return createRuleAction(instantiator, isolatableFactory, componentMetadataListerRule);
     }
 
     /**
@@ -116,7 +117,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
 
-    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
+    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final IsolatableFactory isolatableFactory, final ConfigurableRule<T> rule) {
         if (rule == null) {
             return null;
         }
@@ -126,7 +127,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
             public void handleException(T target, Throwable throwable) {
                 throw UncheckedException.throwAsUncheckedException(throwable);
             }
-        });
+        }, isolatableFactory);
     }
 
 }

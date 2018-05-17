@@ -14,40 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.action;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.reflect.Instantiator;
 
 public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
-
     private final ConfigurableRule<DETAILS> rule;
     private final Instantiator instantiator;
     private final ExceptionHandler<DETAILS> exceptionHandler;
+    private final IsolatableFactory isolatableFactory;
 
-    public InstantiatingAction(ConfigurableRule<DETAILS> rule,
-                               Instantiator instantiator,
-                               ExceptionHandler<DETAILS> exceptionHandler) {
+    public InstantiatingAction(ConfigurableRule<DETAILS> rule, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler, IsolatableFactory isolatableFactory) {
         this.rule = rule;
         this.instantiator = instantiator;
         this.exceptionHandler = exceptionHandler;
-    }
-
-    public ConfigurableRule<DETAILS> getRule() {
-        return rule;
+        this.isolatableFactory = isolatableFactory;
     }
 
     public InstantiatingAction<DETAILS> withInstantiator(Instantiator instantiator) {
-        return new InstantiatingAction<DETAILS>(rule, instantiator, exceptionHandler);
+        return new InstantiatingAction<DETAILS>(rule, instantiator, exceptionHandler, isolatableFactory);
     }
 
     @Override
     public void execute(DETAILS target) {
         try {
-            Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams());
+            Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), isolatableFactory.isolate(rule.getRuleParams()).isolate());
             instance.execute(target);
         } catch (Throwable t) {
             exceptionHandler.handleException(target, t);
         }
+    }
+
+    public ConfigurableRule<DETAILS> getRule() {
+        return rule;
     }
 
     public Instantiator getInstantiator() {

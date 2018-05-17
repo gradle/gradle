@@ -63,20 +63,12 @@ task resolve {
 
         buildFile <<
             """
-import java.util.concurrent.atomic.AtomicBoolean
-
-def ruleInvoked = new AtomicBoolean()
-
 class IvyRule implements ComponentMetadataRule {
-    AtomicBoolean ruleInvoked
-
-    IvyRule(AtomicBoolean ruleInvoked) {
-        this.ruleInvoked = ruleInvoked
-    }
+    static boolean ruleInvoked
 
     @Override
     void execute(ComponentMetadataContext context) {
-            ruleInvoked.set(true)
+            ruleInvoked = true
             def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.extraInfo.asMap() == [${declareNS('foo')}: "fooValue", ${declareNS('bar')}: "barValue"]
             assert descriptor.extraInfo.get('foo') == 'fooValue'
@@ -88,13 +80,11 @@ class IvyRule implements ComponentMetadataRule {
 
 dependencies {
     components {
-        all(IvyRule, {
-            params(ruleInvoked)
-        })
+        all(IvyRule)
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+resolve.doLast { assert IvyRule.ruleInvoked }
 """
         when:
         repositoryInteractions {
@@ -185,36 +175,26 @@ resolve.doLast { assert ruleInvoked }
 
         buildFile <<
             """
-import java.util.concurrent.atomic.AtomicBoolean
-
-def ruleInvoked = new AtomicBoolean()
-
 class IvyRule implements ComponentMetadataRule {
-    AtomicBoolean ruleInvoked
-
-    IvyRule(AtomicBoolean ruleInvoked) {
-        this.ruleInvoked = ruleInvoked
-    }
+    static boolean ruleInvoked
 
     @Override
     void execute(ComponentMetadataContext context) {
-            ruleInvoked.set(true)
+            ruleInvoked = true
             def descriptor = context.getDescriptor(IvyModuleDescriptor)
             assert descriptor.branch == '${sq(branch)}'
-            details.statusScheme = [ '${sq(status)}' ]
+            context.details.statusScheme = [ '${sq(status)}' ]
             assert descriptor.ivyStatus == '${sq(status)}'
     }
 }
 
 dependencies {
     components {
-        all(IvyRule, {
-            params(ruleInvoked)
-        })
+        all(IvyRule)
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+resolve.doLast { assert IvyRule.ruleInvoked }
 """
 
         when:
