@@ -118,12 +118,14 @@ class KotlinScriptCompiler(
             }
         }
 
-    fun compileForClassPath(executeBody: Boolean) =
+    fun compileIgnoringErrors(executeScriptBody: Boolean) =
         asKotlinScript {
             ignoringErrors { prepareForCompilation() }
             ignoringErrors { executeBuildscriptBlock() }
             ignoringErrors { executePluginsBlock() }
-            if (executeBody) ignoringErrors { executeScriptBody() }
+            if (executeScriptBody) {
+                ignoringErrors { executeScriptBody() }
+            }
         }
 
     private

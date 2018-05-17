@@ -18,7 +18,9 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+
 import org.gradle.cache.internal.GeneratedGradleJarCache
+
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache

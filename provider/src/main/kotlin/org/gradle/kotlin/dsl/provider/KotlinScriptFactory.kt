@@ -19,9 +19,11 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+
 import java.util.*
 
 
@@ -72,7 +74,7 @@ class StandardKotlinScriptFactory(
         val kotlinScriptSource = KotlinScriptSource(scriptSource)
         return compilerFor(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope).run {
             if (KotlinScriptOption.IgnoreErrors in options)
-                compileForClassPath(executeBody = KotlinScriptOption.SkipBody !in options)
+                compileIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
             else
                 compile()
         }
