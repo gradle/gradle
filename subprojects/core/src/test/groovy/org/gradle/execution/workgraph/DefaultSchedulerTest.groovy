@@ -16,11 +16,44 @@
 
 package org.gradle.execution.workgraph
 
+import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.scheduler.DefaultScheduler
+import org.gradle.internal.scheduler.Event
+import org.gradle.internal.scheduler.Node
+import org.gradle.internal.scheduler.NodeExecutionWorker
+import org.gradle.internal.scheduler.NodeExecutionWorkerService
+import org.gradle.internal.scheduler.NodeExecutor
 import org.gradle.internal.scheduler.Scheduler
+
+import javax.annotation.Nullable
+import java.util.concurrent.BlockingQueue
 
 class DefaultSchedulerTest extends AbstractSchedulerTest {
 
-    Scheduler scheduler = new DefaultScheduler(null, cancellationHandler)
+    Scheduler scheduler = new DefaultScheduler(cancellationHandler, concurrentNodeExecutionCoordinator, new ImmediateWorkerService())
 
+    private static class ImmediateWorkerService implements NodeExecutionWorkerService, NodeExecutionWorker {
+        private NodeExecutor nodeExecutor
+        private BlockingQueue<Event> eventQueue
+
+        @Override
+        NodeExecutionWorker getNextAvailableWorker() {
+            return this
+        }
+
+        @Override
+        void start(NodeExecutor nodeExecutor, BlockingQueue<Event> eventQueue) {
+            this.eventQueue = eventQueue
+            this.nodeExecutor = nodeExecutor
+        }
+
+        @Override
+        void execute(Node node, @Nullable ResourceLock resourceLock) {
+            executeNode(node, nodeExecutor, eventQueue)
+        }
+
+        @Override
+        void close() {
+        }
+    }
 }

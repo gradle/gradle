@@ -16,12 +16,10 @@
 
 package org.gradle.internal.scheduler;
 
-import java.util.Collection;
+import org.gradle.internal.resources.ResourceLock;
 
-public interface Scheduler {
-    /**
-     * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
-     * that don't match the {@code filter}.
-     */
-    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor);
+import javax.annotation.Nullable;
+
+public interface NodeExecutionWorker {
+    void execute(Node node, @Nullable ResourceLock resourceLock);
 }

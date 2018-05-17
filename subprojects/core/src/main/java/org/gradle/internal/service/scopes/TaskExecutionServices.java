@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
@@ -72,6 +73,7 @@ import org.gradle.execution.taskgraph.DefaultTaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.workgraph.ConcurrentWorkCoordinator;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -82,7 +84,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
+import org.gradle.internal.scheduler.DefaultNodeExecutionWorkerService;
 import org.gradle.internal.scheduler.DefaultScheduler;
+import org.gradle.internal.scheduler.NodeExecutionWorkerService;
 import org.gradle.internal.scheduler.Scheduler;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -91,6 +95,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.Path;
 
 import java.util.Collections;
 import java.util.List;
@@ -224,20 +229,27 @@ public class TaskExecutionServices {
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
-        ResourceLockCoordinationService coordinationService
+        ResourceLockCoordinationService coordinationService,
+        final GradleInternal gradle
     ) {
         ParallelismConfiguration parallelConfig = parallelismConfigurationManager.getParallelismConfiguration();
         int parallelThreads = parallelConfig.getMaxWorkerCount();
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
+
+        NodeExecutionWorkerService workerService = new DefaultNodeExecutionWorkerService(
+            parallelConfig, executorFactory, workerLeaseService, coordinationService, new Factory<Path>() {
+            @Override
+            public Path create() {
+                return gradle.findIdentityPath();
+            }
+        });
+
         return new DefaultScheduler(
-            parallelConfig,
-            executorFactory,
-            workerLeaseService,
             cancellationToken,
-            coordinationService,
-            new ConcurrentWorkCoordinator(workerLeaseService)
+            new ConcurrentWorkCoordinator(workerLeaseService),
+            workerService
         );
     }
 

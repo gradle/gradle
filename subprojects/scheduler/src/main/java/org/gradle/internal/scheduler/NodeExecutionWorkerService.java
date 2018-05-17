@@ -16,12 +16,16 @@
 
 package org.gradle.internal.scheduler;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.util.concurrent.BlockingQueue;
 
-public interface Scheduler {
-    /**
-     * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
-     * that don't match the {@code filter}.
-     */
-    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor);
+public interface NodeExecutionWorkerService extends Closeable {
+    @Nullable
+    NodeExecutionWorker getNextAvailableWorker();
+
+    void start(NodeExecutor nodeExecutor, BlockingQueue<Event> eventQueue);
+
+    @Override
+    void close();
 }

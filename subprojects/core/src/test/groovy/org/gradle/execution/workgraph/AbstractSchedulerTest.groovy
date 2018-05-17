@@ -22,18 +22,24 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.specs.Spec
 import org.gradle.execution.MultipleBuildFailures
+import org.gradle.execution.workgraph.AbstractSchedulerTest.TestResourceLock
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.graph.DirectedGraph
 import org.gradle.internal.graph.DirectedGraphRenderer
 import org.gradle.internal.graph.GraphNodeRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.scheduler.AbstractSchedulingTest
+import org.gradle.internal.scheduler.ConcurrentNodeExecutionCoordinator
 import org.gradle.internal.scheduler.CycleReporter
 import org.gradle.internal.scheduler.Edge
+import org.gradle.internal.scheduler.Event
 import org.gradle.internal.scheduler.Graph
 import org.gradle.internal.scheduler.GraphExecutionResult
 import org.gradle.internal.scheduler.Node
 import org.gradle.internal.scheduler.NodeExecutor
+import org.gradle.internal.scheduler.NodeFailedEvent
+import org.gradle.internal.scheduler.NodeFinishedEvent
 import org.gradle.internal.scheduler.Scheduler
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -64,6 +70,62 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     def cancellationHandler = Mock(BuildCancellationToken)
+    def concurrentNodeExecutionCoordinator = new ConcurrentNodeExecutionCoordinator() {
+        private final Map<String, ResourceLock> locks = [:].<String, ResourceLock>withDefault {
+            return new TestResourceLock()
+        }
+
+        @Override
+        ResourceLock findLockFor(Node node) {
+            if (node instanceof TaskNode) {
+                return locks[node.task.project.path]
+            } else {
+                return null
+            }
+        }
+
+        @Override
+        Node findConflictingNode(Graph graph, Node nodeToRun, Collection<? extends Node> runningNodes) {
+            null
+        }
+    }
+
+    private static class TestResourceLock implements ResourceLock {
+        private Thread lockerThread
+
+        @Override
+        synchronized boolean isLocked() {
+            lockerThread != null
+        }
+
+        @Override
+        synchronized boolean isLockedByCurrentThread() {
+            lockerThread == Thread.currentThread()
+        }
+
+        @Override
+        synchronized boolean tryLock() {
+            if (locked) {
+                if (!lockedByCurrentThread) {
+                    return false
+                }
+            } else {
+                lockerThread = Thread.currentThread()
+            }
+            return true
+        }
+
+        @Override
+        void unlock() {
+            lockerThread = null
+        }
+
+        @Override
+        String getDisplayName() {
+            return "test lock"
+        }
+    }
+
     WorkGraphBuilder workGraphBuilder = new WorkGraphBuilder()
     WorkGraph workGraph
     List<TaskInternal> allTasks
@@ -79,6 +141,15 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     GraphExecutionResult results
+
+    protected static void executeNode(Node node, NodeExecutor nodeExecutor, Queue<Event> eventQueue) {
+        def failure = nodeExecutor.execute(node)
+        if (failure) {
+            eventQueue.add(new NodeFailedEvent(node, failure))
+        } else {
+            eventQueue.add(new NodeFinishedEvent(node))
+        }
+    }
 
     def cycleReporter = new CycleReporter() {
         @Override
@@ -141,12 +212,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     protected void executeGraph() {
-        def scheduler = getScheduler()
-        try {
-            results = scheduler.execute(workGraph.graph, workGraph.requestedNodes, continueOnFailure, nodeExecutor)
-        } finally {
-            scheduler.close()
-        }
+        results = scheduler.execute(workGraph.graph, workGraph.requestedNodes, continueOnFailure, nodeExecutor)
     }
 
     @Override
@@ -189,7 +255,7 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
             project = root.findProject(projectName)
             if (project == null) {
                 def projectDir = temporaryFolder.testDirectory.createDir(projectName)
-                TestUtil.createChildProject(root, projectName, projectDir)
+                project = TestUtil.createChildProject(root, projectName, projectDir)
             }
         } else {
             project = root

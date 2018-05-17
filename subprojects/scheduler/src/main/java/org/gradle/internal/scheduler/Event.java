@@ -16,12 +16,19 @@
 
 package org.gradle.internal.scheduler;
 
-import java.util.Collection;
+import com.google.common.collect.ImmutableList;
 
-public interface Scheduler {
-    /**
-     * Executes the given {@code entryNodes} in the {@code graph}, excluding nodes
-     * that don't match the {@code filter}.
-     */
-    GraphExecutionResult execute(Graph graph, Collection<? extends Node> entryNodes, boolean continueOnFailure, NodeExecutor nodeExecutor);
+public abstract class Event {
+    protected final Node node;
+
+    protected Event(Node node) {
+        this.node = node;
+    }
+
+    public boolean handle(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Node> executedNodes, ImmutableList.Builder<Throwable> failures) {
+        updateGraph(graph, continueOnFailure, failures);
+        return true;
+    }
+
+    protected abstract void updateGraph(Graph graph, boolean continueOnFailure, ImmutableList.Builder<Throwable> failures);
 }
