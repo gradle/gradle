@@ -36,6 +36,7 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
             return moduleVersionIdentifier.toString();
         }
     };
+    final static Long MAX_AGE = 24L * 60 * 60 * 1000;
 
     public ComponentMetadataSupplierRuleExecutor(CacheRepository cacheRepository,
                                                  InMemoryCacheDecoratorFactory cacheDecoratorFactory,
@@ -50,6 +51,11 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
             @Override
             public boolean isValid(CachePolicy policy, final CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata> entry) {
                 long age = timeProvider.getCurrentTime() - entry.getTimestamp();
+                if (age > MAX_AGE) {
+                    // TODO: CC. We need to implement implicit input discovery for services we provide.
+                    // This would remove the need for hardcoding a max lifespan for entries
+                    return false;
+                }
                 final ComponentMetadata result = entry.getResult();
                 boolean mustRefreshModule = policy.mustRefreshModule(new ResolvedModuleVersion() {
                                                                          @Override
