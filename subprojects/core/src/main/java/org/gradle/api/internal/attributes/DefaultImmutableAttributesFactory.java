@@ -110,7 +110,7 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         }
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
-            if (!current.contains(attribute)) {
+            if (!current.findEntry(attribute.getName()).isPresent()) {
                 if (attributes1 instanceof DefaultImmutableAttributes) {
                     current = doConcatIsolatable(current, attribute, ((DefaultImmutableAttributes) attributes1).getIsolatableAttribute(attribute));
                 } else {
@@ -131,8 +131,9 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
         }
         ImmutableAttributes current = attributes2;
         for (Attribute attribute : attributes1.keySet()) {
-            Object currentAttribute = current.getAttribute(attribute);
-            if (currentAttribute != null) {
+            AttributeValue<?> entry = current.findEntry(attribute.getName());
+            if (entry.isPresent()) {
+                Object currentAttribute = entry.get();
                 Object existingAttribute = attributes1.getAttribute(attribute);
                 if (!currentAttribute.equals(existingAttribute)) {
                     throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
