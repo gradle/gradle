@@ -83,12 +83,12 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
         runner.testId = testName.methodName
 
         and:
-        def baselineBuildName = 'Groovy DSL build'
-        def currentBuildName = 'Kotlin DSL build'
+        def groovyDslBuildName = 'Groovy DSL build'
+        def kotlinDslBuildName = 'Kotlin DSL build'
 
         and:
         runner.baseline {
-            displayName baselineBuildName
+            displayName groovyDslBuildName
             projectName groovyProject.projectName
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
@@ -101,7 +101,7 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
 
         and:
         runner.buildSpec {
-            displayName currentBuildName
+            displayName kotlinDslBuildName
             projectName kotlinProject.projectName
             warmUpCount warmupBuilds
             invocationCount measuredBuilds
@@ -119,13 +119,13 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
         results.assertEveryBuildSucceeds()
 
         and:
-        def baselineResults = buildBaselineResults(results, baselineBuildName)
-        def currentResults = results.buildResult(currentBuildName)
+        def groovyDslResults = buildBaselineResults(results, groovyDslBuildName)
+        def kotlinDslResults = results.buildResult(kotlinDslBuildName)
 
         then:
-        def speedStats = baselineResults.getSpeedStatsAgainst(currentResults.name, currentResults)
+        def speedStats = groovyDslResults.getSpeedStatsAgainst(kotlinDslResults.name, kotlinDslResults)
         println(speedStats)
-        if (baselineResults.significantlyFasterThan(currentResults)) {
+        if (groovyDslResults.significantlyFasterThan(kotlinDslResults)) {
             throw new AssertionError(speedStats)
         }
 
