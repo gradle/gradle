@@ -87,26 +87,20 @@ public class WorkGraph {
         return false;
     }
 
-    // TODO This should be done by a visitor instead
-    public Set<Task> getTaskDependencies(Task task) {
+    public Set<Task> getDirectTaskDependencies(Task task) {
         TaskNode taskNode = taskNodes.get(task);
         if (taskNode == null) {
             throw new IllegalArgumentException("Task is not part of work graph: " + task);
         }
-        final ImmutableSet.Builder<Task> dependencies = ImmutableSet.builder();
-        originalGraph.walkIncomingEdgesFrom(taskNode, new Graph.EdgeWalkerAction() {
-            @Override
-            public boolean execute(Edge edge) {
-                if (edge.getType() == EdgeType.DEPENDENCY_OF) {
-                    Node source = edge.getSource();
-                    if (source instanceof TaskNode) {
-                        dependencies.add(((TaskNode) source).getTask());
-                    }
-                    return true;
+        ImmutableSet.Builder<Task> dependencies = ImmutableSet.builder();
+        for (Edge edge : originalGraph.getIncomingEdges(taskNode)) {
+            if (edge.getType() == EdgeType.DEPENDENCY_OF) {
+                Node source = edge.getSource();
+                if (source instanceof TaskNode) {
+                    dependencies.add(((TaskNode) source).getTask());
                 }
-                return false;
             }
-        });
+        }
         return dependencies.build();
     }
 }

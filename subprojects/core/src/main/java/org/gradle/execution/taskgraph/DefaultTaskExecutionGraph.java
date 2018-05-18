@@ -261,7 +261,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
-        return getWorkGraph().getTaskDependencies(task);
+        return getWorkGraph().getDirectTaskDependencies(task);
     }
 
     /**
