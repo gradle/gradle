@@ -84,7 +84,7 @@ class EmbeddedKotlinProvider constructor(
 
         repositories.maven { repo ->
             repo.name = "Embedded Kotlin Repository"
-            repo.url = embeddedKotlinRepositoryURI()
+            repo.url = embeddedKotlinRepositoryURI
             repo.metadataSources { sources ->
                 sources.artifact()
             }
@@ -132,8 +132,9 @@ class EmbeddedKotlinProvider constructor(
         Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
 
     private
-    fun embeddedKotlinRepositoryURI(): URI =
+    val embeddedKotlinRepositoryURI: URI by lazy {
         embeddedKotlinRepositoryDir().toURI()
+    }
 
     private
     fun embeddedKotlinRepositoryDir(): File =
