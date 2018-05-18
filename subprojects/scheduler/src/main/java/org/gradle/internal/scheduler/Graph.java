@@ -238,13 +238,13 @@ public class Graph {
             }
             for (Edge incoming : incomingEdges.get(node)) {
                 Node source = incoming.getSource();
-                if (!liveNodes.contains(source) && detector.isIncomingEdgeLive(incoming)) {
+                if (detector.isIncomingEdgeLive(incoming)) {
                     queue.add(source);
                 }
             }
             for (Edge outgoing : outgoingEdges.get(node)) {
                 Node target = outgoing.getTarget();
-                if (!liveNodes.contains(target) && detector.isOutgoingEdgeLive(outgoing)) {
+                if (detector.isOutgoingEdgeLive(outgoing)) {
                     queue.add(target);
                 }
             }
