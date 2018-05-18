@@ -36,7 +36,6 @@ import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.DefaultPropertyState;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -119,24 +118,14 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public RegularFileProperty newInputFile(final Task consumer) {
         final DefaultRegularFileVar fileVar = new DefaultRegularFileVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                fileVar.visitDependencies(context);
-            }
-        });
+        consumer.dependsOn(fileVar);
         return fileVar;
     }
 
     @Override
     public DirectoryProperty newInputDirectory(final Task consumer) {
         final DefaultDirectoryVar directoryVar = new DefaultDirectoryVar(projectDir.fileResolver);
-        consumer.dependsOn(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                directoryVar.visitDependencies(context);
-            }
-        });
+        consumer.dependsOn(directoryVar);
         return directoryVar;
     }
 
@@ -260,19 +249,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileVar, TaskDependencyContainer {
+    private static class DefaultRegularFileVar extends DefaultPropertyState<RegularFile> implements RegularFileVar {
         private final PathToFileResolver fileResolver;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
             super(RegularFile.class);
             this.fileResolver = fileResolver;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
-            }
         }
 
         @Override
@@ -349,7 +331,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         }
     }
 
-    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryVar, TaskDependencyContainer {
+    private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryVar {
         private final FileResolver resolver;
 
         DefaultDirectoryVar(FileResolver resolver) {
@@ -370,13 +352,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
                 set(file);
             } else {
                 super.setFromAnyValue(object);
-            }
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (getProvider() instanceof TaskDependencyContainer) {
-                context.add(getProvider());
             }
         }
 
