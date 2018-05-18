@@ -65,9 +65,14 @@ public interface BuildScanConfig {
         boolean isRootProjectHasVcsMappings();
 
         /**
-         * Whether any {@link org.gradle.deployment.internal.Deployment}s have been started in the current build session.
+         * Deprecated.
          *
-         * @since 4.8
+         * See https://github.com/gradle/gradle/issues/5347.
+         * This was used by 4.8-rc-1 and scan plugin 1.13.3.
+         * For 4.8-rc-2, the constraint on disabling the scan plugin for continuous builds was removed.
+         *
+         * @since 4.8-rc-1
+         * @deprecated 4.8-rc-2
          */
         boolean isAnyDeploymentsStarted();
 
