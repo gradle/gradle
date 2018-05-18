@@ -19,9 +19,9 @@ This allows processors with extension mechanisms to check extensions for increme
 
 New native plugins continue to improve with [better control over system include path](#better-control-over-system-include-path-for-native-compilation) for native compilation and [other improvements](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48). 
 
-Gradle 4.8 includes Kotlin DSL 0.17.4 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time and TestKit support.
+Gradle 4.8 includes Kotlin DSL 0.17.5 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time and TestKit support.
 At the same time the IntelliJ IDEA Kotlin Plugin fixed many long standing build script editing related issues.
-See details and examples in the [Kotlin DSL v0.17 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4).
+See details and examples in the [Kotlin DSL v0.17 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.5).
 
 We hope you build happiness with Gradle 4.8, and we look forward to your feedback [via Twitter](https://twitter.com/gradle) or [on GitHub](https://github.com/gradle).
 
@@ -332,7 +332,7 @@ The Kotlin DSL now respects the JSR-305 package annotations.
 As a result, annotated Java elements whose types were previously seen as Kotlin platform types, thus non-nullable, will now be seen as effectively either non-nullable or nullable types depending on the JSR-305 annotations.
 This change could cause script compilation errors.
 
-See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.4) for more information.
+See the [release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.5) for more information.
 
 ### Changes to plain console behavior
 
