@@ -39,14 +39,12 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         expect:
         def generateManifest = project.tasks['generateSwiftPmManifest']
         generateManifest instanceof GenerateSwiftPackageManagerManifest
-        generateManifest.manifestFile.get().asFile == project.file("Package.swift")
     }
 
     def "attaches a swift pm package model to the generate task"() {
         when:
         project.pluginManager.apply(SwiftPackageManagerExportPlugin)
         def generateManifest = project.tasks['generateSwiftPmManifest']
-
         then:
         !generateManifest.package.present
 
@@ -54,6 +52,7 @@ class SwiftPackageManagerExportPluginTest extends Specification {
         project.evaluate()
 
         then:
+        generateManifest.manifestFile.get().asFile == project.file("Package.swift")
         def p = generateManifest.package.get()
         p != null
         p == generateManifest.package.get()
