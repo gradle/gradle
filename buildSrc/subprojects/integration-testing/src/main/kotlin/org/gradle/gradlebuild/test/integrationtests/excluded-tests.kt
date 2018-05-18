@@ -6,6 +6,8 @@ import org.gradle.api.JavaVersion.VERSION_1_9
 
 internal
 val excludedTests = listOf(
+    "place holder" to listOf(VERSION_1_9, VERSION_1_10)
+    /*
     // TODO requires investigation
     "DaemonGroovyCompilerIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
     "DaemonJavaCompilerIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
@@ -105,4 +107,5 @@ val excludedTests = listOf(
 
     //Changes in Javadoc generation
     "SamplesJavaMultiProjectIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10)
+    */
 )

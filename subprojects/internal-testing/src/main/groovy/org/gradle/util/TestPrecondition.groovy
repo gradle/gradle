@@ -110,7 +110,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !JDK_IBM.fulfilled
     }),
     FIX_TO_WORK_ON_JAVA9({
-        JDK8_OR_EARLIER.fulfilled
+        true
     }),
     JDK_IBM({
         System.getProperty('java.vm.vendor') == 'IBM Corporation'
