@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
@@ -158,7 +157,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
                         }
 
-                        spec.setSourceFiles(Collections2.filter(spec.getSourceFiles(), new Predicate<File>() {
+                        spec.setSourceFiles(Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
                             @Override
                             public boolean apply(File file) {
                                 return hasExtension(file, ".java");

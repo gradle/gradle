@@ -17,7 +17,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
@@ -28,7 +29,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -61,7 +61,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                 return '.' + extension;
             }
         });
-        Collection<File> filtered = Collections2.filter(spec.getSourceFiles(), new Predicate<File>() {
+        Iterable<File> filtered = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
             @Override
             public boolean apply(File element) {
                 for (String fileExtension : fileExtensions) {
@@ -73,7 +73,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
             }
         });
 
-        spec.setSourceFiles(filtered);
+        spec.setSourceFiles(ImmutableSet.copyOf(filtered));
     }
 
     private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
