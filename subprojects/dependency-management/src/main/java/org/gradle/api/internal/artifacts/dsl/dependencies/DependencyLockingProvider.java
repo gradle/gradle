@@ -24,5 +24,5 @@ public interface DependencyLockingProvider {
 
     DependencyLockingState loadLockState(String configurationName);
 
-    void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult);
+    void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules);
 }

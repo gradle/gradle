@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -113,6 +114,55 @@ class RichVersionConstraintsResolveIntegrationTest extends AbstractModuleDepende
         }
     }
 
+    @Issue("gradle/gradle#4186")
+    def "should choose highest when multiple prefer versions disagree"() {
+        repository {
+            'org:foo' {
+                '1.0.0'()
+                '1.1.0'()
+                '1.2.0'()
+                '2.0.0'()
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:foo') {
+                        version { prefer '1.1.0' }
+                    }
+                    conf('org:foo') {
+                        version { prefer '1.0.0' }
+                    }
+                }
+                conf 'org:foo:[1.0.0,2.0.0)'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo' {
+                expectVersionListing()
+                '1.1.0' {
+                    expectGetMetadata()
+                    expectGetArtifact()
+                }
+                '1.2.0' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0.0", "org:foo:1.1.0")
+                edge("org:foo:1.1.0", "org:foo:1.1.0")
+                edge("org:foo:[1.0.0,2.0.0)", "org:foo:1.1.0")
+            }
+        }
+    }
 
     def "should fail if 2 strict versions disagree (external)"() {
         given:

@@ -650,7 +650,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         fails 'show'
 
         then:
-        failure.assertHasDescription("Exception thrown while executing model rule: CalculateName#broken(Thing)")
+        failure.assertHasCause("Exception thrown while executing model rule: CalculateName#broken(Thing)")
         failure.assertHasCause("Attempt to modify a read only view of model element 'things.thingA' of type 'Thing' given to rule CalculateName#broken(Thing)")
     }
 

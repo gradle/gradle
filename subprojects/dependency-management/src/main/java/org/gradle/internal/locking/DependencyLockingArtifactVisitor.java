@@ -27,10 +27,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,6 +47,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     private final String configurationName;
     private Set<String> lockingConstraints = Collections.emptySet();
     private Set<ModuleComponentIdentifier> allResolvedModules;
+    private Set<ModuleComponentIdentifier> changingResolvedModules;
     private Set<String> extraModules;
     private DependencyLockingState dependencyLockingState;
 
@@ -72,18 +75,38 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
 
     @Override
     public void visitNode(DependencyGraphNode node) {
+        boolean changing = false;
         ComponentIdentifier identifier = node.getOwner().getComponentId();
+        ComponentResolveMetadata metadata = node.getOwner().getMetadata();
+        if (metadata != null && metadata.isChanging()) {
+            changing = true;
+        }
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
+            if (identifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+                id = ((MavenUniqueSnapshotComponentIdentifier) id).getSnapshotComponent();
+            }
             if (!id.getVersion().isEmpty()) {
-                if (allResolvedModules.add(id) && dependencyLockingState.mustValidateLockState()) {
-                    String displayName = id.getDisplayName();
-                    if (!lockingConstraints.remove(displayName)) {
-                        extraModules.add(displayName);
+                if (allResolvedModules.add(id)) {
+                    if (changing) {
+                        addChangingModule(id);
+                    }
+                    if (dependencyLockingState.mustValidateLockState()) {
+                        String displayName = id.getDisplayName();
+                        if (!lockingConstraints.remove(displayName)) {
+                            extraModules.add(displayName);
+                        }
                     }
                 }
             }
         }
+    }
+
+    private void addChangingModule(ModuleComponentIdentifier id) {
+        if (changingResolvedModules == null) {
+            changingResolvedModules = new HashSet<ModuleComponentIdentifier>();
+        }
+        changingResolvedModules.add(id);
     }
 
     @Override
@@ -122,6 +145,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     }
 
     public void complete() {
-        dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules);
+        Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
+        dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
     }
 }

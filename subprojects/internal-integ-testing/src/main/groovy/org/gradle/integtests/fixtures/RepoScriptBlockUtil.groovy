@@ -30,7 +30,10 @@ class RepoScriptBlockUtil {
         MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
         GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
         LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
-        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy")
+        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
+        SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
+        SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
+        RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven')
 
         String originalUrl
         String mirrorUrl
