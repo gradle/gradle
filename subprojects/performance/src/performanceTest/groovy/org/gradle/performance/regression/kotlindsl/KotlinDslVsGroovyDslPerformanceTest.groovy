@@ -22,6 +22,8 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestRetryRule
+import org.gradle.performance.measure.Amount
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
@@ -125,7 +127,10 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
         then:
         def speedStats = groovyDslResults.getSpeedStatsAgainst(kotlinDslResults.name, kotlinDslResults)
         println(speedStats)
-        if (groovyDslResults.significantlyFasterThan(kotlinDslResults)) {
+
+        and:
+        def shiftedGroovyResults = buildShiftedResults(results, groovyDslBuildName)
+        if (shiftedGroovyResults.significantlyFasterThan(kotlinDslResults)) {
             throw new AssertionError(speedStats)
         }
 
@@ -138,6 +143,21 @@ class KotlinDslVsGroovyDslPerformanceTest extends Specification {
         def baselineResults = new BaselineVersion(name)
         baselineResults.results.name = name
         baselineResults.results.addAll(results.buildResult(name))
+        return baselineResults
+    }
+
+    // TODO rebaseline overtime, remove when reaching 0
+
+    private static int medianPercentageShift = 10
+
+    private static BaselineVersion buildShiftedResults(CrossBuildPerformanceResults results, String name) {
+        def baselineResults = new BaselineVersion(name)
+        baselineResults.results.name = name
+        def rawResults = results.buildResult(name)
+        def shift = rawResults.totalTime.median.value * medianPercentageShift / 100
+        baselineResults.results.addAll(rawResults.collect {
+            new MeasuredOperation([start: it.start, end: it.end, totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
+        })
         return baselineResults
     }
 }
