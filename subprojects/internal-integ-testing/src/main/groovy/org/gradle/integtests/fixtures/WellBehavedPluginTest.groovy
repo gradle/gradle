@@ -77,8 +77,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     def "does not realize all possible tasks"() {
         Assume.assumeFalse(pluginName in [
-            'swift-library',
-            'swift-application',
             'xctest', // realizes compileTestSwift
 
             'visual-studio',

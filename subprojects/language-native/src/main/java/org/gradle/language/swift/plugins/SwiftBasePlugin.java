@@ -109,6 +109,11 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
 
                         compile.getTargetPlatform().set(binary.getTargetPlatform());
                         compile.getToolChain().set(binary.getToolChain());
+
+                        // TODO: convert this to something that can use TaskProvider.configure
+                        if (binary instanceof SwiftSharedLibrary || binary instanceof SwiftStaticLibrary) {
+                            compile.getCompilerArgs().add("-parse-as-library");
+                        }
                     }
                 });
                 binary.getCompileTask().set(compile);
@@ -125,20 +130,6 @@ public class SwiftBasePlugin implements Plugin<ProjectInternal> {
                         return compile.getObjectFileDir().get();
                     }
                 }));
-            }
-        });
-        project.getComponents().withType(SwiftSharedLibrary.class, new Action<SwiftSharedLibrary>() {
-            @Override
-            public void execute(SwiftSharedLibrary library) {
-                // Specific compiler arguments
-                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
-            }
-        });
-        project.getComponents().withType(SwiftStaticLibrary.class, new Action<SwiftStaticLibrary>() {
-            @Override
-            public void execute(SwiftStaticLibrary library) {
-                // Specific compiler arguments
-                library.getCompileTask().get().getCompilerArgs().add("-parse-as-library");
             }
         });
 
