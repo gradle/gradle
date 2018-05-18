@@ -79,7 +79,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         Assume.assumeFalse(pluginName in [
             'swift-library',
             'swift-application',
-            'xctest',
+            'xctest', // realizes compileTestSwift
 
             'visual-studio',
             'xcode',

@@ -146,19 +146,19 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                     // TODO: Publishing for test executable?
 
                     final TaskContainer tasks = project.getTasks();
-                    final ProductionCppComponent mainComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
-                    if (mainComponent != null) {
-                        testComponent.getTestedComponent().set(mainComponent);
+                    final ProductionCppComponent testedComponent = project.getComponents().withType(ProductionCppComponent.class).findByName("main");
+                    if (testedComponent != null) {
+                        testComponent.getTestedComponent().set(testedComponent);
                     }
 
                     testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, new Action<DefaultCppTestExecutable>() {
                         @Override
-                        public void execute(final DefaultCppTestExecutable executable) {
-                            if (mainComponent != null) {
-                                mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
+                        public void execute(final DefaultCppTestExecutable testExecutable) {
+                            if (testedComponent != null) {
+                                testedComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                     @Override
                                     public void execute(final CppBinary testedBinary) {
-                                        if (testedBinary != mainComponent.getDevelopmentBinary().get()) {
+                                        if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
                                             return;
                                         }
 
@@ -167,11 +167,11 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                         // This should all be replaced by a single dependency that points at some "testable" variants of the main binary
 
                                         // Inherit implementation dependencies
-                                        executable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
+                                        testExecutable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
 
                                         // Configure test binary to link against tested component compiled objects
                                         final ConfigurableFileCollection testableObjects = project.files();
-                                        if (mainComponent instanceof CppApplication) {
+                                        if (testedComponent instanceof CppApplication) {
                                             TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.createLater("relocateMainForTest", UnexportMainSymbol.class, new Action<UnexportMainSymbol>() {
                                                 @Override
                                                 public void execute(UnexportMainSymbol unexportMainSymbol) {
@@ -190,13 +190,13 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                             testableObjects.from(testedBinary.getObjects());
                                         }
                                         Dependency linkDependency = project.getDependencies().create(testableObjects);
-                                        executable.getLinkConfiguration().getDependencies().add(linkDependency);
+                                        testExecutable.getLinkConfiguration().getDependencies().add(linkDependency);
                                     }
                                 });
                             }
 
                             // TODO: Replace with native test task
-                            TaskProvider<RunTestExecutable> testTask = tasks.createLater(executable.getNames().getTaskName("run"), RunTestExecutable.class, new Action<RunTestExecutable>() {
+                            TaskProvider<RunTestExecutable> testTask = tasks.createLater(testExecutable.getNames().getTaskName("run"), RunTestExecutable.class, new Action<RunTestExecutable>() {
                                 @Override
                                 public void execute(RunTestExecutable testTask) {
                                     testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
@@ -204,18 +204,18 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                     testTask.onlyIf(new Spec<Task>() {
                                         @Override
                                         public boolean isSatisfiedBy(Task element) {
-                                            return executable.getInstallDirectory().get().getAsFile().exists();
+                                            return testExecutable.getInstallDirectory().get().getAsFile().exists();
                                         }
                                     });
-                                    testTask.getInputs().dir(executable.getInstallDirectory());
-                                    testTask.setExecutable(executable.getInstallTask().get().getRunScriptFile().get().getAsFile());
+                                    testTask.getInputs().dir(testExecutable.getInstallDirectory());
+                                    testTask.setExecutable(testExecutable.getInstallTask().get().getRunScriptFile().get().getAsFile());
                                     testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
                                     // TODO: Honor changes to build directory
-                                    testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());
+                                    testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + testExecutable.getNames().getDirName()).get().getAsFile());
                                 }
                             });
 
-                            executable.getRunTask().set(testTask);
+                            testExecutable.getRunTask().set(testTask);
                         }
                     });
                 }

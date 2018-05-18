@@ -19,6 +19,7 @@ import org.gradle.api.Buildable
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.TextUtil
@@ -28,7 +29,7 @@ import java.util.concurrent.Callable
 
 import static org.gradle.util.WrapUtil.toSet
 
-public class DefaultTaskDependencyTest extends Specification {
+class DefaultTaskDependencyTest extends Specification {
     private final TaskResolver resolver = Mock(TaskResolver.class)
     private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver)
     private Task task
@@ -243,8 +244,7 @@ The following types/formats are supported:
     }
 
     def "produces sensible error when a provider is of the wrong type"() {
-        def provider = Mock(ProviderInternal)
-        provider.type >> Number
+        def provider = Providers.of(42)
 
         when:
         dependency.add(provider)
@@ -253,7 +253,7 @@ The following types/formats are supported:
         then:
         def e = thrown(GradleException)
         e.cause instanceof UnsupportedNotationException
-        e.cause.message.startsWith "Cannot convert Provider $provider to a task."
+        e.cause.message.startsWith "Cannot convert 42 to a task."
     }
 
     def "flattens collections"() {

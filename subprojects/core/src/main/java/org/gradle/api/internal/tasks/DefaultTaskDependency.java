@@ -129,8 +129,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof TaskDependencyContainer) {
                 ((TaskDependencyContainer) dependency).visitDependencies(context);
             } else if (dependency instanceof Provider) {
-                Provider providerInternal = (Provider) dependency;
-                queue.addFirst(providerInternal.get());
+                Provider provider = (Provider) dependency;
+                queue.addFirst(provider.get());
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
