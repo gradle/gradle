@@ -22,10 +22,10 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.execution.scriptSourceHash
 
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -54,7 +54,8 @@ data class ScriptBlock<out T>(
     val metadata: T
 ) {
 
-    val sourceHash: HashCode = Hashing.md5().hashString(source)
+    val sourceHash: HashCode
+        get() = scriptSourceHash(source)
 }
 
 
@@ -72,8 +73,8 @@ val logger = loggerFor<KotlinScriptPluginFactory>()
 
 internal
 class CachingKotlinCompiler(
-    private val scriptCache: ScriptCache,
-    private val implicitImports: ImplicitImports,
+    val scriptCache: ScriptCache,
+    val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory
 ) {
 
@@ -158,7 +159,6 @@ class CachingKotlinCompiler(
             }
         }
 
-    private
     fun cacheDirFor(cacheKeySpec: CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
         scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 

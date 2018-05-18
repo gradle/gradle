@@ -24,6 +24,8 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.kotlin.dsl.execution.UnexpectedBlock
+import org.gradle.kotlin.dsl.execution.extractTopLevelSectionFrom
 
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -61,7 +63,7 @@ class KotlinScriptSource(val source: ScriptSource) {
         get() = source.displayName
 
     fun classLoaderScopeIdFor(stage: String) =
-        "kotlin-dsl:$scriptPath:$stage"
+        org.gradle.kotlin.dsl.execution.classLoaderScopeIdFor(scriptPath, stage)
 }
 
 
@@ -431,12 +433,12 @@ inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () 
 
 private
 inline fun <T> LoadedScriptClass<T>.eval(scriptSource: KotlinScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
-    eval(scriptSource.source, action)
+    eval(scriptClass.classLoader, scriptSource.source, action)
 
 
 private
-inline fun <T> LoadedScriptClass<T>.eval(scriptSource: ScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
-    withContextClassLoader(scriptClass.classLoader) {
+inline fun <T> LoadedScriptClass<T>.eval(classLoader: ClassLoader, scriptSource: ScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
+    withContextClassLoader(classLoader) {
         withLocationAwareExceptionHandling(scriptSource, action)
     }
 
@@ -449,19 +451,21 @@ inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
     try {
         action()
     } catch (e: Throwable) {
-        val targetException = maybeUnwrapInvocationTargetException(e)
-        val locationAware = locationAwareExceptionFor(targetException, scriptSource)
-        throw locationAware ?: targetException
+        locationAwareExceptionHandlingFor(e, scriptClass, scriptSource)
     }
 
 
 private
-fun LoadedScriptClass<*>.locationAwareExceptionFor(
-    original: Throwable,
-    scriptSource: ScriptSource
-): LocationAwareException? {
+fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource) {
+    val targetException = maybeUnwrapInvocationTargetException(e)
+    val locationAware = locationAwareExceptionFor(targetException, scriptClass, scriptSource)
+    throw locationAware ?: targetException
+}
 
-    val scriptClassName = compiledScript.className
+
+private
+fun locationAwareExceptionFor(original: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource): LocationAwareException? {
+    val scriptClassName = scriptClass.name
     val scriptClassNameInnerPrefix = "$scriptClassName$"
 
     fun scriptStackTraceElement(element: StackTraceElement) =

@@ -18,9 +18,7 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -30,14 +28,18 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
+
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
+import org.gradle.kotlin.dsl.support.kotlinScriptHostFor
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.serviceRegistryOf
 
 import java.lang.IllegalArgumentException
 
@@ -49,14 +51,15 @@ fun kotlinScriptTargetFor(
     target: Any,
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
+    targetScope: ClassLoaderScope,
     baseScope: ClassLoaderScope,
     topLevelScript: Boolean
 ): KotlinScriptTarget<Any> =
 
     when (target) {
-        is Project -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope)
-        is Gradle -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
+        is Project -> projectScriptTarget(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)
+        is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, targetScope, baseScope)
+        is Gradle -> gradleInitScriptTarget(target, scriptHandler, scriptSource, targetScope, baseScope)
         else -> unsupportedTarget(target)
     }
 
@@ -71,11 +74,12 @@ fun settingsScriptTarget(
     settings: Settings,
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
+    targetScope: ClassLoaderScope,
     baseScope: ClassLoaderScope
 ) =
 
     KotlinScriptTarget(
-        host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
+        host = kotlinScriptHostFor(settings, scriptSource, scriptHandler, targetScope, baseScope),
         scriptTemplate = KotlinSettingsScript::class,
         buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class,
         extraSingleOrNoneBlockNames = listOf("pluginManagement"))
@@ -86,12 +90,13 @@ fun projectScriptTarget(
     project: Project,
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
+    targetScope: ClassLoaderScope,
     baseScope: ClassLoaderScope,
     topLevelScript: Boolean
 ): KotlinScriptTarget<Project> =
 
     KotlinScriptTarget(
-        host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
+        host = KotlinScriptHost(project, scriptSource, scriptHandler, targetScope, baseScope, serviceRegistryOf(project)),
         scriptTemplate = KotlinBuildScript::class,
         buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
@@ -108,11 +113,12 @@ fun gradleInitScriptTarget(
     gradle: Gradle,
     scriptHandler: ScriptHandler,
     scriptSource: ScriptSource,
+    targetScope: ClassLoaderScope,
     baseScope: ClassLoaderScope
 ): KotlinScriptTarget<Gradle> =
 
     KotlinScriptTarget(
-        host = KotlinScriptHost(gradle, scriptSource, serviceRegistryOf(gradle), baseScope, scriptHandler),
+        host = KotlinScriptHost(gradle, scriptSource, scriptHandler, targetScope, baseScope, serviceRegistryOf(gradle)),
         scriptTemplate = KotlinInitScript::class,
         buildscriptBlockTemplate = KotlinInitscriptBlock::class,
         buildscriptBlockName = "initscript")
@@ -162,18 +168,3 @@ data class KotlinScriptTarget<out T : Any>(
             .newInstance(host)
     }
 }
-
-
-private
-fun serviceRegistryOf(project: Project) =
-    (project as ProjectInternal).services
-
-
-private
-fun serviceRegistryOf(settings: Settings) =
-    serviceRegistryOf(settings.gradle)
-
-
-private
-fun serviceRegistryOf(gradle: Gradle) =
-    (gradle as GradleInternal).services

@@ -16,13 +16,23 @@
 
 package org.gradle.kotlin.dsl.provider
 
+//import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.HashCode
+import org.gradle.kotlin.dsl.execution.Interpreter
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.plugin.management.internal.DefaultPluginRequests
+import java.io.File
 
 import java.util.*
 
@@ -57,6 +67,93 @@ class StandardKotlinScriptEvaluator(
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
 ) : KotlinScriptEvaluator {
 
+    private
+    val interpreter by lazy {
+
+        Interpreter(
+
+            object : Interpreter.Host {
+
+                override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
+                    val targetScope = scriptHost.targetScope
+//                    targetScope.export(classPathProvider.gradleApiExtensions)
+                    pluginRequestsHandler.pluginRequestApplicator.applyPlugins(
+                        DefaultPluginRequests.EMPTY,
+                        scriptHost.scriptHandler as ScriptHandlerInternal?,
+                        null,
+                        targetScope)
+                }
+
+                override fun cachedClassFor(
+                    templateId: String,
+                    sourceHash: HashCode,
+                    parentClassLoader: ClassLoader
+                ): Class<*>? =
+                    classloadingCache
+                        .get(cacheKeyFor(templateId, sourceHash, parentClassLoader))
+                        ?.scriptClass
+
+                override fun cache(
+                    templateId: String,
+                    sourceHash: HashCode,
+                    parentClassLoader: ClassLoader,
+                    specializedProgram: Class<*>
+                ) {
+                    classloadingCache.put(
+                        cacheKeyFor(templateId, sourceHash, parentClassLoader),
+                        LoadedScriptClass(
+                            CompiledScript(File(""), specializedProgram.name, Unit),
+                            specializedProgram))
+                }
+
+                private
+                fun cacheKeyFor(
+                    templateId: String,
+                    sourceHash: HashCode,
+                    parentClassLoader: ClassLoader
+                ): ScriptCacheKey =
+                    ScriptCacheKey(
+                        templateId,
+                        sourceHash,
+                        parentClassLoader,
+                        lazyOf(HashCode.fromInt(0)))
+
+                override fun cachedDirFor(
+                    templateId: String,
+                    sourceHash: HashCode,
+                    parentClassLoader: ClassLoader,
+                    initializer: (File) -> Unit
+                ): File =
+                    kotlinCompiler.cacheDirFor(
+                        cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
+                        initializer(baseDir)
+                    }
+
+                val cacheKeyPrefix =
+                    CacheKeyBuilder.CacheKeySpec.withPrefix("kotlin-dsl-interpreter")
+
+                override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
+                    classPathProvider.compilationClassPathOf(classLoaderScope)
+
+                override fun loadClassInChildScopeOf(
+                    classLoaderScope: ClassLoaderScope,
+                    childScopeId: String,
+                    location: File,
+                    className: String
+                ): Class<*> =
+                    classLoaderScope
+                        .createChild(childScopeId)
+                        .local(DefaultClassPath.of(location))
+                        .lock()
+                        .localClassLoader
+                        .loadClass(className)
+
+                override val implicitImports: List<String>
+                    get() = kotlinCompiler.implicitImports.list
+            })
+    }
+
+
     override fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
@@ -67,8 +164,21 @@ class StandardKotlinScriptEvaluator(
         options: EnumSet<KotlinScriptOption>
     ) {
 
+        val ignoringErrors = KotlinScriptOption.IgnoreErrors in options
+
+        if (!ignoringErrors && target is Settings) {
+            interpreter.eval(
+                target,
+                scriptSource,
+                scriptHandler,
+                targetScope,
+                baseScope,
+                topLevelScript)
+            return
+        }
+
         evaluationFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
-            if (KotlinScriptOption.IgnoreErrors in options)
+            if (ignoringErrors)
                 executeIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
             else
                 execute()
@@ -79,7 +189,7 @@ class StandardKotlinScriptEvaluator(
     fun evaluationFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope, baseScope: ClassLoaderScope, topLevelScript: Boolean): KotlinScriptEvaluation =
 
         KotlinScriptEvaluation(
-            kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript),
+            kotlinScriptTargetFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript),
             KotlinScriptSource(scriptSource),
             scriptHandler as ScriptHandlerInternal,
             targetScope,

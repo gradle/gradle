@@ -64,7 +64,7 @@ class KotlinScriptClassloadingCache @Inject constructor(
     ): LoadedScriptClass<T> {
 
         val key = cacheKeyFor(scriptBlock, parentClassLoader, additionalClassPath)
-        val cached = cache.get(key)
+        val cached = get(key)
         if (cached != null) {
             return uncheckedCast(cached)
         }
@@ -75,8 +75,15 @@ class KotlinScriptClassloadingCache @Inject constructor(
         val scriptClass = classFrom(compiledScript, createClassLoaderScope())
 
         return LoadedScriptClass(compiledScript, scriptClass).also {
-            cache.put(key, it)
+            put(key, it)
         }
+    }
+
+    fun get(key: ScriptCacheKey): LoadedScriptClass<*>? =
+        cache.get(key)
+
+    fun <T> put(key: ScriptCacheKey, loadedScriptClass: LoadedScriptClass<T>) {
+        cache.put(key, loadedScriptClass)
     }
 
     private
@@ -110,7 +117,7 @@ class KotlinScriptClassloadingCache @Inject constructor(
 }
 
 
-private
+internal
 class ScriptCacheKey(
     private val templateId: String,
     private val sourceHash: HashCode,

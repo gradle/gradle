@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.kotlin.dsl.execution
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
@@ -45,6 +45,14 @@ fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? {
     require('\r' !in script) {
         "CR characters are not supported by the Kotlin lexer. Convert the line separators before attempting this operation."
     }
+    return extractTopLevelBlock(script, identifier)?.let {
+        it.wholeRange
+    }
+}
+
+
+internal
+fun extractTopLevelBlock(script: String, identifier: String): ScriptSection? {
     KotlinLexer().run {
         start(script)
         while (tokenType != null) {
@@ -62,19 +70,20 @@ fun extractTopLevelSectionFrom(script: String, identifier: String): IntRange? {
 private
 fun KotlinLexer.expectNoMore(identifier: String) {
     nextTopLevelSection(identifier)?.let {
-        throw UnexpectedBlock(identifier, it)
+        throw UnexpectedBlock(identifier, it.wholeRange)
     }
 }
 
 
 private
-fun KotlinLexer.nextTopLevelSection(identifier: String): IntRange? =
-    findTopLevelIdentifier(identifier)?.let { sectionStart ->
+fun KotlinLexer.nextTopLevelSection(identifier: String): ScriptSection? =
+    findTopLevelIdentifier(identifier)?.let { identifierRange ->
         advance()
         skipWhiteSpaceAndComments()
         if (tokenType == LBRACE) {
+            val sectionStart = tokenStart
             findBlockEnd()?.let { sectionEnd ->
-                sectionStart..sectionEnd
+                ScriptSection(identifierRange, sectionStart..sectionEnd)
             }
         } else null
     }
@@ -89,13 +98,13 @@ fun KotlinLexer.skipWhiteSpaceAndComments() {
 
 
 private
-fun KotlinLexer.findTopLevelIdentifier(identifier: String): Int? {
+fun KotlinLexer.findTopLevelIdentifier(identifier: String): IntRange? {
     var depth: Int = 0
     while (tokenType != null) {
         when (tokenType) {
             IDENTIFIER ->
                 if (depth == 0 && tokenText == identifier) {
-                    return tokenStart
+                    return tokenStart..(tokenEnd - 1)
                 }
             LBRACE -> depth += 1
             RBRACE -> depth -= 1
