@@ -18,12 +18,17 @@ package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest.StyledOutput
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
 @SuppressWarnings("IntegrationTestFixtures")
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
+
+    private final StyledOutput failingTask = styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
+    private final StyledOutput succeedingTask = styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD)
+    private final StyledOutput configuringProject = styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
 
     @Issue("gradle/gradle#2038")
     def "tasks with no actions are not displayed"() {
@@ -51,7 +56,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.groupedOutput.task(':failing').output == 'hello'
-        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed red if task failed and there is no output"() {
@@ -66,7 +71,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed white if task succeeds"() {
@@ -81,7 +86,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         succeeds('succeeding')
 
         then:
-        result.output.contains(styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(succeedingTask.output)
     }
 
     def "configure project group header is printed red if configuration fails with additional failures"() {
@@ -99,6 +104,6 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(configuringProject.output)
     }
 }

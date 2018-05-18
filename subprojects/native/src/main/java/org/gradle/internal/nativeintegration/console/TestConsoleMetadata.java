@@ -16,17 +16,30 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-public enum StdoutOnlyConsoleMetadata implements ConsoleMetaData {
-    INSTANCE;
+public enum TestConsoleMetadata implements ConsoleMetaData {
+    BOTH(true, true),
+    NEITHER(false, false),
+    STDOUT_ONLY(true, false),
+    STDERR_ONLY(false, true);
+
+    public static final String TEST_CONSOLE_PROPERTY = "org.gradle.internal.console.test-console";
+
+    private final boolean attachedToStdout;
+    private final boolean attachedToStderr;
+
+    TestConsoleMetadata(boolean attachedToStdout, boolean attachedToStderr) {
+        this.attachedToStdout = attachedToStdout;
+        this.attachedToStderr = attachedToStderr;
+    }
 
     @Override
     public boolean isStdOut() {
-        return true;
+        return attachedToStdout;
     }
 
     @Override
     public boolean isStdErr() {
-        return false;
+        return attachedToStderr;
     }
 
     @Override
@@ -37,5 +50,9 @@ public enum StdoutOnlyConsoleMetadata implements ConsoleMetaData {
     @Override
     public int getRows() {
         return 0;
+    }
+
+    public String getCommandLineArgument() {
+        return "-D" + TEST_CONSOLE_PROPERTY + "=" + name();
     }
 }

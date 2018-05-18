@@ -106,7 +106,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         def result1 = executer
             .inDirectory(temporaryFolder.testDirectory)
             .withTasks("help")
-            .withTestConsoleAttachedToStdoutOnly()
+            .withTestConsoleAttached()
             .withConsole(console)
             .run()
 
@@ -116,7 +116,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
         def result2 = executer
             .inDirectory(temporaryFolder.testDirectory)
             .withTasks("help")
-            .withTestConsoleAttachedToStdoutOnly()
+            .withTestConsoleAttached()
             .withConsole(console)
             .run()
 

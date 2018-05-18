@@ -301,6 +301,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
         def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
         renderer.addRichConsole(console, true, false, metaData)
 
         when:
@@ -316,6 +317,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
         renderer.addRichConsole(console, false, true, metaData)
 
         when:

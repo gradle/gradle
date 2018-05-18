@@ -453,5 +453,5 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Specifies we should use a test console that only has stdout attached.
      */
-    GradleExecuter withTestConsoleAttachedToStdoutOnly();
+    GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment);
 }

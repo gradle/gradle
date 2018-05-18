@@ -49,7 +49,6 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
@@ -189,11 +188,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
-        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
-            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
-        } else if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
-            withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
-        }
+        configureConsoleCommandLineArgs();
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 
@@ -275,7 +270,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment == ConsoleAttachment.ATTACHED);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
     }
@@ -379,13 +374,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleExecuter withTestConsoleAttached() {
-        consoleAttachment = ConsoleAttachment.ATTACHED;
-        return this;
+        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
     }
 
     @Override
-    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
-        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
+    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
+        this.consoleAttachment = consoleAttachment;
         return this;
     }
 
@@ -501,6 +495,18 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         @Override
         public ExecutionResult assertHasErrorOutput(String expectedOutput) {
             outputResult.assertHasErrorOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
+            outputResult.assertHasRawErrorOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertRawOutputContains(String expectedOutput) {
+            outputResult.assertRawOutputContains(expectedOutput);
             return this;
         }
 
