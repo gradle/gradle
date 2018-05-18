@@ -50,8 +50,8 @@ class RepoScriptBlockUtil {
         String getRepositoryDefinition() {
             """
                 ${type}{
-                    name = "${name}"
-                    url = uri("${mirrorUrl}")
+                    name '${name}'
+                    url '${mirrorUrl}'
                 }
             """
         }
