@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
 
 /**
  * Receiver for the `buildscript` block.
@@ -31,7 +33,7 @@ class ScriptHandlerScope(scriptHandler: ScriptHandler) : ScriptHandler by script
     /**
      * The dependencies of the script.
      */
-    val dependencies = DependencyHandlerScope(scriptHandler.dependencies)
+    val dependencies by unsafeLazy { DependencyHandlerScope(scriptHandler.dependencies) }
 
     /**
      * Adds a dependency to the script classpath.
