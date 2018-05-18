@@ -139,7 +139,7 @@ class DistributionTestingPlugin : Plugin<Project> {
             ifProperty("testAllVersions", "all") ?: "default"
 
         val mirrorUrls = collectMirrorUrls()
-        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google", "springreleases", "springsnapshots", "restlet")
+        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google", "springreleases", "springsnapshots", "restlet", "gradle")
         mirrors.forEach { mirror ->
             systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
         }
