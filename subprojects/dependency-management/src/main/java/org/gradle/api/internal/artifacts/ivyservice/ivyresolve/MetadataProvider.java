@@ -48,6 +48,12 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class MetadataProvider {
+    private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = new Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails>() {
+        @Override
+        public ComponentMetadata transform(BuildableComponentMetadataSupplierDetails details) {
+            return details.getExecutionResult();
+        }
+    };
     private final ModuleComponentResolveState resolveState;
     private BuildableModuleComponentMetaDataResolveResult cachedResult;
     private Optional<ComponentMetadata> cachedComponentMetadata;
@@ -70,12 +76,7 @@ public class MetadataProvider {
         if (resolveState != null) {
             InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier = resolveState.getComponentMetadataSupplier();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-            metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, new Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails>() {
-                @Override
-                public ComponentMetadata transform(BuildableComponentMetadataSupplierDetails details) {
-                    return details.getExecutionResult();
-                }
-            }, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
+            metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
                 @Override
                 public BuildableComponentMetadataSupplierDetails transform(ModuleVersionIdentifier id) {
                     final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory());

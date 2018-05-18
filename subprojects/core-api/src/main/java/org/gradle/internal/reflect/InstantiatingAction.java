@@ -36,6 +36,10 @@ public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
         return rule;
     }
 
+    public InstantiatingAction<DETAILS> withInstantiator(Instantiator instantiator) {
+        return new InstantiatingAction<DETAILS>(rule, instantiator, exceptionHandler);
+    }
+
     @Override
     public void execute(DETAILS target) {
         try {

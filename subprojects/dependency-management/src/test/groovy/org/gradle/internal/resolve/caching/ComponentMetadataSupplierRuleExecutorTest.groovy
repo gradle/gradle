@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resolve.caching
 
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.Multimap
+import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
@@ -42,7 +45,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor.MAX_AGE
 
 import javax.inject.Inject
 
@@ -52,9 +54,8 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     CacheRepository cacheRepository
     InMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
-    long time = 0
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
-        getCurrentTime() >> { time }
+        getCurrentTime() >> 0
     }
     PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>> store = Mock()
     Serializer<ComponentMetadata> serializer
@@ -90,19 +91,22 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check age=#age, refresh = #mustRefresh - #scenario - #ruleClass")
+    @Unroll("Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
         def cachedResult = Mock(ComponentMetadata)
-        def cachedEntry = new CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>(0, cachedResult)
-        def ruleServices = []
-        def someService = Mock(SomeService)
-        if (ruleClass == TestSupplierWithService) {
-            ruleServices << someService
+        Multimap<String, ImplicitInputRecord<?, ?>> implicits = HashMultimap.create()
+        def record = Mock(ImplicitInputRecord)
+        if (expired) {
+            implicits.put('SomeService', record)
         }
-        time = age
-        boolean expired = age > MAX_AGE
+        def cachedEntry = new CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>(0, implicits, cachedResult)
+        def someService = Mock(SomeService)
+        def ruleServices = [:]
+        if (ruleClass == TestSupplierWithService) {
+            ruleServices['SomeService'] = someService
+        }
         def reexecute = mustRefresh || expired
 
         when:
@@ -112,13 +116,26 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(inputsSnapshot) >> cachedEntry
-        if (!expired) {
+        if (expired) {
+            // should check that the recorded service call returns the same value
+            1 * record.getInput() >> '124'
+            1 * record.getOutput() >> HashCode.fromInt(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getId() >> id
-            1 * cachePolicy.mustRefreshModule({ it.id == id }, age, changing) >> mustRefresh
+            1 * cachePolicy.mustRefreshModule({ it.id == id }, 0, changing) >> false
+            // we make it return false, this should invalidate the cache
+            1 * someService.isUpToDate('124', HashCode.fromInt(10000)) >> false
+        } else {
+            1 * cachedResult.isChanging() >> changing
+            1 * cachedResult.getId() >> id
+            1 * cachePolicy.mustRefreshModule({ it.id == id }, 0, changing) >> mustRefresh
         }
         if (reexecute) {
             def details = Mock(ComponentMetadataSupplierDetails)
+            if (ruleClass == TestSupplierWithService) {
+                // indicates that the service will be called
+                1 * someService.withImplicitInputRecorder(_) >> someService
+            }
             1 * onCacheMiss.transform(id) >> details
             1 * detailsToResult.transform(details) >> Mock(ComponentMetadata)
             1 * store.put(inputsSnapshot, _)
@@ -135,26 +152,21 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         0 * _
 
         where:
-        scenario                                           | changing | mustRefresh | age         | ruleClass
-        'regular module caching'                           | false    | false       | 0           | TestSupplier
-        'regular module caching (--refresh-dependencies)'  | false    | true        | 0           | TestSupplier
-        'changing module caching'                          | true     | false       | 0           | TestSupplier
-        'changing module caching (--refresh-dependencies)' | true     | true        | 0           | TestSupplier
+        scenario                                           | changing | mustRefresh | expired | ruleClass
+        'regular module caching'                           | false    | false       | false   | TestSupplier
+        'regular module caching (--refresh-dependencies)'  | false    | true        | false   | TestSupplier
+        'changing module caching'                          | true     | false       | false   | TestSupplier
+        'changing module caching (--refresh-dependencies)' | true     | true        | false   | TestSupplier
 
-        'regular module caching'                           | false    | false       | 0           | TestSupplierWithService
-        'regular module caching (--refresh-dependencies)'  | false    | true        | 0           | TestSupplierWithService
-        'changing module caching'                          | true     | false       | 0           | TestSupplierWithService
-        'changing module caching (--refresh-dependencies)' | true     | true        | 0           | TestSupplierWithService
+        'regular module caching'                           | false    | false       | false   | TestSupplierWithService
+        'regular module caching (--refresh-dependencies)'  | false    | true        | false   | TestSupplierWithService
+        'changing module caching'                          | true     | false       | false   | TestSupplierWithService
+        'changing module caching (--refresh-dependencies)' | true     | true        | false   | TestSupplierWithService
 
-        'regular module caching'                           | false    | false       | MAX_AGE + 1 | TestSupplier
-        'regular module caching (--refresh-dependencies)'  | false    | true        | MAX_AGE + 1 | TestSupplier
-        'changing module caching'                          | true     | false       | MAX_AGE + 1 | TestSupplier
-        'changing module caching (--refresh-dependencies)' | true     | true        | MAX_AGE + 1 | TestSupplier
-
-        'regular module caching'                           | false    | false       | MAX_AGE + 1 | TestSupplierWithService
-        'regular module caching (--refresh-dependencies)'  | false    | true        | MAX_AGE + 1 | TestSupplierWithService
-        'changing module caching'                          | true     | false       | MAX_AGE + 1 | TestSupplierWithService
-        'changing module caching (--refresh-dependencies)' | true     | true        | MAX_AGE + 1 | TestSupplierWithService
+        'regular module caching'                           | false    | false       | true    | TestSupplierWithService
+        'regular module caching (--refresh-dependencies)'  | false    | true        | true    | TestSupplierWithService
+        'changing module caching'                          | true     | false       | true    | TestSupplierWithService
+        'changing module caching (--refresh-dependencies)' | true     | true        | true    | TestSupplierWithService
     }
 
     void execute(ModuleVersionIdentifier id) {
@@ -162,16 +174,16 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         result = executionResult
     }
 
-    void withRule(Class<? extends Action<ComponentMetadataSupplierDetails>> ruleClass, List<Object> services = []) {
-        def instantiator
-        if (services) {
-            def registry = new DefaultServiceRegistry()
-            services.each {
-                registry.add(it.class, it)
+    void withRule(Class<? extends Action<ComponentMetadataSupplierDetails>> ruleClass, Map<String, Object> services = [:]) {
+        def registry = new DefaultServiceRegistry()
+        services.each { name, value ->
+            registry.add(value.class, value)
+        }
+        def instantiator = new ImplicitInputsCapturingInstantiator(registry, TestUtil.instantiatorFactory()) {
+            @Override
+            def <IN, OUT, SERVICE> ImplicitInputsProvidingService<IN, OUT, SERVICE> findInputCapturingServiceByName(String name) {
+                services[name]
             }
-            instantiator = TestUtil.instantiatorFactory().inject(registry)
-        } else {
-            instantiator = TestUtil.instantiatorFactory().decorate()
         }
         rule = new InstantiatingAction<>(
             DefaultConfigurableRule.of(ruleClass),
@@ -214,7 +226,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         }
     }
 
-    interface SomeService {
+    interface SomeService<SERVICE> extends ImplicitInputsProvidingService<String, HashCode, SERVICE> {
         void provide()
     }
 }

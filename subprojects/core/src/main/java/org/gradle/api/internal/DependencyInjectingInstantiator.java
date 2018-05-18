@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
@@ -56,28 +55,6 @@ public class DependencyInjectingInstantiator implements Instantiator {
         this.classGenerator = classGenerator;
         this.services = services;
         this.constructorCache = constructorCache;
-    }
-
-    /**
-     * Returns the list of services that would be injected, if the class was instantiated. There's a
-     * bit of overhead here because if we need to instantiate the class later, we would re-execute the
-     * same code. However this code is going to be called only when caching is active, so hopefully the
-     * overhead is lower than executing the rule itself.
-     *
-     * @param type the type of the class to instantiate
-     * @param parameters the constructor parameters of this class (excluding injected services)
-     * @param <T> the type of the class
-     * @return the list of injected services
-     */
-    public <T> List<Object> identifyInjectedServices(Class<? extends T> type, Object... parameters) {
-        try {
-            Constructor<?> constructor = findConstructor(type);
-            List<Object> services = Lists.newArrayListWithExpectedSize(2);
-            convertParameters(type, constructor, parameters, services);
-            return services;
-        } catch (Throwable t) {
-            throw new ObjectInstantiationException(type, t);
-        }
     }
 
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
