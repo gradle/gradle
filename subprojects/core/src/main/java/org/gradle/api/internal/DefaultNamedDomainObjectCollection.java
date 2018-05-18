@@ -263,7 +263,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             index.removePending(name);
             getStore().removePending(provider);
             // TODO - this isn't correct, assumes that a side effect is to add the element
-            provider.get();
+            provider.getOrNull();
             // Use the index here so we can apply any filters to the realized element
             return index.get(name);
         }

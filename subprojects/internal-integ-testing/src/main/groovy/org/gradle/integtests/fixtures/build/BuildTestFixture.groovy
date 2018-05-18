@@ -70,11 +70,10 @@ class BuildTestFixture {
     }
 
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        String subprojectList = subprojects.collect({ "'$it'" }).join(',')
         def rootMulti = populate(projectName) {
-            settingsFile << """
-                    include ${subprojectList}
-                """
+            subprojects.each {
+                settingsFile << "include '$it'\n"
+            }
 
             buildFile << """
                     allprojects {

@@ -16,8 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -25,6 +28,8 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -37,8 +42,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-
-import static org.gradle.api.tasks.diagnostics.internal.graph.nodes.SelectionReasonHelper.getReasonDescription;
 
 public class DependencyInsightReporter {
 
@@ -61,20 +64,21 @@ public class DependencyInsightReporter {
         RequestedVersion current = null;
 
         for (DependencyEdge dependency : sorted) {
+            String reasonDescription = getReasonDescription(dependency.getReason());
             ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
             //add description only to the first module
             if (annotated.add(dependency.getActual())) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!dependency.getRequested().matchesStrictly(dependency.getActual())) {
-                    out.add(new DependencyReportHeader(dependency, selectedVariant));
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, selectedVariant);
+                    out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant));
+                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
                     out.add(current);
                 } else {
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), getReasonDescription(dependency.getReason()), selectedVariant);
+                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), reasonDescription, selectedVariant);
                     out.add(current);
                 }
             } else if (!current.getRequested().equals(dependency.getRequested())) {
-                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, selectedVariant);
+                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
                 out.add(current);
             }
 
@@ -83,4 +87,35 @@ public class DependencyInsightReporter {
 
         return out;
     }
+
+    private static String getReasonDescription(ComponentSelectionReason reason) {
+        ComponentSelectionReasonInternal r = (ComponentSelectionReasonInternal) reason;
+        String description = getReasonDescription(r);
+        if (reason.isConstrained()) {
+            if (!r.hasCustomDescriptions()) {
+                return "via constraint";
+            } else {
+                return "via constraint, " + description;
+            }
+        }
+        return description;
+    }
+
+    private static String getReasonDescription(ComponentSelectionReasonInternal reason) {
+        if (!reason.hasCustomDescriptions()) {
+            return reason.isExpected() ? null : Iterables.getLast(reason.getDescriptions()).getDescription();
+        }
+        return getLastCustomReason(reason);
+    }
+
+    private static String getLastCustomReason(ComponentSelectionReasonInternal reason) {
+        String lastCustomReason = null;
+        for (ComponentSelectionDescriptor descriptor : reason.getDescriptions()) {
+            if (((ComponentSelectionDescriptorInternal)descriptor).hasCustomDescription()) {
+                lastCustomReason = descriptor.getDescription();
+            }
+        }
+        return lastCustomReason;
+    }
+
 }

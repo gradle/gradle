@@ -189,7 +189,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 println "Configure ${path}"
             }
             tasks.createLater("task3")
-            tasks.configureEachLater {
+            tasks.configureEach {
                 println "Received ${path}"
             }
             tasks.create("other") {
@@ -227,7 +227,8 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 println "Configure ${path}"
             }
             tasks.createLater("task3", SomeOtherTask)
-            tasks.configureEachLater(SomeTask) {
+
+            tasks.withType(SomeTask).configureEach {
                 println "Received ${path}"
             }
             tasks.create("other") {
@@ -319,11 +320,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
             class A extends DefaultTask {}
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionCount.a1++
             }
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionCount.a2++
             }
 
@@ -335,7 +336,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 actionExecutionCount.a4++
             }
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionCount.a5++
             }
 
@@ -363,11 +364,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
             class A extends DefaultTask {}
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionOrderForTaskA << "1"
             }
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionOrderForTaskA << "2"
             }
 
@@ -379,7 +380,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
                 actionExecutionOrderForTaskA << "4"
             }
 
-            tasks.configureEachLater(A) {
+            tasks.withType(A).configureEach {
                 actionExecutionOrderForTaskA << "5"
             }
 
@@ -505,7 +506,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def configureEachRuleExecutionCount = 0
-            tasks.configureEachLater(SomeTask) {
+            tasks.withType(SomeTask).configureEach {
                 configureEachRuleExecutionCount++
             }
 
@@ -530,7 +531,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def configureEachRuleExecutionCount = 0
-            tasks.configureEachLater(SomeTask) {
+            tasks.withType(SomeTask).configureEach {
                 configureEachRuleExecutionCount++
             }
 

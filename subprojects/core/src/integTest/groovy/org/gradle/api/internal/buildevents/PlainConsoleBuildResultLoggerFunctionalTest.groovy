@@ -22,8 +22,4 @@ class PlainConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLog
     ConsoleOutput consoleType = ConsoleOutput.Plain
     String failureMessage = buildFailed
     String successMessage = buildSuccess
-
-    def setup() {
-        attachTestConsole()
-    }
 }

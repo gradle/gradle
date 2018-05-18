@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.build.BuildState;
 
 import java.util.Set;
 
@@ -29,9 +29,9 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     private final IncludedBuildTaskGraph includedBuildTaskGraph;
     private final BuildIdentifier currentBuild;
 
-    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildIdentity buildIdentity) {
+    public CompositeBuildClassPathInitializer(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
         this.includedBuildTaskGraph = includedBuildTaskGraph;
-        this.currentBuild = buildIdentity.getCurrentBuild();
+        this.currentBuild = currentBuild.getBuildIdentifier();
     }
 
     @Override

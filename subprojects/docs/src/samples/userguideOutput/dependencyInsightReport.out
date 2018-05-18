@@ -5,9 +5,6 @@ commons-codec:commons-codec:1.7 (conflict resolution)
 \--- scm
 
 commons-codec:commons-codec:1.6 -> 1.7
-   variant "default+runtime" [
-      org.gradle.status = release (not requested)
-   ]
 \--- org.apache.httpcomponents:httpclient:4.3.6
      \--- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r
           \--- scm

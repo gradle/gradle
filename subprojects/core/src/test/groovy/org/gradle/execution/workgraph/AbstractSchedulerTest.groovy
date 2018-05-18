@@ -17,11 +17,10 @@
 package org.gradle.execution.workgraph
 
 import com.google.common.collect.Lists
-import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.specs.Spec
-import org.gradle.execution.MultipleBuildFailures
+import org.gradle.caching.BuildCacheException
 import org.gradle.execution.workgraph.AbstractSchedulerTest.TestResourceLock
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.graph.DirectedGraph
@@ -202,13 +201,8 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
 
         then:
         executedTasks == [a]
-
-        when:
-        rethrowFailures()
-
-        then:
-        BuildCancelledException e = thrown()
-        e.message == 'Build cancelled.'
+        failures*.class == [BuildCacheException]
+        failures*.message == ['Build cancelled.']
     }
 
     protected void executeGraph() {
@@ -293,15 +287,8 @@ abstract class AbstractSchedulerTest extends AbstractSchedulingTest {
     }
 
     @Override
-    protected void rethrowFailures() {
-        switch (results.failures.size()) {
-            case 0:
-                break
-            case 1:
-                throw results.failures[0]
-            default:
-                throw new MultipleBuildFailures(results.failures)
-        }
+    protected List<? extends Throwable> getFailures() {
+        return results.failures
     }
 
     @Override

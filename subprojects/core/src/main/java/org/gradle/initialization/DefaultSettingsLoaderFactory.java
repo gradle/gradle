@@ -26,14 +26,12 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
     private final SettingsProcessor settingsProcessor;
     private final BuildSourceBuilder buildSourceBuilder;
-    private final NestedBuildFactory nestedBuildFactory;
     private final BuildStateRegistry buildRegistry;
 
-    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, NestedBuildFactory nestedBuildFactory, BuildStateRegistry buildRegistry) {
+    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildRegistry) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildSourceBuilder = buildSourceBuilder;
-        this.nestedBuildFactory = nestedBuildFactory;
         this.buildRegistry = buildRegistry;
     }
 
@@ -50,7 +48,6 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private SettingsLoader compositeBuildSettingsLoader() {
         return new CompositeBuildSettingsLoader(
             defaultSettingsLoader(),
-            nestedBuildFactory,
             buildRegistry);
     }
 

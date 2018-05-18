@@ -343,7 +343,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     params.jvmArguments += profiler.getAdditionalJvmOpts(spec)
                 }
                 try {
-                    method.invoke(operation, args)
+                    def returnValue = method.invoke(operation, args)
+                    return returnValue == operation ? proxy : returnValue
                 } finally {
                     stoppable.stop()
                 }

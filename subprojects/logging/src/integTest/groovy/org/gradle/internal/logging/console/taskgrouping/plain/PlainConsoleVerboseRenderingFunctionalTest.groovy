@@ -21,8 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleVerboseRe
 
 class PlainConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseRenderingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-
-    def setup() {
-        attachTestConsole()
-    }
 }

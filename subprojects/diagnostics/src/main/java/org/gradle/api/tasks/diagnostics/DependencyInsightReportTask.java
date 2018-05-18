@@ -28,10 +28,12 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
@@ -170,6 +172,15 @@ public class DependencyInsightReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * An injected {@link ImmutableAttributesFactory}.
+     * @since 4.9
+     */
+    @Inject
+    protected ImmutableAttributesFactory getAttributesFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void report() {
         final Configuration configuration = getConfiguration();
@@ -221,7 +232,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
         int i = 1;
         for (final RenderableDependency dependency : sortedDeps) {
-            renderer.visit(new RenderDependencyAction(dependency, configuration), true);
+            renderer.visit(new RenderDependencyAction(dependency, configuration, getAttributesFactory()), true);
             dependencyGraphRenderer.render(dependency);
             boolean last = i++ == sortedDeps.size();
             if (!last) {
@@ -237,7 +248,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.println(" option.");
     }
 
-    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainerInternal requestedAttributes) {
+    private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
             Object requestedValue = requestedAttributes.getAttribute(requested);
             if (requested.getName().equals(actualAttribute.getName())) {
@@ -280,10 +291,12 @@ public class DependencyInsightReportTask extends DefaultTask {
     private static class RenderDependencyAction implements Action<StyledTextOutput> {
         private final RenderableDependency dependency;
         private final Configuration configuration;
+        private final ImmutableAttributesFactory attributesFactory;
 
-        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration) {
+        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration, ImmutableAttributesFactory attributesFactory) {
             this.dependency = dependency;
             this.configuration = configuration;
+            this.attributesFactory = attributesFactory;
         }
 
         public void execute(StyledTextOutput out) {
@@ -310,14 +323,28 @@ public class DependencyInsightReportTask extends DefaultTask {
                 out.println();
                 out.withStyle(Description).text("   variant \"" + resolvedVariant.getDisplayName() + "\"");
                 AttributeContainer attributes = resolvedVariant.getAttributes();
-                AttributeContainerInternal requested = (AttributeContainerInternal) configuration.getAttributes();
+                AttributeContainer requested = getRequestedAttributes(configuration, dependency);
                 if (!attributes.isEmpty() || !requested.isEmpty()) {
                     writeAttributeBlock(out, attributes, requested);
                 }
             }
         }
 
-        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested) {
+        private AttributeContainer getRequestedAttributes(Configuration configuration, RenderableDependency dependency) {
+            if (dependency instanceof HasAttributes) {
+                AttributeContainer dependencyAttributes = ((HasAttributes) dependency).getAttributes();
+                return concat(configuration.getAttributes(), dependencyAttributes);
+            }
+            return configuration.getAttributes();
+        }
+
+        private AttributeContainer concat(AttributeContainer configAttributes, AttributeContainer dependencyAttributes) {
+            return attributesFactory.concat(
+                ((AttributeContainerInternal) configAttributes).asImmutable(),
+                ((AttributeContainerInternal) dependencyAttributes).asImmutable());
+        }
+
+        private void writeAttributeBlock(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested) {
             out.withStyle(Description).text(" [");
             out.println();
             int maxAttributeLen = computeAttributePadding(attributes, requested);
@@ -330,7 +357,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             out.withStyle(Description).text("   ]");
         }
 
-        private void writeMissingAttributes(StyledTextOutput out, AttributeContainerInternal requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
+        private void writeMissingAttributes(StyledTextOutput out, AttributeContainer requested, int maxAttributeLen, Sets.SetView<Attribute<?>> missing) {
             if (missing.size() != requested.keySet().size()) {
                 out.println();
             }
@@ -342,7 +369,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
 
-        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainerInternal requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
+        private void writeFoundAttributes(StyledTextOutput out, AttributeContainer attributes, AttributeContainer requested, int maxAttributeLen, Set<Attribute<?>> matchedAttributes) {
             for (Attribute<?> attribute : attributes.keySet()) {
                 Object actualValue = attributes.getAttribute(attribute);
                 AttributeMatchDetails match = match(attribute, actualValue, requested);
@@ -365,7 +392,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             }
         }
 
-        private int computeAttributePadding(AttributeContainer attributes, AttributeContainerInternal requested) {
+        private int computeAttributePadding(AttributeContainer attributes, AttributeContainer requested) {
             int maxAttributeLen = 0;
             for (Attribute<?> attribute : requested.keySet()) {
                 maxAttributeLen = Math.max(maxAttributeLen, attribute.getName().length());

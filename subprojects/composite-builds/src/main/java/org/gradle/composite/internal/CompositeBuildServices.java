@@ -22,8 +22,8 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -69,12 +69,12 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
-            return new IncludedBuildTaskReferenceResolver(includedBuilds, buildIdentity);
+        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildState currentBuild) {
+            return new IncludedBuildTaskReferenceResolver(includedBuilds, currentBuild);
         }
 
-        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildIdentity buildIdentity) {
-            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, buildIdentity);
+        public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
+            return new CompositeBuildClassPathInitializer(includedBuildTaskGraph, currentBuild);
         }
     }
 

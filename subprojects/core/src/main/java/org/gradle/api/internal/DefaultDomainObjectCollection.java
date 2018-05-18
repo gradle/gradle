@@ -157,7 +157,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public void configureEachLater(Action<? super T> action) {
+    public void configureEach(Action<? super T> action) {
         eventRegister.registerLazyAddAction(action);
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
@@ -167,8 +167,13 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
+    public void configureEachLater(Action<? super T> action) {
+        configureEach(action);
+    }
+
+    @Override
     public <S extends T> void configureEachLater(Class<S> type, Action<? super S> action) {
-        withType(type).configureEachLater(action);
+        withType(type).configureEach(action);
     }
 
     public void all(Closure action) {

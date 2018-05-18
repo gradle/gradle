@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.NestedBuildFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -46,7 +45,7 @@ public interface BuildStateRegistry {
     IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier);
 
     /**
-     * Locates a build.
+     * Locates a build. Fails if not present.
      */
     BuildState getBuild(BuildIdentifier buildIdentifier);
 
@@ -67,22 +66,25 @@ public interface BuildStateRegistry {
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
-    IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
 
     /**
      * Creates a standalone nested build.
      */
-    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner);
 
     /**
-     * Creates an implicit build. An implicit build is-a nested build whose outputs are used by dependency resolution.
+     * Creates an implicit included build. An implicit build is-a nested build that is managed by Gradle and whose outputs are used by dependency resolution.
      */
-    IncludedBuildState addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);
 
     /**
-     * Creates a new nested build tree.
+     * Creates a new standalone nested build tree.
      */
-    StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory);
+    StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner);
 
+    /**
+     * Adds a build to this registry. In general, you should use one of the factory methods above instead.
+     */
     void register(BuildState build);
 }

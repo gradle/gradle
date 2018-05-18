@@ -317,8 +317,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
 
-        Provider<JavaCompile> javaCompile = project.getTasks().getByNameLater(JavaCompile.class, COMPILE_JAVA_TASK_NAME);
-        Provider<ProcessResources> processResources = project.getTasks().getByNameLater(ProcessResources.class, PROCESS_RESOURCES_TASK_NAME);
+        Provider<JavaCompile> javaCompile = project.getTasks().get(JavaCompile.class, COMPILE_JAVA_TASK_NAME);
+        Provider<ProcessResources> processResources = project.getTasks().get(ProcessResources.class, PROCESS_RESOURCES_TASK_NAME);
 
         addJar(apiElementConfiguration, jarArtifact);
         addJar(runtimeConfiguration, jarArtifact);
@@ -364,14 +364,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuild(Project project) {
-        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.BUILD_NEEDED_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().get(Task.class, JavaBasePlugin.BUILD_NEEDED_TASK_NAME).configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, true,
                     JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             }
         });
-        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().get(Task.class, JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME).configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, false,
@@ -381,7 +381,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().configureEachLater(Test.class, new Action<Test>() {
+        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             public void execute(final Test test) {
                 test.getConventionMapping().map("testClassesDirs", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -403,7 +403,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
             }
         });
-        project.getTasks().getByNameLater(Task.class, JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
+        project.getTasks().get(Task.class, JavaBasePlugin.CHECK_TASK_NAME).configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(test);

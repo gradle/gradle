@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.build.BuildState
 
 import static AbstractProjectDependencyConflictResolutionIntegrationSpec.*
 
@@ -131,7 +133,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
     }
 
     String getBuildId() {
-        "((org.gradle.api.internal.project.ProjectInternal) project).getServices().get(org.gradle.initialization.BuildIdentity.class).getCurrentBuild()"
+        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getBuildIdentifier()"
     }
 
     String getProjectPath() {

@@ -21,8 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractLoggingHooksFunc
 
 class PlainConsoleLoggingHooksFunctionalTest extends AbstractLoggingHooksFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-
-    def setup() {
-        attachTestConsole()
-    }
 }

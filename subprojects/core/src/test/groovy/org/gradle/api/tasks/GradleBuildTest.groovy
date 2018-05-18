@@ -17,7 +17,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Transformer
 import org.gradle.api.internal.BuildDefinition
-import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.invocation.BuildController
@@ -29,10 +29,10 @@ import spock.lang.Specification
 class GradleBuildTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def buildFactory = Mock(NestedBuildFactory)
+    def owner = Mock(BuildState)
     def buildStateRegistry = Mock(BuildStateRegistry)
     def build = Mock(StandAloneNestedBuild)
-    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [nestedBuildFactory: buildFactory, buildStateRegistry: buildStateRegistry])
+    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [currentBuild: owner, buildStateRegistry: buildStateRegistry])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()
@@ -50,15 +50,17 @@ class GradleBuildTest extends Specification {
     }
 
     void executesBuild() {
+        def buildController = Mock(BuildController)
+
         when:
         task.build()
 
         then:
-
-        1 * buildStateRegistry.addNestedBuildTree(_, _) >> { BuildDefinition buildDefinition, NestedBuildFactory buildFactory ->
+        1 * buildStateRegistry.addNestedBuildTree(_, owner) >> { BuildDefinition buildDefinition, BuildState b ->
             assert buildDefinition.startParameter == task.startParameter
             build
         }
-        1 * build.run(_) >> { Transformer transformer -> transformer.transform(Stub(BuildController)) }
+        1 * build.run(_) >> { Transformer transformer -> transformer.transform(buildController) }
+        1 * buildController.run()
     }
 }

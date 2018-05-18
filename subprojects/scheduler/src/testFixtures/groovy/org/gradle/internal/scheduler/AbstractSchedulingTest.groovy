@@ -45,7 +45,7 @@ abstract class AbstractSchedulingTest extends Specification {
     protected abstract void useFilter(Spec filter)
     protected abstract Set getAllTasks()
     protected abstract List getExecutedTasks()
-    protected abstract void rethrowFailures()
+    protected abstract List<? extends Throwable> getFailures()
     protected abstract void continueOnFailure()
 
     def "schedules tasks in dependency order"() {
@@ -500,13 +500,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == exception
+        failures == [exception]
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
@@ -519,13 +513,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "stops execution on task failure when failure handler indicates that execution should stop"() {
@@ -538,13 +526,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "continues to return tasks and rethrows failure on completion when failure handler indicates that execution should continue"() {
@@ -558,13 +540,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a, b]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     @Unroll
@@ -579,13 +555,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a, b]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
 
         where:
         orderingRule << ['mustRunAfter', 'shouldRunAfter']
@@ -603,13 +573,7 @@ abstract class AbstractSchedulingTest extends Specification {
 
         then:
         executedTasks == [a, c]
-
-        when:
-        rethrowFailures()
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
+        failures == [failure]
     }
 
     def "does not build graph for or execute filtered tasks"() {

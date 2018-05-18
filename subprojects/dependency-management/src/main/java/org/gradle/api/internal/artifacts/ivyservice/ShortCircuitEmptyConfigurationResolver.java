@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -40,7 +41,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.initialization.BuildIdentity;
 
 import java.io.File;
 import java.util.Collections;
@@ -50,9 +50,9 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     private final ConfigurationResolver delegate;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final BuildIdentity thisBuild;
+    private final BuildIdentifier thisBuild;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentity thisBuild) {
+    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate, ComponentIdentifierFactory componentIdentifierFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildIdentifier thisBuild) {
         this.delegate = delegate;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -82,7 +82,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
-        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild.getCurrentBuild());
+        ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
         results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
     }
 

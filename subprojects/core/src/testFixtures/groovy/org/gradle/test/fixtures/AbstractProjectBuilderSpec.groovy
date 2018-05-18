@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
-import org.gradle.internal.progress.BuildProgressLogger
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -52,14 +51,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
-        // Initialize progress logger infrastructure
-        def progressLogger = project.services.get(BuildProgressLogger)
-        progressLogger.buildStarted()
-        try {
-            project.services.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext())
-        } finally {
-            progressLogger.beforeComplete()
-        }
+        project.services.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, new DefaultTaskExecutionContext())
         task.state.rethrowFailure()
     }
 }

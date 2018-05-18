@@ -786,6 +786,19 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def "can publish java-library with dependencies/constraints with attributes"() {
         requiresExternalDependencies = true
         given:
+        settingsFile << "include 'utils'\n"
+        file("utils/build.gradle") << '''
+            def attr1 = Attribute.of('custom', String)
+            version = '1.0'
+            configurations {
+                one {
+                    attributes.attribute(attr1, 'magnificient')
+                }
+                two {
+                    attributes.attribute(attr1, 'bazinga')
+                }
+            }
+        '''
         createBuildScripts("""
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
@@ -794,6 +807,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 api("org.test:bar:1.0") {
                     attributes {
                         attribute(attr1, 'hello')
+                    }
+                }
+                
+                api(project(':utils')) {
+                    attributes {
+                        attribute(attr1, 'bazinga')
                     }
                 }
                 
@@ -827,12 +846,18 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
             }
+            dependency('publishTest:utils:1.0') {
+                hasAttribute('custom', 'bazinga')
+            }
             noMoreDependencies()
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
+            }
+            dependency('publishTest:utils:1.0') {
+                hasAttribute('custom', 'bazinga')
             }
             constraint('org.test:bar:1.1') {
                 hasAttributes(custom: 'world', nice: true)

@@ -35,26 +35,30 @@ class SelectedTaskExecutionActionTest extends Specification {
     }
 
     def "executes selected tasks"() {
+        def failures = []
+
         given:
         _ * startParameter.continueOnFailure >> false
 
         when:
-        action.execute(context)
+        action.execute(context, failures)
 
         then:
-        1 * taskGraph.execute()
+        1 * taskGraph.execute(failures)
     }
 
     def "executes selected tasks when continue specified"() {
+        def failures = []
+
         given:
         _ * startParameter.continueOnFailure >> true
 
         when:
-        action.execute(context)
+        action.execute(context, failures)
 
         then:
         1 * taskGraph.setContinueOnFailure(true)
-        1 * taskGraph.execute()
+        1 * taskGraph.execute(failures)
     }
 
     def brokenTask(Throwable failure) {

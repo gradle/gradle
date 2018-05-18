@@ -33,13 +33,11 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskExecutionGraphInternal;
 import org.gradle.execution.workgraph.TaskNode;
 import org.gradle.execution.workgraph.WorkGraph;
 import org.gradle.execution.workgraph.WorkGraphBuilder;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.graph.DirectedGraph;
@@ -166,7 +164,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void execute() {
+    public void execute(Collection<? super Throwable> taskFailures) {
         Timer clock = Time.startTimer();
         WorkGraph workGraph = getWorkGraph();
 
@@ -178,15 +176,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         NodeExecutor nodeExecutor = new TaskNodeExecutor(taskExecuter, buildOperationExecutor.getCurrentOperation());
         GraphExecutionResult result = scheduler.execute(workGraph.getGraph(), workGraph.getRequestedNodes(), continueOnFailure, nodeExecutor);
         LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
-        List<Throwable> failures = result.getFailures();
-        switch (failures.size()) {
-            case 0:
-                break;
-            case 1:
-                throw UncheckedException.throwAsUncheckedException(failures.get(0));
-            default:
-                throw new MultipleBuildFailures(failures);
-        }
+        taskFailures.addAll(result.getFailures());
     }
 
     @Override

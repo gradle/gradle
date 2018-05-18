@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Unroll
 
 class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -32,9 +33,11 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         includedBuilds << buildB
     }
 
-    def "includes build identifier in logging output"() {
-        dependency 'org.test:buildB:1.0'
+    @Unroll
+    def "includes build identifier in logging output with #display"() {
+        dependency "org.test:${buildName}:1.0"
 
+        buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             println "configuring \$project.path"
             classes.doLast { t ->
@@ -46,35 +49,20 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, ":assemble")
 
         then:
-        outputContains("> Configure project :buildB")
-        result.groupedOutput.task(":buildB:classes").output.contains("classes of :classes")
+        outputContains("> Configure project :${buildName}")
+        result.groupedOutput.task(":${buildName}:classes").output.contains("classes of :classes")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes configured root project name in build identifier in logging output"() {
-        dependency 'org.test:someLib:1.0'
+    @Unroll
+    def "includes build identifier in dependency report with #display"() {
+        dependency "org.test:${buildName}:1.0"
 
-        buildB.settingsFile << """
-            rootProject.name = 'someLib'
-        """
-
-        buildB.buildFile << """
-            println "configuring \$project.path"
-            classes.doLast { t ->
-                println "classes of \$t.path"
-            }
-        """
-
-        when:
-        execute(buildA, ":assemble")
-
-        then:
-        outputContains("> Configure project :someLib")
-        result.groupedOutput.task(":someLib:classes").output.contains("classes of :classes")
-    }
-
-    def "includes build identifier in dependency report"() {
-        dependency 'org.test:buildB:1.0'
-
+        buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             dependencies { implementation project(':b1') }
         """
@@ -85,36 +73,21 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- org.test:buildB:1.0 -> project :buildB
-     \\--- project :buildB:b1
+\\--- org.test:${buildName}:1.0 -> project :${buildName}
+     \\--- project :${buildName}:b1
 """)
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes configured root project name in build identifier in dependency report"() {
-        dependency 'org.test:someLib:1.0'
+    @Unroll
+    def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
+        dependency "org.test:${buildName}:1.0"
 
-        buildB.settingsFile << """
-            rootProject.name = 'someLib'
-        """
-
-        buildB.buildFile << """
-            dependencies { implementation project(':b1') }
-        """
-
-        when:
-        execute(buildA, ":dependencies")
-
-        then:
-        outputContains("""
-runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- org.test:someLib:1.0 -> project :someLib
-     \\--- project :someLib:b1
-""")
-    }
-
-    def "includes build identifier in error message on failure to resolve dependencies of build"() {
-        dependency 'org.test:buildB:1.0'
-
+        buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             dependencies { implementation "test:test:1.2" }
         """
@@ -123,37 +96,23 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':buildB:compileJava'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildB:compileClasspath'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':${buildName}:compileJava'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':${buildName}:compileClasspath'.")
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
-    project :buildB""")
+    project :${buildName}""")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes configured root project name in build identifier in error message on failure to resolve dependencies of build"() {
-        dependency 'org.test:someLib:1.0'
+    @Unroll
+    def "includes build identifier in task failure error message with #display"() {
+        dependency "org.test:${buildName}:1.0"
 
-        buildB.settingsFile << """
-            rootProject.name = 'someLib'
-        """
-        buildB.buildFile << """
-            dependencies { implementation "test:test:1.2" }
-        """
-
-        when:
-        fails(buildA, ":assemble")
-
-        then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':someLib:compileJava'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':someLib:compileClasspath'.")
-        failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
-Required by:
-    project :someLib""")
-    }
-
-    def "includes build identifier in task failure error message"() {
-        dependency 'org.test:buildB:1.0'
-
+        buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             classes.doLast {
                 throw new RuntimeException("broken")
@@ -164,32 +123,20 @@ Required by:
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildB:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
         failure.assertHasCause("broken")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes configured root project name in build identifier in task failure error message"() {
-        dependency 'org.test:someLib:1.0'
+    @Unroll
+    def "includes build identifier in dependency resolution results with #display"() {
+        dependency "org.test:${buildName}:1.0"
 
-        buildB.settingsFile << """
-            rootProject.name = 'someLib'
-        """
-        buildB.buildFile << """
-            classes.doLast {
-                throw new RuntimeException("broken")
-            }
-        """
-
-        when:
-        fails(buildA, ":assemble")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':someLib:classes'.")
-        failure.assertHasCause("broken")
-    }
-
-    def "includes build identifier in dependency resolution results"() {
-        dependency 'org.test:buildB:1.0'
+        buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
             dependencies { implementation project(':b1') }
         """
@@ -202,19 +149,20 @@ Required by:
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildA'
-                assert components[1].build.name == 'buildB'
+                assert components[1].build.name == '${buildName}'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
-                assert components[1].projectName == 'buildB'
-                assert components[2].build.name == 'buildB'
+                assert components[1].projectName == '${buildName}'
+                assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild
                 assert components[2].projectPath == ':b1'
                 assert components[2].projectName == 'b1'
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 2
-                assert selectors[0].displayName == 'org.test:buildB:1.0'
-                assert selectors[1].displayName == 'project :buildB:b1'
+                assert selectors[0].displayName == 'org.test:${buildName}:1.0'
+                assert selectors[1].displayName == 'project :${buildName}:b1'
+                // TODO - should be build name
                 assert selectors[1].buildName == 'buildB'
                 assert selectors[1].projectPath == ':b1'
             }
@@ -222,47 +170,10 @@ Required by:
 
         expect:
         execute(buildA, ":assemble")
-    }
 
-    def "includes configured root project name in build identifier in dependency resolution results"() {
-        dependency 'org.test:someLib:1.0'
-        buildB.buildFile << """
-            dependencies { implementation project(':b1') }
-        """
-
-        buildA.buildFile << """
-            classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
-                assert components.size() == 3
-                assert components[0].build.name == ':'
-                assert components[0].build.currentBuild
-                assert components[0].projectPath == ':'
-                assert components[0].projectName == 'buildA'
-                assert components[1].build.name == 'someLib'
-                assert !components[1].build.currentBuild
-                assert components[1].projectPath == ':'
-                assert components[1].projectName == 'someLib'
-                assert components[2].build.name == 'someLib'
-                assert !components[2].build.currentBuild
-                assert components[2].projectPath == ':b1'
-                assert components[2].projectName == 'b1'
-
-                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
-                assert selectors.size() == 2
-                assert selectors[0].displayName == 'org.test:someLib:1.0'
-                assert selectors[1].displayName == 'project :someLib:b1'
-                // TODO - should be 'someLib'
-                assert selectors[1].buildName == 'buildB'
-                assert selectors[1].projectPath == ':b1'
-            }
-        """
-        buildB.settingsFile << """
-            rootProject.name = 'someLib'
-        """
-
-        expect:
-        execute(buildA, ":assemble")
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 }
-
-

@@ -40,6 +40,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
+### Using Groovy GPath with `tasks.withType()`
+
+In previous versions of Gradle, it was sometimes possible to use a [GPath](http://docs.groovy-lang.org/latest/html/documentation/#gpath_expressions) expression with a project's task collection to build a list of a single property for all tasks.
+
+For instance, `tasks.withType(SomeTask).name` would create a list of `String`s containing all of the names of tasks of type `SomeTask`. This was only possible with the method [`TaskCollection.withType(Class)`](javadoc/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-).
+
+Plugins or build scripts attempting to do this will now get a runtime exception.  The easiest fix is to explicitly use the [spread operator](http://docs.groovy-lang.org/latest/html/documentation/#_spread_operator).
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

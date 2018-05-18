@@ -18,6 +18,7 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.NestedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.classpath.ClassPath
@@ -87,7 +88,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildDefinition) == buildDefinition
-        launcher.gradle.services.get(BuildIdentity).currentBuild == identifier
+        launcher.gradle.services.get(BuildState) == build
     }
 
     def "reuses build context services for nested build"() {

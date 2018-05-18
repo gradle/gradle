@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -26,7 +27,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.specs.Specs
-import org.gradle.initialization.BuildIdentity
 import spock.lang.Specification
 
 class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
@@ -39,7 +39,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
     def results = new DefaultResolverResults()
     def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentity))
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
 
     def "returns empty build dependencies when no dependencies"() {
         def depVisitor = Stub(BuildDependenciesVisitor)

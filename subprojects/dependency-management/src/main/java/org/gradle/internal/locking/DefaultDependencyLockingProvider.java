@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.file.FileResolver;
@@ -35,6 +36,7 @@ import java.util.Set;
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
+    private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
     private final DependencyLockingNotationConverter converter;
     private final LockFileReaderWriter lockFileReaderWriter;
@@ -82,10 +84,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules) {
+    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules, Set<ModuleComponentIdentifier> changingResolvedModules) {
         if (writeLocks) {
             List<String> modulesOrdered = getModulesOrdered(resolvedModules);
             lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
+            if (!changingResolvedModules.isEmpty()) {
+                LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
+                    configurationName, getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
+            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", configurationName, modulesOrdered);
             } else {

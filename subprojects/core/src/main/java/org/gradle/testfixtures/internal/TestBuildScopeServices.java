@@ -16,15 +16,11 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.NestedBuildState;
@@ -47,10 +43,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
         return BuildDefinition.fromStartParameter(startParameter);
     }
 
-    protected BuildIdentity createBuildIdentity() {
-        return new DefaultBuildIdentity(DefaultBuildIdentifier.ROOT);
-    }
-
     protected BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
     }
@@ -71,7 +63,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
             }
 
             @Override
-            public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, BuildIdentifier buildIdentifier) {
+            public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedBuildState build) {
                 throw new UnsupportedOperationException();
             }
         };

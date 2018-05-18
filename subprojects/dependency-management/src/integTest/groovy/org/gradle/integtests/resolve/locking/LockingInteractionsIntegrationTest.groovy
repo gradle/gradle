@@ -137,4 +137,42 @@ dependencies {
         'release'       | '1.0'
         'integration'   | '1.0-SNAPSHOT'
     }
+
+    def 'kind of locks snapshots but warns about it'() {
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:1.0-SNAPSHOT'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
+        outputContains('Dependency lock state for configuration \'lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
+
+        when:
+        mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
+
+        then:
+        succeeds 'dependencies'
+    }
 }

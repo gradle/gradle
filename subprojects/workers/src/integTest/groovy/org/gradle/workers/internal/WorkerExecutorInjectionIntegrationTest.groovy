@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@Timeout(120)
 class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll

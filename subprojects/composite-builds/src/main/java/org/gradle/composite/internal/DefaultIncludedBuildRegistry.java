@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -37,6 +36,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final ServiceRegistry rootServices;
 
     // TODO: Locking around this state
-    private DefaultRootBuildState rootBuild;
+    private RootBuildState rootBuild;
     private final Map<BuildIdentifier, BuildState> builds = Maps.newHashMap();
     private final Map<File, IncludedBuildState> includedBuilds = Maps.newLinkedHashMap();
 
@@ -94,8 +94,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState addExplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
-         return registerBuild(buildDefinition, false, nestedBuildFactory);
+    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
+         return registerBuild(buildDefinition, false);
     }
 
     @Override
@@ -119,6 +119,12 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public void register(BuildState build) {
         addBuild(build);
+        if (build instanceof RootBuildState) {
+            if (rootBuild != null) {
+                throw new IllegalStateException("Root build already defined.");
+            }
+            rootBuild = (RootBuildState) build;
+        }
     }
 
     @Override
@@ -171,23 +177,24 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState addImplicitBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
         // TODO: synchronization
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
-            includedBuild = registerBuild(buildDefinition, true, nestedBuildFactory);
+            includedBuild = registerBuild(buildDefinition, true);
             projectRegistry.registerProjects(includedBuild);
         }
         return includedBuild;
     }
 
     @Override
-    public StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner) {
         if (buildDefinition.getName() == null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
-        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, buildDefinition, nestedBuildFactory, new BuildStateListener() {
+        Path identityPath = pathFor(owner, buildIdentifier.getName());
+        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, new BuildStateListener() {
             @Override
             public void projectsKnown(BuildState build1) {
                 projectRegistry.registerProjects(build1);
@@ -198,25 +205,30 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory) {
+    public StandAloneNestedBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner) {
         if (buildDefinition.getName() != null || buildDefinition.getBuildRootDir() != null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getStartParameter().getCurrentDir().getName());
-        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, nestedBuildFactory);
+        Path identityPath = pathFor(owner, buildIdentifier.getName());
+        return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
-    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, NestedBuildFactory nestedBuildFactory) {
+    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
         // TODO: synchronization
         if (buildDefinition.getBuildRootDir() == null) {
             throw new IllegalArgumentException("Included build must have a root directory defined");
+        }
+        if (rootBuild == null) {
+            throw new IllegalStateException("No root build attached yet.");
         }
         IncludedBuildState includedBuild = includedBuilds.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             String buildName = buildDefinition.getBuildRootDir().getName();
             BuildIdentifier buildIdentifier = idFor(buildName);
+            Path idPath = pathFor(rootBuild, buildIdentifier.getName());
 
-            includedBuild = includedBuildFactory.createBuild(buildIdentifier, buildDefinition, isImplicit, nestedBuildFactory);
+            includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuilds.put(buildDefinition.getBuildRootDir(), includedBuild);
             addBuild(includedBuild);
         } else {
@@ -237,6 +249,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             buildIdentifier = new DefaultBuildIdentifier(buildName + ":" + count);
         }
         return buildIdentifier;
+    }
+
+    private Path pathFor(BuildState owner, String name) {
+        return owner.getIdentityPath().append(Path.path(name));
     }
 
     @Override

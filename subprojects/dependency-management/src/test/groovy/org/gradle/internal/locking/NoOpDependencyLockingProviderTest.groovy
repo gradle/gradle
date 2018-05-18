@@ -19,6 +19,8 @@ package org.gradle.internal.locking
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static java.util.Collections.emptySet
+
 class NoOpDependencyLockingProviderTest extends Specification {
 
     @Subject
@@ -38,7 +40,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
 
 
         when:
-        provider.persistResolvedDependencies('conf', result)
+        provider.persistResolvedDependencies('conf', result, emptySet())
 
         then:
         0 * _

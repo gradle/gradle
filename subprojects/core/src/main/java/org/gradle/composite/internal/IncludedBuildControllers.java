@@ -17,7 +17,36 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
+import java.util.Collection;
+
 public interface IncludedBuildControllers {
+    IncludedBuildControllers EMPTY = new IncludedBuildControllers() {
+        @Override
+        public void rootBuildOperationStarted() {
+        }
+
+        @Override
+        public void populateTaskGraphs() {
+        }
+
+        @Override
+        public void startTaskExecution() {
+        }
+
+        @Override
+        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+        }
+
+        @Override
+        public void finishBuild() {
+        }
+
+        @Override
+        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
+            throw new UnsupportedOperationException();
+        }
+    };
+
     /**
      * Notify the controllers that the root build operation has started.
      * Should be using something like {@link org.gradle.initialization.RootBuildLifecycleListener} however, this is currently called outside the root build operation.
@@ -31,7 +60,15 @@ public interface IncludedBuildControllers {
      */
     void startTaskExecution();
 
-    void stopTaskExecution();
+    /**
+     * Blocks until all scheduled tasks have completed.
+     */
+    void awaitTaskCompletion(Collection<? super Throwable> taskFailures);
+
+    /**
+     * Completes the build, blocking until complete.
+     */
+    void finishBuild();
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
 }

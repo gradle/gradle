@@ -80,9 +80,9 @@ import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.component.external.ivypublish.DefaultArtifactPublisher;
 import org.gradle.internal.component.external.ivypublish.DefaultIvyModuleDescriptorWriter;
@@ -274,7 +274,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildIdentity buildIdentity) {
+                                                       BuildState currentBuild) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -296,11 +296,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             artifactTypeRegistry,
                             componentSelectorConverter,
                             attributeContainerSerializer,
-                            buildIdentity
+                            currentBuild.getBuildIdentifier()
                         ),
                         componentIdentifierFactory,
                         moduleIdentifierFactory,
-                        buildIdentity));
+                        currentBuild.getBuildIdentifier()));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

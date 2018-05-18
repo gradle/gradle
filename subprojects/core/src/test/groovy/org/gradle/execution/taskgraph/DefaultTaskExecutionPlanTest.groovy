@@ -166,13 +166,8 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
 
         then:
         executedTasks == []
-
-        when:
-        rethrowFailures()
-
-        then:
-        BuildCancelledException e = thrown()
-        e.message == 'Build cancelled.'
+        failures*.class == [BuildCancelledException]
+        failures*.message == ['Build cancelled.']
     }
 
     def "clear removes all tasks"() {
@@ -223,8 +218,10 @@ class DefaultTaskExecutionPlanTest extends AbstractSchedulingTest {
     }
 
     @Override
-    void rethrowFailures() {
-        executionPlan.rethrowFailures()
+    protected List<? extends Throwable> getFailures() {
+        def failures = []
+        executionPlan.collectFailures(failures)
+        return failures
     }
 
     @Override

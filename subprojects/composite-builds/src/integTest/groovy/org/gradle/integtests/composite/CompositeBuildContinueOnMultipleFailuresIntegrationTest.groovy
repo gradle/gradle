@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 /**
  * Tests for composite build delegating to tasks in an included build that produce more than one failure.
@@ -147,11 +146,6 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
     }
 
     void assertTaskExecutionFailureMessage(int errorNumber, String taskPath) {
-        //do not assert order in parallel execution
-        String errorNumberString = GradleContextualExecuter.parallel? '' : errorNumber
-        assert result.error.contains("""$errorNumberString: Task failed with an exception.
------------
-* What went wrong:
-Execution failed for task '$taskPath'.""")
+        failure.assertHasDescription("Execution failed for task '$taskPath'.")
     }
 }

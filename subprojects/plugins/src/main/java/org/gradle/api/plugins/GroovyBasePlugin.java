@@ -76,7 +76,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults() {
-        project.getTasks().configureEachLater(GroovyCompile.class, new Action<GroovyCompile>() {
+        project.getTasks().withType(GroovyCompile.class).configureEach(new Action<GroovyCompile>() {
             public void execute(final GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
@@ -115,7 +115,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
                 // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin
                 // doesn't need to do this.
-                project.getTasks().getByNameLater(Task.class, sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+                project.getTasks().get(Task.class, sourceSet.getClassesTaskName()).configure(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         task.dependsOn(compileTask);
@@ -126,7 +126,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc() {
-        project.getTasks().configureEachLater(Groovydoc.class, new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class).configureEach(new Action<Groovydoc>() {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {

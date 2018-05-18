@@ -148,6 +148,12 @@ public class TaskInfo implements Comparable<TaskInfo> {
             }
         }
 
+        for (TaskInfo dependency : finalizingSuccessors) {
+            if (!dependency.isComplete()) {
+                return false;
+            }
+        }
+
         return true;
     }
 

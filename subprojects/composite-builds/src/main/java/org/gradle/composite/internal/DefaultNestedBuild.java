@@ -26,30 +26,56 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.build.AbstractBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.invocation.GradleBuildController;
 import org.gradle.util.Path;
 
-class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
-    private final BuildDefinition buildDefinition;
-    private final NestedBuildFactory nestedBuildFactory;
+class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
+    private final Path identityPath;
+    private final BuildState owner;
     private final BuildStateListener buildStateListener;
     private final BuildIdentifier buildIdentifier;
+    private final BuildDefinition buildDefinition;
+    private final GradleLauncher gradleLauncher;
     private SettingsInternal settings;
 
-    DefaultNestedBuild(BuildIdentifier buildIdentifier, BuildDefinition buildDefinition, NestedBuildFactory nestedBuildFactory, BuildStateListener buildStateListener) {
+    DefaultNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner, BuildStateListener buildStateListener) {
         this.buildIdentifier = buildIdentifier;
+        this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
-        this.nestedBuildFactory = nestedBuildFactory;
+        this.owner = owner;
         this.buildStateListener = buildStateListener;
+        gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition, this);
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        return identityPath;
+    }
+
+    @Override
+    public boolean isImplicitBuild() {
+        return true;
+    }
+
+    @Override
+    public void stop() {
+        gradleLauncher.stop();
     }
 
     @Override
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
-        GradleLauncher gradleLauncher = nestedBuildFactory.nestedInstance(buildDefinition, this);
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
+            gradleLauncher.getGradle().setIdentityPath(getCurrentPrefixForProjectsInChildBuilds());
             final GradleInternal gradle = buildController.getGradle();
             gradle.rootProject(new Action<Project>() {
                 @Override
@@ -65,21 +91,21 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
-    }
-
-    @Override
-    public boolean isImplicitBuild() {
-        return true;
-    }
-
-    @Override
     public SettingsInternal getLoadedSettings() {
         if (settings == null) {
             throw new IllegalStateException("Settings not loaded yet.");
         }
         return settings;
+    }
+
+    @Override
+    public NestedBuildFactory getNestedBuildFactory() {
+        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+    }
+
+    @Override
+    public Path getCurrentPrefixForProjectsInChildBuilds() {
+        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildDefinition.getName());
     }
 
     @Override

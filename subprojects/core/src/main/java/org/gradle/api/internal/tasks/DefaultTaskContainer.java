@@ -31,9 +31,11 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
@@ -302,7 +304,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> createLater(String name) {
+    public TaskProvider<Task> createLater(String name) {
         return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
@@ -330,8 +332,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> getByNameLater(Class<T> type, String name) throws InvalidUserDataException {
+    public <T extends Task> TaskProvider<T> get(Class<T> type, String name) throws InvalidUserDataException {
+        Task task = findByNameWithoutRules(name);
+        if (task == null) {
+            ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
+            if (taskProvider == null) {
+                throw createNotFoundException(name);
+            } else if (!type.isAssignableFrom(taskProvider.getType())) {
+                return createTypeMismatchException(name, taskProvider.getType(), type);
+            }
+            return (TaskProvider<T>)taskProvider;
+        } else if(!type.isAssignableFrom(task.getClass())) {
+            return createTypeMismatchException(name, getDeclaredTaskType(task), type);
+        }
+
         return new TaskLookupProvider<T>(type, name);
+    }
+
+    private <T extends Task> TaskProvider<T> createTypeMismatchException(String name, Class<?> actualType, Class<?> expectedType) {
+        throw new IllegalArgumentException(String.format("Task with name '%s' exists in %s, but task does not have requested type. Found %s expected %s.", name, project, actualType.getName(), expectedType.getName()));
+    }
+
+    private Class getDeclaredTaskType(Task original) {
+        return new DslObject(original).getDeclaredType();
     }
 
     public Task resolveTask(String path) {
@@ -377,11 +400,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public SortedSet<String> getNames() {
         SortedSet<String> names = super.getNames();
-        if (placeholders.isEmpty()) {
+        if (placeholders.isEmpty() && modelNode == null) {
             return names;
         }
         TreeSet<String> allNames = new TreeSet<String>(names);
         allNames.addAll(placeholders.keySet());
+        if (modelNode != null) {
+            allNames.addAll(modelNode.getLinkNames());
+        }
         return allNames;
     }
 
@@ -486,7 +512,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <S extends Task> TaskCollection<S> withType(Class<S> type) {
-        return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
+        Instantiator instantiator = getInstantiator();
+        return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
     private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
@@ -516,7 +543,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void configure(final Action<? super T> action) {
-            configureEachLater(new Action<Task>() {
+            configureEach(new Action<Task>() {
                 private boolean alreadyExecuted = false;
 
                 @Override
@@ -533,6 +560,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
+        boolean failed = false;
 
         public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
@@ -546,10 +574,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public T getOrNull() {
             if (task == null) {
                 task = type.cast(findByNameWithoutRules(name));
-                if (task == null) {
-                    task = createTask(name, type, NO_ARGS);
-                    statistics.lazyTaskRealized(type);
-                    add(task);
+                if (task == null && !failed) {
+                    try {
+                        task = createTask(name, type, NO_ARGS);
+                        statistics.lazyTaskRealized(type);
+                        add(task);
+                    } catch (RuntimeException ex) {
+                        failed = true;
+                        throw ex;
+                    }
                 }
             }
             return task;
@@ -566,7 +599,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                task = type.cast(getByName(name));
+                task = type.cast(findByName(name));
             }
             return task;
         }

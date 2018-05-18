@@ -41,6 +41,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -48,6 +49,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
@@ -108,7 +110,10 @@ public class ProjectBuilderImpl {
         ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
         BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken());
         BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices);
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestBuildScopeServices topLevelRegistry = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
+        TestRootBuild build = new TestRootBuild();
+        topLevelRegistry.add(BuildState.class, build);
+
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -117,12 +122,16 @@ public class ProjectBuilderImpl {
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
         ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
 
-        TestRootBuild build = new TestRootBuild();
         project.getServices().get(BuildStateRegistry.class).register(build);
         project.getServices().get(ProjectStateRegistry.class).register(build, project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
+
+        // Initialize progress logger infrastructure
+        // This is required if Task.execute is called
+        BuildProgressLogger progressLogger = project.getServices().get(BuildProgressLogger.class);
+        progressLogger.buildStarted();
 
         // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = topLevelRegistry.get(ResourceLockCoordinationService.class);
@@ -177,6 +186,11 @@ public class ProjectBuilderImpl {
         }
 
         @Override
+        public Path getIdentityPath() {
+            return Path.ROOT;
+        }
+
+        @Override
         public boolean isImplicitBuild() {
             return false;
         }
@@ -184,6 +198,16 @@ public class ProjectBuilderImpl {
         @Override
         public SettingsInternal getLoadedSettings() {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NestedBuildFactory getNestedBuildFactory() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Path getCurrentPrefixForProjectsInChildBuilds() {
+            return Path.ROOT;
         }
 
         @Override

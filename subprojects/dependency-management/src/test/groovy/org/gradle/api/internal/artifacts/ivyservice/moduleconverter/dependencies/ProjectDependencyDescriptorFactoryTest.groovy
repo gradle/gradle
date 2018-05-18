@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
@@ -62,7 +63,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());
         assertFalse(dependencyMetaData.isForce());
-        assertEquals(new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), dependencyMetaData.getSelector());
+        assertEquals(new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY), dependencyMetaData.getSelector());
         assertSame(projectDependency, dependencyMetaData.source);
     }
 
