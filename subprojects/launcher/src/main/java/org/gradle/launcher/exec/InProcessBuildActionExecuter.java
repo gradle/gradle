@@ -26,6 +26,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -37,15 +38,22 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
     public Object execute(final BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
-        RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter()), buildRequestContext);
-        return rootBuild.run(new Transformer<Object, BuildController>() {
-            @Override
-            public Object transform(BuildController buildController) {
-                checkDeprecations(action.getStartParameter());
-                buildActionRunner.run(action, buildController);
-                return buildController.getResult();
-            }
-        });
+        BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
+
+        buildOperationNotificationValve.start();
+        try {
+            RootBuildState rootBuild = buildRegistry.addRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter()), buildRequestContext);
+            return rootBuild.run(new Transformer<Object, BuildController>() {
+                @Override
+                public Object transform(BuildController buildController) {
+                    checkDeprecations(action.getStartParameter());
+                    buildActionRunner.run(action, buildController);
+                    return buildController.getResult();
+                }
+            });
+        } finally {
+            buildOperationNotificationValve.stop();
+        }
     }
 
     private void checkDeprecations(StartParameterInternal startParameter) {
