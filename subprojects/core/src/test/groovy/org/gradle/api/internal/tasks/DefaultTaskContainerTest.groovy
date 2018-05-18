@@ -406,7 +406,7 @@ class DefaultTaskContainerTest extends Specification {
         container.names.contains("task")
         container.size() == 1
         !container.empty
-        !provider.present
+        provider.present
     }
 
     void "can define task to create and configure later given name"() {
@@ -443,7 +443,7 @@ class DefaultTaskContainerTest extends Specification {
         container.names.contains("task")
         container.size() == 1
         !container.empty
-        !provider.present
+        provider.present
     }
 
     void "can define task to create later given name"() {
@@ -572,7 +572,7 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.get(Task, "task")
 
         then:
-        !provider.present
+        provider.present
 
         and:
         0 * _
@@ -602,7 +602,7 @@ class DefaultTaskContainerTest extends Specification {
         and:
         provider.configure(deferredAction)
         then:
-        !provider.present
+        provider.present
 
         and:
         0 * _
@@ -751,10 +751,10 @@ class DefaultTaskContainerTest extends Specification {
         ex.message == "Failing constructor"
 
         and:
-        !provider.isPresent()
+        provider.isPresent()
 
         and:
-        !container.get(DefaultTask, "task").isPresent()
+        container.get(DefaultTask, "task").isPresent()
 
         and:
         container.findByName("task") == null
@@ -785,10 +785,10 @@ class DefaultTaskContainerTest extends Specification {
         ex.message == "Failing constructor"
 
         and:
-        !provider.isPresent()
+        provider.isPresent()
 
         and:
-        !creationProvider.isPresent()
+        creationProvider.isPresent()
 
         and:
         container.findByName("task") == null
