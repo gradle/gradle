@@ -17,13 +17,15 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.PropertyState;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
-public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T> {
+public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertyState<T>, ProviderInternal<T>, TaskDependencyContainer {
     private final Class<T> type;
     private Provider<? extends T> provider = Providers.notDefined();
 
@@ -112,6 +114,13 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
     @Override
     public boolean isPresent() {
         return provider.isPresent();
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (provider instanceof TaskDependencyContainer) {
+            context.add(provider);
+        }
     }
 
     @Override

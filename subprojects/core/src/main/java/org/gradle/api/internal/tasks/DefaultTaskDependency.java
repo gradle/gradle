@@ -22,7 +22,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskReference;
@@ -129,16 +128,9 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 context.add(resolver.resolveTask(dependency.toString()));
             } else if (dependency instanceof TaskDependencyContainer) {
                 ((TaskDependencyContainer) dependency).visitDependencies(context);
-            } else if (dependency instanceof ProviderInternal) {
-                ProviderInternal providerInternal = (ProviderInternal) dependency;
-                if (providerInternal.getType() == null || providerInternal.getType().equals(Provider.class) || Task.class.isAssignableFrom(providerInternal.getType())) {
-                    queue.addFirst(providerInternal.get());
-                    continue;
-                }
-                List<String> formats = new ArrayList<String>();
-                formats.add("A RegularFileProperty");
-                formats.add("A DirectoryProperty");
-                throw new UnsupportedNotationException(dependency, String.format("Cannot convert Provider %s to a task.", dependency), null, formats);
+            } else if (dependency instanceof Provider) {
+                Provider providerInternal = (Provider) dependency;
+                queue.addFirst(providerInternal.get());
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
