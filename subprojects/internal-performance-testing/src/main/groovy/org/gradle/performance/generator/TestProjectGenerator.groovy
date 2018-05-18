@@ -76,6 +76,10 @@ class TestProjectGenerator {
                 file projectDir, "src/test/java/${packageName}/Test${it}.java", fileContentGenerator.generateTestClassFile(subProjectNumber, it, dependencyTree)
             }
         }
+
+        if (isRoot) {
+            file projectDir, "buildSrc/src/main/java/Thing.java", "public class Thing {}"
+        }
     }
 
     void file(File dir, String name, String content) {
