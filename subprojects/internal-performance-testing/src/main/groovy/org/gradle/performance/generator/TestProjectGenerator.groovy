@@ -78,8 +78,15 @@ class TestProjectGenerator {
         }
 
         if (isRoot) {
-            file projectDir, "buildSrc/src/main/java/Thing.java", "public class Thing {}"
+            addDummyBuildSrcProject(projectDir)
         }
+    }
+
+    /**
+     * This is just to ensure we test the overhead of having a buildSrc project, e.g. snapshotting the Gradle API.
+     */
+    private addDummyBuildSrcProject(File projectDir) {
+        file projectDir, "buildSrc/src/main/java/Thing.java", "public class Thing {}"
     }
 
     void file(File dir, String name, String content) {

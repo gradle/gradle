@@ -21,8 +21,6 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -42,13 +40,9 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
     def gradleVersion = GradleVersion.current().version
     def cacheBuilder = Mock(CacheBuilder)
     def cache = Mock(PersistentCache)
-    def buildOperationExecutor = [
-        run: { RunnableBuildOperation buildOperation -> buildOperation.run(null) }
-    ] as BuildOperationExecutor
-
     def "can close cache"() {
         when:
-        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion, buildOperationExecutor)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         provider.close()
 
         then:
@@ -67,7 +61,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion, buildOperationExecutor)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         def resolvedFile = provider.get(identifier) { it.createNewFile() }
 
         then:
@@ -90,7 +84,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion, buildOperationExecutor)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         def resolvedFile = provider.get("api") { it.createNewFile() }
 
         then:

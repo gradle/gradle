@@ -48,8 +48,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
-import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -86,7 +84,6 @@ import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
@@ -126,11 +123,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     ListenerManager createListenerManager(ListenerManager parent) {
         return parent.createChild();
-    }
-
-    GeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor) {
-        String gradleVersion = GradleVersion.current().getVersion();
-        return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion, buildOperationExecutor);
     }
 
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {
