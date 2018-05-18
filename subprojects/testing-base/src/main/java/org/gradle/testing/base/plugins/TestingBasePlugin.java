@@ -51,7 +51,7 @@ public class TestingBasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        project.getTasks().withType(AbstractTestTask.class, new Action<AbstractTestTask>() {
+        project.getTasks().withType(AbstractTestTask.class).configureEach(new Action<AbstractTestTask>() {
             @Override
             public void execute(final AbstractTestTask test) {
                 test.getReports().getHtml().setDestination(getTestReportsDir(project, test).map(TO_FILE_TRANSFORMER));

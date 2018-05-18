@@ -21,9 +21,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,6 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
@@ -45,7 +48,6 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.internal.DefaultCppTestSuite;
@@ -155,7 +157,7 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                             if (mainComponent != null) {
                                 mainComponent.getBinaries().whenElementFinalized(new Action<CppBinary>() {
                                     @Override
-                                    public void execute(CppBinary testedBinary) {
+                                    public void execute(final CppBinary testedBinary) {
                                         if (testedBinary != mainComponent.getDevelopmentBinary().get()) {
                                             return;
                                         }
@@ -168,14 +170,24 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                                         executable.getImplementationDependencies().extendsFrom(((DefaultCppBinary) testedBinary).getImplementationDependencies());
 
                                         // Configure test binary to link against tested component compiled objects
-                                        FileCollection testableObjects;
+                                        final ConfigurableFileCollection testableObjects = project.files();
                                         if (mainComponent instanceof CppApplication) {
-                                            UnexportMainSymbol unexportMainSymbol = tasks.create("relocateMainForTest", UnexportMainSymbol.class);
-                                            unexportMainSymbol.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
-                                            unexportMainSymbol.getObjects().from(testedBinary.getObjects());
-                                            testableObjects = unexportMainSymbol.getRelocatedObjects();
+                                            TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.createLater("relocateMainForTest", UnexportMainSymbol.class, new Action<UnexportMainSymbol>() {
+                                                @Override
+                                                public void execute(UnexportMainSymbol unexportMainSymbol) {
+                                                    unexportMainSymbol.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                                                    unexportMainSymbol.getObjects().from(testedBinary.getObjects());
+                                                }
+                                            });
+
+                                            testableObjects.from(unexportMainSymbol.map(new Transformer<FileCollection, UnexportMainSymbol>() {
+                                                @Override
+                                                public FileCollection transform(UnexportMainSymbol unexportMainSymbol) {
+                                                    return unexportMainSymbol.getRelocatedObjects();
+                                                }
+                                            }));
                                         } else {
-                                            testableObjects = testedBinary.getObjects();
+                                            testableObjects.from(testedBinary.getObjects());
                                         }
                                         Dependency linkDependency = project.getDependencies().create(testableObjects);
                                         executable.getLinkConfiguration().getDependencies().add(linkDependency);
@@ -184,22 +196,25 @@ public class CppUnitTestPlugin implements Plugin<ProjectInternal> {
                             }
 
                             // TODO: Replace with native test task
-                            final RunTestExecutable testTask = tasks.create(executable.getNames().getTaskName("run"), RunTestExecutable.class);
-                            testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-                            testTask.setDescription("Executes C++ unit tests.");
-
-                            final InstallExecutable installTask = executable.getInstallTask().get();
-                            testTask.onlyIf(new Spec<Task>() {
+                            TaskProvider<RunTestExecutable> testTask = tasks.createLater(executable.getNames().getTaskName("run"), RunTestExecutable.class, new Action<RunTestExecutable>() {
                                 @Override
-                                public boolean isSatisfiedBy(Task element) {
-                                    return executable.getInstallDirectory().get().getAsFile().exists();
+                                public void execute(RunTestExecutable testTask) {
+                                    testTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                                    testTask.setDescription("Executes C++ unit tests.");
+                                    testTask.onlyIf(new Spec<Task>() {
+                                        @Override
+                                        public boolean isSatisfiedBy(Task element) {
+                                            return executable.getInstallDirectory().get().getAsFile().exists();
+                                        }
+                                    });
+                                    testTask.getInputs().dir(executable.getInstallDirectory());
+                                    testTask.setExecutable(executable.getInstallTask().get().getRunScriptFile().get().getAsFile());
+                                    testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
+                                    // TODO: Honor changes to build directory
+                                    testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());
                                 }
                             });
-                            testTask.getInputs().dir(executable.getInstallDirectory());
-                            testTask.setExecutable(installTask.getRunScriptFile().get().getAsFile());
-                            testTask.dependsOn(testComponent.getTestBinary().get().getInstallDirectory());
-                            // TODO: Honor changes to build directory
-                            testTask.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + executable.getNames().getDirName()).get().getAsFile());
+
                             executable.getRunTask().set(testTask);
                         }
                     });

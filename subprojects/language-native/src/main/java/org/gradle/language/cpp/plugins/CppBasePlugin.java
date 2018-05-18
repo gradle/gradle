@@ -21,12 +21,15 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
@@ -68,7 +71,7 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
-        final TaskContainerInternal tasks = project.getTasks();
+        final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
         // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
@@ -81,42 +84,49 @@ public class CppBasePlugin implements Plugin<ProjectInternal> {
                 final Names names = binary.getNames();
 
                 String language = "cpp";
-                final NativePlatform currentPlatform = binary.getTargetPlatform();
-                // TODO - make this lazy
-                final NativeToolChainInternal toolChain = binary.getToolChain();
 
-                Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                TaskProvider<CppCompile> compile = tasks.createLater(names.getCompileTaskName(language), CppCompile.class, new Action<CppCompile>() {
                     @Override
-                    public List<File> call() {
-                        PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
-                        return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
+                    public void execute(CppCompile compile) {
+                        final NativePlatform currentPlatform = binary.getTargetPlatform();
+                        final NativeToolChainInternal toolChain = binary.getToolChain();
+
+                        Callable<List<File>> systemIncludes = new Callable<List<File>>() {
+                            @Override
+                            public List<File> call() {
+                                PlatformToolProvider platformToolProvider = binary.getPlatformToolProvider();
+                                return platformToolProvider.getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
+                            }
+                        };
+
+                        compile.includes(binary.getCompileIncludePath());
+                        compile.getSystemIncludes().from(systemIncludes);
+                        compile.source(binary.getCppSource());
+                        if (binary.isDebuggable()) {
+                            compile.setDebuggable(true);
+                        }
+                        if (binary.isOptimized()) {
+                            compile.setOptimized(true);
+                        }
+                        if (binary instanceof CppSharedLibrary) {
+                            compile.setPositionIndependentCode(true);
+                        }
+                        compile.getTargetPlatform().set(currentPlatform);
+                        compile.getToolChain().set(toolChain);
+                        compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
                     }
-                };
+                });
 
-                CppCompile compile = tasks.create(names.getCompileTaskName(language), CppCompile.class);
-                compile.includes(binary.getCompileIncludePath());
-                compile.getSystemIncludes().from(systemIncludes);
-                compile.source(binary.getCppSource());
-                if (binary.isDebuggable()) {
-                    compile.setDebuggable(true);
-                }
-                if (binary.isOptimized()) {
-                    compile.setOptimized(true);
-                }
-                compile.getTargetPlatform().set(currentPlatform);
-                compile.getToolChain().set(toolChain);
-                compile.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
-
-                binary.getObjectsDir().set(compile.getObjectFileDir());
+                binary.getObjectsDir().set(compile.map(new Transformer<Directory, CppCompile>() {
+                    @Override
+                    public Directory transform(CppCompile compile) {
+                        return compile.getObjectFileDir().get();
+                    }
+                }));
                 binary.getCompileTask().set(compile);
             }
         });
-        project.getComponents().withType(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
-            @Override
-            public void execute(CppSharedLibrary library) {
-                library.getCompileTask().get().setPositionIndependentCode(true);
-            }
-        });
+
         project.getComponents().withType(ProductionCppComponent.class, new Action<ProductionCppComponent>() {
             @Override
             public void execute(final ProductionCppComponent component) {

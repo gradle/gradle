@@ -81,10 +81,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
             'swift-application',
             'xctest',
 
-            'cpp-unit-test',
-            'cpp-library',
-            'cpp-application',
-
             'visual-studio',
             'xcode',
             'idea',
