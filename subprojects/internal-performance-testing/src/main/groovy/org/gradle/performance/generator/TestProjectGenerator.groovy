@@ -25,7 +25,7 @@ class TestProjectGenerator {
 
     TestProjectGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
-        this.fileContentGenerator = new FileContentGenerator(config)
+        this.fileContentGenerator = FileContentGenerator.forConfig(config)
     }
 
     def generate(File outputBaseDir) {
