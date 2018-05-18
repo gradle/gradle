@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorPathFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.language.fixtures.HelperProcessorFixture
+import spock.lang.Issue
 
 class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
@@ -268,6 +269,34 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("compileJava")
         failure.assertHasErrorOutput("Annotation processor 'unknown.Processor' not found")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5448")
+    def "can add classes directory as source"() {
+        // This is sometimes done for IDE support.
+        // We should deprecate this behaviour, since output directories are added as inputs.
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            sourceSets.main.java.srcDir("build/classes/java/main")
+        """
+
+        expect:
+        succeeds "compileJava"
+
+        when:
+        file('src/main/java/TestApp.java').text = '''
+            @Helper
+            class TestApp { 
+                public static void main(String[] args) {
+                    System.out.println(new TestAppHelper().getValue() + "Changed!"); // generated class
+                }
+            }
+        '''
+        then:
+        succeeds "compileJava"
     }
 
 }
