@@ -556,6 +556,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 }
             });
         }
+
+        @Override
+        public String toString() {
+            return String.format("provider(task %s, %s)", name, type);
+        }
     }
 
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {

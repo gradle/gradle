@@ -57,6 +57,11 @@ public class Providers {
         public boolean isPresent() {
             return false;
         }
+
+        @Override
+        public String toString() {
+            return "undefined()";
+        }
     };
 
     public static final Provider<Boolean> TRUE = of(true);
@@ -117,7 +122,7 @@ public class Providers {
 
         @Override
         public String toString() {
-            return String.format("type: %s, %s", getType(), value);
+            return String.format("value(%s, %s)", getType(), value);
         }
     }
 
@@ -170,6 +175,14 @@ public class Providers {
         @Override
         public <U> ProviderInternal<U> map(Transformer<? extends U, ? super S> transformer) {
             return new MappedFixedValueProvider<U, S>(transformer, this);
+        }
+
+        @Override
+        public String toString() {
+            if (value == null) {
+                return String.format("transform(not calculated)");
+            }
+            return String.format("transform(%s, %s)", getType(), value);
         }
     }
 }

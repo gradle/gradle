@@ -449,6 +449,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(producer);
         }
+
+        @Override
+        public String toString() {
+            return String.format("buildable(%s, %s)", producer.getPath(), super.toString());
+        }
     }
 
     private static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {

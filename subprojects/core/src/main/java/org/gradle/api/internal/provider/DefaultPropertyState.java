@@ -116,6 +116,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
 
     @Override
     public String toString() {
-        return String.format("type: %s, %s", type, provider == Providers.notDefined() ? "undefined" : "defined");
+        // NOTE: This should not realize the Provider since the debugger will try to call this method and make debugging really frustrating.
+        return String.format("property(%s, %s)", type, provider == Providers.notDefined() ? "undefined" : "defined");
     }
 }

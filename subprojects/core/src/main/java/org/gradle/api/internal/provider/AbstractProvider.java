@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.util.GUtil;
 
 import static org.gradle.api.internal.provider.Providers.NULL_VALUE;
 
@@ -50,5 +51,11 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
     @Override
     public boolean isPresent() {
         return getOrNull() != null;
+    }
+
+    @Override
+    public String toString() {
+        // NOTE: This should not realize the Provider since the debugger will try to call this method and make debugging really frustrating.
+        return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
     }
 }
