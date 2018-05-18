@@ -51,10 +51,4 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
     public boolean isPresent() {
         return getOrNull() != null;
     }
-
-    @Override
-    public String toString() {
-        return String.format("value: %s", getOrNull());
-    }
-
 }

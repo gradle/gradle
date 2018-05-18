@@ -114,6 +114,11 @@ public class Providers {
         public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
             return new MappedFixedValueProvider<S, T>(transformer, this);
         }
+
+        @Override
+        public String toString() {
+            return String.format("type: %s, %s", getType(), value);
+        }
     }
 
     private static class MappedFixedValueProvider<S, T> implements ProviderInternal<S> {

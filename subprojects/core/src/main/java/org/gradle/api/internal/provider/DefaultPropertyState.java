@@ -116,6 +116,6 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
 
     @Override
     public String toString() {
-        return String.format("value: %s", getOrNull());
+        return String.format("type: %s, %s", type, provider == Providers.notDefined() ? "undefined" : "defined");
     }
 }
