@@ -36,7 +36,6 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
             return moduleVersionIdentifier.toString();
         }
     };
-    final static Long MAX_AGE = 24L * 60 * 60 * 1000;
 
     public ComponentMetadataSupplierRuleExecutor(CacheRepository cacheRepository,
                                                  InMemoryCacheDecoratorFactory cacheDecoratorFactory,
@@ -51,22 +50,23 @@ public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRule
             @Override
             public boolean isValid(CachePolicy policy, final CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata> entry) {
                 long age = timeProvider.getCurrentTime() - entry.getTimestamp();
-                if (age > MAX_AGE) {
-                    // TODO: CC. We need to implement implicit input discovery for services we provide.
-                    // This would remove the need for hardcoding a max lifespan for entries
-                    return false;
-                }
                 final ComponentMetadata result = entry.getResult();
-                boolean mustRefreshModule = policy.mustRefreshModule(new ResolvedModuleVersion() {
-                                                                         @Override
-                                                                         public ModuleVersionIdentifier getId() {
-                                                                             return result.getId();
-                                                                         }
-                                                                     },
-                    age,
-                    result.isChanging());
+                boolean mustRefreshModule = policy.mustRefreshModule(new SimpleResolvedModuleVersion(result), age, result.isChanging());
                 return !mustRefreshModule;
             }
         };
+    }
+
+    private static class SimpleResolvedModuleVersion implements ResolvedModuleVersion {
+        private final ComponentMetadata result;
+
+        public SimpleResolvedModuleVersion(ComponentMetadata result) {
+            this.result = result;
+        }
+
+        @Override
+        public ModuleVersionIdentifier getId() {
+            return result.getId();
+        }
     }
 }

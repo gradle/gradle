@@ -119,6 +119,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
         and: "re-execute the same build"
         resetExpectations()
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
     }
@@ -178,6 +179,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
                 }
             }
         }
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
     }
 
@@ -699,6 +701,7 @@ group:projectB:2.2;integration
         outputDoesNotContain('Parsing status file call count: 2')
 
         when: "resolving the same dependencies"
+        server.expectHead("/repo/status.txt", statusFile)
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
         then: "should get the result from cache"
@@ -1070,6 +1073,7 @@ group:projectB:2.2;release
         outputContains("Providing metadata for group:projectB:1.1")
 
         when:
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         run 'checkDeps'
 
         then: "processing of the rule is cached"
@@ -1132,6 +1136,7 @@ group:projectB:2.2;release
         // stop the daemon to make sure that when we run the build again
         // it's fetched from the persistent cache
         run '--stop'
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         run 'checkDeps'
 
         then: "processing of the rule is cached"
@@ -1218,6 +1223,7 @@ group:projectB:2.2;release
 
         when:
         resetExpectations()
+        supplierInteractions.refresh('group:projectB:2.2')
         repositoryInteractions {
             'group:projectA' {
                 '1.2' {

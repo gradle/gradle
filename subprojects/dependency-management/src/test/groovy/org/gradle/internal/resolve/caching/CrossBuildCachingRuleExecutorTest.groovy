@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.caching
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
@@ -31,14 +32,18 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.reflect.DefaultConfigurableRule
 import org.gradle.internal.reflect.InstantiatingAction
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.caching.CrossBuildCachingRuleExecutorTest.Details
 import org.gradle.internal.resolve.caching.CrossBuildCachingRuleExecutorTest.Id
 import org.gradle.internal.resolve.caching.CrossBuildCachingRuleExecutorTest.Result
 import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
+
+import javax.inject.Inject
 
 class CrossBuildCachingRuleExecutorTest extends Specification {
 
@@ -67,6 +72,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         }
     }
     CachePolicy cachePolicy = Mock()
+    ServiceRegistry serviceRegistry = Mock()
     InstantiatingAction<Details> rule
 
     Serializer<Result> resultSerializer = Mock()
@@ -75,6 +81,15 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
 
     @Subject
     CrossBuildCachingRuleExecutor<Id, Details, Result> executor
+
+    Map<String, Object> services = [:]
+
+    Instantiator implicitInputsCapturingInstantiator = new ImplicitInputsCapturingInstantiator(serviceRegistry, TestUtil.instantiatorFactory()) {
+        @Override
+        def <IN, OUT, SERVICE> ImplicitInputsProvidingService<IN, OUT, SERVICE> findInputCapturingServiceByName(String name) {
+            services[name]
+        }
+    }
 
     def setup() {
         def cacheBuilder
@@ -154,7 +169,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             def snapshot = new StringValueSnapshot(it.toString())
             snapshot
         }
-        1 * store.get(_) >> Mock(CrossBuildCachingRuleExecutor.CachedEntry) {
+        1 * store.get(_) >> Stub(CrossBuildCachingRuleExecutor.CachedEntry) {
             getResult() >> new Result(length: 123)
         }
         1 * validator.isValid(_, _) >> true
@@ -175,11 +190,44 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             snapshot = new StringValueSnapshot(it.toString())
             snapshot
         }
-        1 * store.get(_) >> Mock(CrossBuildCachingRuleExecutor.CachedEntry) {
+        1 * store.get(_) >> Stub(CrossBuildCachingRuleExecutor.CachedEntry) {
             getResult() >> new Result(length: 123)
         }
         1 * validator.isValid(_, _) >> false
         1 * store.put({ it == snapshot }, { it.timestamp == timeProvider.currentTime })
+        0 * _
+        result.length == 6
+    }
+
+    void "can expire entries based on implicit inputs"() {
+        withServiceInjectedRule()
+        def id = new Id('Alicia')
+
+        def implicitInput = Mock(ImplicitInputRecord)
+        def service = Mock(SomeService)
+        services['SomeService'] = service
+
+        when:
+        execute(id)
+
+        then:
+        1 * valueSnapshotter.snapshot(_) >> {
+            def snapshot = new StringValueSnapshot(it.toString())
+            snapshot
+        }
+        1 * store.get(_) >> Mock(CrossBuildCachingRuleExecutor.CachedEntry) {
+            getResult() >> new Result(length: 123)
+            getImplicits() >> ImmutableMultimap.builder()
+                .putAll("SomeService", implicitInput)
+                .build()
+        }
+        1 * implicitInput.getInput() >> '/foo/bar'
+        1 * implicitInput.getOutput() >> 'abcdef012'
+        1 * validator.isValid(cachePolicy, _) >> true
+        1 * service.isUpToDate('/foo/bar', 'abcdef012') >> false
+        1 * serviceRegistry.find(SomeService) >> service
+        1 * service.withImplicitInputRecorder(_) >> service
+        1 * store.put(_, { it.timestamp == timeProvider.currentTime })
         0 * _
         result.length == 6
     }
@@ -200,6 +248,12 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         rule = new InstantiatingAction<Details>(DefaultConfigurableRule.of(
             ToUpperCaseNotCached
         ), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
+    }
+
+    void withServiceInjectedRule() {
+        rule = new InstantiatingAction<Details>(DefaultConfigurableRule.of(
+            WithServiceInjected
+        ), implicitInputsCapturingInstantiator, shouldNotFail())
     }
 
     InstantiatingAction.ExceptionHandler<Details> shouldNotFail() {
@@ -242,5 +296,25 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         void execute(Details details) {
             details.name = details.name.toUpperCase()
         }
+    }
+
+    @CacheableRule
+    static class WithServiceInjected implements Action<Details> {
+
+        private final SomeService service
+
+        @Inject
+        WithServiceInjected(SomeService service){
+            this.service = service
+        }
+
+        @Override
+        void execute(Details details) {
+            details.name = details.name.toUpperCase()
+        }
+    }
+
+    interface SomeService<SERVICE> extends ImplicitInputsProvidingService<String, String, SERVICE> {
+        void serve()
     }
 }
