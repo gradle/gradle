@@ -226,8 +226,8 @@ class KotlinScriptEvaluation(
         classloadingCache.loadScriptClass(
             scriptBlock,
             baseScope.exportClassLoader,
-            ::pluginsBlockClassLoaderScope,
-            ::compilePluginsBlock)
+            ::compilePluginsBlock,
+            ::pluginsBlockClassLoaderScope)
 
     private
     fun compilePluginsBlock(scriptBlock: ScriptBlock<PluginsBlockMetadata>) =
@@ -240,8 +240,8 @@ class KotlinScriptEvaluation(
         classloadingCache.loadScriptClass(
             scriptBlockForBody(),
             targetScope.localClassLoader,
-            ::scriptBodyClassLoaderScope,
             ::compileScriptBody,
+            ::scriptBodyClassLoaderScope,
             accessorsClassPath)
 
     private
@@ -361,8 +361,8 @@ class BuildscriptBlockEvaluator(
         classloadingCache.loadScriptClass(
             scriptBlock,
             baseScope.exportClassLoader,
-            ::buildscriptBlockClassLoaderScope,
-            ::compileBuildscriptBlock)
+            ::compileBuildscriptBlock,
+            ::buildscriptBlockClassLoaderScope)
 
     private
     fun executeBuildscriptBlockFrom(buildscriptRange: IntRange, scriptTemplate: KClass<*>) =

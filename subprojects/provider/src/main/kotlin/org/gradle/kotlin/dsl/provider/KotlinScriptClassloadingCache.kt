@@ -58,8 +58,8 @@ class KotlinScriptClassloadingCache @Inject constructor(
     fun <T> loadScriptClass(
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
-        createClassLoaderScope: () -> ClassLoaderScope,
         compile: (ScriptBlock<T>) -> CompiledScript<T>,
+        createClassLoaderScope: () -> ClassLoaderScope,
         additionalClassPath: ClassPath = ClassPath.EMPTY
     ): LoadedScriptClass<T> {
 
