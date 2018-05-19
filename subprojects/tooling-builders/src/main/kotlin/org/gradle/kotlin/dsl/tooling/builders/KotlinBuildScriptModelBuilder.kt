@@ -41,7 +41,7 @@ import org.gradle.kotlin.dsl.findPlugin
 
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
-import org.gradle.kotlin.dsl.provider.KotlinScriptFactory
+import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
 import org.gradle.kotlin.dsl.provider.KotlinScriptOption
 
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
@@ -250,7 +250,7 @@ fun compilationClassPathForScriptPluginOf(
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
     kotlinScriptFactoryOf(project)
-        .kotlinScriptFor(
+        .evaluate(
             target = target,
             scriptSource = scriptSource,
             scriptHandler = scriptHandler,
@@ -258,7 +258,6 @@ fun compilationClassPathForScriptPluginOf(
             baseScope = baseScope,
             topLevelScript = false,
             options = EnumSet.of(KotlinScriptOption.IgnoreErrors, KotlinScriptOption.SkipBody))
-        .invoke()
 
     return scriptHandler to project.compilationClassPathOf(scriptScope)
 }
@@ -266,7 +265,7 @@ fun compilationClassPathForScriptPluginOf(
 
 private
 fun kotlinScriptFactoryOf(project: ProjectInternal) =
-    project.serviceOf<KotlinScriptFactory>()
+    project.serviceOf<KotlinScriptEvaluator>()
 
 
 private

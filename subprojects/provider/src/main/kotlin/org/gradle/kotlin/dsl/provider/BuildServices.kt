@@ -77,9 +77,9 @@ object BuildServices {
         pluginRequestsHandler: PluginRequestsHandler,
         embeddedKotlinProvider: EmbeddedKotlinProvider,
         classPathModeExceptionCollector: ClassPathModeExceptionCollector
-    ): KotlinScriptFactory =
+    ): KotlinScriptEvaluator =
 
-        StandardKotlinScriptFactory(
+        StandardKotlinScriptEvaluator(
             classPathProvider,
             kotlinCompiler,
             classloadingCache,

@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 
 class KotlinScriptPluginFactory @Inject internal constructor(
-    private val kotlinScriptFactory: KotlinScriptFactory
+    private val kotlinScriptEvaluator: KotlinScriptEvaluator
 ) : ScriptPluginFactory {
 
     override fun create(
@@ -43,8 +43,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
         KotlinScriptPlugin(scriptSource) { target ->
 
-            kotlinScriptFactory
-                .kotlinScriptFor(
+            kotlinScriptEvaluator
+                .evaluate(
                     target,
                     scriptSource,
                     scriptHandler,
@@ -52,7 +52,6 @@ class KotlinScriptPluginFactory @Inject internal constructor(
                     baseScope,
                     topLevelScript,
                     kotlinScriptOptions())
-                .invoke()
         }
 
     private

@@ -27,9 +27,9 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import java.util.*
 
 
-interface KotlinScriptFactory {
+interface KotlinScriptEvaluator {
 
-    fun kotlinScriptFor(
+    fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
@@ -37,7 +37,7 @@ interface KotlinScriptFactory {
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean,
         options: EnumSet<KotlinScriptOption>
-    ): KotlinScript
+    )
 }
 
 
@@ -47,20 +47,17 @@ enum class KotlinScriptOption {
 }
 
 
-typealias KotlinScript = () -> Unit
-
-
 internal
-class StandardKotlinScriptFactory(
+class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
-) : KotlinScriptFactory {
+) : KotlinScriptEvaluator {
 
-    override fun kotlinScriptFor(
+    override fun evaluate(
         target: Any,
         scriptSource: ScriptSource,
         scriptHandler: ScriptHandler,
@@ -68,36 +65,28 @@ class StandardKotlinScriptFactory(
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean,
         options: EnumSet<KotlinScriptOption>
-    ): KotlinScript {
+    ) {
 
-        val scriptTarget = kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        val kotlinScriptSource = KotlinScriptSource(scriptSource)
-        return compilerFor(scriptTarget, kotlinScriptSource, scriptHandler, targetScope, baseScope).run {
+        evaluationFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
             if (KotlinScriptOption.IgnoreErrors in options)
-                compileIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
+                executeIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
             else
-                compile()
+                execute()
         }
     }
 
     private
-    fun compilerFor(
-        scriptTarget: KotlinScriptTarget<Any>,
-        scriptSource: KotlinScriptSource,
-        scriptHandler: ScriptHandler,
-        targetScope: ClassLoaderScope,
-        baseScope: ClassLoaderScope
-    ) =
+    fun evaluationFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope, baseScope: ClassLoaderScope, topLevelScript: Boolean): KotlinScriptEvaluation =
 
-        KotlinScriptCompiler(
-            kotlinCompiler,
-            classloadingCache,
-            scriptSource,
-            scriptTarget,
+        KotlinScriptEvaluation(
+            kotlinScriptTargetFor(target, scriptSource, scriptHandler, baseScope, topLevelScript),
+            KotlinScriptSource(scriptSource),
             scriptHandler as ScriptHandlerInternal,
-            pluginRequestsHandler,
-            baseScope,
             targetScope,
+            baseScope,
+            classloadingCache,
+            kotlinCompiler,
+            pluginRequestsHandler,
             classPathProvider,
             embeddedKotlinProvider,
             classPathModeExceptionCollector)

@@ -66,15 +66,15 @@ class KotlinScriptSource(val source: ScriptSource) {
 
 
 internal
-class KotlinScriptCompiler(
-    private val kotlinCompiler: CachingKotlinCompiler,
-    private val classloadingCache: KotlinScriptClassloadingCache,
-    private val scriptSource: KotlinScriptSource,
+class KotlinScriptEvaluation(
     private val scriptTarget: KotlinScriptTarget<Any>,
+    private val scriptSource: KotlinScriptSource,
     private val scriptHandler: ScriptHandlerInternal,
-    private val pluginRequestsHandler: PluginRequestsHandler,
-    private val baseScope: ClassLoaderScope,
     private val targetScope: ClassLoaderScope,
+    private val baseScope: ClassLoaderScope,
+    private val classloadingCache: KotlinScriptClassloadingCache,
+    private val kotlinCompiler: CachingKotlinCompiler,
+    private val pluginRequestsHandler: PluginRequestsHandler,
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
@@ -108,28 +108,23 @@ class KotlinScriptCompiler(
         extractTopLevelSectionFrom(script, "plugins")
     }
 
-    fun compile() =
-        asKotlinScript {
-            withUnexpectedBlockHandling {
-                prepareForCompilation()
-                executeBuildscriptBlock()
-                executePluginsBlock()
-                executeScriptBody()
-            }
+    fun execute() {
+        withUnexpectedBlockHandling {
+            prepareForCompilation()
+            executeBuildscriptBlock()
+            executePluginsBlock()
+            executeScriptBody()
         }
+    }
 
-    fun compileIgnoringErrors(executeScriptBody: Boolean) =
-        asKotlinScript {
-            ignoringErrors { prepareForCompilation() }
-            ignoringErrors { executeBuildscriptBlock() }
-            ignoringErrors { executePluginsBlock() }
-            if (executeScriptBody) {
-                ignoringErrors { executeScriptBody() }
-            }
+    fun executeIgnoringErrors(executeScriptBody: Boolean) {
+        ignoringErrors { prepareForCompilation() }
+        ignoringErrors { executeBuildscriptBlock() }
+        ignoringErrors { executePluginsBlock() }
+        if (executeScriptBody) {
+            ignoringErrors { executeScriptBody() }
         }
-
-    private
-    fun asKotlinScript(script: KotlinScript) = script
+    }
 
     private
     fun prepareForCompilation() {
@@ -436,6 +431,11 @@ inline fun <T> KotlinScriptSource.withLocationAwareExceptionHandling(action: () 
 
 private
 inline fun <T> LoadedScriptClass<T>.eval(scriptSource: KotlinScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
+    eval(scriptSource.source, action)
+
+
+private
+inline fun <T> LoadedScriptClass<T>.eval(scriptSource: ScriptSource, action: LoadedScriptClass<T>.() -> Unit) =
     withContextClassLoader(scriptClass.classLoader) {
         withLocationAwareExceptionHandling(scriptSource, action)
     }
@@ -443,14 +443,14 @@ inline fun <T> LoadedScriptClass<T>.eval(scriptSource: KotlinScriptSource, actio
 
 private
 inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
-    scriptSource: KotlinScriptSource,
+    scriptSource: ScriptSource,
     action: LoadedScriptClass<T>.() -> Unit
 ) =
     try {
         action()
     } catch (e: Throwable) {
         val targetException = maybeUnwrapInvocationTargetException(e)
-        val locationAware = locationAwareExceptionFor(targetException, scriptSource.source)
+        val locationAware = locationAwareExceptionFor(targetException, scriptSource)
         throw locationAware ?: targetException
     }
 
