@@ -53,11 +53,8 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService createSomeService() { ....
  * }</code>. Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
- * type {@code List<T>} will receive all services of type T, if any. Note that factory methods with a single parameter and an return type equal to that parameter type are interpreted as decorator
- * methods.</li>
- *
- * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have return type equal to the parameter type. Before invoking the
- * method, the parameter is located in the parent service registry and then passed to the method.</li>
+ * type {@code List<T>} will receive all services of type T, if any. If a parameter has the same type as the return type of the factory method, then that parameter will be looked up in the parent registry.
+ * This allows decorating services.</li>
  *
  * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters are injected using
  * services from this registry or its parents.</li>
@@ -164,7 +161,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (parentServices == null) {
                 throw new ServiceLookupException(String.format("Cannot use decorator method %s.%s() when no parent registry is provided.", type.getSimpleName(), method.getName()));
             }
-            ownServices.add(new DecoratorMethodService(this, target, method));
+            ownServices.add(new FactoryMethodService(this, target, method));
         }
         for (ServiceMethod method : methods.factories) {
             ownServices.add(new FactoryMethodService(this, target, method));
@@ -735,6 +732,16 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 Type paramType = parameterTypes[i];
                 if (paramType.equals(ServiceRegistry.class)) {
                     paramServices[i] = owner.getThisAsService();
+                } else if (paramType.equals(serviceType)) {
+                    Service paramProvider = owner.find(paramType, owner.parentServices);
+                    if (paramProvider == null) {
+                        throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",
+                            format(serviceType),
+                            getFactory().getDeclaringClass().getSimpleName(),
+                            getFactory().getName(),
+                            format(paramType)));
+                    }
+                    paramServices[i] = paramProvider;
                 } else {
                     Service paramProvider;
                     try {
@@ -900,63 +907,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
         public String getDisplayName() {
             return "Service " + format(serviceType);
-        }
-    }
-
-    private static class DecoratorMethodService extends SingletonService {
-        private final ServiceMethod method;
-        private Object target;
-        private Service paramServices;
-
-        public DecoratorMethodService(DefaultServiceRegistry owner, Object target, ServiceMethod method) {
-            super(owner, method.getServiceType());
-            this.target = target;
-            this.method = method;
-        }
-
-        public String getDisplayName() {
-            return "Service " + format(method.getServiceType()) + " at " + method.getOwner().getSimpleName() + "." + method.getName() + "()";
-        }
-
-        @Override
-        protected void bind() {
-            Type paramType = method.getParameterTypes()[0];
-            paramServices = owner.find(paramType, owner.parentServices);
-            if (paramServices == null) {
-                throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",
-                    format(method.getServiceType()),
-                    method.getOwner().getSimpleName(),
-                    method.getName(),
-                    format(paramType)));
-            }
-        }
-
-        @Override
-        protected Object create() {
-            Object param = paramServices.get();
-            Object result;
-            try {
-                result = method.invoke(target, param);
-            } catch (Exception e) {
-                throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
-                    format(method.getServiceType()),
-                    method.getOwner().getSimpleName(),
-                    method.getName()),
-                    e);
-            }
-            try {
-                if (result == null) {
-                    throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                        format(method.getServiceType()),
-                        method.getOwner().getSimpleName(),
-                        method.getName()));
-                }
-                return result;
-            } finally {
-                // Can discard state required to create instance
-                paramServices = null;
-                target = null;
-            }
         }
     }
 
