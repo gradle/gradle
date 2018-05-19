@@ -43,6 +43,8 @@ The only mandatory configuration for the plugin is the specification of the main
 
 You can run the application by executing the `run` task (type: api:org.gradle.api.tasks.JavaExec[]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see api:org.gradle.api.tasks.JavaExec#setDebug(boolean)[]).
 
+Since Gradle 4.9, the command line arguments can be passed with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, you can use `gradle run --args 'foo --bar'` (see api:org.gradle.api.tasks.JavaExec#setArgs(java.lang.String)[]).
+
 If your application requires a specific set of JVM settings or system properties, you can configure the `applicationDefaultJvmArgs` property. These JVM arguments are applied to the `run` task and also considered in the generated start scripts of your distribution.
 
 ++++

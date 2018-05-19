@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.apache.tools.ant.types.Commandline;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
@@ -31,6 +33,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -277,6 +280,18 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     public List<String> getArgs() {
         return javaExecHandleBuilder.getArgs();
+    }
+
+    /**
+     * Command line arguments passed to the main class.
+     * @param args the command line arguments as a single string. Will be parsed to argument list.
+     * @return this
+     * @since 4.9
+     */
+    @Incubating
+    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    public JavaExec setArgs(String args) {
+        return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
 
     /**
