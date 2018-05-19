@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <webhooks enabled="true">
-    <webhook url="http://119.28.52.217:3002/" enabled="true" format="json">
+    <webhook url="http://119.28.52.217:3002/" enabled="true" format="tailoredjson">
       <states>
         <state type="buildInterrupted" enabled="false" />
         <state type="beforeBuildFinish" enabled="false" />
