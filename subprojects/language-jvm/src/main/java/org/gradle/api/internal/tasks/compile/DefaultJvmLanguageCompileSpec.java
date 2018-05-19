@@ -23,16 +23,14 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Serializable {
     private File workingDir;
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
-    private Set<File> sourceFiles;
+    private Iterable<File> sourceFiles;
     private String sourceCompatibility;
     private String targetCompatibility;
 
@@ -80,13 +78,13 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public Collection<File> getSourceFiles() {
+    public Iterable<File> getSourceFiles() {
         return sourceFiles;
     }
 
     @Override
     public void setSourceFiles(Iterable<File> sourceFiles) {
-        this.sourceFiles = ImmutableSet.copyOf(sourceFiles);
+        this.sourceFiles = sourceFiles;
     }
 
     @Override

@@ -31,8 +31,8 @@ import org.gradle.vcs.internal.VcsResolver;
  */
 public class BuildScanConfigServices {
 
-    BuildScanPluginCompatibility createBuildScanPluginCompatibility(GradleInternal gradle) {
-        return new BuildScanPluginCompatibility(gradle);
+    BuildScanPluginCompatibility createBuildScanPluginCompatibility() {
+        return new BuildScanPluginCompatibility();
     }
 
     BuildScanConfigManager createBuildScanConfigManager(
@@ -63,7 +63,7 @@ public class BuildScanConfigServices {
 
                     @Override
                     public boolean isAnyDeploymentsStarted() {
-                        return BuildScanPluginCompatibility.isAnyDeploymentsStarted(gradle);
+                        return false;
                     }
                 };
             }

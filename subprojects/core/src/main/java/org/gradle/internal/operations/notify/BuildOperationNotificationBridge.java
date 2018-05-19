@@ -21,7 +21,6 @@ import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -42,19 +41,53 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class BuildOperationNotificationBridge implements Stoppable {
+public class BuildOperationNotificationBridge {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildOperationNotificationBridge.class);
 
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
-
-    private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
-    private BuildOperationNotificationListener2 notificationListener;
-
-    private boolean stopped;
-
     private final ListenerManager listenerManager;
+
+    private class State {
+        private ReplayAndAttachListener replayAndAttachListener = new ReplayAndAttachListener();
+        private BuildOperationListener buildOperationListener = new Adapter(replayAndAttachListener);
+        private BuildOperationNotificationListener2 notificationListener;
+
+        private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
+            if (this.notificationListener != null) {
+                throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
+            }
+            this.notificationListener = notificationListener;
+        }
+
+        private void stop() {
+            buildOperationListenerManager.removeListener(state.buildOperationListener);
+            listenerManager.removeListener(buildListener);
+        }
+    }
+
+    private State state;
+
+    private final BuildOperationNotificationValve valve = new BuildOperationNotificationValve() {
+        @Override
+        public void start() {
+            if (state != null) {
+                throw new IllegalStateException("build operation notification valve already started");
+            }
+
+            state = new State();
+            buildOperationListenerManager.addListener(state.buildOperationListener);
+        }
+
+
+        @Override
+        public void stop() {
+            if (state != null) {
+                state.stop();
+                state = null;
+            }
+        }
+    };
 
     // Listen for the end of configuration of the root project of the root build,
     // and discard buffered notifications if no listeners have yet appeared.
@@ -68,8 +101,9 @@ public class BuildOperationNotificationBridge implements Stoppable {
                         project.afterEvaluate(new Action<Project>() {
                             @Override
                             public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                                if (notificationListener == null) {
-                                    stop();
+                                State s = state;
+                                if (s != null && s.notificationListener == null) {
+                                    valve.stop();
                                 }
                             }
                         });
@@ -82,16 +116,18 @@ public class BuildOperationNotificationBridge implements Stoppable {
     private final BuildOperationNotificationListenerRegistrar registrar = new BuildOperationNotificationListenerRegistrar() {
         @Override
         public void registerBuildScopeListener(BuildOperationNotificationListener notificationListener) {
+            State state = requireState();
             BuildOperationNotificationListener2 adapted = adapt(notificationListener);
-            assignSingleListener(adapted);
+            state.assignSingleListener(adapted);
 
             // Remove the old adapter and start again.
             // We explicitly do not want to receive finish notifications
             // for any operations currently in flight,
             // and we want to throw away the recorded notifications.
-            buildOperationListenerManager.removeListener(buildOperationListener);
-            buildOperationListener = new Adapter(adapted);
-            buildOperationListenerManager.addListener(buildOperationListener);
+            buildOperationListenerManager.removeListener(state.buildOperationListener);
+            state.buildOperationListener = new Adapter(adapted);
+            buildOperationListenerManager.addListener(state.buildOperationListener);
+            state.replayAndAttachListener = null;
         }
 
         @Override
@@ -101,15 +137,24 @@ public class BuildOperationNotificationBridge implements Stoppable {
 
         @Override
         public void register(BuildOperationNotificationListener2 listener) {
-            assignSingleListener(listener);
-            replayAndAttachListener.attach(listener);
+            State state = requireState();
+            state.assignSingleListener(listener);
+            state.replayAndAttachListener.attach(listener);
+        }
+
+        private State requireState() {
+            State s = state;
+            if (s == null) {
+                throw new IllegalStateException("state is null");
+            }
+
+            return s;
         }
     };
 
     public BuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager listenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.listenerManager = listenerManager;
-        buildOperationListenerManager.addListener(buildOperationListener);
         listenerManager.addListener(buildListener);
     }
 
@@ -117,21 +162,8 @@ public class BuildOperationNotificationBridge implements Stoppable {
         return registrar;
     }
 
-    private void assignSingleListener(BuildOperationNotificationListener2 notificationListener) {
-        if (this.notificationListener != null) {
-            throw new IllegalStateException("listener is already registered (implementation class " + this.notificationListener.getClass().getName() + ")");
-        }
-        this.notificationListener = notificationListener;
-    }
-
-    @Override
-    public void stop() {
-        if (!stopped) {
-            buildOperationListenerManager.removeListener(buildOperationListener);
-            buildOperationListener = null;
-            listenerManager.removeListener(buildListener);
-            stopped = true;
-        }
+    public BuildOperationNotificationValve getValve() {
+        return valve;
     }
 
     /*
@@ -326,6 +358,9 @@ public class BuildOperationNotificationBridge implements Stoppable {
             }
         }
 
+        public void reset() {
+
+        }
     }
 
     private static class Started implements BuildOperationStartedNotification {

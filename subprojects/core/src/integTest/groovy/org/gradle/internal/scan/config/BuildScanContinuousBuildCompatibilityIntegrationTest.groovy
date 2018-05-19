@@ -28,11 +28,10 @@ class BuildScanContinuousBuildCompatibilityIntegrationTest extends AbstractConti
 
     TestFile resourceFile
 
-    void doSetup(String version) {
+    void doSetup() {
         settingsFile << fixture.pluginManagement()
         withoutContinuousArg = true
         fixture.logConfig = true
-        fixture.runtimeVersion = version
         buildFile << """
             apply plugin: "java"
             apply plugin: "application"
@@ -67,9 +66,9 @@ class BuildScanContinuousBuildCompatibilityIntegrationTest extends AbstractConti
         """
     }
 
-    def "supplies unsupported message for versions earlier than 1.13.3"() {
+    def "deployment attribute is always false"() {
         when:
-        doSetup("1.13.2")
+        doSetup()
 
         then:
         succeeds("runC", "--scan")
@@ -77,8 +76,7 @@ class BuildScanContinuousBuildCompatibilityIntegrationTest extends AbstractConti
 
         and:
         fixture.assertUnsupportedMessage(firstBuildOutput, "null") // first time through
-        fixture.assertUnsupportedMessage(firstBuildOutput, BuildScanPluginCompatibility.UNSUPPORTED_CONTINUOUS_BUILD_MESSAGE)
-        firstBuildOutput.count("anyDeploymentsStartedAtBuildFinished: true") == 2
+        firstBuildOutput.count("anyDeploymentsStartedAtBuildFinished: false") == 2
 
         when:
         resourceFile.text += "."
@@ -86,25 +84,8 @@ class BuildScanContinuousBuildCompatibilityIntegrationTest extends AbstractConti
         then:
         succeeds()
         def secondBuildOutput = results.last().output
-        fixture.assertUnsupportedMessage(secondBuildOutput, BuildScanPluginCompatibility.UNSUPPORTED_CONTINUOUS_BUILD_MESSAGE)
-        secondBuildOutput.count("anyDeploymentsStartedAtBuildFinished: true") == 1
-    }
-
-    def "exposes attribute for 1.13.3 and later"() {
-        when:
-        doSetup("1.13.3")
-
-        then:
-        succeeds("runC", "--scan")
-        def firstBuildOutput = results.last().output
-
-        and:
-        firstBuildOutput.count("buildScan.unsupportedMessage: null") == 2
-        firstBuildOutput.count("anyDeploymentsStartedAtBuildFinished: true") == 2
-
-        def attributes = fixture.allAttributes(firstBuildOutput)
-        !attributes[0].anyDeploymentsStarted
-        attributes[1].anyDeploymentsStarted
+        fixture.assertUnsupportedMessage(secondBuildOutput, "null")
+        secondBuildOutput.count("anyDeploymentsStartedAtBuildFinished: false") == 1
     }
 
 }
