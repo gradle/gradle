@@ -945,7 +945,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 return true;
             }
         }
-        return false;
+        return !runningTasks.isEmpty();
     }
 
     private static class GraphEdge {

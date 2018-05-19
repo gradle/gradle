@@ -104,6 +104,20 @@ allprojects {
         run 'b:pingC'
     }
 
+    def "finalizer tasks are run in parallel"() {
+        buildFile << """
+            tasks.getByPath(':c:ping').dependsOn ":a:ping", ":b:ping"
+            tasks.getByPath(':d:ping').finalizedBy ":c:ping"
+        """
+
+        expect:
+        blockingServer.expect(':d:ping')
+        blockingServer.expectConcurrent(':a:ping', ':b:ping')
+        blockingServer.expect(':c:ping')
+
+        run 'd:ping'
+    }
+
     void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
         buildFile << """
             tasks.getByPath(':a:pingA').shouldRunAfter(':b:pingB')
