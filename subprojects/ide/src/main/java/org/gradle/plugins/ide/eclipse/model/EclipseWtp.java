@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -77,6 +78,12 @@ public class EclipseWtp {
         this.component.set(component);
     }
 
+    /**
+     * See {@link #setComponent(EclipseWtpComponent)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setComponent(Provider<EclipseWtpComponent> component) {
         this.component.set(component);
     }
@@ -114,6 +121,12 @@ public class EclipseWtp {
         this.facet.set(facet);
     }
 
+    /**
+     * See {@link #setFacet(EclipseWtpFacet)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setFacet(Provider<EclipseWtpFacet> facet) {
         this.facet.set(facet);
     }

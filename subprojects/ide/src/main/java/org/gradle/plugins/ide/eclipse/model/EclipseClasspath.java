@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -254,6 +255,12 @@ public class EclipseClasspath {
         this.file.set(file);
     }
 
+    /**
+     * See {@link #setFile(XmlFileContentMerger)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setFile(Provider<XmlFileContentMerger> file) {
         this.file.set(file);
     }

@@ -34,8 +34,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -61,10 +59,10 @@ import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.ValueCachingProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
@@ -564,43 +562,5 @@ public class IdeaPlugin extends IdePlugin {
             dependencies.add(reference.getBuildDependencies());
         }
         return dependencies;
-    }
-
-    /**
-     * Some comment
-     * @param <T>
-     */
-    public static class ValueCachingProvider<T> extends AbstractProvider<T> {
-        private final Provider<T> delegate;
-        private T cachedValue;
-
-        ValueCachingProvider(Provider<T> delegate) {
-            this.delegate = delegate;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Nullable
-        @Override
-        public Class<T> getType() {
-            return ((ProviderInternal<T>)delegate).getType();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Nullable
-        @Override
-        public T getOrNull() {
-            if (cachedValue == null) {
-                cachedValue = delegate.getOrNull();
-            }
-            return cachedValue;
-        }
-
-        public static <T> Provider<T> of(Provider<T> provider) {
-            return new ValueCachingProvider<T>(provider);
-        }
     }
 }

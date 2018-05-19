@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -62,6 +63,12 @@ public class IdeaWorkspace {
         this.iws.set(iws);
     }
 
+    /**
+     * See {@link #setIws(XmlFileContentMerger)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setIws(Provider<XmlFileContentMerger> iws) {
         this.iws.set(iws);
     }

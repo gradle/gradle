@@ -35,6 +35,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.Ear;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ear.EarPluginConvention;
+import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtp;
@@ -98,7 +99,7 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                project.afterEvaluate(new Action<Project>() {
+                AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                     @Override
                     public void execute(Project project) {
                         Collection<Configuration> plusConfigurations = model.getClasspath().getPlusConfigurations();

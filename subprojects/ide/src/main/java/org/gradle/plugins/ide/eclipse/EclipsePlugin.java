@@ -56,9 +56,9 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
-import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.ValueCachingProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
 
@@ -240,7 +240,7 @@ public class EclipsePlugin extends IdePlugin {
                     }
                 });
 
-                model.getClasspath().setFile(IdeaPlugin.ValueCachingProvider.of(task.map(new Transformer<XmlFileContentMerger, GenerateEclipseClasspath>() {
+                model.getClasspath().setFile(ValueCachingProvider.of(task.map(new Transformer<XmlFileContentMerger, GenerateEclipseClasspath>() {
                     @Override
                     public XmlFileContentMerger transform(GenerateEclipseClasspath task) {
                         return new XmlFileContentMerger(task.getXmlTransformer());

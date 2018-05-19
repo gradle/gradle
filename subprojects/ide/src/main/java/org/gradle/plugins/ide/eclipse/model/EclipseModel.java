@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -86,6 +87,12 @@ public class EclipseModel {
         this.project.set(project);
     }
 
+    /**
+     * See {@link #setProject(EclipseProject)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setProject(Provider<EclipseProject> project) {
         this.project.set(project);
     }
@@ -116,6 +123,12 @@ public class EclipseModel {
         this.jdt.set(jdt);
     }
 
+    /**
+     * See {@link #setJdt(EclipseJdt)}.
+     *
+     * @since 4.9
+     */
+    @Incubating
     public void setJdt(Provider<EclipseJdt> jdt) {
         this.jdt.set(jdt);
     }
