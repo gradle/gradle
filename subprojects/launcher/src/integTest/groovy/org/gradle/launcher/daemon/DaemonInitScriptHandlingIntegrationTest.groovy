@@ -61,6 +61,7 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
         def distro2Result = runWithGradleHome(distro2)
 
         then:
+        distro2Result.assertNotOutput "from distro 1"
         distro2Result.assertOutputContains "from distro 2"
         distro2Result.assertOutputContains "buildSrc: runtime gradle home: ${distro1.absolutePath}"
         distro2Result.assertOutputContains "main build: runtime gradle home: ${distro1.absolutePath}"
