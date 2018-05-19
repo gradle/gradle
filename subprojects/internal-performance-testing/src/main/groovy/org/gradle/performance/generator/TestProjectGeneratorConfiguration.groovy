@@ -16,12 +16,12 @@
 
 package org.gradle.performance.generator
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 class TestProjectGeneratorConfiguration {
     String projectName
 
-    BuildInitDsl dsl
+    GradleDsl dsl
 
     String[] plugins
     String[] repositories

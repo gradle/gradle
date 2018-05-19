@@ -17,10 +17,10 @@
 package org.gradle.performance.generator
 
 import groovy.transform.CompileStatic
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.performance.generator.CompositeConfiguration.composite
 
@@ -42,14 +42,14 @@ enum JavaTestProject {
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(String projectName, BuildInitDsl dsl, CompositeConfiguration compositeConfiguration = null, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
+    JavaTestProject(String projectName, GradleDsl dsl, CompositeConfiguration compositeConfiguration = null, int sourceFiles, int subProjects, String compilerMemory, boolean useTestNG, Map<String, String> filesToUpdate) {
         this.config = new TestProjectGeneratorConfiguration()
         config.projectName = projectName
 
         config.dsl = dsl
 
         config.plugins = ['java', 'eclipse', 'idea']
-        config.repositories = [mavenCentralRepositoryDefinition()]
+        config.repositories = [mavenCentralRepositoryDefinition(dsl)]
         config.externalApiDependencies = ['commons-lang:commons-lang:2.5', 'commons-httpclient:commons-httpclient:3.0',
                                           'commons-codec:commons-codec:1.2', 'org.slf4j:jcl-over-slf4j:1.7.10']
         config.externalImplementationDependencies = ['com.googlecode:reflectasm:1.01']

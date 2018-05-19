@@ -16,8 +16,6 @@
 
 package org.gradle.performance.generator
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
-
 class TestProjectGenerator {
 
     TestProjectGeneratorConfiguration config
@@ -62,8 +60,8 @@ class TestProjectGenerator {
     def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber) {
         def isRoot = subProjectNumber == null
 
-        file projectDir, "build.gradle${config.dsl == KOTLIN ? '.kts' : ''}", fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
-        file projectDir, "settings.gradle${config.dsl == KOTLIN ? '.kts' : ''}", fileContentGenerator.generateSettingsGradle(isRoot)
+        file projectDir, config.dsl.fileNameFor('build'), fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
+        file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
         file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree)
         file projectDir, "performance.scenarios", fileContentGenerator.generatePerformanceScenarios(isRoot)
