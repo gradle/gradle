@@ -33,6 +33,9 @@ dependencies {
     testCompile testLibraries.xmlunit
     testCompile 'nl.jqno.equalsverifier:equalsverifier:2.1.6'
     testCompile project(':dependencyManagement')
+
+    testFixturesCompile project(':internalTesting')
+    testFixturesCompile project(':internalIntegTesting')
 }
 
 gradlebuildJava {

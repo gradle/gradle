@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.xcode.fixtures
+package org.gradle.plugins.ide.eclipse
 
+import org.gradle.plugins.ide.fixtures.AbstractMultiBuildIdeIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class XcodeWorkspacePackage extends IdeWorkspaceFixture {
-    final TestFile dir
-    final WorkspaceFile contentFile
 
-    XcodeWorkspacePackage(TestFile xcodeWorkspacePackage) {
-        xcodeWorkspacePackage.assertIsDir()
-        dir = xcodeWorkspacePackage
-        contentFile = new WorkspaceFile(xcodeWorkspacePackage.file("contents.xcworkspacedata"))
-    }
+class EclipseMultiBuildIntegrationTest extends AbstractMultiBuildIdeIntegrationTest {
+    String pluginId = "eclipse"
+    String workspaceTask = "eclipse"
 
     @Override
-    void assertExists() {
-        dir.assertIsDir()
+    IdeWorkspaceFixture workspace(TestFile workspaceDir) {
+        return new EclipseWorkspaceFixture(workspaceDir)
     }
 }
