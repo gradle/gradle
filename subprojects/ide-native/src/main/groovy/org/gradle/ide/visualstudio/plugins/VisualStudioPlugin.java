@@ -20,8 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioRootExtension;
@@ -53,6 +56,7 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 
 /**
@@ -198,26 +202,30 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     private void configureCleanTask() {
-        final Delete cleanTask = (Delete) getCleanTask();
+        final TaskProvider<Delete> cleanTask = (TaskProvider<Delete>) getCleanTask();
 
-        project.getTasks().withType(GenerateSolutionFileTask.class).all(new Action<GenerateSolutionFileTask>() {
+        cleanTask.configure(new Action<Delete>() {
             @Override
-            public void execute(GenerateSolutionFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
-            }
-        });
+            public void execute(Delete cleanTask) {
+                cleanTask.delete(new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        ConfigurableFileCollection result = project.files();
+                        for (GenerateSolutionFileTask task : project.getTasks().withType(GenerateSolutionFileTask.class)) {
+                            result.from(task.getOutputs().getFiles());
+                        }
 
-        project.getTasks().withType(GenerateFiltersFileTask.class).all(new Action<GenerateFiltersFileTask>() {
-            @Override
-            public void execute(GenerateFiltersFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
-            }
-        });
+                        for (GenerateFiltersFileTask task : project.getTasks().withType(GenerateFiltersFileTask.class)) {
+                            result.from(task.getOutputs().getFiles());
+                        }
 
-        project.getTasks().withType(GenerateProjectFileTask.class).all(new Action<GenerateProjectFileTask>() {
-            @Override
-            public void execute(GenerateProjectFileTask task) {
-                cleanTask.delete(task.getOutputs().getFiles());
+                        for (GenerateProjectFileTask task : project.getTasks().withType(GenerateProjectFileTask.class)) {
+                            result.from(task.getOutputs().getFiles());
+                        }
+
+                        return result;
+                    }
+                });
             }
         });
     }
