@@ -19,6 +19,7 @@ package org.gradle.internal.featurelifecycle;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,8 +81,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler {
 
     public void reportSuppressedDeprecations() {
         if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
-            LOGGER.warn("\n{} {}.\n{} {}",
+            LOGGER.warn("\n{} {}.\nUse '--{} {}' to show the individual deprecation warnings.\n{} {}",
                 WARNING_SUMMARY, GradleVersion.current().getNextMajor().getVersion(),
+                LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),
                 WARNING_LOGGING_DOCS_MESSAGE, DOCUMENTATION_REGISTRY.getDocumentationFor("command_line_interface", "sec:command_line_warnings"));
         }
     }
