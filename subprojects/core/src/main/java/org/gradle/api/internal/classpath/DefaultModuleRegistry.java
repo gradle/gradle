@@ -69,7 +69,12 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
 
     @Override
     public List<File> getFileStoreRoots() {
-        return ImmutableList.<File>builder().addAll(gradleInstallation.getLibDirs()).addAll(getClasspath()).build();
+        ImmutableList.Builder<File> builder = ImmutableList.builder();
+        if (gradleInstallation != null) {
+            builder.addAll(gradleInstallation.getLibDirs());
+        }
+        builder.addAll(getClasspath());
+        return builder.build();
     }
 
     @Override
