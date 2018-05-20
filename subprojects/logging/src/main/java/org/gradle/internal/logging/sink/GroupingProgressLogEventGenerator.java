@@ -126,7 +126,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
             OperationGroup group = (OperationGroup) state;
             group.setStatus(completeEvent.getStatus(), completeEvent.isFailed());
             group.flushOutput();
-            if (buildOpId == lastRenderedBuildOpId) {
+            if (group.hasForeground()) {
                 lastRenderedBuildOpId = null;
             }
         }
