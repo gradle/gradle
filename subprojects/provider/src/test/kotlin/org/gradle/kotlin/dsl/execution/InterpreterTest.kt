@@ -33,7 +33,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 
@@ -53,8 +52,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val text = "println(\"stage 2\")"
         val sourceHash = scriptSourceHash(text)
-        val stage1TemplateId = ExecutableProgram::class.qualifiedName!!
-        val stage2TemplateId = KotlinSettingsScript::class.qualifiedName!!
+        val stage1TemplateId = TemplateIds.stage1SettingsScript
+        val stage2TemplateId = TemplateIds.stage2SettingsScript
 
         val resource = mock<TextResource> {
             on { getText() } doReturn text

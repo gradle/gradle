@@ -30,6 +30,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
@@ -43,6 +44,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintStream
 
 
@@ -76,29 +78,34 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
 
-        withExecutableProgramFor(Program.Script(source)) {
+        withExecutableProgramFor(Program.Script(source), sourceHash) {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
             program.execute(programHost, scriptHost)
 
             inOrder(programHost) {
                 verify(programHost).closeTargetScopeOf(scriptHost)
-                verify(programHost).evaluateDynamicScriptOf(
+                verify(programHost).evaluateSecondStageOf(
                     program = program,
                     scriptHost = scriptHost,
-                    scriptTemplateId = KotlinSettingsScript::class.qualifiedName!!,
+                    scriptTemplateId = TemplateIds.stage2SettingsScript,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
                     sourceHash = sourceHash)
             }
 
-            program.loadScriptFor(programHost, scriptHost)
+            program.loadSecondStageFor(
+                programHost,
+                scriptHost,
+                TemplateIds.stage2SettingsScript,
+                sourceHash)
 
             val scriptFile = outputDir().resolve("settings.gradle.kts")
-            verify(programHost).compileScriptOf(
+            verify(programHost).compileSecondStageScript(
+                scriptFile.canonicalPath,
+                source.path,
                 scriptHost,
-                scriptPath = scriptFile.canonicalPath,
-                originalPath = source.path,
-                sourceHash = sourceHash)
+                TemplateIds.stage2SettingsScript,
+                sourceHash)
 
             assertThat(
                 scriptFile.readText(),
@@ -137,6 +144,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
             print("stage 2")
         """.replaceIndent())
 
+        val sourceHash = scriptSourceHash(source.text)
         val fragment = source.fragment(0..10, 12..47)
         val stage1 = Program.Buildscript(fragment)
         val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
@@ -147,7 +155,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(scriptHandler = scriptHandler)
 
-        withExecutableProgramFor(Program.Staged(stage1, stage2)) {
+        withExecutableProgramFor(Program.Staged(stage1, stage2), sourceHash) {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
 
@@ -160,11 +168,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
             inOrder(programHost, scriptHandler) {
                 verify(scriptHandler).repositories
                 verify(programHost).closeTargetScopeOf(scriptHost)
-                verify(programHost).evaluateDynamicScriptOf(
+                verify(programHost).evaluateSecondStageOf(
                     program = program,
                     scriptHost = scriptHost,
-                    scriptTemplateId = KotlinSettingsScript::class.qualifiedName!!,
-                    sourceHash = scriptSourceHash(stage2.source.text))
+                    scriptTemplateId = TemplateIds.stage2SettingsScript,
+                    sourceHash = sourceHash)
             }
         }
     }
@@ -177,14 +185,28 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     ) = KotlinScriptHost(target, scriptSource, scriptHandler, mock(), mock(), mock())
 
     private
-    fun <T> withExecutableProgramFor(program: Program, action: ExecutableProgram.() -> T): T =
+    fun <T> withExecutableProgramFor(
+        program: Program,
+        sourceHash: HashCode = HashCode.fromInt(0),
+        action: ExecutableProgram.() -> T
+    ): T =
+
         outputDir().let { outputDir ->
-            ResidualProgramCompiler(outputDir, mock(), testCompilationClassPath).compile(program)
+            compileProgramTo(outputDir, program, sourceHash)
             classLoaderFor(outputDir).use { classLoader ->
                 val executableProgram = classLoader.loadClass("Program").newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
+
+    private
+    fun compileProgramTo(outputDir: File, program: Program, sourceHash: HashCode) {
+        ResidualProgramCompiler(
+            outputDir,
+            testCompilationClassPath,
+            sourceHash
+        ).compile(program)
+    }
 
     private
     fun outputDir() = root.resolve("classes").apply { mkdir() }

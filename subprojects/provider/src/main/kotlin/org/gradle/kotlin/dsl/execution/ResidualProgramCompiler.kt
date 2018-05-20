@@ -33,6 +33,8 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Opcodes.T_BYTE
 import org.jetbrains.org.objectweb.asm.Type
 
+import org.slf4j.Logger
+
 import java.io.File
 
 import kotlin.reflect.KClass
@@ -46,9 +48,10 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
-    private val logger: org.slf4j.Logger,
     private val classPath: ClassPath = ClassPath.EMPTY,
-    private val implicitImports: List<String> = emptyList()
+    private val originalSourceHash: HashCode,
+    private val implicitImports: List<String> = emptyList(),
+    private val logger: Logger = org.gradle.kotlin.dsl.support.loggerFor<Interpreter>()
 ) {
 
     /**
@@ -73,7 +76,7 @@ class ResidualProgramCompiler(
     private
     fun emitEmptyProgram() {
         // TODO: consider caching the empty program bytes
-        program(ExecutableProgram.Empty::class.internalName)
+        program<ExecutableProgram.Empty>()
     }
 
     private
@@ -99,15 +102,14 @@ class ResidualProgramCompiler(
     fun emitStagedProgram(stage1PrecompiledScript: String?, stage2: Program.Script) {
         val source = stage2.source
         val scriptFile = scriptFileFor(source)
-        val sourceHash = scriptSourceHash(source.text)
         val originalPath = source.path
-        emitStagedProgram(stage1PrecompiledScript, sourceHash, scriptFile.canonicalPath, originalPath)
+        emitStagedProgram(stage1PrecompiledScript, scriptFile.canonicalPath, originalPath)
     }
 
     private
     fun emitPrecompiledStage1Program(precompiledScriptClass: String) {
 
-        program(ExecutableProgram::class.internalName) {
+        program<ExecutableProgram> {
 
             overrideExecute {
 
@@ -120,7 +122,7 @@ class ResidualProgramCompiler(
     private
     fun emitPrecompiledStage2Program(precompiledScriptClass: String) {
 
-        program(ExecutableProgram::class.internalName) {
+        program<ExecutableProgram> {
 
             overrideExecute {
 
@@ -132,12 +134,11 @@ class ResidualProgramCompiler(
     private
     fun emitStagedProgram(
         stage1PrecompiledScript: String?,
-        sourceHash: HashCode,
         sourceFilePath: String,
         originalPath: String
     ) {
 
-        program(ExecutableProgram.StagedProgram::class.internalName) {
+        program<ExecutableProgram.StagedProgram> {
 
             overrideExecute {
 
@@ -147,28 +148,33 @@ class ResidualProgramCompiler(
 
                 emitCloseTargetScopeOf()
 
-                // programHost.evaluateScriptOf(...)
+                // programHost.evaluateDynamicScriptOf(...)
                 ALOAD(1) // programHost
                 ALOAD(0) // program/this
                 ALOAD(2) // scriptHost
-                LDC(KotlinSettingsScript::class.qualifiedName!!)
+                LDC(TemplateIds.stage2SettingsScript)
                 // Move HashCode value to a static field so it's cached across invocations
-                loadHashCode(sourceHash)
+                loadHashCode(originalSourceHash)
                 invokeHost(
-                    "evaluateDynamicScriptOf",
+                    ExecutableProgram.Host::evaluateSecondStageOf.name,
                     "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
             }
 
-            publicMethod("loadScriptFor", "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)Ljava/lang/Class;", "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;)Ljava/lang/Class<*>;") {
+            publicMethod(
+                "loadSecondStageFor",
+                "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;",
+                "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class<*>;"
+            ) {
 
                 ALOAD(1) // programHost
-                ALOAD(2) // scriptHost
                 LDC(sourceFilePath)
                 LDC(originalPath)
-                loadHashCode(sourceHash)
+                ALOAD(2) // scriptHost
+                ALOAD(3)
+                ALOAD(4)
                 invokeHost(
-                    "compileScriptOf",
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;")
+                    ExecutableProgram.Host::compileSecondStageScript.name,
+                    "(Ljava/lang/String;Ljava/lang/String;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;")
                 ARETURN()
             }
         }
@@ -215,7 +221,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.invokeHost(name: String, desc: String) {
-        INVOKEINTERFACE(org.gradle.kotlin.dsl.execution.ExecutableProgram.Host::class.internalName, name, desc)
+        INVOKEINTERFACE(ExecutableProgram.Host::class.internalName, name, desc)
     }
 
     private
@@ -227,16 +233,17 @@ class ResidualProgramCompiler(
         "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V"
 
     private
-    fun program(superName: String, interfaces: Array<String>? = null, classBody: ClassWriter.() -> Unit = {}) {
+    inline fun <reified T : ExecutableProgram> program(noinline classBody: ClassWriter.() -> Unit = {}) {
+        program(T::class.internalName, classBody)
+    }
+
+    private
+    fun program(superName: String, classBody: ClassWriter.() -> Unit = {}) {
         writeFile(
             "Program.class",
-            publicClass("Program", superName, interfaces) {
+            publicClass("Program", superName, null) {
 
-                publicMethod("<init>", "()V") {
-                    ALOAD(0)
-                    INVOKESPECIAL(superName, "<init>", "()V")
-                    RETURN()
-                }
+                publicDefaultConstructor(superName)
 
                 classBody()
             })
@@ -314,6 +321,15 @@ class ResidualProgramCompiler(
 }
 
 
+internal
+object TemplateIds {
+
+    val stage1SettingsScript = "Settings/stage1"
+
+    val stage2SettingsScript = "Settings/stage2"
+}
+
+
 private
 fun publicClass(name: String, superName: String = "java/lang/Object", interfaces: Array<String>? = null, classBody: ClassWriter.() -> Unit = {}) =
     ClassWriter(ClassWriter.COMPUTE_MAXS).run {
@@ -322,6 +338,16 @@ fun publicClass(name: String, superName: String = "java/lang/Object", interfaces
         visitEnd()
         toByteArray()
     }
+
+
+private
+fun ClassWriter.publicDefaultConstructor(superName: String) {
+    publicMethod("<init>", "()V") {
+        ALOAD(0)
+        INVOKESPECIAL(superName, "<init>", "()V")
+        RETURN()
+    }
+}
 
 
 private

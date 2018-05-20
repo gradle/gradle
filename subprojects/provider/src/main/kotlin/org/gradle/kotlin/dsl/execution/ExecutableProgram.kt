@@ -31,17 +31,18 @@ abstract class ExecutableProgram {
             scriptHost: KotlinScriptHost<*>
         )
 
-        fun evaluateDynamicScriptOf(
+        fun evaluateSecondStageOf(
             program: StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode
         )
 
-        fun compileScriptOf(
-            scriptHost: KotlinScriptHost<*>,
+        fun compileSecondStageScript(
             scriptPath: String,
             originalPath: String,
+            scriptHost: KotlinScriptHost<*>,
+            scriptTemplateId: String,
             sourceHash: HashCode
         ): Class<*>
     }
@@ -55,6 +56,11 @@ abstract class ExecutableProgram {
 
     abstract class StagedProgram : ExecutableProgram() {
 
-        abstract fun loadScriptFor(programHost: Host, scriptHost: KotlinScriptHost<*>): Class<*>
+        abstract fun loadSecondStageFor(
+            programHost: Host,
+            scriptHost: KotlinScriptHost<*>,
+            scriptTemplateId: String,
+            sourceHash: HashCode
+        ): Class<*>
     }
 }

@@ -24,11 +24,9 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.kotlinScriptHostFor
-import org.gradle.kotlin.dsl.support.loggerFor
 
 import java.io.File
 
@@ -97,10 +95,6 @@ class Interpreter(val host: Host) {
     }
 
     private
-    val logger =
-        loggerFor<Interpreter>()
-
-    private
     val programHost =
         object : ExecutableProgram.Host {
 
@@ -108,7 +102,7 @@ class Interpreter(val host: Host) {
                 host.closeTargetScopeOf(scriptHost)
             }
 
-            override fun evaluateDynamicScriptOf(
+            override fun evaluateSecondStageOf(
                 program: ExecutableProgram.StagedProgram,
                 scriptHost: KotlinScriptHost<*>,
                 scriptTemplateId: String,
@@ -126,7 +120,7 @@ class Interpreter(val host: Host) {
                 }
 
                 val specializedProgram =
-                    program.loadScriptFor(this, scriptHost)
+                    program.loadSecondStageFor(this, scriptHost, scriptTemplateId, sourceHash)
 
                 host.cache(
                     scriptTemplateId,
@@ -137,16 +131,17 @@ class Interpreter(val host: Host) {
                 eval(specializedProgram, scriptHost)
             }
 
-            override fun compileScriptOf(
-                scriptHost: KotlinScriptHost<*>,
+            override fun compileSecondStageScript(
                 scriptPath: String,
                 originalPath: String,
+                scriptHost: KotlinScriptHost<*>,
+                scriptTemplateId: String,
                 sourceHash: HashCode
             ): Class<*> {
 
                 val cacheDir =
-                    host.cachedDirFor(KotlinSettingsScript::class.qualifiedName!!, sourceHash, scriptHost.targetScope.localClassLoader) {
-                        residualProgramCompilerFor(it, scriptHost.targetScope)
+                    host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) {
+                        residualProgramCompilerFor(sourceHash, it, scriptHost.targetScope)
                             .emitStage2ProgramFor(File(scriptPath), originalPath)
                     }
 
@@ -174,7 +169,7 @@ class Interpreter(val host: Host) {
             scriptSourceHash(sourceText)
 
         val templateId =
-            ExecutableProgram::class.qualifiedName!!
+            TemplateIds.stage1SettingsScript
 
         val parentClassLoader =
             baseScope.exportClassLoader
@@ -232,7 +227,7 @@ class Interpreter(val host: Host) {
                 val residualProgram =
                     PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText))
 
-                residualProgramCompilerFor(outputDir, targetScope.parent)
+                residualProgramCompilerFor(sourceHash, outputDir, targetScope.parent)
                     .compile(residualProgram)
             }
 
@@ -257,11 +252,16 @@ class Interpreter(val host: Host) {
             className = "Program")
 
     private
-    fun residualProgramCompilerFor(outputDir: File, classLoaderScopeForClassPath: ClassLoaderScope): ResidualProgramCompiler =
+    fun residualProgramCompilerFor(
+        sourceHash: HashCode,
+        outputDir: File,
+        classLoaderScopeForClassPath: ClassLoaderScope
+    ): ResidualProgramCompiler =
+
         ResidualProgramCompiler(
             outputDir,
-            logger,
             host.compilationClassPathOf(classLoaderScopeForClassPath),
+            sourceHash,
             host.implicitImports)
 
     private
