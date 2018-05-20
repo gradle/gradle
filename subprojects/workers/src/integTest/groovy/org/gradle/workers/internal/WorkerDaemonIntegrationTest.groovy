@@ -19,7 +19,6 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
-
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -58,7 +57,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         gradle.standardOutput.contains("Execution working dir: " + testDirectory.getAbsolutePath())
 
         and:
-        GradleContextualExecuter.daemon || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     def "sets the working directory to the specified directory during worker execution"() {
@@ -90,7 +89,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         gradle.standardOutput.contains("Execution working dir: " + testDirectory.file("workerDir").getAbsolutePath())
 
         and:
-        GradleContextualExecuter.daemon || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
+        GradleContextualExecuter.isLongLivingProcess() || gradle.standardOutput.contains("Shutdown working dir: " + executer.gradleUserHomeDir.file("workers").getAbsolutePath())
     }
 
     @Requires(TestPrecondition.JDK_ORACLE)

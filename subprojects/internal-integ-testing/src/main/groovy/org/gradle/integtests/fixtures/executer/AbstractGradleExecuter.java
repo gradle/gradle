@@ -820,7 +820,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         FOREGROUND
     }
 
-    private CliDaemonArgument resolveCliDaemonArgument() {
+    protected CliDaemonArgument resolveCliDaemonArgument() {
         for (int i = args.size() - 1; i >= 0; i--) {
             final String arg = args.get(i);
             if (arg.equals("--daemon")) {
