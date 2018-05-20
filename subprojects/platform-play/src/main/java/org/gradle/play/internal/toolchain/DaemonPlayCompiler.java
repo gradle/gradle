@@ -25,7 +25,6 @@ import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
-import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
             .javaForkOptions(javaForkOptions)
             .classpath(compilerClasspath)
             .sharedPackages(classLoaderPackages)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(getKeepAliveMode())
             .build();
 
         return new InvocationContext(invocationWorkingDir, daemonForkOptions);

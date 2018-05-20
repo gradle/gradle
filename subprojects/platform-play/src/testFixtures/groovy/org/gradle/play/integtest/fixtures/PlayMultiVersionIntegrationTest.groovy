@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -24,6 +25,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 @TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.ALL : PlayCoverage.PLAY23_OR_EARLIER })
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
+
+    def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
+    }
 
     static boolean isPlay22(def version) {
         return version.toString().startsWith('2.2')

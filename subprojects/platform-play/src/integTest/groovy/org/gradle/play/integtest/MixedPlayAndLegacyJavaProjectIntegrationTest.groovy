@@ -16,9 +16,13 @@
 
 package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import spock.lang.Issue
 
 class MixedPlayAndLegacyJavaProjectIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
+    }
 
     @Issue("GRADLE-3356")
     def "can apply both java and play plugins"() {

@@ -16,6 +16,7 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
@@ -33,6 +34,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new BasicPlayApp()
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         playApp.writeSources(testDirectory)
     }
 

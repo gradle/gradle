@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
@@ -41,6 +42,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        CompilerReuseFixture.enableCompilerReuse(executer)
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {

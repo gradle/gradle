@@ -16,12 +16,17 @@
 package org.gradle.play.integtest
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.PlayPlatformResolver
 
 class PlayPlatformComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private String defaultPlayPlatformName = String.format("play-%s", DefaultPlayPlatform.DEFAULT_PLAY_VERSION);
     private def defaultPlayPlatform = new PlayPlatformResolver().resolve(DefaultPlatformRequirement.create(defaultPlayPlatformName));
+
+    def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
+    }
 
     def "shows details of Play application"() {
         given:

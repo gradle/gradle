@@ -18,6 +18,7 @@ package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
@@ -35,6 +36,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         playApp.writeSources(testDirectory)
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
@@ -24,6 +25,7 @@ import org.gradle.util.TextUtil
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         settingsFile << """ rootProject.name = 'js-play-app' """
     }
 

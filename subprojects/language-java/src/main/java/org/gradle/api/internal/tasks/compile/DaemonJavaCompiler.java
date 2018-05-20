@@ -17,13 +17,12 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.process.JavaForkOptions;
-import org.gradle.workers.internal.DaemonForkOptionsBuilder;
-import org.gradle.workers.internal.KeepAliveMode;
-import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Collections;
@@ -49,7 +48,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         DaemonForkOptions daemonForkOptions = new DaemonForkOptionsBuilder(fileResolver)
             .javaForkOptions(javaForkOptions)
             .sharedPackages(SHARED_PACKAGES)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(getKeepAliveMode())
             .build();
 
         return new InvocationContext(invocationWorkingDir, daemonForkOptions);

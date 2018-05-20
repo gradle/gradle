@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +26,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
     abstract RunningPlayApp getRunningApp()
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         writeSources()
         buildTimeout = 90
     }

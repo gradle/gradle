@@ -35,14 +35,13 @@ package org.gradle.api.internal.tasks.scala;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
-import org.gradle.process.JavaForkOptions;
-import org.gradle.workers.internal.DaemonForkOptionsBuilder;
-import org.gradle.workers.internal.KeepAliveMode;
-import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.DaemonForkOptionsBuilder;
+import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -73,7 +72,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
             .javaForkOptions(javaForkOptions)
             .classpath(zincClasspath)
             .sharedPackages(SHARED_PACKAGES)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(getKeepAliveMode())
             .build();
 
         return new InvocationContext(invocationWorkingDir, daemonForkOptions);

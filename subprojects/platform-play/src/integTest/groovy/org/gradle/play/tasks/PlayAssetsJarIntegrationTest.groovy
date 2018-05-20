@@ -17,11 +17,13 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class PlayAssetsJarIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         new BasicPlayApp().writeSources(file("."))
         settingsFile << """ rootProject.name = 'play-app' """
 

@@ -19,6 +19,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.VersionNumber
@@ -51,6 +52,7 @@ abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrat
     }
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         settingsFile << """ rootProject.name = 'routes-play-app' """
         buildFile <<"""
 plugins {
