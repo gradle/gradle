@@ -33,30 +33,15 @@ sealed class Program {
         override fun toString() = "Empty"
     }
 
-    data class Buildscript(val fragment: ProgramSourceFragment) : Stage1() {
+    data class Buildscript(val fragment: ProgramSourceFragment) : Stage1()
 
-        override val fragments: List<ProgramSourceFragment>
-            get() = listOf(fragment)
-    }
+    data class Plugins(val fragment: ProgramSourceFragment) : Stage1()
 
-    data class Plugins(val fragment: ProgramSourceFragment) : Stage1() {
-
-        override val fragments: List<ProgramSourceFragment>
-            get() = listOf(fragment)
-    }
-
-    data class Stage1Sequence(val buildscript: Buildscript, val plugins: Plugins) : Stage1() {
-
-        override val fragments: List<ProgramSourceFragment>
-            get() = listOf(buildscript.fragment, plugins.fragment)
-    }
+    data class Stage1Sequence(val buildscript: Buildscript, val plugins: Plugins) : Stage1()
 
     data class Script(val source: ProgramSource) : Program()
 
     data class Staged(val stage1: Stage1, val stage2: Script) : Program()
 
-    abstract class Stage1 : Program() {
-
-        abstract val fragments: List<ProgramSourceFragment>
-    }
+    abstract class Stage1 : Program()
 }
