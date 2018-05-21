@@ -947,7 +947,7 @@ h3.releaseinfo {
 }
 
 .site-footer__subscribe-newsletter {
-    flex: 0 0 auto;
+    flex: 0 0 350px;
 }
 
 .site-footer__subscribe-newsletter p {
