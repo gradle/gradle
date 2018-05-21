@@ -155,6 +155,7 @@ class UserGuideSamplesRunner extends Runner {
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
                 .withEnvironmentVars(run.envs)
+                .withTestConsoleAttached()
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions
