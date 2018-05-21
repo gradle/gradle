@@ -106,4 +106,56 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         then:
         result.assertRawOutputContains(configuringProject.output)
     }
+
+    def "tasks that complete without output do not break up other task output"() {
+        server.start()
+
+        given:
+        settingsFile << "include ':a', ':b'"
+        buildFile << """
+            project(':a') {
+                task longRunning {
+                    doLast {
+                        println "longRunning has started..."
+                        ${callFromBuild('longRunningStart')}
+                        ${callFromBuild('longRunningFinish')}
+                        println "longRunning has finished..."
+                    }
+                }
+            }
+            project(':b') {
+                task task1 {
+                    doLast {
+                        ${callFromBuild('task1')}
+                    }
+                }
+                task task2 {
+                    dependsOn task1
+                    doLast {
+                        ${callFromBuild('task2')}
+                    }
+                }
+            }
+        """
+
+        when:
+        def handle = server.expectConcurrentAndBlock('longRunningStart', 'task1')
+        def gradle = executer.withArgument('--parallel').withTasks('longRunning', 'task2').start()
+
+        then:
+        handle.waitForAllPendingCalls()
+        assertOutputContains(gradle, "longRunning has started...")
+
+        when:
+        server.expectConcurrent('longRunningFinish', 'task2')
+        handle.releaseAll()
+        result = gradle.waitForFinish()
+
+        then:
+        result.groupedOutput.task(':a:longRunning').outputs.size() == 1
+        result.groupedOutput.task(':a:longRunning').output == "longRunning has started...\nlongRunning has finished..."
+
+        cleanup:
+        gradle?.waitForFinish()
+    }
 }
