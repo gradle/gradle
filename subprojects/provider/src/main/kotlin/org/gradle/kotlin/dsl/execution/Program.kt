@@ -25,23 +25,51 @@ package org.gradle.kotlin.dsl.execution
  * - a buildscript block followed by a plugins block
  * - a script with neither a buildscript nor a plugins block
  * - a script preceded by a buildscript or plugins block or both
+ *
+ * The evaluation of a residual Kotlin DSL program happens, in the general case, in two stages:
+ * - in stage 1, the [Buildscript] and [Plugins] programs are executed and their execution
+ *   is assumed to affect the classpath available to the stage 2 program;
+ * - in stage 2, the remaining [Script] must be evaluated against the dynamically resolved classpath and,
+ *   for that reason, [stage 2 programs][Script] can only be specialized after stage 1 executes at least once;
  */
 sealed class Program {
 
+    /**
+     * A program with no observable side-effects.
+     */
     object Empty : Program() {
 
         override fun toString() = "Empty"
     }
 
+    /**
+     * A `buildscript` / `initscript` block.
+     */
     data class Buildscript(val fragment: ProgramSourceFragment) : Stage1()
 
+    /**
+     * A `plugins` block.
+     */
     data class Plugins(val fragment: ProgramSourceFragment) : Stage1()
 
+    /**
+     * A `buildscript` block followed by a `plugins` block.
+     */
     data class Stage1Sequence(val buildscript: Buildscript, val plugins: Plugins) : Stage1()
 
+    /**
+     * A script that must be dynamically evaluated after stage 1 completes and the script classpath
+     * becomes available.
+     */
     data class Script(val source: ProgramSource) : Program()
 
+    /**
+     * A [Stage1] program followed by a stage 2 [Script] program.
+     */
     data class Staged(val stage1: Stage1, val stage2: Script) : Program()
 
+    /**
+     * Any stage 1 program, one of [Buildscript], [Plugins] or [a sequence of the two][Stage1Sequence].
+     */
     abstract class Stage1 : Program()
 }
