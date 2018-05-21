@@ -19,7 +19,6 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -50,11 +49,10 @@ class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
     ProjectInternal root
     def workerLeaseService = Mock(WorkerLeaseService)
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
-    def gradle = Mock(GradleInternal)
 
     def setup() {
         root = createRootProject(temporaryFolder.testDirectory)
-        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, Mock(GradleInternal))
+        executionPlan = new DefaultTaskExecutionPlan(workerLeaseService, root.gradle)
         _ * workerLeaseService.getProjectLock(_, _) >> Mock(ResourceLock) {
             _ * isLocked() >> false
             _ * tryLock() >> true
