@@ -35,7 +35,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -90,6 +89,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
     private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
+    private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
     private boolean continueOnFailure;
@@ -108,6 +108,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
+        dependencyResolver = new TaskDependencyResolver(nodeFactory, gradle);
     }
 
     @Override
@@ -136,7 +137,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
 
         Set<TaskInfo> visiting = new HashSet<TaskInfo>();
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             TaskInfo node = queue.get(0);
@@ -162,27 +162,22 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 // Make sure it has been configured
                 ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task, task.getTaskDependencies());
-                for (Task dependsOnTask : dependsOnTasks) {
-                    TaskInfo targetNode = nodeFactory.getOrCreateNode(dependsOnTask);
+                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies())) {
                     node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : context.getDependencies(task, task.getFinalizedBy())) {
-                    TaskInfo targetNode = nodeFactory.getOrCreateNode(finalizerTask);
+                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy())) {
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task mustRunAfter : context.getDependencies(task, task.getMustRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.getOrCreateNode(mustRunAfter);
+                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter())) {
                     node.addMustSuccessor(targetNode);
                 }
-                for (Task shouldRunAfter : context.getDependencies(task, task.getShouldRunAfter())) {
-                    TaskInfo targetNode = nodeFactory.getOrCreateNode(shouldRunAfter);
+                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter())) {
                     node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
@@ -516,6 +511,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     public void clear() {
         nodeFactory.clear();
+        dependencyResolver.clear();
         entryTasks.clear();
         executionPlan.clear();
         executionQueue.clear();
