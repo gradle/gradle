@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.provider.Provider
-import spock.lang.Unroll
 
 class DefaultProviderTest extends ProviderSpec<String> {
     @Override
@@ -40,23 +39,16 @@ class DefaultProviderTest extends ProviderSpec<String> {
         return "s2"
     }
 
-    @Unroll
-    def "can compare string representation with other instance returning value #value"() {
+    def "toString() does not realize value"() {
         given:
-        boolean immutableProviderValue1 = true
-        def provider1 = createProvider(immutableProviderValue1)
-        def provider2 = createProvider(value)
+        def providerWithBadValue = new DefaultProvider<String>({
+            assert false : "never called"
+        })
 
         expect:
-        (provider1.toString() == provider2.toString()) == stringRepresentation
-        provider1.toString() == "value: $immutableProviderValue1"
-        provider2.toString() == "value: $value"
+        providerWithBadValue.toString() == "provider(?)"
+        Providers.notDefined().toString() == "undefined"
 
-        where:
-        value | stringRepresentation
-        true  | true
-        false | false
-        null  | false
     }
 
     def "throws exception if null value is retrieved for non-null get method"() {

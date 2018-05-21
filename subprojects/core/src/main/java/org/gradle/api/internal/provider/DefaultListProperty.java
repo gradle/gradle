@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T>> implements ListProperty<T> {
     public DefaultListProperty(Class<T> elementType) {
-        super(List.class);
+        super(List.class, elementType);
     }
 
     @Override

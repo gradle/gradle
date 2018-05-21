@@ -342,6 +342,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
             File dir = resolver.resolve(valueProvider);
             return new FixedDirectory(dir, resolver.newResolver(dir));
         }
+
+        @Override
+        public String toString() {
+            return String.format("provider(%s, %s)", getType(), valueProvider);
+        }
     }
 
     private static class DefaultDirectoryVar extends DefaultPropertyState<Directory> implements DirectoryVar, TaskDependencyContainer {
@@ -448,6 +453,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(producer);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("buildable(%s, %s)", producer.getPath(), super.toString());
         }
     }
 
