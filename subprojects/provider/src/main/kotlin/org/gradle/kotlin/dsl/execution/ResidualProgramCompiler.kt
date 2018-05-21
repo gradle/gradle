@@ -27,8 +27,9 @@ import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.Label
+import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Opcodes.T_BYTE
 import org.jetbrains.org.objectweb.asm.Type
@@ -205,10 +206,24 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass: String) {
-        // ${precompiledScriptClass}(scriptHost)
-        NEW(precompiledScriptClass)
-        ALOAD(2) // scriptHost
-        INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
+
+        TRY_CATCH(Throwable::class.internalName, tryBlock = {
+
+            // ${precompiledScriptClass}(scriptHost)
+            NEW(precompiledScriptClass)
+            ALOAD(2) // scriptHost
+            INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
+        }, catchBlock = {
+
+            // Exception is on the stack
+            LDC(Type.getType("L$precompiledScriptClass;"))
+            ALOAD(2) // scriptHost
+            ALOAD(1) // programHost
+            INVOKESTATIC(
+                ExecutableProgram.Runtime::class.internalName,
+                ExecutableProgram.Runtime::onScriptException.name,
+                "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;)V")
+        })
     }
 
     private
@@ -332,8 +347,8 @@ object TemplateIds {
 
 private
 fun publicClass(name: String, superName: String = "java/lang/Object", interfaces: Array<String>? = null, classBody: ClassWriter.() -> Unit = {}) =
-    ClassWriter(ClassWriter.COMPUTE_MAXS).run {
-        visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, name, null, superName, interfaces)
+    ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).run {
+        visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name, null, superName, interfaces)
         classBody()
         visitEnd()
         toByteArray()
@@ -449,6 +464,36 @@ fun MethodVisitor.RETURN() {
 private
 fun MethodVisitor.ALOAD(`var`: Int) {
     visitVarInsn(Opcodes.ALOAD, `var`)
+}
+
+
+private
+fun MethodVisitor.GOTO(label: Label) {
+    visitJumpInsn(Opcodes.GOTO, label)
+}
+
+
+private
+fun MethodVisitor.TRY_CATCH(
+    exceptionType: String,
+    tryBlock: MethodVisitor.() -> Unit,
+    catchBlock: MethodVisitor.() -> Unit
+) {
+
+    val tryBlockStart = Label()
+    val tryBlockEnd = Label()
+    val catchBlockStart = Label()
+    val catchBlockEnd = Label()
+    visitTryCatchBlock(tryBlockStart, tryBlockEnd, catchBlockStart, exceptionType)
+
+    visitLabel(tryBlockStart)
+    tryBlock()
+    GOTO(catchBlockEnd)
+    visitLabel(tryBlockEnd)
+
+    visitLabel(catchBlockStart)
+    catchBlock()
+    visitLabel(catchBlockEnd)
 }
 
 

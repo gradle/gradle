@@ -45,6 +45,12 @@ abstract class ExecutableProgram {
             scriptTemplateId: String,
             sourceHash: HashCode
         ): Class<*>
+
+        fun handleScriptException(
+            exception: Throwable,
+            scriptClass: Class<*>,
+            scriptHost: KotlinScriptHost<*>
+        )
     }
 
     open class Empty : ExecutableProgram() {
@@ -62,5 +68,23 @@ abstract class ExecutableProgram {
             scriptTemplateId: String,
             sourceHash: HashCode
         ): Class<*>
+    }
+
+    object Runtime {
+
+        /**
+         * Invoked by an specialized program to signal an exception happened during script execution.
+         *
+         * This function is here mainly to keep the emitted bytecode (and corresponding [ResidualProgramCompiler] code) simple.
+         */
+        @JvmStatic
+        fun onScriptException(
+            exception: Throwable,
+            scriptClass: Class<*>,
+            scriptHost: KotlinScriptHost<*>,
+            programHost: Host
+        ) {
+            programHost.handleScriptException(exception, scriptClass, scriptHost)
+        }
     }
 }

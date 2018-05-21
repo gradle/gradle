@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -46,6 +48,8 @@ import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
+
+import java.lang.IllegalStateException
 
 
 class ResidualProgramCompilerTest : TestWithTempFiles() {
@@ -117,7 +121,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     fun `Stage 1 Settings program closes target scope after Stage 1 execution`() {
 
         val source = ProgramSource("settings.gradle.kts", "buildscript { repositories }")
-        val fragment = source.fragment(0..10, 12..27)
+        val fragment = source.fragment(0..10, 12..source.text.lastIndex)
         val scriptHandler = mock<ScriptHandlerInternal> {
             on { repositories } doReturn mock<RepositoryHandler>()
         }
@@ -173,6 +177,31 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptHost = scriptHost,
                     scriptTemplateId = TemplateIds.stage2SettingsScript,
                     sourceHash = sourceHash)
+            }
+        }
+    }
+
+    @Test
+    fun `Stage 1 program reports script exception back to host`() {
+
+        val source = ProgramSource(
+            "settings.gradle.kts",
+            "buildscript { throw IllegalStateException(\"BOOM!\") }")
+
+        val fragment = source.fragment(0..10, 12..source.text.lastIndex)
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(mock())
+
+        withExecutableProgramFor(Program.Buildscript(fragment)) {
+
+            val program = this
+            program.execute(programHost, scriptHost)
+
+            inOrder(programHost) {
+                verify(programHost).handleScriptException(
+                    exception = any<IllegalStateException>(),
+                    scriptClass = same(program.javaClass.classLoader.loadClass("Settings_gradle")),
+                    scriptHost = same(scriptHost))
             }
         }
     }

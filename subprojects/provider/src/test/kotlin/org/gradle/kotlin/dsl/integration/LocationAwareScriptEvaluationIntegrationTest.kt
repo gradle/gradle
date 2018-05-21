@@ -4,7 +4,6 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -81,7 +80,6 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `location of exception thrown from settings script is reported`() {
 

@@ -24,9 +24,10 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
+
 import org.gradle.kotlin.dsl.execution.UnexpectedBlock
 import org.gradle.kotlin.dsl.execution.extractTopLevelSectionFrom
-
+import org.gradle.kotlin.dsl.execution.locationAwareExceptionHandlingFor
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -39,8 +40,6 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.gradle.util.TextUtil.normaliseLineSeparators
-
-import java.lang.reflect.InvocationTargetException
 
 import kotlin.reflect.KClass
 
@@ -453,48 +452,6 @@ inline fun <T> LoadedScriptClass<T>.withLocationAwareExceptionHandling(
     } catch (e: Throwable) {
         locationAwareExceptionHandlingFor(e, scriptClass, scriptSource)
     }
-
-
-private
-fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource) {
-    val targetException = maybeUnwrapInvocationTargetException(e)
-    val locationAware = locationAwareExceptionFor(targetException, scriptClass, scriptSource)
-    throw locationAware ?: targetException
-}
-
-
-private
-fun locationAwareExceptionFor(original: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource): LocationAwareException? {
-    val scriptClassName = scriptClass.name
-    val scriptClassNameInnerPrefix = "$scriptClassName$"
-
-    fun scriptStackTraceElement(element: StackTraceElement) =
-        element.className?.run {
-            equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
-        } == true
-
-    tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
-
-        if (exception is LocationAwareException) {
-            return exception
-        }
-
-        exception.stackTrace.find(::scriptStackTraceElement)?.run {
-            return LocationAwareException(original, scriptSource, lineNumber.takeIf { it >= 0 })
-        }
-
-        val cause = exception.cause ?: return null
-        return inferLocationFrom(cause)
-    }
-
-    return inferLocationFrom(original)
-}
-
-
-private
-fun maybeUnwrapInvocationTargetException(e: Throwable) =
-    if (e is InvocationTargetException) e.targetException
-    else e
 
 
 private

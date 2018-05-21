@@ -23,12 +23,15 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.kotlinScriptHostFor
 
 import java.io.File
+
+import java.lang.reflect.InvocationTargetException
 
 
 /**
@@ -93,65 +96,6 @@ class Interpreter(val host: Host) {
 
         val implicitImports: List<String>
     }
-
-    private
-    val programHost =
-        object : ExecutableProgram.Host {
-
-            override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
-                host.closeTargetScopeOf(scriptHost)
-            }
-
-            override fun evaluateSecondStageOf(
-                program: ExecutableProgram.StagedProgram,
-                scriptHost: KotlinScriptHost<*>,
-                scriptTemplateId: String,
-                sourceHash: HashCode
-            ) {
-                val parentClassLoader =
-                    scriptHost.targetScope.localClassLoader
-
-                val cachedProgram =
-                    host.cachedClassFor(scriptTemplateId, sourceHash, parentClassLoader)
-
-                if (cachedProgram != null) {
-                    eval(cachedProgram, scriptHost)
-                    return
-                }
-
-                val specializedProgram =
-                    program.loadSecondStageFor(this, scriptHost, scriptTemplateId, sourceHash)
-
-                host.cache(
-                    scriptTemplateId,
-                    sourceHash,
-                    parentClassLoader,
-                    specializedProgram)
-
-                eval(specializedProgram, scriptHost)
-            }
-
-            override fun compileSecondStageScript(
-                scriptPath: String,
-                originalPath: String,
-                scriptHost: KotlinScriptHost<*>,
-                scriptTemplateId: String,
-                sourceHash: HashCode
-            ): Class<*> {
-
-                val cacheDir =
-                    host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) {
-                        residualProgramCompilerFor(sourceHash, it, scriptHost.targetScope)
-                            .emitStage2ProgramFor(File(scriptPath), originalPath)
-                    }
-
-                return loadClassInChildScopeOf(
-                    scriptHost.targetScope,
-                    originalPath,
-                    cacheDir,
-                    "stage2")
-            }
-        }
 
     fun eval(
         target: Any,
@@ -269,9 +213,125 @@ class Interpreter(val host: Host) {
         (specializedProgram.newInstance() as ExecutableProgram)
             .execute(programHost, scriptHost)
     }
+
+    private
+    val programHost = ProgramHost()
+
+    private
+    inner class ProgramHost : ExecutableProgram.Host {
+
+        override fun handleScriptException(
+            exception: Throwable,
+            scriptClass: Class<*>,
+            scriptHost: KotlinScriptHost<*>
+        ) {
+            locationAwareExceptionHandlingFor(exception, scriptClass, scriptHost.scriptSource)
+        }
+
+        override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
+            host.closeTargetScopeOf(scriptHost)
+        }
+
+        override fun evaluateSecondStageOf(
+            program: ExecutableProgram.StagedProgram,
+            scriptHost: KotlinScriptHost<*>,
+            scriptTemplateId: String,
+            sourceHash: HashCode
+        ) {
+            val parentClassLoader =
+                scriptHost.targetScope.localClassLoader
+
+            val cachedProgram =
+                host.cachedClassFor(scriptTemplateId, sourceHash, parentClassLoader)
+
+            if (cachedProgram != null) {
+                eval(cachedProgram, scriptHost)
+                return
+            }
+
+            val specializedProgram =
+                program.loadSecondStageFor(this, scriptHost, scriptTemplateId, sourceHash)
+
+            host.cache(
+                scriptTemplateId,
+                sourceHash,
+                parentClassLoader,
+                specializedProgram)
+
+            eval(specializedProgram, scriptHost)
+        }
+
+        override fun compileSecondStageScript(
+            scriptPath: String,
+            originalScriptPath: String,
+            scriptHost: KotlinScriptHost<*>,
+            scriptTemplateId: String,
+            sourceHash: HashCode
+        ): Class<*> {
+
+            val cacheDir =
+                host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) {
+                    residualProgramCompilerFor(sourceHash, it, scriptHost.targetScope)
+                        .emitStage2ProgramFor(File(scriptPath), originalScriptPath)
+                }
+
+            return loadClassInChildScopeOf(
+                scriptHost.targetScope,
+                originalScriptPath,
+                cacheDir,
+                "stage2")
+        }
+    }
 }
 
 
 internal
 fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
     "kotlin-dsl:$scriptPath:$stage"
+
+
+internal
+fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource) {
+    val targetException = maybeUnwrapInvocationTargetException(e)
+    val locationAware = locationAwareExceptionFor(targetException, scriptClass, scriptSource)
+    throw locationAware ?: targetException
+}
+
+
+private
+fun locationAwareExceptionFor(
+    original: Throwable,
+    scriptClass: Class<*>,
+    scriptSource: ScriptSource
+): LocationAwareException? {
+
+    val scriptClassName = scriptClass.name
+    val scriptClassNameInnerPrefix = "$scriptClassName$"
+
+    fun scriptStackTraceElement(element: StackTraceElement) =
+        element.className?.run {
+            equals(scriptClassName) || startsWith(scriptClassNameInnerPrefix)
+        } == true
+
+    tailrec fun inferLocationFrom(exception: Throwable): LocationAwareException? {
+
+        if (exception is LocationAwareException) {
+            return exception
+        }
+
+        exception.stackTrace.find(::scriptStackTraceElement)?.run {
+            return LocationAwareException(original, scriptSource, lineNumber.takeIf { it >= 0 })
+        }
+
+        val cause = exception.cause ?: return null
+        return inferLocationFrom(cause)
+    }
+
+    return inferLocationFrom(original)
+}
+
+
+private
+fun maybeUnwrapInvocationTargetException(e: Throwable) =
+    if (e is InvocationTargetException) e.targetException
+    else e
