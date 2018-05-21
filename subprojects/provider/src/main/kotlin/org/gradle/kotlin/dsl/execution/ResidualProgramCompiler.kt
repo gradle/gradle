@@ -70,11 +70,6 @@ class ResidualProgramCompiler(
         }
     }
 
-    fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, settingsScriptDefinition)
-        emitPrecompiledStage2Program(precompiledScriptClass)
-    }
-
     private
     fun emitEmptyProgram() {
         // TODO: consider caching the empty program bytes
@@ -106,6 +101,11 @@ class ResidualProgramCompiler(
         val scriptFile = scriptFileFor(source)
         val originalPath = source.path
         emitStagedProgram(stage1PrecompiledScript, scriptFile.canonicalPath, originalPath)
+    }
+
+    fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, settingsScriptDefinition)
+        emitPrecompiledStage2Program(precompiledScriptClass)
     }
 
     private
@@ -149,17 +149,7 @@ class ResidualProgramCompiler(
                 }
 
                 emitCloseTargetScopeOf()
-
-                // programHost.evaluateDynamicScriptOf(...)
-                ALOAD(1) // programHost
-                ALOAD(0) // program/this
-                ALOAD(2) // scriptHost
-                LDC(TemplateIds.stage2SettingsScript)
-                // Move HashCode value to a static field so it's cached across invocations
-                loadHashCode(originalSourceHash)
-                invokeHost(
-                    ExecutableProgram.Host::evaluateSecondStageOf.name,
-                    "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
+                emitEvaluateSecondStageOf()
             }
 
             publicMethod(
@@ -168,18 +158,37 @@ class ResidualProgramCompiler(
                 "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class<*>;"
             ) {
 
-                ALOAD(1) // programHost
-                LDC(sourceFilePath)
-                LDC(originalPath)
-                ALOAD(2) // scriptHost
-                ALOAD(3)
-                ALOAD(4)
-                invokeHost(
-                    ExecutableProgram.Host::compileSecondStageScript.name,
-                    "(Ljava/lang/String;Ljava/lang/String;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;")
+                emitCompileSecondStageOf(sourceFilePath, originalPath)
                 ARETURN()
             }
         }
+    }
+
+    private
+    fun MethodVisitor.emitEvaluateSecondStageOf() {
+        // programHost.evaluateSecondStageOf(...)
+        ALOAD(1) // programHost
+        ALOAD(0) // program/this
+        ALOAD(2) // scriptHost
+        LDC(TemplateIds.stage2SettingsScript)
+        // Move HashCode value to a static field so it's cached across invocations
+        loadHashCode(originalSourceHash)
+        invokeHost(
+            ExecutableProgram.Host::evaluateSecondStageOf.name,
+            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
+    }
+
+    private
+    fun MethodVisitor.emitCompileSecondStageOf(sourceFilePath: String, originalPath: String) {
+        ALOAD(1) // programHost
+        LDC(sourceFilePath)
+        LDC(originalPath)
+        ALOAD(2) // scriptHost
+        ALOAD(3)
+        ALOAD(4)
+        invokeHost(
+            ExecutableProgram.Host::compileSecondStageScript.name,
+            "(Ljava/lang/String;Ljava/lang/String;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;")
     }
 
     private
@@ -208,23 +217,25 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass: String) {
 
-        TRY_CATCH(Throwable::class.internalName, tryBlock = {
+        TRY_CATCH<Throwable>(
+            tryBlock = {
 
-            // ${precompiledScriptClass}(scriptHost)
-            NEW(precompiledScriptClass)
-            ALOAD(2) // scriptHost
-            INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
-        }, catchBlock = {
+                // ${precompiledScriptClass}(scriptHost)
+                NEW(precompiledScriptClass)
+                ALOAD(2) // scriptHost
+                INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
+            },
+            catchBlock = {
 
-            // Exception is on the stack
-            LDC(Type.getType("L$precompiledScriptClass;"))
-            ALOAD(2) // scriptHost
-            ALOAD(1) // programHost
-            INVOKESTATIC(
-                ExecutableProgram.Runtime::class.internalName,
-                ExecutableProgram.Runtime::onScriptException.name,
-                "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;)V")
-        })
+                // Exception is on the stack
+                LDC(Type.getType("L$precompiledScriptClass;"))
+                ALOAD(2) // scriptHost
+                ALOAD(1) // programHost
+                INVOKESTATIC(
+                    ExecutableProgram.Runtime::class.internalName,
+                    ExecutableProgram.Runtime::onScriptException.name,
+                    "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;)V")
+            })
     }
 
     private
@@ -255,12 +266,9 @@ class ResidualProgramCompiler(
 
     private
     fun program(superName: String, classBody: ClassWriter.() -> Unit = {}) {
-        writeFile(
-            "Program.class",
+        writeFile("Program.class",
             publicClass("Program", superName, null) {
-
                 publicDefaultConstructor(superName)
-
                 classBody()
             })
     }
@@ -282,8 +290,8 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition): String {
-        return compileKotlinScriptToDirectory(
+    fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition): String =
+        compileKotlinScriptToDirectory(
             outputDir,
             scriptFile,
             scriptDefinition,
@@ -292,7 +300,6 @@ class ResidualProgramCompiler(
                 if (path == scriptFile.path) originalPath
                 else path
             })
-    }
 
     private
     fun scriptFileFor(source: ProgramSource) =
@@ -472,6 +479,14 @@ private
 fun MethodVisitor.GOTO(label: Label) {
     visitJumpInsn(Opcodes.GOTO, label)
 }
+
+
+private
+inline fun <reified T> MethodVisitor.TRY_CATCH(
+    noinline tryBlock: MethodVisitor.() -> Unit,
+    noinline catchBlock: MethodVisitor.() -> Unit
+) =
+    TRY_CATCH(T::class.internalName, tryBlock, catchBlock)
 
 
 private
