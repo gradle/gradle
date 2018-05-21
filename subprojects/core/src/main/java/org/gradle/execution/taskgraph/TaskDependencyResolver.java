@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
@@ -31,11 +30,9 @@ import java.util.Set;
 public class TaskDependencyResolver {
     private CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
     private final TaskInfoFactory taskInfoFactory;
-    private final GradleInternal thisBuild;
 
-    public TaskDependencyResolver(TaskInfoFactory taskInfoFactory, GradleInternal thisBuild) {
+    public TaskDependencyResolver(TaskInfoFactory taskInfoFactory) {
         this.taskInfoFactory = taskInfoFactory;
-        this.thisBuild = thisBuild;
     }
 
     public void clear() {
@@ -49,9 +46,6 @@ public class TaskDependencyResolver {
         }
         List<TaskInfo> dependencyNodes = new ArrayList<TaskInfo>(dependencies.size());
         for (Task dependencyTask : dependencies) {
-            if (dependencyTask.getProject().getGradle() != thisBuild) {
-                throw new IllegalStateException(String.format("Received %s for unexpected %s. Expected %s.", dependencyTask, dependencyTask.getProject().getGradle(), thisBuild));
-            }
             dependencyNodes.add(taskInfoFactory.getOrCreateNode(dependencyTask));
         }
         return dependencyNodes;

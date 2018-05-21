@@ -15,6 +15,7 @@
  */
 package org.gradle.composite.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -43,21 +44,17 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
         }
     }
 
-    private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
-        return artifact.getComponentId().getBuild();
-    }
-
     public void build(BuildIdentifier requestingBuild, ComponentArtifactIdentifier artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            BuildIdentifier targetBuild = getBuildIdentifier(compositeBuildArtifact);
+            BuildIdentifier targetBuild = compositeBuildArtifact.getComponentId().getBuild();
             assert !requestingBuild.equals(targetBuild);
-            Set<String> tasks = compositeBuildArtifact.getTasks();
-            for (String taskName : tasks) {
-                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, taskName);
+            Set<? extends Task> tasks = compositeBuildArtifact.getBuildDependencies().getDependencies(null);
+            for (Task task : tasks) {
+                includedBuildTaskGraph.addTask(requestingBuild, targetBuild, task.getPath());
             }
-            for (String taskName : tasks) {
-                includedBuildTaskGraph.awaitCompletion(targetBuild, taskName);
+            for (Task task : tasks) {
+                includedBuildTaskGraph.awaitCompletion(targetBuild, task.getPath());
             }
         }
     }

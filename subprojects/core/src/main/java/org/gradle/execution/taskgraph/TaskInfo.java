@@ -16,18 +16,22 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.Path;
 
-import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.TreeSet;
 
-public class TaskInfo implements Comparable<TaskInfo> {
+public abstract class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
     }
 
-    private final TaskInternal task;
     private TaskExecutionState state;
     private Throwable executionFailure;
     private boolean dependenciesProcessed;
@@ -38,14 +42,35 @@ public class TaskInfo implements Comparable<TaskInfo> {
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
 
-    public TaskInfo(TaskInternal task) {
-        this.task = task;
+    public TaskInfo() {
         this.state = TaskExecutionState.UNKNOWN;
     }
 
-    public TaskInternal getTask() {
-        return task;
+    @VisibleForTesting
+    TaskExecutionState getState() {
+        return state;
     }
+
+    public abstract TaskInternal getTask();
+
+    /**
+     * Adds the task associated with this node, if any, into the given collection.
+     */
+    public abstract void collectTaskInto(ImmutableSet.Builder<Task> builder);
+
+    public abstract Path getIdentityPath();
+
+    public abstract boolean satisfies(Spec<? super Task> filter);
+
+    public abstract void prepareForExecution();
+
+    public abstract Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver);
+
+    public abstract Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver);
+
+    public abstract Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver);
+
+    public abstract Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver);
 
     public boolean isRequired() {
         return state == TaskExecutionState.SHOULD_RUN;
@@ -131,9 +156,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         return this.executionFailure;
     }
 
-    public Throwable getTaskFailure() {
-        return this.getTask().getState().getFailure();
-    }
+    public abstract Throwable getTaskFailure();
 
     public boolean allDependenciesComplete() {
         for (TaskInfo dependency : mustSuccessors) {
@@ -224,11 +247,7 @@ public class TaskInfo implements Comparable<TaskInfo> {
         shouldSuccessors.remove(toNode);
     }
 
-    public int compareTo(@Nonnull TaskInfo otherInfo) {
-        return task.compareTo(otherInfo.getTask());
-    }
-
     public String toString() {
-        return task.getIdentityPath().toString();
+        return getIdentityPath().toString();
     }
 }

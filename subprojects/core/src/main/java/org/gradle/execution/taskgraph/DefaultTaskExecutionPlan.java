@@ -35,12 +35,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -88,7 +88,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final Map<Project, ResourceLock> projectLocks = Maps.newHashMap();
     private final TaskFailureCollector failureCollector = new TaskFailureCollector();
-    private final TaskInfoFactory nodeFactory = new TaskInfoFactory();
+    private final TaskInfoFactory nodeFactory;
     private final TaskDependencyResolver dependencyResolver;
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -105,10 +105,11 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean tasksCancelled;
 
-    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle) {
+    public DefaultTaskExecutionPlan(WorkerLeaseService workerLeaseService, GradleInternal gradle, IncludedBuildTaskGraph taskGraph) {
         this.workerLeaseService = workerLeaseService;
         this.gradle = gradle;
-        dependencyResolver = new TaskDependencyResolver(nodeFactory, gradle);
+        nodeFactory = new TaskInfoFactory(gradle, taskGraph);
+        dependencyResolver = new TaskDependencyResolver(nodeFactory);
     }
 
     @Override
@@ -146,14 +147,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 continue;
             }
 
-            TaskInternal task = node.getTask();
-            boolean filtered = !filter.isSatisfiedBy(task);
+            boolean filtered = !node.satisfies(filter);
             if (filtered) {
                 // Task is not required - skip it
                 queue.remove(0);
                 node.dependenciesProcessed();
                 node.doNotRequire();
-                filteredTasks.add(task);
+                filteredTasks.add(node.getTask());
                 continue;
             }
 
@@ -161,28 +161,28 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
                 // Make sure it has been configured
-                ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies())) {
+                node.prepareForExecution();
+                for (TaskInfo targetNode : node.getDependencies(dependencyResolver)) {
                     node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy())) {
+                for (TaskInfo targetNode : node.getFinalizedBy(dependencyResolver)) {
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
                 }
-                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter())) {
+                for (TaskInfo targetNode : node.getMustRunAfter(dependencyResolver)) {
                     node.addMustSuccessor(targetNode);
                 }
-                for (TaskInfo targetNode : dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter())) {
+                for (TaskInfo targetNode : node.getShouldRunAfter(dependencyResolver)) {
                     node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
                     for (TaskInfo successor : node.getDependencySuccessors()) {
-                        if (filter.isSatisfiedBy(successor.getTask())) {
+                        if (successor.satisfies(filter)) {
                             successor.require();
                         }
                     }
@@ -232,7 +232,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
-        if (filter.isSatisfiedBy(finalizerNode.getTask())) {
+        if (finalizerNode.satisfies(filter)) {
             node.addFinalizer(finalizerNode);
             if (!finalizerNode.isInKnownState()) {
                 finalizerNode.mustNotRun();
@@ -247,7 +247,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void requireWithDependencies(TaskInfo taskInfo) {
-        if (taskInfo.isMustNotRun() && filter.isSatisfiedBy(taskInfo.getTask())) {
+        if (taskInfo.isMustNotRun() && taskInfo.satisfies(filter)) {
             taskInfo.require();
             for (TaskInfo dependency : taskInfo.getDependencySuccessors()) {
                 requireWithDependencies(dependency);
@@ -351,7 +351,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (TaskInfo taskInfo : node.getDependencySuccessors()) {
-            builder.add(taskInfo.getTask());
+            taskInfo.collectTaskInto(builder);
         }
         return builder.build();
     }

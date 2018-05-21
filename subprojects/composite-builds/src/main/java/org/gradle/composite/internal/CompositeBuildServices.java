@@ -69,8 +69,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
     }
 
     private static class CompositeBuildBuildScopeServices {
-        public TaskReferenceResolver createResolver(IncludedBuildTaskGraph includedBuilds, BuildState currentBuild) {
-            return new IncludedBuildTaskReferenceResolver(includedBuilds, currentBuild);
+        public TaskReferenceResolver createResolver() {
+            return new IncludedBuildTaskReferenceResolver();
         }
 
         public ScriptClassPathInitializer createCompositeBuildClasspathResolver(IncludedBuildTaskGraph includedBuildTaskGraph, BuildState currentBuild) {
