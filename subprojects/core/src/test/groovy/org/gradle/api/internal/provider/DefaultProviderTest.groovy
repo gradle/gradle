@@ -47,7 +47,7 @@ class DefaultProviderTest extends ProviderSpec<String> {
 
         expect:
         providerWithBadValue.toString() == "provider(?)"
-        Providers.notDefined().toString() == "undefined()"
+        Providers.notDefined().toString() == "undefined"
 
     }
 

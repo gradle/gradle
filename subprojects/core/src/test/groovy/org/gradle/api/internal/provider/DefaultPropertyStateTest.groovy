@@ -61,7 +61,7 @@ class DefaultPropertyStateTest extends PropertySpec<String> {
         }))
 
         expect:
-        propertyWithBadValue.toString() == "property(class java.lang.String, defined)"
+        propertyWithBadValue.toString() == "property(class java.lang.String, transform(provider(?)))"
         providerWithNoValue().toString() == "property(class java.lang.String, undefined)"
     }
 

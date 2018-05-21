@@ -146,7 +146,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             valueState = "defined";
         }
-        return String.format("%s(%s, %s)", collectionType.getSimpleName(), elementType, valueState);
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
     }
 
     /**
@@ -162,27 +162,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new AbstractProvider<S>() {
-            @Nullable
-            @Override
-            public Class<S> getType() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public S getOrNull() {
-                Collection<T> value = AbstractCollectionProperty.this.getOrNull();
-                if (value == null) {
-                    return null;
-                }
-                S result = transformer.transform(fromValue(value));
-                if (result == null) {
-                    throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
-                }
-                return result;
-            }
-        };
+        return new TransformBackedProvider<S, C>(transformer, this);
     }
 
     private static class EmptyCollection implements Collector<Object> {

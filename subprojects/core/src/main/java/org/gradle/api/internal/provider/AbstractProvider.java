@@ -55,7 +55,7 @@ public abstract class AbstractProvider<T> implements ProviderInternal<T> {
 
     @Override
     public String toString() {
-        // NOTE: This should not realize the Provider since the debugger will try to call this method and make debugging really frustrating.
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
     }
 }

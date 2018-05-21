@@ -60,7 +60,7 @@ public class Providers {
 
         @Override
         public String toString() {
-            return "undefined()";
+            return "undefined";
         }
     };
 
@@ -122,7 +122,7 @@ public class Providers {
 
         @Override
         public String toString() {
-            return String.format("value(%s, %s)", getType(), value);
+            return String.format("fixed(%s, %s)", getType(), value);
         }
     }
 
