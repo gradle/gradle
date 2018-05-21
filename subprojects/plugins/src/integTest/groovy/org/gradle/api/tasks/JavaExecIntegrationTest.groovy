@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -84,20 +83,9 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    private void runCommandWithQuotes() {
-        if (TestPrecondition.WINDOWS.fulfilled) {
-            // On Windows, "5" passed to ProcessBuilder will be stripped quotes:
-            // https://bugs.openjdk.java.net/browse/JDK-8131908
-            // https://msdn.microsoft.com/en-us/library/17w5ykft.aspx
-            run("run", "--args", "2 '3' \"4\" '\\\"5\\\"'")
-        } else {
-            run("run", "--args", "2 '3' \"4\" '\"5\"'")
-        }
-    }
-
     def 'arguments can be passed via command line and take precedence'() {
         when:
-        runCommandWithQuotes()
+        run("run", "--args", "2 '3' \"4\"")
 
         then:
         executedAndNotSkipped ":run"
@@ -105,11 +93,10 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         2
         3
         4
-        "5"
         '''.stripIndent())
 
         when:
-        runCommandWithQuotes()
+        run("run", "--args", "2 '3' \"4\"")
 
         then:
         executedAndNotSkipped ":run"
@@ -117,7 +104,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         2
         3
         4
-        "5"
         '''.stripIndent())
     }
 
