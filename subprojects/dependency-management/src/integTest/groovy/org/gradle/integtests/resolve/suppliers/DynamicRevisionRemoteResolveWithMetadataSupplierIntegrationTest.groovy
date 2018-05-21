@@ -1089,6 +1089,7 @@ group:projectB:2.2;release
 
     def "caching is repository aware"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+        executer.requireIsolatedDaemons() // because we're going to --stop
 
         given:
         def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
@@ -1172,6 +1173,72 @@ group:projectB:2.2;release
         outputContains("Providing metadata for group:projectB:2.2")
         outputContains("Providing metadata for group:projectB:1.1")
 
+    }
+
+    def "cross-build caching is resilient to failure"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+        executer.requireIsolatedDaemons() // because we're going to --stop
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release', true)
+
+                    }
+                }
+            }
+        }
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+        failure.assertHasCause('Could not resolve group:projectB:latest.release')
+
+        when:
+        resetExpectations()
+        repositoryInteractions {
+            'group:projectA' {
+                '1.2' {
+                    expectGetArtifact()
+                }
+            }
+            'group:projectB' {
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+        // stop the daemon to make sure that when we run the build again
+        // it's fetched from the persistent cache
+        run '--stop'
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
     }
 
     private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile, boolean cacheable = true, String implementationChange = '') {
