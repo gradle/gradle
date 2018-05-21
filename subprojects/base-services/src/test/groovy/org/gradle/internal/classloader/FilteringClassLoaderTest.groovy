@@ -45,7 +45,7 @@ class FilteringClassLoaderTest extends Specification {
     @Issue("gradle/core-issues#115")
     void passesThroughSystemResources() {
         expect:
-        canSeeResource('com/sun/jndi/ldap/jndiprovider.properties')
+        canSeeResource('java/lang/Object.class')
     }
 
     void filtersClassesByDefault() {
