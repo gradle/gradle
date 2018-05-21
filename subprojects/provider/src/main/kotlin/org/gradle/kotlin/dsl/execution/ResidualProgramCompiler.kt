@@ -22,6 +22,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
+import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -52,7 +53,7 @@ class ResidualProgramCompiler(
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val implicitImports: List<String> = emptyList(),
-    private val logger: Logger = org.gradle.kotlin.dsl.support.loggerFor<Interpreter>()
+    private val logger: Logger = loggerFor<Interpreter>()
 ) {
 
     /**

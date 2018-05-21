@@ -67,6 +67,13 @@ class Interpreter(val host: Host) {
             parentClassLoader: ClassLoader
         ): Class<*>?
 
+        fun cache(
+            templateId: String,
+            sourceHash: HashCode,
+            parentClassLoader: ClassLoader,
+            specializedProgram: Class<*>
+        )
+
         fun cachedDirFor(
             templateId: String,
             sourceHash: HashCode,
@@ -84,13 +91,6 @@ class Interpreter(val host: Host) {
             location: File,
             className: String
         ): Class<*>
-
-        fun cache(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader,
-            specializedProgram: Class<*>
-        )
 
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
 
