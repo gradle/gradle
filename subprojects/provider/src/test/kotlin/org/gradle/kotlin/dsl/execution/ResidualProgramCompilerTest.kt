@@ -82,7 +82,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
 
-        withExecutableProgramFor(Program.Script(source), sourceHash) {
+        withExecutableProgramFor(Program.Script(source), sourceHash = sourceHash) {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
             program.execute(programHost, scriptHost)
@@ -140,6 +140,28 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     }
 
     @Test
+    fun `PrecompiledScript executes as precompiled script`() {
+
+        val source =
+            ProgramSource(
+                "plugin.gradle.kts",
+                "include(\"precompiled stage 2\")")
+
+        val target = mock<Settings>()
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target)
+
+        withExecutableProgramFor(Program.PrecompiledScript(source)) {
+            execute(programHost, scriptHost)
+        }
+
+        inOrder(programHost, target) {
+            verify(programHost).closeTargetScopeOf(scriptHost)
+            verify(target).include("precompiled stage 2")
+        }
+    }
+
+    @Test
     fun `can compile staged Settings program`() {
 
         val source = ProgramSource(
@@ -184,14 +206,16 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     @Test
     fun `Stage 1 program reports script exception back to host`() {
 
-        val source = ProgramSource(
-            "settings.gradle.kts",
-            "buildscript { throw IllegalStateException(\"BOOM!\") }")
+        val source =
+            ProgramSource(
+                "settings.gradle.kts",
+                "buildscript { throw IllegalStateException(\"BOOM!\") }")
 
-        val fragment = source.fragment(0..10, 12..source.text.lastIndex)
+        val fragment =
+            source.fragment(0..10, 12..source.text.lastIndex)
+
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(mock())
-
         withExecutableProgramFor(Program.Buildscript(fragment)) {
 
             val program = this

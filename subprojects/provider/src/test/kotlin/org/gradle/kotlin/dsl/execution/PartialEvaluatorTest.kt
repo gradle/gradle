@@ -86,14 +86,24 @@ class PartialEvaluatorTest {
                 Program.Script(source.map { text("\n\n         \n      \n \nprintln(\"Stage 2\")") })))
     }
 
+    @Test
+    fun `Stage 2 only script plugin reduces to PrecompiledScript`() {
+
+        val source = programSourceWith("println(\"no stage 1\")")
+        assertProgramOf(
+            programKind = ProgramKind.ScriptPlugin,
+            source = source,
+            expected = Program.PrecompiledScript(source))
+    }
+
     private
     fun assertEmptyProgram(contents: String) {
         assertProgramOf(programSourceWith(contents), Program.Empty)
     }
 
     private
-    fun assertProgramOf(source: ProgramSource, expected: Program) {
-        val program = PartialEvaluator.reduce(source)
+    fun assertProgramOf(source: ProgramSource, expected: Program, programKind: ProgramKind = ProgramKind.TopLevel) {
+        val program = PartialEvaluator.reduce(source, programKind)
         assertThat(program, equalTo(expected))
     }
 

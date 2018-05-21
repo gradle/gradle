@@ -16,22 +16,26 @@
 
 package org.gradle.kotlin.dsl.provider
 
-//import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+
 import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
+
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
+
 import org.gradle.kotlin.dsl.execution.Interpreter
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+
 import java.io.File
 
 import java.util.*
@@ -164,9 +168,7 @@ class StandardKotlinScriptEvaluator(
         options: EnumSet<KotlinScriptOption>
     ) {
 
-        val ignoringErrors = KotlinScriptOption.IgnoreErrors in options
-
-        if (!ignoringErrors && target is Settings) {
+        if (options.isEmpty() && target is Settings) {
             interpreter.eval(
                 target,
                 scriptSource,
@@ -178,7 +180,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         evaluationFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
-            if (ignoringErrors)
+            if (KotlinScriptOption.IgnoreErrors in options)
                 executeIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
             else
                 execute()

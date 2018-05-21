@@ -65,6 +65,7 @@ class ResidualProgramCompiler(
             is Program.Empty -> emitEmptyProgram()
             is Program.Buildscript -> emitStage1Program(program)
             is Program.Script -> emitScriptProgram(program)
+            is Program.PrecompiledScript -> emitPrecompiledScriptPluginProgram(program)
             is Program.Staged -> emitStagedProgram(program)
             else -> throw IllegalArgumentException("Unsupported program `$program'")
         }
@@ -93,6 +94,15 @@ class ResidualProgramCompiler(
         val buildscript = stage1 as Program.Buildscript
         val precompiledScriptClassName = compileBuildscript(buildscript)
         emitStagedProgram(precompiledScriptClassName, stage2)
+    }
+
+    private
+    fun emitPrecompiledScriptPluginProgram(program: Program.PrecompiledScript) {
+        val source = program.source
+        val scriptFile = scriptFileFor(source)
+        val scriptPath = source.path
+        val precompiledScriptClass = compileScript(scriptFile, scriptPath, settingsScriptDefinition)
+        emitPrecompiledScriptPluginProgram(precompiledScriptClass)
     }
 
     private
@@ -128,6 +138,19 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
+                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
+            }
+        }
+    }
+
+    private
+    fun emitPrecompiledScriptPluginProgram(precompiledScriptClass: String) {
+
+        program<ExecutableProgram> {
+
+            overrideExecute {
+
+                emitCloseTargetScopeOf()
                 emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
             }
         }

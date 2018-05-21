@@ -20,12 +20,18 @@ import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
 
+enum class ProgramKind {
+    TopLevel,
+    ScriptPlugin
+}
+
+
 /**
- * Reduces a [ProgramSource] into a [Program].
+ * Reduces a [ProgramSource] into a [Program] given its [kind][ProgramKind].
  */
 object PartialEvaluator {
 
-    fun reduce(source: ProgramSource): Program {
+    fun reduce(source: ProgramSource, kind: ProgramKind): Program {
 
         val sourceWithoutComments =
             source.map { it.erase(commentsOf(it.text)) }
@@ -34,7 +40,8 @@ object PartialEvaluator {
             topLevelFragmentFrom(sourceWithoutComments, "buildscript")
 
         val pluginsFragment =
-            topLevelFragmentFrom(sourceWithoutComments, "plugins")
+            if (kind == ProgramKind.TopLevel) topLevelFragmentFrom(sourceWithoutComments, "plugins")
+            else null
 
         val buildscript =
             buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
@@ -61,12 +68,20 @@ object PartialEvaluator {
             .takeIf { it.text.isNotBlank() }
             ?.let(Program::Script)
 
-        return stage1?.let { s1 ->
-            stage2?.let { s2 ->
+        stage1?.let { s1 ->
+            return stage2?.let { s2 ->
                 Program.Staged(s1, s2)
             } ?: s1
-        } ?: stage2
-        ?: Program.Empty
+        }
+
+        stage2?.let { s2 ->
+            return when (kind) {
+                ProgramKind.TopLevel -> s2
+                ProgramKind.ScriptPlugin -> Program.PrecompiledScript(s2.source)
+            }
+        }
+
+        return Program.Empty
     }
 
     private

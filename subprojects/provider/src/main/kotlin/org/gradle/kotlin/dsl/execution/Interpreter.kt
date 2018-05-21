@@ -112,6 +112,10 @@ class Interpreter(val host: Host) {
         val sourceHash =
             scriptSourceHash(sourceText)
 
+        val programKind =
+            if (topLevelScript) ProgramKind.TopLevel
+            else ProgramKind.ScriptPlugin
+
         val templateId =
             TemplateIds.stage1SettingsScript
 
@@ -137,7 +141,8 @@ class Interpreter(val host: Host) {
                 templateId,
                 parentClassLoader,
                 targetScope,
-                baseScope)
+                baseScope,
+                programKind)
 
         host.cache(
             templateId,
@@ -156,7 +161,8 @@ class Interpreter(val host: Host) {
         templateId: String,
         parentClassLoader: ClassLoader,
         targetScope: ClassLoaderScope,
-        baseScope: ClassLoaderScope
+        baseScope: ClassLoaderScope,
+        programKind: ProgramKind
     ): Class<*> {
 
         val scriptPath =
@@ -169,7 +175,7 @@ class Interpreter(val host: Host) {
                     cachedDir.resolve("stage1").apply { mkdir() }
 
                 val residualProgram =
-                    PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText))
+                    PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText), programKind)
 
                 residualProgramCompilerFor(sourceHash, outputDir, targetScope.parent)
                     .compile(residualProgram)
