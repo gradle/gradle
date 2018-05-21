@@ -34,6 +34,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -150,14 +151,14 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal) {
+    TaskExecutionGraphInternal createTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, IncludedBuildTaskGraph includedBuildTaskGraph) {
         Factory<TaskExecuter> taskExecuterFactory = new Factory<TaskExecuter>() {
             @Override
             public TaskExecuter create() {
                 return get(TaskExecuter.class);
             }
         };
-        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, taskExecuterFactory, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal);
+        return new DefaultTaskExecutionGraph(listenerManager, taskPlanExecutor, taskExecuterFactory, buildOperationExecutor, workerLeaseService, coordinationService, gradleInternal, includedBuildTaskGraph);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {

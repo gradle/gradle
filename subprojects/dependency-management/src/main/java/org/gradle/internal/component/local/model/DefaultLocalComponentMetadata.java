@@ -116,7 +116,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
 
             // Dependencies
             configurationCopy.definedDependencies.addAll(configuration.definedDependencies);
-            // Don't include file dependencies
+            configurationCopy.definedFiles.addAll(configuration.definedFiles);
 
             // Exclude rules
             configurationCopy.definedExcludes.addAll(configuration.definedExcludes);

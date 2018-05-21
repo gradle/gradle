@@ -16,28 +16,31 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.util.Path;
 
 public class IncludedBuildTaskReference implements TaskReference {
-    private final BuildIdentifier buildIdentifier;
     private final String taskPath;
+    private final IncludedBuildState includedBuild;
 
-    public IncludedBuildTaskReference(BuildIdentifier buildIdentifier, String taskPath) {
-        this.buildIdentifier = buildIdentifier;
+    public IncludedBuildTaskReference(IncludedBuildState includedBuild, String taskPath) {
+        this.includedBuild = includedBuild;
         this.taskPath = taskPath;
     }
 
     @Override
     public String getName() {
-        return "_" + buildIdentifier.getName().replace(':', '_') + taskPath.replace(':', '_');
+        return Path.path(taskPath).getName();
     }
 
     public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+        return includedBuild.getBuildIdentifier();
     }
 
-    public String getTaskPath() {
-        return taskPath;
+    public Task resolveTask() {
+        return includedBuild.getConfiguredBuild().getRootProject().getTasks().getByPath(taskPath);
     }
 }

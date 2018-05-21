@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -224,11 +225,11 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         dependency 'org.test:buildB:1.0'
 
         buildB.buildFile << """
-            task myJar(type: Jar) {
-                classifier 'my'
+            task jar1(type: Jar) {
+                classifier '1'
             }
             dependencies {
-                compile files(myJar.archivePath) { builtBy 'myJar' }
+                compile files(jar1.archivePath) { builtBy jar1 }
             }
 """
 
@@ -236,8 +237,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifacts()
 
         then:
-        executed ":buildB:myJar", ":buildB:jar"
-        assertResolved buildB.file('build/libs/buildB-1.0.jar') // File dependencies are never part of the published metadata
+        executed ":buildB:jar1", ":buildB:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file("build/libs/buildB-1.0-1.jar")
     }
 
     def "builds substituted dependency with non-default configuration"() {

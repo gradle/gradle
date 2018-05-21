@@ -108,7 +108,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     @Override
     public TaskReference task(String path) {
         Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
-        return new IncludedBuildTaskReference(getBuildIdentifier(), path);
+        return new IncludedBuildTaskReference(this, path);
     }
 
     @Override
