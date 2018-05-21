@@ -142,7 +142,7 @@ internal
 data class KotlinScriptTarget<out T : Any>(
     val host: KotlinScriptHost<T>,
     val scriptTemplate: KClass<*>,
-    val buildscriptBlockTemplate: KClass<*>?,
+    val buildscriptBlockTemplate: KClass<*>,
     val pluginsBlockTemplate: KClass<*>? = null,
     val accessorsClassPath: AccessorsClassPathProvider = emptyAccessorsClassPathProvider,
     val buildscriptBlockName: String = "buildscript",

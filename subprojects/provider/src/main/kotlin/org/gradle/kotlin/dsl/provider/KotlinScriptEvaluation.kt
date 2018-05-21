@@ -331,11 +331,9 @@ class BuildscriptBlockEvaluator(
 ) {
 
     fun evaluate() {
-        scriptTarget.buildscriptBlockTemplate?.let { template ->
-            setupEmbeddedKotlinForBuildscript()
-            buildscriptBlockRange?.let { buildscriptRange ->
-                executeBuildscriptBlockFrom(buildscriptRange, template)
-            }
+        setupEmbeddedKotlinForBuildscript()
+        buildscriptBlockRange?.let { buildscriptRange ->
+            executeBuildscriptBlockFrom(buildscriptRange, scriptTarget.buildscriptBlockTemplate)
         }
     }
 
