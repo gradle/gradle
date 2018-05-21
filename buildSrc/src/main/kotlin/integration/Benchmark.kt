@@ -71,6 +71,7 @@ open class Benchmark : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun run() {
+
         val (included, excluded) = project.sampleDirs().partition { isIncludedAndNotExcluded(it.name) }
         reportExcludedSamples(excluded)
 
@@ -78,12 +79,35 @@ open class Benchmark : DefaultTask() {
         val quotients = included.map {
             benchmark(it, config)
         }
+
         val result = QuotientResult(quotients)
+        report(result)
+
         if (result.median > maxQuotient) {
             throw IllegalStateException(
                 "Latest snapshot is around %.2f%% slower than baseline. Unacceptable!".format(
                     quotientToPercentage(result.median)))
         }
+    }
+
+    private
+    fun report(result: QuotientResult) {
+        val median = result.median
+        println(
+            when {
+                median < 0.99 -> {
+                    "It seems the latest is %.2f%% faster than baseline!"
+                        .format(quotientToPercentage(median))
+                }
+                median > 1.01 -> {
+                    "Hm, apparently latest has become %.2f%% slower than baseline."
+                        .format(quotientToPercentage(median))
+                }
+                else -> {
+                    "Excelsior!"
+                }
+            }
+        )
     }
 
     private
@@ -117,7 +141,8 @@ open class Benchmark : DefaultTask() {
         patterns.any { sampleName.contains(it, ignoreCase = true) }
 
     private
-    fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
+    fun quotientToPercentage(quotient: Double) =
+        (if (quotient > 1) (quotient - 1) else (1 - quotient)) * 100
 
     private
     fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
