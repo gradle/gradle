@@ -21,6 +21,7 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -155,6 +156,7 @@ class UserGuideSamplesRunner extends Runner {
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
                 .withEnvironmentVars(run.envs)
+                .withConsole(ConsoleOutput.Plain)
                 .withTestConsoleAttached()
 
             if (!GradleContextualExecuter.longLivingProcess) {
