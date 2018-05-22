@@ -355,10 +355,6 @@ We would like to thank the following community members for making contributions 
 - [Alexandre Bouthinon](https://github.com/alexandrebouthinon) Fix NullPointerException (gradle/gradle#5199)
 - [Paul Eddie](https://github.com/paul-eeoc) Fix typo (gradle/gradle#5180)
 
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
-
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 ## Known issues
