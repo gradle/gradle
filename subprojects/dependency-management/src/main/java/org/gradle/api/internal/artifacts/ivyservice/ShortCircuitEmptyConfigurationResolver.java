@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
@@ -24,6 +26,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -31,6 +34,8 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -41,8 +46,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Default
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildIdentity;
+import org.gradle.internal.locking.LockOutOfDateException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 
@@ -83,6 +90,18 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild.getCurrentBuild());
+        if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
+            DependencyLockingProvider dependencyLockingProvider = configuration.getResolutionStrategy().getDependencyLockingProvider();
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(configuration.getName());
+            if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
+                ArrayList<String> errors = Lists.newArrayListWithCapacity(lockingState.getLockedDependencies().size());
+                for (DependencyConstraint lockedDependency : lockingState.getLockedDependencies()) {
+                    errors.add("Did not resolve '" + lockedDependency.getGroup() + ":" + lockedDependency.getName() + ":" + lockedDependency.getVersion() + "' which is part of the lock state");
+                }
+                throw LockOutOfDateException.createLockOutOfDateException(configuration.getName(), errors);
+            }
+            dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), Collections.<ModuleComponentIdentifier>emptySet(), Collections.<ModuleComponentIdentifier>emptySet());
+        }
         results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
     }
 

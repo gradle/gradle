@@ -23,10 +23,15 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
+import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.specs.Specs
 import org.gradle.initialization.BuildIdentity
+import org.gradle.internal.locking.LockOutOfDateException
 import spock.lang.Specification
 
 class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
@@ -116,7 +121,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         then:
         def resolvedConfig = results.resolvedConfiguration
         !resolvedConfig.hasError()
-        resolvedConfig.rethrowFailure();
+        resolvedConfig.rethrowFailure()
 
         resolvedConfig.getFiles(Specs.<Dependency> satisfyAll()).isEmpty()
         resolvedConfig.getFirstLevelModuleDependencies().isEmpty()
@@ -124,6 +129,57 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
         and:
         0 * delegate._
+    }
+
+    def 'empty graph result still interacts with dependency locking'() {
+        given:
+        ResolutionStrategyInternal resolutionStrategy = Mock()
+        DependencyLockingProvider lockingProvider = Mock()
+        DependencyLockingState lockingState = Mock()
+
+        configuration.name >> 'lockedConf'
+        configuration.resolutionStrategy >> resolutionStrategy
+        dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
+        configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
+
+        when:
+        dependencyResolver.resolveGraph(configuration, results)
+
+        then:
+
+        1 * resolutionStrategy.dependencyLockingEnabled >> true
+        1 * resolutionStrategy.dependencyLockingProvider >> lockingProvider
+        1 * lockingProvider.loadLockState('lockedConf') >> lockingState
+        1 * lockingState.mustValidateLockState() >> false
+        1 * lockingProvider.persistResolvedDependencies('lockedConf', Collections.emptySet(), Collections.emptySet())
+    }
+
+    def 'empty result causes an exception if lock state not empty'() {
+        given:
+        ResolutionStrategyInternal resolutionStrategy = Mock()
+        DependencyLockingProvider lockingProvider = Mock()
+        DependencyLockingState lockingState = Mock()
+
+        configuration.name >> 'lockedConf'
+        configuration.resolutionStrategy >> resolutionStrategy
+        dependencies.isEmpty() >> true
+        dependencyConstraints.isEmpty() >> true
+        configuration.getAllDependencies() >> dependencies
+        configuration.getAllDependencyConstraints() >> dependencyConstraints
+
+        when:
+        dependencyResolver.resolveGraph(configuration, results)
+
+        then:
+        def ex = thrown(LockOutOfDateException)
+        ex.getMessage().contains('org:foo:1.0')
+        1 * resolutionStrategy.dependencyLockingEnabled >> true
+        1 * resolutionStrategy.dependencyLockingProvider >> lockingProvider
+        1 * lockingProvider.loadLockState('lockedConf') >> lockingState
+        1 * lockingState.mustValidateLockState() >> true
+        3 * lockingState.lockedDependencies >> [DefaultDependencyConstraint.strictConstraint('org', 'foo', '1.0')]
     }
 
     def "delegates to backing service to resolve build dependencies when there are one or more dependencies"() {
