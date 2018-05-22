@@ -26,8 +26,14 @@ enum class ProgramKind {
 }
 
 
+enum class ProgramTarget {
+    Project,
+    Settings
+}
+
+
 /**
- * Reduces a [ProgramSource] into a [Program] given its [kind][ProgramKind].
+ * Reduces a [ProgramSource] into a [Program] given its [kind][ProgramKind] and [target][ProgramTarget].
  */
 object PartialEvaluator {
 

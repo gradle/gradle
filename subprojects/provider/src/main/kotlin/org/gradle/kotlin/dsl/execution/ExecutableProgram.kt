@@ -43,7 +43,9 @@ abstract class ExecutableProgram {
             originalScriptPath: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            programKind: ProgramKind,
+            programTarget: ProgramTarget
         ): Class<*>
 
         fun handleScriptException(

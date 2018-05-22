@@ -52,8 +52,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val text = "println(\"stage 2\")"
         val sourceHash = scriptSourceHash(text)
-        val stage1TemplateId = TemplateIds.stage1SettingsScript
-        val stage2TemplateId = TemplateIds.stage2SettingsScript
+        val stage1TemplateId = "Settings/TopLevel/stage1"
+        val stage2TemplateId = "Settings/TopLevel/stage2"
 
         val resource = mock<TextResource> {
             on { getText() } doReturn text

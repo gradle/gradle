@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -168,7 +169,7 @@ class StandardKotlinScriptEvaluator(
         options: EnumSet<KotlinScriptOption>
     ) {
 
-        if (options.isEmpty() && target is Settings) {
+        if (options.isEmpty() && (target is Settings || isProjectScriptPluginRequest(topLevelScript, target))) {
             interpreter.eval(
                 target,
                 scriptSource,
@@ -186,6 +187,10 @@ class StandardKotlinScriptEvaluator(
                 execute()
         }
     }
+
+    private
+    fun isProjectScriptPluginRequest(topLevelScript: Boolean, target: Any) =
+        !topLevelScript && target is Project
 
     private
     fun evaluationFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope, baseScope: ClassLoaderScope, topLevelScript: Boolean): KotlinScriptEvaluation =

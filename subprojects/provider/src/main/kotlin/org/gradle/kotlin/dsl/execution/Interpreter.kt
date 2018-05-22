@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -25,9 +26,10 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.ServiceRegistry
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.kotlinScriptHostFor
+import org.gradle.kotlin.dsl.support.serviceRegistryOf
 
 import java.io.File
 
@@ -116,8 +118,11 @@ class Interpreter(val host: Host) {
             if (topLevelScript) ProgramKind.TopLevel
             else ProgramKind.ScriptPlugin
 
+        val programTarget =
+            programTargetFor(target)
+
         val templateId =
-            TemplateIds.stage1SettingsScript
+            programTarget.name + "/" + programKind.name + "/stage1"
 
         val parentClassLoader =
             baseScope.exportClassLoader
@@ -126,7 +131,7 @@ class Interpreter(val host: Host) {
             host.cachedClassFor(templateId, sourceHash, parentClassLoader)
 
         val scriptHost =
-            kotlinScriptHostFor(target as Settings, scriptSource, scriptHandler, targetScope, baseScope)
+            kotlinScriptHostFor(target, scriptSource, scriptHandler, targetScope, baseScope)
 
         if (cachedProgram != null) {
             eval(cachedProgram, scriptHost)
@@ -142,7 +147,8 @@ class Interpreter(val host: Host) {
                 parentClassLoader,
                 targetScope,
                 baseScope,
-                programKind)
+                programKind,
+                programTarget)
 
         host.cache(
             templateId,
@@ -154,6 +160,25 @@ class Interpreter(val host: Host) {
     }
 
     private
+    fun programTargetFor(target: Any): ProgramTarget =
+        when (target) {
+            is Settings -> ProgramTarget.Settings
+            is Project -> ProgramTarget.Project
+            else -> throw IllegalArgumentException("Unsupported target: $target")
+        }
+
+    private
+    fun kotlinScriptHostFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope, baseScope: ClassLoaderScope) =
+        KotlinScriptHost(target, scriptSource, scriptHandler, targetScope, baseScope, serviceRegistryFor(target))
+
+    private
+    fun serviceRegistryFor(target: Any): ServiceRegistry = when (target) {
+        is Project -> serviceRegistryOf(target)
+        is Settings -> serviceRegistryOf(target)
+        else -> throw IllegalArgumentException("Unsupported target: $target")
+    }
+
+    private
     fun emitSpecializedProgramFor(
         scriptSource: ScriptSource,
         sourceText: String,
@@ -162,7 +187,8 @@ class Interpreter(val host: Host) {
         parentClassLoader: ClassLoader,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
-        programKind: ProgramKind
+        programKind: ProgramKind,
+        programTarget: ProgramTarget
     ): Class<*> {
 
         val scriptPath =
@@ -177,8 +203,13 @@ class Interpreter(val host: Host) {
                 val residualProgram =
                     PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText), programKind)
 
-                residualProgramCompilerFor(sourceHash, outputDir, targetScope.parent)
-                    .compile(residualProgram)
+                residualProgramCompilerFor(
+                    sourceHash,
+                    outputDir,
+                    targetScope.parent,
+                    programKind,
+                    programTarget
+                ).compile(residualProgram)
             }
 
         val classesDir =
@@ -205,13 +236,17 @@ class Interpreter(val host: Host) {
     fun residualProgramCompilerFor(
         sourceHash: HashCode,
         outputDir: File,
-        classLoaderScopeForClassPath: ClassLoaderScope
+        classLoaderScopeForClassPath: ClassLoaderScope,
+        programKind: ProgramKind,
+        programTarget: ProgramTarget
     ): ResidualProgramCompiler =
 
         ResidualProgramCompiler(
             outputDir,
             host.compilationClassPathOf(classLoaderScopeForClassPath),
             sourceHash,
+            programKind,
+            programTarget,
             host.implicitImports)
 
     private
@@ -272,13 +307,23 @@ class Interpreter(val host: Host) {
             originalScriptPath: String,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
-            sourceHash: HashCode
+            sourceHash: HashCode,
+            programKind: ProgramKind,
+            programTarget: ProgramTarget
         ): Class<*> {
 
             val cacheDir =
-                host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) {
-                    residualProgramCompilerFor(sourceHash, it, scriptHost.targetScope)
-                        .emitStage2ProgramFor(File(scriptPath), originalScriptPath)
+                host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) { outputDir ->
+                    residualProgramCompilerFor(
+                        sourceHash,
+                        outputDir,
+                        scriptHost.targetScope,
+                        programKind,
+                        programTarget
+                    ).emitStage2ProgramFor(
+                        File(scriptPath),
+                        originalScriptPath
+                    )
                 }
 
             return loadClassInChildScopeOf(

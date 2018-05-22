@@ -19,7 +19,9 @@ package org.gradle.kotlin.dsl.execution
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
+import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -52,6 +54,8 @@ class ResidualProgramCompiler(
     private val outputDir: File,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
+    private val programKind: ProgramKind,
+    private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = loggerFor<Interpreter>()
 ) {
@@ -101,7 +105,7 @@ class ResidualProgramCompiler(
         val source = program.source
         val scriptFile = scriptFileFor(source)
         val scriptPath = source.path
-        val precompiledScriptClass = compileScript(scriptFile, scriptPath, settingsScriptDefinition)
+        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage1ScriptDefinition)
         emitPrecompiledScriptPluginProgram(precompiledScriptClass)
     }
 
@@ -114,7 +118,7 @@ class ResidualProgramCompiler(
     }
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, settingsScriptDefinition)
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage1ScriptDefinition)
         emitPrecompiledStage2Program(precompiledScriptClass)
     }
 
@@ -193,7 +197,7 @@ class ResidualProgramCompiler(
         ALOAD(1) // programHost
         ALOAD(0) // program/this
         ALOAD(2) // scriptHost
-        LDC(TemplateIds.stage2SettingsScript)
+        LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
         invokeHost(
@@ -209,9 +213,23 @@ class ResidualProgramCompiler(
         ALOAD(2) // scriptHost
         ALOAD(3)
         ALOAD(4)
+        GETSTATIC(
+            "org/gradle/kotlin/dsl/execution/ProgramKind",
+            programKind.name,
+            "Lorg/gradle/kotlin/dsl/execution/ProgramKind;")
+        GETSTATIC(
+            "org/gradle/kotlin/dsl/execution/ProgramTarget",
+            programTarget.name,
+            "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;")
         invokeHost(
             ExecutableProgram.Host::compileSecondStageScript.name,
-            "(Ljava/lang/String;Ljava/lang/String;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class;")
+            "(" +
+                "Ljava/lang/String;Ljava/lang/String;" +
+                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
+                "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
+                "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
+                "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
+                ")Ljava/lang/Class;")
     }
 
     private
@@ -226,7 +244,7 @@ class ResidualProgramCompiler(
     fun compileBuildscript(program: Program.Buildscript) =
         compileScript(
             program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
-            settingsBuildscriptBlockDefinition)
+            stage2ScriptDefinition)
 
     private
     fun MethodVisitor.loadHashCode(hashCode: HashCode) {
@@ -337,14 +355,20 @@ class ResidualProgramCompiler(
     }
 
     private
-    val settingsScriptDefinition by lazy {
-        scriptDefinitionFromTemplate(KotlinSettingsScript::class)
-    }
+    val stage1ScriptDefinition
+        get() = scriptDefinitionFromTemplate(
+            when (programTarget) {
+                ProgramTarget.Project -> KotlinBuildScript::class
+                ProgramTarget.Settings -> KotlinSettingsScript::class
+            })
 
     private
-    val settingsBuildscriptBlockDefinition by lazy {
-        scriptDefinitionFromTemplate(KotlinSettingsBuildscriptBlock::class)
-    }
+    val stage2ScriptDefinition
+        get() = scriptDefinitionFromTemplate(
+            when (programTarget) {
+                ProgramTarget.Project -> KotlinBuildscriptBlock::class
+                ProgramTarget.Settings -> KotlinSettingsBuildscriptBlock::class
+            })
 
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
@@ -364,15 +388,6 @@ class ResidualProgramCompiler(
                     ScriptDependencies(imports = implicitImports), emptyList())
         }
     }
-}
-
-
-internal
-object TemplateIds {
-
-    val stage1SettingsScript = "Settings/stage1"
-
-    val stage2SettingsScript = "Settings/stage2"
 }
 
 
@@ -533,6 +548,12 @@ fun MethodVisitor.TRY_CATCH(
     visitLabel(catchBlockStart)
     catchBlock()
     visitLabel(catchBlockEnd)
+}
+
+
+private
+fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
+    visitFieldInsn(Opcodes.GETSTATIC, owner, name, desc)
 }
 
 
