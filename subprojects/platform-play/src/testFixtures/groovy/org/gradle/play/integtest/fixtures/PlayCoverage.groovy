@@ -20,7 +20,8 @@ import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.util.VersionNumber
 
 class PlayCoverage {
-    static final List<VersionNumber> ALL_VERSIONS = ["2.2.6", "2.4.11", "2.5.18", "2.6.7", DefaultPlayPlatform.DEFAULT_PLAY_VERSION].collect { VersionNumber.parse(it) }
+    static final List<VersionNumber> ALL_VERSIONS = ["2.2.6", "2.4.11", "2.5.18", "2.6.13", DefaultPlayPlatform.DEFAULT_PLAY_VERSION].collect { VersionNumber.parse(it) }
+    static final List<VersionNumber> JDK9_COMPATIBLE_VERSIONS = ["2.6.13"]
     static final List<String> PLAY23_OR_EARLIER = ALL_VERSIONS.findAll { it.major <= 2 && it.minor <= 3 }.asImmutable()
     static final List<String> PLAY23_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 3 }.asImmutable()
     static final List<String> PLAY24_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 4 }.asImmutable()

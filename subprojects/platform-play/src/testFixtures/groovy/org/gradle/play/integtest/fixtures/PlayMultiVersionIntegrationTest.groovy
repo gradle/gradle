@@ -16,13 +16,14 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
-@TargetCoverage({ JavaVersion.current().isJava8Compatible() ? PlayCoverage.ALL : PlayCoverage.PLAY23_OR_EARLIER })
+import static org.gradle.api.JavaVersion.current
+
+@TargetCoverage({ current().isJava9Compatible() ? PlayCoverage.JDK9_COMPATIBLE_VERSIONS : (current().isJava8Compatible() ? PlayCoverage.ALL : PlayCoverage.PLAY23_OR_EARLIER) })
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     static boolean isPlay22(def version) {
@@ -42,5 +43,4 @@ abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSp
         }
         return super.succeeds(tasks)
     }
-
 }
