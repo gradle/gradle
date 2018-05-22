@@ -17,13 +17,10 @@ package org.gradle.performance.regression.kotlindsl
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.gradle.testing.internal.util.RetryRule
-import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -32,9 +29,6 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 
 @Category(PerformanceRegressionTest)
 class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceTest {
-
-    @Rule
-    RetryRule retry = new PerformanceTestRetryRule()
 
     @Unroll
     def "help on #kotlinProject vs. help on #groovyProject"() {

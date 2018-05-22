@@ -24,11 +24,13 @@ import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.fixture.PerformanceTestRetryRule
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.DataReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testing.internal.util.RetryRule
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,28 +39,36 @@ import spock.lang.Specification
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final DataReporter<CrossBuildPerformanceResults> RESULT_STORE = new CrossBuildResultsStore()
 
+    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
-    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-
-    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
-        @Override
-        protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-            super.defaultSpec(builder)
-            builder.workingDirectory = temporaryFolder.testDirectory
-            AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
-        }
-
-        @Override
-        protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-            super.finalizeSpec(builder)
-            AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
-        }
-    }
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     @Rule
-    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
+    RetryRule retry = new PerformanceTestRetryRule()
+
+    CrossBuildPerformanceTestRunner runner
+
+    def setup() {
+        runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, buildContext) {
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                super.defaultSpec(builder)
+                builder.workingDirectory = temporaryFolder.testDirectory
+                AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
+            }
+
+            @Override
+            protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+                super.finalizeSpec(builder)
+                AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
+            }
+        }
+        performanceTestIdProvider.setTestSpec(runner)
+    }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
 
@@ -71,7 +81,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            ((Closeable)RESULT_STORE).close()
+            ((Closeable) RESULT_STORE).close()
         }
     }
 }
