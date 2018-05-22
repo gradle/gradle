@@ -63,6 +63,35 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     @Unroll
+    def "clean checkout of #testProject"() {
+        given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.tasksToRun = ['tasks']
+        runner.useDaemon = false
+        runner.targetVersions = ["4.9-20180516235936+0000"]
+        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
+            @Override
+            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+                runner.workingDir.eachDir {
+                    GFileUtils.deleteDirectory(new File(it, '.gradle'))
+                }
+            }
+        })
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject                   | _
+        LARGE_MONOLITHIC_JAVA_PROJECT | _
+        LARGE_JAVA_MULTI_PROJECT      | _
+    }
+
+    @Unroll
     def "cold daemon on #testProject"() {
         given:
         runner.testProject = testProject
