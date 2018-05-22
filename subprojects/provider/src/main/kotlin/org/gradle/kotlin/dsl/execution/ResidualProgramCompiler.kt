@@ -105,7 +105,7 @@ class ResidualProgramCompiler(
         val source = program.source
         val scriptFile = scriptFileFor(source)
         val scriptPath = source.path
-        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage1ScriptDefinition)
+        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage2ScriptDefinition)
         emitPrecompiledScriptPluginProgram(precompiledScriptClass)
     }
 
@@ -118,7 +118,7 @@ class ResidualProgramCompiler(
     }
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage1ScriptDefinition)
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
         emitPrecompiledStage2Program(precompiledScriptClass)
     }
 
@@ -238,7 +238,7 @@ class ResidualProgramCompiler(
     fun compileBuildscript(program: Program.Buildscript) =
         compileScript(
             program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
-            stage2ScriptDefinition)
+            stage1ScriptDefinition)
 
     private
     fun MethodVisitor.loadHashCode(hashCode: HashCode) {
@@ -352,16 +352,16 @@ class ResidualProgramCompiler(
     val stage1ScriptDefinition
         get() = scriptDefinitionFromTemplate(
             when (programTarget) {
-                ProgramTarget.Project -> KotlinBuildScript::class
-                ProgramTarget.Settings -> KotlinSettingsScript::class
+                ProgramTarget.Project -> KotlinBuildscriptBlock::class
+                ProgramTarget.Settings -> KotlinSettingsBuildscriptBlock::class
             })
 
     private
     val stage2ScriptDefinition
         get() = scriptDefinitionFromTemplate(
             when (programTarget) {
-                ProgramTarget.Project -> KotlinBuildscriptBlock::class
-                ProgramTarget.Settings -> KotlinSettingsBuildscriptBlock::class
+                ProgramTarget.Project -> KotlinBuildScript::class
+                ProgramTarget.Settings -> KotlinSettingsScript::class
             })
 
     private
