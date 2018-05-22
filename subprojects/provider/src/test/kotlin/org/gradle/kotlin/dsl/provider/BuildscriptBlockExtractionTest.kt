@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.kotlin.dsl.execution.UnexpectedBlock
 import org.gradle.kotlin.dsl.execution.extractBuildscriptBlockFrom
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
