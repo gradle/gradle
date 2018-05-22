@@ -657,8 +657,9 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing creation rule"
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
 
         and:
         provider.isPresent()
@@ -679,14 +680,18 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
         0 * _
     }
 
     void "fails later creation upon realizing through get() provider when creation rule throw exception"() {
+        given:
         def action = Mock(Action)
         def task = task("task")
-
-        given:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
         def creationProvider = container.createLater("task", DefaultTask, action)
         def provider = container.get(DefaultTask, "task")
 
@@ -694,8 +699,9 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing creation rule"
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
 
         and:
         provider.isPresent()
@@ -706,16 +712,21 @@ class DefaultTaskContainerTest extends Specification {
 
         and:
         creationProvider.isPresent()
-        creationProvider.get() == task
 
-        and:
-        1 * taskFactory.create("task", DefaultTask) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
+        when:
+        creationProvider.get() == task
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
 
         when:
         provider.get()
 
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
         0 * _
     }
 
@@ -738,17 +749,21 @@ class DefaultTaskContainerTest extends Specification {
     }
 
     void "fails later creation upon realizing through createLater provider when task instantiation is unsuccessful"() {
-        def action = Mock(Action)
 
         given:
+        def action = Mock(Action)
+        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        0 * action.execute(_)
+
         def provider = container.createLater("task", DefaultTask, action)
 
         when:
         provider.get()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing constructor"
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
 
         and:
         provider.isPresent()
@@ -756,24 +771,28 @@ class DefaultTaskContainerTest extends Specification {
         and:
         container.get(DefaultTask, "task").isPresent()
 
-        and:
-        container.findByName("task") == null
-
-        and:
-        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
-        0 * action.execute(_)
+        when:
+        container.findByName("task")
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
 
         when:
         provider.getOrNull()
 
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
         0 * _
     }
 
     void "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
-        def action = Mock(Action)
-
         given:
+        def action = Mock(Action)
+        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        0 * action.execute(_)
         def creationProvider = container.createLater("task", DefaultTask, action)
         def provider = container.get(DefaultTask, "task")
 
@@ -781,26 +800,26 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing constructor"
-
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
         and:
         provider.isPresent()
-
-        and:
         creationProvider.isPresent()
 
-        and:
-        container.findByName("task") == null
-
-        and:
-        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
-        0 * action.execute(_)
+        when:
+        container.findByName("task")
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
 
         when:
         provider.getOrNull()
-
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
         0 * _
     }
 
@@ -843,8 +862,9 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask)
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing withType configuration rule"
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing withType configuration rule"
 
         and:
         container.findByName("task") != null
@@ -898,8 +918,9 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEach configuration rule"
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
 
         and:
         provider.isPresent()
@@ -920,44 +941,47 @@ class DefaultTaskContainerTest extends Specification {
         provider.get()
 
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
         0 * _
     }
 
     void "fails later creation upon realizing through get() provider when task configuration via configureEach is unsuccessful"() {
+        given:
         def action = Mock(Action)
         def task = task("task")
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
-        given:
         container.withType(DefaultTask).configureEach(action)
         def creationProvider = container.createLater("task", DefaultTask)
         def provider = container.get(DefaultTask, "task")
 
         when:
         provider.get()
-
         then:
-        def ex = thrown(RuntimeException)
-        ex.message == "Failing configureEach configuration rule"
-
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
         and:
         provider.isPresent()
-
-        and:
-        container.findByName("task") != null
+        creationProvider.isPresent()
         container.findByName("task") == task
 
-        and:
-        creationProvider.isPresent()
-        creationProvider.get() == task
-
-        and:
-        1 * taskFactory.create("task", DefaultTask) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
+        when:
+        creationProvider.get()
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
 
         when:
         provider.get()
-
         then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
         0 * _
     }
 

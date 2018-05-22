@@ -566,8 +566,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
-        boolean failed = false;
+        private T task;
+        private Throwable cause;
 
         public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
@@ -579,25 +579,32 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public T getOrNull() {
+            if (cause != null) {
+                throw throwFailure();
+            }
             if (task == null) {
                 task = type.cast(findByNameWithoutRules(name));
-                if (task == null && !failed) {
+                if (task == null) {
                     try {
                         task = createTask(name, type, NO_ARGS);
                         statistics.lazyTaskRealized(type);
                         add(task);
                     } catch (RuntimeException ex) {
-                        failed = true;
-                        throw ex;
+                        cause = ex;
+                        throw throwFailure();
                     }
                 }
             }
             return task;
         }
+
+        private IllegalStateException throwFailure() {
+            throw new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
+        }
     }
 
     private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
+        private T task;
 
         public TaskLookupProvider(Class<T> type, String name) {
             super(type, name);
@@ -606,7 +613,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (task == null) {
-                task = type.cast(findByName(name));
+                task = type.cast(getByName(name));
             }
             return task;
         }
