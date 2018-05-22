@@ -569,7 +569,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.get(Task, "task")
+        def provider = container.named("task")
 
         then:
         !provider.present
@@ -598,7 +598,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.get(Task, "task")
+        def provider = container.named("task")
         and:
         provider.configure(deferredAction)
         then:
@@ -638,8 +638,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -668,8 +668,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -688,7 +688,7 @@ class DefaultTaskContainerTest extends Specification {
 
         given:
         def creationProvider = container.createLater("task", DefaultTask, action)
-        def provider = container.get(DefaultTask, "task")
+        def provider = container.withType(DefaultTask).named("task")
 
         when:
         provider.get()
@@ -754,7 +754,7 @@ class DefaultTaskContainerTest extends Specification {
         !provider.isPresent()
 
         and:
-        !container.get(DefaultTask, "task").isPresent()
+        !container.withType(DefaultTask).named("task").isPresent()
 
         and:
         container.findByName("task") == null
@@ -775,7 +775,7 @@ class DefaultTaskContainerTest extends Specification {
 
         given:
         def creationProvider = container.createLater("task", DefaultTask, action)
-        def provider = container.get(DefaultTask, "task")
+        def provider = container.withType(DefaultTask).named("task")
 
         when:
         provider.get()
@@ -823,8 +823,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -851,8 +851,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -878,8 +878,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -909,8 +909,8 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == task
 
         and:
-        container.get(DefaultTask, "task").isPresent()
-        container.get(DefaultTask, "task").get() == task
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
 
         and:
         1 * taskFactory.create("task", DefaultTask) >> task
@@ -930,7 +930,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         container.withType(DefaultTask).configureEach(action)
         def creationProvider = container.createLater("task", DefaultTask)
-        def provider = container.get(DefaultTask, "task")
+        def provider = container.withType(DefaultTask).named("task")
 
         when:
         provider.get()
@@ -969,7 +969,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task")
 
         when:
-        def provider = container.get(Task, "task")
+        def provider = container.named("task")
 
         then:
         provider.present
@@ -1062,7 +1062,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "get() fails if unknown task is requested"() {
         when:
-        container.get(DefaultTask, "unknown")
+        container.withType(DefaultTask).named("unknown")
 
         then:
         def ex = thrown(UnknownTaskException)
@@ -1075,22 +1075,22 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", DefaultTask)
 
         when:
-        container.get(CustomTask, "task")
+        container.withType(CustomTask).named("task")
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${DefaultTask.name} expected ${CustomTask.name}."
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
     void "get() fails if lazily created task type is not a subtype"() {
         container.createLater("task", DefaultTask)
 
         when:
-        container.get(CustomTask, "task")
+        container.withType(CustomTask).named("task")
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${DefaultTask.name} expected ${CustomTask.name}."
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
         0 * taskFactory.create("task", DefaultTask)
     }
 
@@ -1100,7 +1100,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", CustomTask)
 
         when:
-        container.get(Task, "task")
+        container.named("task")
 
         then:
         noExceptionThrown()
@@ -1110,7 +1110,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", CustomTask)
 
         when:
-        container.get(Task, "task")
+        container.named("task")
 
         then:
         noExceptionThrown()
@@ -1123,7 +1123,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", DefaultTask)
 
         when:
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
         noExceptionThrown()
@@ -1134,7 +1134,7 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask)
 
         when:
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
         noExceptionThrown()
@@ -1149,15 +1149,15 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task", CustomTask)
 
         when:
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${customTask.class.name} expected ${DefaultTask.name}."
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
         noExceptionThrown()
@@ -1168,16 +1168,16 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", CustomTask)
 
         when:
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Task with name 'task' exists in Mock for type 'ProjectInternal' named '<project>', but task does not have requested type. Found ${CustomTask.name} expected ${DefaultTask.name}."
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
         0 * taskFactory.create("task", CustomTask)
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
-        container.get(DefaultTask, "task")
+        container.withType(DefaultTask).named("task")
 
         then:
         noExceptionThrown()

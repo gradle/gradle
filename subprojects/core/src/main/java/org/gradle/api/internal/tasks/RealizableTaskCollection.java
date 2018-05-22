@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Namer;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
@@ -26,6 +27,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
@@ -275,5 +277,10 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     @Override
     public void clear() {
         delegate.clear();
+    }
+
+    @Override
+    public TaskProvider<T> named(String name) throws InvalidUserDataException {
+        return delegate.named(name);
     }
 }

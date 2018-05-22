@@ -17,15 +17,18 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.AbstractProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
@@ -76,7 +79,85 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
-    protected UnknownDomainObjectException createNotFoundException(String name) {
+    protected UnknownTaskException createNotFoundException(String name) {
         return new UnknownTaskException(String.format("Task with name '%s' not found in %s.", name, project));
+    }
+
+    @Override
+    public TaskProvider<T> named(String name) throws UnknownTaskException {
+        Task task = findByNameWithoutRules(name);
+        Class<T> type = (Class<T>) getType();
+        if (task == null) {
+            ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
+            if (taskProvider == null) {
+                throw createNotFoundException(name);
+            }
+            return (TaskProvider<T>) taskProvider;
+        }
+
+        return new TaskLookupProvider<T>(type, name);
+    }
+
+    protected abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
+        final Class<T> type;
+        final String name;
+        boolean removed = false;
+
+        DefaultTaskProvider(Class<T> type, String name) {
+            this.type = type;
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Class<T> getType() {
+            return type;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return findByNameWithoutRules(name) != null;
+        }
+
+        @Override
+        public void configure(final Action<? super T> action) {
+            configureEach(new Action<Task>() {
+                private boolean alreadyExecuted = false;
+
+                @Override
+                public void execute(Task task) {
+                    // Task specific configuration action should only be executed once
+                    if (task.getName().equals(name) && !removed && !alreadyExecuted) {
+                        alreadyExecuted = true;
+                        action.execute((T)task);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public String toString() {
+            return String.format("provider(task %s, %s)", name, type);
+        }
+    }
+
+    private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
+        T task;
+
+        public TaskLookupProvider(Class<T> type, String name) {
+            super(type, name);
+        }
+
+        @Override
+        public T getOrNull() {
+            if (task == null) {
+                task = type.cast(findByName(name));
+            }
+            return task;
+        }
     }
 }

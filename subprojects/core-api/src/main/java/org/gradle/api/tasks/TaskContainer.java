@@ -59,20 +59,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     Task getByPath(String path) throws UnknownTaskException;
 
     /**
-     * Locates a task by type and name, without triggering its creation or configuration, failing if there is no such object.
-     *
-     *
-     * @param type The task type
-     * @param name The task name
-     * @param <T> The task type
-     * @return A {@link Provider} that will return the task when queried. The task may be created and configured at this point, if not already.
-     * @throws InvalidUserDataException If a task with the given name and type is not defined.
-     * @since 4.9
-     */
-    @Incubating
-    <T extends Task> TaskProvider<T> get(Class<T> type, String name) throws InvalidUserDataException;
-
-    /**
      * <p>Creates a {@link Task} and adds it to this container. A map of creation options can be passed to this method
      * to control how the task is created. The following options are available:</p>
      *
