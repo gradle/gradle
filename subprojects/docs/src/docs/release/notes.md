@@ -7,6 +7,7 @@ The publishing plugins get some much-needed improvements in this release:
 
  * The Signing Plugin now supports [signing all artifacts of a publication](#signing-publications).
  * The Maven Publish Plugin now provides a dedicated, type-safe [DSL to customize the POM generated](#customizing-the-generated-pom) as part of a Maven publication.
+ * The Ivy Publish Plugin now provides a dedicated, type-safe [DSL to customize the Ivy module descriptor generated](#customizing-the-generated-ivy-module-descriptor) as part of an Ivy publication.
  * Configuration-wide [dependency excludes are now published](#configuration-wide-dependency-excludes-are-now-published)
 
 The `maven-publish` and `ivy-publish` plugins are now considered stable and use of the `maven` plugin is discouraged as it will eventually be deprecated — please migrate.
@@ -123,6 +124,32 @@ The [Maven Publish Plugin](userguide/publishing_maven.html) now provides a dedic
       }
     }
 
+### Customizing the generated Ivy module descriptor
+
+The [Ivy Publish Plugin](userguide/publishing_ivy.html) now provides a dedicated, type safe DSL to customize the Ivy module descriptor generated as part of an Ivy publication. The following sample demonstrates the new properties and methods. Please see the [DSL Reference](dsl/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html) for the complete documentation.
+
+    publishing {
+      publications {
+        ivyJava(IvyPublication) {
+          from components.java
+          descriptor {
+            license {
+              name = "The Apache License, Version 2.0"
+              url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+            author {
+              name = "Jane Doe"
+              url = "http://example.com/users/jane"
+            }
+            description {
+              text = "A concise description of my library"
+              homepage = "http://www.example.com/library"
+            }
+          }
+        }
+      }
+    }
+
 ### Configuration-wide dependency excludes are now published
 
 The [Ivy Publish Plugin](userguide/publishing_ivy.html) now writes dependency exclude rules defined on a configuration (instead of on an individual dependency) into the generated Ivy module descriptor; the [Maven Publish Plugin](userguide/publishing_maven.html) now repeats them for each dependency in the generated POM.
@@ -212,7 +239,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Ivy Publish and Maven Publish Plugins marked stable
 
-The [Ivy Publish Plugin](userguide/publishing_ivy.html) and [Maven Publish Plugin](userguide/publishing_maven.html) that have been _incubating_ since Gradle 1.3 are now marked as stable. Both plugins now [support signing](#signing-publications) and [publish configuration-wide dependency excludes](#configuration-wide-dependency-excludes-are-now-published). The [Maven Publish Plugin](userguide/publishing_maven.html) introduces a new dedicated DSL for [customizing the generated POM](#customizing-the-generated-pom). In addition, some usage quirks with the `publishing` extension have been addressed which now [behaves like other extension objects](https://github.com/gradle/gradle/issues/4945). Thus, these plugins are now the preferred option for publishing artifacts to Ivy and Maven repositories, respectively.
+The [Ivy Publish Plugin](userguide/publishing_ivy.html) and [Maven Publish Plugin](userguide/publishing_maven.html) that have been _incubating_ since Gradle 1.3 are now marked as stable. Both plugins now [support signing](#signing-publications), [publish configuration-wide dependency excludes](#configuration-wide-dependency-excludes-are-now-published), and provide new dedicated DSLs for customizing generated [POMs](#customizing-the-generated-pom) or [Ivy module descriptors](#customizing-the-generated-ivy-module-descriptor). In addition, some usage quirks with the `publishing` extension have been addressed which now [behaves like other extension objects](https://github.com/gradle/gradle/issues/4945). Thus, these plugins are now the preferred option for publishing artifacts to Ivy and Maven repositories, respectively.
 
 ## Fixed issues
 

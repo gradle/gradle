@@ -55,6 +55,8 @@ import org.gradle.internal.HasInternalProtocol;
  * You can also completely replace the set of published artifacts using {@link #setArtifacts(Iterable)}.
  * Together, these methods give you full control over the artifacts to be published.
  * </p><p>
+ * In addition, {@link IvyModuleDescriptorSpec} provides configuration methods to customize licenses, authors, and the description to be published in the Ivy module descriptor.
+ * </p><p>
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
  * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
@@ -77,8 +79,16 @@ import org.gradle.internal.HasInternalProtocol;
  *         extension "src.jar"
  *         conf "runtime"
  *       }
- *       descriptor.withXml {
- *         asNode().info[0].appendNode("description", "custom-description")
+ *       descriptor {
+ *         license {
+ *           name = "Custom License"
+ *         }
+ *         author {
+ *           name = "Custom Name"
+ *         }
+ *         description {
+ *           text = "Custom Description"
+ *         }
  *       }
  *     }
  *   }

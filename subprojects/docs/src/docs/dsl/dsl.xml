@@ -222,6 +222,15 @@
                 <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
             </tr>
             <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorLicense</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptorDescription</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.maven.MavenPublication</td>
             </tr>
             <tr>
