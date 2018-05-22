@@ -97,7 +97,7 @@ class GradleUserHomeScopeServicesTest extends Specification {
             _ * it.decorator(_, _) >> Mock(CacheDecorator)
         }
         expectParentServiceLocated(CacheFactory) {
-            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> Mock(File) }
+            _ * it.open(_, _, _, _, _, _, _, _) >> Mock(PersistentCache) { _ * getBaseDir() >> new File("").absoluteFile }
         }
         expectParentServiceLocated(LoggingManagerInternal)
         expectParentServiceLocated(Clock)
