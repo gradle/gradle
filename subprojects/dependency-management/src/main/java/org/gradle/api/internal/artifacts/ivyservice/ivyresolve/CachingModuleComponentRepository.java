@@ -230,7 +230,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetadataCache.CachedMetadata cachedMetadata) {
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata();
             if (metadata == null) {
-                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
+                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata(), cachePolicy);
                 // Save the processed metadata for next time.
                 cachedMetadata.setProcessedMetadata(metadata);
             }
@@ -385,7 +385,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
                     ModuleSource moduleSource = resolvedMetadata.getSource();
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
-                    ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
+                    ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata, cachePolicy);
                     cachedMetadata.setProcessedMetadata(processedMetadata);
                     moduleSource = new CachingModuleSource(processedMetadata.getContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
                     result.resolved(processedMetadata.withSource(moduleSource));

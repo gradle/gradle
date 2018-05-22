@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -51,6 +52,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
+    final IsolatableFactory isolatableFactory = TestUtil.valueSnapshotter()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
         resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, TestUtil.valueSnapshotter())
@@ -179,8 +181,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def supplier = resolver.componentMetadataSupplier
 
         then:
-        supplier.rule.ruleClass == CustomMetadataSupplier
-        supplier.rule.ruleParams.isolate() == [] as Object[]
+        supplier.rules.configurableRules[0].ruleClass == CustomMetadataSupplier
+        supplier.rules.configurableRules[0].ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -197,8 +199,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def supplier = resolver.getComponentMetadataSupplier()
 
         then:
-        supplier.rule.ruleClass == CustomMetadataSupplierWithParams
-        supplier.rule.ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
+        supplier.rules.configurableRules[0].ruleClass == CustomMetadataSupplierWithParams
+        supplier.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -214,8 +216,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister.rule.ruleClass == CustomVersionLister
-        lister.rule.ruleParams.isolate() == [] as Object[]
+        lister.rules.configurableRules[0].ruleClass == CustomVersionLister
+        lister.rules.configurableRules[0].ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom version lister"() {
@@ -231,8 +233,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister.rule.ruleClass == CustomVersionListerWithParams
-        lister.rule.ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
+        lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
+        lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

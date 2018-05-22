@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 
-public class DefaultComponentMetadataContext implements ComponentMetadataContext {
+class DefaultComponentMetadataContext implements ComponentMetadataContext {
 
     private final ComponentMetadataDetails details;
     private final ModuleComponentResolveMetadata metadata;
 
-    public DefaultComponentMetadataContext(ComponentMetadataDetails details, ModuleComponentResolveMetadata metadata) {
+    DefaultComponentMetadataContext(ComponentMetadataDetails details, ModuleComponentResolveMetadata metadata) {
         this.details = details;
         this.metadata = metadata;
     }

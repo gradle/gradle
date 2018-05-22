@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -34,6 +35,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserProvidedMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
@@ -47,13 +49,16 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
 import org.gradle.internal.rules.DefaultRuleActionValidator;
 import org.gradle.internal.rules.RuleAction;
@@ -64,6 +69,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -75,34 +81,37 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     private final Instantiator instantiator;
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
-    private final Set<SpecRuleAction<? super ComponentMetadataContext>> classBasedRules = Sets.newLinkedHashSet();
+    private final Set<SpecConfigurableRule> classBasedRules = Sets.newLinkedHashSet();
     private final RuleActionAdapter ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final ImmutableAttributesFactory attributesFactory;
     private final IsolatableFactory isolatableFactory;
+    private final ComponentMetadataRuleExecutor ruleExecutor;
 
     DefaultComponentMetadataHandler(Instantiator instantiator,
-                                           RuleActionAdapter ruleActionAdapter,
-                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                           Interner<String> stringInterner,
-                                           ImmutableAttributesFactory attributesFactory,
-                                           IsolatableFactory isolatableFactory) {
+                                    RuleActionAdapter ruleActionAdapter,
+                                    ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                    Interner<String> stringInterner,
+                                    ImmutableAttributesFactory attributesFactory,
+                                    IsolatableFactory isolatableFactory,
+                                    ComponentMetadataRuleExecutor ruleExecutor) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
             .toType(ModuleIdentifier.class)
             .converter(new ModuleIdentifierNotationConverter(moduleIdentifierFactory))
             .toComposite();
+        this.ruleExecutor = ruleExecutor;
         this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner);
         this.dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, stringInterner);
         this.attributesFactory = attributesFactory;
         this.isolatableFactory = isolatableFactory;
     }
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory) {
-        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory);
+    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor ruleExecutor) {
+        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor);
     }
 
     private static RuleActionAdapter createAdapter() {
@@ -118,7 +127,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return this;
     }
 
-    private ComponentMetadataHandler addClassBasedRule(SpecRuleAction<? super ComponentMetadataContext> ruleAction) {
+    private ComponentMetadataHandler addClassBasedRule(SpecConfigurableRule ruleAction) {
         classBasedRules.add(ruleAction);
         return this;
     }
@@ -138,19 +147,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
         Spec<ComponentMetadataDetails> spec = new ComponentMetadataDetailsMatchingSpec(moduleIdentifier);
         return new SpecRuleAction<ComponentMetadataDetails>(ruleAction, spec);
-    }
-
-    private SpecRuleAction<? super ComponentMetadataContext> createSpecRuleContextActionForModule(Object id, RuleAction<? super ComponentMetadataContext> ruleAction) {
-        ModuleIdentifier moduleIdentifier;
-
-        try {
-            moduleIdentifier = moduleIdentifierNotationParser.parseNotation(id);
-        } catch (UnsupportedNotationException e) {
-            throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
-        }
-
-        Spec<ComponentMetadataContext> spec = new ComponentMetadataContextMatchingSpec(moduleIdentifier);
-        return new SpecRuleAction<ComponentMetadataContext>(ruleAction, spec);
     }
 
     public ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule) {
@@ -179,32 +175,51 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler()))));
+        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.<ComponentMetadataContext>of(rule)));
     }
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory), instantiator, new ExceptionHandler()))));
+        return addClassBasedRule(createAllSpecConfigurableRule(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory)));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler()))));
+        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.<ComponentMetadataContext>of(rule)));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory), instantiator, new ExceptionHandler()))));
+        return addClassBasedRule(createModuleSpecConfigurableRule(id, DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory)));
     }
 
-    public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
+    private SpecConfigurableRule createModuleSpecConfigurableRule(Object id, ConfigurableRule<ComponentMetadataContext> instantiatingAction) {
+        ModuleIdentifier moduleIdentifier;
+
+        try {
+            moduleIdentifier = moduleIdentifierNotationParser.parseNotation(id);
+        } catch (UnsupportedNotationException e) {
+            throw new InvalidUserCodeException(String.format(INVALID_SPEC_ERROR, id == null ? "null" : id.toString()), e);
+        }
+
+        Spec<ModuleVersionIdentifier> spec = new ModuleVersionIdentifierSpec(moduleIdentifier);
+        return new SpecConfigurableRule(instantiatingAction, spec);
+    }
+
+    private SpecConfigurableRule createAllSpecConfigurableRule(ConfigurableRule<ComponentMetadataContext> instantiatingAction) {
+        return new SpecConfigurableRule(instantiatingAction, Specs.<ModuleVersionIdentifier>satisfyAll());
+    }
+
+    public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy) {
         ModuleComponentResolveMetadata updatedMetadata;
         if (rules.isEmpty() && classBasedRules.isEmpty()) {
             updatedMetadata = metadata;
+        } else if (rules.isEmpty()) {
+            updatedMetadata = processClassRuleWithCaching(metadata, cachePolicy);
         } else {
             MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
             ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
-            processAllRules(metadata, details);
+            processAllRules(metadata, details, metadata.getModuleVersionId());
             updatedMetadata = mutableMetadata.asImmutable();
         }
 
@@ -217,11 +232,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     @Override
     public ComponentMetadata processMetadata(ComponentMetadata metadata) {
         ComponentMetadata updatedMetadata;
-        if (rules.isEmpty()) {
+        if (rules.isEmpty() && classBasedRules.isEmpty()) {
             updatedMetadata = metadata;
         } else {
             ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
-            processAllRules(null, details);
+            processAllRules(null, details, metadata.getId());
             updatedMetadata = details.asImmutable();
         }
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
@@ -230,30 +245,60 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return updatedMetadata;
     }
 
-    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
+    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
             processRule(rule, metadata, details);
         }
-        for (SpecRuleAction<? super ComponentMetadataContext> rule : classBasedRules) {
-            processClassRule(rule, metadata, details);
-        }
+        processClassRule(metadata, details, id);
     }
 
-    private void processClassRule(SpecRuleAction<? super ComponentMetadataContext> specRuleAction, ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
+    private void processClassRule(final ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details, ModuleVersionIdentifier id) {
+        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(id);
+
         DefaultComponentMetadataContext componentMetadataContext = new DefaultComponentMetadataContext(details, metadata);
-        if (!specRuleAction.getSpec().isSatisfiedBy(componentMetadataContext)) {
-            return;
-        }
-        final RuleAction<? super ComponentMetadataContext> action = specRuleAction.getAction();
         try {
             synchronized (this) {
-                action.execute(componentMetadataContext, Collections.emptyList());
+                action.execute(componentMetadataContext);
             }
         } catch (InvalidUserCodeException e) {
             throw e;
         } catch (Exception e) {
             throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", details.getId()), e);
         }
+    }
+
+    private ModuleComponentResolveMetadata processClassRuleWithCaching(final ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy) {
+        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(metadata.getModuleVersionId());
+        try {
+            synchronized (this) {
+                return ruleExecutor.execute(metadata, action, new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
+                        @Override
+                        public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
+                            return componentMetadataContext.getMutableMetadata().asImmutable();
+                        }
+                    },
+                    new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
+                        @Override
+                        public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
+                            return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
+                        }
+                    }, cachePolicy);
+            }
+        } catch (InvalidUserCodeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
+        }
+    }
+
+    private InstantiatingAction<ComponentMetadataContext> collectRulesAndCreateAction(ModuleVersionIdentifier id) {
+        ArrayList<ConfigurableRule<ComponentMetadataContext>> rules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
+        for (SpecConfigurableRule classBasedRule : classBasedRules) {
+            if (classBasedRule.getSpec().isSatisfiedBy(id)) {
+                rules.add(classBasedRule.getConfigurableRule());
+            }
+        }
+        return new InstantiatingAction<ComponentMetadataContext>(new DefaultConfigurableRules<ComponentMetadataContext>(rules), instantiator, new ExceptionHandler());
     }
 
 
@@ -308,15 +353,14 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    static class ComponentMetadataContextMatchingSpec implements Spec<ComponentMetadataContext> {
+    static class ModuleVersionIdentifierSpec implements Spec<ModuleVersionIdentifier> {
         private ModuleIdentifier target;
 
-        ComponentMetadataContextMatchingSpec(ModuleIdentifier target) {
+        ModuleVersionIdentifierSpec(ModuleIdentifier target) {
             this.target = target;
         }
 
-        public boolean isSatisfiedBy(ComponentMetadataContext componentMetadataContext) {
-            ModuleVersionIdentifier identifier = componentMetadataContext.getDetails().getId();
+        public boolean isSatisfiedBy(ModuleVersionIdentifier identifier) {
             return identifier.getGroup().equals(target.getGroup()) && identifier.getName().equals(target.getName());
         }
     }
