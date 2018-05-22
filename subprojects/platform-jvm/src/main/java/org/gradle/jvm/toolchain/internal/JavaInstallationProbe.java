@@ -99,6 +99,9 @@ public class JavaInstallationProbe {
         }
 
         public void configure(LocalJavaInstallation install) {
+            if (error != null) {
+                throw new IllegalStateException("Unable to configure Java installation, probing failed with the following message: " + error);
+            }
             JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
             install.setJavaVersion(javaVersion);
             String jdkName = computeJdkName(installType, metadata);
