@@ -227,7 +227,11 @@ class Interpreter(val host: Host) {
         val classesDir =
             cachedDir.resolve("stage1")
 
-        return loadClassInChildScopeOf(baseScope, scriptPath, classesDir, "stage1")
+        return loadClassInChildScopeOf(
+            baseScope,
+            scriptPath,
+            classesDir,
+            "stage1")
     }
 
     private
