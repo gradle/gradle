@@ -982,7 +982,7 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
-    def "can cache the result of processing a rule accross projects"() {
+    def "can cache the result of processing a rule across projects"() {
         settingsFile << """
             include 'b'
         """
@@ -1032,8 +1032,8 @@ group:projectB:2.2;release
 
         then:
         noExceptionThrown()
-        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:2.2"
-        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:1.1"
+        result.assertRawOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:2.2"
+        result.assertRawOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
     }
 
     def "changing the implementation of a rule invalidates the cache"() {

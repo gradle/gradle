@@ -26,6 +26,7 @@ import org.gradle.api.attributes.DisambiguationRuleChain;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.type.ModelType;
@@ -46,12 +47,14 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule, Action<? super ActionConfiguration> configureAction) {
-        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule, configureAction, isolatableFactory), instantiator, new ExceptionHandler<T>(rule)));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRules.of(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule, configureAction, isolatableFactory)),
+                        instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override
     public void add(final Class<? extends AttributeDisambiguationRule<T>> rule) {
-        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule), instantiator, new ExceptionHandler<T>(rule)));
+        this.rules.add(new InstantiatingAction<MultipleCandidatesDetails<T>>(DefaultConfigurableRules.of(DefaultConfigurableRule.<MultipleCandidatesDetails<T>>of(rule)),
+                        instantiator, new ExceptionHandler<T>(rule)));
     }
 
     @Override

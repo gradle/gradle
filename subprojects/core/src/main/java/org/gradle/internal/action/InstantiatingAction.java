@@ -20,32 +20,34 @@ import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 
 public class InstantiatingAction<DETAILS> implements Action<DETAILS> {
-    private final ConfigurableRule<DETAILS> rule;
+    private final ConfigurableRules<DETAILS> rules;
     private final Instantiator instantiator;
     private final ExceptionHandler<DETAILS> exceptionHandler;
 
-    public InstantiatingAction(ConfigurableRule<DETAILS> rule, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler) {
-        this.rule = rule;
+    public InstantiatingAction(ConfigurableRules<DETAILS> rules, Instantiator instantiator, ExceptionHandler<DETAILS> exceptionHandler) {
+        this.rules = rules;
         this.instantiator = instantiator;
         this.exceptionHandler = exceptionHandler;
     }
 
     public InstantiatingAction<DETAILS> withInstantiator(Instantiator instantiator) {
-        return new InstantiatingAction<DETAILS>(rule, instantiator, exceptionHandler);
+        return new InstantiatingAction<DETAILS>(rules, instantiator, exceptionHandler);
     }
 
     @Override
     public void execute(DETAILS target) {
-        try {
-            Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams().isolate());
-            instance.execute(target);
-        } catch (Throwable t) {
-            exceptionHandler.handleException(target, t);
+        for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
+            try {
+                Action<DETAILS> instance = instantiator.newInstance(rule.getRuleClass(), rule.getRuleParams().isolate());
+                instance.execute(target);
+            } catch (Throwable t) {
+                exceptionHandler.handleException(target, t);
+            }
         }
     }
 
-    public ConfigurableRule<DETAILS> getRule() {
-        return rule;
+    public ConfigurableRules<DETAILS> getRules() {
+        return rules;
     }
 
     public Instantiator getInstantiator() {
