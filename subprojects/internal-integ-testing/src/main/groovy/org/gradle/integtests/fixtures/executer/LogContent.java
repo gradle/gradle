@@ -244,7 +244,7 @@ public class LogContent {
         return WORK_IN_PROGRESS_AREA_PATTERN.matcher(result).replaceAll("");
     }
 
-    private static String stripJavaIllegalAccessWarnings(String result) {
+    public static String stripJavaIllegalAccessWarnings(String result) {
         return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
     }
 
