@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
-
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.tools.FileObject;
@@ -29,38 +27,43 @@ import java.io.IOException;
  * A decorator for the {@link Filer} which ensures that incremental
  * annotation processors don't break the incremental processing contract.
  */
-abstract class IncrementalFiler implements Filer {
-    protected final Filer delegate;
-    protected final AnnotationProcessingResult result;
+public class IncrementalFiler implements Filer {
+    private final Filer delegate;
+    private IncrementalProcessingStrategy strategy;
 
-    IncrementalFiler(Filer delegate, AnnotationProcessingResult result) {
+    IncrementalFiler(Filer delegate, IncrementalProcessingStrategy strategy) {
         this.delegate = delegate;
-        this.result = result;
+        setStrategy(strategy);
+    }
+
+    public void setStrategy(IncrementalProcessingStrategy strategy) {
+        if (strategy == null) {
+            throw new NullPointerException("strategy");
+        }
+        this.strategy = strategy;
     }
 
     @Override
     public final JavaFileObject createSourceFile(CharSequence name, Element... originatingElements) throws IOException {
-        recordGeneratedType(name, originatingElements);
+        strategy.recordGeneratedType(name, originatingElements);
         return delegate.createSourceFile(name, originatingElements);
     }
 
     @Override
     public final JavaFileObject createClassFile(CharSequence name, Element... originatingElements) throws IOException {
-        recordGeneratedType(name, originatingElements);
+        strategy.recordGeneratedType(name, originatingElements);
         return delegate.createClassFile(name, originatingElements);
     }
 
-    protected abstract void recordGeneratedType(CharSequence name, Element[] originatingElements);
-
     @Override
     public final FileObject createResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element... originatingElements) throws IOException {
-        result.setFullRebuildCause("incremental annotation processors are not allowed to create resources");
+        strategy.recordGeneratedResource(location, pkg, relativeName, originatingElements);
         return delegate.createResource(location, pkg, relativeName, originatingElements);
     }
 
     @Override
     public final FileObject getResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName) throws IOException {
-        result.setFullRebuildCause("incremental annotation processors are not allowed to read resources");
+        strategy.recordAccessedResource(location, pkg, relativeName);
         return delegate.getResource(location, pkg, relativeName);
     }
 }
