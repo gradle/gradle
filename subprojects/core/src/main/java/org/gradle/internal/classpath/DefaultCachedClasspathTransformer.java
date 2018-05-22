@@ -21,11 +21,13 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
@@ -49,8 +52,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withCleanup(new FixedAgeOldestCacheCleanup(DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .open();
-        this.jarFileTransformer = new CachedJarFileTransformer(jarCache, cache, fileStores);
+        this.jarFileTransformer = new TouchingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores));
     }
 
     @Override
@@ -83,19 +87,19 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         cache.close();
     }
 
-    private static class CachedJarFileTransformer implements Transformer<File, File> {
+    private class CachedJarFileTransformer implements Transformer<File, File> {
         private final JarCache jarCache;
-        private final PersistentCache cache;
+        private final Factory<File> baseDir;
         private final List<String> prefixes;
 
-        CachedJarFileTransformer(JarCache jarCache, PersistentCache cache, List<CachedJarFileStore> fileStores) {
+        CachedJarFileTransformer(JarCache jarCache, List<CachedJarFileStore> fileStores) {
             this.jarCache = jarCache;
-            this.cache = cache;
+            baseDir = Factories.constant(cache.getBaseDir());
             prefixes = new ArrayList<String>(fileStores.size() + 1);
-            prefixes.add(cache.getBaseDir().getAbsolutePath() + File.separator);
+            prefixes.add(directoryPrefix(cache.getBaseDir()));
             for (CachedJarFileStore fileStore : fileStores) {
                 for (File rootDir : fileStore.getFileStoreRoots()) {
-                    prefixes.add(rootDir.getAbsolutePath() + File.separator);
+                    prefixes.add(directoryPrefix(rootDir));
                 }
             }
         }
@@ -105,24 +109,56 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             if (shouldUseFromCache(original)) {
                 return cache.useCache(new Factory<File>() {
                     public File create() {
-                        return jarCache.getCachedJar(original, Factories.constant(cache.getBaseDir()));
+                        return jarCache.getCachedJar(original, baseDir);
                     }
                 });
-            } else {
-                return original;
             }
+            return original;
         }
 
         private boolean shouldUseFromCache(File original) {
             if (!original.isFile()) {
                 return false;
             }
+            String absolutePath = original.getAbsolutePath();
             for (String prefix : prefixes) {
-                if (original.getAbsolutePath().startsWith(prefix)) {
+                if (absolutePath.startsWith(prefix)) {
                     return false;
                 }
             }
             return true;
         }
+    }
+
+    private class TouchingJarFileTransformer implements Transformer<File, File> {
+
+        private final Transformer<File, File> delegate;
+        private final File baseDir;
+        private final String baseDirPrefix;
+
+        TouchingJarFileTransformer(Transformer<File, File> delegate) {
+            this.delegate = delegate;
+            this.baseDir = cache.getBaseDir();
+            this.baseDirPrefix = directoryPrefix(baseDir);
+        }
+
+        @Override
+        public File transform(File file) {
+            File result = delegate.transform(file);
+            if (result.getAbsolutePath().startsWith(baseDirPrefix)) {
+                File child = result;
+                while (child != null && !child.getParentFile().equals(baseDir)) {
+                    child = child.getParentFile();
+                }
+                if (child != null) {
+                    GFileUtils.touchExisting(child);
+                }
+            }
+            return result;
+        }
+    }
+
+    private static String directoryPrefix(File dir) {
+        return dir.getAbsolutePath() + File.separator;
     }
 }
