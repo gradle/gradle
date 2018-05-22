@@ -213,14 +213,8 @@ class ResidualProgramCompiler(
         ALOAD(2) // scriptHost
         ALOAD(3)
         ALOAD(4)
-        GETSTATIC(
-            "org/gradle/kotlin/dsl/execution/ProgramKind",
-            programKind.name,
-            "Lorg/gradle/kotlin/dsl/execution/ProgramKind;")
-        GETSTATIC(
-            "org/gradle/kotlin/dsl/execution/ProgramTarget",
-            programTarget.name,
-            "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;")
+        GETSTATIC(programKind)
+        GETSTATIC(programTarget)
         invokeHost(
             ExecutableProgram.Host::compileSecondStageScript.name,
             "(" +
@@ -552,6 +546,13 @@ fun MethodVisitor.TRY_CATCH(
 
 
 private
+fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
+    val owner = field.declaringClass.internalName
+    GETSTATIC(owner, field.name, "L$owner;")
+}
+
+
+private
 fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
     visitFieldInsn(Opcodes.GETSTATIC, owner, name, desc)
 }
@@ -559,4 +560,9 @@ fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
 
 private
 val KClass<*>.internalName: String
-    get() = Type.getInternalName(java)
+    get() = java.internalName
+
+
+private
+inline val Class<*>.internalName: String
+    get() = Type.getInternalName(this)
