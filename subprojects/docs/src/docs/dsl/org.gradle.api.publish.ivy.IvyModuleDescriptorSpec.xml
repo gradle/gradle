@@ -32,6 +32,15 @@
             <tr>
                 <td>extraInfo</td>
             </tr>
+            <tr>
+                <td>author</td>
+            </tr>
+            <tr>
+                <td>license</td>
+            </tr>
+            <tr>
+                <td>description</td>
+            </tr>
         </table>
     </section>
 </section>

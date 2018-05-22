@@ -19,7 +19,9 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
@@ -107,6 +109,16 @@ public class GenerateIvyDescriptor extends DefaultTask {
         ivyGenerator.setStatus(descriptorInternal.getStatus());
         ivyGenerator.setBranch(descriptorInternal.getBranch());
         ivyGenerator.setExtraInfo(descriptorInternal.getExtraInfo().asMap());
+
+        for (IvyModuleDescriptorAuthor ivyAuthor : descriptorInternal.getAuthors()) {
+            ivyGenerator.addAuthor(ivyAuthor);
+        }
+
+        for (IvyModuleDescriptorLicense ivyLicense : descriptorInternal.getLicenses()) {
+            ivyGenerator.addLicense(ivyLicense);
+        }
+
+        ivyGenerator.setDescription(descriptorInternal.getDescription());
 
         for (IvyConfiguration ivyConfiguration : descriptorInternal.getConfigurations()) {
             ivyGenerator.addConfiguration(ivyConfiguration);
