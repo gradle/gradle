@@ -131,7 +131,7 @@ class Interpreter(val host: Host) {
             host.cachedClassFor(templateId, sourceHash, parentClassLoader)
 
         val scriptHost =
-            kotlinScriptHostFor(target, scriptSource, scriptHandler, targetScope, baseScope)
+            scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
 
         if (cachedProgram != null) {
             eval(cachedProgram, scriptHost)
@@ -168,14 +168,26 @@ class Interpreter(val host: Host) {
         }
 
     private
-    fun kotlinScriptHostFor(target: Any, scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope, baseScope: ClassLoaderScope) =
-        KotlinScriptHost(target, scriptSource, scriptHandler, targetScope, baseScope, serviceRegistryFor(target))
+    fun scriptHostFor(
+        programTarget: ProgramTarget,
+        target: Any,
+        scriptSource: ScriptSource,
+        scriptHandler: ScriptHandler,
+        targetScope: ClassLoaderScope,
+        baseScope: ClassLoaderScope
+    ) =
+        KotlinScriptHost(
+            target,
+            scriptSource,
+            scriptHandler,
+            targetScope,
+            baseScope,
+            serviceRegistryFor(programTarget, target))
 
     private
-    fun serviceRegistryFor(target: Any): ServiceRegistry = when (target) {
-        is Project -> serviceRegistryOf(target)
-        is Settings -> serviceRegistryOf(target)
-        else -> throw IllegalArgumentException("Unsupported target: $target")
+    fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
+        ProgramTarget.Project -> serviceRegistryOf(target as Project)
+        ProgramTarget.Settings -> serviceRegistryOf(target as Settings)
     }
 
     private
