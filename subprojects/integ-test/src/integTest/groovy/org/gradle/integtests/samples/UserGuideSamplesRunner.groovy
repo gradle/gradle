@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.integtests.samples.java9plus.JavadocWarningsOutputFormatter
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.os.OperatingSystem
@@ -162,6 +163,11 @@ class UserGuideSamplesRunner extends Runner {
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions
                 executer.withArgument("--no-daemon")
+            }
+
+            if (!run.envs.isEmpty() && JavaVersion.current().isJava9Compatible()) {
+                // resetting environment variables is not supported in Java 9+
+                executer.requireGradleDistribution().requireIsolatedDaemons()
             }
 
             if (run.allowDeprecation) {
@@ -346,6 +352,8 @@ class UserGuideSamplesRunner extends Runner {
 
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
         samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
+        samplesById.publishingMavenSignAndPublish.runs.each { it.outputFormatter = new JavadocWarningsOutputFormatter() }
+        samplesById.signingPluginSignPublication.runs.each { it.outputFormatter = new JavadocWarningsOutputFormatter() }
 
         samplesById.each { id, sample ->
             sample.runs = sample.runs.sort { it.index }

@@ -90,8 +90,5 @@ val excludedTests = listOf(
     "SamplesScalaZincIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
 
     // Test compiles for Java 5
-    "ToolingApiUnsupportedClientJvmCrossVersionSpec" to listOf(VERSION_1_9, VERSION_1_10),
-
-    // Various problems, eg scala compile
-    "UserGuideSamplesIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10)
+    "ToolingApiUnsupportedClientJvmCrossVersionSpec" to listOf(VERSION_1_9, VERSION_1_10)
 )
