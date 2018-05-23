@@ -41,6 +41,8 @@ import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
+import org.gradle.plugin.management.internal.DefaultPluginRequests
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -183,6 +185,80 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         inOrder(programHost, target) {
             verify(programHost).closeTargetScopeOf(scriptHost)
             verify(target).task("precompiled stage 2")
+        }
+    }
+
+    @Test
+    fun `can compile Plugins program`() {
+
+        val source = ProgramSource("build.gradle.kts", """plugins { println("stage 1") }""")
+        val fragment = source.fragment(0..6, 8..source.text.lastIndex)
+        val sourceHash = scriptSourceHash(source.text)
+
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target = mock<Project>())
+
+        withExecutableProgramFor(Program.Plugins(fragment), sourceHash, programTarget = ProgramTarget.Project) {
+
+            assertThat(
+                standardOutputOf {
+                    execute(programHost, scriptHost)
+                },
+                equalTo("stage 1\n"))
+
+            inOrder(programHost) {
+
+                verify(programHost).applyPluginsTo(
+                    scriptHost,
+                    DefaultPluginRequests.EMPTY)
+
+                verifyNoMoreInteractions()
+            }
+        }
+    }
+
+    @Test
+    fun `can compile staged Project program with a plugins block`() {
+
+        val source = ProgramSource("build.gradle.kts", """
+            plugins { println("stage 1") }
+            print("stage 2")
+        """.replaceIndent())
+
+        val fragment = source.fragment(0..6, 8..29)
+        val stage1 = Program.Plugins(fragment)
+        val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
+        val stagedProgram = Program.Staged(stage1, stage2)
+
+        val sourceHash = scriptSourceHash(source.text)
+
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target = mock<Project>())
+
+        withExecutableProgramFor(stagedProgram, sourceHash, programTarget = ProgramTarget.Project) {
+
+            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
+
+            assertThat(
+                standardOutputOf {
+                    program.execute(programHost, scriptHost)
+                },
+                equalTo("stage 1\n"))
+
+            inOrder(programHost) {
+
+                verify(programHost).applyPluginsTo(
+                    scriptHost,
+                    DefaultPluginRequests.EMPTY)
+
+                verify(programHost).evaluateSecondStageOf(
+                    program = program,
+                    scriptHost = scriptHost,
+                    scriptTemplateId = "Project/TopLevel/stage2",
+                    sourceHash = sourceHash)
+
+                verifyNoMoreInteractions()
+            }
         }
     }
 

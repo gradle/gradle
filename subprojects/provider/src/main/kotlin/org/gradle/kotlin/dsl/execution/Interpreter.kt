@@ -31,6 +31,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 
+import org.gradle.plugin.management.internal.PluginRequests
+
 import java.io.File
 
 import java.lang.reflect.InvocationTargetException
@@ -93,6 +95,8 @@ class Interpreter(val host: Host) {
             location: File,
             className: String
         ): Class<*>
+
+        fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests)
 
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
 
@@ -276,6 +280,10 @@ class Interpreter(val host: Host) {
 
     private
     inner class ProgramHost : ExecutableProgram.Host {
+
+        override fun applyPluginsTo(scriptHost: KotlinScriptHost<Any>, pluginRequests: PluginRequests) {
+            host.applyPluginsTo(scriptHost, pluginRequests)
+        }
 
         override fun handleScriptException(
             exception: Throwable,

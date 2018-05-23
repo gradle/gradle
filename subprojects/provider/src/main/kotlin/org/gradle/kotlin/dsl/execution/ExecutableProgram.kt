@@ -20,12 +20,24 @@ import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
+import org.gradle.plugin.management.internal.PluginRequests
+
 
 abstract class ExecutableProgram {
 
     abstract fun execute(programHost: Host, scriptHost: KotlinScriptHost<*>)
 
     interface Host {
+
+        /**
+         * Invoked by a [top-level][ProgramKind.TopLevel] [Project][ProgramTarget.Project] program
+         * after stage 1 completes. All other program types invoke [closeTargetScopeOf] to signal the completion
+         * of stage 1.
+         */
+        fun applyPluginsTo(
+            scriptHost: KotlinScriptHost<Any>,
+            pluginRequests: PluginRequests
+        )
 
         fun closeTargetScopeOf(
             scriptHost: KotlinScriptHost<*>

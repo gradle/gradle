@@ -21,6 +21,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.internal.CacheKeyBuilder
 
@@ -36,6 +37,7 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 
 import java.io.File
 
@@ -135,6 +137,14 @@ class StandardKotlinScriptEvaluator(
 
     private
     inner class InterpreterHost : Interpreter.Host {
+
+        override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) {
+            pluginRequestsHandler.handle(
+                pluginRequests,
+                scriptHost.scriptHandler as ScriptHandlerInternal,
+                scriptHost.target as PluginAwareInternal,
+                scriptHost.targetScope)
+        }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
             val targetScope = scriptHost.targetScope
