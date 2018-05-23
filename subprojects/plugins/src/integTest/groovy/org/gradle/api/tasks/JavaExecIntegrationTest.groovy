@@ -83,7 +83,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    def 'arguments can be passed via command line and take precedence'() {
+    def 'arguments passed via command line take precedence and is not incremental by default'() {
         when:
         run("run", "--args", "2 '3' \"4\"")
 

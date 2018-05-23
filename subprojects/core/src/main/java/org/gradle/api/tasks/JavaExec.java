@@ -290,7 +290,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Incubating
     @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
-    public JavaExec setArgs(String args) {
+    public JavaExec setArgsString(String args) {
         return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
 
