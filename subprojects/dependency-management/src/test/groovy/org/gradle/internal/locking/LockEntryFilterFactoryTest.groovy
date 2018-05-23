@@ -16,6 +16,8 @@
 
 package org.gradle.internal.locking
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -28,11 +30,11 @@ class LockEntryFilterFactoryTest extends Specification {
 
         then:
         filteredValues.each {
-            assert filter.filters(it)
+            assert filter.isSatisfiedBy(id(it))
         }
         if (!acceptedValues.empty) {
             acceptedValues.each {
-                assert !filter.filters(it)
+                assert !filter.isSatisfiedBy(id(it))
             }
         }
 
@@ -50,6 +52,11 @@ class LockEntryFilterFactoryTest extends Specification {
         ['*:*']                 | ['org:foo:1.1', 'com:bar:2.1']    | []
     }
 
+    private static ModuleComponentIdentifier id(String notation) {
+        String[] parts = notation.split(':')
+        DefaultModuleComponentIdentifier.newId(parts[0], parts[1], parts[2])
+    }
+
     @Unroll
     def "fails for invalid filter #filters"() {
         when:
@@ -59,6 +66,6 @@ class LockEntryFilterFactoryTest extends Specification {
         thrown(IllegalArgumentException)
 
         where:
-        filters << [['*org:foo'], ['org:*foo'], ['org'], [',org:foo'], [','], ['org:foo:1.0']]
+        filters << [['*org:foo'], ['org:*foo'], ['or*g:foo'], ['org:fo*o'], ['org'], [',org:foo'], [','], ['org:foo:1.0']]
     }
 }

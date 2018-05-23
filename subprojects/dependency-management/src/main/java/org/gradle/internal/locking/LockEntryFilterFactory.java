@@ -16,6 +16,8 @@
 
 package org.gradle.internal.locking;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,16 +26,18 @@ class LockEntryFilterFactory {
 
     private static final LockEntryFilter FILTERS_NONE = new LockEntryFilter() {
         @Override
-        public boolean filters(String moduleIdentifier) {
+        public boolean isSatisfiedBy(ModuleComponentIdentifier element) {
             return false;
         }
+
     };
 
     private static final LockEntryFilter FILTERS_ALL = new LockEntryFilter() {
         @Override
-        public boolean filters(String moduleIdentifier) {
+        public boolean isSatisfiedBy(ModuleComponentIdentifier element) {
             return true;
         }
+
     };
     private static final String WILDCARD_SUFFIX = "*";
     public static final String MODULE_SEPARATOR = ":";
@@ -48,14 +52,7 @@ class LockEntryFilterFactory {
                 String[] split = lockExclude.split(MODULE_SEPARATOR);
                 validateNotation(lockExclude, split);
 
-                if (!lockExclude.contains(MODULE_SEPARATOR)) {
-                    throwInvalid(lockExclude);
-                }
-                if (lockExclude.contains(WILDCARD_SUFFIX)) {
-                    lockEntryFilters.add(extractAdvancedLockEntryFilter(lockExclude));
-                } else {
-                    lockEntryFilters.add(new BasicLockEntryFilter(lockExclude));
-                }
+                lockEntryFilters.add(createFilter(split[0], split[1]));
             }
             if (lockEntryFilters.isEmpty()) {
                 throwInvalid(lockExcludes);
@@ -69,40 +66,16 @@ class LockEntryFilterFactory {
         }
     }
 
-    private static LockEntryFilter throwInvalid(String lockExclude) {
+    private static void throwInvalid(String lockExclude) {
         throw new IllegalArgumentException("Update lock format must be <group>:<artifact> but '" + lockExclude + "' is invalid.");
     }
 
-    private static LockEntryFilter extractAdvancedLockEntryFilter(String lockExclude) {
-        String[] split = lockExclude.split(MODULE_SEPARATOR);
-        validateNotation(lockExclude, split);
-
-        String group = split[0];
-        String module = split[1];
-
+    private static LockEntryFilter createFilter(final String group, final String module) {
         if (group.equals(WILDCARD_SUFFIX) && module.equals(WILDCARD_SUFFIX)) {
             return FILTERS_ALL;
         }
 
-        if (module.equals(WILDCARD_SUFFIX)) {
-            if (group.contains(WILDCARD_SUFFIX)) {
-                return new GroupOnlyWildcardLockEntryFilter(group);
-            } else {
-                return new GroupStrictLockEntryFilter(group);
-            }
-        } else if (module.contains(WILDCARD_SUFFIX)) {
-            if (group.equals(WILDCARD_SUFFIX)) {
-                return new ModuleOnlyWildcardLockEntryFilter(module);
-            } else if (group.contains(WILDCARD_SUFFIX)) {
-                return new GroupModuleWildcardLockEntryFilter(group, module);
-            } else {
-                return new GroupStrictModuleWildcardLockEntryFilter(group, module);
-            }
-        } else if (group.equals("*")) {
-            return new ModuleStrictLockEntryFilter(module);
-        } else {
-            return new GroupWildcardModuleStrictLockEntryFilter(group, module);
-        }
+        return new GroupModuleLockEntryFilter(group, module);
     }
 
     private static void validateNotation(String lockExclude, String[] split) {
@@ -119,7 +92,6 @@ class LockEntryFilterFactory {
     }
 
     private static class AggregateLockEntryFilter implements LockEntryFilter {
-
         private final Set<LockEntryFilter> filters;
 
         private AggregateLockEntryFilter(Set<LockEntryFilter> filters) {
@@ -127,9 +99,9 @@ class LockEntryFilterFactory {
         }
 
         @Override
-        public boolean filters(String moduleIdentifier) {
+        public boolean isSatisfiedBy(ModuleComponentIdentifier moduleComponentIdentifier) {
             for (LockEntryFilter filter : filters) {
-                if (filter.filters(moduleIdentifier)) {
+                if (filter.isSatisfiedBy(moduleComponentIdentifier)) {
                     return true;
                 }
             }
@@ -137,118 +109,24 @@ class LockEntryFilterFactory {
         }
     }
 
-    private static class BasicLockEntryFilter implements LockEntryFilter {
-        private final String lockExclude;
-
-        public BasicLockEntryFilter(String lockExclude) {
-            this.lockExclude = lockExclude;
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            return moduleIdentifier.startsWith(lockExclude);
-        }
-    }
-
-    private static class GroupOnlyWildcardLockEntryFilter implements LockEntryFilter {
+    private static class GroupModuleLockEntryFilter implements LockEntryFilter {
         private final String group;
+        private final String module;
 
-        public GroupOnlyWildcardLockEntryFilter(String group) {
-            this.group = group.substring(0, group.length() - 1);
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            return moduleIdentifier.startsWith(group);
-        }
-    }
-
-    private static class GroupStrictLockEntryFilter implements LockEntryFilter {
-        private final String group;
-
-        public GroupStrictLockEntryFilter(String group) {
+        private GroupModuleLockEntryFilter(String group, String module) {
             this.group = group;
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            return moduleIdentifier.substring(0, moduleIdentifier.indexOf(MODULE_SEPARATOR)).equals(group);
-        }
-    }
-
-    private static class ModuleOnlyWildcardLockEntryFilter implements LockEntryFilter {
-        private final String module;
-
-        public ModuleOnlyWildcardLockEntryFilter(String module) {
-            this.module = module.substring(0, module.length() - 1);
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            String[] split = moduleIdentifier.split(MODULE_SEPARATOR);
-            return split[1].startsWith(this.module);
-        }
-    }
-
-    private static class GroupModuleWildcardLockEntryFilter implements LockEntryFilter {
-        private final String group;
-        private final String module;
-
-        public GroupModuleWildcardLockEntryFilter(String group, String module) {
-            this.group = group.substring(0, group.length() -1);
-            this.module = module.substring(0, module.length() - 1);
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            String[] split = moduleIdentifier.split(MODULE_SEPARATOR);
-            return split[0].startsWith(group) && split[1].startsWith(module);
-        }
-    }
-
-    private static class GroupWildcardModuleStrictLockEntryFilter implements LockEntryFilter {
-        private final String group;
-        private final String module;
-
-        public GroupWildcardModuleStrictLockEntryFilter(String group, String module) {
-            this.group = group.substring(0, group.length() -1);
             this.module = module;
         }
 
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            String[] split = moduleIdentifier.split(MODULE_SEPARATOR);
-            return split[0].startsWith(group) && split[1].equals(module);
-        }
-    }
-
-    private static class ModuleStrictLockEntryFilter implements LockEntryFilter {
-        private final String module;
-
-        public ModuleStrictLockEntryFilter(String module) {
-            this.module = module;
+        public boolean isSatisfiedBy(ModuleComponentIdentifier id) {
+            return matches(group, id.getGroup()) && matches(module, id.getModule());
         }
 
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            String[] split = moduleIdentifier.split(MODULE_SEPARATOR);
-            return split[1].equals(module);
-        }
-    }
-
-    private static class GroupStrictModuleWildcardLockEntryFilter implements LockEntryFilter {
-        private final String group;
-        private final String module;
-
-        public GroupStrictModuleWildcardLockEntryFilter(String group, String module) {
-            this.group = group;
-            this.module = module.substring(0, module.length() - 1);
-        }
-
-        @Override
-        public boolean filters(String moduleIdentifier) {
-            String[] split = moduleIdentifier.split(MODULE_SEPARATOR);
-            return split[0].equals(group) && split[1].startsWith(module);
+        private boolean matches(String test, String candidate) {
+            if (test.endsWith(WILDCARD_SUFFIX)) {
+                return candidate.startsWith(test.substring(0, test.length() - 1));
+            }
+            return candidate.equals(test);
         }
     }
 }

@@ -62,13 +62,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             if (lockedModules != null) {
                 Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    if (lockEntryFilter.filters(module)) {
-                        continue;
-                    }
-                    try {
-                        results.add(converter.convertFromLockNotation(module));
-                    } catch (IllegalArgumentException e) {
-                        throw new InvalidLockFileException(configurationName, e);
+                    ModuleComponentIdentifier lockedIdentifier = parseLockNotation(configurationName, module);
+                    if (!lockEntryFilter.isSatisfiedBy(lockedIdentifier)) {
+                        results.add(lockedIdentifier);
                     }
                 }
                 if (LOGGER.isDebugEnabled()) {
@@ -80,6 +76,16 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private ModuleComponentIdentifier parseLockNotation(String configurationName, String module) {
+        ModuleComponentIdentifier lockedIdentifier;
+        try {
+            lockedIdentifier = converter.convertFromLockNotation(module);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidLockFileException(configurationName, e);
+        }
+        return lockedIdentifier;
     }
 
     @Override
