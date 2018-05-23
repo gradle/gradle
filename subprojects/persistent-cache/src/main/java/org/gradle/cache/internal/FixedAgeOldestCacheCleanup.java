@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.CleanableStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +33,18 @@ public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
     private static final Logger LOGGER = LoggerFactory.getLogger(FixedAgeOldestCacheCleanup.class);
 
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
+    public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES = 30;
 
     private final long minimumTimestamp;
 
-    public FixedAgeOldestCacheCleanup(long ageInDays) {
+    public FixedAgeOldestCacheCleanup(EligibleFilesFinder eligibleFilesFinder, long ageInDays) {
+        super(eligibleFilesFinder);
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(ageInDays));
     }
 
     @Override
-    protected List<File> findFilesToDelete(final PersistentCache persistentCache, File[] filesEligibleForCleanup) {
-        LOGGER.info("{} remove files older than {}.", persistentCache, new Date(minimumTimestamp));
+    protected List<File> findFilesToDelete(final CleanableStore cleanableStore, File[] filesEligibleForCleanup) {
+        LOGGER.info("{} remove files older than {}.", cleanableStore.getDisplayName(), new Date(minimumTimestamp));
 
         List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.length);
 

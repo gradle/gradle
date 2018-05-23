@@ -101,7 +101,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         File cachedFile = cachedDir.file("e11f1cf5681161f98a43c55e341f1b93/sub/file1").createFile()
         File alreadyCachedFile = cachedDir.file("file2").createFile()
         File cachedInOtherStore = otherStore.file("file3").createFile()
-        [externalFile, cachedFile, cachedFile.parentFile, cachedFile.parentFile.parentFile, alreadyCachedFile, cachedInOtherStore].each { it.lastModified = 0 }
+        [externalFile, cachedFile, cachedFile.parentFile, cachedFile.parentFile.parentFile, alreadyCachedFile, cachedInOtherStore]*.lastModified = 0
         def beforeAccess = MILLISECONDS.toSeconds(System.currentTimeMillis())
 
         when:

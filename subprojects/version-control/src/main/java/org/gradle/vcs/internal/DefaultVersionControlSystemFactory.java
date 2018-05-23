@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
+import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN;
 import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -45,7 +46,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
             .open();
     }
 

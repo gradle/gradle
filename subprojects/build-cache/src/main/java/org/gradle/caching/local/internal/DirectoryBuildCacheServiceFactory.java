@@ -34,6 +34,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.cache.FileLockManager.LockMode.None;
+import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
@@ -77,7 +78,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(removeUnusedEntriesAfterDays)))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

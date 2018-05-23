@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
-import org.gradle.cache.internal.NonReservedCacheFileFilter;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -39,47 +39,47 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreAddActionException;
+import org.gradle.internal.resource.local.TouchingFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
+import static org.gradle.cache.internal.AbstractCacheCleanup.SECOND_LEVEL_CHILDREN;
+import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
-    private final File filesOutputDirectory;
     private final FileStore<String> fileStore;
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final FileAccessTracker fileAccessTracker;
 
     public DefaultTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter) {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
-        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
+        File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
+        fileAccessTracker = new TouchingFileAccessTracker(filesOutputDirectory, 2);
+        CleanupAction cleanupAction = CompositeCleanupAction.builder()
+            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(SECOND_LEVEL_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .build();
         cache = cacheRepository
             .cache(transformsStoreDirectory)
-            .withCleanup(new TransformedFileCacheCleanup())
+            .withCleanup(cleanupAction)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
@@ -113,7 +113,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     @Override
     public List<File> getResult(File inputFile, HashCode inputsHash, BiFunction<List<File>, File, File> transformer) {
         List<File> result = getOrLoadResult(inputFile, inputsHash, transformer);
-        markAccessedByTouchingTopmostOutputDirectory(result);
+        fileAccessTracker.markAccessed(result);
         return result;
     }
 
@@ -180,29 +180,6 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         return new CacheKey(inputFileSnapshot, inputsHash);
     }
 
-    @SuppressWarnings("Since15")
-    private void markAccessedByTouchingTopmostOutputDirectory(List<File> files) {
-        if (files.isEmpty()) {
-            return;
-        }
-        Path baseDir = filesOutputDirectory.toPath();
-        // all files share the same output directory so only taking into account the first one
-        Path relativePath = baseDir.relativize(files.get(0).toPath());
-        if (relativePath.getNameCount() >= 2) {
-            // touch output dir of accessed files so cache cleanup does not evict them
-            touch(baseDir.resolve(relativePath.subpath(0, 2)));
-        }
-    }
-
-    @SuppressWarnings("Since15")
-    private static void touch(Path file) {
-        try {
-            Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     /**
      * A lightweight key for in-memory caching of transformation results.
      * Computing the hash key for the persistent cache is a rather expensive
@@ -264,30 +241,6 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         public void execute(File outputDir) {
             outputDir.mkdirs();
             result = ImmutableList.copyOf(transformer.apply(inputFile, outputDir));
-        }
-    }
-
-    private class TransformedFileCacheCleanup extends FixedAgeOldestCacheCleanup {
-
-        TransformedFileCacheCleanup() {
-            super(DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES);
-        }
-
-        @Override
-        protected File[] findEligibleFiles(PersistentCache persistentCache) {
-            List<File> result = new ArrayList<File>();
-            FileFilter filter = new NonReservedCacheFileFilter(persistentCache);
-            for (File fileInBaseDir : listFiles(filesOutputDirectory, filter)) {
-                if (fileInBaseDir.isDirectory()) {
-                    result.addAll(listFiles(fileInBaseDir, filter));
-                }
-            }
-            return result.toArray(new File[0]);
-        }
-
-        private List<File> listFiles(File baseDir, FileFilter filter) {
-            File[] files = baseDir.listFiles(filter);
-            return files == null ? Collections.<File>emptyList() : Arrays.asList(files);
         }
     }
 }

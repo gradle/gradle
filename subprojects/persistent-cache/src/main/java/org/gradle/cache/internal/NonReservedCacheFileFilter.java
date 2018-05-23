@@ -16,27 +16,25 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.CleanableStore;
 
 import java.io.File;
 import java.io.FileFilter;
 
 public class NonReservedCacheFileFilter implements FileFilter {
 
-    private final PersistentCache persistentCache;
+    private final CleanableStore cleanableStore;
 
-    public NonReservedCacheFileFilter(PersistentCache persistentCache) {
-        this.persistentCache = persistentCache;
+    public NonReservedCacheFileFilter(CleanableStore cleanableStore) {
+        this.cleanableStore = cleanableStore;
     }
 
     @Override
     public boolean accept(File file) {
-        return !isReserved(persistentCache, file);
+        return !isReserved(file);
     }
 
-    @VisibleForTesting
-    static boolean isReserved(PersistentCache persistentCache, File file) {
-        return persistentCache.getReservedCacheFiles().contains(file);
+    private boolean isReserved(File file) {
+        return cleanableStore.getReservedCacheFiles().contains(file);
     }
 }

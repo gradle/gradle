@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.cache;
+package org.gradle.internal.resource.local;
 
-public interface CleanupAction {
-    void clean(CleanableStore cleanableStore);
+import java.io.File;
+import java.util.Collection;
 
-    CleanupAction NO_OP = new CleanupAction() {
-        @Override
-        public void clean(CleanableStore cleanableStore) {
-            // no-op
-        }
-    };
-
+public interface FileAccessTracker {
+    /**
+     * Marks the supplied files as accessed.
+     */
+    void markAccessed(Collection<File> files);
 }

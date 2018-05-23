@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheValidator
+import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
@@ -231,7 +232,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def gcFile = dir.file("gc.properties")
         def failingCleanupAction = new CleanupAction() {
             @Override
-            void clean(PersistentCache persistentCache) {
+            void clean(CleanableStore cleanableStore) {
                 throw new Exception("Boom")
             }
         }

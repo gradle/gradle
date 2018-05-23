@@ -145,8 +145,13 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public String toString() {
+        public String getDisplayName() {
             return "InMemoryCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
         }
     }
 }

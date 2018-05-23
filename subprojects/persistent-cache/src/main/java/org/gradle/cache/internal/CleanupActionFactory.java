@@ -16,12 +16,12 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.PersistentCache;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 public class CleanupActionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -38,13 +38,13 @@ public class CleanupActionFactory {
         private final BuildOperationExecutor buildOperationExecutor;
         private final CleanupAction delegate;
 
-        public BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
+        BuildOperationCacheCleanupDecorator(CleanupAction delegate, BuildOperationExecutor buildOperationExecutor) {
             this.buildOperationExecutor = buildOperationExecutor;
             this.delegate = delegate;
         }
 
         @Override
-        public void clean(final PersistentCache persistentCache) {
+        public void clean(final CleanableStore persistentCache) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {

@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resource.local;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.Resource;
 
@@ -32,4 +33,11 @@ public interface LocallyAvailableResource extends Resource {
     long getLastModified();
 
     long getContentLength();
+
+    Transformer<File, LocallyAvailableResource> TO_FILE = new Transformer<File, LocallyAvailableResource>() {
+        @Override
+        public File transform(LocallyAvailableResource resource) {
+            return resource.getFile();
+        }
+    };
 }

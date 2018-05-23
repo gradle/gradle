@@ -24,12 +24,14 @@ import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN
+
 @Subject(FixedAgeOldestCacheCleanup)
 class FixedAgeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedAgeOldestCacheCleanup(1)
+    def cleanupAction = new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, 1)
 
     def "finds files to delete when files are old"() {
         long now = System.currentTimeMillis()

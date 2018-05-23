@@ -26,8 +26,9 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.resource.local.TouchingFileAccessTracker;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static java.util.Collections.singleton;
+import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN;
 import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -52,7 +55,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withCleanup(new FixedAgeOldestCacheCleanup(DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .withCleanup(new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .open();
         this.jarFileTransformer = new TouchingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores));
     }
@@ -104,6 +107,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             }
         }
 
+        private String directoryPrefix(File dir) {
+            return dir.getAbsolutePath() + File.separator;
+        }
+
         @Override
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
@@ -133,32 +140,18 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private class TouchingJarFileTransformer implements Transformer<File, File> {
 
         private final Transformer<File, File> delegate;
-        private final File baseDir;
-        private final String baseDirPrefix;
+        private final FileAccessTracker fileAccessTracker;
 
         TouchingJarFileTransformer(Transformer<File, File> delegate) {
             this.delegate = delegate;
-            this.baseDir = cache.getBaseDir();
-            this.baseDirPrefix = directoryPrefix(baseDir);
+            this.fileAccessTracker = new TouchingFileAccessTracker(cache.getBaseDir(), 1);
         }
 
         @Override
         public File transform(File file) {
             File result = delegate.transform(file);
-            if (result.getAbsolutePath().startsWith(baseDirPrefix)) {
-                File child = result;
-                while (child != null && !child.getParentFile().equals(baseDir)) {
-                    child = child.getParentFile();
-                }
-                if (child != null) {
-                    GFileUtils.touchExisting(child);
-                }
-            }
+            fileAccessTracker.markAccessed(singleton(result));
             return result;
         }
-    }
-
-    private static String directoryPrefix(File dir) {
-        return dir.getAbsolutePath() + File.separator;
     }
 }

@@ -16,29 +16,29 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.CleanableStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class NonReservedCacheFileFilterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def cacheDir = temporaryFolder.file("cache-dir").createDir()
 
     def "filters for cache entry files"() {
         given:
-        def persistentCache = Mock(PersistentCache) {
+        def cacheDir = temporaryFolder.file("cache-dir").createDir()
+        def filter = new NonReservedCacheFileFilter(Mock(CleanableStore) {
             getReservedCacheFiles() >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
-        }
+        })
 
         expect:
-        NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("cache.properties").touch())
-        NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("gc.properties").touch())
-        NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("cache.lock").touch())
+        !filter.accept(cacheDir.file("cache.properties").touch())
+        !filter.accept(cacheDir.file("gc.properties").touch())
+        !filter.accept(cacheDir.file("cache.lock").touch())
 
         and:
-        !NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("0"*32).touch())
-        !NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
-        !NonReservedCacheFileFilter.isReserved(persistentCache, cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
+        filter.accept(cacheDir.file("0"*32).touch())
+        filter.accept(cacheDir.file("ABCDEFABCDEFABCDEFABCDEFABCDEF00").touch())
+        filter.accept(cacheDir.file("abcdefabcdefabcdefabcdefabcdef00").touch())
     }
 }

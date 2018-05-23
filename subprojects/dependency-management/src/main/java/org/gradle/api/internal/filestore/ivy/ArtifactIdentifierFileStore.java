@@ -16,29 +16,33 @@
 
 package org.gradle.api.internal.filestore.ivy;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
-import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 
 import java.io.File;
 
 public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
-    private static final Transformer<String, ModuleComponentArtifactIdentifier> GROUP = new Transformer<String, ModuleComponentArtifactIdentifier>() {
+    private static final Grouper<ModuleComponentArtifactIdentifier> GROUPER = new Grouper<ModuleComponentArtifactIdentifier>() {
         @Override
-        public String transform(ModuleComponentArtifactIdentifier artifactId) {
+        public String determineGroup(ModuleComponentArtifactIdentifier artifactId) {
             return artifactId.getComponentIdentifier().getGroup() + '/' + artifactId.getComponentIdentifier().getModule() + '/' + artifactId.getComponentIdentifier().getVersion();
         }
-    };
-    private static final Transformer<String, ModuleComponentArtifactIdentifier> NAME = new Transformer<String, ModuleComponentArtifactIdentifier>() {
+
         @Override
-        public String transform(ModuleComponentArtifactIdentifier artifactId) {
+        public int getDepth() {
+            return 3;
+        }
+    };
+    private static final Namer<ModuleComponentArtifactIdentifier> NAMER = new Namer<ModuleComponentArtifactIdentifier>() {
+        @Override
+        public String determineName(ModuleComponentArtifactIdentifier artifactId) {
             return artifactId.getFileName();
         }
     };
 
-    public ArtifactIdentifierFileStore(File fileStoreDir, TemporaryFileProvider temporaryFileProvider) {
-        super(new UniquePathKeyFileStore(fileStoreDir), temporaryFileProvider, GROUP, NAME);
+    public ArtifactIdentifierFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider) {
+        super(baseDir, temporaryFileProvider, GROUPER, NAMER);
     }
 }
