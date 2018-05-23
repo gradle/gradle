@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.kotlin.dsl.execution
 
 import kotlin.coroutines.experimental.buildSequence
 

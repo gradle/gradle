@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.Project
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -37,6 +38,13 @@ abstract class ExecutableProgram {
         fun applyPluginsTo(
             scriptHost: KotlinScriptHost<Any>,
             pluginRequests: PluginRequests
+        )
+
+        /**
+         * Invoked by a [Project][ProgramTarget.Project] program immediately after stage 1 completes.
+         */
+        fun applyBasePluginsTo(
+            project: Project
         )
 
         fun closeTargetScopeOf(
@@ -82,23 +90,5 @@ abstract class ExecutableProgram {
             scriptTemplateId: String,
             sourceHash: HashCode
         ): Class<*>
-    }
-
-    object Runtime {
-
-        /**
-         * Invoked by an specialized program to signal an exception happened during script execution.
-         *
-         * This function is here mainly to keep the emitted bytecode (and corresponding [ResidualProgramCompiler] code) simple.
-         */
-        @JvmStatic
-        fun onScriptException(
-            exception: Throwable,
-            scriptClass: Class<*>,
-            scriptHost: KotlinScriptHost<*>,
-            programHost: Host
-        ) {
-            programHost.handleScriptException(exception, scriptClass, scriptHost)
-        }
     }
 }

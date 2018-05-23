@@ -27,11 +27,14 @@ import org.gradle.internal.exceptions.LocationAwareException
 
 import org.gradle.kotlin.dsl.execution.UnexpectedBlock
 import org.gradle.kotlin.dsl.execution.extractTopLevelSectionFrom
+import org.gradle.kotlin.dsl.execution.handleUnexpectedBlock
+import org.gradle.kotlin.dsl.execution.linePreservingBlankRanges
+import org.gradle.kotlin.dsl.execution.linePreservingSubstring
+import org.gradle.kotlin.dsl.execution.linePreservingSubstring_
 import org.gradle.kotlin.dsl.execution.locationAwareExceptionHandlingFor
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
-import org.gradle.kotlin.dsl.support.compilerMessageFor
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.PluginRequests
@@ -298,15 +301,9 @@ class KotlinScriptEvaluation(
         try {
             action()
         } catch (unexpectedBlock: UnexpectedBlock) {
-            val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-            val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
-            throw IllegalStateException(message, unexpectedBlock)
+            handleUnexpectedBlock(unexpectedBlock, script, scriptPath)
         }
     }
-
-    private
-    fun unexpectedBlockMessage(block: UnexpectedBlock) =
-        "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."
 
     private
     val scriptPath

@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.support.compilerMessageFor
+
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -37,7 +39,14 @@ enum class ProgramTarget {
  */
 object PartialEvaluator {
 
-    fun reduce(source: ProgramSource, kind: ProgramKind): Program {
+    fun reduce(source: ProgramSource, kind: ProgramKind): Program = try {
+        residualProgramFor(source, kind)
+    } catch (unexpectedBlock: UnexpectedBlock) {
+        handleUnexpectedBlock(unexpectedBlock, source.text, source.path)
+    }
+
+    private
+    fun residualProgramFor(source: ProgramSource, kind: ProgramKind): Program {
 
         val sourceWithoutComments =
             source.map { it.erase(commentsOf(it.text)) }
@@ -86,7 +95,6 @@ object PartialEvaluator {
                 ProgramKind.ScriptPlugin -> Program.PrecompiledScript(s2.source)
             }
         }
-
         return Program.Empty
     }
 
@@ -114,3 +122,16 @@ fun commentsOf(script: String): List<IntRange> =
         }
         comments
     }
+
+
+internal
+fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scriptPath: String): Nothing {
+    val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
+    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
+    throw IllegalStateException(message, unexpectedBlock)
+}
+
+
+private
+fun unexpectedBlockMessage(block: UnexpectedBlock) =
+    "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."

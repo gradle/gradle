@@ -73,7 +73,8 @@ class StandardKotlinScriptEvaluator(
     private val classloadingCache: KotlinScriptClassloadingCache,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
-    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
+    private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
+    private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -142,6 +143,11 @@ class StandardKotlinScriptEvaluator(
                 scriptHost.scriptHandler as ScriptHandlerInternal,
                 scriptHost.target as PluginAwareInternal,
                 scriptHost.targetScope)
+        }
+
+        override fun applyBasePluginsTo(project: Project) {
+            kotlinScriptBasePluginsApplicator
+                .apply(project)
         }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
@@ -218,11 +224,7 @@ class StandardKotlinScriptEvaluator(
             classLoaderScope
                 .createChild(childScopeId)
                 .local(DefaultClassPath.of(location))
-                .apply {
-                    accessorsClassPath?.let {
-                        local(it)
-                    }
-                }
+                .apply { accessorsClassPath?.let(::local) }
                 .lock()
                 .localClassLoader
                 .loadClass(className)

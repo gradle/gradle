@@ -147,6 +147,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
+    @Ignore("partial-evaluator-wip")
     @Test
     fun `same script & target type different classpath`() {
 
@@ -207,6 +208,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
+    @Ignore("partial-evaluator-wip")
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 

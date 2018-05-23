@@ -76,7 +76,8 @@ object BuildServices {
         classloadingCache: KotlinScriptClassloadingCache,
         pluginRequestsHandler: PluginRequestsHandler,
         embeddedKotlinProvider: EmbeddedKotlinProvider,
-        classPathModeExceptionCollector: ClassPathModeExceptionCollector
+        classPathModeExceptionCollector: ClassPathModeExceptionCollector,
+        kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -85,7 +86,8 @@ object BuildServices {
             classloadingCache,
             pluginRequestsHandler,
             embeddedKotlinProvider,
-            classPathModeExceptionCollector)
+            classPathModeExceptionCollector,
+            kotlinScriptBasePluginsApplicator)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

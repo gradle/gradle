@@ -178,13 +178,99 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
 
-        withExecutableProgramFor(Program.PrecompiledScript(source), programTarget = ProgramTarget.Project) {
+        withExecutableProgramFor(
+            Program.PrecompiledScript(source),
+            programKind = ProgramKind.ScriptPlugin,
+            programTarget = ProgramTarget.Project
+        ) {
+
             execute(programHost, scriptHost)
         }
 
         inOrder(programHost, target) {
             verify(programHost).closeTargetScopeOf(scriptHost)
+            verify(programHost).applyBasePluginsTo(target)
             verify(target).task("precompiled stage 2")
+
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `TopLevel Project Script program must apply plugins and base plugins`() {
+
+        val source =
+            ProgramSource(
+                "build.gradle.kts",
+                "task(\"precompiled stage 2\")")
+
+        val sourceHash = scriptSourceHash(source.text)
+        val target = mock<Project>()
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target)
+
+        withExecutableProgramFor(
+            Program.Script(source),
+            programKind = ProgramKind.TopLevel,
+            programTarget = ProgramTarget.Project,
+            sourceHash = sourceHash
+        ) {
+
+            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
+            execute(programHost, scriptHost)
+
+            inOrder(programHost, target) {
+
+                verify(programHost).applyPluginsTo(scriptHost, DefaultPluginRequests.EMPTY)
+                verify(programHost).applyBasePluginsTo(target)
+                verify(programHost).evaluateSecondStageOf(
+                    program,
+                    scriptHost,
+                    "Project/TopLevel/stage2",
+                    sourceHash)
+
+                verifyNoMoreInteractions()
+            }
+        }
+    }
+
+    @Test
+    fun `Empty TopLevel Project program must apply plugins and base plugins`() {
+
+        val target = mock<Project>()
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target)
+
+        withExecutableProgramFor(Program.Empty, programKind = ProgramKind.TopLevel, programTarget = ProgramTarget.Project) {
+            execute(programHost, scriptHost)
+        }
+
+        inOrder(programHost, target) {
+
+            verify(programHost).applyPluginsTo(scriptHost, DefaultPluginRequests.EMPTY)
+            verify(programHost).applyBasePluginsTo(target)
+
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `Empty ScriptPlugin Project program must apply base plugins`() {
+
+        val target = mock<Project>()
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target)
+
+        withExecutableProgramFor(Program.Empty, programKind = ProgramKind.ScriptPlugin, programTarget = ProgramTarget.Project) {
+            execute(programHost, scriptHost)
+        }
+
+        inOrder(programHost, target) {
+
+            verify(programHost).closeTargetScopeOf(scriptHost)
+            verify(programHost).applyBasePluginsTo(target)
+
+            verifyNoMoreInteractions()
         }
     }
 
@@ -196,7 +282,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val sourceHash = scriptSourceHash(source.text)
 
         val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target = mock<Project>())
+        val target = mock<Project>()
+        val scriptHost = scriptHostWith(target = target)
 
         withExecutableProgramFor(Program.Plugins(fragment), sourceHash, programTarget = ProgramTarget.Project) {
 
@@ -211,6 +298,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 verify(programHost).applyPluginsTo(
                     scriptHost,
                     DefaultPluginRequests.EMPTY)
+
+                verify(programHost).applyBasePluginsTo(target)
 
                 verifyNoMoreInteractions()
             }
@@ -283,7 +372,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         val sourceHash = scriptSourceHash(source.text)
         val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target = mock<Project>())
+        val target = mock<Project>()
+        val scriptHost = scriptHostWith(target = target)
 
         withExecutableProgramFor(stagedProgram, sourceHash, programTarget = ProgramTarget.Project) {
 
@@ -303,6 +393,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 verify(programHost).applyPluginsTo(
                     scriptHost,
                     DefaultPluginRequests.EMPTY)
+
+                verify(programHost).applyBasePluginsTo(target)
 
                 verify(programHost).evaluateSecondStageOf(
                     program = program,

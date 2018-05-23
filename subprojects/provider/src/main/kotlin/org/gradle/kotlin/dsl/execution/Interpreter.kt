@@ -102,6 +102,8 @@ class Interpreter(val host: Host) {
 
         fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests)
 
+        fun applyBasePluginsTo(project: Project)
+
         fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>)
 
         val implicitImports: List<String>
@@ -220,8 +222,11 @@ class Interpreter(val host: Host) {
                 val outputDir =
                     cachedDir.resolve("stage1").apply { mkdir() }
 
+                val programSource =
+                    ProgramSource(scriptPath, sourceText)
+
                 val residualProgram =
-                    PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText), programKind)
+                    PartialEvaluator.reduce(programSource, programKind)
 
                 scriptSource.withLocationAwareExceptionHandling {
                     residualProgramCompilerFor(
@@ -289,9 +294,12 @@ class Interpreter(val host: Host) {
 
     private
     inner class ProgramHost : ExecutableProgram.Host {
-
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<Any>, pluginRequests: PluginRequests) {
             host.applyPluginsTo(scriptHost, pluginRequests)
+        }
+
+        override fun applyBasePluginsTo(project: Project) {
+            host.applyBasePluginsTo(project)
         }
 
         override fun handleScriptException(
@@ -405,7 +413,7 @@ fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
 
 
 internal
-fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource) {
+fun locationAwareExceptionHandlingFor(e: Throwable, scriptClass: Class<*>, scriptSource: ScriptSource): Nothing {
     val targetException = maybeUnwrapInvocationTargetException(e)
     val locationAware = locationAwareExceptionFor(targetException, scriptClass, scriptSource)
     throw locationAware ?: targetException

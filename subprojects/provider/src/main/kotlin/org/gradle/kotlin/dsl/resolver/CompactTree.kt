@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.provider.splitIncluding
+import org.gradle.kotlin.dsl.execution.splitIncluding
 
 import java.io.File
 

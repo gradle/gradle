@@ -86,7 +86,31 @@ class ResidualProgramCompiler(
     private
     fun emitEmptyProgram() {
         // TODO: consider caching the empty program bytes
-        program<ExecutableProgram.Empty>()
+        when (programTarget) {
+            ProgramTarget.Project -> emitEmptyProjectProgram()
+            else -> program<ExecutableProgram.Empty>()
+        }
+    }
+
+    private
+    fun emitEmptyProjectProgram() {
+
+        program<ExecutableProgram> {
+
+            overrideExecute {
+
+                when (programKind) {
+                    ProgramKind.TopLevel -> {
+                        emitApplyEmptyPluginRequestsTo()
+                        emitApplyBasePluginsTo()
+                    }
+                    ProgramKind.ScriptPlugin -> {
+                        emitCloseTargetScopeOf()
+                        emitApplyBasePluginsTo()
+                    }
+                }
+            }
+        }
     }
 
     private
@@ -101,6 +125,7 @@ class ResidualProgramCompiler(
         program<ExecutableProgram> {
             overrideExecute {
                 emitPrecompiledPluginsBlock(precompiledPluginsBlock)
+                emitApplyBasePluginsTo()
             }
         }
     }
@@ -157,8 +182,23 @@ class ResidualProgramCompiler(
                 ALOAD(2) // scriptHost
                 emitPluginRequestCollectorGetPluginRequests()
                 invokeApplyPluginsTo()
+                emitApplyBasePluginsTo()
             }
         }
+    }
+
+    private
+    fun MethodVisitor.emitApplyBasePluginsTo() {
+        ALOAD(1) // programHost
+        ALOAD(2) // scriptHost
+        INVOKEVIRTUAL(
+            "org/gradle/kotlin/dsl/support/KotlinScriptHost",
+            "getTarget",
+            "()Ljava/lang/Object;")
+        CHECKCAST("org/gradle/api/Project")
+        invokeHost(
+            "applyBasePluginsTo",
+            "(Lorg/gradle/api/Project;)V")
     }
 
     private
@@ -197,15 +237,20 @@ class ResidualProgramCompiler(
         stagedProgramWith(scriptFile.canonicalPath, originalPath) {
 
             emitInstantiationOfPrecompiledScriptClass(precompiledScriptClassName)
-
-            ALOAD(1) // programHost
-            ALOAD(2) // scriptHost
-            GETSTATIC(
-                DefaultPluginRequests::class.internalName,
-                "EMPTY",
-                "Lorg/gradle/plugin/management/internal/PluginRequests;")
-            invokeApplyPluginsTo()
+            emitApplyEmptyPluginRequestsTo()
+            emitApplyBasePluginsTo()
         }
+    }
+
+    private
+    fun MethodVisitor.emitApplyEmptyPluginRequestsTo() {
+        ALOAD(1) // programHost
+        ALOAD(2) // scriptHost
+        GETSTATIC(
+            DefaultPluginRequests::class.internalName,
+            "EMPTY",
+            "Lorg/gradle/plugin/management/internal/PluginRequests;")
+        invokeApplyPluginsTo()
     }
 
     private
@@ -221,7 +266,27 @@ class ResidualProgramCompiler(
             stage1PrecompiledScript?.let {
                 emitInstantiationOfPrecompiledScriptClass(it)
             }
-            emitCloseTargetScopeOf()
+
+            when (programTarget) {
+
+                ProgramTarget.Project -> {
+
+                    when (programKind) {
+                        ProgramKind.TopLevel -> {
+                            emitApplyEmptyPluginRequestsTo()
+                            emitApplyBasePluginsTo()
+                        }
+                        ProgramKind.ScriptPlugin -> {
+                            emitCloseTargetScopeOf()
+                            emitApplyBasePluginsTo()
+                        }
+                    }
+                }
+
+                ProgramTarget.Settings -> {
+                    emitCloseTargetScopeOf()
+                }
+            }
         }
     }
 
@@ -239,6 +304,7 @@ class ResidualProgramCompiler(
         stagedProgramWith(sourceFilePath, originalPath) {
 
             emitPrecompiledPluginsBlock(precompiledPluginsBlock)
+            emitApplyBasePluginsTo()
         }
     }
 
@@ -363,6 +429,11 @@ class ResidualProgramCompiler(
             overrideExecute {
 
                 emitCloseTargetScopeOf()
+
+                if (programTarget == ProgramTarget.Project) {
+                    emitApplyBasePluginsTo()
+                }
+
                 emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
             }
         }
@@ -474,13 +545,14 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitOnScriptException(precompiledScriptClass: String) {
         // Exception is on the stack
+        ASTORE(4)
+        ALOAD(1) // programHost
+        ALOAD(4)
         LDC(Type.getType("L$precompiledScriptClass;"))
         ALOAD(2) // scriptHost
-        ALOAD(1) // programHost
-        INVOKESTATIC(
-            ExecutableProgram.Runtime::class.internalName,
-            ExecutableProgram.Runtime::onScriptException.name,
-            "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;)V")
+        invokeHost(
+            "handleScriptException",
+            "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V")
     }
 
     private
@@ -789,6 +861,12 @@ fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
 private
 fun MethodVisitor.GETSTATIC(owner: String, name: String, desc: String) {
     visitFieldInsn(Opcodes.GETSTATIC, owner, name, desc)
+}
+
+
+private
+fun MethodVisitor.CHECKCAST(type: String) {
+    visitTypeInsn(Opcodes.CHECKCAST, type)
 }
 
 
