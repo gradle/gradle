@@ -58,11 +58,12 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        Task task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        Task task = AbstractTask.injectIntoNewInstance(99, project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
 
         expect:
         task.dependsOn.isEmpty()
         task.actions == []
+        (task as TaskInternal).internalTaskInstanceId == 99L
     }
 
     def "useful toString()"() {
@@ -72,11 +73,12 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def task = AbstractTask.injectIntoNewInstance(99, project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
 
         expect:
         task.project.is(project)
         task.name == TEST_TASK_NAME
+        (task as TaskInternal).internalTaskInstanceId == 99L
     }
 
     def "dependsOn() works"() {

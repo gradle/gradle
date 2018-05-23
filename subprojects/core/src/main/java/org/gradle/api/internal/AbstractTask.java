@@ -91,6 +91,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
 
+    private final long internalTaskInstanceId;
+
     private final ProjectInternal project;
 
     private final String name;
@@ -153,6 +155,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new TaskInstantiationException(String.format("Task of type '%s' has been instantiated directly which is not supported. Tasks can only be created using the DSL.", getClass().getName()));
         }
 
+        this.internalTaskInstanceId = taskInfo.internalTaskInstanceId;
         this.project = taskInfo.project;
         this.name = taskInfo.name;
         this.publicType = taskInfo.publicType;
@@ -183,8 +186,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
-        NEXT_INSTANCE.set(new TaskInfo(project, name, publicType));
+    public static <T extends Task> T injectIntoNewInstance(long internalTaskInstanceId, ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
+        NEXT_INSTANCE.set(new TaskInfo(internalTaskInstanceId, project, name, publicType));
         try {
             return uncheckedCall(factory);
         } finally {
@@ -210,6 +213,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public long getInternalTaskInstanceId() {
+        return internalTaskInstanceId;
     }
 
     @Override
@@ -691,11 +699,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static class TaskInfo {
+        private final long internalTaskInstanceId;
         private final ProjectInternal project;
         private final Class<? extends Task> publicType;
         private final String name;
 
-        private TaskInfo(ProjectInternal project, String name, Class<? extends Task> publicType) {
+        private TaskInfo(long internalTaskInstanceId, ProjectInternal project, String name, Class<? extends Task> publicType) {
+            this.internalTaskInstanceId = internalTaskInstanceId;
             this.name = name;
             this.project = project;
             this.publicType = publicType;

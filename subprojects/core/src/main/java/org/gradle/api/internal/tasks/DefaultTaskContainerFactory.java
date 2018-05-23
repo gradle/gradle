@@ -25,6 +25,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
@@ -48,18 +49,20 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private Project project;
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics) {
+    public DefaultTaskContainerFactory(ModelRegistry modelRegistry, Instantiator instantiator, ITaskFactory taskFactory, Project project, ProjectAccessListener projectAccessListener, TaskStatistics statistics, BuildOperationExecutor buildOperationExecutor) {
         this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
         this.project = project;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     public TaskContainerInternal create() {
-        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics);
+        DefaultTaskContainer tasks = instantiator.newInstance(DefaultTaskContainer.class, project, instantiator, taskFactory, projectAccessListener, statistics, buildOperationExecutor);
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;
     }

@@ -56,6 +56,11 @@ public class TaskFactory implements ITaskFactory {
 
     @Override
     public <S extends Task> S create(String name, final Class<S> type, final Object... args) {
+        return create(null, name, type, args);
+    }
+
+    @Override
+    public <S extends Task> S create(Long internalTaskInstanceId, String name, final Class<S> type, final Object... args) {
         if (!Task.class.isAssignableFrom(type)) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task of type '%s' as it does not implement the Task interface.",
@@ -70,7 +75,8 @@ public class TaskFactory implements ITaskFactory {
             generatedType = generator.generate(type);
         }
 
-        return type.cast(AbstractTask.injectIntoNewInstance(project, name, type, new Callable<Task>() {
+        long id = internalTaskInstanceId == null ? InternalTaskInstanceIdSequence.getNextId() : internalTaskInstanceId;
+        return type.cast(AbstractTask.injectIntoNewInstance(id, project, name, type, new Callable<Task>() {
             public Task call() throws Exception {
                 try {
                     return instantiator.newInstance(generatedType, args);
