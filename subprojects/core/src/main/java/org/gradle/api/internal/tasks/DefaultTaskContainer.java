@@ -516,7 +516,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
+    private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T>, TaskDependencyContainer {
         final Class<T> type;
         final String name;
         boolean removed = false;
@@ -560,6 +560,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public String toString() {
             return String.format("provider(task %s, %s)", name, type);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(get());
         }
     }
 
