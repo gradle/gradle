@@ -109,7 +109,8 @@ fun resolveSourcesUsing(dependencyHandler: DependencyHandler, query: ArtifactRes
             .resolvedComponents
             .flatMap { it.getArtifacts(SourcesArtifact::class.java) }
             .filterIsInstance<ResolvedArtifactResult>()
-            .map { it.file })
+            .map { it.file }
+            .sorted()) // TODO remove sorting once https://github.com/gradle/gradle/issues/5507 is fixed
 
 
 private
