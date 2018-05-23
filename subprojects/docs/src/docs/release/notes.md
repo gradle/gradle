@@ -2,6 +2,11 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Command line args supported by JavaExec
+
+Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, 
+you don't need to hardcode it into build script - you can just run `gradle run --args 'foo --bar'` (see [application plugin](userguide/application_plugin.html) for more information).
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
