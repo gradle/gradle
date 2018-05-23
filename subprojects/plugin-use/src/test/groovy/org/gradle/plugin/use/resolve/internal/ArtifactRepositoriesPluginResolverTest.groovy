@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.management.internal.DefaultPluginRequest
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
@@ -58,6 +59,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         1 * result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source")
     }
 
+    @Ignore
     def "fail pluginRequests with SNAPSHOT versions"() {
         when:
         resolver.resolve(request("plugin", "1.1-SNAPSHOT"), result)
