@@ -45,6 +45,9 @@ class LockEntryFilterFactory {
         HashSet<LockEntryFilter> lockEntryFilters = new HashSet<LockEntryFilter>();
         for (String lockExcludes : lockedDependenciesToUpdate) {
             for (String lockExclude : lockExcludes.split(",")) {
+                String[] split = lockExclude.split(MODULE_SEPARATOR);
+                validateNotation(lockExclude, split);
+
                 if (!lockExclude.contains(MODULE_SEPARATOR)) {
                     throwInvalid(lockExclude);
                 }

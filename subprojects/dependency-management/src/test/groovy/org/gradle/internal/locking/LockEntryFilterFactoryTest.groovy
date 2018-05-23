@@ -59,6 +59,6 @@ class LockEntryFilterFactoryTest extends Specification {
         thrown(IllegalArgumentException)
 
         where:
-        filters << [['*org:foo'], ['org:*foo'], ['org'], [',org:foo'], [',']]
+        filters << [['*org:foo'], ['org:*foo'], ['org'], [',org:foo'], [','], ['org:foo:1.0']]
     }
 }
