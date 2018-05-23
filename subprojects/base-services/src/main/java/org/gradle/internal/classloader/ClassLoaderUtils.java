@@ -39,7 +39,8 @@ public abstract class ClassLoaderUtils {
 
     static {
         CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? new LookupClassDefiner() : new ReflectionClassDefiner();
-        GET_PACKAGES_METHOD = getMethodWithFallback(Package[].class, new Class[0], "getDefinedPackages", "getPackages");
+        GET_PACKAGES_METHOD = method(ClassLoader.class, Package[].class, "getPackages");
+        // Since Java 9, getPackage() is deprecated, so we use getDefinedPackage() instead
         GET_PACKAGE_METHOD = getMethodWithFallback(Package.class, new Class[]{String.class}, "getDefinedPackage", "getPackage");
     }
 
@@ -48,7 +49,6 @@ public abstract class ClassLoaderUtils {
         try {
             method = method(ClassLoader.class, clazz, firstChoice, params);
         } catch (Throwable e) {
-            // We must not be on Java 9 where the getDefinedPackages() method exists. Fall back to getPackages()
             method = method(ClassLoader.class, clazz, fallback, params);
         }
         return method;
