@@ -18,9 +18,30 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
+    private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
+        import javax.inject.Inject
+
+        class CustomTask extends DefaultTask {
+            final String message
+            final int number
+
+            @Inject
+            CustomTask(String message, int number) {
+                this.message = message
+                this.number = number
+            }
+
+            @TaskAction
+            void printIt() {
+                println("\$message \$number")
+            }
+        }
+    """
+
     def setup() {
         buildFile << '''
             class SomeTask extends DefaultTask {
@@ -549,5 +570,139 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         result.output.count("Create :myTask") == 1
         result.output.count("Configure :myTask") == 1
+    }
+
+    def "can construct a custom task with constructor arguments"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, 'hello', 42)"
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("hello 42")
+    }
+
+    def "fails to create custom task if constructor arguments are missing"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, 'hello')"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+    }
+
+    def "fails to create custom task if all constructor arguments missing"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+    }
+
+    @Unroll
+    def "fails when #description constructor argument is wrong type"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, $constructorArgs)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+
+        where:
+        description | constructorArgs | argumentNumber | outputType
+        'first'     | '123, 234'      | 1              | 'class java.lang.String'
+        'last'      | '"abc", "123"'  | 2              | 'int'
+    }
+
+    @Unroll
+    def "fails to create when null passed as a constructor argument value at #position"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Received null for CustomTask constructor argument #$position")
+
+        where:
+        description   | position | script
+        'direct call' | 1        | "tasks.createLater('myTask', CustomTask, null, 1)"
+        'direct call' | 2        | "tasks.createLater('myTask', CustomTask, 'abc', null)"
+    }
+
+    def "can construct a task with @Inject services"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                private final WorkerExecutor executor
+
+                @Inject
+                CustomTask(WorkerExecutor executor) {
+                    this.executor = executor
+                }
+
+                @TaskAction
+                void printIt() {
+                    println(executor != null ? "got it" : "NOT IT")
+                }
+            }
+
+            tasks.createLater('myTask', CustomTask)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("got it")
+    }
+
+    def "can construct a task with @Inject services and constructor args"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                private final int number
+                private final WorkerExecutor executor
+
+                @Inject
+                CustomTask(int number, WorkerExecutor executor) {
+                    this.number = number
+                    this.executor = executor
+                }
+
+                @TaskAction
+                void printIt() {
+                    println(executor != null ? "got it \$number" : "\$number NOT IT")
+                }
+            }
+
+            tasks.createLater('myTask', CustomTask, 15)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        result.output.contains("got it 15")
     }
 }

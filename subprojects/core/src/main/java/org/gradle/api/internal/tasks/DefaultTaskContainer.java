@@ -283,20 +283,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
+        return createTaskLater(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
+        return createLater(name, type, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Object... constructorArgs) {
+        return createTaskLater(name, type, null, constructorArgs);
+    }
+
+    private <T extends Task> TaskProvider<T> createTaskLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction, Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction, constructorArgs);
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
         }
         return provider;
-    }
-
-    @Override
-    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
-        return createLater(name, type, null);
     }
 
     @Override
@@ -489,9 +498,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
         private Throwable cause;
+        private Object[] constructorArgs;
 
-        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
+        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction, Object... constructorArgs) {
             super(type, name);
+            this.constructorArgs = constructorArgs;
             if (configureAction != null) {
                 configure(configureAction);
             }
@@ -507,7 +518,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 task = type.cast(findByNameWithoutRules(name));
                 if (task == null) {
                     try {
-                        task = createTask(name, type, NO_ARGS);
+                        task = createTask(name, type, constructorArgs);
                         statistics.lazyTaskRealized(type);
                         add(task);
                     } catch (RuntimeException ex) {
