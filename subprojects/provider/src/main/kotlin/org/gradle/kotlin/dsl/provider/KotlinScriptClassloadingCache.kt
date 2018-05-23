@@ -60,7 +60,7 @@ class KotlinScriptClassloadingCache @Inject constructor(
         parentClassLoader: ClassLoader,
         compile: (ScriptBlock<T>) -> CompiledScript<T>,
         createClassLoaderScope: () -> ClassLoaderScope,
-        additionalClassPath: ClassPath = ClassPath.EMPTY
+        additionalClassPath: ClassPath? = null
     ): LoadedScriptClass<T> {
 
         val key = cacheKeyFor(scriptBlock, parentClassLoader, additionalClassPath)
@@ -90,14 +90,18 @@ class KotlinScriptClassloadingCache @Inject constructor(
     fun <T> cacheKeyFor(
         scriptBlock: ScriptBlock<T>,
         parentClassLoader: ClassLoader,
-        additionalClassPath: ClassPath
+        additionalClassPath: ClassPath?
     ) =
 
         ScriptCacheKey(
             scriptBlock.scriptTemplate.qualifiedName!!,
             scriptBlock.sourceHash,
             parentClassLoader,
-            lazy { classpathHasher.hash(additionalClassPath) })
+            hashOf(additionalClassPath))
+
+    private
+    fun hashOf(additionalClassPath: ClassPath?) =
+        additionalClassPath?.let { classpathHasher.hash(it) }
 
     private
     fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
@@ -122,7 +126,7 @@ class ScriptCacheKey(
     private val templateId: String,
     private val sourceHash: HashCode,
     parentClassLoader: ClassLoader,
-    private val classPathHash: Lazy<HashCode>
+    private val classPathHash: HashCode? = null
 ) {
 
     private
@@ -138,7 +142,7 @@ class ScriptCacheKey(
             && thisParentLoader == that.parentClassLoader.get()
             && templateId == that.templateId
             && sourceHash == that.sourceHash
-            && classPathHash.value == that.classPathHash.value
+            && classPathHash == that.classPathHash
     }
 
     override fun hashCode(): Int {
@@ -146,6 +150,9 @@ class ScriptCacheKey(
         result = 31 * result + sourceHash.hashCode()
         parentClassLoader.get()?.let { loader ->
             result = 31 * result + loader.hashCode()
+        }
+        classPathHash?.let { classPathHash ->
+            result = 31 * result + classPathHash.hashCode()
         }
         return result
     }

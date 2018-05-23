@@ -185,8 +185,7 @@ class StandardKotlinScriptEvaluator(
             ScriptCacheKey(
                 templateId,
                 sourceHash,
-                parentClassLoader,
-                lazyOf(HashCode.fromInt(0)))
+                parentClassLoader)
 
         override fun cachedDirFor(
             templateId: String,
