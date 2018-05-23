@@ -16,11 +16,13 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrariesAndXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
+import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -42,7 +44,11 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasErrorOutput("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources")
+        if (OperatingSystem.current().isMacOsX()) {
+            failure.assertHasErrorOutput("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources")
+        } else {
+            failure.assertHasErrorOutput("cannot open shared object file")
+        }
         failure.assertHasCause("Failure while running xctest executable")
     }
 
@@ -54,7 +60,11 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasErrorOutput("Test Case '-[AppTest.ForceUnwrapTestSuite testForceUnwrapOptional]' started.")
+        if (OperatingSystem.current().isMacOsX()) {
+            failure.assertHasErrorOutput("Test Case '-[AppTest.ForceUnwrapTestSuite testForceUnwrapOptional]' started.")
+        } else {
+            failure.assertHasErrorOutput("Test Case 'ForceUnwrapTestSuite.testForceUnwrapOptional' started")
+        }
         failure.assertHasCause("Failure while running xctest executable")
     }
 
@@ -92,7 +102,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
     }
 
     void addForceUnwrappedOptionalTest() {
-        XCTestSourceFileElement sourceElement = new XCTestSourceFileElement("ForceUnwrapTestSuite") {
+        final XCTestSourceFileElement sourceFileElement = new XCTestSourceFileElement("ForceUnwrapTestSuite") {
             @Override
             List<XCTestCaseElement> getTestCases() {
                 return [testCase("testForceUnwrapOptional",
@@ -102,6 +112,12 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
                             """)]
             }
         }
-        sourceElement.writeToProject(file("app"))
+        XCTestSourceElement sourceElement = new XCTestSourceElement('app') {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [sourceFileElement]
+            }
+        }
+        sourceElement.writeToProject(file('app'))
     }
 }
