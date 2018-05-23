@@ -1,6 +1,8 @@
 package Gradle_AgentTest
 
 import jetbrains.buildServer.configs.kotlin.v2017_2.*
+import model.*
+import projects.RootProject
 
 /*
 The settings script is an entry point for defining a single
