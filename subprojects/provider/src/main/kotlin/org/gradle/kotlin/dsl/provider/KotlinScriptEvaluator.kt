@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
+import org.gradle.cache.CacheOpenException
 import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -35,6 +36,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.ScriptCompilationException
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
@@ -84,7 +86,7 @@ class StandardKotlinScriptEvaluator(
         options: EnumSet<KotlinScriptOption>
     ) {
 
-        if (options.isEmpty() && (target is Settings || isProjectScriptPluginRequest(topLevelScript, target))) {
+        if (options.isEmpty() && (target is Project || target is Settings)) {
             interpreter.eval(
                 target,
                 scriptSource,
@@ -102,10 +104,6 @@ class StandardKotlinScriptEvaluator(
                 execute()
         }
     }
-
-    private
-    fun isProjectScriptPluginRequest(topLevelScript: Boolean, target: Any) =
-        !topLevelScript && target is Project
 
     private
     fun evaluationFor(
@@ -196,9 +194,12 @@ class StandardKotlinScriptEvaluator(
             parentClassLoader: ClassLoader,
             initializer: (File) -> Unit
         ): File =
-            kotlinCompiler.cacheDirFor(
-                cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
-                initializer(baseDir)
+            try {
+                kotlinCompiler.cacheDirFor(cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
+                    initializer(baseDir)
+                }
+            } catch (e: CacheOpenException) {
+                throw e.cause as? ScriptCompilationException ?: e
             }
 
         private

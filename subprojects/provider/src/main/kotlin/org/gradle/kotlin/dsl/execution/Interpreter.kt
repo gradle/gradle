@@ -28,6 +28,7 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
 
+import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 
@@ -261,9 +262,13 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget
     ): ResidualProgramCompiler =
 
+        residualProgramCompiler(outputDir, sourceHash, programKind, programTarget, host.compilationClassPathOf(classLoaderScopeForClassPath))
+
+    private
+    fun residualProgramCompiler(outputDir: File, sourceHash: HashCode, programKind: ProgramKind, programTarget: ProgramTarget, classPath: ClassPath): ResidualProgramCompiler =
         ResidualProgramCompiler(
             outputDir,
-            host.compilationClassPathOf(classLoaderScopeForClassPath),
+            classPath,
             sourceHash,
             programKind,
             programTarget,
@@ -348,12 +353,22 @@ class Interpreter(val host: Host) {
 
             val cacheDir =
                 host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
-                    residualProgramCompilerFor(
-                        sourceHash,
+
+                    val targetScopeClassPath = host.compilationClassPathOf(targetScope)
+
+                    val compilationClassPath =
+                        if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
+                            targetScopeClassPath + accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
+                        else
+                            targetScopeClassPath
+
+                    ResidualProgramCompiler(
                         outputDir,
-                        targetScope,
+                        compilationClassPath,
+                        sourceHash,
                         programKind,
-                        programTarget
+                        programTarget,
+                        host.implicitImports
                     ).emitStage2ProgramFor(
                         File(scriptPath),
                         originalScriptPath

@@ -21,12 +21,16 @@ import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.messageCollectorFor
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
+import org.gradle.plugin.management.internal.DefaultPluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -112,7 +116,48 @@ class ResidualProgramCompiler(
         when (stage1) {
             is Program.Buildscript -> emitStagedProgram(stage1, stage2)
             is Program.Plugins -> emitStagedProgram(stage1, stage2)
+            is Program.Stage1Sequence -> emitStagedProgram(stage1.buildscript, stage1.plugins, stage2)
             else -> throw IllegalStateException()
+        }
+    }
+
+    private
+    fun emitStagedProgram(buildscript: Program.Buildscript, plugins: Program.Plugins, stage2: Program.Script) {
+
+        val precompiledBuildscriptWithPluginsBlock =
+            compileScript(
+                plugins.fragment.source.map {
+                    it.preserve(
+                        buildscript.fragment.section.wholeRange,
+                        plugins.fragment.section.wholeRange)
+                },
+                buildscriptWithPluginsScriptDefinition)
+
+        val source = stage2.source
+        val scriptFile = scriptFileFor(source)
+
+        stagedProgramWith(scriptFile.canonicalPath, source.path) {
+
+            precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
+
+                // val collector = PluginRequestCollector(scriptSource)
+                emitPluginRequestCollectorInstantiation()
+
+                NEW(precompiledBuildscriptWithPluginsBlock)
+                ALOAD(2) // scriptHost
+                // ${plugins}(temp.createSpec(lineNumber))
+                emitPluginRequestCollectorCreateSpec()
+                INVOKESPECIAL(
+                    precompiledBuildscriptWithPluginsBlock,
+                    "<init>",
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
+
+                // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
+                ALOAD(1) // programHost
+                ALOAD(2) // scriptHost
+                emitPluginRequestCollectorGetPluginRequests()
+                invokeApplyPluginsTo()
+            }
         }
     }
 
@@ -127,7 +172,10 @@ class ResidualProgramCompiler(
     private
     fun emitStagedProgram(stage1: Program.Buildscript, stage2: Program.Script) {
         val precompiledScriptClassName = compileBuildscript(stage1)
-        emitStagedProgram(precompiledScriptClassName, stage2)
+        if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
+            emitStagedTopLevelProjectProgram(precompiledScriptClassName, stage2)
+        else
+            emitStagedProgram(precompiledScriptClassName, stage2)
     }
 
     private
@@ -140,11 +188,41 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun emitStagedProgram(stage1PrecompiledScript: String?, stage2: Program.Script) {
+    fun emitStagedTopLevelProjectProgram(precompiledScriptClassName: String, stage2: Program.Script) {
+
         val source = stage2.source
         val scriptFile = scriptFileFor(source)
         val originalPath = source.path
-        emitStagedProgram(stage1PrecompiledScript, scriptFile.canonicalPath, originalPath)
+
+        stagedProgramWith(scriptFile.canonicalPath, originalPath) {
+
+            emitInstantiationOfPrecompiledScriptClass(precompiledScriptClassName)
+
+            ALOAD(1) // programHost
+            ALOAD(2) // scriptHost
+            GETSTATIC(
+                DefaultPluginRequests::class.internalName,
+                "EMPTY",
+                "Lorg/gradle/plugin/management/internal/PluginRequests;")
+            invokeApplyPluginsTo()
+        }
+    }
+
+    private
+    fun emitStagedProgram(stage1PrecompiledScript: String?, stage2: Program.Script) {
+
+        val source = stage2.source
+        val scriptFile = scriptFileFor(source)
+        val sourceFilePath = scriptFile.canonicalPath
+        val originalPath = source.path
+
+        stagedProgramWith(sourceFilePath = sourceFilePath, originalPath = originalPath) {
+
+            stage1PrecompiledScript?.let {
+                emitInstantiationOfPrecompiledScriptClass(it)
+            }
+            emitCloseTargetScopeOf()
+        }
     }
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
@@ -158,12 +236,23 @@ class ResidualProgramCompiler(
         sourceFilePath: String,
         originalPath: String
     ) {
+        stagedProgramWith(sourceFilePath, originalPath) {
 
+            emitPrecompiledPluginsBlock(precompiledPluginsBlock)
+        }
+    }
+
+    private
+    fun stagedProgramWith(
+        sourceFilePath: String,
+        originalPath: String,
+        stage1Execution: MethodVisitor.() -> Unit
+    ) {
         program<ExecutableProgram.StagedProgram> {
 
             overrideExecute {
 
-                emitPrecompiledPluginsBlock(precompiledPluginsBlock)
+                stage1Execution()
                 emitEvaluateSecondStageOf()
             }
 
@@ -176,44 +265,69 @@ class ResidualProgramCompiler(
 
         precompiledScriptClassInstantiation(precompiledPluginsBlock) {
 
-            // val temp = PluginRequestCollector(scriptHost.scriptSource)
-            val pluginRequestCollectorType = PluginRequestCollector::class.internalName
-            NEW(pluginRequestCollectorType)
-            DUP()
-            ALOAD(2) // scriptHost
-            INVOKEVIRTUAL(
-                "org/gradle/kotlin/dsl/support/KotlinScriptHost",
-                "getScriptSource",
-                "()Lorg/gradle/groovy/scripts/ScriptSource;")
-            INVOKESPECIAL(
-                pluginRequestCollectorType,
-                "<init>",
-                "(Lorg/gradle/groovy/scripts/ScriptSource;)V")
-            ASTORE(3) // collector
+            // val collector = PluginRequestCollector(scriptSource)
+            emitPluginRequestCollectorInstantiation()
 
+            // ${plugins}(temp.createSpec(lineNumber))
             NEW(precompiledPluginsBlock)
-            ALOAD(3)
-            LDC(0)
-            INVOKEVIRTUAL(
-                pluginRequestCollectorType,
-                "createSpec",
-                "(I)Lorg/gradle/plugin/use/PluginDependenciesSpec;")
+            emitPluginRequestCollectorCreateSpec()
             INVOKESPECIAL(
                 precompiledPluginsBlock,
                 "<init>",
                 "(Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
 
+            // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
             ALOAD(1) // programHost
             ALOAD(2) // scriptHost
-            ALOAD(3) // collector
-            INVOKEVIRTUAL(
-                pluginRequestCollectorType,
-                "getPluginRequests",
-                "()Lorg/gradle/plugin/management/internal/PluginRequests;")
-            invokeHost(
-                "applyPluginsTo",
-                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/management/internal/PluginRequests;)V")
+            emitPluginRequestCollectorGetPluginRequests()
+            invokeApplyPluginsTo()
         }
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
+        // val temp = PluginRequestCollector(scriptHost.scriptSource)
+        NEW(pluginRequestCollectorType)
+        DUP()
+        ALOAD(2) // scriptHost
+        INVOKEVIRTUAL(
+            "org/gradle/kotlin/dsl/support/KotlinScriptHost",
+            "getScriptSource",
+            "()Lorg/gradle/groovy/scripts/ScriptSource;")
+        INVOKESPECIAL(
+            pluginRequestCollectorType,
+            "<init>",
+            "(Lorg/gradle/groovy/scripts/ScriptSource;)V")
+        ASTORE(3) // collector
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequestCollectorGetPluginRequests() {
+        ALOAD(3) // collector
+        INVOKEVIRTUAL(
+            pluginRequestCollectorType,
+            "getPluginRequests",
+            "()Lorg/gradle/plugin/management/internal/PluginRequests;")
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequestCollectorCreateSpec() {
+        ALOAD(3)
+        LDC(0)
+        INVOKEVIRTUAL(
+            pluginRequestCollectorType,
+            "createSpec",
+            "(I)Lorg/gradle/plugin/use/PluginDependenciesSpec;")
+    }
+
+    private
+    val pluginRequestCollectorType by unsafeLazy { PluginRequestCollector::class.internalName }
+
+    private
+    fun MethodVisitor.invokeApplyPluginsTo() {
+        invokeHost(
+            "applyPluginsTo",
+            "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/management/internal/PluginRequests;)V")
     }
 
     private
@@ -255,29 +369,6 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun emitStagedProgram(
-        stage1PrecompiledScript: String?,
-        sourceFilePath: String,
-        originalPath: String
-    ) {
-
-        program<ExecutableProgram.StagedProgram> {
-
-            overrideExecute {
-
-                stage1PrecompiledScript?.let {
-                    emitInstantiationOfPrecompiledScriptClass(it)
-                }
-
-                emitCloseTargetScopeOf()
-                emitEvaluateSecondStageOf()
-            }
-
-            overrideLoadSecondStageFor(sourceFilePath, originalPath)
-        }
-    }
-
-    private
     fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String, originalPath: String) {
         publicMethod(
             "loadSecondStageFor",
@@ -285,7 +376,7 @@ class ResidualProgramCompiler(
             "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)Ljava/lang/Class<*>;"
         ) {
 
-            emitCompileSecondStageOf(sourceFilePath, originalPath)
+            emitCompileSecondStageScript(sourceFilePath, originalPath)
             ARETURN()
         }
     }
@@ -305,7 +396,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitCompileSecondStageOf(sourceFilePath: String, originalPath: String) {
+    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalPath: String) {
         ALOAD(1) // programHost
         LDC(sourceFilePath)
         LDC(originalPath)
@@ -457,9 +548,13 @@ class ResidualProgramCompiler(
 
     private
     fun scriptFileFor(source: ProgramSource) =
-        outputFile(scriptFileNameFor(source.path)).apply {
+        scriptFileFor(source.path).apply {
             writeText(source.text)
         }
+
+    private
+    fun scriptFileFor(sourcePath: String) =
+        outputFile(scriptFileNameFor(sourcePath))
 
     private
     fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
@@ -486,6 +581,10 @@ class ResidualProgramCompiler(
     private
     val pluginsScriptDefinition
         get() = scriptDefinitionFromTemplate(KotlinPluginsBlock::class)
+
+    private
+    val buildscriptWithPluginsScriptDefinition
+        get() = scriptDefinitionFromTemplate(KotlinBuildscriptAndPluginsBlock::class)
 
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =

@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.Project
+import org.gradle.api.initialization.dsl.ScriptHandler
+
+import org.gradle.kotlin.dsl.ScriptHandlerScope
+
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
@@ -23,6 +28,35 @@ import org.gradle.plugin.use.PluginDependenciesSpec
  * Base class for `plugins` block evaluation.
  */
 abstract class KotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
+
+    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
+        pluginDependencies.configuration()
+    }
+}
+
+
+/**
+ * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
+ */
+abstract class KotlinBuildscriptAndPluginsBlock(
+    private val host: KotlinScriptHost<Project>,
+    val pluginDependencies: PluginDependenciesSpec
+) : Project by host.target {
+
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override fun getBuildscript(): ScriptHandler =
+        host.scriptHandler
+
+    /**
+     * Configures the build script classpath for this project.
+     *
+     * @see [Project.buildscript]
+     */
+    fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+        buildscript.configureWith(block)
+    }
 
     inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
         pluginDependencies.configuration()

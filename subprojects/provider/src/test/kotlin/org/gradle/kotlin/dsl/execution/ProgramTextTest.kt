@@ -13,13 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+package org.gradle.kotlin.dsl.execution
+
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
+
+import org.junit.Test
 
 
-internal
-inline fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
-    ScriptHandlerScope(this).block()
+class ProgramTextTest {
+
+    @Test
+    fun `preserve`() {
+
+        val text = text("0123456789")
+        assertThat(
+            text.preserve(0..1),
+            equalTo(text("01        ")))
+
+        assertThat(
+            text.preserve(0..1, 7..9),
+            equalTo(text("01     789")))
+    }
 }

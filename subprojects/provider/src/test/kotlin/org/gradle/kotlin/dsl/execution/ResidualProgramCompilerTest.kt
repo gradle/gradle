@@ -218,7 +218,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     }
 
     @Test
-    fun `can compile staged Project program with a plugins block`() {
+    fun `can compile staged top-level Project program with a plugins block`() {
 
         val source = ProgramSource("build.gradle.kts", """
             plugins { println("stage 1") }
@@ -230,8 +230,58 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
         val stagedProgram = Program.Staged(stage1, stage2)
 
-        val sourceHash = scriptSourceHash(source.text)
+        assertStagedTopLevelProjectProgram(source, stagedProgram, "stage 1\n")
+    }
 
+    @Test
+    fun `can compile staged top-level Project program with a buildscript block`() {
+
+        val source = ProgramSource("build.gradle.kts", """
+            buildscript { println("stage 1") }
+            print("stage 2")
+        """.replaceIndent())
+
+        val fragment = source.fragment(0..10, 12..33)
+        val stage1 = Program.Buildscript(fragment)
+        val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
+        val stagedProgram = Program.Staged(stage1, stage2)
+
+        assertStagedTopLevelProjectProgram(source, stagedProgram, "stage 1\n")
+    }
+
+    @Test
+    fun `can compile staged top-level Project program with a buildscript followed by a plugins block`() {
+
+        val source = ProgramSource("build.gradle.kts", """
+            buildscript { println("stage 1 buildscript") }
+            plugins { println("stage 1 plugins") }
+            print("stage 2")
+        """.replaceIndent())
+
+        val buildscript = Program.Buildscript(source.fragment(0..10, 12..45))
+        val plugins = Program.Plugins(source.fragment(47..52, 54..84))
+        val stage1 = Program.Stage1Sequence(buildscript, plugins)
+        val stage2 = Program.Script(source.map { it.without(buildscript, plugins) })
+        val stagedProgram = Program.Staged(stage1, stage2)
+
+        assertStagedTopLevelProjectProgram(
+            source,
+            stagedProgram,
+            expectedStage1Output = "stage 1 buildscript\nstage 1 plugins\n")
+    }
+
+    private
+    fun ProgramText.without(buildscript: Program.Buildscript, plugins: Program.Plugins) =
+        erase(listOf(buildscript.fragment, plugins.fragment).map { it.section.wholeRange })
+
+    private
+    fun assertStagedTopLevelProjectProgram(
+        source: ProgramSource,
+        stagedProgram: Program.Staged,
+        expectedStage1Output: String
+    ) {
+
+        val sourceHash = scriptSourceHash(source.text)
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target = mock<Project>())
 
@@ -239,11 +289,14 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
 
+            val scriptTemplateId = "Project/TopLevel/stage2"
+
             assertThat(
                 standardOutputOf {
                     program.execute(programHost, scriptHost)
+                    program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash)
                 },
-                equalTo("stage 1\n"))
+                equalTo(expectedStage1Output))
 
             inOrder(programHost) {
 
@@ -254,8 +307,18 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 verify(programHost).evaluateSecondStageOf(
                     program = program,
                     scriptHost = scriptHost,
-                    scriptTemplateId = "Project/TopLevel/stage2",
+                    scriptTemplateId = scriptTemplateId,
                     sourceHash = sourceHash)
+
+                val scriptFile = outputDir().resolve(source.path)
+                verify(programHost).compileSecondStageScript(
+                    scriptFile.canonicalPath,
+                    source.path,
+                    scriptHost,
+                    scriptTemplateId,
+                    sourceHash,
+                    ProgramKind.TopLevel,
+                    ProgramTarget.Project)
 
                 verifyNoMoreInteractions()
             }

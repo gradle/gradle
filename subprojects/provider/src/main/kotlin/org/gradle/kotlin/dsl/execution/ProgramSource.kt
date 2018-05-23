@@ -45,15 +45,24 @@ data class ProgramText private constructor(val text: String) {
     fun erase(ranges: List<IntRange>): ProgramText =
         ProgramText(text.erase(ranges))
 
-    fun preserve(range: IntRange): ProgramText {
-        val ranges = ArrayList<IntRange>(2)
-        if (range.start > 0) {
-            ranges.add(0..(range.start - 1))
+    fun preserve(vararg ranges: IntRange): ProgramText {
+
+        require(ranges.isNotEmpty())
+
+        val rangesToErase = ArrayList<IntRange>(ranges.size + 1)
+
+        var last = 0
+        for (range in ranges) {
+            rangesToErase.add(last..(range.start - 1))
+            last = range.endInclusive + 1
         }
-        if (range.endInclusive < text.lastIndex) {
-            ranges.add((range.endInclusive + 1)..text.lastIndex)
+
+        val lastIndexToPreserve = ranges.last().endInclusive
+        if (lastIndexToPreserve < text.lastIndex) {
+            rangesToErase.add(lastIndexToPreserve + 1..text.lastIndex)
         }
-        return erase(ranges)
+
+        return erase(rangesToErase)
     }
 }
 
