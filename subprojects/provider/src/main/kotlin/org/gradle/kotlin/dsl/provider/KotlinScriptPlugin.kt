@@ -26,13 +26,15 @@ class KotlinScriptPlugin(
     private val script: (Any) -> Unit
 ) : ScriptPlugin {
 
-    private
-    val logger = loggerFor<KotlinScriptPlugin>()
-
-    override fun getSource() = scriptSource
+    override fun getSource() =
+        scriptSource
 
     override fun apply(target: Any) {
         logger.debug("Applying Kotlin script to {}", target)
         script(target)
     }
 }
+
+
+private
+val logger = loggerFor<KotlinScriptPlugin>()

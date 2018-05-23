@@ -56,6 +56,14 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun kotlinScriptOptions(): EnumSet<KotlinScriptOption> =
-        if (inClassPathMode()) EnumSet.of(KotlinScriptOption.IgnoreErrors)
-        else EnumSet.noneOf(KotlinScriptOption::class.java)
+        if (inClassPathMode()) classPathModeScriptOptions
+        else defaultScriptOptions
 }
+
+
+private
+val classPathModeScriptOptions = EnumSet.of(KotlinScriptOption.IgnoreErrors)
+
+
+private
+val defaultScriptOptions = EnumSet.noneOf(KotlinScriptOption::class.java)
