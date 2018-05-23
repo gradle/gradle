@@ -153,11 +153,11 @@ public class IdeaPlugin extends IdePlugin {
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
             ideaModel.setWorkspace(workspace);
 
-            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().createLater(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, new Action<GenerateIdeaWorkspace>() {
+            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().createLater(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
+            task.configure(new Action<GenerateIdeaWorkspace>() {
                 @Override
                 public void execute(GenerateIdeaWorkspace task) {
                     task.setDescription("Generates an IDEA workspace file (IWS)");
-                    task.setWorkspace(workspace);
                     task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
                 }
             });
@@ -169,11 +169,11 @@ public class IdeaPlugin extends IdePlugin {
         if (isRoot()) {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             final IdeaProject ideaProject = instantiator.newInstance(IdeaProject.class, project, ipr);
-            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().createLater(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, new Action<GenerateIdeaProject>() {
+            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().createLater(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
+            projectTask.configure(new Action<GenerateIdeaProject>() {
                 @Override
                 public void execute(GenerateIdeaProject projectTask) {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
-                    projectTask.setIdeaProject(ideaProject);
                 }
             });
             ideaModel.setProject(ideaProject);
@@ -260,11 +260,11 @@ public class IdeaPlugin extends IdePlugin {
         IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
 
-        final TaskProvider<GenerateIdeaModule> task = project.getTasks().createLater(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
+        final TaskProvider<GenerateIdeaModule> task = project.getTasks().createLater(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
+        task.configure(new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule task) {
                 task.setDescription("Generates IDEA module files (IML)");
-                task.setModule(module);
             }
         });
         ideaModel.setModule(module);

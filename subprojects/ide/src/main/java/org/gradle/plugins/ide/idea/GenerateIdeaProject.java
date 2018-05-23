@@ -21,6 +21,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
 import org.gradle.plugins.ide.idea.model.Project;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -29,6 +30,13 @@ import java.io.File;
 public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     private IdeaProject ideaProject;
+
+    public GenerateIdeaProject() {}
+
+    @Inject
+    public GenerateIdeaProject(IdeaProject ideaProject) {
+        this.ideaProject = ideaProject;
+    }
 
     @Override
     protected void configure(Project xmlModule) {

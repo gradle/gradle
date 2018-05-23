@@ -21,12 +21,21 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
 import org.gradle.plugins.ide.idea.model.Workspace;
 
+import javax.inject.Inject;
+
 /**
  * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
  */
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
     private IdeaWorkspace workspace;
+
+    public GenerateIdeaWorkspace() {}
+
+    @Inject
+    public GenerateIdeaWorkspace(IdeaWorkspace workspace) {
+        this.workspace = workspace;
+    }
 
     @Override
     protected Workspace create() {
