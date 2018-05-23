@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
+import org.gradle.testfixtures.ProjectBuilder
 
 class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
@@ -67,7 +67,10 @@ class ToolingApiDistributionResolver {
 
     private DependencyResolutionServices createResolutionServices() {
         // Create a dummy project and use its services
-        ProjectInternal project = TestUtil.createRootProject(temporaryFolder.getTestDirectory())
+        ProjectInternal project = ProjectBuilder.builder()
+            .withProjectDir(temporaryFolder.getTestDirectory())
+            .withGradleUserHomeDir(buildContext.gradleUserHomeDir)
+            .build()
         return project.services.get(DependencyResolutionServices)
     }
 
@@ -79,4 +82,6 @@ class ToolingApiDistributionResolver {
     void cleanup() {
         temporaryFolder.cleanup()
     }
+
+    void stop() { }
 }
