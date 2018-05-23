@@ -24,31 +24,30 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
-
 /**
- * An aggregating processor can have zero to many originating elements for each generated file.
+ * An annotation processor which can decide whether it is isolating, aggregating or non-incremental at runtime.
+ * It needs to return its type through the {@link #getSupportedOptions()} method in the format defined by
+ * {@link IncrementalAnnotationProcessorType#getProcessorOption()}.
  */
-public final class AggregatingProcessor extends DelegatingProcessor {
+public class DynamicProcessor extends DelegatingProcessor {
+    private final DynamicProcessingStrategy strategy;
 
-    private final IncrementalProcessingStrategy strategy;
-
-    public AggregatingProcessor(Processor delegate, AnnotationProcessingResult result) {
+    public DynamicProcessor(Processor delegate, AnnotationProcessingResult result) {
         super(delegate);
-        this.strategy = new AggregatingProcessingStrategy(result);
+        strategy = new DynamicProcessingStrategy(delegate.getClass().getName(), result);
     }
 
     @Override
-    public final void init(ProcessingEnvironment processingEnv) {
+    public void init(ProcessingEnvironment processingEnv) {
         IncrementalFiler incrementalFiler = new IncrementalFiler(processingEnv.getFiler(), strategy);
-        IncrementalProcessingEnvironment incrementalProcessingEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
-        super.init(incrementalProcessingEnvironment);
+        IncrementalProcessingEnvironment incrementalEnvironment = new IncrementalProcessingEnvironment(processingEnv, incrementalFiler);
+        super.init(incrementalEnvironment);
+        strategy.updateFromOptions(getSupportedOptions());
     }
 
     @Override
-    public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         strategy.recordProcessingInputs(getSupportedAnnotationTypes(), annotations, roundEnv);
         return super.process(annotations, roundEnv);
     }
-
-
 }
