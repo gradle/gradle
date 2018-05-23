@@ -34,7 +34,7 @@ public class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     private EclipseJdt jdt;
 
     public GenerateEclipseJdt() {
-        jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(super.getTransformer()));
+        jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
     }
 
     @Inject

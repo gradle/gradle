@@ -117,7 +117,7 @@ public class XcodePlugin extends IdePlugin {
 
         xcodeProject.setLocationDir(project.file(project.getName() + ".xcodeproj"));
 
-        final GenerateXcodeProjectFileTask projectTask = createProjectTask((ProjectInternal) project);
+        GenerateXcodeProjectFileTask projectTask = createProjectTask((ProjectInternal) project);
         lifecycleTask.configure(dependsOn(projectTask));
 
         project.getTasks().addRule("Xcode bridge tasks begin with _xcode. Do not call these directly.", new XcodeBridge(xcodeProject, project));
@@ -137,7 +137,7 @@ public class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeCleanTask(Project project) {
-        final Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
+        Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
         cleanTask.delete(xcodeProject.getLocationDir());
         if (isRoot()) {
             cleanTask.delete(project.file(project.getName() + ".xcworkspace"));
