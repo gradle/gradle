@@ -30,6 +30,7 @@ import org.gradle.internal.service.ServiceRegistry
 
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -222,13 +223,15 @@ class Interpreter(val host: Host) {
                 val residualProgram =
                     PartialEvaluator.reduce(ProgramSource(scriptPath, sourceText), programKind)
 
-                residualProgramCompilerFor(
-                    sourceHash,
-                    outputDir,
-                    targetScope.parent,
-                    programKind,
-                    programTarget
-                ).compile(residualProgram)
+                scriptSource.withLocationAwareExceptionHandling {
+                    residualProgramCompilerFor(
+                        sourceHash,
+                        outputDir,
+                        targetScope.parent,
+                        programKind,
+                        programTarget
+                    ).compile(residualProgram)
+                }
             }
 
         val classesDir =
@@ -267,13 +270,9 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget
     ): ResidualProgramCompiler =
 
-        residualProgramCompiler(outputDir, sourceHash, programKind, programTarget, host.compilationClassPathOf(classLoaderScopeForClassPath))
-
-    private
-    fun residualProgramCompiler(outputDir: File, sourceHash: HashCode, programKind: ProgramKind, programTarget: ProgramTarget, classPath: ClassPath): ResidualProgramCompiler =
         ResidualProgramCompiler(
             outputDir,
-            classPath,
+            host.compilationClassPathOf(classLoaderScopeForClassPath),
             sourceHash,
             programKind,
             programTarget,
@@ -374,17 +373,19 @@ class Interpreter(val host: Host) {
                             targetScopeClassPath + it
                         } ?: targetScopeClassPath
 
-                    ResidualProgramCompiler(
-                        outputDir,
-                        compilationClassPath,
-                        sourceHash,
-                        programKind,
-                        programTarget,
-                        host.implicitImports
-                    ).emitStage2ProgramFor(
-                        File(scriptPath),
-                        originalScriptPath
-                    )
+                    scriptHost.scriptSource.withLocationAwareExceptionHandling {
+                        ResidualProgramCompiler(
+                            outputDir,
+                            compilationClassPath,
+                            sourceHash,
+                            programKind,
+                            programTarget,
+                            host.implicitImports
+                        ).emitStage2ProgramFor(
+                            File(scriptPath),
+                            originalScriptPath
+                        )
+                    }
                 }
 
             return loadClassInChildScopeOf(
@@ -442,6 +443,15 @@ fun locationAwareExceptionFor(
 
     return inferLocationFrom(original)
 }
+
+
+internal
+inline fun <T> ScriptSource.withLocationAwareExceptionHandling(action: () -> T): T =
+    try {
+        action()
+    } catch (e: ScriptCompilationException) {
+        throw LocationAwareException(e, this, e.firstErrorLine)
+    }
 
 
 private
