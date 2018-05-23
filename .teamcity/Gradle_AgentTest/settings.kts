@@ -36,7 +36,7 @@ the 'Debug' option is available in the context menu for the task.
 version = "2017.2"
 val buildModel = CIBuildModel(
         projectPrefix = "Gradle_AgentTest_",
-        rootProjectName = "Agent Test",
+        rootProjectName = "Test Build Agents",
         masterAndReleaseBranches = listOf("master"),
         parentBuildCache = NoBuildCache,
         childBuildCache = NoBuildCache,
@@ -45,7 +45,8 @@ val buildModel = CIBuildModel(
         buildScanTags = listOf("AgentTest"),
         stages = listOf(
                 Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
-                        specificBuilds = listOf(SpecificBuild.SanityCheck),
+                        trigger = Trigger.never,
+                        runsIndependent = true,
                         functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
         )
 )
