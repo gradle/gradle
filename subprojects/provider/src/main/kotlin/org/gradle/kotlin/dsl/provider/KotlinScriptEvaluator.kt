@@ -213,11 +213,17 @@ class StandardKotlinScriptEvaluator(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
             location: File,
-            className: String
+            className: String,
+            accessorsClassPath: ClassPath?
         ): Class<*> =
             classLoaderScope
                 .createChild(childScopeId)
                 .local(DefaultClassPath.of(location))
+                .apply {
+                    accessorsClassPath?.let {
+                        local(it)
+                    }
+                }
                 .lock()
                 .localClassLoader
                 .loadClass(className)

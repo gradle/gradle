@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 
@@ -110,7 +111,7 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             on {
-                loadClassInChildScopeOf(any(), any(), any(), any())
+                loadClassInChildScopeOf(any(), any(), any(), any(), isNull())
             } doAnswer {
                 classLoaderFor(it.getArgument(2))
                     .also { classLoaders.add(it) }
@@ -151,9 +152,10 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
-                    "kotlin-dsl:$scriptPath:stage1",
+                    "kotlin-dsl:$scriptPath:$stage1TemplateId",
                     file("stage1/stage1"),
-                    "Program")
+                    "Program",
+                    null)
 
                 verify(host).cache(
                     stage1TemplateId,
@@ -170,9 +172,10 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).loadClassInChildScopeOf(
                     targetScope,
-                    "kotlin-dsl:$scriptPath:stage2",
+                    "kotlin-dsl:$scriptPath:$stage2TemplateId",
                     stage2CacheDir,
-                    "Program")
+                    "Program",
+                    null)
 
                 verify(host).cache(
                     stage2TemplateId,

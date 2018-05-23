@@ -31,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
+import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -94,7 +95,8 @@ class Interpreter(val host: Host) {
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
             location: File,
-            className: String
+            className: String,
+            accessorsClassPath: ClassPath?
         ): Class<*>
 
         fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests)
@@ -236,7 +238,8 @@ class Interpreter(val host: Host) {
             baseScope,
             scriptPath,
             classesDir,
-            "stage1")
+            templateId,
+            null)
     }
 
     private
@@ -244,12 +247,14 @@ class Interpreter(val host: Host) {
         baseScope: ClassLoaderScope,
         scriptPath: String,
         classesDir: File,
-        stage: String
+        scriptTemplateId: String,
+        accessorsClassPath: ClassPath?
     ): Class<*> =
 
         host.loadClassInChildScopeOf(
             baseScope,
-            childScopeId = classLoaderScopeIdFor(scriptPath, stage),
+            childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
+            accessorsClassPath = accessorsClassPath,
             location = classesDir,
             className = "Program")
 
@@ -351,16 +356,23 @@ class Interpreter(val host: Host) {
             val targetScope =
                 scriptHost.targetScope
 
+            val targetScopeClassPath by unsafeLazy {
+                host.compilationClassPathOf(targetScope)
+            }
+
+            val accessorsClassPath: ClassPath? =
+                if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
+                    accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
+                else
+                    null
+
             val cacheDir =
                 host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
 
-                    val targetScopeClassPath = host.compilationClassPathOf(targetScope)
-
                     val compilationClassPath =
-                        if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
-                            targetScopeClassPath + accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
-                        else
-                            targetScopeClassPath
+                        accessorsClassPath?.let {
+                            targetScopeClassPath + it
+                        } ?: targetScopeClassPath
 
                     ResidualProgramCompiler(
                         outputDir,
@@ -379,7 +391,8 @@ class Interpreter(val host: Host) {
                 targetScope,
                 originalScriptPath,
                 cacheDir,
-                "stage2")
+                scriptTemplateId,
+                accessorsClassPath)
         }
     }
 }
