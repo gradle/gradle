@@ -17,26 +17,34 @@
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.TextStream;
+import org.gradle.internal.io.WriterTextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -116,6 +124,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     }
 
     static class XCTestProcessor implements TestClassProcessor {
+        private static final Logger LOGGER = Logging.getLogger(XCTestProcessor.class);
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ExecHandleBuilder execHandleBuilder;
@@ -138,18 +147,32 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         @Override
         public void processTestClass(TestClassRunInfo testClass) {
-            execHandle = executeTest(testClass.getTestClassName());
-            execHandle.waitForFinish();
+            StringWriter outputString = new StringWriter();
+            StringWriter errorString = new StringWriter();
+            OutputStream outputStringStream = new LineBufferingOutputStream(new WriterTextStream(outputString));
+            OutputStream errorStringStream = new LineBufferingOutputStream(new WriterTextStream(errorString));
+            execHandle = executeTest(testClass.getTestClassName(), outputStringStream, errorStringStream);
+            ExecResult result = execHandle.waitForFinish();
+            // Exit code 0 = success, Exit code 1 = failed test(s), anything else is considered an execution failure
+            if (result.getExitValue() != 0 && result.getExitValue() != 1) {
+                String failure = "Failure while running xctest executable (exit code: " + result.getExitValue() + ").";
+                LOGGER.error(failure + "\n" + displayProcessOutput(outputString.toString(), errorString.toString()));
+                throw new ExecException(failure + "  See output for details.");
+            }
         }
 
-        private ExecHandle executeTest(String testName) {
+        private String displayProcessOutput(String stdout, String stderr) {
+            return "Standard Output:\n================\n" + stdout + "\nStandard Error:\n================\n" + stderr + "\n";
+        }
+
+        private ExecHandle executeTest(String testName, OutputStream outputStream, OutputStream errorStream) {
             execHandleBuilder.setArgs(toTestArgs(testName));
 
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
-            execHandleBuilder.setStandardOutput(new LineBufferingOutputStream(stdOut));
-            execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
+            execHandleBuilder.setStandardOutput(new TeeOutputStream(new LineBufferingOutputStream(stdOut), outputStream));
+            execHandleBuilder.setErrorOutput(new TeeOutputStream(new LineBufferingOutputStream(stdErr), errorStream));
             ExecHandle handle = execHandleBuilder.build();
             return handle.start();
         }
