@@ -73,5 +73,5 @@ object SourcePathProvider {
 
 internal
 fun subDirsOf(dir: File): Collection<File> =
-    if (dir.isDirectory) dir.listFiles().filter { it.isDirectory }
+    if (dir.isDirectory) dir.listFiles().filter { it.isDirectory }.sortedBy { it.name }
     else emptyList()
