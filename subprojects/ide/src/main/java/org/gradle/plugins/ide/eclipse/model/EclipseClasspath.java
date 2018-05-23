@@ -19,14 +19,11 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
@@ -137,7 +134,7 @@ public class EclipseClasspath {
 
     private boolean downloadJavadoc;
 
-    private final Property<XmlFileContentMerger> file;
+    private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
 
     private Map<String, File> pathVariables = new HashMap<String, File>();
 
@@ -148,9 +145,8 @@ public class EclipseClasspath {
     private final org.gradle.api.Project project;
 
     @Inject
-    public EclipseClasspath(org.gradle.api.Project project, ObjectFactory objectFactory) {
+    public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
-        this.file = objectFactory.property(XmlFileContentMerger.class);
     }
 
     /**
@@ -248,21 +244,11 @@ public class EclipseClasspath {
      * See {@link #file(Action)}.
      */
     public XmlFileContentMerger getFile() {
-        return file.getOrNull();
+        return file;
     }
 
     public void setFile(XmlFileContentMerger file) {
-        this.file.set(file);
-    }
-
-    /**
-     * See {@link #setFile(XmlFileContentMerger)}.
-     *
-     * @since 4.9
-     */
-    @Incubating
-    public void setFile(Provider<XmlFileContentMerger> file) {
-        this.file.set(file);
+        this.file = file;
     }
 
     public Map<String, File> getPathVariables() {
@@ -313,7 +299,7 @@ public class EclipseClasspath {
      * See {@link EclipseProject} for an example.
      */
     public void file(Closure closure) {
-        ConfigureUtil.configure(closure, getFile());
+        ConfigureUtil.configure(closure, file);
     }
 
     /**
@@ -326,7 +312,7 @@ public class EclipseClasspath {
      * @since 3.5
      */
     public void file(Action<? super XmlFileContentMerger> action) {
-        action.execute(getFile());
+        action.execute(file);
     }
 
     /**
@@ -341,10 +327,10 @@ public class EclipseClasspath {
     }
 
     public void mergeXmlClasspath(Classpath xmlClasspath) {
-        getFile().getBeforeMerged().execute(xmlClasspath);
+        file.getBeforeMerged().execute(xmlClasspath);
         List<ClasspathEntry> entries = resolveDependencies();
         xmlClasspath.configure(entries);
-        getFile().getWhenMerged().execute(xmlClasspath);
+        file.getWhenMerged().execute(xmlClasspath);
     }
 
     public FileReferenceFactory getFileReferenceFactory() {

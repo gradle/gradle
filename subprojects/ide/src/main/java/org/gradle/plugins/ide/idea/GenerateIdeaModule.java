@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Module;
@@ -41,6 +42,14 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     @Override
     protected void configure(Module xmlModule) {
         getModule().mergeXmlModule(xmlModule);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (module == null) {
+            return super.getXmlTransformer();
+        }
+        return module.getIml().getXmlTransformer();
     }
 
     /**

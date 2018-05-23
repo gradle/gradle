@@ -17,10 +17,9 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
 import javax.inject.Inject;
 
@@ -56,13 +55,15 @@ import static org.gradle.util.ConfigureUtil.configure;
  * </pre>
  */
 public class EclipseWtp {
-    private final Property<EclipseWtpComponent> component;
-    private final Property<EclipseWtpFacet> facet;
+    private EclipseWtpComponent component;
+    private EclipseWtpFacet facet;
 
+    /**
+     * @since 4.9
+     */
     @Inject
-    public EclipseWtp(ObjectFactory objectFactory) {
-        this.component = objectFactory.property(EclipseWtpComponent.class);
-        this.facet = objectFactory.property(EclipseWtpFacet.class);
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -71,21 +72,11 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpComponent}
      */
     public EclipseWtpComponent getComponent() {
-        return component.getOrNull();
+        return component;
     }
 
     public void setComponent(EclipseWtpComponent component) {
-        this.component.set(component);
-    }
-
-    /**
-     * See {@link #setComponent(EclipseWtpComponent)}.
-     *
-     * @since 4.9
-     */
-    @Incubating
-    public void setComponent(Provider<EclipseWtpComponent> component) {
-        this.component.set(component);
+        this.component = component;
     }
 
     /**
@@ -94,7 +85,7 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpComponent}
      */
     public void component(Closure action) {
-        configure(action, getComponent());
+        configure(action, component);
     }
 
     /**
@@ -105,7 +96,7 @@ public class EclipseWtp {
      * @since 3.5
      */
     public void component(Action<? super EclipseWtpComponent> action) {
-        action.execute(getComponent());
+        action.execute(component);
     }
 
     /**
@@ -114,21 +105,16 @@ public class EclipseWtp {
      * For examples see docs for {@link EclipseWtpFacet}
      */
     public EclipseWtpFacet getFacet() {
-        return facet.get();
+        if (facet == null) {
+            XmlTransformer xmlTransformer = new XmlTransformer();
+            xmlTransformer.setIndentation("\t");
+            facet = getObjectFactory().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(xmlTransformer));
+        }
+        return facet;
     }
 
     public void setFacet(EclipseWtpFacet facet) {
-        this.facet.set(facet);
-    }
-
-    /**
-     * See {@link #setFacet(EclipseWtpFacet)}.
-     *
-     * @since 4.9
-     */
-    @Incubating
-    public void setFacet(Provider<EclipseWtpFacet> facet) {
-        this.facet.set(facet);
+        this.facet = facet;
     }
 
     /**

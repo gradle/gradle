@@ -68,9 +68,7 @@ class TestUtil {
     static ObjectFactory objectFactory() {
         DefaultServiceRegistry services = new DefaultServiceRegistry()
         services.add(ProviderFactory, new DefaultProviderFactory())
-        ObjectFactory result = new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE)
-        services.add(ObjectFactory, result)
-        return result
+        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE)
     }
 
     static ValueSnapshotter valueSnapshotter() {

@@ -39,11 +39,11 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
@@ -59,7 +59,6 @@ import org.gradle.plugins.ide.idea.model.internal.GeneratedIdeaScope;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
-import org.gradle.plugins.ide.internal.ValueCachingProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.util.SingleMessageLogger;
 
@@ -97,6 +96,9 @@ public class IdeaPlugin extends IdePlugin {
             return p.getConvention().getPlugin(JavaPluginConvention.class).getTargetCompatibility();
         }
     };
+    private static final String IDEA_MODULE_TASK_NAME = "ideaModule";
+    private static final String IDEA_PROJECT_TASK_NAME = "ideaProject";
+    private static final String IDEA_WORKSPACE_TASK_NAME = "ideaWorkspace";
 
     private final Instantiator instantiator;
     private IdeaModel ideaModel;
@@ -148,7 +150,10 @@ public class IdeaPlugin extends IdePlugin {
     private void configureIdeaWorkspace(final Project project) {
         if (isRoot()) {
             final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
-            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().createLater("ideaWorkspace", GenerateIdeaWorkspace.class, new Action<GenerateIdeaWorkspace>() {
+            workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
+            ideaModel.setWorkspace(workspace);
+
+            final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().createLater(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, new Action<GenerateIdeaWorkspace>() {
                 @Override
                 public void execute(GenerateIdeaWorkspace task) {
                     task.setDescription("Generates an IDEA workspace file (IWS)");
@@ -156,29 +161,15 @@ public class IdeaPlugin extends IdePlugin {
                     task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
                 }
             });
-            workspace.setIws(ValueCachingProvider.of(project.provider(new Callable<XmlFileContentMerger>() {
-                @Override
-                public XmlFileContentMerger call() {
-                    return new XmlFileContentMerger(task.get().getXmlTransformer());
-                }
-            })));
-            ideaModel.setWorkspace(workspace);
-
-            addWorker(task, false);
+            addWorker(task, IDEA_WORKSPACE_TASK_NAME, false);
         }
     }
 
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
-            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().createLater("ideaProject", GenerateIdeaProject.class);
-            Provider<XmlFileContentMerger> ipr = ValueCachingProvider.of(project.provider(new Callable<XmlFileContentMerger>() {
-                @Override
-                public XmlFileContentMerger call() {
-                    return new XmlFileContentMerger(projectTask.get().getXmlTransformer());
-                }
-            }));
+            XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
             final IdeaProject ideaProject = instantiator.newInstance(IdeaProject.class, project, ipr);
-            projectTask.configure(new Action<GenerateIdeaProject>() {
+            final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().createLater(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, new Action<GenerateIdeaProject>() {
                 @Override
                 public void execute(GenerateIdeaProject projectTask) {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
@@ -237,7 +228,7 @@ public class IdeaPlugin extends IdePlugin {
                 }
             });
 
-            addWorker(projectTask);
+            addWorker(projectTask, IDEA_PROJECT_TASK_NAME);
 
             addWorkspace(ideaProject);
         }
@@ -266,16 +257,10 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModule(final ProjectInternal project) {
-        final TaskProvider<GenerateIdeaModule> task = project.getTasks().createLater("ideaModule", GenerateIdeaModule.class);
-
-        Provider<IdeaModuleIml> iml = ValueCachingProvider.of(project.provider(new Callable<IdeaModuleIml>() {
-            @Override
-            public IdeaModuleIml call() {
-                return new IdeaModuleIml(task.get().getXmlTransformer(), project.getProjectDir());
-            }
-        }));
+        IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
-        task.configure(new Action<GenerateIdeaModule>() {
+
+        final TaskProvider<GenerateIdeaModule> task = project.getTasks().createLater(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, new Action<GenerateIdeaModule>() {
             @Override
             public void execute(GenerateIdeaModule task) {
                 task.setDescription("Generates IDEA module files (IML)");
@@ -343,7 +328,7 @@ public class IdeaPlugin extends IdePlugin {
 
         artifactRegistry.registerIdeProject(new IdeaModuleMetadata(module, task));
 
-        addWorker(task);
+        addWorker(task, IDEA_MODULE_TASK_NAME);
     }
 
     private void configureForJavaPlugin(final Project project) {

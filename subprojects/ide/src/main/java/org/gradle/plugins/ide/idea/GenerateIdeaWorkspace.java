@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
 import org.gradle.plugins.ide.idea.model.Workspace;
@@ -35,6 +36,14 @@ public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
     @Override
     protected void configure(Workspace xmlWorkspace) {
         getWorkspace().mergeXmlWorkspace(xmlWorkspace);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (workspace == null) {
+            return super.getXmlTransformer();
+        }
+        return workspace.getIws().getXmlTransformer();
     }
 
     /**

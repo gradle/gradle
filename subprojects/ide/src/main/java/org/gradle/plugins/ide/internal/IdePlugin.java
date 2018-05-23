@@ -99,20 +99,20 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     public void addWorker(Task worker) {
-        addWorker(project.getTasks().get(Task.class, worker.getName()));
+        addWorker(project.getTasks().get(Task.class, worker.getName()), worker.getName());
     }
 
-    public void addWorker(TaskProvider<? extends Task> worker) {
-        addWorker(worker, true);
+    public void addWorker(TaskProvider<? extends Task> worker, String workerName) {
+        addWorker(worker, workerName, true);
     }
 
     public void addWorker(Task worker, boolean includeInClean) {
-        addWorker(project.getTasks().get(Task.class, worker.getName()), includeInClean);
+        addWorker(project.getTasks().get(Task.class, worker.getName()), worker.getName(), includeInClean);
     }
 
-    public void addWorker(final TaskProvider<? extends Task> worker, boolean includeInClean) {
+    public void addWorker(final TaskProvider<? extends Task> worker, String workerName, boolean includeInClean) {
         lifecycleTask.configure(dependsOn(worker));
-        final TaskProvider<Delete> cleanWorker = project.getTasks().createLater(cleanName(worker.getName()), Delete.class, new Action<Delete>() {
+        final TaskProvider<Delete> cleanWorker = project.getTasks().createLater(cleanName(workerName), Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete cleanWorker) {
                 cleanWorker.delete(worker.get().getOutputs().getFiles());

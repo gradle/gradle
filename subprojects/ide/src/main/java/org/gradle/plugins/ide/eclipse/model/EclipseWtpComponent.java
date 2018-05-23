@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpComponentFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -147,6 +148,7 @@ public class EclipseWtpComponent {
     private String libDeployPath;
     private Map<String, File> pathVariables = Maps.newHashMap();
 
+    @Inject
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
         this.project = project;
         this.file = file;

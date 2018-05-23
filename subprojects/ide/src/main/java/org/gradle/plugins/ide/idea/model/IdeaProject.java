@@ -114,7 +114,7 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 public class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
-    private final Provider<XmlFileContentMerger> ipr;
+    private final XmlFileContentMerger ipr;
     private final ProjectStateRegistry projectPathRegistry;
     private final IdeArtifactRegistry artifactRegistry;
 
@@ -128,7 +128,7 @@ public class IdeaProject implements IdeWorkspace {
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
-    public IdeaProject(org.gradle.api.Project project, Provider<XmlFileContentMerger> ipr) {
+    public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
         this.project = project;
         this.ipr = ipr;
 
@@ -161,7 +161,7 @@ public class IdeaProject implements IdeWorkspace {
      * See {@link #ipr(Action) }
      */
     public XmlFileContentMerger getIpr() {
-        return ipr.get();
+        return ipr;
     }
 
     /**
@@ -171,7 +171,7 @@ public class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}
      */
     public void ipr(Closure closure) {
-        configure(closure, getIpr());
+        configure(closure, ipr);
     }
 
     /**
@@ -183,7 +183,7 @@ public class IdeaProject implements IdeWorkspace {
      * @since 3.5
      */
     public void ipr(Action<? super XmlFileContentMerger> action) {
-        action.execute(getIpr());
+        action.execute(ipr);
     }
 
     /**
@@ -342,10 +342,10 @@ public class IdeaProject implements IdeWorkspace {
     }
 
     public void mergeXmlProject(Project xmlProject) {
-        getIpr().getBeforeMerged().execute(xmlProject);
+        ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
         configureModulePaths(xmlProject);
-        getIpr().getWhenMerged().execute(xmlProject);
+        ipr.getWhenMerged().execute(xmlProject);
     }
 
     private void configureModulePaths(Project xmlProject) {

@@ -19,10 +19,9 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -60,18 +59,20 @@ import static org.gradle.util.ConfigureUtil.configure;
  */
 public class EclipseModel {
 
-    private final Property<EclipseProject> project;
+    private EclipseProject project;
 
     private EclipseClasspath classpath;
 
-    private final Property<EclipseJdt> jdt;
+    private EclipseJdt jdt;
 
     private EclipseWtp wtp;
 
+    /**
+     * @since 4.9
+     */
     @Inject
-    public EclipseModel(ObjectFactory objectFactory) {
-        this.project = objectFactory.property(EclipseProject.class);
-        this.jdt = objectFactory.property(EclipseJdt.class);
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -80,21 +81,16 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public EclipseProject getProject() {
-        return project.getOrNull();
+        if (project == null) {
+            XmlTransformer xmlTransformer = new XmlTransformer();
+            xmlTransformer.setIndentation("\t");
+            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer));
+        }
+        return project;
     }
 
     public void setProject(EclipseProject project) {
-        this.project.set(project);
-    }
-
-    /**
-     * See {@link #setProject(EclipseProject)}.
-     *
-     * @since 4.9
-     */
-    @Incubating
-    public void setProject(Provider<EclipseProject> project) {
-        this.project.set(project);
+        this.project = project;
     }
 
     /**
@@ -116,21 +112,11 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public EclipseJdt getJdt() {
-        return jdt.getOrNull();
+        return jdt;
     }
 
     public void setJdt(EclipseJdt jdt) {
-        this.jdt.set(jdt);
-    }
-
-    /**
-     * See {@link #setJdt(EclipseJdt)}.
-     *
-     * @since 4.9
-     */
-    @Incubating
-    public void setJdt(Provider<EclipseJdt> jdt) {
-        this.jdt.set(jdt);
+        this.jdt = jdt;
     }
 
     /**
@@ -139,6 +125,9 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseWtp}
      */
     public EclipseWtp getWtp() {
+        if (wtp == null) {
+            wtp = getObjectFactory().newInstance(EclipseWtp.class);
+        }
         return wtp;
     }
 

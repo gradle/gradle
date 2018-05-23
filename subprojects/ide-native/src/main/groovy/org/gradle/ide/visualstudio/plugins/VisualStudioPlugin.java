@@ -20,8 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
@@ -56,7 +54,6 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
 import javax.inject.Inject;
-import java.util.concurrent.Callable;
 
 
 /**
@@ -207,25 +204,17 @@ public class VisualStudioPlugin extends IdePlugin {
         cleanTask.configure(new Action<Delete>() {
             @Override
             public void execute(Delete cleanTask) {
-                cleanTask.delete(new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() throws Exception {
-                        ConfigurableFileCollection result = project.files();
-                        for (GenerateSolutionFileTask task : project.getTasks().withType(GenerateSolutionFileTask.class)) {
-                            result.from(task.getOutputs().getFiles());
-                        }
+                for (GenerateSolutionFileTask task : project.getTasks().withType(GenerateSolutionFileTask.class)) {
+                    cleanTask.delete(task.getOutputs().getFiles());
+                }
 
-                        for (GenerateFiltersFileTask task : project.getTasks().withType(GenerateFiltersFileTask.class)) {
-                            result.from(task.getOutputs().getFiles());
-                        }
+                for (GenerateFiltersFileTask task : project.getTasks().withType(GenerateFiltersFileTask.class)) {
+                    cleanTask.delete(task.getOutputs().getFiles());
+                }
 
-                        for (GenerateProjectFileTask task : project.getTasks().withType(GenerateProjectFileTask.class)) {
-                            result.from(task.getOutputs().getFiles());
-                        }
-
-                        return result;
-                    }
-                });
+                for (GenerateProjectFileTask task : project.getTasks().withType(GenerateProjectFileTask.class)) {
+                    cleanTask.delete(task.getOutputs().getFiles());
+                }
             }
         });
     }

@@ -28,7 +28,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.provider.Provider;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -174,13 +173,13 @@ public class IdeaModule {
     private IdeaLanguageLevel languageLevel;
     private JavaVersion targetBytecodeVersion;
     private ScalaPlatform scalaPlatform;
-    private final Provider<IdeaModuleIml> iml;
+    private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;
 
-    public IdeaModule(Project project, Provider<IdeaModuleIml> iml) {
+    public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
     }
@@ -500,7 +499,7 @@ public class IdeaModule {
      * See {@link #iml(Action)}
      */
     public IdeaModuleIml getIml() {
-        return iml.get();
+        return iml;
     }
 
     /**
@@ -557,7 +556,7 @@ public class IdeaModule {
      * @since 3.5
      */
     public void iml(Action<? super IdeaModuleIml> action) {
-        action.execute(getIml());
+        action.execute(iml);
     }
 
     /**
@@ -569,7 +568,7 @@ public class IdeaModule {
      * In IntelliJ IDEA the module name is the same as the name of the *.iml file.
      */
     public File getOutputFile() {
-        return new File(getIml().getGenerateTo(), getName() + ".iml");
+        return new File(iml.getGenerateTo(), getName() + ".iml");
     }
 
     public void setOutputFile(File newOutputFile) {
@@ -591,7 +590,7 @@ public class IdeaModule {
     }
 
     public void mergeXmlModule(Module xmlModule) {
-        getIml().getBeforeMerged().execute(xmlModule);
+        iml.getBeforeMerged().execute(xmlModule);
 
         Path contentRoot = getPathFactory().path(getContentRoot());
         Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
@@ -616,7 +615,7 @@ public class IdeaModule {
             getJdkName(), level
         );
 
-        getIml().getWhenMerged().execute(xmlModule);
+        iml.getWhenMerged().execute(xmlModule);
     }
 
     private Set<File> existing(Set<File> files) {

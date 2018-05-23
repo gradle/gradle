@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -28,19 +27,18 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.WarPluginConvention;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.Ear;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ear.EarPluginConvention;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
-import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet;
 import org.gradle.plugins.ide.eclipse.model.Facet;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport;
@@ -78,16 +76,15 @@ public class EclipseWtpPlugin extends IdePlugin {
     protected void onApply(Project project) {
         project.getPluginManager().apply(EclipsePlugin.class);
 
-        EclipseModel model = project.getExtensions().getByType(EclipseModel.class);
-        model.setWtp(project.getObjects().newInstance(EclipseWtp.class));
-
         getLifecycleTask().configure(withDescription("Generates Eclipse wtp configuration files."));
         getCleanTask().configure(withDescription("Cleans Eclipse wtp configuration files."));
 
         project.getTasks().get(Task.class, EclipsePlugin.ECLIPSE_TASK_NAME).configure(dependsOn(getLifecycleTask()));
         project.getTasks().get(Task.class, cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).configure(dependsOn(getCleanTask()));
 
-        configureEclipseProject(project);
+        EclipseModel model = project.getExtensions().getByType(EclipseModel.class);
+
+        configureEclipseProject(project, model);
         configureEclipseWtpComponent(project, model);
         configureEclipseWtpFacet(project, model);
 
@@ -127,22 +124,28 @@ public class EclipseWtpPlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
-        final TaskProvider<GenerateEclipseWtpComponent> task = maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, new Action<GenerateEclipseWtpComponent>() {
+        XmlTransformer xmlTransformer = new XmlTransformer();
+        xmlTransformer.setIndentation("\t");
+        final EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
+        model.getWtp().setComponent(component);
+
+        TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().createLater(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
+        task.configure(new Action<GenerateEclipseWtpComponent>() {
             @Override
             public void execute(final GenerateEclipseWtpComponent task) {
-                //task properties:
                 task.setDescription("Generates the Eclipse WTP component settings file.");
                 task.setInputFile(project.file(".settings/org.eclipse.wst.common.component"));
                 task.setOutputFile(project.file(".settings/org.eclipse.wst.common.component"));
-
-                ((IConventionAware) task.getComponent()).getConventionMapping().map("deployName", new Callable<String>() {
-                    @Override
-                    public String call() throws Exception {
-                        return model.getProject().getName();
-                    }
-                });
             }
 
+        });
+        addWorker(task, ECLIPSE_WTP_COMPONENT_TASK_NAME);
+
+        ((IConventionAware) component).getConventionMapping().map("deployName", new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return model.getProject().getName();
+            }
         });
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
@@ -152,25 +155,20 @@ public class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                task.configure(new Action<GenerateEclipseWtpComponent>() {
-                    @Override
-                    public void execute(GenerateEclipseWtpComponent task) {
-                        Set<Configuration> libConfigurations = task.getComponent().getLibConfigurations();
+                Set<Configuration> libConfigurations = component.getLibConfigurations();
 
-                        libConfigurations.add(project.getConfigurations().getByName("runtime"));
-                        task.getComponent().setClassesDeployPath("/");
-                        ((IConventionAware) task.getComponent()).getConventionMapping().map("libDeployPath", new Callable<String>() {
-                            @Override
-                            public String call() throws Exception {
-                                return "../";
-                            }
-                        });
-                        ((IConventionAware)task.getComponent()).getConventionMapping().map("sourceDirs", new Callable<Set<File>>() {
-                            @Override
-                            public Set<File> call() throws Exception {
-                                return getMainSourceDirs(project);
-                            }
-                        });
+                libConfigurations.add(project.getConfigurations().getByName("runtime"));
+                component.setClassesDeployPath("/");
+                ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return "../";
+                    }
+                });
+                ((IConventionAware) component).getConventionMapping().map("sourceDirs", new Callable<Set<File>>() {
+                    @Override
+                    public Set<File> call() throws Exception {
+                        return getMainSourceDirs(project);
                     }
                 });
             }
@@ -179,40 +177,35 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                task.configure(new Action<GenerateEclipseWtpComponent>() {
-                    @Override
-                    public void execute(GenerateEclipseWtpComponent task) {
-                        Set<Configuration> libConfigurations = task.getComponent().getLibConfigurations();
-                        Set<Configuration> minusConfigurations = task.getComponent().getMinusConfigurations();
+                Set<Configuration> libConfigurations = component.getLibConfigurations();
+                Set<Configuration> minusConfigurations = component.getMinusConfigurations();
 
-                        libConfigurations.add(project.getConfigurations().getByName("runtime"));
-                        minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
-                        task.getComponent().setClassesDeployPath("/WEB-INF/classes");
-                        ConventionMapping convention = ((IConventionAware) task.getComponent()).getConventionMapping();
-                        convention.map("libDeployPath", new Callable<String>() {
-                            @Override
-                            public String call() throws Exception {
-                                return "/WEB-INF/lib";
-                            }
-                        });
-                        convention.map("contextPath", new Callable<String>() {
-                            @Override
-                            public String call() throws Exception {
-                                return ((War) project.getTasks().getByName("war")).getBaseName();
-                            }
-                        });
-                        convention.map("resources", new Callable<List<WbResource>>() {
-                            @Override
-                            public List<WbResource> call() throws Exception {
-                                return Lists.newArrayList(new WbResource("/", project.getConvention().getPlugin(WarPluginConvention.class).getWebAppDirName()));
-                            }
-                        });
-                        convention.map("sourceDirs", new Callable<Set<File>>() {
-                            @Override
-                            public Set<File> call() throws Exception {
-                                return getMainSourceDirs(project);
-                            }
-                        });
+                libConfigurations.add(project.getConfigurations().getByName("runtime"));
+                minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
+                component.setClassesDeployPath("/WEB-INF/classes");
+                ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
+                convention.map("libDeployPath", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return "/WEB-INF/lib";
+                    }
+                });
+                convention.map("contextPath", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return ((War) project.getTasks().getByName("war")).getBaseName();
+                    }
+                });
+                convention.map("resources", new Callable<List<WbResource>>() {
+                    @Override
+                    public List<WbResource> call() throws Exception {
+                        return Lists.newArrayList(new WbResource("/", project.getConvention().getPlugin(WarPluginConvention.class).getWebAppDirName()));
+                    }
+                });
+                convention.map("sourceDirs", new Callable<Set<File>>() {
+                    @Override
+                    public Set<File> call() throws Exception {
+                        return getMainSourceDirs(project);
                     }
                 });
             }
@@ -221,73 +214,60 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                task.configure(new Action<GenerateEclipseWtpComponent>() {
+                Set<Configuration> libConfigurations = component.getLibConfigurations();
+                Set<Configuration> rootConfigurations = component.getRootConfigurations();
+
+                rootConfigurations.clear();
+                rootConfigurations.add(project.getConfigurations().getByName("deploy"));
+                libConfigurations.clear();
+                libConfigurations.add(project.getConfigurations().getByName("earlib"));
+                component.setClassesDeployPath("/");
+                final ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
+                convention.map("libDeployPath", new Callable<String>() {
                     @Override
-                    public void execute(GenerateEclipseWtpComponent task) {
-                        Set<Configuration> libConfigurations = task.getComponent().getLibConfigurations();
-                        Set<Configuration> rootConfigurations = task.getComponent().getRootConfigurations();
+                    public String call() throws Exception {
+                        String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
+                        if (!deployPath.startsWith("/")) {
+                            deployPath = "/" + deployPath;
+                        }
 
-                        rootConfigurations.clear();
-                        rootConfigurations.add(project.getConfigurations().getByName("deploy"));
-                        libConfigurations.clear();
-                        libConfigurations.add(project.getConfigurations().getByName("earlib"));
-                        task.getComponent().setClassesDeployPath("/");
-                        final ConventionMapping convention = ((IConventionAware) task.getComponent()).getConventionMapping();
-                        convention.map("libDeployPath", new Callable<String>() {
-                            @Override
-                            public String call() throws Exception {
-                                String deployPath = ((Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME)).getLibDirName();
-                                if (!deployPath.startsWith("/")) {
-                                    deployPath = "/" + deployPath;
-                                }
-
-                                return deployPath;
-                            }
-                        });
+                        return deployPath;
+                    }
+                });
+                convention.map("sourceDirs", new Callable<Set<File>>() {
+                    @Override
+                    public Set<File> call() throws Exception {
+                        return project.getLayout().files(project.getConvention().getPlugin(EarPluginConvention.class).getAppDirName()).getFiles();
+                    }
+                });
+                project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+                    @Override
+                    public void execute(JavaPlugin javaPlugin) {
                         convention.map("sourceDirs", new Callable<Set<File>>() {
                             @Override
                             public Set<File> call() throws Exception {
-                                return project.getLayout().files(project.getConvention().getPlugin(EarPluginConvention.class).getAppDirName()).getFiles();
+                                return getMainSourceDirs(project);
                             }
-                        });
-                        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
-                            @Override
-                            public void execute(JavaPlugin javaPlugin) {
-                                convention.map("sourceDirs", new Callable<Set<File>>() {
-                                    @Override
-                                    public Set<File> call() throws Exception {
-                                        return getMainSourceDirs(project);
-                                    }
-                                });
-                            }
-
                         });
                     }
+
                 });
             }
 
         });
-
-        //model properties:
-        model.getWtp().setComponent(task.map(new Transformer<EclipseWtpComponent, GenerateEclipseWtpComponent>() {
-            @Override
-            public EclipseWtpComponent transform(GenerateEclipseWtpComponent task) {
-                return task.getComponent();
-            }
-        }));
     }
 
     private void configureEclipseWtpFacet(final Project project, final EclipseModel eclipseModel) {
-        final TaskProvider<GenerateEclipseWtpFacet> task = maybeAddTask(project, this, ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, new Action<GenerateEclipseWtpFacet>() {
+        TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().createLater(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, eclipseModel.getWtp().getFacet());
+        task.configure(new Action<GenerateEclipseWtpFacet>() {
             @Override
             public void execute(final GenerateEclipseWtpFacet task) {
-                //task properties:
                 task.setDescription("Generates the Eclipse WTP facet settings file.");
                 task.setInputFile(project.file(".settings/org.eclipse.wst.common.project.facet.core.xml"));
                 task.setOutputFile(project.file(".settings/org.eclipse.wst.common.project.facet.core.xml"));
             }
-
         });
+        addWorker(task, ECLIPSE_WTP_FACET_TASK_NAME);
 
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
@@ -296,19 +276,14 @@ public class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                task.configure(new Action<GenerateEclipseWtpFacet>() {
+                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
-                    public void execute(GenerateEclipseWtpFacet task) {
-                        ((IConventionAware) task.getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
-                            @Override
-                            public List<Facet> call() throws Exception {
-                                return Lists.newArrayList(
-                                    new Facet(Facet.FacetType.fixed, "jst.java", null),
-                                    new Facet(Facet.FacetType.installed, "jst.utility", "1.0"),
-                                    new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
-                                );
-                            }
-                        });
+                    public List<Facet> call() throws Exception {
+                        return Lists.newArrayList(
+                            new Facet(Facet.FacetType.fixed, "jst.java", null),
+                            new Facet(Facet.FacetType.installed, "jst.utility", "1.0"),
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
+                        );
                     }
                 });
             }
@@ -317,20 +292,15 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                task.configure(new Action<GenerateEclipseWtpFacet>() {
+                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
-                    public void execute(GenerateEclipseWtpFacet task) {
-                        ((IConventionAware) task.getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
-                            @Override
-                            public List<Facet> call() throws Exception {
-                                return Lists.newArrayList(
-                                    new Facet(Facet.FacetType.fixed, "jst.java", null),
-                                    new Facet(Facet.FacetType.fixed, "jst.web", null),
-                                    new Facet(Facet.FacetType.installed, "jst.web", "2.4"),
-                                    new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
-                                );
-                            }
-                        });
+                    public List<Facet> call() throws Exception {
+                        return Lists.newArrayList(
+                            new Facet(Facet.FacetType.fixed, "jst.java", null),
+                            new Facet(Facet.FacetType.fixed, "jst.web", null),
+                            new Facet(Facet.FacetType.installed, "jst.web", "2.4"),
+                            new Facet(Facet.FacetType.installed, "jst.java", toJavaFacetVersion(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility()))
+                        );
                     }
                 });
             }
@@ -339,61 +309,29 @@ public class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                task.configure(new Action<GenerateEclipseWtpFacet>() {
+                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
-                    public void execute(GenerateEclipseWtpFacet task) {
-                        ((IConventionAware) task.getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
-                            @Override
-                            public List<Facet> call() throws Exception {
-                                return Lists.newArrayList(
-                                    new Facet(Facet.FacetType.fixed, "jst.ear", null),
-                                    new Facet(Facet.FacetType.installed, "jst.ear", "5.0")
-                                );
-                            }
-                        });
+                    public List<Facet> call() throws Exception {
+                        return Lists.newArrayList(
+                            new Facet(Facet.FacetType.fixed, "jst.ear", null),
+                            new Facet(Facet.FacetType.installed, "jst.ear", "5.0")
+                        );
                     }
                 });
             }
 
         });
-
-        //model properties:
-        eclipseModel.getWtp().setFacet(task.map(new Transformer<EclipseWtpFacet, GenerateEclipseWtpFacet>() {
-            @Override
-            public EclipseWtpFacet transform(GenerateEclipseWtpFacet task) {
-                return task.getFacet();
-            }
-        }));
     }
 
-    private <T extends Task> TaskProvider<T> maybeAddTask(Project project, IdePlugin plugin, String taskName, Class<T> taskType, Action<T> action) {
-        TaskContainer tasks = project.getTasks();
-        T taskFound = tasks.withType(taskType).findByName(taskName);
-        if (taskFound != null) {
-            return tasks.get(taskType, taskName);
-        }
-
-        TaskProvider<T> task = project.getTasks().createLater(taskName, taskType);
-        task.configure(action);
-        plugin.addWorker(task);
-        return task;
-    }
-
-    private void configureEclipseProject(final Project project) {
+    private void configureEclipseProject(final Project project, final EclipseModel model) {
         Action<Object> action = new Action<Object>() {
             @Override
             public void execute(Object ignored) {
-                project.getTasks().withType(GenerateEclipseProject.class).configureEach(new Action<GenerateEclipseProject>() {
-                    @Override
-                    public void execute(GenerateEclipseProject task) {
-                        task.getProjectModel().buildCommand("org.eclipse.wst.common.project.facet.core.builder");
-                        task.getProjectModel().buildCommand("org.eclipse.wst.validation.validationbuilder");
-                        task.getProjectModel().natures("org.eclipse.wst.common.project.facet.core.nature");
-                        task.getProjectModel().natures("org.eclipse.wst.common.modulecore.ModuleCoreNature");
-                        task.getProjectModel().natures("org.eclipse.jem.workbench.JavaEMFNature");
-                    }
-
-                });
+                model.getProject().buildCommand("org.eclipse.wst.common.project.facet.core.builder");
+                model.getProject().buildCommand("org.eclipse.wst.validation.validationbuilder");
+                model.getProject().natures("org.eclipse.wst.common.project.facet.core.nature");
+                model.getProject().natures("org.eclipse.wst.common.modulecore.ModuleCoreNature");
+                model.getProject().natures("org.eclipse.jem.workbench.JavaEMFNature");
             }
 
         };
