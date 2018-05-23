@@ -17,10 +17,10 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ToBeImplemented
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
@@ -642,39 +642,45 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             .assertHasCause("jar task failed")
     }
 
-    @ToBeImplemented
-    // We execute do not execute included build with --continue,
-    // and we attach the single failure to every delegated task
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
         given:
+        server.start()
         dependency 'org.test:b1:1.0'
         buildA.buildFile << """
             dependencies {
                 runtime 'org.test:b2:1.0'
+            }
+            resolve.doLast {
+                ${server.callFromBuild("resolve")}
             }
             task resolveRuntime(type: Copy) {
                 dependsOn "resolve"
                 from configurations.runtime
                 into 'libs-runtime'
             }
-                
 """
 
         buildB.buildFile << """
             project(':b2') {
                 jar.doLast {
+                    ${server.callFromBuild("b2")}
                     throw new GradleException("jar task failed")
                 }
             }
 """
 
         when:
+        server.expectConcurrent("resolve", "b2")
         fails buildA, ":resolveRuntime"
 
         then:
-        // TODO These should pass
-        !!! executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar", ":resolveRuntime") || GradleContextualExecuter.parallel
-        // assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
+        executedTasks.containsAll(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
+        !executedTasks.containsAll(":resolveRuntime")
     }
 
     def "new substitutions can be discovered while building the task graph for the first level included builds"() {
