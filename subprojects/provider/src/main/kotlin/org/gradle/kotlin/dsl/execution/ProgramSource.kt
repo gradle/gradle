@@ -81,7 +81,10 @@ fun ProgramSource.fragment(section: ScriptSection) =
 data class ProgramSourceFragment(
     val source: ProgramSource,
     val section: ScriptSection
-)
+) {
+    override fun toString(): String =
+        "ProgramSourceFragment(\"${source.text.subSequence(section.wholeRange)}\")"
+}
 
 
 data class ScriptSection(
