@@ -32,4 +32,19 @@ the 'Debug' option is available in the context menu for the task.
 */
 
 version = "2017.2"
-project(Gradle_AgentTest.Project)
+val buildModel = CIBuildModel(
+        projectPrefix = "Gradle_AgentTest_",
+        rootProjectName = "Agent Test",
+        masterAndReleaseBranches = listOf("master"),
+        parentBuildCache = NoBuildCache,
+        childBuildCache = NoBuildCache,
+        tagBuilds = false,
+        publishStatusToGitHub = false,
+        buildScanTags = listOf("AgentTest"),
+        stages = listOf(
+                Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
+                        specificBuilds = listOf(SpecificBuild.SanityCheck),
+                        functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
+        )
+)
+project(RootProject(buildModel))
