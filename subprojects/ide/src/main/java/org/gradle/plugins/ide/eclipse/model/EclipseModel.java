@@ -68,6 +68,8 @@ public class EclipseModel {
     private EclipseWtp wtp;
 
     /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
      * @since 4.9
      */
     @Inject

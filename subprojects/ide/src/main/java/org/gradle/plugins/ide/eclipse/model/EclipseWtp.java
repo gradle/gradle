@@ -59,6 +59,8 @@ public class EclipseWtp {
     private EclipseWtpFacet facet;
 
     /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
      * @since 4.9
      */
     @Inject
