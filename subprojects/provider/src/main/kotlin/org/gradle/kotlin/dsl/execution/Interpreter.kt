@@ -307,7 +307,10 @@ class Interpreter(val host: Host) {
                 scriptHost.targetScope.localClassLoader
 
             val cachedProgram =
-                host.cachedClassFor(scriptTemplateId, sourceHash, parentClassLoader)
+                host.cachedClassFor(
+                    scriptTemplateId,
+                    sourceHash,
+                    parentClassLoader)
 
             if (cachedProgram != null) {
                 eval(cachedProgram, scriptHost)
@@ -315,7 +318,11 @@ class Interpreter(val host: Host) {
             }
 
             val specializedProgram =
-                program.loadSecondStageFor(this, scriptHost, scriptTemplateId, sourceHash)
+                program.loadSecondStageFor(
+                    this,
+                    scriptHost,
+                    scriptTemplateId,
+                    sourceHash)
 
             host.cache(
                 scriptTemplateId,
@@ -336,12 +343,15 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget
         ): Class<*> {
 
+            val targetScope =
+                scriptHost.targetScope
+
             val cacheDir =
-                host.cachedDirFor(scriptTemplateId, sourceHash, scriptHost.targetScope.localClassLoader) { outputDir ->
+                host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
                     residualProgramCompilerFor(
                         sourceHash,
                         outputDir,
-                        scriptHost.targetScope,
+                        targetScope,
                         programKind,
                         programTarget
                     ).emitStage2ProgramFor(
@@ -351,7 +361,7 @@ class Interpreter(val host: Host) {
                 }
 
             return loadClassInChildScopeOf(
-                scriptHost.targetScope,
+                targetScope,
                 originalScriptPath,
                 cacheDir,
                 "stage2")
