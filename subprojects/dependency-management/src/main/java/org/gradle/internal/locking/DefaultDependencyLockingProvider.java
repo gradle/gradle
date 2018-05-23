@@ -37,7 +37,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    private final DependencyLockingNotationConverter converter;
+    private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
     private final boolean partialUpdate;
@@ -52,7 +52,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
-        converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
     }
 
     @Override
