@@ -16,7 +16,7 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
 import java.util.Set;
@@ -27,29 +27,25 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
 
     public static final DefaultDependencyLockingState EMPTY_LOCK_CONSTRAINT = new DefaultDependencyLockingState();
 
-    private final boolean lockDefined;
-    private final Set<DependencyConstraint> constraints;
+    private final boolean strictlyValidate;
+    private final Set<ModuleComponentIdentifier> constraints;
 
     private DefaultDependencyLockingState() {
-        lockDefined = false;
+        strictlyValidate = false;
         constraints = emptySet();
     }
-    public DefaultDependencyLockingState(boolean partialUpdate, Set<DependencyConstraint> constraints) {
-        if (partialUpdate) {
-            lockDefined = false;
-        } else {
-            lockDefined = true;
-        }
+    public DefaultDependencyLockingState(boolean partialUpdate, Set<ModuleComponentIdentifier> constraints) {
+        strictlyValidate = !partialUpdate;
         this.constraints = constraints;
     }
 
     @Override
     public boolean mustValidateLockState() {
-        return lockDefined;
+        return strictlyValidate;
     }
 
     @Override
-    public Set<DependencyConstraint> getLockedDependencies() {
+    public Set<ModuleComponentIdentifier> getLockedDependencies() {
         return constraints;
     }
 }

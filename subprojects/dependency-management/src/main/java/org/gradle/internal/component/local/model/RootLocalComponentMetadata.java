@@ -17,10 +17,12 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -76,13 +78,22 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         void maybeAddGeneratedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
             if (configurationLocked) {
                 dependencyLockingState = dependencyLockingProvider.loadLockState(getName());
-                for (DependencyConstraint dependencyConstraint : dependencyLockingState.getLockedDependencies()) {
-                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-                        dependencyConstraint.getGroup(), dependencyConstraint.getName(), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes());
+                boolean strict = dependencyLockingState.mustValidateLockState();
+                for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
+                    String lockedVersion = lockedDependency.getVersion();
+                    VersionConstraint versionConstraint = new DefaultMutableVersionConstraint(lockedVersion, strict);
+                    ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(lockedDependency.getGroup(), lockedDependency.getModule(), versionConstraint);
                     result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
-                        Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, false, true, dependencyConstraint.getReason()));
+                        Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, getLockReason(strict, lockedVersion)));
                 }
             }
+        }
+
+        private String getLockReason(boolean strict, String lockedVersion) {
+            if (strict) {
+                return "dependency was locked to version '" + lockedVersion + "' (update mode)";
+            }
+            return "dependency was locked to version '" + lockedVersion;
         }
 
         @Override

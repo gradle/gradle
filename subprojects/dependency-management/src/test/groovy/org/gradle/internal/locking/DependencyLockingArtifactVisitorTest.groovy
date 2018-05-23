@@ -16,10 +16,8 @@
 
 package org.gradle.internal.locking
 
-import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
@@ -32,6 +30,7 @@ import spock.lang.Subject
 
 import static java.util.Collections.emptySet
 import static java.util.Collections.singleton
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
 class DependencyLockingArtifactVisitorTest extends Specification {
 
@@ -72,16 +71,13 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
-        ModuleComponentIdentifier identifier = Mock()
 
         when:
         visitor.visitNode(node)
 
         then:
         2 * node.owner >> component
-        1 * component.componentId >> identifier
-        1 * identifier.version >> '1.0'
-        1 * identifier.displayName >> 'org:foo:1.0'
+        1 * component.componentId >> newId('org', 'foo', '1.0')
     }
 
     def 'ignores node having a ModuleComponentIdentifier but an empty version'() {
@@ -126,8 +122,9 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'finishes without error when visited match expected'() {
         given:
-        startWithState([DefaultDependencyConstraint.strictConstraint('org', 'foo', '1.1')])
-        addVisitedNode('org:foo:1.1')
+        def id = newId('org', 'foo', '1.1')
+        startWithState([id])
+        addVisitedNode(id)
 
         when:
         visitor.finishArtifacts()
@@ -139,7 +136,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     def 'throws when extra modules visited'() {
         given:
         startWithState([])
-        addVisitedNode('org:foo:1.0')
+        addVisitedNode(newId('org', 'foo', '1.0'))
 
         when:
         visitor.finishArtifacts()
@@ -151,7 +148,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'throws when module not visited'() {
         given:
-        startWithState([DefaultDependencyConstraint.strictConstraint('org', 'foo', '1.1')])
+        startWithState([newId('org', 'foo', '1.1')])
 
         when:
         visitor.finishArtifacts()
@@ -163,8 +160,9 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'invokes locking provider on complete with visited modules'() {
         given:
+        def identifier = newId('org', 'foo', '1.1')
         startWithoutLockState()
-        def identifier = addVisitedNode('org:foo:1.0')
+        addVisitedNode(identifier)
 
         when:
         visitor.complete()
@@ -176,8 +174,9 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     def 'invokes locking provider on complete with visited modules and indicates changing modules seen'() {
         given:
+        def identifier = newId('org', 'foo', '1.1')
         startWithoutLockState()
-        def identifier = addVisitedChangingNode('org:foo:1.0')
+        addVisitedChangingNode(identifier)
 
         when:
         visitor.complete()
@@ -188,37 +187,25 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     }
 
 
-    private ModuleComponentIdentifier addVisitedNode(String module) {
+    private void addVisitedNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
-        ModuleComponentIdentifier identifier = Mock()
         node.owner >> component
-        component.componentId >> identifier
-        identifier.version >> module.substring(module.lastIndexOf(':') + 1)
-        identifier.displayName >> module
+        component.componentId >> module
 
         visitor.visitNode(node)
-
-        return identifier
-
     }
 
-    private ModuleComponentIdentifier addVisitedChangingNode(String module) {
+    private void addVisitedChangingNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
-        ModuleComponentIdentifier identifier = Mock()
         ComponentResolveMetadata metadata = Mock()
         node.owner >> component
         component.metadata >> metadata
         metadata.isChanging() >> true
-        component.componentId >> identifier
-        identifier.version >> module.substring(module.lastIndexOf(':') + 1)
-        identifier.displayName >> module
+        component.componentId >> module
 
         visitor.visitNode(node)
-
-        return identifier
-
     }
 
     private startWithoutLockState() {
@@ -229,11 +216,11 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.startArtifacts(rootNode)
     }
 
-    private startWithState(List<DependencyConstraint> constraints) {
+    private startWithState(List<ModuleComponentIdentifier> locks) {
         rootNode.metadata >> metadata
         metadata.dependencyLockingState >> lockState
         lockState.mustValidateLockState() >> true
-        lockState.lockedDependencies >> constraints
+        lockState.lockedDependencies >> locks
 
         visitor.startArtifacts(rootNode)
     }

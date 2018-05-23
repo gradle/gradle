@@ -19,6 +19,7 @@ package org.gradle.internal.locking;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 class DependencyLockingNotationConverter {
 
@@ -58,6 +59,17 @@ class DependencyLockingNotationConverter {
             module.substring(nameVersionSeparatorIndex + 1));
         constraint.because("dependency was locked to version '" + constraint.getVersion() + "' (update mode)");
         return constraint;
+    }
+
+    ModuleComponentIdentifier convertFromLockNotation(String notation) {
+        int groupNameSeparatorIndex = notation.indexOf(':');
+        int nameVersionSeparatorIndex = notation.lastIndexOf(':');
+        if (groupNameSeparatorIndex < 0 || nameVersionSeparatorIndex == groupNameSeparatorIndex) {
+            throw new IllegalArgumentException("The module notation does not respect the lock file format of 'group:name:version' - received '" + notation + "'");
+        }
+        return DefaultModuleComponentIdentifier.newId(notation.substring(0, groupNameSeparatorIndex),
+            notation.substring(groupNameSeparatorIndex + 1, nameVersionSeparatorIndex),
+            notation.substring(nameVersionSeparatorIndex + 1));
     }
 
     String convertToLockNotation(ModuleComponentIdentifier id) {
