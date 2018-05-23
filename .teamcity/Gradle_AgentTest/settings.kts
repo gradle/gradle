@@ -45,7 +45,6 @@ val buildModel = CIBuildModel(
         buildScanTags = listOf("AgentTest"),
         stages = listOf(
                 Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
-                        trigger = Trigger.never,
                         runsIndependent = true,
                         functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
         )
