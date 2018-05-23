@@ -59,7 +59,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         project1module.assertArtifactsPublished("project1-1.0.jar", "project1-1.0-source.jar", "ivy-1.0.xml")
 
         project1module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
-        project1module.parsedIvy.description == "The first project"
+        project1module.parsedIvy.description.text() == "The first project"
         project1module.parsedIvy.assertDependsOn("junit:junit:4.12@compile", "org.gradle.sample:project2:1.0@compile")
 
         and:
@@ -67,7 +67,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
         project2module.assertArtifactsPublished("project2-1.0.jar", "project2-1.0-source.jar", "ivy-1.0.xml")
 
         project2module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime'] as Set
-        project2module.parsedIvy.description == "The second project"
+        project2module.parsedIvy.description.text() == "The second project"
         project2module.parsedIvy.assertDependsOn('commons-collections:commons-collections:3.2.2@compile')
 
         def actualIvyXmlText = project1module.ivyFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
@@ -88,7 +88,14 @@ class SamplesIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         module.assertPublished()
-        module.parsedIvy.description == "A demonstration of ivy descriptor customization"
+        with (module.parsedIvy) {
+            licenses[0].@name == 'The Apache License, Version 2.0'
+            licenses[0].@url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            authors[0].@name == 'Jane Doe'
+            authors[0].@url == 'http://example.com/users/jane'
+            description.text() == "A concise description of my library"
+            description.@homepage == 'http://www.example.com/library'
+        }
         sampleProject.dir.file("build/generated-ivy.xml").assertExists()
     }
 

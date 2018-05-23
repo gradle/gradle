@@ -135,23 +135,15 @@ Certain repositories are not able to handle all supported characters. For exampl
 Gradle will handle any valid Unicode character for organisation, module and revision (as well as artifact name, extension and classifier). The only values that are explicitly prohibited are `\`, `/` and any ISO control character. The supplied values are validated early during publication.
 
 [[sec:modifying_the_generated_module_descriptor]]
-==== Modifying the generated module descriptor
+==== Customizing the generated module descriptor
 
-At times, the module descriptor file generated from the project information will need to be tweaked before publishing. The Ivy Publish Plugin provides a hook to allow such modification.
+At times, the module descriptor file generated from the project information will need to be tweaked before publishing. The Ivy Publish Plugin provides a DSL for that purpose. Please see api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec[] in the DSL Reference for the complete documentation of available properties and methods. The following sample shows how to use the most common ones:
 
 ++++
 <sample dir="ivy-publish/descriptor-customization" id="publishing_ivy:descriptor-customization-snippet" title="Customizing the module descriptor file">
     <sourcefile file="build.gradle" snippet="customize-descriptor"/>
 </sample>
 ++++
-
-In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
-
-See api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)[] in the API documentation for more information.
-
-It is possible to modify virtually any aspect of the created descriptor should you need to. This means that it is also possible to modify the descriptor in such a way that it is no longer a valid Ivy module descriptor, so care must be taken when using this feature.
-
-The identifier (organisation, module, revision) of the published module is an exception; these values cannot be modified in the descriptor using the `withXML` hook.
 
 [[sec:publishing_multiple_modules_to_ivy]]
 ==== Publishing multiple modules
