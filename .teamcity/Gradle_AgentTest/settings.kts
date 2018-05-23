@@ -46,6 +46,7 @@ val buildModel = CIBuildModel(
         stages = listOf(
                 Stage("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer)",
                         runsIndependent = true,
+                        specificBuilds = listOf(SpecificBuild.SanityCheck),
                         functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
         )
 )
