@@ -141,8 +141,8 @@ class MavenResolverTest extends Specification {
             }
         }
 
-        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler), TestUtil.valueSnapshotter())
-        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler), TestUtil.valueSnapshotter())
+        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister)
     }

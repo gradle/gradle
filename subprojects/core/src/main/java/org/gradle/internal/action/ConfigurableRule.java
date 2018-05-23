@@ -16,9 +16,10 @@
 package org.gradle.internal.action;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 
 public interface ConfigurableRule<DETAILS> {
     Class<? extends Action<DETAILS>> getRuleClass();
-    Object[] getRuleParams();
+    Isolatable<Object[]> getRuleParams();
     boolean isCacheable();
 }

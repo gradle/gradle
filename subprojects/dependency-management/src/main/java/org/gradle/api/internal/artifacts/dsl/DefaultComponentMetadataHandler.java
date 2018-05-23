@@ -179,22 +179,22 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler(), isolatableFactory))));
+        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler()))));
     }
 
     @Override
     public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction), instantiator, new ExceptionHandler(), isolatableFactory))));
+        return addClassBasedRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory), instantiator, new ExceptionHandler()))));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule) {
-        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler(), isolatableFactory))));
+        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule), instantiator, new ExceptionHandler()))));
     }
 
     @Override
     public ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction) {
-        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction), instantiator, new ExceptionHandler(), isolatableFactory))));
+        return addClassBasedRule(createSpecRuleContextActionForModule(id, ruleActionAdapter.createFromAction(new InstantiatingAction<ComponentMetadataContext>(DefaultConfigurableRule.<ComponentMetadataContext>of(rule, configureAction, isolatableFactory), instantiator, new ExceptionHandler()))));
     }
 
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {

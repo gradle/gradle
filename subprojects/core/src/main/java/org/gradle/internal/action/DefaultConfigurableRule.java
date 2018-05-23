@@ -19,18 +19,21 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.CacheableRule;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.api.internal.changedetection.state.ArrayValueSnapshot;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.util.Arrays;
 
 public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAILS> {
-    private final static Object[] NO_PARAMS = new Object[0];
+    private final static Object[] EMPTY_ARRAY = new Object[0];
 
     private final Class<? extends Action<DETAILS>> rule;
-    private final Object[] ruleParams;
+    private final Isolatable<Object[]> ruleParams;
     private final boolean cacheable;
 
-    private DefaultConfigurableRule(Class<? extends Action<DETAILS>> rule, Object[] ruleParams) {
+    private DefaultConfigurableRule(Class<? extends Action<DETAILS>> rule, Isolatable<Object[]> ruleParams) {
         this.rule = rule;
         this.ruleParams = ruleParams;
         this.cacheable = hasCacheableAnnotation(rule);
@@ -41,17 +44,17 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     }
 
     public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule) {
-        return new DefaultConfigurableRule<DETAILS>(rule, NO_PARAMS);
+        return new DefaultConfigurableRule<DETAILS>(rule, ArrayValueSnapshot.EMPTY);
     }
 
-    public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Action<? super ActionConfiguration> action) {
-        Object[] params = NO_PARAMS;
+    public static <DETAILS> ConfigurableRule<DETAILS> of(Class<? extends Action<DETAILS>> rule, Action<? super ActionConfiguration> action, IsolatableFactory isolatableFactory) {
+        Object[] params = EMPTY_ARRAY;
         if (action != null) {
             ActionConfiguration configuration = new DefaultActionConfiguration();
             action.execute(configuration);
             params = configuration.getParams();
         }
-        return new DefaultConfigurableRule<DETAILS>(rule, params);
+        return new DefaultConfigurableRule<DETAILS>(rule, isolatableFactory.isolate(params));
     }
 
     @Override
@@ -60,7 +63,7 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     }
 
     @Override
-    public Object[] getRuleParams() {
+    public Isolatable<Object[]> getRuleParams() {
         return ruleParams;
     }
 
@@ -73,7 +76,7 @@ public class DefaultConfigurableRule<DETAILS> implements ConfigurableRule<DETAIL
     public String toString() {
         return "DefaultConfigurableRule{" +
             "rule=" + rule +
-            ", ruleParams=" + Arrays.toString(ruleParams) +
+            ", ruleParams=" + Arrays.toString(ruleParams.isolate()) +
             '}';
     }
 }

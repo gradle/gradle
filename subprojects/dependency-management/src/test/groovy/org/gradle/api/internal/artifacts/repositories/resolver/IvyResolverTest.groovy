@@ -173,8 +173,8 @@ class IvyResolverTest extends Specification {
             }
         }
 
-        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler), TestUtil.valueSnapshotter())
-        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler), TestUtil.valueSnapshotter())
+        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new IvyResolver(
             "repo",

@@ -18,8 +18,6 @@ package org.gradle.internal.action
 
 import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
-import org.gradle.internal.action.DefaultConfigurableRule
-import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -45,14 +43,13 @@ class InstantiatingActionTest extends Specification {
                 void execute(ActionConfiguration actionConfiguration) {
                     actionConfiguration.params(123, "test string")
                 }
-            }),
+            }, TestUtil.valueSnapshotter()),
             TestUtil.instantiatorFactory().decorate(),
-            shouldNotFail,
-            TestUtil.valueSnapshotter()
+            shouldNotFail
         )
 
         then:
-        action.rule.ruleParams == [123, "test string"] as Object[]
+        action.rule.ruleParams.isolate() == [123, "test string"] as Object[]
         action.rule.ruleClass == RuleWithParams
 
         when:
@@ -73,12 +70,11 @@ class InstantiatingActionTest extends Specification {
         def action = new InstantiatingAction<Details>(
             DefaultConfigurableRule.of(RuleWithInjectedParams),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail,
-            TestUtil.valueSnapshotter()
+            shouldNotFail
         )
 
         then:
-        action.rule.ruleParams == [] as Object[]
+        action.rule.ruleParams.isolate() == [] as Object[]
         action.rule.ruleClass == RuleWithInjectedParams
 
         when:
@@ -103,14 +99,13 @@ class InstantiatingActionTest extends Specification {
                 void execute(ActionConfiguration actionConfiguration) {
                     actionConfiguration.params(456)
                 }
-            }),
+            }, TestUtil.valueSnapshotter()),
             TestUtil.instantiatorFactory().inject(registry),
-            shouldNotFail,
-            TestUtil.valueSnapshotter()
+            shouldNotFail
         )
 
         then:
-        action.rule.ruleParams == [456] as Object[]
+        action.rule.ruleParams.isolate() == [456] as Object[]
         action.rule.ruleClass == RuleWithInjectedAndRegularParams
 
         when:

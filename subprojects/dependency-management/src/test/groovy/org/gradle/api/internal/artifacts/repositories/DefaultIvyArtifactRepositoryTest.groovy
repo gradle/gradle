@@ -303,7 +303,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         supplier.rule.ruleClass == CustomMetadataSupplier
-        supplier.rule.ruleParams == [] as Object[]
+        supplier.rule.ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -321,7 +321,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         supplier.rule.ruleClass == CustomMetadataSupplierWithParams
-        supplier.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
+        supplier.rule.ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -338,7 +338,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         lister.rule.ruleClass == CustomVersionLister
-        lister.rule.ruleParams == [] as Object[]
+        lister.rule.ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom version lister"() {
@@ -355,7 +355,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         then:
         lister.rule.ruleClass == CustomVersionListerWithParams
-        lister.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
+        lister.rule.ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {
