@@ -18,13 +18,11 @@ package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 
-import javax.annotation.processing.Filer
-
 class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
-    Filer createFiler(Filer filer, AnnotationProcessingResult result) {
-        new IsolatingFiler(delegate, result)
+    IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
+        new IsolatingProcessingStrategy(result)
     }
 
     def "does a full rebuild when no originating elements are given"() {

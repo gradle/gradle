@@ -567,11 +567,23 @@ Please first have a look at <<sec:incremental_compile>>, as incremental annotati
 
 Gradle supports incremental compilation for two common categories of annotation processors: "isolating" and "aggregating".
 Please consult the information below to decide which category fits your processor.
-You can then register it for incremental compilation using the https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Processor.html#getSupportedOptions()[Processor#getSupportedOptions()] method.
+
+You can then register your processor for incremental compilation using a file in the processor's META-INF directory.
+The format is one line per processor, with the fully qualified name of the processor class and its category separated by a comma.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="incrementalAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors">
-     <sourcefile file="processor/src/main/java/EntityProcessor.java" snippet="registering-incremental-annotation-processors"/>
+     <sourcefile file="processor/src/main/resources/META-INF/gradle/incremental.annotation.processors" snippet="registering-incremental-annotation-processors"/>
+</sample>
+++++
+
+
+If your processor can only decide at runtime whether it is incremental or not, you can declare it as "dynamic" in the META-INF descriptor
+and return its true type at runtime using the https://docs.oracle.com/javase/10/docs/api/javax/annotation/processing/Processor.html#getSupportedOptions()[Processor#getSupportedOptions()] method.
+
+++++
+<sample xmlns:xi="http://www.w3.org/2001/XInclude" id="dynamicAnnotationProcessorRegistration" dir="java/incrementalAnnotationProcessing" title="Registering incremental annotation processors dynamically">
+     <sourcefile file="processor/src/main/java/ServiceRegistryProcessor.java" snippet="options-of-dynamic-processor"/>
 </sample>
 ++++
 

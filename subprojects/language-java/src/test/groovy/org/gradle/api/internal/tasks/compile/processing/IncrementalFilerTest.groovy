@@ -32,10 +32,10 @@ abstract class IncrementalFilerTest extends Specification {
     Filer filer
 
     def setup() {
-        filer = createFiler(delegate, result)
+        filer = new IncrementalFiler(delegate, getStrategy(result))
     }
 
-    abstract Filer createFiler(Filer filer, AnnotationProcessingResult result)
+    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result)
 
     def "does a full rebuild when trying to read resources"() {
         when:
