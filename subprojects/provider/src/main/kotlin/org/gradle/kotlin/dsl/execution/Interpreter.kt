@@ -321,7 +321,7 @@ class Interpreter(val host: Host) {
             sourceHash: HashCode
         ) {
             val parentClassLoader =
-                scriptHost.targetScope.localClassLoader
+                scriptHost.targetScope.exportClassLoader
 
             val cachedProgram =
                 host.cachedClassFor(

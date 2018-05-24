@@ -66,9 +66,11 @@ class InterpreterTest : TestWithTempFiles() {
             on { exportClassLoader } doReturn parentClassLoader
         }
         val parentScope = mock<ClassLoaderScope>()
+        val targetScopeExportClassLoader = mock<ClassLoader>()
         val targetScopeLocalClassLoader = mock<ClassLoader>()
         val targetScope = mock<ClassLoaderScope> {
             on { parent } doReturn parentScope
+            on { exportClassLoader } doReturn targetScopeExportClassLoader
             on { localClassLoader } doReturn targetScopeLocalClassLoader
         }
 
@@ -161,7 +163,7 @@ class InterpreterTest : TestWithTempFiles() {
                 verify(host).cachedClassFor(
                     stage2TemplateId,
                     sourceHash,
-                    targetScopeLocalClassLoader)
+                    targetScopeExportClassLoader)
 
                 verify(host).compilationClassPathOf(targetScope)
 
@@ -175,7 +177,7 @@ class InterpreterTest : TestWithTempFiles() {
                 verify(host).cache(
                     stage2TemplateId,
                     sourceHash,
-                    targetScopeLocalClassLoader,
+                    targetScopeExportClassLoader,
                     classLoaders[1].loadClass("Program"))
             }
         } finally {
