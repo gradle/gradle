@@ -120,11 +120,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public List<File> getFiles() {
-        return cachedFilesFactory.create();
-    }
-
-    @Override
     public String toString() {
         return compareStrategy + (pathIsAbsolute ? " with absolute paths" : "") + ": " + snapshots;
     }

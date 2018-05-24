@@ -59,11 +59,6 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Collection<File> getFiles() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return Collections.emptyMap();
     }

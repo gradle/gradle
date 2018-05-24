@@ -41,20 +41,6 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def getFilesReturnsOnlyTheFilesWhichExisted() {
-        given:
-        TestFile file = tmpDir.createFile('file1')
-        TestFile dir = tmpDir.createDir('dir')
-        TestFile file2 = dir.createFile('file2')
-        TestFile noExist = tmpDir.file('file3')
-
-        when:
-        def snapshot = snapshotter.snapshot(files(file, dir, noExist), ABSOLUTE, normalizationStrategy)
-
-        then:
-        snapshot.files as List == [file, file2]
-    }
-
     def "retains order of files in the snapshot"() {
         given:
         TestFile file = tmpDir.createFile('file1')
@@ -65,7 +51,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, file2, file3), ABSOLUTE, normalizationStrategy)
 
         then:
-        snapshot.files == [file, file2, file3]
+        snapshot.elements == [file, file2, file3]
     }
 
     def getElementsReturnsAllFilesRegardlessOfWhetherTheyExistedOrNot() {
@@ -299,7 +285,7 @@ class DefaultGenericFileCollectionSnapshotterTest extends Specification {
         changes(newSnapshot, snapshot, listener)
 
         then:
-        snapshot.files.empty
+        snapshot.elements.empty
         1 * listener.added(file.path)
         0 * listener._
     }

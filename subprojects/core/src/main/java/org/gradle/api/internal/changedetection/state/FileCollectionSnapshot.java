@@ -44,11 +44,6 @@ public interface FileCollectionSnapshot extends Snapshot {
      */
     Collection<File> getElements();
 
-    /**
-     * Returns the regular files that make up this snapshot.
-     */
-    Collection<File> getFiles();
-
     Map<String, NormalizedFileSnapshot> getSnapshots();
 
     Map<String, FileContentSnapshot> getContentSnapshots();
