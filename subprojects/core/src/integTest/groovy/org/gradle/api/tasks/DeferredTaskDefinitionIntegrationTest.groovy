@@ -593,7 +593,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
     }
 
     def "fails to create custom task if all constructor arguments missing"() {
@@ -605,7 +605,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
     }
 
     @Unroll
@@ -618,7 +618,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Could not create task of type 'CustomTask'.")
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
 
         where:
         description | constructorArgs | argumentNumber | outputType
@@ -636,12 +636,12 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         fails 'myTask'
 
         then:
-        failure.assertHasCause("Received null for CustomTask constructor argument #$position")
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
 
         where:
-        description   | position | script
-        'direct call' | 1        | "tasks.createLater('myTask', CustomTask, null, 1)"
-        'direct call' | 2        | "tasks.createLater('myTask', CustomTask, 'abc', null)"
+        position | script
+        1        | "tasks.createLater('myTask', CustomTask, null, 1)"
+        2        | "tasks.createLater('myTask', CustomTask, 'abc', null)"
     }
 
     def "can construct a task with @Inject services"() {
