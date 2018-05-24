@@ -274,7 +274,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return new CreateTaskBuildOperationDetails(name, taskId, replacement, true).descriptor();
+//                return new CreateTaskBuildOperationDetails(name, taskId, replacement, true).descriptor();
+                return new CreateTaskBuildOperationDetails().descriptor();
             }
         });
     }
@@ -291,7 +292,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
+//                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
+                return new RegisterTaskBuildOperationDetails().descriptor();
             }
         });
     }
@@ -308,7 +310,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return new CreateTaskBuildOperationDetails(name, taskId, false, false).descriptor();
+//                return new CreateTaskBuildOperationDetails(name, taskId, false, false).descriptor();
+                return new CreateTaskBuildOperationDetails().descriptor();
             }
         });
     }
@@ -610,52 +613,55 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private final class CreateTaskBuildOperationDetails implements CreateTaskBuildOperationType.Details  {
 
-        private final String buildPath;
-        private final String taskPath;
-        private final long taskId;
-        private final boolean replacement;
-        private final boolean eager;
-
-        private CreateTaskBuildOperationDetails(String name, long taskId, boolean replacement, boolean eager) {
-            this.eager = eager;
-            this.buildPath = project.getBuildPath().getPath();
-            this.taskPath = project.getProjectPath().child(name).getPath();
-            this.taskId = taskId;
-            this.replacement = replacement;
+        private CreateTaskBuildOperationDetails() {
         }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return taskPath;
-        }
-
-        @Override
-        public long getTaskId() {
-            return taskId;
-        }
-
-        @Override
-        public boolean isReplacement() {
-            return replacement;
-        }
-
-        @Override
-        public boolean isEager() {
-            return eager;
-        }
+//        private final String buildPath;
+//        private final String taskPath;
+//        private final long taskId;
+//        private final boolean replacement;
+//        private final boolean eager;
+//
+//        private CreateTaskBuildOperationDetails(String name, long taskId, boolean replacement, boolean eager) {
+//            this.eager = eager;
+//            this.buildPath = project.getBuildPath().getPath();
+//            this.taskPath = project.getProjectPath().child(name).getPath();
+//            this.taskId = taskId;
+//            this.replacement = replacement;
+//        }
+//
+//        @Override
+//        public String getBuildPath() {
+//            return buildPath;
+//        }
+//
+//        @Override
+//        public String getTaskPath() {
+//            return taskPath;
+//        }
+//
+//        @Override
+//        public long getTaskId() {
+//            return taskId;
+//        }
+//
+//        @Override
+//        public boolean isReplacement() {
+//            return replacement;
+//        }
+//
+//        @Override
+//        public boolean isEager() {
+//            return eager;
+//        }
 
         private BuildOperationDescriptor.Builder descriptor() {
-            StringBuilder sb = new StringBuilder("Create task ").append(taskPath).append(" (").append(eager ? "eager" : "deferred").append(")");
-            if (replacement) {
-                sb.append(" (replacement)");
-            }
-            return BuildOperationDescriptor.displayName(sb.toString())
-                .name(taskPath)
+//            StringBuilder sb = new StringBuilder("Create task ").append(taskPath).append(" (").append(eager ? "eager" : "deferred").append(")");
+//            if (replacement) {
+//                sb.append(" (replacement)");
+//            }
+//            return BuildOperationDescriptor.displayName(sb.toString())
+            return BuildOperationDescriptor.displayName("create")
+//                .name(taskPath)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
                 .details(this);
         }
@@ -663,46 +669,48 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private final class RegisterTaskBuildOperationDetails implements RegisterTaskBuildOperationType.Details {
 
-        private final String buildPath;
-        private final String taskPath;
-        private final long taskId;
-        private final boolean replacement;
-
-        private RegisterTaskBuildOperationDetails(String name, long taskId, boolean replacement) {
-            this.buildPath = project.getBuildPath().getPath();
-            this.taskPath = project.getProjectPath().child(name).getPath();
-            this.taskId = taskId;
-            this.replacement = replacement;
+        private RegisterTaskBuildOperationDetails() {
         }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-
-        @Override
-        public String getTaskPath() {
-            return taskPath;
-        }
-
-        @Override
-        public long getTaskId() {
-            return taskId;
-        }
-
-        @Override
-        public boolean isReplacement() {
-            return replacement;
-        }
+//        private final String buildPath;
+//        private final String taskPath;
+//        private final long taskId;
+//        private final boolean replacement;
+//
+//        private RegisterTaskBuildOperationDetails(String name, long taskId, boolean replacement) {
+//            this.buildPath = project.getBuildPath().getPath();
+//            this.taskPath = project.getProjectPath().child(name).getPath();
+//            this.taskId = taskId;
+//            this.replacement = replacement;
+//        }
+//
+//        @Override
+//        public String getBuildPath() {
+//            return buildPath;
+//        }
+//
+//        @Override
+//        public String getTaskPath() {
+//            return taskPath;
+//        }
+//
+//        @Override
+//        public long getTaskId() {
+//            return taskId;
+//        }
+//
+//        @Override
+//        public boolean isReplacement() {
+//            return replacement;
+//        }
 
 
         private BuildOperationDescriptor.Builder descriptor() {
-            StringBuilder sb = new StringBuilder("Register task ").append(taskPath);
-            if (replacement) {
-                sb.append(" (replacement)");
-            }
-            return BuildOperationDescriptor.displayName(sb.toString())
-                .name(taskPath)
+//            StringBuilder sb = new StringBuilder("Register task ").append(taskPath);
+//            if (replacement) {
+//                sb.append(" (replacement)");
+//            }
+            return BuildOperationDescriptor.displayName("register")
+//                .name(taskPath)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
                 .details(this);
 

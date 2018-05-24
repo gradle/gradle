@@ -28,24 +28,24 @@ public final class RegisterTaskBuildOperationType implements BuildOperationType<
 
     @UsedByScanPlugin
     public interface Details {
-        String getBuildPath();
-
-        String getTaskPath();
-
-        /**
-         * An ID for the task, that disambiguates it from other tasks with the same path.
-         *
-         * Due to a bug in Gradle, two tasks with the same path can be executed.
-         * This is very problematic for build scans.
-         * As such, scans need to be able to differentiate between different tasks with the same path.
-         * The combination of the path and ID does this.
-         *
-         * In later versions of Gradle, executing two tasks with the same path will be prevented
-         * and this value can be noop-ed.
-         */
-        long getTaskId();
-
-        boolean isReplacement();
+//        String getBuildPath();
+//
+//        String getTaskPath();
+//
+//        /**
+//         * An ID for the task, that disambiguates it from other tasks with the same path.
+//         *
+//         * Due to a bug in Gradle, two tasks with the same path can be executed.
+//         * This is very problematic for build scans.
+//         * As such, scans need to be able to differentiate between different tasks with the same path.
+//         * The combination of the path and ID does this.
+//         *
+//         * In later versions of Gradle, executing two tasks with the same path will be prevented
+//         * and this value can be noop-ed.
+//         */
+//        long getTaskId();
+//
+//        boolean isReplacement();
     }
 
     @UsedByScanPlugin
