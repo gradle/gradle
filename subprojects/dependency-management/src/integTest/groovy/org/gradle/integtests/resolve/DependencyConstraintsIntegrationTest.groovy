@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
@@ -571,4 +572,72 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+
+    @Unroll
+    def 'alignment with constraint as range (#constraintRange), dependencies with #first and #second'() {
+        given:
+        def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
+        def foo12 = mavenRepo.module('org', 'foo', '1.2').publish()
+
+        mavenRepo.module('org', 'bar', '1.1').dependsOn(foo11).publish()
+
+        mavenRepo.module('org', 'baz', '1.1').dependsOn(foo11).publish()
+        mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
+
+        def version = '${id.version}'
+        def resultConstraint = '1.1'
+        if (constraintRange) {
+            version = '(,${id.version}]'
+            resultConstraint = '(,1.1]'
+        }
+        buildFile << """
+            dependencies {
+                components {
+                    all {
+                        if (id.name == 'baz') {
+                            allVariants {
+                                withDependencyConstraints {
+                                    add("org:bar:$version")
+                                }
+                            }
+                        } else if (id.name == 'bar') {
+                            allVariants {
+                                withDependencyConstraints {
+                                    add("org:baz:$version")
+                                }
+                            }
+                        }
+                    }
+                }
+                conf 'org:$first:[1.0,2.0)'
+                conf 'org:$second:[1.0,2.0)'
+                conf 'org:foo:[1.0,2.0)'
+            }
+"""
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:[1.0,2.0)", 'org:foo:1.1')
+                edge('org:bar:[1.0,2.0)', 'org:bar:1.1') {
+                    edge('org:foo:1.1', 'org:foo:1.1')
+                    edge("org:baz:$resultConstraint", 'org:baz:1.1')
+                }
+                edge('org:baz:[1.0,2.0)', 'org:baz:1.1') {
+                    edge('org:foo:1.1', 'org:foo:1.1')
+                    edge("org:bar:$resultConstraint", 'org:bar:1.1')
+                }
+            }
+        }
+
+        where:
+        first | second | constraintRange
+        'bar' | 'baz'  | false
+        'bar' | 'baz'  | true
+        'baz' | 'bar'  | false
+        'baz' | 'bar'  | true
+    }
+
 }
