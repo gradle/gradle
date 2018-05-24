@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,7 +44,7 @@ class ToolingApiDistributionResolver {
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
-        withRepository("https://repo.gradle.org/gradle/repo")
+        withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
