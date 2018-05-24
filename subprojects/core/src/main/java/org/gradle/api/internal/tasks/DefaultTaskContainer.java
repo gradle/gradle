@@ -274,11 +274,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                CreateTaskBuildOperationDetails details = new CreateTaskBuildOperationDetails(name, taskId, replacement, true);
-                return BuildOperationDescriptor.displayName("Create task " + details.taskPath + " of type " + type.getName() + " (eager)")
-                    .name(name)
-                    .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
-                    .details(details);
+                return new CreateTaskBuildOperationDetails(name, taskId, replacement, true).descriptor();
             }
         });
     }
@@ -295,11 +291,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                RegisterTaskBuildOperationDetails details = new RegisterTaskBuildOperationDetails(name, taskId, replacement);
-                return BuildOperationDescriptor.displayName("Register task " + details.taskPath + " of type " + type.getName())
-                    .name(name)
-                    .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
-                    .details(details);
+                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
             }
         });
     }
@@ -316,11 +308,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                CreateTaskBuildOperationDetails details = new CreateTaskBuildOperationDetails(name, taskId, false, false);
-                return BuildOperationDescriptor.displayName("Create task " + details.taskPath + " of type " + type.getName() + " (deferred)")
-                    .name(name)
-                    .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
-                    .details(details);
+                return new CreateTaskBuildOperationDetails(name, taskId, false, false).descriptor();
             }
         });
     }
@@ -660,9 +648,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         public boolean isEager() {
             return eager;
         }
+
+        private BuildOperationDescriptor.Builder descriptor() {
+            StringBuilder sb = new StringBuilder("Create task ").append(taskPath).append(" (").append(eager ? "eager" : "deferred").append(")");
+            if (replacement) {
+                sb.append(" (replacement)");
+            }
+            return BuildOperationDescriptor.displayName(sb.toString())
+                .name(taskPath)
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
+                .details(this);
+        }
     }
 
-    private final class RegisterTaskBuildOperationDetails implements RegisterTaskBuildOperationType.Details  {
+    private final class RegisterTaskBuildOperationDetails implements RegisterTaskBuildOperationType.Details {
 
         private final String buildPath;
         private final String taskPath;
@@ -694,6 +693,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public boolean isReplacement() {
             return replacement;
+        }
+
+
+        private BuildOperationDescriptor.Builder descriptor() {
+            StringBuilder sb = new StringBuilder("Register task ").append(taskPath);
+            if (replacement) {
+                sb.append(" (replacement)");
+            }
+            return BuildOperationDescriptor.displayName(sb.toString())
+                .name(taskPath)
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
+                .details(this);
+
         }
     }
 
