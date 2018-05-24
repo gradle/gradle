@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -42,7 +43,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
 
-    void appliesBasePluginsAndAddsConventionAndExtensions() {
+    void "applies base plugins and adds convention and extensions"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -51,6 +52,55 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(BasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
+        project.extensions.java instanceof JavaPluginExtension
+    }
+
+    void "properties on convention and extension are synchronized"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        then:
+        def ext = project.extensions.java
+        project.sourceCompatibility == JavaVersion.current()
+        project.targetCompatibility == JavaVersion.current()
+        ext.sourceCompatibility == JavaVersion.current()
+        ext.targetCompatibility == JavaVersion.current()
+
+        when:
+        project.sourceCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_6
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
+
+        when:
+        ext.sourceCompatibility = JavaVersion.VERSION_1_8
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_8
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_8
+
+        when:
+        project.targetCompatibility = JavaVersion.VERSION_1_7
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_7
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_7
+
+        when:
+        ext.targetCompatibility = JavaVersion.VERSION_1_6
+
+        then:
+        project.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.sourceCompatibility == JavaVersion.VERSION_1_8
+        ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
 
     void "creates tasks and applies mappings for source set"() {
