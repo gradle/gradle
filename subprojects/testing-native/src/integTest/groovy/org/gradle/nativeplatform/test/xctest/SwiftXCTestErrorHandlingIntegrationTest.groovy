@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -24,6 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrariesAndXCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
+
+import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -44,12 +48,15 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
+        failure.assertHasCause("There were failing tests.")
+        def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
+        testFailure.assertTestFailed("execution failure", containsText("Failure while running xctest executable"))
         if (OperatingSystem.current().isMacOsX()) {
-            failure.assertHasErrorOutput("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources")
+            testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
         } else {
-            failure.assertHasErrorOutput("cannot open shared object file")
+            testFailure.assertStderr(containsText("cannot open shared object file"))
         }
-        failure.assertHasCause("Failure while running xctest executable")
+
     }
 
     def "fails when force-unwrapping an optional results in an error"() {
@@ -60,12 +67,8 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        if (OperatingSystem.current().isMacOsX()) {
-            failure.assertHasErrorOutput("Test Case '-[AppTest.ForceUnwrapTestSuite testForceUnwrapOptional]' started.")
-        } else {
-            failure.assertHasErrorOutput("Test Case 'ForceUnwrapTestSuite.testForceUnwrapOptional' started")
-        }
-        failure.assertHasCause("Failure while running xctest executable")
+        failure.assertHasCause("There were failing tests.")
+        testExecutionResult.testClass("ForceUnwrapTestSuite").assertTestFailed("testForceUnwrapOptional", containsText("Failure while running xctest executable"))
     }
 
     void buildWithApplicationAndDependencies() {
@@ -119,5 +122,9 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
             }
         }
         sourceElement.writeToProject(file('app'))
+    }
+
+    TestExecutionResult getTestExecutionResult() {
+        return new DefaultTestExecutionResult(testDirectory.file('app'), 'build', '', '', 'xcTest')
     }
 }

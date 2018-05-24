@@ -51,15 +51,17 @@ class XCTestScraper implements TextStream {
     private final TestOutputEvent.Destination destination;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
+    private final String rootTestSuiteId;
     private final Deque<XCTestDescriptor> testDescriptors;
     private TestDescriptorInternal lastDescriptor;
     private StringBuilder textBuilder = new StringBuilder();
 
-    XCTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, Deque<XCTestDescriptor> testDescriptors) {
+    XCTestScraper(TestOutputEvent.Destination destination, TestResultProcessor processor, IdGenerator<?> idGenerator, Clock clock, String rootTestSuiteId, Deque<XCTestDescriptor> testDescriptors) {
         this.processor = processor;
         this.destination = destination;
         this.idGenerator = idGenerator;
         this.clock = clock;
+        this.rootTestSuiteId = rootTestSuiteId;
         this.testDescriptors = testDescriptors;
     }
 
@@ -161,6 +163,9 @@ class XCTestScraper implements TextStream {
                         // See https://bugs.swift.org/browse/SR-1127 for more information.
                     } else if (lastDescriptor != null) {
                         processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+                    } else {
+                        // If there is no known last descriptor, associate it with the root test suite
+                        processor.output(rootTestSuiteId, new DefaultTestOutputEvent(destination, text));
                     }
                 }
             }
@@ -171,7 +176,7 @@ class XCTestScraper implements TextStream {
     public void endOfStream(@Nullable Throwable failure) {
         if (failure != null) {
             while (!testDescriptors.isEmpty()) {
-                processor.failure(testDescriptors.pop(), failure);
+                processor.failure(testDescriptors.pop().getDescriptorInternal().getId(), failure);
             }
         }
     }
