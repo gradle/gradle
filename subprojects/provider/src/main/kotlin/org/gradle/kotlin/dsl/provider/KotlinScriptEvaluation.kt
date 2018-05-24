@@ -32,8 +32,7 @@ import org.gradle.kotlin.dsl.execution.linePreservingBlankRanges
 import org.gradle.kotlin.dsl.execution.linePreservingSubstring
 import org.gradle.kotlin.dsl.execution.linePreservingSubstring_
 import org.gradle.kotlin.dsl.execution.locationAwareExceptionHandlingFor
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -80,7 +79,6 @@ class KotlinScriptEvaluation(
     private val kotlinCompiler: CachingKotlinCompiler,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val classPathProvider: KotlinScriptClassPathProvider,
-    private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector
 ) {
 
@@ -157,7 +155,6 @@ class KotlinScriptEvaluation(
             buildscriptBlockCompilationClassPath,
             baseScope,
             kotlinCompiler,
-            embeddedKotlinProvider,
             classloadingCache).evaluate()
 
     private
@@ -323,12 +320,10 @@ class BuildscriptBlockEvaluator(
     val classPath: Lazy<ClassPath>,
     val baseScope: ClassLoaderScope,
     val kotlinCompiler: CachingKotlinCompiler,
-    val embeddedKotlinProvider: EmbeddedKotlinProvider,
     val classloadingCache: KotlinScriptClassloadingCache
 ) {
 
     fun evaluate() {
-        setupEmbeddedKotlinForBuildscript()
         buildscriptBlockRange?.let { buildscriptRange ->
             executeBuildscriptBlockFrom(buildscriptRange, scriptTarget.buildscriptBlockTemplate)
         }
@@ -375,16 +370,6 @@ class BuildscriptBlockEvaluator(
             scriptPath,
             script.linePreservingSubstring(buildscriptRange),
             Unit)
-
-    private
-    fun setupEmbeddedKotlinForBuildscript() =
-        embeddedKotlinProvider.run {
-            val scriptHandler = scriptTarget.scriptHandler
-            addRepositoryTo(scriptHandler.repositories)
-            pinDependenciesOn(
-                scriptHandler.configurations["classpath"],
-                "stdlib-jdk8", "reflect")
-        }
 
     private
     fun <T> withKotlinCompiler(action: CachingKotlinCompiler.() -> T): T =

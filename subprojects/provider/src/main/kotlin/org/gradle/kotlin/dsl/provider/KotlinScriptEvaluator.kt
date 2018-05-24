@@ -33,6 +33,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.execution.Interpreter
+import org.gradle.kotlin.dsl.get
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -87,6 +88,9 @@ class StandardKotlinScriptEvaluator(
         options: EnumSet<KotlinScriptOption>
     ) {
 
+        // TODO: Optimise away this call whenever possible via partial evaluation
+        setupEmbeddedKotlinForBuildscript(scriptHandler)
+
         if (options.isEmpty() && (target is Project || target is Settings)) {
             interpreter.eval(
                 target,
@@ -103,6 +107,16 @@ class StandardKotlinScriptEvaluator(
                 executeIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
             else
                 execute()
+        }
+    }
+
+    private
+    fun setupEmbeddedKotlinForBuildscript(scriptHandler: ScriptHandler) {
+        embeddedKotlinProvider.run {
+            addRepositoryTo(scriptHandler.repositories)
+            pinDependenciesOn(
+                scriptHandler.configurations["classpath"],
+                "stdlib-jdk8", "reflect")
         }
     }
 
@@ -126,7 +140,6 @@ class StandardKotlinScriptEvaluator(
             kotlinCompiler,
             pluginRequestsHandler,
             classPathProvider,
-            embeddedKotlinProvider,
             classPathModeExceptionCollector)
 
     private
