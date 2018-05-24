@@ -175,10 +175,16 @@ class XCTestScraper implements TextStream {
     @Override
     public void endOfStream(@Nullable Throwable failure) {
         if (failure != null) {
-            while (!testDescriptors.isEmpty()) {
-                processor.failure(testDescriptors.pop().getDescriptorInternal().getId(), failure);
+            synchronized (testDescriptors) {
+                Object testId;
+                if (!testDescriptors.isEmpty()) {
+                    testId = testDescriptors.pop().getDescriptorInternal().getId();
+                } else {
+                    testId = rootTestSuiteId;
+                }
+                processor.failure(testId, failure);
+                testDescriptors.clear();
             }
         }
     }
-
 }

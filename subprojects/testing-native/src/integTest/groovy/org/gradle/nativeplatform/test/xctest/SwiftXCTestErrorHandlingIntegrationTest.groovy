@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 
+import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -50,13 +51,12 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         and:
         failure.assertHasCause("There were failing tests.")
         def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
-        testFailure.assertTestFailed("execution failure", containsText("Failure while running xctest executable"))
+        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("Failure while running xctest executable"))
         if (OperatingSystem.current().isMacOsX()) {
             testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
         } else {
             testFailure.assertStderr(containsText("cannot open shared object file"))
         }
-
     }
 
     def "fails when force-unwrapping an optional results in an error"() {

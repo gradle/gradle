@@ -156,8 +156,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             if (result.getExitValue() != 0 && result.getExitValue() != 1) {
                 Exception failure = new ExecException("Failure while running xctest executable (exit code: " + result.getExitValue() + ").");
                 stdOut.endOfStream(failure);
-                stdErr.endOfStream(failure);
-                resultProcessor.failure(rootTestSuiteId, failure);
+                stdErr.endOfStream(null);
             }
         }
 

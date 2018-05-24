@@ -32,6 +32,7 @@ import java.util.Map;
  */
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
+    public static final String EXECUTION_FAILURE = "failed to execute tests";
     private final Map<String, TestClassResult> results;
     private final TestOutputStore.Writer outputWriter;
     private final Map<TestDescriptor, TestMethodResult> currentTestMethods = new HashMap<TestDescriptor, TestMethodResult>();
@@ -52,7 +53,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
             //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
             //this may happen for example when suite initialisation fails and no tests are executed
-            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, "execution failure");
+            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, EXECUTION_FAILURE);
             TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
             for (Throwable throwable : result.getExceptions()) {
                 methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
