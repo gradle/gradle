@@ -175,4 +175,44 @@ dependencies {
         then:
         succeeds 'dependencies'
     }
+
+    @Unroll
+    def "can update a single lock entry when using #version"() {
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:bar:$version'
+    lockedConf 'org:foo:$version'
+}
+"""
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.1'])
+
+        where:
+        version << ['[1.0,2.0)', '1.+', '+', 'latest.release']
+    }
+
 }
