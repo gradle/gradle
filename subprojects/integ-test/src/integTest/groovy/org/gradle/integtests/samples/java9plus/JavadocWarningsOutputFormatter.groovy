@@ -16,12 +16,17 @@
 
 package org.gradle.integtests.samples.java9plus
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 
 class JavadocWarningsOutputFormatter implements Transformer<String, String> {
     @Override
     String transform(String s) {
-        // javadoc: warning - You have not specified the version of HTML to use.
-        return s.replace('> Task :javadoc\n','\n> Task :javadoc\n1 warning\n\n')
+        if (JavaVersion.current().isJava9Compatible()) {
+            // javadoc: warning - You have not specified the version of HTML to use.
+            return s.replace('> Task :javadoc\n', '\n> Task :javadoc\n1 warning\n\n')
+        } else {
+            return s
+        }
     }
 }
