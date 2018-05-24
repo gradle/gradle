@@ -18,11 +18,18 @@ package org.gradle.integtests.resolve
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+"""
+    }
+
 
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -1552,6 +1559,48 @@ task checkDeps(dependsOn: configurations.compile) {
 
         then:
         noExceptionThrown()
+    }
+
+    @Ignore
+    def 'order of dependency declaration does not effect transitive dependency versions'() {
+        given:
+        def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
+        def foo12 = mavenRepo.module('org', 'foo', '1.2').publish()
+        def baz11 = mavenRepo.module('org', 'baz', '1.1').dependsOn(foo11).publish()
+        mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
+        mavenRepo.module('org', 'bar', '1.1').dependsOn(baz11).publish()
+
+        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:baz:[1.0,2.0)'
+                conf 'org:bar:1.1' // WORKS IF THIS DEPENDENCY IS FIRST
+                conf 'org:foo:[1.0,2.0)'
+            }
+"""
+        resolve.prepare()
+
+        when:
+        run 'dependencies', 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:bar:1.1') {
+                    module('org:baz:1.1') {
+                        module('org:foo:1.1')
+                    }
+                }
+                edge("org:foo:[1.0,2.0)", 'org:foo:1.1')
+                edge('org:baz:[1.0,2.0)', 'org:baz:1.1')
+            }
+        }
     }
 
     @Issue("gradle/gradle-private#1268")
