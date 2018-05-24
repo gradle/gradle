@@ -110,9 +110,9 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
             List<XCTestCaseElement> getTestCases() {
                 return [testCase("testForceUnwrapOptional",
                     """
-                                let string: String? = nil
-                                XCTAssert((string?.lengthOfBytes(using: .utf8))! > 0)
-                            """)]
+                        let string: String? = nil
+                        XCTAssert((string?.lengthOfBytes(using: .utf8))! > 0)
+                    """)]
             }
         }
         XCTestSourceElement sourceElement = new XCTestSourceElement('app') {
