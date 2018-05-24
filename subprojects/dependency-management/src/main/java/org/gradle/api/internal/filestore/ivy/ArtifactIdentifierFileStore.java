@@ -24,6 +24,9 @@ import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 import java.io.File;
 
 public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
+
+    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 4;
+
     private static final Grouper<ModuleComponentArtifactIdentifier> GROUPER = new Grouper<ModuleComponentArtifactIdentifier>() {
         @Override
         public String determineGroup(ModuleComponentArtifactIdentifier artifactId) {
@@ -32,9 +35,10 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
 
         @Override
         public int getDepth() {
-            return 3;
+            return FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP - 1;
         }
     };
+
     private static final Namer<ModuleComponentArtifactIdentifier> NAMER = new Namer<ModuleComponentArtifactIdentifier>() {
         @Override
         public String determineName(ModuleComponentArtifactIdentifier artifactId) {

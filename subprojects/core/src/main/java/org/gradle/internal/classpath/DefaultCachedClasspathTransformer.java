@@ -22,6 +22,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -41,11 +42,12 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.singleton;
-import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN;
 import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
+
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
 
@@ -55,9 +57,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withCleanup(new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .withCleanup(new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .open();
-        this.jarFileTransformer = new TouchingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores));
+        FileAccessTracker fileAccessTracker = new TouchingFileAccessTracker(cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
     }
 
     @Override
@@ -137,14 +140,14 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private class TouchingJarFileTransformer implements Transformer<File, File> {
+    private class FileAccessTrackingJarFileTransformer implements Transformer<File, File> {
 
         private final Transformer<File, File> delegate;
         private final FileAccessTracker fileAccessTracker;
 
-        TouchingJarFileTransformer(Transformer<File, File> delegate) {
+        FileAccessTrackingJarFileTransformer(Transformer<File, File> delegate, FileAccessTracker fileAccessTracker) {
             this.delegate = delegate;
-            this.fileAccessTracker = new TouchingFileAccessTracker(cache.getBaseDir(), 1);
+            this.fileAccessTracker = fileAccessTracker;
         }
 
         @Override

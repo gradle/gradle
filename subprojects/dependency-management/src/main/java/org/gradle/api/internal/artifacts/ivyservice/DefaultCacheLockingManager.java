@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -25,13 +26,14 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
 
-import static org.gradle.cache.internal.AbstractCacheCleanup.SECOND_LEVEL_CHILDREN;
 import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -50,7 +52,10 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData) {
         return CompositeCleanupAction.builder()
-                .add(cacheMetaData.getExternalResourcesStoreDirectory(), new FixedAgeOldestCacheCleanup(SECOND_LEVEL_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                .add(cacheMetaData.getExternalResourcesStoreDirectory(),
+                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                .add(cacheMetaData.getFileStoreDirectory(),
+                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
                 .build();
     }
 

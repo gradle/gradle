@@ -24,6 +24,8 @@ import java.io.File;
 
 public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> {
 
+    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+    
     private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
         public String determineGroup(String s) {
@@ -32,7 +34,7 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
 
         @Override
         public int getDepth() {
-            return 1;
+            return FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP - 1;
         }
     };
 

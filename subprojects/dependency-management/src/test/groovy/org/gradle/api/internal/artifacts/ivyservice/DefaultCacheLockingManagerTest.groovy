@@ -29,9 +29,11 @@ class DefaultCacheLockingManagerTest extends Specification {
 
     def cacheRepository = new DefaultCacheRepository(null, new InMemoryCacheFactory())
     def resourcesDir = temporaryFolder.createDir("resources")
+    def filesDir = temporaryFolder.createDir("files")
     def artifactCacheMetadata = Stub(ArtifactCacheMetadata) {
         getCacheDir() >> temporaryFolder.getTestDirectory()
         getExternalResourcesStoreDirectory() >> resourcesDir
+        getFileStoreDirectory() >> filesDir
     }
 
     @Subject @AutoCleanup
@@ -42,6 +44,23 @@ class DefaultCacheLockingManagerTest extends Specification {
         def file1 = resourcesDir.createDir("1/abc").createFile("test.txt")
         def file2 = resourcesDir.createDir("1/xyz").createFile("test.txt")
         def file3 = resourcesDir.createDir("2/uvw").createFile("test.txt")
+        file2.parentFile.lastModified = 0
+        file3.parentFile.lastModified = 0
+
+        when:
+        cacheLockingManager.close()
+
+        then:
+        file1.assertExists()
+        file2.assertDoesNotExist()
+        file3.assertDoesNotExist()
+    }
+
+    def "cleans up files"() {
+        given:
+        def file1 = filesDir.createDir("group1/artifact1/1.0/abc").createFile("my.pom")
+        def file2 = filesDir.createDir("group1/artifact1/1.0/xyz").createFile("my.jar")
+        def file3 = filesDir.createDir("group1/artifact1/2.0/uvw").createFile("some.pom")
         file2.parentFile.lastModified = 0
         file3.parentFile.lastModified = 0
 

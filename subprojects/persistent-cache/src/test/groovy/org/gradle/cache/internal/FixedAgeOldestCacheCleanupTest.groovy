@@ -24,8 +24,6 @@ import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.cache.internal.AbstractCacheCleanup.DIRECT_CHILDREN
-
 @Subject(FixedAgeOldestCacheCleanup)
 class FixedAgeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()

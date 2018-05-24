@@ -26,6 +26,7 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.util.GFileUtils;
@@ -35,23 +36,25 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileTime;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static java.util.Collections.singleton;
 
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
     private final PathKeyFileStore fileStore;
     private final PersistentCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
+    private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, String failedFileSuffix) {
+    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.fileStore = fileStore;
         this.persistentCache = persistentCache;
         this.tempFileStore = tempFileStore;
+        this.fileAccessTracker = fileAccessTracker;
         this.failedFileSuffix = failedFileSuffix;
     }
 
@@ -66,9 +69,6 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         @Override
         public void execute(@Nonnull File file) {
             try {
-                // Mark as recently used
-                GFileUtils.touchExisting(file);
-
                 Closer closer = Closer.create();
                 FileInputStream stream = closer.register(new FileInputStream(file));
                 try {
@@ -113,7 +113,7 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
         }
 
         File file = resource.getFile();
-        touch(file);
+        fileAccessTracker.markAccessed(singleton(file));
 
         try {
             reader.execute(file);
@@ -184,14 +184,5 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public void close() {
         persistentCache.close();
-    }
-
-    @SuppressWarnings("Since15")
-    private static void touch(File file) {
-        try {
-            Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(System.currentTimeMillis()));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

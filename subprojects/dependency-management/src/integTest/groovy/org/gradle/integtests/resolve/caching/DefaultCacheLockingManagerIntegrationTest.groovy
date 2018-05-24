@@ -39,7 +39,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         requireOwnGradleUserHomeDir()
     }
 
-    def "cleans up resources cache"() {
+    def "does not clean up resources and files that were recently used from caches"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
@@ -47,19 +47,49 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         then:
-        def resources = findFiles(cacheDir, 'resources-*/*/*/maven-metadata.xml')
+        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
         resources.size() == 1
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
 
         when:
-        buildscriptWithDependency(releaseModule)
         markForCleanup(gcFile)
-        markForCleanup(resources[0].parentFile)
 
         and:
+        succeeds 'tasks'
+
+        then:
+        resources[0].assertExists()
+        files[0].assertExists()
+        files[1].assertExists()
+    }
+
+    def "cleans up resources and files that were not recently used from caches"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+
+        when:
         succeeds 'resolve'
 
         then:
+        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
+        resources.size() == 1
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+
+        when:
+        markForCleanup(gcFile)
+        markForCleanup(resources[0].parentFile)
+        markForCleanup(files[0].parentFile)
+        markForCleanup(files[1].parentFile)
+
+        and:
+        succeeds 'tasks'
+
+        then:
         resources[0].assertDoesNotExist()
+        files[0].assertDoesNotExist()
+        files[1].assertDoesNotExist()
     }
 
     private List<TestFile> findFiles(File baseDir, String includePattern) {
@@ -67,7 +97,6 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         new SingleIncludePatternFileTree(baseDir, includePattern).visit(new FileVisitor() {
             @Override
             void visitDir(FileVisitDetails dirDetails) {
-
             }
 
             @Override
@@ -81,9 +110,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
     private void buildscriptWithDependency(MavenModule module) {
         buildFile.text = """
             repositories {
-                maven {
-                    url = '${repo.uri}'
-                }
+                maven { url = '${repo.uri}' }
             }
             configurations {
                 custom
@@ -93,8 +120,8 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
             }
             task resolve {
                 doLast {
-                    def artifacts = configurations.custom.incoming.artifacts
-                    println "files: " + artifacts.artifactFiles.collect { it.name }
+                    // trigger download
+                    configurations.custom.incoming.files.each { it.exists() }
                 }
             }
         """

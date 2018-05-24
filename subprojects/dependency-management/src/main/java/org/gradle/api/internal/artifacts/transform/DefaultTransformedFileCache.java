@@ -32,6 +32,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
@@ -55,11 +56,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
-import static org.gradle.cache.internal.AbstractCacheCleanup.SECOND_LEVEL_CHILDREN;
 import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
     private final FileStore<String> fileStore;
@@ -73,9 +75,9 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
-        fileAccessTracker = new TouchingFileAccessTracker(filesOutputDirectory, 2);
+        fileAccessTracker = new TouchingFileAccessTracker(filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         CleanupAction cleanupAction = CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(SECOND_LEVEL_CHILDREN, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
         cache = cacheRepository
             .cache(transformsStoreDirectory)
