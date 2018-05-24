@@ -37,9 +37,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 import java.io.File
@@ -129,17 +126,15 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             val subject = Interpreter(host)
-            assertThat(
-                standardOutputOf {
-                    subject.eval(
-                        target,
-                        scriptSource,
-                        mock(),
-                        targetScope,
-                        baseScope,
-                        true)
-                },
-                equalTo("stage 2\n"))
+            assertStandardOutputOf("stage 2\n") {
+                subject.eval(
+                    target,
+                    scriptSource,
+                    mock(),
+                    targetScope,
+                    baseScope,
+                    true)
+            }
 
             inOrder(host) {
 

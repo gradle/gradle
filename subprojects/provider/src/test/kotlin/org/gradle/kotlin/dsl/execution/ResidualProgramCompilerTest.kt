@@ -36,9 +36,12 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
+
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
@@ -287,11 +290,9 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         withExecutableProgramFor(Program.Plugins(fragment), sourceHash, programTarget = ProgramTarget.Project) {
 
-            assertThat(
-                standardOutputOf {
-                    execute(programHost, scriptHost)
-                },
-                equalTo("stage 1\n"))
+            assertStandardOutputOf("stage 1\n") {
+                execute(programHost, scriptHost)
+            }
 
             inOrder(programHost) {
 
@@ -381,12 +382,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             val scriptTemplateId = "Project/TopLevel/stage2"
 
-            assertThat(
-                standardOutputOf {
-                    program.execute(programHost, scriptHost)
-                    program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash)
-                },
-                equalTo(expectedStage1Output))
+            assertStandardOutputOf(expectedStage1Output) {
+                program.execute(programHost, scriptHost)
+                program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash)
+            }
 
             inOrder(programHost) {
 
@@ -442,11 +441,9 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
 
-            assertThat(
-                standardOutputOf {
-                    program.execute(programHost, scriptHost)
-                },
-                equalTo("stage 1\n"))
+            assertStandardOutputOf("stage 1\n") {
+                program.execute(programHost, scriptHost)
+            }
 
             inOrder(programHost, scriptHandler) {
                 verify(scriptHandler).repositories
@@ -534,6 +531,13 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     private
     fun outputDir() = root.resolve("classes").apply { mkdir() }
 }
+
+
+internal
+fun assertStandardOutputOf(expected: String, action: () -> Unit): Unit =
+    assertThat(
+        standardOutputOf(action),
+        equalToMultiLineString(expected))
 
 
 internal
