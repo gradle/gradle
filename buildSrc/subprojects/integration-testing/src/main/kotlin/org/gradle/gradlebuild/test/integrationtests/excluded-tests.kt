@@ -101,8 +101,5 @@ val excludedTests = listOf(
     "MavenPublishS3ErrorsIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
 
     // Various problems, eg scala compile
-    "UserGuideSamplesIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-
-    //Changes in Javadoc generation
-    "SamplesJavaMultiProjectIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10)
+    "UserGuideSamplesIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10)
 )

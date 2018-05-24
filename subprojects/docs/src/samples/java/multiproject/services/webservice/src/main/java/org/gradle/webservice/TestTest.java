@@ -1,7 +1,7 @@
 package org.gradle.webservice;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.collections.list.GrowthList;
 import org.gradle.shared.Person;
 import org.gradle.api.PersonList;
