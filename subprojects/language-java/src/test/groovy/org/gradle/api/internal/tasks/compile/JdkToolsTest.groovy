@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.Requires
 import spock.lang.Issue
@@ -53,9 +54,13 @@ class JdkToolsTest extends Specification {
     @Requires(FIX_TO_WORK_ON_JAVA9)
     def "throws when tools doesn't contain compiler"() {
         when:
-        new JdkTools(Mock(JavaInfo) {
+        def compiler = new JdkTools(Mock(JavaInfo) {
             getToolsJar() >> new File("/nothing")
         }).systemJavaCompiler
+
+        // Diagnose flaky tests
+        println(System.getProperty("java.class.path"))
+        println(ClasspathUtil.getClasspathForClass(compiler.class))
 
         then:
         thrown IllegalStateException
