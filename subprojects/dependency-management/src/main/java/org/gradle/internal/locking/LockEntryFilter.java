@@ -16,7 +16,8 @@
 
 package org.gradle.internal.locking;
 
-interface LockEntryFilter {
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.specs.Spec;
 
-    boolean filters(String moduleIdentifier);
+interface LockEntryFilter extends Spec<ModuleComponentIdentifier> {
 }

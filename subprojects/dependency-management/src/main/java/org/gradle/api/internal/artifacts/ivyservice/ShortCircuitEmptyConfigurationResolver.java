@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolveException;
@@ -95,8 +94,8 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(configuration.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 ArrayList<String> errors = Lists.newArrayListWithCapacity(lockingState.getLockedDependencies().size());
-                for (DependencyConstraint lockedDependency : lockingState.getLockedDependencies()) {
-                    errors.add("Did not resolve '" + lockedDependency.getGroup() + ":" + lockedDependency.getName() + ":" + lockedDependency.getVersion() + "' which is part of the lock state");
+                for (ModuleComponentIdentifier lockedDependency : lockingState.getLockedDependencies()) {
+                    errors.add("Did not resolve '" + lockedDependency.getGroup() + ":" + lockedDependency.getModule() + ":" + lockedDependency.getVersion() + "' which is part of the lock state");
                 }
                 throw LockOutOfDateException.createLockOutOfDateException(configuration.getName(), errors);
             }

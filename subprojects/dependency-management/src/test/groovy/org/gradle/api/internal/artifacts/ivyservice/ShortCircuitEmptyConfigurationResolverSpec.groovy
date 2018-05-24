@@ -25,12 +25,12 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor
 import org.gradle.api.specs.Specs
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.locking.LockOutOfDateException
 import spock.lang.Specification
 
@@ -179,7 +179,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         1 * resolutionStrategy.dependencyLockingProvider >> lockingProvider
         1 * lockingProvider.loadLockState('lockedConf') >> lockingState
         1 * lockingState.mustValidateLockState() >> true
-        3 * lockingState.lockedDependencies >> [DefaultDependencyConstraint.strictConstraint('org', 'foo', '1.0')]
+        3 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId('org', 'foo', '1.0')]
     }
 
     def "delegates to backing service to resolve build dependencies when there are one or more dependencies"() {
