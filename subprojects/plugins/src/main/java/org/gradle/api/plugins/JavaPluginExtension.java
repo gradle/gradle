@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.tasks.SourceSetContainer;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -49,4 +50,7 @@ public interface JavaPluginExtension {
      * @param value The value for the target compatibility
      */
     void setTargetCompatibility(JavaVersion value);
+
+    // TODO - this will be removed
+    SourceSetContainer getSourceSets();
 }
