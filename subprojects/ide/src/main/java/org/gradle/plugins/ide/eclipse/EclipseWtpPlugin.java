@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -79,8 +78,8 @@ public class EclipseWtpPlugin extends IdePlugin {
         getLifecycleTask().configure(withDescription("Generates Eclipse wtp configuration files."));
         getCleanTask().configure(withDescription("Cleans Eclipse wtp configuration files."));
 
-        project.getTasks().get(Task.class, EclipsePlugin.ECLIPSE_TASK_NAME).configure(dependsOn(getLifecycleTask()));
-        project.getTasks().get(Task.class, cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).configure(dependsOn(getCleanTask()));
+        project.getTasks().named(EclipsePlugin.ECLIPSE_TASK_NAME).configure(dependsOn(getLifecycleTask()));
+        project.getTasks().named(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).configure(dependsOn(getCleanTask()));
 
         EclipseModel model = project.getExtensions().getByType(EclipseModel.class);
 

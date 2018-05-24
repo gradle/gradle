@@ -99,7 +99,7 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     public void addWorker(Task worker) {
-        addWorker(project.getTasks().get(Task.class, worker.getName()), worker.getName());
+        addWorker(project.getTasks().named(worker.getName()), worker.getName());
     }
 
     public void addWorker(TaskProvider<? extends Task> worker, String workerName) {
@@ -107,7 +107,7 @@ public abstract class IdePlugin implements Plugin<Project> {
     }
 
     public void addWorker(Task worker, boolean includeInClean) {
-        addWorker(project.getTasks().get(Task.class, worker.getName()), worker.getName(), includeInClean);
+        addWorker(project.getTasks().named(worker.getName()), worker.getName(), includeInClean);
     }
 
     public void addWorker(final TaskProvider<? extends Task> worker, String workerName, boolean includeInClean) {

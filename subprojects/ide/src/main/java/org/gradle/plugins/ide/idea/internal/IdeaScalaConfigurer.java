@@ -72,7 +72,7 @@ public class IdeaScalaConfigurer {
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
                 final Map<String, ProjectLibrary> scalaCompilerLibraries = Maps.newLinkedHashMap();
-                rootProject.getTasks().get(Task.class, "ideaProject").configure(new Action<Task>() {
+                rootProject.getTasks().named("ideaProject").configure(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         task.doFirst(new Action<Task>() {

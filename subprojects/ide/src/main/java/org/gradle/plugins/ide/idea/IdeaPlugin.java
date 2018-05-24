@@ -507,7 +507,7 @@ public class IdeaPlugin extends IdePlugin {
 
     private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().get(Task.class, "ideaModule").configure(dependsOn(project.getRootProject().getTasks().get(Task.class, "ideaProject")));
+        project.getTasks().named(IDEA_MODULE_TASK_NAME).configure(dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {

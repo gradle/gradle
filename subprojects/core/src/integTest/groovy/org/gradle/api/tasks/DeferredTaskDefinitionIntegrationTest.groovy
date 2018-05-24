@@ -581,7 +581,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
 
         then:
-        result.output.contains("hello 42")
+        outputContains("hello 42")
     }
 
     def "fails to create custom task if constructor arguments are missing"() {
@@ -671,7 +671,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
 
         then:
-        result.output.contains("got it")
+        outputContains("got it")
     }
 
     def "can construct a task with @Inject services and constructor args"() {
@@ -703,6 +703,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         run 'myTask'
 
         then:
-        result.output.contains("got it 15")
+        outputContains("got it 15")
     }
 }
