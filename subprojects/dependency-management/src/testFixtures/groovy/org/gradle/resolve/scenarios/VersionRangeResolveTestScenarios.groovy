@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 class VersionRangeResolveTestScenarios {
     public static final REJECTED = "REJECTED"
     public static final FAILED = "FAILED"
+    public static final IGNORE = "IGNORE"
 
     public static final FIXED_7 = fixed(7)
     public static final FIXED_9 = fixed(9)
@@ -43,6 +44,9 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_12_14 = range(12, 14)
     public static final RANGE_13_14 = range(13, 14)
     public static final RANGE_14_16 = range(14, 16)
+
+    public static final DYNAMIC_PLUS = dynamic('+')
+    public static final DYNAMIC_LATEST = dynamic( 'latest.integration')
 
     public static final REJECT_11 = reject(11)
     public static final REJECT_12 = reject(12)
@@ -92,6 +96,30 @@ class VersionRangeResolveTestScenarios {
         versions: [RANGE_10_14, RANGE_10_16],
         expectedNoStrict: "13",
         expectedStrict: ["13", "13"]
+    ).and(
+        versions: [DYNAMIC_PLUS, FIXED_11],
+        expectedNoStrict: "11",
+        expectedStrict: [IGNORE, "11"]
+    ).and(
+        versions: [DYNAMIC_PLUS, RANGE_10_12],
+        expectedNoStrict: "12",
+        expectedStrict: [IGNORE, "12"]
+    ).and(
+        versions: [DYNAMIC_PLUS, RANGE_10_16],
+        expectedNoStrict: "13",
+        expectedStrict: [IGNORE, "13"]
+    ).and(
+        versions: [DYNAMIC_LATEST, FIXED_11],
+        expectedNoStrict: "13",
+        expectedStrict: [IGNORE, "11"]
+    ).and(
+        versions: [DYNAMIC_LATEST, RANGE_10_12],
+        expectedNoStrict: "13",
+        expectedStrict: [IGNORE, "12"]
+    ).and(
+        versions: [DYNAMIC_LATEST, RANGE_10_16],
+        expectedNoStrict: "13",
+        expectedStrict: [IGNORE, "13"]
     )
     public static final StrictPermutationsProvider SCENARIOS_DEPENDENCY_WITH_REJECT = StrictPermutationsProvider.check(
         versions: [FIXED_12, REJECT_11],
@@ -210,6 +238,12 @@ class VersionRangeResolveTestScenarios {
         return vs
     }
 
+    private static RenderableVersion dynamic(String version) {
+        def vs = new SimpleVersion()
+        vs.version = version
+        return vs
+    }
+
     private static RenderableVersion range(int low, int high) {
         def vs = new SimpleVersion()
         vs.version = "[${low},${high}]"
@@ -315,13 +349,16 @@ class VersionRangeResolveTestScenarios {
                 iterations.add(new Batch(batchName, versions, expected))
                 if (expectedStrict) {
                     versions.size().times { idx ->
-                        iterations.add(new Batch(batchName, versions.withIndex().collect { RenderableVersion version, idx2 ->
-                            if (idx == idx2) {
-                                strict(version)
-                            } else {
-                                version
-                            }
-                        }, expectedStrict[idx]))
+                        def expectedStrictResolution = expectedStrict[idx]
+                        if (expectedStrictResolution != IGNORE) {
+                            iterations.add(new Batch(batchName, versions.withIndex().collect { RenderableVersion version, idx2 ->
+                                if (idx == idx2) {
+                                    strict(version)
+                                } else {
+                                    version
+                                }
+                            }, expectedStrictResolution))
+                        }
                     }
                 }
                 batches.addAll(iterations)
