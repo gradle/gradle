@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -56,6 +57,8 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
                     new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
                 .add(cacheMetaData.getFileStoreDirectory(),
                     new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                .add(cacheMetaData.getMetaDataStoreDirectory(),
+                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ModuleMetadataStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
                 .build();
     }
 

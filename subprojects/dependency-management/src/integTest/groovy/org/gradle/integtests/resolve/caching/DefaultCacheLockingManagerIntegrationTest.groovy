@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import static java.util.concurrent.TimeUnit.DAYS
+import static java.util.concurrent.TimeUnit.MILLISECONDS
+import static java.util.concurrent.TimeUnit.SECONDS
 
 class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private final static long MAX_CACHE_AGE_IN_DAYS = FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
@@ -51,6 +53,8 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
+        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
+        metadata.size() == 1
 
         when:
         markForCleanup(gcFile)
@@ -62,9 +66,10 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources[0].assertExists()
         files[0].assertExists()
         files[1].assertExists()
+        metadata[0].assertExists()
     }
 
-    def "cleans up resources and files that were not recently used from caches"() {
+    def "cleans up resources, files and metadata that were not recently used from caches"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
@@ -76,12 +81,15 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
+        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
+        metadata.size() == 1
 
         when:
         markForCleanup(gcFile)
         markForCleanup(resources[0].parentFile)
         markForCleanup(files[0].parentFile)
         markForCleanup(files[1].parentFile)
+        markForCleanup(metadata[0].parentFile)
 
         and:
         succeeds 'tasks'
@@ -90,6 +98,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources[0].assertDoesNotExist()
         files[0].assertDoesNotExist()
         files[1].assertDoesNotExist()
+        metadata[0].assertDoesNotExist()
     }
 
     private List<TestFile> findFiles(File baseDir, String includePattern) {
