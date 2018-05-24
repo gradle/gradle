@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect
 
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -198,5 +200,43 @@ class PropertyAccessorTypeTest extends Specification {
         PropertyAccessorType.of(StaticMethods.getMethod("isStatic")) == null
         PropertyAccessorType.of(StaticMethods.getMethod("getStatic")) == null
         PropertyAccessorType.of(StaticMethods.getMethod("setStatic", int)) == null
+    }
+
+    static class DeviantProviderMethods {
+        Provider<Boolean> isNotBoolean() {
+            null
+        }
+
+        Property<Boolean> isStillNotBoolean() {
+            null
+        }
+    }
+
+    def "is methods with Provider/Property of Boolean return type are not considered as such by Gradle, Groovy and Java"() {
+        def bean = new DeviantProviderMethods()
+        def propertyNames = Introspector.getBeanInfo(DeviantProviderMethods).propertyDescriptors.collect { it.name }
+
+        expect:
+        try {
+            bean.notBoolean
+            assert false
+        } catch (MissingPropertyException e) {
+            assert e.property == "notBoolean"
+        }
+
+        try {
+            bean.stillNotBoolean
+            assert false
+        } catch (MissingPropertyException e) {
+            assert e.property == "stillNotBoolean"
+        }
+
+        PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantProviderMethods.class.getMethod("isNotBoolean")) == null
+        PropertyAccessorType.fromName('isStillNotBoolean') == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantProviderMethods.class.getMethod("isStillNotBoolean")) == null
+
+        !propertyNames.contains("notBoolean")
+        !propertyNames.contains("stillNotBoolean")
     }
 }

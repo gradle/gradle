@@ -90,11 +90,11 @@ class DefaultClassDependenciesAnalyzerTest extends Specification {
 
     def "knows if a class uses annotations with source retention"() {
         expect:
-        analyze(UsesRuntimeAnnotation).classDependencies.isEmpty()
+        analyze(UsesRuntimeAnnotation).classDependencies  == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeRuntimeAnnotation"] as Set
         analyze(SomeRuntimeAnnotation).classDependencies.isEmpty()
         !analyze(SomeRuntimeAnnotation).dependencyToAll
 
-        analyze(UsesClassAnnotation).classDependencies.isEmpty()
+        analyze(UsesClassAnnotation).classDependencies == ["org.gradle.api.internal.tasks.compile.incremental.analyzer.annotations.SomeClassAnnotation"] as Set
         analyze(SomeClassAnnotation).classDependencies.isEmpty()
         !analyze(SomeClassAnnotation).dependencyToAll
 

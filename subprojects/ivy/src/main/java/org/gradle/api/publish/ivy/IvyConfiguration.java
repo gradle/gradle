@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 import java.util.Set;
@@ -24,7 +23,6 @@ import java.util.Set;
 /**
  * A configuration included in an {@link IvyPublication}, which will be published in the ivy descriptor file generated.
  */
-@Incubating
 public interface IvyConfiguration extends Named {
 
     /**

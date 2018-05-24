@@ -20,10 +20,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
@@ -31,10 +29,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -103,38 +98,11 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> extends Abstra
     }
 
     protected List<String> maybeGetPCHArgs(final T spec, File sourceFile) {
-        if (spec.getPreCompiledHeader() == null) {
+        if (spec.getPreCompiledHeader() == null || !spec.getSourceFilesForPch().contains(sourceFile)) {
             return Lists.newArrayList();
         }
 
-        final IncludeDirectives includes = spec.getSourceFileIncludeDirectives().get(sourceFile);
-        final String header = spec.getPreCompiledHeader();
-
-        List<Include> headers = includes.getAll();
-        boolean usePCH = !headers.isEmpty() && header.equals(headers.get(0).getValue());
-
-        if (usePCH) {
-            return getPCHArgs(spec);
-        } else {
-            boolean containsHeader = CollectionUtils.any(headers, new Spec<Include>() {
-                @Override
-                public boolean isSatisfiedBy(Include include) {
-                    return include.getValue().equals(header);
-                }
-            });
-            if (containsHeader) {
-                logger.log(LogLevel.WARN, getCantUsePCHMessage(spec.getPreCompiledHeader(), sourceFile));
-            }
-            return Lists.newArrayList();
-        }
-    }
-
-    private static String getCantUsePCHMessage(String pchHeader, File sourceFile) {
-        return "The source file "
-                .concat(sourceFile.getName())
-                .concat(" includes the header ")
-                .concat(pchHeader)
-                .concat(" but it is not the first declared header, so the pre-compiled header will not be used.");
+        return getPCHArgs(spec);
     }
 
     protected CommandLineToolInvocation createPerFileInvocation(List<String> genericArgs, File sourceFile, File objectDir, T spec) {

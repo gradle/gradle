@@ -19,11 +19,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.ScalaSourceSet;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultScalaSourceSet implements ScalaSourceSet {
+public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
     private final SourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
@@ -52,5 +55,10 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
 
     public SourceDirectorySet getAllScala() {
         return allScala;
+    }
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return typeOf(ScalaSourceSet.class);
     }
 }

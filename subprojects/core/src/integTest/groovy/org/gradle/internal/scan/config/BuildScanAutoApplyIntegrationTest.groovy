@@ -17,27 +17,29 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture
+import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.BuildScanAutoApplyFixture.*
+import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.BUILD_SCAN_PLUGIN_ID
+import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS
+import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     private static final String BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION = AutoAppliedBuildScanPlugin.VERSION
     private static final String BUILD_SCAN_PLUGIN_MINIMUM_VERSION = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION.toString()
     private static final String BUILD_SCAN_PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-    private final BuildScanAutoApplyFixture fixture = new BuildScanAutoApplyFixture(testDirectory, mavenRepo)
+    private final BuildScanPluginFixture fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         buildFile << """
             task dummy {}
         """
         settingsFile << fixture.pluginManagement()
-        fixture.publishDummyBuildScanPlugin(BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION, executer)
+        fixture.publishDummyBuildScanPlugin(executer)
     }
 
     def "automatically applies build scan plugin when --scan is provided on command-line"() {
@@ -114,9 +116,8 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
-        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
-            fixture.publishDummyBuildScanPlugin(version, executer)
-        }
+        fixture.runtimeVersion = version
+        fixture.artifactVersion = version
         pluginsRequest "id '$BUILD_SCAN_PLUGIN_ID' version '$version'"
 
         and:
@@ -135,9 +136,8 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
-        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
-            fixture.publishDummyBuildScanPlugin(version, executer)
-        }
+        fixture.runtimeVersion = version
+        fixture.artifactVersion = version
         buildscriptApply "com.gradle:build-scan-plugin:$version"
 
         and:
@@ -156,9 +156,8 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "uses #sequence version of plugin when added to initscript classpath"() {
         when:
-        if (version != BUILD_SCAN_PLUGIN_AUTO_APPLY_VERSION) {
-            fixture.publishDummyBuildScanPlugin(version, executer)
-        }
+        fixture.runtimeVersion = version
+        fixture.artifactVersion = version
         initScriptApply "com.gradle:build-scan-plugin:$version"
 
         and:

@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -186,7 +187,7 @@ public class AnnotationProcessorDetector {
         }
 
         private IncrementalAnnotationProcessorType parseProcessorType(List<String> parts) {
-            return Enums.getIfPresent(IncrementalAnnotationProcessorType.class, parts.get(1).toUpperCase()).or(IncrementalAnnotationProcessorType.UNKNOWN);
+            return Enums.getIfPresent(IncrementalAnnotationProcessorType.class, parts.get(1).toUpperCase(Locale.ROOT)).or(IncrementalAnnotationProcessorType.UNKNOWN);
         }
 
         private List<AnnotationProcessorDeclaration> toProcessorDeclarations(List<String> processorNames, Map<String, IncrementalAnnotationProcessorType> processorTypes) {

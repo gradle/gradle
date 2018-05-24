@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 
@@ -135,6 +136,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
         }
     }
 
+    // TODO Make this work with pending elements
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
 
         private final List<DomainObjectCollection<? extends T>> store = Lists.newLinkedList();
@@ -243,6 +245,36 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> im
                 size += Estimates.estimateSizeOf(ts);
             }
             return size;
+        }
+
+        @Override
+        public Iterator<T> iteratorNoFlush() {
+            return iterator();
+        }
+
+        @Override
+        public void realizePending() {
+
+        }
+
+        @Override
+        public void realizePending(Class<?> type) {
+
+        }
+
+        @Override
+        public void addPending(ProviderInternal<? extends T> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removePending(ProviderInternal<? extends T> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void onRealize(Action<ProviderInternal<? extends T>> action) {
+
         }
     }
 }

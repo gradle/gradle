@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
@@ -32,6 +33,19 @@ class NormalizingJavaCompilerTest extends Specification {
         def compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.annotationProcessorPath = ImmutableFileCollection.of(new File("processor.jar"))
         spec.compileOptions = compileOptions
+    }
+
+    def "replaces iterable sources with immutable set"() {
+        spec.sourceFiles = ["Person1.java", "Person2.java"].collect { new File(it) }
+
+        when:
+        compiler.execute(spec)
+
+        then:
+        1 * target.execute(spec) >> {
+            assert spec.sourceFiles == files("Person1.java", "Person2.java")
+            assert spec.sourceFiles instanceof ImmutableSet
+        }
     }
 
     def "delegates to target compiler after resolving source and processor path"() {

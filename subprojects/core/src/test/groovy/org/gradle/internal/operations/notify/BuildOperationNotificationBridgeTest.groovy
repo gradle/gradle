@@ -36,15 +36,16 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def listener2 = Mock(BuildOperationNotificationListener2)
     def gradle = Mock(GradleInternal)
 
-    BuildOperationNotificationBridge bridge
+    BuildOperationNotificationBridge bridgeInstance
 
     def "removes listener when stopped"() {
         given:
         def buildOperationListener
-        def buildOperationListenerManager = Mock(BuildOperationListenerManager)
+        buildOperationListenerManager = Mock(BuildOperationListenerManager)
 
         when:
-        def bridge = new BuildOperationNotificationBridge(buildOperationListenerManager, listenerManager)
+        def bridge = bridge()
+        bridge.valve.start()
 
         then:
         1 * buildOperationListenerManager.addListener(_) >> {
@@ -52,7 +53,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        bridge.stop()
+        bridge.valve.stop()
 
         then:
         1 * buildOperationListenerManager.removeListener(_) >> {
@@ -62,8 +63,31 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "does not allow duplicate registration"() {
         when:
-        bridge().registrar.registerBuildScopeListener(listener)
-        bridge().registrar.registerBuildScopeListener(listener)
+        def bridge = bridge()
+        bridge.valve.start()
+        bridge.registrar.registerBuildScopeListener(listener)
+        bridge.registrar.registerBuildScopeListener(listener)
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "can register again after resetting valve"() {
+        when:
+        def bridge = bridge()
+        bridge.valve.start()
+        bridge.registrar.registerBuildScopeListener(listener)
+        bridge.valve.stop()
+        bridge.valve.start()
+        bridge.registrar.registerBuildScopeListener(listener)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "cannot register when valve is closed"() {
+        when:
+        register(listener)
 
         then:
         thrown IllegalStateException
@@ -72,6 +96,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def "passes recorded events to listeners registering"() {
         def d1 = d(1, null, 1)
         def bridge = bridge()
+        bridge.valve.start()
 
         when:
         broadcast.started(d1, new OperationStartEvent(0))
@@ -91,6 +116,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d2 = d(2, null, null)
         def d3 = d(3, null, 3)
         def e1 = new Exception()
+        bridge().valve.start()
         register(listener)
 
         // operation with details and non null result
@@ -183,6 +209,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "parentId is of last parent that a notification was sent for"() {
         given:
+        bridge().valve.start()
         register(listener)
         def d1 = d(1, null, 1)
         def d2 = d(2, 1, null)
@@ -269,6 +296,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
     def "emits progress events"() {
         given:
+        bridge().valve.start()
         register(listener2)
         def d1 = d(1, null, 1)
         def d2 = d(2, 1, null)
@@ -339,10 +367,10 @@ class BuildOperationNotificationBridgeTest extends Specification {
     }
 
     BuildOperationNotificationBridge bridge() {
-        if (bridge == null) {
-            bridge = new BuildOperationNotificationBridge(buildOperationListenerManager, listenerManager)
+        if (bridgeInstance == null) {
+            bridgeInstance = new BuildOperationNotificationBridge(buildOperationListenerManager, listenerManager)
         } else {
-            bridge
+            bridgeInstance
         }
     }
 }

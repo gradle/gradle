@@ -223,6 +223,19 @@ public class LogContent {
         }
     }
 
+    /**
+     * Remove all empty lines.
+     */
+    public LogContent removeEmptyLines() {
+        List<String> nonEmptyLines = new ArrayList<String>();
+        for (String line : lines) {
+            if (!line.isEmpty()) {
+                nonEmptyLines.add(line);
+            }
+        }
+        return new LogContent(ImmutableList.copyOf(nonEmptyLines), definitelyNoDebugPrefix, rawContent);
+    }
+
     public static String stripWorkInProgressArea(String output) {
         String result = output;
         for (int i = 1; i <= 10; ++i) {
@@ -231,7 +244,7 @@ public class LogContent {
         return WORK_IN_PROGRESS_AREA_PATTERN.matcher(result).replaceAll("");
     }
 
-    private static String stripJavaIllegalAccessWarnings(String result) {
+    public static String stripJavaIllegalAccessWarnings(String result) {
         return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
     }
 

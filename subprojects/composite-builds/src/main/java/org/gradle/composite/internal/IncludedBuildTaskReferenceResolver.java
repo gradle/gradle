@@ -16,25 +16,12 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
-import org.gradle.initialization.BuildIdentity;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
-
-    private final IncludedBuildTaskGraph includedBuilds;
-    private final BuildIdentity buildIdentity;
-
-    public IncludedBuildTaskReferenceResolver(IncludedBuildTaskGraph includedBuilds, BuildIdentity buildIdentity) {
-        this.includedBuilds = includedBuilds;
-        this.buildIdentity = buildIdentity;
-    }
-
     @Override
     public Task constructTask(final TaskReference reference, TaskContainer tasks) {
         if (!(reference instanceof IncludedBuildTaskReference)) {
@@ -42,29 +29,6 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         }
 
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
-
-        final BuildIdentifier sourceBuild = buildIdentity.getCurrentBuild();
-        final BuildIdentifier targetBuild = ref.getBuildIdentifier();
-
-        includedBuilds.addTask(sourceBuild, targetBuild, ref.getTaskPath());
-
-        String delegateTaskName = ref.getName();
-        Task task = tasks.findByName(delegateTaskName);
-
-        if (task == null) {
-            return tasks.create(delegateTaskName, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
-                @Override
-                public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
-                    compositeBuildTaskDelegate.setBuild(targetBuild);
-                    compositeBuildTaskDelegate.setTaskPath(ref.getTaskPath());
-                }
-            });
-        }
-
-        if (task instanceof CompositeBuildTaskDelegate) {
-            return task;
-        }
-
-        throw new TaskInstantiationException("Cannot create delegating task '" + delegateTaskName + "' as task with same name already exists.");
+        return ref.resolveTask();
     }
 }

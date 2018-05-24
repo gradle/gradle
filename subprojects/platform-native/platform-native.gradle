@@ -44,6 +44,7 @@ gradlebuildJava {
 testFixtures {
     from(':core')
     from(':core', 'testFixtures')
+    from(':ide', 'testFixtures')
     from(':messaging')
     from(':platformBase')
     from(':modelCore')

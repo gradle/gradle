@@ -66,15 +66,25 @@ fun Project.removeOldVersionsFromDir(dir: File, shouldDelete: Spec<GradleVersion
 
 
 fun Project.removeCachedScripts(cachesDir: File) {
-
     if (cachesDir.isDirectory) {
-
         cachesDir.listFiles()
             .filter { it.isDirectory }
             .flatMap { scriptsCacheDirsUnder(it) }
             .forEach { scriptsCacheDir ->
                 println("Removing scripts cache directory : $scriptsCacheDir")
                 delete(scriptsCacheDir)
+            }
+    }
+}
+
+
+fun Project.removeTransformDir(cachesDir: File) {
+    if (cachesDir.isDirectory) {
+        cachesDir.listFiles()
+            .filter { it.isDirectory && it.name.startsWith("transforms-") }
+            .forEach { transformDir ->
+                println("Removing transforms directory : $transformDir")
+                delete(transformDir)
             }
     }
 }

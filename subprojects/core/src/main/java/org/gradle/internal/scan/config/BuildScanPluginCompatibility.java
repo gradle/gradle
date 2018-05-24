@@ -34,11 +34,11 @@ class BuildScanPluginCompatibility {
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
 
     String unsupportedReason(VersionNumber pluginVersion, BuildScanConfig.Attributes attributes) {
-        if (pluginVersion.compareTo(MIN_SUPPORTED_VERSION) < 0) {
+        if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
             return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
         }
 
-        if (pluginVersion.compareTo(MIN_VERSION_AWARE_OF_VCS_MAPPINGS) < 0 && attributes.isRootProjectHasVcsMappings()) {
+        if (isEarlierThan(pluginVersion, MIN_VERSION_AWARE_OF_VCS_MAPPINGS) && attributes.isRootProjectHasVcsMappings()) {
             return UNSUPPORTED_VCS_MAPPINGS_MESSAGE;
         }
 
@@ -47,6 +47,10 @@ class BuildScanPluginCompatibility {
         }
 
         return null;
+    }
+
+    private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
+        return pluginVersion.compareTo(minSupportedVersion) < 0;
     }
 
     UnsupportedBuildScanPluginVersionException unsupportedVersionException() {

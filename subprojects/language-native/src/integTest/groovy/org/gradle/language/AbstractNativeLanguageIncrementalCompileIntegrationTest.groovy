@@ -462,8 +462,8 @@ model {
         given:
         outputs.snapshot { run "mainExecutable" }
 
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n// needs to be different"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n// needs to be different"
 
         when:
         buildFile << """
@@ -511,8 +511,8 @@ model {
         outputs.snapshot { run "mainExecutable" }
 
         when:
-        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n"
-        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n"
+        file("src/replacement-headers/${sharedHeaderFile.name}") << sharedHeaderFile.text << "\n// needs to be different"
+        file("src/replacement-headers/${commonHeaderFile.name}") << commonHeaderFile.text << "\n// needs to be different"
 
         and:
         run "mainExecutable"
@@ -524,7 +524,25 @@ model {
         outputs.recompiledFiles allSources
     }
 
-    def "recompiles when replacement header file is added to source directory"() {
+    def "recompiles when replacement header file with different content is added to source directory"() {
+        given:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        sourceFile.parentFile.file(sharedHeaderFile.name) << sharedHeaderFile.text << "\n// needs to be different"
+        sourceFile.parentFile.file(commonHeaderFile.name) << commonHeaderFile.text << "\n// needs to be different"
+
+        and:
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped compileTask
+
+        and:
+        outputs.recompiledFiles allSources + [commonHeaderFile]
+    }
+
+    def "does not recompile when replacement header file with same content is added to source directory"() {
         given:
         outputs.snapshot { run "mainExecutable" }
 
@@ -539,7 +557,7 @@ model {
         executedAndNotSkipped compileTask
 
         and:
-        outputs.recompiledFiles allSources + [commonHeaderFile]
+        outputs.recompiledFiles sharedHeaderFile, commonHeaderFile
     }
 
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {

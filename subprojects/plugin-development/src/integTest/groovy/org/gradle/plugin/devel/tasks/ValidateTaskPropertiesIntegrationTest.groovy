@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -294,5 +296,85 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
         """.stripIndent().trim()
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using external types"() {
+        buildFile << """
+            ${jcenterRepository()}
+
+            dependencies {
+                compile 'com.typesafe:config:1.3.2'
+            }
+        """
+
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+            import com.typesafe.config.Config;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Input
+                public Config getConfig() { return null; } 
+            }
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
+    }
+
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using types from other projects"() {
+        settingsFile << """include 'lib'"""
+        buildFile << """  
+            allprojects {
+                ${jcenterRepository()}
+            }
+
+            project(':lib') {
+                apply plugin: 'java'
+
+                dependencies {
+                    compile 'com.typesafe:config:1.3.2'
+                }
+            }          
+
+            dependencies {
+                compile project(':lib')
+            }
+        """
+        file("lib/src/main/java/MyUtil.java") << """
+            import com.typesafe.config.Config;
+
+            public class MyUtil {
+                public Config getConfig() {
+                    return null;
+                }
+            }
+        """
+
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Input
+                public MyUtil getUtil() { return null; } 
+            }
+        """
+
+        expect:
+        succeeds "validateTaskProperties"
     }
 }

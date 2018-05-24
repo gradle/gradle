@@ -57,6 +57,9 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         """
 
         given:
+        executer.beforeExecute {
+            executer.withStackTraceChecksDisabled()
+        }
         expectEvent("started")
         expectEvent("block")
         def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())

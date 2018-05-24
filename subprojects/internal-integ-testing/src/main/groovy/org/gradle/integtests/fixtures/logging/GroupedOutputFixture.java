@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.logging;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.executer.LogContent;
 
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class GroupedOutputFixture {
     private final static String EMBEDDED_BUILD_START = "> :\\w* > root project";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
     private final static String BUILD_FAILED_FOOTER = "BUILD FAILED";
-    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks:";
+    private final static String ACTIONABLE_TASKS = "[0-9]+ actionable tasks?:";
 
     /**
      * Various patterns to detect the end of the task output
@@ -72,7 +73,7 @@ public class GroupedOutputFixture {
         while (matcher.find()) {
             String taskName = matcher.group(1);
             String taskOutcome = matcher.group(2);
-            String taskOutput = matcher.group(3).trim();
+            String taskOutput = StringUtils.strip(matcher.group(3), "\n");
 
             GroupedTaskFixture task = tasks.get(taskName);
             if (task == null) {

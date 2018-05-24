@@ -15,9 +15,8 @@
  */
 
 /**
- * Publishing plugins.
+ * Publishing plugin.
  *
  * @since 1.3
  */
-@org.gradle.api.Incubating
 package org.gradle.api.publish.plugins;

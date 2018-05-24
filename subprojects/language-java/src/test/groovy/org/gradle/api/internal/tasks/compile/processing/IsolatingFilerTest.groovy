@@ -18,39 +18,35 @@ package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult
 
-import javax.annotation.processing.Filer
-import javax.annotation.processing.Messager
-import javax.tools.Diagnostic
-
 class IsolatingFilerTest extends IncrementalFilerTest {
 
     @Override
-    Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager) {
-        new IsolatingFiler(delegate, result, messager)
+    IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result) {
+        new IsolatingProcessingStrategy(result)
     }
 
-    def "fails when no originating elements are given"() {
+    def "does a full rebuild when no originating elements are given"() {
         when:
         filer.createSourceFile("Foo")
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Generated type 'Foo' must have exactly one originating element, but had 0.")
+        result.fullRebuildCause == "the generated type 'Foo' must have exactly one originating element, but had 0"
     }
 
-    def "fails when too many originating elements are given"() {
+    def "does a full rebuild when too many originating elements are given"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Generated type 'Foo' must have exactly one originating element, but had 2.")
+        result.fullRebuildCause == "the generated type 'Foo' must have exactly one originating element, but had 2"
     }
 
-    def "does not fail when all originating elements come from the same tpye"() {
+    def "can have multiple originating elements coming from the same tpye"() {
         when:
         filer.createSourceFile("Foo", methodInside("Bar"), methodInside("Bar"))
 
         then:
-        0 * messager._
+        !result.fullRebuildCause
     }
 
     def "packages are valid originating elements"() {

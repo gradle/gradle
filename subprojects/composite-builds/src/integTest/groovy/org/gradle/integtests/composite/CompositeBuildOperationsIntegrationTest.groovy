@@ -23,6 +23,7 @@ import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.util.CollectionUtils
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -61,15 +62,18 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
     }
 
-    def "generates configure, task graph and run tasks operations for included builds"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations for included builds with #display"() {
         given:
-        dependency 'org.test:buildB:1.0'
+        dependency "org.test:${buildName}:1.0"
+
+        buildB.settingsFile << settings << "\n"
 
         when:
         execute(buildA, ":jar", [])
 
         then:
-        executed ":buildB:jar"
+        executed ":${buildName}:jar"
 
         and:
         def root = CollectionUtils.single(operations.roots())
@@ -80,33 +84,38 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (buildB)"
-        loadOps[1].details.buildPath == ":buildB"
-        loadOps[1].parentId == root.id
+        loadOps[1].details.buildPath == ":${buildName}"
+        loadOps[1].parentId == loadOps[0].id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (buildB)"
-        configureOps[0].details.buildPath == ":buildB"
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
         configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build"
-        configureOps[1].details.buildPath == ":"
-        configureOps[1].parentId == root.id
+        configureOps[1].displayName == "Configure build (:${buildName})"
+        configureOps[1].details.buildPath == ":${buildName}"
+        configureOps[1].parentId == configureOps[0].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
         taskGraphOps[0].displayName == "Calculate task graph"
         taskGraphOps[0].details.buildPath == ":"
         taskGraphOps[0].parentId == root.id
-        taskGraphOps[1].displayName == "Calculate task graph (:buildB)"
-        taskGraphOps[1].details.buildPath == ":buildB"
-        taskGraphOps[1].parentId == root.id
+        taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
+        taskGraphOps[1].details.buildPath == ":${buildName}"
+        taskGraphOps[1].parentId == taskGraphOps[0].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 2
         runTasksOps[0].displayName == "Run tasks"
         runTasksOps[0].parentId == root.id
-        runTasksOps[1].displayName == "Run tasks (:buildB)"
+        runTasksOps[1].displayName == "Run tasks (:${buildName})"
         runTasksOps[1].parentId == root.id
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {

@@ -129,6 +129,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
     private boolean allowExtraLogging = true;
+    protected ConsoleAttachment consoleAttachment = ConsoleAttachment.NOT_ATTACHED;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
@@ -398,6 +399,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (renderWelcomeMessage) {
             executer.withWelcomeMessageEnabled();
         }
+
+        executer.withTestConsoleAttached(consoleAttachment);
 
         return executer;
     }
@@ -993,7 +996,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            return doRun();
+            ExecutionResult result = doRun();
+            if (errorsShouldAppearOnStdout()) {
+                result = new ErrorsOnStdoutScrapingExecutionResult(result);
+            }
+            return result;
         } finally {
             finished();
         }
@@ -1063,7 +1070,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         assertCanExecute();
         collectStateBeforeExecution();
         try {
-            return doRunWithFailure();
+            ExecutionFailure executionFailure = doRunWithFailure();
+            if (errorsShouldAppearOnStdout()) {
+                executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
+            }
+            return executionFailure;
         } finally {
             finished();
         }
@@ -1376,5 +1387,29 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 //        rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
+        this.consoleAttachment = consoleAttachment;
+        return configureConsoleCommandLineArgs();
+    }
+
+    protected GradleExecuter configureConsoleCommandLineArgs() {
+        if (consoleAttachment == ConsoleAttachment.NOT_ATTACHED) {
+            return this;
+        } else {
+            return withCommandLineGradleOpts(consoleAttachment.getConsoleMetaData().getCommandLineArgument());
+        }
+    }
+
+    private boolean errorsShouldAppearOnStdout() {
+        // If stderr is attached to the console or if we'll use the fallback console
+        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
     }
 }

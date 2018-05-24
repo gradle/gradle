@@ -22,6 +22,7 @@ import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.util.CollectionUtils
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -40,9 +41,13 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
-    def "generates configure, task graph and run tasks operations for buildSrc of included builds"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
+        buildB.file("buildSrc/setings.gradle") << """
+            ${settings}
+        """
 
         when:
         execute(buildA, ":jar", [])
@@ -65,7 +70,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[0].parentId == root.id
         loadOps[1].displayName == "Load build (buildB)"
         // TODO should have a buildPath associated
-        loadOps[1].parentId == root.id
+        loadOps[1].parentId == loadOps[0].id
         loadOps[2].displayName == "Load build (:buildB:buildSrc)"
         loadOps[2].details.buildPath == ":buildB:buildSrc"
         loadOps[2].parentId == buildSrcOps[0].id
@@ -75,12 +80,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         configureOps[0].displayName == "Configure build (:buildB:buildSrc)"
         configureOps[0].details.buildPath == ":buildB:buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
-        configureOps[1].displayName == "Configure build (buildB)"
-        // TODO - should have a buildPath associated
+        configureOps[1].displayName == "Configure build"
+        configureOps[1].details.buildPath == ":"
         configureOps[1].parentId == root.id
-        configureOps[2].displayName == "Configure build"
-        configureOps[2].details.buildPath == ":"
-        configureOps[2].parentId == root.id
+        configureOps[2].displayName == "Configure build (:buildB)"
+        configureOps[2].details.buildPath == ":buildB"
+        configureOps[2].parentId == configureOps[1].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
@@ -92,7 +97,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[1].parentId == root.id
         taskGraphOps[2].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[2].details.buildPath == ":buildB"
-        taskGraphOps[2].parentId == root.id
+        taskGraphOps[2].parentId == taskGraphOps[1].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
@@ -102,11 +107,20 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[1].parentId == root.id
         runTasksOps[2].displayName == "Run tasks (:buildB)"
         runTasksOps[2].parentId == root.id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "generates configure, task graph and run tasks operations when all builds have buildSrc"() {
+    @Unroll
+    def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
+        buildB.file("buildSrc/setings.gradle") << """
+            ${settings}
+        """
 
         buildA.file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
 
@@ -131,30 +145,30 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildSrc)"
+        loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ":buildSrc"
         loadOps[1].parentId == buildSrcOps[0].id
         loadOps[2].displayName == "Load build (buildB)"
         // TODO should have a buildPath associated
-        loadOps[2].parentId == root.id
+        loadOps[2].parentId == loadOps[0].id
         loadOps[3].displayName == "Load build (:buildB:buildSrc)"
         loadOps[3].details.buildPath == ":buildB:buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
-        configureOps[0].displayName == "Configure build (buildSrc)"
+        configureOps[0].displayName == "Configure build (:buildSrc)"
         configureOps[0].details.buildPath == ":buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
         configureOps[1].displayName == "Configure build (:buildB:buildSrc)"
         configureOps[1].details.buildPath == ":buildB:buildSrc"
         configureOps[1].parentId == buildSrcOps[1].id
-        configureOps[2].displayName == "Configure build (buildB)"
-        // TODO - should have a buildPath associated
+        configureOps[2].displayName == "Configure build"
+        configureOps[2].details.buildPath == ":"
         configureOps[2].parentId == root.id
-        configureOps[3].displayName == "Configure build"
-        configureOps[3].details.buildPath == ":"
-        configureOps[3].parentId == root.id
+        configureOps[3].displayName == "Configure build (:buildB)"
+        configureOps[3].details.buildPath == ":buildB"
+        configureOps[3].parentId == configureOps[2].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 4
@@ -169,7 +183,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         taskGraphOps[2].parentId == root.id
         taskGraphOps[3].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[3].details.buildPath == ":buildB"
-        taskGraphOps[3].parentId == root.id
+        taskGraphOps[3].parentId == taskGraphOps[2].id
 
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 4
@@ -181,5 +195,10 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[2].parentId == root.id
         runTasksOps[3].displayName == "Run tasks (:buildB)"
         runTasksOps[3].parentId == root.id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 }

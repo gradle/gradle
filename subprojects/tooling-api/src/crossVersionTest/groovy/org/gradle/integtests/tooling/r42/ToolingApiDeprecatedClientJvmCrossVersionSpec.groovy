@@ -18,6 +18,7 @@
 package org.gradle.integtests.tooling.r42
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,14 +36,12 @@ apply plugin: 'application'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 repositories {
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
+    ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
     maven {
         url '${buildContext.libsRepo.toURI()}'
     }
 }
-${mavenCentralRepository()}
+
 dependencies {
     compile "org.gradle:gradle-tooling-api:${GradleVersion.current().version}"
     runtime 'org.slf4j:slf4j-simple:1.7.10'

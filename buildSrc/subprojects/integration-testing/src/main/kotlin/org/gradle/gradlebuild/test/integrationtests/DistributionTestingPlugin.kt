@@ -42,7 +42,7 @@ import kotlin.collections.set
 class DistributionTestingPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.configureEachLater(DistributionTest::class.java) {
+        tasks.withType(DistributionTest::class.java).configureEach {
             dependsOn(":toolingApi:toolingApiShadedJar")
             dependsOn(":cleanUpCaches")
             finalizedBy(":cleanUpDaemons")
@@ -139,7 +139,7 @@ class DistributionTestingPlugin : Plugin<Project> {
             ifProperty("testAllVersions", "all") ?: "default"
 
         val mirrorUrls = collectMirrorUrls()
-        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google")
+        val mirrors = listOf("mavencentral", "jcenter", "lightbendmaven", "ligthbendivy", "google", "springreleases", "springsnapshots", "restlet", "gradle")
         mirrors.forEach { mirror ->
             systemProperties["org.gradle.integtest.mirrors.$mirror"] = mirrorUrls[mirror] ?: ""
         }

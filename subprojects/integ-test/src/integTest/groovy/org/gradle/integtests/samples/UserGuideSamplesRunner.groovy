@@ -21,6 +21,7 @@ import org.apache.tools.ant.taskdefs.Delete
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -107,21 +108,23 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     void run(RunNotifier notifier) {
-        for (childDescription in description.children) {
-            notifier.fireTestStarted(childDescription)
-            def sampleRun = samples.get(childDescription)
-            try {
-                cleanup(sampleRun)
-                for (run in sampleRun.runs) {
-                    if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
-                        continue
+        if (JavaVersion.current() >= JavaVersion.VERSION_1_8) {
+            for (childDescription in description.children) {
+                notifier.fireTestStarted(childDescription)
+                def sampleRun = samples.get(childDescription)
+                try {
+                    cleanup(sampleRun)
+                    for (run in sampleRun.runs) {
+                        if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
+                            continue
+                        }
+                        runSample(run)
                     }
-                    runSample(run)
+                } catch (Throwable t) {
+                    notifier.fireTestFailure(new Failure(childDescription, t))
                 }
-            } catch (Throwable t) {
-                notifier.fireTestFailure(new Failure(childDescription, t))
+                notifier.fireTestFinished(childDescription)
             }
-            notifier.fireTestFinished(childDescription)
         }
         try {
             temporaryFolder.testDirectory.deleteDir()
@@ -153,6 +156,8 @@ class UserGuideSamplesRunner extends Runner {
                 .inDirectory(run.executionDir)
                 .withArguments(run.args as String[])
                 .withEnvironmentVars(run.envs)
+                .withConsole(ConsoleOutput.Plain)
+                .withTestConsoleAttached()
 
             if (!GradleContextualExecuter.longLivingProcess) {
                 //suppress daemon usage suggestions

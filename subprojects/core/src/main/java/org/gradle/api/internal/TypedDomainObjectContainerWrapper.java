@@ -170,13 +170,8 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public void configureEachLater(Action<? super U> action) {
-        delegate.configureEachLater(action);
-    }
-
-    @Override
-    public <S extends U> void configureEachLater(Class<S> type, Action<? super S> action) {
-        delegate.configureEachLater(type, action);
+    public void configureEach(Action<? super U> action) {
+        delegate.configureEach(action);
     }
 
     public Action<? super U> whenObjectAdded(Action<? super U> action) {

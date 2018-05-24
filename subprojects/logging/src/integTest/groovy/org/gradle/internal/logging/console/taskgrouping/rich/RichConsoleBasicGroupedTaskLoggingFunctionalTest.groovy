@@ -18,12 +18,17 @@ package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest.StyledOutput
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
 @SuppressWarnings("IntegrationTestFixtures")
 class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGroupedTaskLoggingFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Rich
+
+    private final StyledOutput failingTask = styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
+    private final StyledOutput succeedingTask = styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD)
+    private final StyledOutput configuringProject = styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD)
 
     @Issue("gradle/gradle#2038")
     def "tasks with no actions are not displayed"() {
@@ -51,7 +56,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.groupedOutput.task(':failing').output == 'hello'
-        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed red if task failed and there is no output"() {
@@ -66,7 +71,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(styled("> Task :failing", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(failingTask.output)
     }
 
     def "group header is printed white if task succeeds"() {
@@ -81,13 +86,16 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         succeeds('succeeding')
 
         then:
-        result.output.contains(styled("> Task :succeeding", null, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(succeedingTask.output)
     }
 
     def "configure project group header is printed red if configuration fails with additional failures"() {
         given:
         buildFile << """
-            afterEvaluate { throw new RuntimeException("After Evaluate Failure...") }
+            afterEvaluate { 
+                println "executing after evaluate..."
+                throw new RuntimeException("After Evaluate Failure...") 
+            }
             throw new RuntimeException('Config Failure...')
         """
         executer.withStacktraceDisabled()
@@ -96,6 +104,58 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        result.output.contains(styled("> Configure project :", Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD))
+        result.assertRawOutputContains(configuringProject.output)
+    }
+
+    def "tasks that complete without output do not break up other task output"() {
+        server.start()
+
+        given:
+        settingsFile << "include ':a', ':b'"
+        buildFile << """
+            project(':a') {
+                task longRunning {
+                    doLast {
+                        println "longRunning has started..."
+                        ${callFromBuild('longRunningStart')}
+                        ${callFromBuild('longRunningFinish')}
+                        println "longRunning has finished..."
+                    }
+                }
+            }
+            project(':b') {
+                task task1 {
+                    doLast {
+                        ${callFromBuild('task1')}
+                    }
+                }
+                task task2 {
+                    dependsOn task1
+                    doLast {
+                        ${callFromBuild('task2')}
+                    }
+                }
+            }
+        """
+
+        when:
+        def handle = server.expectConcurrentAndBlock('longRunningStart', 'task1')
+        def gradle = executer.withArgument('--parallel').withTasks('longRunning', 'task2').start()
+
+        then:
+        handle.waitForAllPendingCalls()
+        assertOutputContains(gradle, "longRunning has started...")
+
+        when:
+        server.expectConcurrent('longRunningFinish', 'task2')
+        handle.releaseAll()
+        result = gradle.waitForFinish()
+
+        then:
+        result.groupedOutput.task(':a:longRunning').outputs.size() == 1
+        result.groupedOutput.task(':a:longRunning').output == "longRunning has started...\nlongRunning has finished..."
+
+        cleanup:
+        gradle?.waitForFinish()
     }
 }

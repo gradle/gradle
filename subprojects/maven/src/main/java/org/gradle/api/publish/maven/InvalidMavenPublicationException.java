@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.InvalidUserDataException;
  *
  * @since 1.4
  */
-@Incubating
 public class InvalidMavenPublicationException extends InvalidUserDataException {
     public InvalidMavenPublicationException(String publicationName, String error) {
         super(formatMessage(publicationName, error));

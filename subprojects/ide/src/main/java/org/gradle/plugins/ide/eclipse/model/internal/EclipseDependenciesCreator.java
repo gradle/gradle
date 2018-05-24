@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -53,10 +53,12 @@ public class EclipseDependenciesCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(EclipseDependenciesCreator.class);
     private final EclipseClasspath classpath;
     private final ProjectDependencyBuilder projectDependencyBuilder;
+    private final ProjectComponentIdentifier currentProjectId;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, ProjectStateRegistry projectRegistry) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
+        currentProjectId = projectRegistry.stateFor(classpath.getProject()).getComponentIdentifier();
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
@@ -72,8 +74,6 @@ public class EclipseDependenciesCreator {
         private final List<AbstractClasspathEntry> files = Lists.newArrayList();
         private final Multimap<String, String> pathToSourceSets = collectLibraryToSourceSetMapping();
         private final UnresolvedIdeDependencyHandler unresolvedIdeDependencyHandler = new UnresolvedIdeDependencyHandler();
-        private final ProjectComponentIdentifier currentProjectId = DefaultProjectComponentIdentifier.newProjectId(classpath.getProject());
-
 
         @Override
         public boolean isOffline() {

@@ -100,7 +100,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
         then:
         outputs.deletedClasses("A")
-        outputs.recompiledClasses( "ServiceRegistry")
+        outputs.recompiledClasses("ServiceRegistry")
         serviceRegistryReferences("B")
         !serviceRegistryReferences("A")
     }
@@ -178,17 +178,36 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedClasses("ServiceRegistry")
     }
 
-    def "processors can't access resources"() {
+    def "processors can't read resources"() {
         given:
-        withProcessor(new NonIncrementalProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
-        java "@Thing class A {}"
+        withProcessor(new NonIncrementalProcessorFixture().readingResources().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
+        def a = java "@Thing class A {}"
+        outputs.snapshot { succeeds "compileJava" }
 
-        expect:
-        fails "compileJava"
+        when:
+        a.text = "@Thing class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
 
         and:
-        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to read resources.")
-        failure.assertHasErrorOutput("Incremental annotation processors are not allowed to create resources.")
+        outputContains("Full recompilation is required because incremental annotation processors are not allowed to read resources.")
+    }
+
+    def "processors can't write resources"() {
+        given:
+        withProcessor(new NonIncrementalProcessorFixture().writingResources().withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
+        def a = java "@Thing class A {}"
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        a.text = "@Thing class A { void foo() {} }"
+
+        then:
+        succeeds "compileJava", "--info"
+
+        and:
+        outputContains("Full recompilation is required because incremental annotation processors are not allowed to create resources.")
     }
 
     def "an isolating processor is also a valid aggregating processor"() {
@@ -219,13 +238,17 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
             }
 """
 
-        java "@Service class A {}"
+        def a = java "@Service class A {}"
+        outputs.snapshot { succeeds "compileJava" }
 
         when:
-        fails "compileJava"
+        a.text = "@Service class A { void foo() {} }"
 
         then:
-        result.assertHasErrorOutput("'@Service' has source retention")
+        succeeds "compileJava", "--info"
+
+        and:
+        outputContains("Full recompilation is required because '@Service' has source retention. Aggregating annotation processors require class or runtime retention.")
     }
 
     private boolean serviceRegistryReferences(String... services) {

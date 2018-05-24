@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Unroll
 
 class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -33,9 +34,67 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         includedBuilds << buildB
     }
 
-    def "includes build identifier in error message on failure to resolve dependencies of build"() {
-        dependency 'org.test:buildB:1.0'
+    @Unroll
+    def "includes build identifier in logging output with #display"() {
+        dependency "org.test:buildB:1.0"
 
+        buildB.file("buildSrc/settings.gradle") << settings << "\n"
+        buildB.file("buildSrc/build.gradle") << """
+            println "configuring \$project.path"
+            classes.doLast { t ->
+                println "classes of \$t.path"
+            }
+        """
+
+        when:
+        execute(buildA, ":assemble")
+
+        then:
+        outputContains("> Configure project :buildB:buildSrc")
+        result.groupedOutput.task(":buildB:buildSrc:classes").output.contains("classes of :classes")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
+    }
+
+    @Unroll
+    def "includes build identifier in dependency report with #display"() {
+        dependency "org.test:buildB:1.0"
+
+        buildB.file("buildSrc/settings.gradle") << """
+            $settings
+            include 'b1', 'b2'
+        """
+        buildB.file("buildSrc/build.gradle") << """
+            allprojects { apply plugin: 'java' }
+            dependencies { implementation project(':b1') }
+            project(':b1') { dependencies { implementation project(':b2') } }
+            classes.dependsOn tasks.dependencies
+        """
+
+        when:
+        execute(buildA, ":assemble")
+
+        then:
+        outputContains("""
+runtimeClasspath - Runtime classpath of source set 'main'.
+\\--- project :buildB:buildSrc:b1
+     \\--- project :buildB:buildSrc:b2
+""")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
+    }
+
+    @Unroll
+    def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
+        dependency "org.test:buildB:1.0"
+
+        buildB.file("buildSrc/settings.gradle") << settings << "\n"
         buildB.file("buildSrc/build.gradle") << """
             dependencies { implementation "test:test:1.2" }
         """
@@ -45,15 +104,21 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
 
         then:
         failure.assertHasDescription("Could not resolve all files for configuration ':buildB:buildSrc:runtimeClasspath'.")
-        // TODO - incorrect project path
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
-    project :buildSrc""")
+    project :buildB:buildSrc""")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes build identifier in task failure error message"() {
-        dependency 'org.test:buildB:1.0'
+    @Unroll
+    def "includes build identifier in task failure error message with #display"() {
+        dependency "org.test:buildB:1.0"
 
+        buildB.file("buildSrc/settings.gradle") << settings << "\n"
         buildB.file("buildSrc/build.gradle") << """
             classes.doLast {
                 throw new RuntimeException("broken")
@@ -66,12 +131,19 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes'.")
         failure.assertHasCause("broken")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 
-    def "includes build identifier in dependency resolution results"() {
-        dependency 'org.test:buildB:1.0'
+    @Unroll
+    def "includes build identifier in dependency resolution results with #display"() {
+        dependency "org.test:buildB:1.0"
 
         buildB.file("buildSrc/settings.gradle") << """
+            ${settings}
             include 'a'
         """
         buildB.file("buildSrc/build.gradle") << """
@@ -93,11 +165,22 @@ Required by:
                 assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'
+
+                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
+                assert selectors.size() == 1
+                assert selectors[0].displayName == 'project :buildB:buildSrc:a'
+                assert selectors[0].buildName == 'buildSrc'
+                assert selectors[0].projectPath == ':a'
             }
         """
 
         expect:
         execute(buildA, ":assemble")
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 }
 

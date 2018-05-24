@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenProjectIdentity;
+import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 
 import java.io.File;
@@ -64,7 +64,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
             File pomFile = createPomFile(activeArtifactPomName);
             MavenPom mavenPom = activeArtifactPom.getPom();
             String packaging = mavenPom.getPackaging();
-            MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(mavenPom.getGroupId(), mavenPom.getArtifactId(), mavenPom.getVersion());
+            MavenProjectIdentity projectIdentity = new ReadableMavenProjectIdentity(mavenPom.getGroupId(), mavenPom.getArtifactId(), mavenPom.getVersion());
             PublishArtifact pomArtifact = activeArtifactPom.writePom(pomFile);
             mavenDeployments.add(new DefaultMavenDeployment(packaging, projectIdentity, pomArtifact, activeArtifactPom.getArtifact(), activeArtifactPom.getAttachedArtifacts()));
         }

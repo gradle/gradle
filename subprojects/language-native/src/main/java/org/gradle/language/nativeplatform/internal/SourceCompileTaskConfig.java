@@ -19,19 +19,16 @@ package org.gradle.language.nativeplatform.internal;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
-import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeSourceCompileTask;
-import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 import java.io.File;
 
 public class SourceCompileTaskConfig extends CompileTaskConfig {
-    public SourceCompileTaskConfig(LanguageTransform<? extends LanguageSourceSet, ObjectFile> languageTransform, Class<? extends DefaultTask> taskType) {
+    public SourceCompileTaskConfig(NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {
         super(languageTransform, taskType);
     }
 

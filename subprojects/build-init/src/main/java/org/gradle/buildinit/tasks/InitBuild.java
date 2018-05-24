@@ -112,6 +112,9 @@ public class InitBuild extends DefaultTask {
         }
 
         ProjectInitDescriptor initDescriptor = projectLayoutRegistry.get(type);
+        if (!initDescriptor.supports(dsl)) {
+            throw new GradleException("The requested DSL '" + dsl + "' is not supported in '" + type + "' setup type");
+        }
         if (!testFramework.equals(BuildInitTestFramework.NONE) && !initDescriptor.supports(testFramework)) {
             throw new GradleException("The requested test framework '" + testFramework.getId() + "' is not supported in '" + type + "' setup type");
         }

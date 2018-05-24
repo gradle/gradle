@@ -54,7 +54,8 @@ class AbstractIntegrationSpec extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
-    GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
+    GradleExecuter executer = createExecuter()
+
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
     IntegrationTestBuildContext getBuildContext() {
@@ -70,6 +71,10 @@ class AbstractIntegrationSpec extends Specification {
 
     def cleanup() {
         executer.cleanup()
+    }
+
+    GradleContextualExecuter createExecuter() {
+        new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
     protected TestFile getBuildFile() {

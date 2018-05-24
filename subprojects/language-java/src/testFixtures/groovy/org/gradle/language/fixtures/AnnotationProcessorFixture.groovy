@@ -77,6 +77,8 @@ abstract class AnnotationProcessorFixture {
                 public Set<String> getSupportedAnnotationTypes() {
                     return Collections.singleton(${annotationName}.class.getName());
                 }
+                
+                ${supportedOptionsBlock}
             
                 @Override
                 public SourceVersion getSupportedSourceVersion() {
@@ -110,4 +112,8 @@ abstract class AnnotationProcessorFixture {
     }
 
     protected abstract String getGeneratorCode();
+
+    protected String getSupportedOptionsBlock() {
+        ""
+    }
 }

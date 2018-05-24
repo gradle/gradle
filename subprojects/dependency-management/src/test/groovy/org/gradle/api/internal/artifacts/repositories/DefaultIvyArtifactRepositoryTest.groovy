@@ -16,8 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -297,10 +299,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         repository.setMetadataSupplier(CustomMetadataSupplier)
 
         when:
-        def resolver = repository.createResolver()
+        def supplier = repository.createResolver().componentMetadataSupplier
 
         then:
-        resolver.createMetadataSupplier() instanceof CustomMetadataSupplier
+        supplier.rule.ruleClass == CustomMetadataSupplier
+        supplier.rule.ruleParams == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -314,11 +317,69 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
         when:
         def resolver = repository.createResolver()
-        def supplier = resolver.createMetadataSupplier()
+        def supplier = resolver.getComponentMetadataSupplier()
 
         then:
-        supplier instanceof CustomMetadataSupplierWithParams
-        supplier.s == "a"
+        supplier.rule.ruleClass == CustomMetadataSupplierWithParams
+        supplier.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
+    }
+
+    def "can set a custom version lister"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+
+        given:
+        repository.setComponentVersionsLister(CustomVersionLister)
+
+        when:
+        def lister = repository.createResolver().providedVersionLister
+
+        then:
+        lister.rule.ruleClass == CustomVersionLister
+        lister.rule.ruleParams == [] as Object[]
+    }
+
+    def "can inject configuration into a custom version lister"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport({ it == ['http'] as Set }, 'name', _) >> transport()
+
+        given:
+        repository.setComponentVersionsLister(CustomVersionListerWithParams) { it.params("a", 12, [1, 2, 3]) }
+
+        when:
+        def lister = repository.createResolver().providedVersionLister
+
+        then:
+        lister.rule.ruleClass == CustomVersionListerWithParams
+        lister.rule.ruleParams == ["a", 12, [1,2,3]] as Object[]
+    }
+
+    static class CustomVersionLister implements ComponentMetadataVersionLister {
+
+        @Override
+        void execute(ComponentMetadataListerDetails details) {
+        }
+    }
+
+    static class CustomVersionListerWithParams implements ComponentMetadataVersionLister {
+        String s
+        Number n
+        List<Integer> v
+
+        @Inject
+        CustomVersionListerWithParams(String s, Number n, List<Integer> v) {
+            this.s = s
+            this.n = n
+            this.v = v
+        }
+
+        @Override
+        void execute(ComponentMetadataListerDetails details) {
+        }
     }
 
     static class CustomMetadataSupplier implements ComponentMetadataSupplier {

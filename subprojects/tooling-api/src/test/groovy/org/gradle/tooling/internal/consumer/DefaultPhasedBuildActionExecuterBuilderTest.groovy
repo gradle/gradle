@@ -18,25 +18,22 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.testing.internal.util.Specification
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.PhasedResultHandler
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 
 class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
     def connection = Stub(AsyncConsumerActionExecutor)
     def parameters = Stub(ConnectionParameters)
-    def builder = new DefaultPhasedBuildActionExecuter.Builder(connection, parameters)
+    def builder = new DefaultBuildActionExecuter.Builder(connection, parameters)
 
     def "phased build action built correctly"() {
         def projectsLoadedAction = Mock(BuildAction)
-        def projectsLoadedHandler = Mock(PhasedResultHandler)
-        def projectsEvaluatedAction = Mock(BuildAction)
-        def projectsEvaluatedHandler = Mock(PhasedResultHandler)
+        def projectsLoadedHandler = Mock(IntermediateResultHandler)
         def buildFinishedAction = Mock(BuildAction)
-        def buildFinishedHandler = Mock(PhasedResultHandler)
+        def buildFinishedHandler = Mock(IntermediateResultHandler)
 
         when:
         def executer = builder.projectsLoaded(projectsLoadedAction, projectsLoadedHandler)
-            .projectsEvaluated(projectsEvaluatedAction, projectsEvaluatedHandler)
             .buildFinished(buildFinishedAction, buildFinishedHandler)
             .build()
 
@@ -45,35 +42,25 @@ class DefaultPhasedBuildActionExecuterBuilderTest extends Specification {
         executer.connectionParameters == parameters
         executer.phasedBuildAction.getProjectsLoadedAction().getAction() == projectsLoadedAction
         executer.phasedBuildAction.getProjectsLoadedAction().getHandler() == projectsLoadedHandler
-        executer.phasedBuildAction.getProjectsEvaluatedAction().getAction() == projectsEvaluatedAction
-        executer.phasedBuildAction.getProjectsEvaluatedAction().getHandler() == projectsEvaluatedHandler
         executer.phasedBuildAction.getBuildFinishedAction().getAction() == buildFinishedAction
         executer.phasedBuildAction.getBuildFinishedAction().getHandler() == buildFinishedHandler
     }
 
     def "exception when multiple actions per phase"() {
         when:
-        builder.projectsLoaded(Stub(BuildAction), Stub(PhasedResultHandler))
-        builder.projectsLoaded(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.projectsLoaded(Stub(BuildAction), Stub(IntermediateResultHandler))
+        builder.projectsLoaded(Stub(BuildAction), Stub(IntermediateResultHandler))
 
         then:
         IllegalArgumentException e1 = thrown()
         e1.message == 'ProjectsLoadedAction has already been added. Only one action per phase is allowed.'
 
         when:
-        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
-        builder.projectsEvaluated(Stub(BuildAction), Stub(PhasedResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(IntermediateResultHandler))
+        builder.buildFinished(Stub(BuildAction), Stub(IntermediateResultHandler))
 
         then:
         IllegalArgumentException e2 = thrown()
-        e2.message == 'ProjectsEvaluatedAction has already been added. Only one action per phase is allowed.'
-
-        when:
-        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
-        builder.buildFinished(Stub(BuildAction), Stub(PhasedResultHandler))
-
-        then:
-        IllegalArgumentException e3 = thrown()
-        e3.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
+        e2.message == 'BuildFinishedAction has already been added. Only one action per phase is allowed.'
     }
 }

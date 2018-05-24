@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.Path;
@@ -49,14 +50,16 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public void awaitCompletion(BuildIdentifier targetBuild, String taskPath) {
         // Start task execution if necessary: this is required for building plugin artifacts,
         // since these are built on-demand prior to the regular start signal for included builds.
+        includedBuilds.populateTaskGraphs();
         includedBuilds.startTaskExecution();
 
         getBuildController(targetBuild).awaitCompletion(taskPath);
     }
 
-    public boolean isComplete(BuildIdentifier targetBuild, String taskPath) {
+    @Override
+    public IncludedBuildTaskResource.State getTaskState(BuildIdentifier targetBuild, String taskPath) {
         IncludedBuildController controller = getBuildController(targetBuild);
-        return controller.isComplete(taskPath);
+        return controller.getTaskState(taskPath);
     }
 
     private IncludedBuildController getBuildController(BuildIdentifier buildId) {
@@ -68,7 +71,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
         for (BuildIdentifier nextTarget : buildDependencies.get(targetBuild)) {
             if (sourceBuild.equals(nextTarget)) {
                 candidateCycle.add(nextTarget);
-                ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(candidateCycle.get(0), Path.ROOT.getPath());
+                ProjectComponentSelector selector = new DefaultProjectComponentSelector(candidateCycle.get(0), Path.ROOT, Path.ROOT, ":", ImmutableAttributes.EMPTY);
                 throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
             }
 

@@ -78,8 +78,8 @@ dependencies {
     testFixturesRuntime project(':testingJunitPlatform')
 
     integTestImplementation project(":internalIntegTesting")
+    integTestImplementation project(":plugins")
 
-    integTestRuntimeOnly project(":plugins")
     integTestRuntimeOnly project(':maven')
 }
 

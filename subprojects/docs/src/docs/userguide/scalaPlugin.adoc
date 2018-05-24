@@ -97,34 +97,26 @@ The Scala plugin adds the following dependencies to tasks added by the Java plug
 The Scala plugin assumes the project layout shown below. All the Scala source directories can contain Scala _and_ Java code. The Java source directories may only contain Java source code. None of these directories need to exist or have anything in them; the Scala plugin will simply compile whatever it finds.
 
 [[scalalayout]]
-.Scala plugin - project layout
-[cols="a,a,a", options="header"]
-|===
-| Directory
-|
-| Meaning
-
 include::javaProjectMainLayout.adoc[]
-|  `src/main/scala`
-|
-| Production Scala sources. May also contain Java sources for joint compilation.
+
+`src/main/scala`::
+Production Scala source. May also contain Java source files for joint compilation.
 
 include::javaProjectTestLayout.adoc[]
-|  `src/test/scala`
-|
-| Test Scala sources. May also contain Java sources for joint compilation.
+
+`src/test/scala`::
+Test Scala source. May also contain Java source files for joint compilation.
 
 include::javaProjectGenericLayout.adoc[]
-|  `src/__sourceSet__/scala`
-|
-| Scala sources for the given source set. May also contain Java sources for joint compilation.
-|===
+
+`src/__sourceSet__/scala`::
+Scala source files for the given source set. May also contain Java source files for joint compilation.
 
 
 [[sec:changing_scala_project_layout]]
 ==== Changing the project layout
 
-Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test sources.
+Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
 
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">
@@ -292,7 +284,7 @@ Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to
 [[sec:scala_cross_compilation]]
 === Compiling and testing for Java 6 or Java 7
 
-The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java sources, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
+The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibility` settings. In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode. In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode. If you also have Java source, you can follow the same steps as for the <<sec:java_cross_compilation,Java plugin>> to ensure the correct Java compiler is used.
 ++++
 <sample xmlns:xi="http://www.w3.org/2001/XInclude" id="scalaCrossCompilation" dir="scala/crossCompilation" title="Configure Java 6 build for Scala">
                 <sourcefile file="gradle.properties"/>

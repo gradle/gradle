@@ -91,40 +91,185 @@ broken!
         def failure = OutputScrapingExecutionFailure.from(output, "")
 
         when:
-        failure.assertHasDescription("broken!")
+        failure.assertHasFailures(12)
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: a string starting with "broken!"')
+        e.message.trim().startsWith('Expected: <12>')
+
+        when:
+        failure.assertHasDescription("broken!")
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('Expected: a collection containing a string starting with "broken!"')
+
+        when:
+        failure.assertHasCause("broken!")
+
+        then:
+        def e3 = thrown(AssertionError)
+        e3.message.trim().startsWith('No matching cause found in []')
 
         when:
         failure.assertHasFileName("build.gradle")
 
         then:
-        def e2 = thrown(AssertionError)
-        e2.message.trim().startsWith('Expected: "build.gradle"')
+        def e4 = thrown(AssertionError)
+        e4.message.trim().startsWith('Expected: "build.gradle"')
 
         when:
         failure.assertHasLineNumber(23)
 
         then:
-        def e3 = thrown(AssertionError)
-        e3.message.trim().startsWith('Expected: "23"')
+        def e5 = thrown(AssertionError)
+        e5.message.trim().startsWith('Expected: "23"')
+    }
+
+    def "can assert that given number of failures are present"() {
+        given:
+        def output = """
+FAILURE: Build completed with 2 failures.
+
+* Where: build file 'build.gradle' line: 123
+
+* What went wrong:
+something bad
+
+* Try:
+fixing
+
+* What went wrong:
+something else bad
+
+* Try:
+fixing
+"""
+        when:
+        def failure = OutputScrapingExecutionFailure.from(output, "")
+
+        then:
+        failure.assertHasFailures(2)
+
+        when:
+        failure.assertHasFailures(1)
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.trim().startsWith('Expected: <1>')
+    }
+
+    def "can assert that failure with description is present"() {
+        given:
+        def output = """
+FAILURE: broken
+
+Failure 1:
+
+* Where: build file 'build.gradle' line: 123
+
+* What went wrong:
+something bad
+  > cause
+
+* Try:
+Switching it off and back on again
+
+Failure 2:
+
+* What went wrong:
+something else bad
+  > cause
+
+* Try:
+Reinstalling your operating system
+"""
+        when:
+        def failure = OutputScrapingExecutionFailure.from(output, "")
+
+        then:
+        failure.assertHasDescription("something bad")
+        failure.assertHasDescription("something else bad")
+
+        when:
+        failure.assertHasDescription("other")
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.trim().startsWith('Expected: a collection containing a string starting with "other"')
+
+        when:
+        failure.assertHasDescription("cause")
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('Expected: a collection containing a string starting with "cause"')
+    }
+
+    def "can assert that failure with cause is present"() {
+        given:
+        def output = """
+FAILURE: broken
+
+Failure 1:
+
+* Where: build file 'build.gradle' line: 123
+
+* What went wrong:
+something bad
+> cause 1
+
+* Try:
+something
+
+Failure 2:
+
+* What went wrong:
+something else bad
+> cause 2
+
+* Try:
+something
+
+"""
+        when:
+        def failure = OutputScrapingExecutionFailure.from(output, "")
+
+        then:
+        failure.assertHasCause("cause 1")
+        failure.assertHasCause("cause 2")
+
+        when:
+        failure.assertHasCause("other")
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
+
+        when:
+        failure.assertHasCause("something")
+
+        then:
+        def e2 = thrown(AssertionError)
+        e2.message.trim().startsWith('No matching cause found in [cause 1, cause 2].')
     }
 
     def "log output present assertions ignore content after failure section"() {
         given:
         def output = """
 Some message
-Some error
 
 FAILURE: broken
 
 * Exception is:
 Some.Failure
 """
+        def errorOutput = """
+Some error
+"""
+
         when:
-        def failure = OutputScrapingExecutionFailure.from(output, "")
+        def failure = OutputScrapingExecutionFailure.from(output, errorOutput)
 
         then:
         failure.assertOutputContains("Some message")
@@ -143,7 +288,6 @@ Some.Failure
             =======
              
             Some message
-            Some error
              
             Output:
         '''))
@@ -154,13 +298,12 @@ Some.Failure
         then:
         def e2 = thrown(AssertionError)
         error(e2).startsWith(error('''
-            Did not find expected text in build output.
+            Did not find expected text in error output.
             Expected: broken
              
-            Build output:
+            Error output:
             =======
              
-            Some message
             Some error
              
             Output:
@@ -241,7 +384,7 @@ Caused by: org.gradle.api.UncheckedIOException: Unable to create directory 'meta
         failure.assertOutputContains "Some more output"
 
         where:
-        output << [ rawOutput, debugOutput ]
+        output << [rawOutput, debugOutput]
     }
 
     def "ignores JDK warnings"() {

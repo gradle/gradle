@@ -121,10 +121,20 @@ These plugins provide some integration with various runtime technologies.
 | `java`
 | Adds support for building J2EE applications.
 
+| <<publishing_ivy, `ivy-publish` >>
+| -
+| `application`, `distribution`, `java`, `war`
+| Provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
+
+| <<publishing_maven, `maven-publish` >>
+| -
+| `application`, `distribution`, `java`, `war`
+| Provides a new DSL to support publishing artifacts to Maven repositories, which improves on the existing DSL.
+
 | <<maven_plugin, `maven` >>
 | -
 | `java`, `war`
-| Adds support for publishing artifacts to Maven repositories.
+| Adds support for publishing artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0. See also <<artifact_management>>.
 
 | <<osgi_plugin, `osgi` >>
 | `java-base`
@@ -160,16 +170,6 @@ These plugins provide some integration with various runtime technologies.
 | `java`, `distribution`
 | -
 | Adds support for building ZIP and TAR distributions for a Java library.
-
-| <<publishing_ivy, `ivy-publish` >>
-| -
-| `java`, `war`
-| This plugin provides a new DSL to support publishing artifacts to Ivy repositories, which improves on the existing DSL.
-
-| <<publishing_maven, `maven-publish` >>
-| -
-| `java`, `war`
-| This plugin provides a new DSL to support publishing artifacts to Maven repositories, which improves on the existing DSL.
 |===
 
 

@@ -332,6 +332,17 @@ Root project 'webinar-parent'
 """
     }
 
+    def "kotlin dsl is not supported"() {
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
+
+        when:
+        fails 'init', '--dsl', 'kotlin'
+
+        then:
+        failure.assertHasCause("The requested DSL 'kotlin' is not supported in 'pom' setup type")
+    }
+
     void gradleFilesGenerated(TestFile parentFolder = file(".")) {
         assert parentFolder.file("build.gradle").exists()
         assert parentFolder.file("settings.gradle").exists()

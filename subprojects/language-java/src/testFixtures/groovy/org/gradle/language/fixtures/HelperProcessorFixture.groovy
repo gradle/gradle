@@ -33,7 +33,7 @@ class HelperProcessorFixture extends AnnotationProcessorFixture {
 
     HelperProcessorFixture() {
         super("Helper")
-        declaredType = IncrementalAnnotationProcessorType.ISOLATING
+        declaredType = IncrementalAnnotationProcessorType.DYNAMIC
     }
 
     void setSuffix(String suffix) {
@@ -77,5 +77,19 @@ for (Element element : elements) {
     }
 }
 """
+    }
+
+    @Override
+    protected String getSupportedOptionsBlock() {
+        if (declaredType == IncrementalAnnotationProcessorType.DYNAMIC) {
+                """
+                @Override
+                public Set<String> getSupportedOptions() {
+                    return Collections.singleton("${IncrementalAnnotationProcessorType.ISOLATING.processorOption}");
+                }
+            """
+        } else {
+            ""
+        }
     }
 }

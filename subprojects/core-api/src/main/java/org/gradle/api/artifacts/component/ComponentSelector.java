@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
@@ -43,4 +44,15 @@ public interface ComponentSelector {
      * @since 1.10
      */
     boolean matchesStrictly(ComponentIdentifier identifier);
+
+    /**
+     * The attributes of the module to select the component from. The attributes only include
+     * selector specific attributes. This means it typically doesn't include any consumer specific attribute.
+     *
+     * @return the attributes
+     *
+     * @since 4.9
+     */
+    @Incubating
+    AttributeContainer getAttributes();
 }

@@ -18,7 +18,7 @@ package org.gradle.internal.locking;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -27,25 +27,25 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisitor {
-    private static final Logger LOGGER = Logging.getLogger(DependencyLockingArtifactVisitor.class);
 
     private final DependencyLockingProvider dependencyLockingProvider;
     private final String configurationName;
-    private Set<String> lockingConstraints = Collections.emptySet();
     private Set<ModuleComponentIdentifier> allResolvedModules;
-    private Set<String> extraModules;
+    private Set<ModuleComponentIdentifier> changingResolvedModules;
+    private Set<ModuleComponentIdentifier> modulesToBeLocked;
+    private Set<ModuleComponentIdentifier> extraModules;
     private DependencyLockingState dependencyLockingState;
 
     public DependencyLockingArtifactVisitor(String configurationName, DependencyLockingProvider dependencyLockingProvider) {
@@ -58,32 +58,49 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
         RootConfigurationMetadata metadata = root.getMetadata();
         dependencyLockingState = metadata.getDependencyLockingState();
         if (dependencyLockingState.mustValidateLockState()) {
-            Set<DependencyConstraint> lockConstraints = dependencyLockingState.getLockedDependencies();
-            lockingConstraints = Sets.newHashSetWithExpectedSize(lockConstraints.size());
-            for (DependencyConstraint constraint : lockConstraints) {
-                lockingConstraints.add(constraint.getGroup() + ":" + constraint.getName() + ":" + constraint.getVersionConstraint().getPreferredVersion());
-            }
-            allResolvedModules = Sets.newHashSetWithExpectedSize(this.lockingConstraints.size());
-            extraModules = new TreeSet<String>();
+            Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
+            modulesToBeLocked = Sets.newHashSet(lockedModules);
+            allResolvedModules = Sets.newHashSetWithExpectedSize(this.modulesToBeLocked.size());
+            extraModules = Sets.newHashSet();
         } else {
-            allResolvedModules = new HashSet<ModuleComponentIdentifier>();
+            modulesToBeLocked = Collections.emptySet();
+            allResolvedModules = Sets.newHashSet();
         }
     }
 
     @Override
     public void visitNode(DependencyGraphNode node) {
+        boolean changing = false;
         ComponentIdentifier identifier = node.getOwner().getComponentId();
+        ComponentResolveMetadata metadata = node.getOwner().getMetadata();
+        if (metadata != null && metadata.isChanging()) {
+            changing = true;
+        }
         if (identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) identifier;
+            if (identifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+                id = ((MavenUniqueSnapshotComponentIdentifier) id).getSnapshotComponent();
+            }
             if (!id.getVersion().isEmpty()) {
-                if (allResolvedModules.add(id) && dependencyLockingState.mustValidateLockState()) {
-                    String displayName = id.getDisplayName();
-                    if (!lockingConstraints.remove(displayName)) {
-                        extraModules.add(displayName);
+                if (allResolvedModules.add(id)) {
+                    if (changing) {
+                        addChangingModule(id);
+                    }
+                    if (dependencyLockingState.mustValidateLockState()) {
+                        if (!modulesToBeLocked.remove(id)) {
+                            extraModules.add(id);
+                        }
                     }
                 }
             }
         }
+    }
+
+    private void addChangingModule(ModuleComponentIdentifier id) {
+        if (changingResolvedModules == null) {
+            changingResolvedModules = new HashSet<ModuleComponentIdentifier>();
+        }
+        changingResolvedModules.add(id);
     }
 
     @Override
@@ -99,15 +116,19 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     @Override
     public void finishArtifacts() {
         if (dependencyLockingState.mustValidateLockState()) {
-            LOGGER.debug(" Dependency lock not matched '{}', extra resolved modules '{}'", lockingConstraints, extraModules);
-            Set<String> notResolvedConstraints = Collections.emptySet();
-            if (!lockingConstraints.isEmpty()) {
-                notResolvedConstraints = new TreeSet<String>(lockingConstraints);
-            }
-            if (!notResolvedConstraints.isEmpty() || !extraModules.isEmpty()) {
-                throwLockOutOfDateException(notResolvedConstraints, extraModules);
+            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
+                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked), getSortedDisplayNames(extraModules));
             }
         }
+    }
+
+    private Set<String> getSortedDisplayNames(Set<ModuleComponentIdentifier> modules) {
+        return CollectionUtils.collect(modules, new Transformer<String, ModuleComponentIdentifier>() {
+            @Override
+            public String transform(ModuleComponentIdentifier moduleComponentIdentifier) {
+                return moduleComponentIdentifier.getDisplayName();
+            }
+        });
     }
 
     private void throwLockOutOfDateException(Set<String> notResolvedConstraints, Set<String> extraModules) {
@@ -122,6 +143,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
     }
 
     public void complete() {
-        dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules);
+        Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
+        dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
     }
 }

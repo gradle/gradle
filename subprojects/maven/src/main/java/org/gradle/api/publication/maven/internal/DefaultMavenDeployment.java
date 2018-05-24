@@ -45,17 +45,17 @@ public class DefaultMavenDeployment implements MavenDeployment {
 
     @Override
     public String getGroupId() {
-        return projectIdentity.getGroupId();
+        return projectIdentity.getGroupId().get();
     }
 
     @Override
     public String getArtifactId() {
-        return projectIdentity.getArtifactId();
+        return projectIdentity.getArtifactId().get();
     }
 
     @Override
     public String getVersion() {
-        return projectIdentity.getVersion();
+        return projectIdentity.getVersion().get();
     }
 
     public void addArtifact(PublishArtifact artifact) {

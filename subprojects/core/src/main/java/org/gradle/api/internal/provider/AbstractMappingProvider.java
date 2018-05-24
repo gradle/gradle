@@ -55,4 +55,9 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractProvider<
     }
 
     protected abstract OUT map(IN v);
+
+    @Override
+    public String toString() {
+        return "transform(" + provider + ")";
+    }
 }

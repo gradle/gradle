@@ -1,7 +1,7 @@
 <!-- This file is an example of the Ivy module descriptor that this build will produce -->
 <!-- START SNIPPET content -->
 <?xml version="1.0" encoding="UTF-8"?>
-<ivy-module version="2.0">
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
   <info organisation="org.gradle.sample" module="project1" revision="1.0" status="integration" publication="«PUBLICATION-TIME-STAMP»">
     <description>The first project</description>
   </info>
@@ -11,7 +11,7 @@
     <conf name="runtime" visibility="public"/>
   </configurations>
   <publications>
-    <artifact name="project1" type="source" ext="jar" conf="compile" m:classifier="source" xmlns:m="http://ant.apache.org/ivy/maven"/>
+    <artifact name="project1" type="source" ext="jar" conf="compile" m:classifier="source"/>
     <artifact name="project1" type="jar" ext="jar" conf="compile"/>
   </publications>
   <dependencies>

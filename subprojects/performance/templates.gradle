@@ -27,11 +27,11 @@ tasks.createLater("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = '0a017cb6f9de543b729a0dd43175dd84c2704b44'
+    ref = '87748cbb7390e2dcd431b3490a5d194d040b2858'
 }
 
 // === Java ===
-['largeMonolithicJavaProject', 'largeJavaMultiProject',
+['largeMonolithicJavaProject', 'largeJavaMultiProject', 'largeJavaMultiProjectKotlinDsl',
  'mediumMonolithicJavaProject', 'mediumJavaMultiProject', 'mediumJavaMultiProjectWithTestNG', 'mediumJavaCompositeBuild', 'mediumJavaPredefinedCompositeBuild',
  'smallJavaMultiProject'].each { template ->
     tasks.createLater(template, JavaExecProjectGeneratorTask) {
@@ -383,7 +383,7 @@ tasks.createLater("archivePerformanceProject", Copy) {
     from "src/templates/$name"
 }
 
-tasks.configureEachLater(JvmProjectGeneratorTask) {
+tasks.withType(JvmProjectGeneratorTask).configureEach {
     if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
@@ -393,7 +393,7 @@ tasks.configureEachLater(JvmProjectGeneratorTask) {
 // The Android Studio performance tests use custom model classes which need to be found in
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
-androidRemoteProjects.all {
+androidRemoteProjects.configureEach {
     dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
     doLast {
         file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text

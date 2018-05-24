@@ -62,6 +62,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private boolean resolved;
+    private boolean forced;
 
     SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, VersionSelectorScheme versionSelectorScheme, ResolveState resolveState, ModuleIdentifier targetModuleId) {
         this.id = id;
@@ -72,6 +73,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionConstraint = resolveVersionConstraint(dependencyMetadata.getSelector());
         this.attributesFactory = resolveState.getAttributesFactory();
+        this.forced = isForced(dependencyMetadata);
         targetModule.addSelector(this);
     }
 
@@ -208,11 +210,21 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public boolean isForce() {
-        return dependencyMetadata instanceof LocalOriginDependencyMetadata
-            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
+        return forced;
     }
 
     private ComponentSelector selectorWithDesugaredAttributes(ComponentSelector selector) {
         return AttributeDesugaring.desugarSelector(selector, attributesFactory);
+    }
+
+    private static boolean isForced(DependencyMetadata dependencyMetadata) {
+        return dependencyMetadata instanceof LocalOriginDependencyMetadata
+            && ((LocalOriginDependencyMetadata) dependencyMetadata).isForce();
+    }
+
+    public void update(DependencyState dependencyState) {
+        if (dependencyState != this.dependencyState) {
+            forced |= isForced(dependencyState.getDependency());
+        }
     }
 }

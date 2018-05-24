@@ -28,6 +28,8 @@ import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.config.LoggingSystem;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 
 import java.io.Closeable;
 import java.io.OutputStream;
@@ -217,7 +219,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     @Override
     public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput);
+        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, FallbackConsoleMetaData.INSTANCE);
+    }
+
+    @Override
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleMetadata);
     }
 
     @Override
@@ -269,8 +276,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, consoleOutput));
         }
 
-        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput));
+        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -409,17 +416,19 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final OutputStream outputStream;
         private final OutputStream errorStream;
         private final ConsoleOutput consoleOutput;
+        private final ConsoleMetaData consoleMetadata;
 
-        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
+        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
             this.loggingRouter = loggingRouter;
             this.outputStream = outputStream;
             this.errorStream = errorStream;
             this.consoleOutput = consoleOutput;
+            this.consoleMetadata = consoleMetadata;
         }
 
         @Override
         public void run() {
-            loggingRouter.attachConsole(outputStream, errorStream, consoleOutput);
+            loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleMetadata);
         }
 
         @Override
@@ -433,7 +442,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             ConsoleAttachment that = (ConsoleAttachment) o;
 
-            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput;
+            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput && consoleMetadata == that.consoleMetadata;
         }
 
         @Override

@@ -75,9 +75,9 @@ public class MavenPomFileGenerator {
     public MavenPomFileGenerator(MavenProjectIdentity identity, VersionRangeMapper versionRangeMapper) {
         this.versionRangeMapper = versionRangeMapper;
         model.setModelVersion(POM_VERSION);
-        model.setGroupId(identity.getGroupId());
-        model.setArtifactId(identity.getArtifactId());
-        model.setVersion(identity.getVersion());
+        model.setGroupId(identity.getGroupId().get());
+        model.setArtifactId(identity.getArtifactId().get());
+        model.setVersion(identity.getVersion().get());
     }
 
     public MavenPomFileGenerator configureFrom(MavenPomInternal pom) {
@@ -190,6 +190,7 @@ public class MavenPomFileGenerator {
 
     private DistributionManagement convertDistributionManagement(MavenPomDistributionManagementInternal source) {
         DistributionManagement target = new DistributionManagement();
+        target.setDownloadUrl(source.getDownloadUrl().getOrNull());
         if (source.getRelocation() != null) {
             target.setRelocation(convertRelocation(source.getRelocation()));
         }

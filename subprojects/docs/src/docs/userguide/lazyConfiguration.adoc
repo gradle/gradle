@@ -218,6 +218,8 @@ The Provider API is <<feature_lifecycle,incubating>>. Please create new issues a
 |api:org.gradle.api.file.FileCollection[]
 |api:org.gradle.api.file.ConfigurableFileCollection[]
 |* api:org.gradle.api.Project#files(java.lang.Object...)[]
+* api:org.gradle.api.file.ProjectLayout#configurableFiles(java.lang.Object...)[]
+* api:org.gradle.api.file.ProjectLayout#files(java.lang.Object...)[]
 
 |Hierarchy of files
 |api:org.gradle.api.file.FileTree[]

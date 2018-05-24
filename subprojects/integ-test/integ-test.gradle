@@ -28,7 +28,7 @@ testFixtures {
     from(':platformNative', 'integTest')
 }
 
-integTestTasks.configureEachLater { task ->
+integTestTasks.configureEach { task ->
     task.userguideSamples.with {
         required = true
         samplesXml.set(layout.file(provider { new File(project(':docs').docbookSrc, 'samples.xml') }))

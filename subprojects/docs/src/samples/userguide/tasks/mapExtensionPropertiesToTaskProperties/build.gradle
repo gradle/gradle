@@ -15,7 +15,7 @@ class GreetingPluginExtension {
     GreetingPluginExtension(Project project) {
         message = project.objects.property(String)
         message.set('Hello from GreetingPlugin')
-        outputFiles = project.files()
+        outputFiles = project.layout.configurableFiles()
     }
 
     void setOutputFiles(FileCollection outputFiles) {
@@ -25,7 +25,7 @@ class GreetingPluginExtension {
 
 class Greeting extends DefaultTask {
     final Property<String> message = project.objects.property(String)
-    final ConfigurableFileCollection outputFiles = project.files()
+    final ConfigurableFileCollection outputFiles = project.layout.configurableFiles()
 
     void setOutputFiles(FileCollection outputFiles) {
         this.outputFiles.setFrom(outputFiles)
@@ -44,5 +44,5 @@ apply plugin: GreetingPlugin
 
 greeting {
     message = 'Hi from Gradle'
-    outputFiles = files('a.txt', 'b.txt')
+    outputFiles = layout.files('a.txt', 'b.txt')
 }

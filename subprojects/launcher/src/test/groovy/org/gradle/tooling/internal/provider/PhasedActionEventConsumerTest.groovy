@@ -46,18 +46,14 @@ class PhasedActionEventConsumerTest extends Specification {
         def serializedResult1 = Stub(SerializedPayload)
         def result2 = 'result2'
         def serializedResult2 = Stub(SerializedPayload)
-        def result3 = 'result3'
-        def serializedResult3 = Stub(SerializedPayload)
 
         given:
         payloadSerializer.deserialize(serializedResult1) >> result1
         payloadSerializer.deserialize(serializedResult2) >> result2
-        payloadSerializer.deserialize(serializedResult3) >> result3
 
         when:
         eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult1, PhasedActionResult.Phase.PROJECTS_LOADED))
-        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult2, PhasedActionResult.Phase.PROJECTS_EVALUATED))
-        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult3, PhasedActionResult.Phase.BUILD_FINISHED))
+        eventConsumer.dispatch(new PhasedBuildActionResult(serializedResult2, PhasedActionResult.Phase.BUILD_FINISHED))
 
         then:
         1 * phasedActionResultListener.onResult({
@@ -65,12 +61,8 @@ class PhasedActionEventConsumerTest extends Specification {
                 it.getResult() == result1
         })
         1 * phasedActionResultListener.onResult({
-            it.getPhase() == PhasedActionResult.Phase.PROJECTS_EVALUATED &&
-                it.getResult() == result2
-        })
-        1 * phasedActionResultListener.onResult({
             it.getPhase() == PhasedActionResult.Phase.BUILD_FINISHED &&
-                it.getResult() == result3
+                it.getResult() == result2
         })
         0 * delegateEventConsumer.dispatch(_)
     }

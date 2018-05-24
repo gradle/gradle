@@ -150,8 +150,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
-            groupId == "group"
-            version == "version"
+            groupId.get() == "group"
+            version.get() == "version"
         }
 
         when:
@@ -160,8 +160,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         with(publishing.publications.test.mavenProjectIdentity) {
-            groupId == "changed-group"
-            version == "changed-version"
+            groupId.get() == "changed-group"
+            version.get() == "changed-version"
         }
     }
 

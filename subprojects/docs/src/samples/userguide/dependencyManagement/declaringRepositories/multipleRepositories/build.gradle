@@ -5,7 +5,7 @@ repositories {
         url "https://maven.springframework.org/release"
     }
     maven {
-        url "https://maven.restlet.org"
+        url "https://maven.restlet.com"
     }
 }
 //END SNIPPET multiple-repositories

@@ -220,7 +220,7 @@ class CppLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(CppCompile).name == ['compileDebugCpp', 'compileReleaseCpp']
+        project.tasks.withType(CppCompile)*.name == ['compileDebugCpp', 'compileReleaseCpp']
         project.tasks.withType(LinkSharedLibrary).empty
 
         and:

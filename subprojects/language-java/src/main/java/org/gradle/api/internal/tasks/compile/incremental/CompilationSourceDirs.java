@@ -45,7 +45,7 @@ public class CompilationSourceDirs {
         this.sources = sources;
     }
 
-    public List<String> getSourceRoots() {
+    public List<File> getSourceRoots() {
         return resolveRoots().getSourceRoots();
     }
 
@@ -64,7 +64,7 @@ public class CompilationSourceDirs {
 
     private static class SourceRoots implements FileCollectionVisitor {
         private boolean canInferSourceRoots = true;
-        private List<String> sourceRoots = Lists.newArrayList();
+        private List<File> sourceRoots = Lists.newArrayList();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -78,7 +78,7 @@ public class CompilationSourceDirs {
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            sourceRoots.add(absolutePath(directoryTree.getDir()));
+            sourceRoots.add(directoryTree.getDir());
         }
 
         private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
@@ -90,12 +90,8 @@ public class CompilationSourceDirs {
             return canInferSourceRoots;
         }
 
-        public List<String> getSourceRoots() {
+        public List<File> getSourceRoots() {
             return sourceRoots;
-        }
-
-        private String absolutePath(File source) {
-            return source.getAbsolutePath() + File.separatorChar;
         }
     }
 }

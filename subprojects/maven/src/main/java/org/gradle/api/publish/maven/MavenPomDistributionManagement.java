@@ -18,12 +18,11 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The distribution management configuration of a Maven publication.
- *
- * <p>Currently, only the <em>relocation</em> information can be set.
  *
  * @since 4.8
  * @see MavenPom
@@ -31,6 +30,11 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface MavenPomDistributionManagement {
+
+    /**
+     * The download URL of the corresponding Maven publication.
+     */
+    Property<String> getDownloadUrl();
 
     /**
      * Configures the relocation information.

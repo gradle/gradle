@@ -36,6 +36,7 @@ import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.internal.reflect.DirectInstantiator
@@ -50,7 +51,7 @@ class DefaultMavenPublicationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    def module = new DefaultMavenProjectIdentity("group", "name", "version")
+    MutableMavenProjectIdentity module
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     TestFile pomDir
@@ -60,6 +61,10 @@ class DefaultMavenPublicationTest extends Specification {
     def featurePreviews = TestUtil.featurePreviews()
 
     def "setup"() {
+        module = new WritableMavenProjectIdentity(TestUtil.objectFactory())
+        module.groupId.set("group")
+        module.artifactId.set("name")
+        module.version.set("version")
         pomDir = testDirectoryProvider.testDirectory
         pomFile = pomDir.createFile("pom-file")
         gradleMetadataFile = pomDir.createFile("module-file")
@@ -73,9 +78,9 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.name == "pub-name"
-        publication.mavenProjectIdentity.groupId == "group"
-        publication.mavenProjectIdentity.artifactId == "name"
-        publication.mavenProjectIdentity.version == "version"
+        publication.mavenProjectIdentity.groupId.get() == "group"
+        publication.mavenProjectIdentity.artifactId.get() == "name"
+        publication.mavenProjectIdentity.version.get() == "version"
     }
 
     def "publication coordinates are live"() {
@@ -88,9 +93,9 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version = "version2"
 
         then:
-        module.groupId == "group2"
-        module.artifactId == "name2"
-        module.version == "version2"
+        module.groupId.get() == "group2"
+        module.artifactId.get() == "name2"
+        module.version.get() == "version2"
 
         and:
         publication.groupId == "group2"
@@ -98,9 +103,9 @@ class DefaultMavenPublicationTest extends Specification {
         publication.version == "version2"
 
         and:
-        publication.mavenProjectIdentity.groupId == "group2"
-        publication.mavenProjectIdentity.artifactId == "name2"
-        publication.mavenProjectIdentity.version == "version2"
+        publication.mavenProjectIdentity.groupId.get() == "group2"
+        publication.mavenProjectIdentity.artifactId.get() == "name2"
+        publication.mavenProjectIdentity.version.get() == "version2"
     }
 
     def "packaging is taken from first added artifact without extension"() {
@@ -244,7 +249,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.runtimeDependencies.size() == 1
-        with (publication.runtimeDependencies.asList().first()) {
+        with(publication.runtimeDependencies.asList().first()) {
             groupId == "group"
             artifactId == "name"
             version == "version"
@@ -273,15 +278,15 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.runtimeDependencies.size() == 1
-        with (publication.runtimeDependencies.asList().first()) {
-                groupId == "group"
-                artifactId == "name"
-                version == "version"
-                artifacts == [artifact]
-                excludeRules != [excludeRule]
-                excludeRules.size() == 1
-                excludeRules[0].group == '*'
-                excludeRules[0].module == '*'
+        with(publication.runtimeDependencies.asList().first()) {
+            groupId == "group"
+            artifactId == "name"
+            version == "version"
+            artifacts == [artifact]
+            excludeRules != [excludeRule]
+            excludeRules.size() == 1
+            excludeRules[0].group == '*'
+            excludeRules[0].module == '*'
         }
     }
 
@@ -299,7 +304,7 @@ class DefaultMavenPublicationTest extends Specification {
 
         then:
         publication.runtimeDependencies.size() == 1
-        with (publication.runtimeDependencies.asList().first()) {
+        with(publication.runtimeDependencies.asList().first()) {
             groupId == "pub-group"
             artifactId == "pub-name"
             version == "pub-version"

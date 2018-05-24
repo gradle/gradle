@@ -18,20 +18,23 @@ package org.gradle.configuration;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.util.SingleMessageLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildConfigurer.class);
     private final ProjectConfigurer projectConfigurer;
+    private final BuildStateRegistry buildRegistry;
 
-    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer) {
+    public DefaultBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildRegistry) {
         this.projectConfigurer = projectConfigurer;
+        this.buildRegistry = buildRegistry;
     }
 
     public void configure(GradleInternal gradle) {
         maybeInformAboutIncubatingMode(gradle);
+        if (gradle.getParent() == null) {
+            buildRegistry.beforeConfigureRootBuild();
+        }
         if (gradle.getStartParameter().isConfigureOnDemand()) {
             projectConfigurer.configure(gradle.getRootProject());
         } else {

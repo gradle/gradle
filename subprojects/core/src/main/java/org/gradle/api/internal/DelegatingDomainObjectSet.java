@@ -56,13 +56,8 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     @Override
-    public void configureEachLater(Action<? super T> action) {
-        backingSet.configureEachLater(action);
-    }
-
-    @Override
-    public <S extends T> void configureEachLater(Class<S> type, Action<? super S> action) {
-        backingSet.configureEachLater(type, action);
+    public void configureEach(Action<? super T> action) {
+        backingSet.configureEach(action);
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {

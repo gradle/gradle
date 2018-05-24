@@ -406,7 +406,7 @@ class DefaultTaskContainerTest extends Specification {
         container.names.contains("task")
         container.size() == 1
         !container.empty
-        !provider.present
+        provider.present
     }
 
     void "can define task to create and configure later given name"() {
@@ -443,7 +443,7 @@ class DefaultTaskContainerTest extends Specification {
         container.names.contains("task")
         container.size() == 1
         !container.empty
-        !provider.present
+        provider.present
     }
 
     void "can define task to create later given name"() {
@@ -569,10 +569,10 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.named("task")
 
         then:
-        !provider.present
+        provider.present
 
         and:
         0 * _
@@ -598,11 +598,11 @@ class DefaultTaskContainerTest extends Specification {
         container.createLater("task", DefaultTask, action)
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.named("task")
         and:
         provider.configure(deferredAction)
         then:
-        !provider.present
+        provider.present
 
         and:
         0 * _
@@ -614,12 +614,378 @@ class DefaultTaskContainerTest extends Specification {
         result == task
         1 * taskFactory.create("task", DefaultTask) >> task
         then:
-        1 * deferredAction.execute(task)
-        then:
         1 * action.execute(task)
+        then:
+        1 * deferredAction.execute(task)
         then:
         0 * action._
         0 * deferredAction._
+    }
+
+    void "fails task creation when creation rule throw exception"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        when:
+        container.create("task", DefaultTask, action)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == "Failing creation rule"
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
+    }
+
+    void "fails later creation upon realizing through createLater provider when creation rule throw exception"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        def provider = container.createLater("task", DefaultTask, action)
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
+
+        and:
+        provider.isPresent()
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
+
+        when:
+        provider.get()
+
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
+        0 * _
+    }
+
+    void "fails later creation upon realizing through get() provider when creation rule throw exception"() {
+        given:
+        def action = Mock(Action)
+        def task = task("task")
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
+        def creationProvider = container.createLater("task", DefaultTask, action)
+        def provider = container.withType(DefaultTask).named("task")
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
+
+        and:
+        provider.isPresent()
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        creationProvider.isPresent()
+
+        when:
+        creationProvider.get() == task
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
+
+        when:
+        provider.get()
+
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing creation rule"
+        0 * _
+    }
+
+    void "fails task creation when task instantiation is unsuccessful"() {
+        def action = Mock(Action)
+
+        when:
+        container.create("task", DefaultTask, action)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == "Failing constructor"
+
+        and:
+        container.findByName("task") == null
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        0 * action.execute(_)
+    }
+
+    void "fails later creation upon realizing through createLater provider when task instantiation is unsuccessful"() {
+
+        given:
+        def action = Mock(Action)
+        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        0 * action.execute(_)
+
+        def provider = container.createLater("task", DefaultTask, action)
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+
+        and:
+        provider.isPresent()
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+
+        and:
+        container.named("task").isPresent()
+
+        when:
+        container.findByName("task")
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+
+        when:
+        provider.getOrNull()
+
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+        0 * _
+    }
+
+    void "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
+        given:
+        def action = Mock(Action)
+        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        0 * action.execute(_)
+        def creationProvider = container.createLater("task", DefaultTask, action)
+        def provider = container.withType(DefaultTask).named("task")
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+        and:
+        provider.isPresent()
+        creationProvider.isPresent()
+
+        when:
+        container.findByName("task")
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+
+        when:
+        provider.getOrNull()
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing constructor"
+        0 * _
+    }
+
+    void "fails task creation when task configuration via withType is unsuccessful"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.withType(DefaultTask, action)
+
+        when:
+        container.create("task", DefaultTask)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == "Failing withType configuration rule"
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule") }
+    }
+
+    void "fails later creation when task configuration via withType is unsuccessful"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.withType(DefaultTask, action)
+
+        when:
+        // The following throw an exception immediately because a failing eager configuration rule is registered
+        container.createLater("task", DefaultTask)
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing withType configuration rule"
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule")}
+    }
+
+    void "fails task creation when task configuration via configureEach is unsuccessful"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.withType(DefaultTask).configureEach(action)
+
+        when:
+        container.create("task", DefaultTask)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == "Failing configureEach configuration rule"
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
+    }
+
+    void "fails later creation upon realizing through createLater provider when task configuration via configureEach is unsuccessful"() {
+        def action = Mock(Action)
+        def task = task("task")
+
+        given:
+        container.withType(DefaultTask).configureEach(action)
+        def provider = container.createLater("task", DefaultTask)
+
+        when:
+        provider.get()
+
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
+
+        and:
+        provider.isPresent()
+
+        and:
+        container.findByName("task") != null
+        container.findByName("task") == task
+
+        and:
+        container.withType(DefaultTask).named("task").isPresent()
+        container.withType(DefaultTask).named("task").get() == task
+
+        and:
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
+
+        when:
+        provider.get()
+
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
+        0 * _
+    }
+
+    void "fails later creation upon realizing through get() provider when task configuration via configureEach is unsuccessful"() {
+        given:
+        def action = Mock(Action)
+        def task = task("task")
+        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
+
+        container.withType(DefaultTask).configureEach(action)
+        def creationProvider = container.createLater("task", DefaultTask)
+        def provider = container.withType(DefaultTask).named("task")
+
+        when:
+        provider.get()
+        then:
+        def ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
+        and:
+        provider.isPresent()
+        creationProvider.isPresent()
+        container.findByName("task") == task
+
+        when:
+        creationProvider.get()
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
+
+        when:
+        provider.get()
+        then:
+        ex = thrown(IllegalStateException)
+        ex.message == "Could not create task 'task' (DefaultTask)"
+        ex.cause.message == "Failing configureEach configuration rule"
+        0 * _
     }
 
     void "can locate task that already exists by type and name without triggering creation or configuration"() {
@@ -630,7 +996,7 @@ class DefaultTaskContainerTest extends Specification {
         container.create("task")
 
         when:
-        def provider = container.getByNameLater(Task, "task")
+        def provider = container.named("task")
 
         then:
         provider.present
@@ -719,6 +1085,130 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         container.maybeCreate("task", CustomTask) == task
+    }
+
+    void "get() fails if unknown task is requested"() {
+        when:
+        container.withType(DefaultTask).named("unknown")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
+    }
+
+    void "get() fails if eagerly created task type is not a subtype"() {
+        given:
+        taskFactory.create("task", DefaultTask) >> task("task")
+        container.create("task", DefaultTask)
+
+        when:
+        container.withType(CustomTask).named("task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+    }
+
+    void "get() fails if lazily created task type is not a subtype"() {
+        container.createLater("task", DefaultTask)
+
+        when:
+        container.withType(CustomTask).named("task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can get() for eagerly created task subtype"() {
+        given:
+        taskFactory.create("task", CustomTask) >> task("task")
+        container.create("task", CustomTask)
+
+        when:
+        container.named("task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can get() for lazily created task subtype"() {
+        container.createLater("task", CustomTask)
+
+        when:
+        container.named("task")
+
+        then:
+        noExceptionThrown()
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can get() if task is eagerly created before"() {
+        given:
+        taskFactory.create("task", DefaultTask) >> task("task")
+        container.create("task", DefaultTask)
+
+        when:
+        container.withType(DefaultTask).named("task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can get() if task is lazily created before"() {
+        given:
+        container.createLater("task", DefaultTask)
+
+        when:
+        container.withType(DefaultTask).named("task")
+
+        then:
+        noExceptionThrown()
+        0 * taskFactory.create("task", DefaultTask)
+    }
+
+    void "can get() if eagerly created task type gets overwrite"() {
+        given:
+        def customTask = task("task", CustomTask)
+        taskFactory.create("task", CustomTask) >> customTask
+        taskFactory.create("task", DefaultTask) >> task("task", DefaultTask)
+        container.create("task", CustomTask)
+
+        when:
+        container.withType(DefaultTask).named("task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+
+        when:
+        container.create([name: "task", type: DefaultTask, overwrite: true])
+        container.withType(DefaultTask).named("task")
+
+        then:
+        noExceptionThrown()
+    }
+
+    void "can get() if lazy created task gets overwrite"() {
+        given:
+        container.createLater("task", CustomTask)
+
+        when:
+        container.withType(DefaultTask).named("task")
+
+        then:
+        def ex = thrown(UnknownTaskException)
+        ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
+        0 * taskFactory.create("task", CustomTask)
+
+        when:
+        container.create([name: "task", type: DefaultTask, overwrite: true])
+        container.withType(DefaultTask).named("task")
+
+        then:
+        noExceptionThrown()
+        1 * taskFactory.create("task", DefaultTask) >> task("task")
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {

@@ -19,8 +19,8 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.file.FileResolver;
@@ -35,8 +35,9 @@ import java.util.Set;
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
+    private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    private final DependencyLockingNotationConverter converter;
+    private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
     private final boolean partialUpdate;
@@ -49,9 +50,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             LOGGER.debug("Write locks is enabled");
         }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
-        this.partialUpdate = !lockedDependenciesToUpdate.isEmpty();
+        partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
-        converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
     }
 
     @Override
@@ -59,28 +59,48 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
-                Set<DependencyConstraint> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
+                Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    if (lockEntryFilter.filters(module)) {
-                        continue;
-                    }
-                    try {
-                        results.add(converter.convertToDependencyConstraint(module));
-                    } catch (IllegalArgumentException e) {
-                        throw new InvalidLockFileException(configurationName, e);
+                    ModuleComponentIdentifier lockedIdentifier = parseLockNotation(configurationName, module);
+                    if (!lockEntryFilter.isSatisfiedBy(lockedIdentifier)) {
+                        results.add(lockedIdentifier);
                     }
                 }
-                LOGGER.debug("Found for configuration '{}' locking constraints: {}", configurationName, lockedModules);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Loaded lock state for configuration '{}', state is: {}", configurationName, lockedModules);
+                } else {
+                    LOGGER.info("Loaded lock state for configuration '{}'", configurationName);
+                }
                 return new DefaultDependencyLockingState(partialUpdate, results);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
+    private ModuleComponentIdentifier parseLockNotation(String configurationName, String module) {
+        ModuleComponentIdentifier lockedIdentifier;
+        try {
+            lockedIdentifier = converter.convertFromLockNotation(module);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidLockFileException(configurationName, e);
+        }
+        return lockedIdentifier;
+    }
+
     @Override
-    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules) {
+    public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules, Set<ModuleComponentIdentifier> changingResolvedModules) {
         if (writeLocks) {
-            lockFileReaderWriter.writeLockFile(configurationName, getModulesOrdered(resolvedModules));
+            List<String> modulesOrdered = getModulesOrdered(resolvedModules);
+            lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
+            if (!changingResolvedModules.isEmpty()) {
+                LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
+                    configurationName, getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
+            }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", configurationName, modulesOrdered);
+            } else {
+                LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", configurationName);
+            }
         }
     }
 
@@ -90,7 +110,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             modules.add(converter.convertToLockNotation(identifier));
         }
         Collections.sort(modules);
-        LOGGER.debug("Found the following modules:\n\t{}", modules);
         return modules;
     }
 

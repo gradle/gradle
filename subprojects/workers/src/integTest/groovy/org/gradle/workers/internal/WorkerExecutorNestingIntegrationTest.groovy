@@ -19,7 +19,7 @@ package org.gradle.workers.internal
 import spock.lang.Timeout
 import spock.lang.Unroll
 
-@Timeout(60)
+@Timeout(120)
 class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
 
     @Unroll
@@ -30,13 +30,10 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         """.stripIndent()
 
         when:
-        def gradle = executer.withTasks("runInWorker").start()
+        succeeds("runInWorker")
 
         then:
-        gradle.waitForFinish()
-
-        and:
-        gradle.standardOutput.contains("Hello World")
+        outputContains("Hello World")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -51,13 +48,47 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         """.stripIndent()
 
         when:
-        def gradle = executer.withTasks("runInWorker").start()
+        succeeds("runInWorker")
 
         then:
-        gradle.waitForFinish()
+        result.groupedOutput.task(':runInWorker').output.contains("Hello World")
+    }
 
-        and:
-        gradle.standardOutput.contains("Hello World")
+    def "workers with no isolation can spawn more than max workers items of work"() {
+        def maxWorkers = 4
+        buildFile << """
+            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            task runInWorker(type: NestingWorkerTask) {
+                submissions = ${maxWorkers * 2}
+                childSubmissions = ${maxWorkers}
+            }
+        """.stripIndent()
+
+        when:
+        executer.withArguments("--max-workers=${maxWorkers}")
+        succeeds("runInWorker")
+
+        then:
+        result.groupedOutput.task(':runInWorker').output.contains("Hello World")
+    }
+
+    def "workers with no isolation can spawn and wait for more than max workers items of work"() {
+        def maxWorkers = 4
+        buildFile << """
+            ${getRunnableWithNesting("IsolationMode.NONE", "IsolationMode.NONE")}
+            task runInWorker(type: NestingWorkerTask) {
+                waitForChildren = true 
+                submissions = ${maxWorkers * 2}
+                childSubmissions = ${maxWorkers}
+            }
+        """.stripIndent()
+
+        when:
+        executer.withArguments("--max-workers=${maxWorkers}")
+        succeeds("runInWorker")
+
+        then:
+        result.groupedOutput.task(':runInWorker').output.contains("Hello World")
     }
 
     /*
@@ -111,17 +142,21 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
             
                 WorkerExecutor executor
                 String greeting
+                int childSubmissions
                 
                 @Inject
-                public FirstLevelRunnable(WorkerExecutor executor, String greeting) {
+                public FirstLevelRunnable(WorkerExecutor executor, String greeting, int childSubmissions) {
                     this.executor = executor
                     this.greeting = greeting
+                    this.childSubmissions = childSubmissions
                 }
 
                 public void run() {
-                    executor.submit(SecondLevelRunnable) {
-                        isolationMode = $nestedIsolationMode
-                        params = [greeting]
+                    childSubmissions.times {
+                        executor.submit(SecondLevelRunnable) {
+                            isolationMode = $nestedIsolationMode
+                            params = [greeting]
+                        }
                     }
                 }
             }
@@ -144,6 +179,8 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
                 WorkerExecutor executor
                 boolean waitForChildren = false
+                int submissions = 1
+                int childSubmissions = 1
 
                 @Inject
                 NestingWorkerTask(WorkerExecutor executor) {
@@ -152,9 +189,11 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
                 @TaskAction
                 public void runInWorker() {
-                    executor.submit(FirstLevelRunnable) {
-                        isolationMode = $isolationMode
-                        params = ["Hello World"]
+                    submissions.times {
+                        executor.submit(FirstLevelRunnable) {
+                            isolationMode = $isolationMode
+                            params = ["Hello World", childSubmissions]
+                        }
                     }
                     if (waitForChildren) {
                         executor.await()

@@ -36,6 +36,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.ModuleMetadataFileGenerator;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -73,6 +74,21 @@ public class GenerateModuleMetadata extends DefaultTask {
         outputFile = newOutputFile();
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.<Task>satisfyNone());
+        mustHaveAttachedComponent();
+    }
+
+    private void mustHaveAttachedComponent() {
+        setOnlyIf(new Spec<Task>() {
+            @Override
+            public boolean isSatisfiedBy(Task element) {
+                PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
+                if (publication.getComponent() == null) {
+                    getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
+                    return false;
+                }
+                return true;
+            }
+        });
     }
 
     // TODO - this should be an input

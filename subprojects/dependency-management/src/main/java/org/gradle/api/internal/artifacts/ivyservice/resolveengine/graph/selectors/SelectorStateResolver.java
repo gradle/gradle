@@ -51,7 +51,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         assert !candidates.isEmpty();
 
         // If the module matches, add the root component into the mix
-        if (moduleId.equals(rootModuleId)) {
+        if (moduleId.equals(rootModuleId) && !candidates.contains(rootComponent)) {
             candidates = new ArrayList<T>(candidates);
             candidates.add(rootComponent);
         }

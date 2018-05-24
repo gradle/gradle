@@ -17,7 +17,6 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
 
 /**
  * A Collection of {@link IvyArtifact}s to be included in an {@link IvyPublication}.
@@ -39,7 +38,6 @@ import org.gradle.api.Incubating;
  *
  * @see DomainObjectSet
  */
-@Incubating
 public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
     /**
      * Creates and adds a {@link IvyArtifact} to the set.

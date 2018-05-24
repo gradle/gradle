@@ -508,7 +508,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         """
 
         then:
+        executer.withArgument("-i")
         succeeds installApp
+        output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
         install.exec().out == "hello"
 
         when:
@@ -527,18 +529,15 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         executedAndNotSkipped appDebug.compile
         skipped libraryDebug.compile
-        output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
         unresolvedHeadersDetected(appDebug.compile)
 
         when:
-        disableTransitiveUnresolvedHeaderDetection()
-        headerFile.text = "changed again"
-
-        executer.withArgument("-i")
+        headerFile.delete()
         appObjects.snapshot()
         libObjects.snapshot()
 
         then:
+        executer.withArgument("-i")
         succeeds installApp
 
         and:
@@ -548,8 +547,13 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         executedAndNotSkipped appDebug.compile
         skipped libraryDebug.compile
-        output.contains("Cannot locate header file for '#include $include' in source file 'main.cpp'. Assuming changed.")
         unresolvedHeadersDetected(appDebug.compile)
+
+        when:
+        succeeds installApp
+
+        then:
+        nonSkippedTasks.empty
 
         when:
         file("app/src/main/headers/some-dir").mkdirs()
@@ -568,7 +572,9 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         nonSkippedTasks.empty
 
         when:
-        headerFile.delete()
+        disableTransitiveUnresolvedHeaderDetection()
+        headerFile.text = "changed again"
+
         appObjects.snapshot()
         libObjects.snapshot()
 
@@ -576,18 +582,12 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         succeeds installApp
 
         and:
-        executedAndNotSkipped appDebug.compile
-        skipped libraryDebug.compile
-
-        and:
-        appObjects.recompiledFiles(appSourceFile)
+        appObjects.noneRecompiled()
         libObjects.noneRecompiled()
 
-        when:
-        succeeds installApp
-
-        then:
-        nonSkippedTasks.empty
+        and:
+        skipped appDebug.compile
+        skipped libraryDebug.compile
 
         where:
         include             | text
@@ -680,7 +680,7 @@ class CppIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInteg
         libObjects.snapshot()
 
         and:
-        headerFile.text = "changed 2"
+        headerFile.text = "changed 3"
 
         then:
         succeeds installApp

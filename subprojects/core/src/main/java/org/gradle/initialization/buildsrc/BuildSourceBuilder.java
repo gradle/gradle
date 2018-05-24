@@ -25,9 +25,9 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
-import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.NestedBuildState;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.invocation.BuildController;
@@ -35,7 +35,6 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public class BuildSourceBuilder {
     };
     public static final String BUILD_SRC = "buildSrc";
 
-    private final NestedBuildFactory nestedBuildFactory;
+    private final BuildState currentBuild;
     private final ClassLoaderScope classLoaderScope;
     private final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -57,8 +56,8 @@ public class BuildSourceBuilder {
     private final BuildSrcBuildListenerFactory buildSrcBuildListenerFactory;
     private final BuildStateRegistry buildRegistry;
 
-    public BuildSourceBuilder(NestedBuildFactory nestedBuildFactory, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry) {
-        this.nestedBuildFactory = nestedBuildFactory;
+    public BuildSourceBuilder(BuildState currentBuild, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry) {
+        this.currentBuild = currentBuild;
         this.classLoaderScope = classLoaderScope;
         this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -101,7 +100,7 @@ public class BuildSourceBuilder {
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Build buildSrc").
                     progressDisplayName("Building buildSrc").
-                    details(new BuildBuildSrcBuildOperationType.Details(){
+                    details(new BuildBuildSrcBuildOperationType.Details() {
 
                         @Override
                         public String getBuildPath() {
@@ -113,18 +112,10 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
-        NestedBuildState nestedBuild = buildRegistry.addNestedBuild(buildDefinition, nestedBuildFactory);
+        StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
             public ClassPath transform(BuildController buildController) {
-                GradleInternal build = buildController.getGradle();
-                StartParameter startParameter = buildController.getGradle().getStartParameter();
-                if (build.getParent().findIdentityPath() == null) {
-                    // When nested inside a nested build, we need to synthesize a path for this build, as the root project is not yet known for the parent build
-                    // Use the directory structure to do this. This means that the buildSrc build and its containing build may end up with different paths
-                    Path path = build.getParent().getParent().getIdentityPath().child(startParameter.getCurrentDir().getParentFile().getName()).child(startParameter.getCurrentDir().getName());
-                    build.setIdentityPath(path);
-                }
                 File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
                 FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
                 try {

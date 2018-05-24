@@ -103,7 +103,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
@@ -144,6 +143,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } catch (Exception e) {
             throw new UnexpectedBuildFailure(e);
         }
+
         return assertResult(new InProcessExecutionResult(buildListener.executedTasks, buildListener.skippedTasks,
             OutputScrapingExecutionResult.from(outputStream.toString(), errorStream.toString())));
     }
@@ -188,6 +188,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle createGradleHandle() {
+        configureConsoleCommandLineArgs();
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder(), getDurationMeasurement()).start();
     }
 
@@ -269,7 +270,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Should really run all tests against a plain and a rich console to make these assumptions explicit
             consoleOutput = ConsoleOutput.Plain;
         }
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput);
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
     }
@@ -371,6 +372,17 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return COMMON_TMP;
     }
 
+    @Override
+    public GradleExecuter withTestConsoleAttached() {
+        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
+    }
+
+    @Override
+    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
+        this.consoleAttachment = consoleAttachment;
+        return this;
+    }
+
     private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<String>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<String>();
@@ -393,7 +405,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public void beforeExecute(Task task) {
-            assertTrue(planned.contains(task));
+            if (!planned.contains(task)) {
+                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
+            }
 
             String taskPath = path(task);
             if (taskPath.startsWith(":buildSrc:")) {
@@ -462,6 +476,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         @Override
+        public ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
+            outputResult.assertContentContains(content, expectedOutput, label);
+            return null;
+        }
+
+        @Override
         public ExecutionResult assertHasPostBuildOutput(String expectedOutput) {
             outputResult.assertHasPostBuildOutput(expectedOutput);
             return this;
@@ -475,6 +495,18 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         @Override
         public ExecutionResult assertHasErrorOutput(String expectedOutput) {
             outputResult.assertHasErrorOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
+            outputResult.assertHasRawErrorOutput(expectedOutput);
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertRawOutputContains(String expectedOutput) {
+            outputResult.assertRawOutputContains(expectedOutput);
             return this;
         }
 
@@ -568,7 +600,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         private final GradleException failure;
         private final String fileName;
         private final String lineNumber;
-        private final String description;
+        private final List<String> descriptions = new ArrayList<String>();
 
         public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, OutputScrapingExecutionFailure outputFailure, GradleException failure) {
             super(tasks, skippedTasks, outputFailure);
@@ -580,28 +612,49 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             if (matcher.find()) {
                 fileName = matcher.group(1);
                 lineNumber = matcher.group(3);
-                description = failure.getMessage().substring(matcher.end()).trim();
+                descriptions.add(failure.getMessage().substring(matcher.end()).trim());
             } else {
                 fileName = "";
                 lineNumber = "";
-                description = failure.getMessage().trim();
+                descriptions.add(failure.getMessage().trim());
+            }
+            if (failure instanceof MultipleBuildFailures) {
+                for (Throwable cause : ((MultipleBuildFailures) failure).getCauses()) {
+                    matcher = LOCATION_PATTERN.matcher(cause.getMessage());
+                    if (matcher.find()) {
+                        descriptions.add(cause.getMessage().substring(matcher.end()).trim());
+                    } else {
+                        descriptions.add(cause.getMessage().trim());
+                    }
+                }
             }
         }
 
         public ExecutionFailure assertHasLineNumber(int lineNumber) {
-            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
             outputFailure.assertHasLineNumber(lineNumber);
+            assertThat(this.lineNumber, equalTo(String.valueOf(lineNumber)));
             return this;
         }
 
         public ExecutionFailure assertHasFileName(String filename) {
-            assertThat(this.fileName, equalTo(filename));
             outputFailure.assertHasFileName(filename);
+            assertThat(this.fileName, equalTo(filename));
             return this;
         }
 
         public ExecutionFailure assertHasResolution(String resolution) {
             outputFailure.assertHasResolution(resolution);
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertHasFailures(int count) {
+            outputFailure.assertHasFailures(count);
+            if (count == 1) {
+                assertFalse(failure instanceof MultipleBuildFailures);
+            } else {
+                assertEquals(((MultipleBuildFailures)failure).getCauses().size(), count);
+            }
             return this;
         }
 
@@ -611,10 +664,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+            outputFailure.assertThatCause(matcher);
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
             assertThat(causes, Matchers.hasItem(hasMessage(normalizedLineSeparators(matcher))));
-            outputFailure.assertThatCause(matcher);
             return this;
         }
 
@@ -633,6 +686,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
         @Override
         public ExecutionFailure assertHasNoCause(String description) {
+            outputFailure.assertHasNoCause(description);
             Matcher<Throwable> matcher = hasMessage(containsString(description));
             List<Throwable> causes = new ArrayList<Throwable>();
             extractCauses(failure, causes);
@@ -641,18 +695,17 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                     throw new AssertionFailedError(String.format("Expected no failure with description '%s', found: %s", description, cause));
                 }
             }
-            outputFailure.assertHasNoCause(description);
             return this;
         }
 
         public ExecutionFailure assertHasNoCause() {
+            outputFailure.assertHasNoCause();
             if (failure instanceof LocationAwareException) {
                 LocationAwareException exception = (LocationAwareException) failure;
                 assertThat(exception.getReportableCauses(), isEmpty());
             } else {
                 assertThat(failure.getCause(), nullValue());
             }
-            outputFailure.assertHasNoCause();
             return this;
         }
 
@@ -662,8 +715,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
-            assertThat(description, normalizedLineSeparators(matcher));
             outputFailure.assertThatDescription(matcher);
+            assertThat(descriptions, hasItem(normalizedLineSeparators(matcher)));
             return this;
         }
 

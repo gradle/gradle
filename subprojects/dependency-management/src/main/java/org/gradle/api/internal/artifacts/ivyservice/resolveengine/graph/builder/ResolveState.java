@@ -152,6 +152,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
             resolveState = new SelectorState(idGenerator.generateId(), dependencyState, idResolver, versionSelectorScheme, this, moduleIdentifier);
             selectors.put(requested, resolveState);
         }
+        resolveState.update(dependencyState);
         return resolveState;
     }
 

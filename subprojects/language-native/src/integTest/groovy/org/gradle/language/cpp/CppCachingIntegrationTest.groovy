@@ -67,6 +67,15 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         compileIsCached(buildType)
         installation("build/install/main/${buildType.toLowerCase()}").exec().out == app.expectedOutput
 
+        when:
+        file('lib1/src/main/public/greeter.h') << """
+            // changed
+        """
+        withBuildCache().run 'clean', installTask(buildType)
+
+        then:
+        compileIsNotCached(buildType)
+
         where:
         buildType << [debug, release]
     }
@@ -93,7 +102,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         }
         run compileTask(release)
 
-            then:
+        then:
         compileIsNotCached(release)
         assertSameSnapshots(release, snapshotsInOriginalLocation, snapshotObjects(newLocation))
 

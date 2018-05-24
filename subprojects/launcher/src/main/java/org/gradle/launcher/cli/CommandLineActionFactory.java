@@ -15,8 +15,11 @@
  */
 package org.gradle.launcher.cli;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import groovy.lang.GroovySystem;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -54,6 +57,7 @@ import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -117,37 +121,49 @@ public class CommandLineActionFactory {
         out.println();
     }
 
-    private static class WelcomeMessageAction implements Action<PrintStream> {
+    static class WelcomeMessageAction implements Action<PrintStream> {
         private final BuildLayoutParameters buildLayoutParameters;
+        private final GradleVersion gradleVersion;
+        private final Function<String, InputStream> inputStreamProvider;
 
-        public WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters) {
+            this(buildLayoutParameters, GradleVersion.current(), new Function<String, InputStream>() {
+                @Nullable
+                @Override
+                public InputStream apply(@Nullable String input) {
+                    return getClass().getClassLoader().getResourceAsStream(input);
+                }
+            });
+        }
+
+        @VisibleForTesting
+        WelcomeMessageAction(BuildLayoutParameters buildLayoutParameters, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider) {
             this.buildLayoutParameters = buildLayoutParameters;
+            this.gradleVersion = gradleVersion;
+            this.inputStreamProvider = inputStreamProvider;
         }
 
         @Override
         public void execute(PrintStream out) {
             if (isWelcomeMessageEnabled()) {
-                GradleVersion currentVersion = GradleVersion.current();
-                File markerFile = getMarkerFile(currentVersion);
+                File markerFile = getMarkerFile();
 
                 if (!markerFile.exists()) {
                     out.println();
-                    out.print("Welcome to Gradle " + currentVersion.getVersion() + "!");
+                    out.print("Welcome to Gradle " + gradleVersion.getVersion() + "!");
 
                     String featureList = readReleaseFeatures();
 
-                    if (featureList != null) {
+                    if (StringUtils.isNotBlank(featureList)) {
                         out.println();
                         out.println();
-                        out.print("Here are the highlights of this release:");
-                        out.println();
+                        out.println("Here are the highlights of this release:");
                         out.print(featureList);
                     }
 
-                    if (!currentVersion.isSnapshot()) {
+                    if (!gradleVersion.isSnapshot()) {
                         out.println();
-                        out.print("For more details see https://docs.gradle.org/" + currentVersion.getVersion() + "/release-notes.html");
-                        out.println();
+                        out.println("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
                     }
 
                     out.println();
@@ -171,15 +187,15 @@ public class CommandLineActionFactory {
             return Boolean.parseBoolean(messageEnabled);
         }
 
-        private File getMarkerFile(GradleVersion currentVersion) {
+        private File getMarkerFile() {
             File gradleUserHomeDir = buildLayoutParameters.getGradleUserHomeDir();
             File notificationsDir = new File(gradleUserHomeDir, "notifications");
-            File versionedNotificationsDir = new File(notificationsDir, currentVersion.getVersion());
+            File versionedNotificationsDir = new File(notificationsDir, gradleVersion.getVersion());
             return new File(versionedNotificationsDir, "release-features.rendered");
         }
 
         private String readReleaseFeatures() {
-            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("release-features.txt");
+            InputStream inputStream = inputStreamProvider.apply("release-features.txt");
 
             if (inputStream != null) {
                 StringWriter writer = new StringWriter();
@@ -189,6 +205,8 @@ public class CommandLineActionFactory {
                     return writer.toString();
                 } catch (IOException e) {
                     // do not fail the build as feature is non-critical
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
                 }
             }
 

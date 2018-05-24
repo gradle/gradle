@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.collections;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.provider.ProviderInternal;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -23,6 +26,7 @@ import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
+    private final PendingSource<T> pending = new DefaultPendingSource<T>();
 
     public SortedSetElementSource(Comparator<T> comparator) {
         this.values = new TreeSet<T>(comparator);
@@ -30,36 +34,44 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean isEmpty() {
-        return values.isEmpty();
+        return values.isEmpty() && pending.isEmpty();
     }
 
     @Override
     public boolean constantTimeIsEmpty() {
-        return values.isEmpty();
+        return values.isEmpty() && pending.isEmpty();
     }
 
     @Override
     public int size() {
-        return values.size();
+        return values.size() + pending.size();
     }
 
     @Override
     public int estimatedSize() {
-        return values.size();
+        return values.size() + pending.size();
     }
 
     @Override
     public Iterator<T> iterator() {
+        pending.realizePending();
+        return values.iterator();
+    }
+
+    @Override
+    public Iterator<T> iteratorNoFlush() {
         return values.iterator();
     }
 
     @Override
     public boolean contains(Object element) {
+        pending.realizePending();
         return values.contains(element);
     }
 
     @Override
     public boolean containsAll(Collection<?> elements) {
+        pending.realizePending();
         return values.containsAll(elements);
     }
 
@@ -75,6 +87,32 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void clear() {
+        pending.clear();
         values.clear();
+    }
+
+    @Override
+    public void realizePending() {
+        pending.realizePending();
+    }
+
+    @Override
+    public void realizePending(Class<?> type) {
+        pending.realizePending(type);
+    }
+
+    @Override
+    public void addPending(ProviderInternal<? extends T> provider) {
+        pending.addPending(provider);
+    }
+
+    @Override
+    public void removePending(ProviderInternal<? extends T> provider) {
+        pending.removePending(provider);
+    }
+
+    @Override
+    public void onRealize(Action<ProviderInternal<? extends T>> action) {
+        pending.onRealize(action);
     }
 }

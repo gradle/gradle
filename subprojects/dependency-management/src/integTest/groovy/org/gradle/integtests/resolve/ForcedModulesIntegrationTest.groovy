@@ -16,6 +16,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
+import spock.lang.Unroll
 
 public class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -354,5 +357,50 @@ task checkDeps {
 
         expect:
         run("checkDeps")
+    }
+
+    @Issue("gradle/gradle#5364")
+    @Unroll
+    void "if one module is forced, all same versions should be forced (forced = #forced)"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            repositories { maven { url "${mavenRepo.uri}" } }
+
+            configurations {
+                conf
+            }
+        
+            def d1 = project.dependencies.create("org:foo:1.1")
+            def d2 = project.dependencies.create("org:foo:1.0")
+            def d3 = project.dependencies.create("org:foo:1.0")
+            ${forced}.force = true
+            
+            dependencies {
+                conf d1
+                conf d2
+                conf d3
+            }
+
+        """
+        def resolve = new ResolveTestFixture(buildFile, "conf")
+        resolve.prepare()
+
+
+        when:
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org:foo:1.1', 'org:foo:1.0').forced()
+                module('org:foo:1.0')
+            }
+        }
+
+        where:
+        forced << ['d3', 'd2']
     }
 }

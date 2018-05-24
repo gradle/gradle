@@ -30,9 +30,9 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.filewatch.PendingChangesListener;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,6 +51,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
     private final ObjectFactory objectFactory;
     private final ContinuousExecutionGate continuousExecutionGate = new DefaultContinuousExecutionGate();
     private boolean stopped;
+    private boolean anyStarted;
 
     public DefaultDeploymentRegistry(PendingChangesManager pendingChangesManager, BuildOperationExecutor buildOperationExecutor, ObjectFactory objectFactory) {
         this.pendingChangesManager = pendingChangesManager;
@@ -67,6 +68,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
 
     @Override
     public <T extends DeploymentHandle> T start(final String name, final ChangeBehavior changeBehavior, final Class<T> handleType, final Object... params) {
+        anyStarted = true;
         lock.lock();
         try {
             failIfStopped();
@@ -126,6 +128,11 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public boolean isAnyStarted() {
+        return anyStarted;
     }
 
     @Override

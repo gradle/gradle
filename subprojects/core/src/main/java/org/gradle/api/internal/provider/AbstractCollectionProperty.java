@@ -31,11 +31,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private static final EmptyCollection EMPTY_COLLECTION = new EmptyCollection();
     private static final NoValueCollector NO_VALUE_COLLECTOR = new NoValueCollector();
     private final Class<? extends Collection> collectionType;
+    private final Class elementType;
     private Collector<T> value = (Collector<T>) EMPTY_COLLECTION;
     private List<Collector<T>> collectors = new LinkedList<Collector<T>>();
 
-    AbstractCollectionProperty(Class<? extends Collection> collectionType) {
+    AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
         this.collectionType = collectionType;
+        this.elementType = elementType;
     }
 
     /**
@@ -134,6 +136,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         value = new ElementsFromProvider<T>(provider);
     }
 
+    @Override
+    public String toString() {
+        final String valueState;
+        if (value == EMPTY_COLLECTION) {
+            valueState = "empty";
+        } else if (value == NO_VALUE_COLLECTOR) {
+            valueState = "undefined";
+        } else {
+            valueState = "defined";
+        }
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, valueState);
+    }
+
     /**
      * This could move to the public API.
      */
@@ -147,27 +162,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super C> transformer) {
-        return new AbstractProvider<S>() {
-            @Nullable
-            @Override
-            public Class<S> getType() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public S getOrNull() {
-                Collection<T> value = AbstractCollectionProperty.this.getOrNull();
-                if (value == null) {
-                    return null;
-                }
-                S result = transformer.transform(fromValue(value));
-                if (result == null) {
-                    throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
-                }
-                return result;
-            }
-        };
+        return new TransformBackedProvider<S, C>(transformer, this);
     }
 
     private static class EmptyCollection implements Collector<Object> {

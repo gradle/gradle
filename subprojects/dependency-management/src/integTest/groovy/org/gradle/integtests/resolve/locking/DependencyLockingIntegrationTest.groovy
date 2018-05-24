@@ -188,7 +188,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Did not resolve 'org:bar:1.0' which is part of the lock state")
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date: Did not resolve 'org:bar:1.0' which is part of the lock state")
     }
 
     def 'writes dependency lock file when requested'() {
@@ -336,7 +336,7 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date:: Resolved 'org:bar:1.0' which is not part of the lock state")
+        failure.assertHasCause("Dependency lock state for configuration 'lockedConf' is out of date: Resolved 'org:bar:1.0' which is not part of the lock state")
     }
 
     def 'counts dependencies with multiple paths as one instance'() {
@@ -617,5 +617,102 @@ dependencies {
 
         then:
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
+    }
+
+    def 'should fail when removing all dependencies from a configuration without updating the lock file'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+"""
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+
+        when:
+        fails 'dependencies'
+
+        then:
+        failure.assertHasCause('Dependency lock state for configuration \'lockedConf\' is out of date: Did not resolve \'org:foo:1.0\' which is part of the lock state')
+    }
+
+    def 'writes an empty lock file for an empty configuration'() {
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+"""
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', [])
+    }
+
+    def 'does not write an empty lock file for an empty configuration if not requested'() {
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+"""
+        when:
+        succeeds 'dependencies'
+
+        then:
+        lockfileFixture.expectMissing('lockedConf')
+    }
+
+    def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies'() {
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+"""
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', [])
     }
 }

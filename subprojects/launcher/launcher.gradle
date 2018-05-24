@@ -22,6 +22,7 @@ dependencies {
 
     compile libraries.asm.coordinates
     compile libraries.commons_io.coordinates
+    compile libraries.commons_lang.coordinates
     compile libraries.slf4j_api.coordinates
 
     integTestCompile project(':internalIntegTesting')
@@ -45,8 +46,8 @@ testFixtures {
     from(':toolingApi')
 }
 
-integTestTasks.configureEachLater { task ->
-    task.maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
+integTestTasks.configureEach {
+    maxParallelForks = Math.min(3, Build_extensionsKt.getMaxParallelForks(project))
 }
 
 task configureJar {

@@ -39,4 +39,5 @@ testFixtures {
     from(':core')
     from(':platformNative')
     from(':versionControl')
+    from(':ide', 'testFixtures')
 }

@@ -16,9 +16,21 @@
 
 package org.gradle.performance.generator
 
-class FileContentGenerator {
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
-    TestProjectGeneratorConfiguration config
+abstract class FileContentGenerator {
+
+    static FileContentGenerator forConfig(TestProjectGeneratorConfiguration config) {
+        switch (config.dsl) {
+            case KOTLIN:
+                return new KotlinDslFileContentGenerator(config)
+            case GROOVY:
+                return new GroovyDslFileContentGenerator(config)
+        }
+    }
+
+    protected final TestProjectGeneratorConfiguration config
 
     FileContentGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
@@ -29,58 +41,28 @@ class FileContentGenerator {
         if (isRoot && config.subProjects > 0) {
             if (config.compositeBuild) {
                 return """
-                    task clean {
-                        dependsOn gradle.includedBuilds*.task(":clean")
-                    }
-                    task assemble {
-                        dependsOn gradle.includedBuilds*.task(":assemble")
-                    }
+                ${createTaskThatDependsOnAllIncludedBuildsTaskWithSameName('clean')}
+                ${createTaskThatDependsOnAllIncludedBuildsTaskWithSameName('assemble')}
                 """
             }
             return ""
         }
-        """
+        return """
         import org.gradle.util.GradleVersion
 
-        def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')
+        ${missingJavaLibrarySupportFlag()}
 
         ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
         
-        String compilerMemory = getProperty('compilerMemory')
-        String testRunnerMemory = getProperty('testRunnerMemory')
-        int testForkEvery = getProperty('testForkEvery') as Integer
-
         repositories {
             ${config.repositories.join("\n            ")}
         }
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}             
-        tasks.withType(JavaCompile) {
-            options.fork = true
-            options.incremental = true
-            options.forkOptions.memoryInitialSize = compilerMemory
-            options.forkOptions.memoryMaximumSize = compilerMemory
-        }
-        
-        tasks.withType(Test) {
-            ${config.useTestNG ? 'useTestNG()' : ''}
-            minHeapSize = testRunnerMemory
-            maxHeapSize = testRunnerMemory
-            maxParallelForks = ${config.maxParallelForks}
-            forkEvery = testForkEvery
-            
-            if (!JavaVersion.current().java8Compatible) {
-                jvmArgs '-XX:MaxPermSize=512m'
-            }
-            jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
-        }
 
-        task dependencyReport(type: DependencyReportTask) {
-            outputs.upToDateWhen { false }
-            outputFile = new File(buildDir, "dependencies.txt")
-        }
+        ${tasksConfiguration()}
 
-        group = 'org.gradle.test.performance'
-        version = '2.0'
+        group = "org.gradle.test.performance"
+        version = "2.0"
         """
     }
 
@@ -89,17 +71,17 @@ class FileContentGenerator {
             if (!isRoot) {
                 return ""
             }
-            return (0..config.subProjects-1).collect {
+            return (0..config.subProjects - 1).collect {
                 if (config.compositeBuild.usePredefinedPublications()) {
                     """
-                    includeBuild('project$it') {
+                    includeBuild("project$it") {
                         dependencySubstitution {
-                            substitute module('org.gradle.test.performance:project${it}') with project(':')
+                            substitute(module("org.gradle.test.performance:project${it}")).with(project(":"))
                         }
                     }
                     """
                 } else {
-                    "includeBuild('project$it')"
+                    "includeBuild(\"project$it\")"
                 }
             }.join("\n")
         } else {
@@ -110,7 +92,7 @@ class FileContentGenerator {
                 return ""
             }
             """ 
-            ${(0..config.subProjects - 1).collect { "include 'project$it'" }.join("\n")}
+            ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
             """
         }
     }
@@ -373,19 +355,25 @@ class FileContentGenerator {
         "org${separator}gradle${separator}test${separator}performance${separator}${config.projectName.toLowerCase()}${projectPackage}$subPackage"
     }
 
-    private getPropertyCount() {
+    protected final getPropertyCount() {
         Math.ceil(config.minLinesOfCodePerSourceFile / 10)
     }
 
-    private decideOnJavaPlugin(String plugin, boolean projectHasParents) {
+    protected final String decideOnJavaPlugin(String plugin, Boolean projectHasParents) {
         if (plugin.contains('java')) {
             if (projectHasParents) {
-                return "apply plugin: missingJavaLibrarySupport ? 'java' : 'java-library'"
+                return """
+                    if(missingJavaLibrarySupport) {
+                        ${imperativelyApplyPlugin("java")}
+                    } else {
+                        ${imperativelyApplyPlugin("java-library")}
+                    }
+                """
             } else {
-                return "apply plugin: 'java'"
+                return imperativelyApplyPlugin("java")
             }
         }
-        "apply plugin: '$plugin'"
+        return imperativelyApplyPlugin(plugin)
     }
 
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
@@ -395,39 +383,23 @@ class FileContentGenerator {
         if (subProjectNumbers?.size() > 0) {
             def abiProjectNumber = subProjectNumbers.get(DependencyTree.API_DEPENDENCY_INDEX)
             subProjectDependencies = subProjectNumbers.collect {
-                it == abiProjectNumber ? "${hasParent ? api : implementation} " + dependency(abiProjectNumber) : "$implementation " + dependency(it)
+                it == abiProjectNumber ? projectDependencyDeclaration(hasParent ? api : implementation, abiProjectNumber) : projectDependencyDeclaration(implementation, it)
             }.join("\n            ")
         }
-        """
-        if (missingJavaLibrarySupport) {
-            configurations {
-                ${hasParent ? 'api' : ''}
-                implementation
-                testImplementation
-                ${hasParent ? 'compile.extendsFrom api' : ''}
-                compile.extendsFrom implementation
-                testCompile.extendsFrom testImplementation
+        return """
+            ${configurationsIfMissingJavaLibrarySupport(hasParent)}
+
+            dependencies {
+                ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
+                ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
+                ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
+
+                $subProjectDependencies
             }
-        }
-
-        dependencies {
-            ${config.externalApiDependencies.collect { "${hasParent ? api : implementation} '$it'" }.join("\n            ")}
-            ${config.externalImplementationDependencies.collect { "$implementation '$it'" }.join("\n            ")}
-            $testImplementation '${config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12'}'
-                        
-            $subProjectDependencies
-        }
         """
     }
 
-    private dependency(int projectNumber) {
-        if (config.compositeBuild) {
-            return "'org.gradle.test.performance:project${projectNumber}:1.0'"
-        }
-        return "project(':project${projectNumber}')"
-    }
-
-    private convertToPomDependency(String dependency, String scope = 'compile') {
+    protected final convertToPomDependency(String dependency, String scope = 'compile') {
         def parts = dependency.split(':')
         def groupId = parts[0]
         def artifactId = parts[1]
@@ -439,5 +411,26 @@ class FileContentGenerator {
                     <version>$version</version>
                     <scope>$scope</scope>
                 </dependency>"""
+    }
+
+    protected abstract String missingJavaLibrarySupportFlag()
+
+    protected abstract String tasksConfiguration()
+
+    protected abstract String imperativelyApplyPlugin(String plugin)
+
+    protected abstract String createTaskThatDependsOnAllIncludedBuildsTaskWithSameName(String taskName)
+
+    protected abstract String configurationsIfMissingJavaLibrarySupport(boolean hasParent)
+
+    protected abstract String directDependencyDeclaration(String configuration, String notation)
+
+    protected abstract String projectDependencyDeclaration(String configuration, int projectNumber)
+
+    protected final String dependency(int projectNumber) {
+        if (config.compositeBuild) {
+            return "\"org.gradle.test.performance:project${projectNumber}:1.0\""
+        }
+        return "project(\":project${projectNumber}\")"
     }
 }

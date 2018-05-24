@@ -23,8 +23,6 @@ import java.util.Collection;
 
 public abstract class LockableCollectionProperty<T, C extends Collection<T>> extends AbstractLockableProperty<C> implements CollectionPropertyInternal<T, C> {
     private CollectionPropertyInternal<T, C> delegate;
-    private boolean locked;
-    private C value;
 
     public LockableCollectionProperty(CollectionPropertyInternal<T, C> delegate) {
         super(delegate);

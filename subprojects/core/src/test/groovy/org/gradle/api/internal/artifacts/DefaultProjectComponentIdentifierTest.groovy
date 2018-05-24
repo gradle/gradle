@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.util.Path
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,49 +25,23 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(':myPath')
+        def id = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
 
         then:
-        defaultBuildComponentIdentifier.projectPath == ':myPath'
-        defaultBuildComponentIdentifier.displayName == 'project :myPath'
-        defaultBuildComponentIdentifier.toString() == 'project :myPath'
-    }
-
-    def "includes build name in path"() {
-        when:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(buildId("TEST"), ":myPath")
-
-        then:
-        defaultBuildComponentIdentifier.projectPath == ':myPath'
-        defaultBuildComponentIdentifier.displayName == 'project :TEST:myPath'
-        defaultBuildComponentIdentifier.toString() == 'project :TEST:myPath'
-
-        when:
-        defaultBuildComponentIdentifier = newProjectId(buildId("TEST"), ":")
-
-        then:
-        defaultBuildComponentIdentifier.projectPath == ':'
-        defaultBuildComponentIdentifier.displayName == 'project :TEST'
-        defaultBuildComponentIdentifier.toString() == 'project :TEST'
-    }
-
-    def "is instantiated with null constructor parameter value"() {
-        when:
-        newProjectId((String) null)
-
-        then:
-        Throwable t = thrown(AssertionError)
-        t.message == 'project path cannot be null'
+        id.projectPath == ':project:path'
+        id.projectName == 'projectName'
+        id.displayName == 'project :id:path'
+        id.toString() == 'project :id:path'
     }
 
     @Unroll
     def "can compare with other instance (#projectPath)"() {
         expect:
-        ProjectComponentIdentifier defaultBuildComponentIdentifier1 = newProjectId(':myProjectPath1')
-        ProjectComponentIdentifier defaultBuildComponentIdentifier2 = newProjectId(projectPath)
-        strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
-        (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
-        (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation
+        def id1 = newProjectId(':myProjectPath1')
+        def id2 = newProjectId(projectPath)
+        strictlyEquals(id1, id2) == equality
+        (id1.hashCode() == id2.hashCode()) == hashCode
+        (id1.toString() == id2.toString()) == stringRepresentation
 
         where:
         projectPath       | equality | hashCode | stringRepresentation
@@ -80,7 +54,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
     }
 
     private static newProjectId(BuildIdentifier build, String path) {
-        new DefaultProjectComponentIdentifier(build, path)
+        new DefaultProjectComponentIdentifier(build, Path.path(path), Path.path(path), "name")
     }
 
     private static buildId(String name) {

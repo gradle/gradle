@@ -23,10 +23,12 @@ import org.gradle.internal.hash.HashCode;
  */
 public class SourceFileState {
     private final HashCode hash;
-    private final ImmutableSet<IncludeFileState> resolvedIncludes;
+    private final boolean hasUnresolved;
+    private final ImmutableSet<IncludeFileEdge> resolvedIncludes;
 
-    public SourceFileState(HashCode hash, ImmutableSet<IncludeFileState> resolvedIncludes) {
+    public SourceFileState(HashCode hash, boolean hasUnresolved, ImmutableSet<IncludeFileEdge> resolvedIncludes) {
         this.hash = hash;
+        this.hasUnresolved = hasUnresolved;
         this.resolvedIncludes = resolvedIncludes;
     }
 
@@ -35,16 +37,16 @@ public class SourceFileState {
     }
 
     /**
-     * The set of successfully resolved include files, in the order included.
+     * Were any edges in the include file graph unable to be resolved?
      */
-    public ImmutableSet<IncludeFileState> getResolvedIncludes() {
-        return resolvedIncludes;
+    public boolean isHasUnresolved() {
+        return hasUnresolved;
     }
 
     /**
-     * Returns true if this file or its set of includes has changed since the given snapshot.
+     * The set of successfully resolved edges in the include file graph.
      */
-    public boolean hasChanged(SourceFileState previousState) {
-        return !hash.equals(previousState.hash) || !resolvedIncludes.equals(previousState.resolvedIncludes);
+    public ImmutableSet<IncludeFileEdge> getEdges() {
+        return resolvedIncludes;
     }
 }

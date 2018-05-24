@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildActionFailureException;
-import org.gradle.tooling.PhasedResultHandler;
+import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.DefaultPhasedActionResultListener;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
@@ -50,7 +50,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
         InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
         PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
-            getHandler(phasedBuildAction.getProjectsEvaluatedAction()), getHandler(phasedBuildAction.getBuildFinishedAction()));
+            getHandler(phasedBuildAction.getBuildFinishedAction()));
         InternalPhasedAction internalPhasedAction = getPhasedAction(phasedBuildAction, operationParameters.getProjectDir(), getVersionDetails());
         try {
             connection.run(internalPhasedAction, listener, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
@@ -60,13 +60,13 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     }
 
     @Nullable
-    private static <T> PhasedResultHandler<? super T> getHandler(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper) {
+    private static <T> IntermediateResultHandler<? super T> getHandler(@Nullable PhasedBuildAction.BuildActionWrapper<T> wrapper) {
         return wrapper == null ? null : wrapper.getHandler();
     }
 
     private static InternalPhasedAction getPhasedAction(PhasedBuildAction phasedBuildAction, File rootDir, VersionDetails versionDetails) {
         return new InternalPhasedActionAdapter(getAction(phasedBuildAction.getProjectsLoadedAction(), rootDir, versionDetails),
-            getAction(phasedBuildAction.getProjectsEvaluatedAction(), rootDir, versionDetails), getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
+            getAction(phasedBuildAction.getBuildFinishedAction(), rootDir, versionDetails));
     }
 
     @Nullable

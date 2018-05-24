@@ -24,52 +24,41 @@ import spock.lang.Specification
 class SelectedTaskExecutionActionTest extends Specification {
     final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
     final BuildExecutionContext context = Mock()
-    final TaskGraphExecuter executer = Mock()
+    final TaskExecutionGraphInternal taskGraph = Mock()
     final GradleInternal gradleInternal = Mock()
     final StartParameter startParameter = Mock()
 
     def setup() {
         _ * context.gradle >> gradleInternal
-        _ * gradleInternal.taskGraph >> executer
+        _ * gradleInternal.taskGraph >> taskGraph
         _ * gradleInternal.startParameter >> startParameter
     }
 
     def "executes selected tasks"() {
+        def failures = []
+
         given:
         _ * startParameter.continueOnFailure >> false
 
         when:
-        action.execute(context)
+        action.execute(context, failures)
 
         then:
-        1 * executer.execute()
+        1 * taskGraph.execute(failures)
     }
 
     def "executes selected tasks when continue specified"() {
-        given:
-        _ * startParameter.continueOnFailure >> true
-
-        when:
-        action.execute(context)
-
-        then:
-        1 * executer.useFailureHandler(!null)
-        1 * executer.execute()
-    }
-
-    def "adds failure handler that does not abort execution when continue specified"() {
-        TaskFailureHandler handler
-        RuntimeException failure = new RuntimeException()
+        def failures = []
 
         given:
         _ * startParameter.continueOnFailure >> true
 
         when:
-        action.execute(context)
+        action.execute(context, failures)
 
         then:
-        1 * executer.useFailureHandler(!null) >> { handler = it[0] }
-        1 * executer.execute() >> { handler.onTaskFailure(brokenTask(failure)) }
+        1 * taskGraph.setContinueOnFailure(true)
+        1 * taskGraph.execute(failures)
     }
 
     def brokenTask(Throwable failure) {

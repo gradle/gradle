@@ -16,8 +16,10 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.build.BuildState;
+import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
@@ -41,6 +43,11 @@ public interface ProjectStateRegistry {
      * Locates the state object that owns the project with the given identifier.
      */
     ProjectState stateFor(ProjectComponentIdentifier identifier);
+
+    /**
+     * Locates the state object for the given project.
+     */
+    ProjectState stateFor(BuildIdentifier buildIdentifier, Path projectPath);
 
     /**
      * Registers a project.

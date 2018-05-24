@@ -32,6 +32,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
     def setup() {
         prepare()
+        FeaturePreviewsFixture.enableStablePublishing(settingsFile)
     }
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {

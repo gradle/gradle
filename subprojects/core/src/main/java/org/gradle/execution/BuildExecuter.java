@@ -17,6 +17,8 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 
+import java.util.Collection;
+
 /**
  * Executes the tasks requested for a build.
  */
@@ -24,5 +26,5 @@ public interface BuildExecuter {
     /**
      * Executes the selected tasks.
      */
-    void execute(GradleInternal gradle);
+    void execute(GradleInternal gradle, Collection<? super Throwable> taskFailures);
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import java.util.Set;
 
@@ -26,7 +26,13 @@ import java.util.Set;
 public interface DependencyLockingState {
 
     /**
-     * Indicates if the lock state must be validated
+     * Indicates if the lock state must be strictly validated.
+     *
+     * If {@code true}, each locked dependency is added as a strict constraint,
+     * and the resolution result must exactly match the set of locked dependencies.
+     *
+     * If {@code false}, each locked dependency is added a regular (lenient) constraint,
+     * and the resolution result is not verified against the set of locked dependencies.
      *
      * @return {@code true} if lock state was found, {@code false} otherwise
      */
@@ -37,8 +43,8 @@ public interface DependencyLockingState {
      * Note that an empty set can mean either that lock state was not defined or that lock state is an empty set.
      * Disambiguation can be done by calling {@link #mustValidateLockState()}.
      *
-     * @return a set of constraints
+     * @return The set of module versions to lock.
      * @see #mustValidateLockState()
      */
-    Set<DependencyConstraint> getLockedDependencies();
+    Set<ModuleComponentIdentifier> getLockedDependencies();
 }

@@ -113,6 +113,9 @@ public class ClassDependentsAccumulator {
         }
         aggregatedTypes.addAll(annotationProcessingResult.getAggregatedTypes());
         dependentsOnAll.addAll(annotationProcessingResult.getGeneratedAggregatingTypes());
+        if (annotationProcessingResult.getFullRebuildCause() != null) {
+            fullRebuildCause = annotationProcessingResult.getFullRebuildCause();
+        }
     }
 
     private void addDependency(String dependency, String dependent) {

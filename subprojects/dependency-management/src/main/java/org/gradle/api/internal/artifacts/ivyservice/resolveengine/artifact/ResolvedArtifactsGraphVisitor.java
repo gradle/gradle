@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -42,12 +41,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final Map<Long, ArtifactsForNode> artifactsByNodeId = Maps.newHashMap();
     private final ArtifactSelector artifactSelector;
     private final DependencyArtifactsVisitor artifactResults;
-    private final ModuleExclusions moduleExclusions;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector, ModuleExclusions moduleExclusions) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector) {
         this.artifactResults = artifactsBuilder;
         this.artifactSelector = artifactSelector;
-        this.moduleExclusions = moduleExclusions;
     }
 
     @Override
@@ -100,13 +97,6 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toConfiguration.getNodeId());
         if (configurationArtifactSet == null) {
             ModuleExclusion exclusions = dependency.getExclusions();
-
-            // The above isn't quite right, since we are not applying artifact exclusions defined for the target node,
-            // to the target node itself. So a module exclusion for `type='jar'` won't exclude the jar for the module itself.
-            // While fixing this, we should be smarter about artifact exclusions: these can be completely separate from module exclusions.
-//            ModuleExclusion nodeExclusions = targetConfiguration.getExclusions(moduleExclusions);
-//            ModuleExclusion edgeExclusions = dependency.getExclusions();
-//            ModuleExclusion exclusions = moduleExclusions.intersect(edgeExclusions, nodeExclusions);
             ArtifactSet nodeArtifacts = artifactSelector.resolveArtifacts(component, targetConfiguration, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);

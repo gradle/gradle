@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -59,10 +59,10 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  *
  * @since 1.3
  */
-@Incubating
 public class IvyPublishPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
@@ -71,10 +71,11 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private final FeaturePreviews featurePreviews;
 
     @Inject
-    public IvyPublishPlugin(Instantiator instantiator, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
+    public IvyPublishPlugin(Instantiator instantiator, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider, FileResolver fileResolver,
                             ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
                             ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews) {
         this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -86,9 +87,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(PublishingPlugin.class);
 
-        PublishingExtension extension = project.getExtensions().getByType(PublishingExtension.class);
-        extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, fileResolver));
-        createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+        project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+            @Override
+            public void execute(PublishingExtension extension) {
+                extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider, instantiator, objectFactory, fileResolver));
+                createTasksLater(project, extension, project.getLayout().getBuildDirectory());
+            }
+        });
     }
 
     private void createTasksLater(final Project project, final PublishingExtension publishingExtension, final DirectoryProperty buildDir) {
@@ -161,11 +166,13 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
+        private final ObjectFactory objectFactory;
         private final FileResolver fileResolver;
 
-        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, FileResolver fileResolver) {
+        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
+            this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
         }
 
@@ -175,7 +182,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             return instantiator.newInstance(
                 DefaultIvyPublication.class,
-                name, instantiator, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, featurePreviews
+                name, instantiator, objectFactory, publicationIdentity, notationParser, projectDependencyResolver, fileCollectionFactory, immutableAttributesFactory, featurePreviews
             );
         }
     }

@@ -20,40 +20,37 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationPr
 import spock.lang.Specification
 
 import javax.annotation.processing.Filer
-import javax.annotation.processing.Messager
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.Name
 import javax.lang.model.element.PackageElement
 import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
 import javax.tools.StandardLocation
 
 abstract class IncrementalFilerTest extends Specification {
     Filer delegate = Stub(Filer)
     AnnotationProcessingResult result = new AnnotationProcessingResult()
-    Messager messager = Mock(Messager)
     Filer filer
 
     def setup() {
-        filer = createFiler(delegate, result, messager)
+        filer = new IncrementalFiler(delegate, getStrategy(result))
     }
 
-    abstract Filer createFiler(Filer filer, AnnotationProcessingResult result, Messager messager)
+    abstract IncrementalProcessingStrategy getStrategy(AnnotationProcessingResult result)
 
-    def "fails when trying to read resources"() {
+    def "does a full rebuild when trying to read resources"() {
         when:
         filer.getResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to read resources.")
+        result.fullRebuildCause == "incremental annotation processors are not allowed to read resources"
     }
 
-    def "fails when trying to write resources"() {
+    def "does a full rebuild  when trying to write resources"() {
         when:
         filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
 
         then:
-        1 * messager.printMessage(Diagnostic.Kind.ERROR, "Incremental annotation processors are not allowed to create resources.")
+        result.fullRebuildCause == "incremental annotation processors are not allowed to create resources"
     }
 
     PackageElement pkg(String packageName) {

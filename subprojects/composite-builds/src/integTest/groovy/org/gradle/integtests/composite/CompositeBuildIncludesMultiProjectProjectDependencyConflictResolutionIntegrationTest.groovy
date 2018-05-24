@@ -16,8 +16,10 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionIntegrationSpec
+import org.gradle.internal.build.BuildState
 import org.gradle.test.fixtures.file.TestFile
 
 /**
@@ -53,7 +55,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
 
     @Override
     String getBuildId() {
-        "((org.gradle.api.internal.project.ProjectInternal) project).getServices().get(org.gradle.initialization.BuildIdentity.class).getCurrentBuild()"
+        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getBuildIdentifier()"
     }
 
     @Override

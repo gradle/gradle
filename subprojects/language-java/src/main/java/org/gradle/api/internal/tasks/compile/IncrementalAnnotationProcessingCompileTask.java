@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.AggregatingProcessor;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
+import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
+import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
+import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -86,7 +88,7 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
             try {
                 Class<?> processorClass = processorClassloader.loadClass(declaredProcessor.getClassName());
                 Processor processor = (Processor) processorClass.newInstance();
-                processor = decorateIfIncremental(processor, declaredProcessor.getType());
+                processor = decorateForIncrementalProcessing(processor, declaredProcessor.getType());
                 processors.add(processor);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e);
@@ -95,14 +97,16 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
         delegate.setProcessors(processors);
     }
 
-    private Processor decorateIfIncremental(Processor processor, IncrementalAnnotationProcessorType type) {
+    private Processor decorateForIncrementalProcessing(Processor processor, IncrementalAnnotationProcessorType type) {
         switch (type) {
             case ISOLATING:
                 return new IsolatingProcessor(processor, result);
             case AGGREGATING:
                 return new AggregatingProcessor(processor, result);
+            case DYNAMIC:
+                return new DynamicProcessor(processor, result);
             default:
-                return processor;
+                return new NonIncrementalProcessor(processor, result);
         }
     }
 

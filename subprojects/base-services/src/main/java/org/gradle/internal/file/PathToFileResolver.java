@@ -31,4 +31,11 @@ public interface PathToFileResolver {
      * Returns a resolver that resolves paths relative to the given base dir.
      */
     PathToFileResolver newResolver(File baseDir);
+
+    /**
+     * Indicates if this resolver is able to resolved relative paths.
+     *
+     * @return {@code true} if it can resolve relative path, {@code false} otherwise.
+     */
+    boolean canResolveRelativePath();
 }

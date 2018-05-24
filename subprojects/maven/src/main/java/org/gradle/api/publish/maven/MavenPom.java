@@ -35,7 +35,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 1.4
  */
-@Incubating
 @HasInternalProtocol
 public interface MavenPom {
 
@@ -54,6 +53,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     Property<String> getName();
 
     /**
@@ -61,6 +61,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     Property<String> getDescription();
 
     /**
@@ -68,6 +69,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     Property<String> getUrl();
 
     /**
@@ -75,6 +77,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     Property<String> getInceptionYear();
 
     /**
@@ -82,6 +85,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void licenses(Action<? super MavenPomLicenseSpec> action);
 
     /**
@@ -89,6 +93,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void organization(Action<? super MavenPomOrganization> action);
 
     /**
@@ -96,6 +101,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void developers(Action<? super MavenPomDeveloperSpec> action);
 
     /**
@@ -103,6 +109,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void contributors(Action<? super MavenPomContributorSpec> action);
 
     /**
@@ -110,6 +117,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void scm(Action<? super MavenPomScm> action);
 
     /**
@@ -117,6 +125,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void issueManagement(Action<? super MavenPomIssueManagement> action);
 
     /**
@@ -124,6 +133,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void ciManagement(Action<? super MavenPomCiManagement> action);
 
     /**
@@ -131,6 +141,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void distributionManagement(Action<? super MavenPomDistributionManagement> action);
 
     /**
@@ -138,6 +149,7 @@ public interface MavenPom {
      *
      * @since 4.8
      */
+    @Incubating
     void mailingLists(Action<? super MavenPomMailingListSpec> action);
 
     /**

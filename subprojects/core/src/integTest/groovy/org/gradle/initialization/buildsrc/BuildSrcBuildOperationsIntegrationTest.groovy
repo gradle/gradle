@@ -23,14 +23,17 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.util.CollectionUtils
+import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
 class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
-    def "includes build identifier in build operations"() {
+    @Unroll
+    def "includes build identifier in build operations with #display"() {
         given:
         def ops = new BuildOperationsFixture(executer, temporaryFolder)
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
+        file("buildSrc/settings.gradle") << settings << "\n"
 
         when:
         succeeds()
@@ -48,13 +51,13 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ':'
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildSrc)"
+        loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
 
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (buildSrc)"
+        configureOps[0].displayName == "Configure build (:buildSrc)"
         configureOps[0].details.buildPath == ":buildSrc"
         configureOps[0].parentId == buildSrcOps[0].id
         configureOps[1].displayName == "Configure build"
@@ -83,5 +86,10 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         taskOps[0].parentId == runTasksOps[0].id
         taskOps.last().details.buildPath == ':'
         taskOps.last().parentId == runTasksOps[1].id
+
+        where:
+        settings                     | display
+        ""                           | "default root project name"
+        "rootProject.name='someLib'" | "configured root project name"
     }
 }

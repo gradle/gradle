@@ -13,14 +13,16 @@
 // limitations under the License.
 
 [[maven_plugin]]
-== The Maven Plugin
+== Maven Plugin
 
 
 [NOTE]
 ====
- 
-This chapter is a work in progress
- 
+
+This chapter describes deploying artifacts to Maven repositories using the _original_ publishing mechanism available in Gradle 1.0: in Gradle 1.3 a new mechanism for publishing was introduced. This new mechanism introduces some new concepts and features that make Gradle publishing even more powerful and is now the preferred option for publishing artifacts.
+
+You can read about the new publishing plugins in <<publishing_ivy>> and <<publishing_maven>>.
+
 ====
 
 The Maven plugin adds support for deploying artifacts to Maven repositories.

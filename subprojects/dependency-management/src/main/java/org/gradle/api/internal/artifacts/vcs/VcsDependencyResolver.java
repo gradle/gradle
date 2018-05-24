@@ -106,7 +106,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
                 File dependencyWorkingDir = new File(populateWorkingDirectory(baseWorkingDir, spec, versionControlSystem, selectedVersion), spec.getRootDir());
 
-                IncludedBuildState includedBuild = buildRegistry.addImplicitBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir), nestedBuildFactory);
+                IncludedBuildState includedBuild = buildRegistry.addImplicitIncludedBuild(((AbstractVersionControlSpec)spec).getBuildDefinition(dependencyWorkingDir));
 
                 Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> moduleToProject = includedBuild.getAvailableModules();
                 Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry = CollectionUtils.findFirst(moduleToProject, new Spec<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>>() {
@@ -123,7 +123,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
 
                     if (componentMetaData == null) {
-                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(includedBuild.getBuildIdentifier(), entry.right.getProjectPath()), spec.getDisplayName() + " could not be resolved into a usable project."));
+                        result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(entry.right), spec.getDisplayName() + " could not be resolved into a usable project."));
                     } else {
                         result.resolved(componentMetaData);
                     }

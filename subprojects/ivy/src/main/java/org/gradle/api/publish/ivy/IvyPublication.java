@@ -17,10 +17,9 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
@@ -56,6 +55,8 @@ import org.gradle.api.publish.Publication;
  * You can also completely replace the set of published artifacts using {@link #setArtifacts(Iterable)}.
  * Together, these methods give you full control over the artifacts to be published.
  * </p><p>
+ * In addition, {@link IvyModuleDescriptorSpec} provides configuration methods to customize licenses, authors, and the description to be published in the Ivy module descriptor.
+ * </p><p>
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
  * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
@@ -78,8 +79,16 @@ import org.gradle.api.publish.Publication;
  *         extension "src.jar"
  *         conf "runtime"
  *       }
- *       descriptor.withXml {
- *         asNode().info[0].appendNode("description", "custom-description")
+ *       descriptor {
+ *         license {
+ *           name = "Custom License"
+ *         }
+ *         author {
+ *           name = "Custom Name"
+ *         }
+ *         description {
+ *           text = "Custom Description"
+ *         }
  *       }
  *     }
  *   }
@@ -88,7 +97,6 @@ import org.gradle.api.publish.Publication;
  *
  * @since 1.3
  */
-@Incubating
 @HasInternalProtocol
 public interface IvyPublication extends Publication {
 

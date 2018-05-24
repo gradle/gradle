@@ -16,9 +16,10 @@
 
 package org.gradle.ide.xcode.fixtures
 
+import org.gradle.plugins.ide.fixtures.IdeWorkspaceFixture
 import org.gradle.test.fixtures.file.TestFile
 
-class XcodeWorkspacePackage {
+class XcodeWorkspacePackage extends IdeWorkspaceFixture {
     final TestFile dir
     final WorkspaceFile contentFile
 
@@ -26,5 +27,10 @@ class XcodeWorkspacePackage {
         xcodeWorkspacePackage.assertIsDir()
         dir = xcodeWorkspacePackage
         contentFile = new WorkspaceFile(xcodeWorkspacePackage.file("contents.xcworkspacedata"))
+    }
+
+    @Override
+    void assertExists() {
+        dir.assertIsDir()
     }
 }

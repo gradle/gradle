@@ -16,11 +16,12 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.TestFileSnapshotter
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
-import org.gradle.language.nativeplatform.internal.IncludeType
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.IncludeWithSimpleExpression
 import org.gradle.test.fixtures.file.TestFile
@@ -29,12 +30,15 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 @UsesNativeServices
 class IncrementalCompileProcessorTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def includesParser = Mock(SourceIncludesParser)
-    def dependencyResolver = Mock(SourceIncludesResolver)
+    def dependencyResolver = new DummyResolver()
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def stateCache = new DummyPersistentStateCache()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
@@ -48,7 +52,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def sourceFiles
 
     Map<TestFile, List<File>> graph = [:]
-    List<TestFile> modified = []
+    List<TestFile> modifiedFiles = []
 
     def setup() {
         // S1 - D1 \
@@ -66,14 +70,12 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def initialFiles() {
-
         graph.keySet().each { TestFile sourceFile ->
             parse(sourceFile)
-            resolve(sourceFile)
         }
 
         sourceFiles = [source1, source2]
-        with (state) {
+        with(state) {
             assert recompile == [source1, source2]
             assert removed == []
         }
@@ -86,30 +88,23 @@ class IncrementalCompileProcessorTest extends Specification {
         }
     }
 
-    def resolve(TestFile sourceFile) {
-        _ * dependencyResolver.resolveInclude(sourceFile, _, _) >> {
-            def deps = graph[sourceFile]
-            resolveDeps(deps)
-        }
-    }
-
     private static IncludeDirectives includes(Collection<File> deps) {
         return new DefaultIncludeDirectives(ImmutableList.copyOf(deps.collect { IncludeWithSimpleExpression.parse('<' + it.name + '>', false) }), ImmutableList.of(), ImmutableList.of())
     }
 
     def added(TestFile sourceFile) {
-        modified << sourceFile
+        modifiedFiles << sourceFile
         graph[sourceFile] = []
     }
 
     def sourceAdded(TestFile sourceFile, List<File> deps = []) {
         sourceFiles << sourceFile
-        modified << sourceFile
+        modifiedFiles << sourceFile
         graph[sourceFile] = deps
     }
 
     def modified(TestFile sourceFile, List<File> deps = null) {
-        modified << sourceFile
+        modifiedFiles << sourceFile
         sourceFile << "More text"
         if (deps != null) {
             graph[sourceFile] = deps
@@ -241,18 +236,12 @@ class IncrementalCompileProcessorTest extends Specification {
         when:
         def dep5 = sourceFile("dep5")
         graph[dep5] = []
-
-        resolve(source1)
-        resolve(dep1)
-        resolve(dep2)
-        resolve(dep3)
         parse(dep5)
-        resolve(dep5)
+        dependencyResolver.resolveAs("dep4", dep5)
         graph[source2] = [dep3, dep5]
-        resolve(source2)
 
         then:
-        with (state) {
+        with(state) {
             recompile == [source2]
             removed == []
         }
@@ -374,21 +363,22 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def "discovers if unresolved includes have been used"() {
         given:
-        def includes = new DefaultIncludeDirectives(ImmutableList.copyOf([new IncludeWithSimpleExpression("MACRO_DEF", false, IncludeType.MACRO)]), ImmutableList.of(), ImmutableList.of())
+        parse(source1)
+        parse(dep1)
+        parse(dep2)
+        parse(dep3)
+        dependencyResolver.unresolved(source1)
 
         when:
         def result = incrementalCompileProcessor.processSourceFiles([source1])
 
         then:
-        1 * includesParser.parseIncludes(source1) >> includes
-        1 * dependencyResolver.resolveInclude(source1, _, _) >> unresolved()
-
         result.unresolvedHeaders
     }
 
     def checkCompile(Map<String, List<File>> args) {
         parseAndResolve()
-        with (state) {
+        with(state) {
             assert recompile == args['recompiled']
             assert removed == args['removed']
         }
@@ -396,13 +386,10 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def parseAndResolve() {
-        modified.each {
+        modifiedFiles.each {
             parse(it)
         }
-        modified.clear()
-        graph.keySet().each { TestFile sourceFile ->
-            resolve(sourceFile)
-        }
+        modifiedFiles.clear()
         true
     }
 
@@ -414,27 +401,6 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def sourceFile(def name) {
         tmpDir.createFile(name) << name
-    }
-
-    SourceIncludesResolver.IncludeResolutionResult resolveDeps(Collection<File> deps) {
-        SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
-        _ * includes.complete >> true
-        _ * includes.files >> deps.collect {
-            def include = Stub(SourceIncludesResolver.IncludeFile)
-            _ * include.file >> it
-            _ * include.snapshot >> fileSystemSnapshotter.snapshotSelf(it)
-            include
-        }
-        _ * includes.checkedLocations >> deps
-        return includes
-    }
-
-    SourceIncludesResolver.IncludeResolutionResult unresolved() {
-        SourceIncludesResolver.IncludeResolutionResult includes = Stub(SourceIncludesResolver.IncludeResolutionResult)
-        _ * includes.complete >> false
-        _ * includes.checkedLocations >> []
-        _ * includes.files >> []
-        return includes
     }
 
     class DummyPersistentStateCache implements PersistentStateCache<CompilationState> {
@@ -455,6 +421,92 @@ class IncrementalCompileProcessorTest extends Specification {
         @Override
         CompilationState maybeUpdate(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException()
+        }
+    }
+
+    class DummyResolver implements SourceIncludesResolver {
+        final Map<String, TestFile> mapping = [:]
+        final Set<TestFile> unresolved = []
+
+        void unresolved(TestFile file) {
+            unresolved.add(file)
+        }
+
+        void resolveAs(String include, TestFile file) {
+            mapping[include] = file
+        }
+
+        @Override
+        IncludeResolutionResult resolveInclude(File sourceFile, Include include, MacroLookup visibleMacros) {
+            def deps = graph[sourceFile]
+            assert deps != null
+            def file = deps.find { it.name == include.value }
+            assert file
+            return new IncludeResolutionResult() {
+                @Override
+                boolean isComplete() {
+                    return !unresolved.contains(sourceFile)
+                }
+
+                @Override
+                Collection<SourceIncludesResolver.IncludeFile> getFiles() {
+                    return [
+                        new SourceIncludesResolver.IncludeFile() {
+                            @Override
+                            boolean isQuotedInclude() {
+                                return false
+                            }
+
+                            @Override
+                            String getPath() {
+                                return include.value
+                            }
+
+                            @Override
+                            File getFile() {
+                                return file
+                            }
+
+                            @Override
+                            FileSnapshot getSnapshot() {
+                                return fileSystemSnapshotter.snapshotSelf(file)
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        @Override
+        IncludeFile resolveInclude(@Nullable File sourceFile, String includePath) {
+            def file = mapping.get(includePath)
+            if (file == null) {
+                file = graph.keySet().find { it.name == includePath }
+            }
+            if (file == null) {
+                return null
+            }
+            return new IncludeFile() {
+                @Override
+                boolean isQuotedInclude() {
+                    return false
+                }
+
+                @Override
+                String getPath() {
+                    return includePath
+                }
+
+                @Override
+                File getFile() {
+                    return file
+                }
+
+                @Override
+                FileSnapshot getSnapshot() {
+                    return fileSystemSnapshotter.snapshotSelf(file)
+                }
+            }
         }
     }
 }

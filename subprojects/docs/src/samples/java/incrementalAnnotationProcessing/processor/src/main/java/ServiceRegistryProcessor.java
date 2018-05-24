@@ -18,6 +18,13 @@ public class ServiceRegistryProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
+    // START SNIPPET options-of-dynamic-processor
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.aggregating");
+    }
+    // END SNIPPET options-of-dynamic-processor
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         TypeElement serviceAnnotation = processingEnv.getElementUtils().getTypeElement("Service");

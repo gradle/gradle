@@ -556,7 +556,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+        output.contains "Not loading task ':customTask' from cache because no valid cache key was generated"
     }
 
     def "task with custom action loaded with custom classloader is not cached"() {
@@ -598,7 +598,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask", "--info"
         then:
-        output.contains "Not caching task ':customTask' because no valid cache key was generated"
+        output.contains "Not loading task ':customTask' from cache because no valid cache key was generated"
     }
 
     def "task stays up-to-date after loaded from cache"() {

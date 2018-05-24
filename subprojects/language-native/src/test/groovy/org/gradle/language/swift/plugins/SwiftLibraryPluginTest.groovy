@@ -120,7 +120,7 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile).name == ['compileDebugSwift', 'compileReleaseSwift']
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugSwift', 'compileReleaseSwift']
         project.tasks.withType(CreateStaticLibrary).empty
 
         and:
@@ -223,7 +223,7 @@ class SwiftLibraryPluginTest extends Specification {
         project.evaluate()
 
         then:
-        project.tasks.withType(SwiftCompile).name == ['compileDebugSwift', 'compileReleaseSwift']
+        project.tasks.withType(SwiftCompile)*.name == ['compileDebugSwift', 'compileReleaseSwift']
         project.tasks.withType(LinkSharedLibrary).empty
 
         and:

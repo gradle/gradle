@@ -67,40 +67,45 @@ Separating compile and runtime scope of modules is active by default in Gradle 5
 [[sec:java_library_recognizing_dependencies]]
 === Recognizing API and implementation dependencies
 
-This section will help you spot API and Implementation dependencies in your code using simple rules of thumb. Basically, an API dependency is a type that is exposed in the library binary interface, often referred to ABI (Application Binary Interface). This includes, but is not limited to:
+This section will help you identify API and Implementation dependencies in your code using simple rules of thumb. The first of these is:
+
+ * Prefer the `implementation` configuration over `api` when possible
+ 
+This keeps the dependencies off of the consumer's compilation classpath. In addition, the consumers will immediately fail to compile if any implementation types accidentally leak into the public API.
+
+So when should you use the `api` configuration? An API dependency is one that contains at least one type that is exposed in the library binary interface, often referred to as its ABI (Application Binary Interface). This includes, but is not limited to:
 
 * types used in super classes or interfaces
 * types used in public method parameters, including generic parameter types (where _public_ is something that is visible to compilers. I.e. , _public_, _protected_ and _package private_ members in the Java world)
 * types used in public fields
 * public annotation types
 
-In opposition, any type that is used in the following list is irrelevant to the ABI, and therefore should be declared as `implementation` dependency:
+By contrast, any type that is used in the following list is irrelevant to the ABI, and therefore should be declared as an `implementation` dependency:
 
 * types exclusively used in method bodies
 * types exclusively used in private members
 * types exclusively found in internal classes (future versions of Gradle will let you declare which packages belong to the public API)
 
-In the following sample, we can make the difference between an API dependency and an implementation dependency:
+The following class makes use of a couple of third-party libraries, one of which is exposed in the class's public API and the other is only used internally. The import statements don't help us determine which is which, so we have to look at the fields, constructors and methods instead:
 
 ++++
 <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Making the difference between API and implementation">
-            <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="sample"/>
-        </sample>
+    <sourcefile file="src/main/java/org/gradle/HttpClientWrapper.java" snippet="sample"/>
+</sample>
 ++++
 
-We can see that our class imports third party classes, but imports alone won't tell us if a dependency is an API or implementation dependency. For this, we need to look at the methods. The public constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it exposed to consumers and therefore belongs to the API.
+The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `GetMethod` is used in the signature of a _private_ method, and so it doesn't count towards making HttpClient an API dependency.
 
-On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` library, is only used in a method body, so it's an implementation dependency.
+On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` library, is only used in a method body (not in its signature), so it's an implementation dependency.
 
-Therefore, we can deduce that `commons-httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency, which directly translates into the build file:
+Therefore, we can deduce that `commons-httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
 ++++
 <sample id="useJavaLibraryPlugin" dir="java-library/quickstart" title="Declaring API and implementation dependencies">
-            <sourcefile file="build.gradle" snippet="dependencies"/>
-        </sample>
+    <sourcefile file="build.gradle" snippet="dependencies"/>
+</sample>
 ++++
 
-As a guideline, you should prefer the `implementation` configuration first: leakage of implementation types to consumers would then directly lead to a compile error of consumers, which would be solved either by removing the type from the public API, or promoting the dependency as an API dependency instead.
 
 [[sec:java_library_configurations_graph]]
 === The Java Library plugin configurations

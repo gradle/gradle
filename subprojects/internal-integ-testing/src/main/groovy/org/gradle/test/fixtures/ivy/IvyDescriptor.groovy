@@ -27,9 +27,11 @@ class IvyDescriptor {
     String module
     String revision
     String status
-    String description
+    Node description
     String branch
     String resolver
+    NodeList licenses
+    NodeList authors
     Map<QName, String> extraInfo
 
     IvyDescriptor(File ivyFile) {
@@ -40,7 +42,9 @@ class IvyDescriptor {
         status = ivy.info[0].@status
         branch = ivy.info[0].@branch
         resolver = ivy.info[0].@resolver
-        description = ivy.info[0].description[0]?.text()
+        description = ivy.info[0].description[0]
+        licenses = ivy.info[0].license
+        authors = ivy.info[0].ivyauthor
 
         extraInfo = [:]
         ivy.info[0].children().findAll { it.name() instanceof QName }.each {

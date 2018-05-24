@@ -291,7 +291,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        long minimumTimestamp = (System.currentTimeMillis()/1000 * 1000) - 1000
+        long minimumTimestamp = (System.currentTimeMillis()/1000 * 1000) - 2000
         def file1 = rootDir.createFile("a/b/1.txt")
         file1 << '12345'
         def file2 = rootDir.createFile("a/b/2.txt")

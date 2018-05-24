@@ -18,6 +18,8 @@ package org.gradle.api.internal.buildevents
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 
-class VerboseConsoleBuildResultLoggerFunctionalTest extends RichConsoleBuildResultLoggerFunctionalTest {
+class VerboseConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
+    String failureMessage = buildFailedStyled.errorOutput
+    String successMessage = buildSuccessStyled.output
 }

@@ -19,18 +19,33 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
+import spock.lang.Unroll
 
 
 class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    GitFileRepository repo = new GitFileRepository('dep', temporaryFolder.getTestDirectory())
+    GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
 
     def setup() {
         settingsFile << """
             rootProject.name = 'buildA'
+        """
+        buildFile << """
+            apply plugin: 'java'
+        """
+
+        repo.file("build.gradle") << """
+            apply plugin: 'java'
+            group = 'org.test'
+            version = '1.2'
+        """
+    }
+
+    def dependency(String moduleName) {
+        settingsFile << """
             sourceControl {
                 vcsMappings {
-                    withModule("org.test:buildB") {
+                    withModule("org.test:${moduleName}") {
                         from(GitVersionControlSpec) {
                             url = uri("${repo.url}")
                         }
@@ -39,40 +54,43 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         buildFile << """
-            apply plugin: 'java'
-            dependencies { implementation 'org.test:buildB:1.2' }
-        """
-
-        repo.file("settings.gradle") << """
-            rootProject.name = 'buildB'
-        """
-        repo.file("build.gradle") << """
-            apply plugin: 'java'
-            group = 'org.test'
-            version = '1.2'
+            dependencies { implementation 'org.test:${moduleName}:1.2' }
         """
     }
 
-    def "includes build identifier in error message on failure to resolve dependencies of build"() {
+    @Unroll
+    def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
+        repo.file("settings.gradle") << """
+            ${settings}
+        """
         repo.file("build.gradle") << """
             dependencies { implementation "test:test:1.2" }
         """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
+        dependency(buildName)
 
         when:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':buildB:compileJava'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildB:compileClasspath'.")
-        // TODO - incorrect project path
+        failure.assertHasDescription("Could not determine the dependencies of task ':${buildName}:compileJava'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':${buildName}:compileClasspath'.")
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
-    project :dep""")
+    project :${buildName}""")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes build identifier in task failure error message"() {
+    @Unroll
+    def "includes build identifier in task failure error message with #display"() {
+        repo.file("settings.gradle") << """
+            ${settings}
+        """
         repo.file("build.gradle") << """
             classes.doLast {
                 throw new RuntimeException("broken")
@@ -80,36 +98,68 @@ Required by:
         """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
+        dependency(buildName)
 
         when:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildB:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
         failure.assertHasCause("broken")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 
-    def "includes build identifier in dependency resolution results"() {
+    @Unroll
+    def "includes build identifier in dependency resolution results with #display"() {
+        repo.file("settings.gradle") << """
+            ${settings}
+            include 'a'
+        """
+        repo.file("build.gradle") << """
+            allprojects { apply plugin: 'java' }
+            dependencies { implementation project(':a') }
+        """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
+        dependency(buildName)
 
         buildFile << """
             classes.doLast {
-                def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
-                assert components.size() == 2
+                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
+                assert components.size() == 3
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
-                // TODO - should be 'buildA'
-                assert components[0].projectName == ':'
-                assert components[1].build.name == 'buildB'
+                assert components[0].projectName == 'buildA'
+                assert components[1].build.name == '${buildName}'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
-                assert components[1].projectName == 'buildB'
+                assert components[1].projectName == '${buildName}'
+                assert components[2].build.name == '${buildName}'
+                assert !components[2].build.currentBuild
+                assert components[2].projectPath == ':a'
+                assert components[2].projectName == 'a'
+
+                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
+                assert selectors.size() == 2
+                assert selectors[0].displayName == 'org.test:${buildName}:1.2'
+                assert selectors[1].displayName == 'project :${buildName}:a'
+                // TODO - should be buildB
+                assert selectors[1].buildName == 'buildB'
+                assert selectors[1].projectPath == ':a'
             }
         """
 
         expect:
         succeeds( ":assemble")
+
+        where:
+        settings                     | buildName | display
+        ""                           | "buildB"  | "default root project name"
+        "rootProject.name='someLib'" | "someLib" | "configured root project name"
     }
 }

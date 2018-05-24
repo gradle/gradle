@@ -36,12 +36,6 @@ public interface InternalPhasedAction extends InternalProtocolInterface, Seriali
     InternalBuildActionVersion2<?> getProjectsLoadedAction();
 
     /**
-     * Internal version of the action to be run after projects are evaluated.
-     */
-    @Nullable
-    InternalBuildActionVersion2<?> getProjectsEvaluatedAction();
-
-    /**
      * Internal version of the action to be run after tasks are run.
      */
     @Nullable

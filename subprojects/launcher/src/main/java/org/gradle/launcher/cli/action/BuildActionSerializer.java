@@ -91,6 +91,7 @@ public class BuildActionSerializer {
             nullableFileSerializer.write(encoder, startParameter.getSettingsFile());
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
+            nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
             encoder.writeBoolean(startParameter.isUseEmptySettings());
@@ -160,6 +161,7 @@ public class BuildActionSerializer {
             startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
+            startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
             startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
             startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
             if (decoder.readBoolean()) {

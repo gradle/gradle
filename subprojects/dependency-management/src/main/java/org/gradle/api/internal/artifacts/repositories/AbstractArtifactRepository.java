@@ -16,13 +16,35 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.artifacts.ComponentMetadataListerDetails;
+import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
+import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.ConfigurableRule;
+import org.gradle.internal.reflect.DefaultConfigurableRule;
+import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.service.DefaultServiceRegistry;
 
-public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal {
+import java.net.URI;
 
+public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
     private String name;
     private boolean isPartOfContainer;
+    private ConfigurableRule<ComponentMetadataSupplierDetails> componentMetadataSupplierRule;
+    private ConfigurableRule<ComponentMetadataListerDetails> componentMetadataListerRule;
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -43,4 +65,68 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     public String getDisplayName() {
         return getName();
     }
+
+    public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
+        this.componentMetadataSupplierRule = DefaultConfigurableRule.of(ruleClass);
+    }
+
+    @Override
+    public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
+        this.componentMetadataSupplierRule = DefaultConfigurableRule.of(rule, configureAction);
+    }
+
+    @Override
+    public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister) {
+        this.componentMetadataListerRule = DefaultConfigurableRule.of(lister);
+    }
+
+    @Override
+    public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
+        this.componentMetadataListerRule = DefaultConfigurableRule.of(lister, configureAction);
+    }
+
+    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator) {
+        return createRuleAction(instantiator, componentMetadataSupplierRule);
+    }
+
+    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(final Instantiator instantiator) {
+        return createRuleAction(instantiator, componentMetadataListerRule);
+    }
+
+    /**
+     * Creates a service registry giving access to the services we want to expose to rules and returns an instantiator that uses this service registry.
+     *
+     * @param transport the transport used to create the repository accessor
+     * @param rootUri
+     * @param externalResourcesFileStore
+     * @return a dependency injecting instantiator, aware of services we want to expose
+     */
+    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new Object() {
+            RepositoryResourceAccessor createResourceAccessor() {
+                return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
+            }
+        });
+        return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
+    }
+
+    private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+        return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
+    }
+
+
+    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
+        if (rule == null) {
+            return null;
+        }
+
+        return new InstantiatingAction<T>(rule, instantiator, new InstantiatingAction.ExceptionHandler<T>() {
+            @Override
+            public void handleException(T target, Throwable throwable) {
+                throw UncheckedException.throwAsUncheckedException(throwable);
+            }
+        });
+    }
+
 }

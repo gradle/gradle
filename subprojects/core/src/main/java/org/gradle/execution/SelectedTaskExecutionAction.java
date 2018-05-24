@@ -23,24 +23,20 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class SelectedTaskExecutionAction implements BuildExecutionAction {
-    public void execute(BuildExecutionContext context) {
+    @Override
+    public void execute(BuildExecutionContext context, Collection<? super Throwable> taskFailures) {
         GradleInternal gradle = context.getGradle();
-        TaskGraphExecuter taskGraph = gradle.getTaskGraph();
+        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
         if (gradle.getStartParameter().isContinueOnFailure()) {
-            taskGraph.useFailureHandler(new ContinueOnFailureHandler());
+            taskGraph.setContinueOnFailure(true);
         }
 
         taskGraph.addTaskExecutionGraphListener(new BindAllReferencesOfProjectsToExecuteListener());
-        taskGraph.execute();
-    }
-
-    private static class ContinueOnFailureHandler implements TaskFailureHandler {
-        public void onTaskFailure(Task task) {
-            // Do nothing
-        }
+        taskGraph.execute(taskFailures);
     }
 
     private static class BindAllReferencesOfProjectsToExecuteListener implements TaskExecutionGraphListener {

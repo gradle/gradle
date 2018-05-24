@@ -20,6 +20,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.maven.InvalidMavenPublicationException
 import org.gradle.api.publish.maven.MavenArtifact
@@ -219,9 +220,9 @@ class ValidatingMavenPublisherTest extends Specification {
 
     private def makeProjectIdentity(def groupId, def artifactId, def version) {
         return Stub(MavenProjectIdentity) {
-            getGroupId() >> groupId
-            getArtifactId() >> artifactId
-            getVersion() >> version
+            getGroupId() >> Providers.of(groupId)
+            getArtifactId() >> Providers.of(artifactId)
+            getVersion() >> Providers.of(version)
         }
     }
 

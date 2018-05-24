@@ -300,8 +300,6 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         "1.+"        | "[1.0, 1.1]" | "1.2"         | "1.2"
         "1.+"        | "[1.0, 1.4]" | "FAIL"        | "FAIL"
         "1.+"        | "[1.0, )"    | "FAIL"        | "FAIL"
-
-        // Incorrect behaviour: should find older version in preferred range when newest is rejected
         "[1.0, 1.2]" | "1.2"        | "1.1"          | "1.1"
         "[1.0, )"    | "1.2"        | "1.1"          | "1.1"
         "1.+"        | "1.2"        | "1.1"          | "1.1"

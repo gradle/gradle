@@ -211,4 +211,71 @@ org:leaf:1.0
 """
     }
 
+    def "correctly reports attributes declared on dependencies"() {
+        given:
+        mavenRepo.module('org', 'testA', '1.0').publish()
+        mavenRepo.module('org', 'testB', '1.0').publish()
+
+        buildFile << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', CustomAttributeType)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            def configValue = objects.named(CustomAttributeType.class, 'conf_value')
+            def dependencyValue = objects.named(CustomAttributeType.class, 'dep_value')
+            
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, configValue)
+                }
+            }
+            dependencies {
+                components {
+                    all {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, dependencyValue)
+                        }
+                    }
+                }
+                conf('org:testA:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, dependencyValue)
+                    }
+                }
+                conf('org:testB:+') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, dependencyValue)
+                    }
+                }
+            }
+            
+            interface CustomAttributeType extends Named {}
+        """
+
+        when:
+        run 'dependencyInsight', "--dependency", "test", "--configuration", "conf"
+
+        then:
+        outputContains """
+org:testA:1.0
+   variant "default" [
+      custom            = dep_value
+      org.gradle.status = release (not requested)
+   ]
+\\--- conf
+
+org:testB:1.0
+   variant "default" [
+      custom            = dep_value
+      org.gradle.status = release (not requested)
+   ]
+
+org:testB:+ -> 1.0
+\\--- conf
+"""
+
+    }
+
+
 }

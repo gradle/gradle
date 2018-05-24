@@ -224,7 +224,8 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Task 'does-not-exist' not found in project ':buildB'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
+        failure.assertHasCause("Task with path ':does-not-exist' not found in project ':buildB'.")
     }
 
     def "reports failure when task path is not qualified for included build"() {
@@ -258,13 +259,15 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Task ':logP' not found in build 'buildB'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
+        failure.assertHasCause("Task with path ':logP' not found in project ':buildB'.")
 
         when:
         fails(buildA, ":subDelegate")
 
         then:
-        failure.assertHasDescription("Task ':b1:logP' not found in build 'buildB'.")
+        failure.assertHasDescription("Could not determine the dependencies of task ':subDelegate'.")
+        failure.assertHasCause("Task with path ':b1:logP' not found in project ':buildB'.")
     }
 
     def "reports failure when attempting to access included build when build is not a composite"() {
@@ -281,23 +284,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
         failure.assertHasCause("Included build 'does-not-exist' not found.")
-    }
-
-    def "reports failure when delegating to included build when composing build defines a task with the same name as the included build"() {
-        when:
-        buildA.buildFile << """
-    task _buildB_logProject // Just a regular old task instance
-    task delegate {
-        dependsOn gradle.includedBuild('buildB').task(':logProject')
-    }
-"""
-
-        and:
-        fails(buildA, ":delegate")
-
-        then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
-        failure.assertHasCause("Cannot create delegating task '_buildB_logProject' as task with same name already exists.")
     }
 
     @Unroll

@@ -16,66 +16,45 @@
 
 package org.gradle.internal.locking
 
-import org.gradle.api.artifacts.DependencyConstraint
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependencyLockingNotationConverterTest extends Specification {
 
-    def 'converts a lock notation to a strict dependency constraint when no update mode'() {
+    def 'converts lock notation to a ModuleComponentIdentifier'() {
         given:
-        def converter = new DependencyLockingNotationConverter(false)
+        def converter = new DependencyLockingNotationConverter()
         def lockEntry = 'org:foo:1.1'
 
         when:
-        def converted = converter.convertToDependencyConstraint(lockEntry)
+        def converted = converter.convertFromLockNotation(lockEntry)
 
         then:
-        converted instanceof DependencyConstraint
+        converted instanceof ModuleComponentIdentifier
         converted.group == 'org'
-        converted.name == 'foo'
+        converted.module == 'foo'
         converted.version == '1.1'
-        converted.reason == 'dependency was locked to version \'1.1\''
-        converted.versionConstraint.preferredVersion == '1.1'
-        converted.versionConstraint.rejectedVersions == [']1.1,)']
-    }
-
-    def 'converts a lock notation to a prefer dependency constraint in update mode'() {
-        given:
-        def converter = new DependencyLockingNotationConverter(true)
-        def lockEntry = 'org:foo:1.1'
-
-        when:
-        def converted = converter.convertToDependencyConstraint(lockEntry)
-
-        then:
-        converted instanceof DependencyConstraint
-        converted.group == 'org'
-        converted.name == 'foo'
-        converted.version == '1.1'
-        converted.reason == 'dependency was locked to version \'1.1\' (update mode)'
-        converted.versionConstraint.preferredVersion == '1.1'
-        converted.versionConstraint.rejectedVersions.isEmpty()
     }
 
     @Unroll
     def "fails to convert an invalid lock notation: #lockEntry"() {
         when:
-        def converter = new DependencyLockingNotationConverter(false)
-        def converted = converter.convertToDependencyConstraint(lockEntry)
+        def converter = new DependencyLockingNotationConverter()
+        converter.convertFromLockNotation(lockEntry)
 
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message == "The module notation does not respect the lock file format of 'group:name:version' - received '$lockEntry'"
 
         where:
-        lockEntry << ['invalid', 'invalid:invalid']
+        lockEntry << ['invalid', 'invalid:invalid', 'invalid:invalid:invalid:1.0']
     }
 
     def 'converts a ModuleComponentIdentifier to a lock notation'() {
         given:
-        def converter = new DependencyLockingNotationConverter(false)
+        def converter = new DependencyLockingNotationConverter()
         def module = new DefaultModuleComponentIdentifier('org', 'foo', '1.1')
 
         when:

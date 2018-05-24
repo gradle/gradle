@@ -41,15 +41,19 @@ class IvyPluginPublishingPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.afterEvaluate(new Action<Project>() {
             @Override
-            public void execute(Project project) {
-                GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+            public void execute(final Project project) {
+                final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
                 if (!pluginDevelopment.isAutomatedPublishing()) {
                     return;
                 }
-                PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
-                SoftwareComponent mainComponent = project.getComponents().getByName("java");
-                IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
-                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+                project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
+                    @Override
+                    public void execute(PublishingExtension publishing) {
+                        SoftwareComponent mainComponent = project.getComponents().getByName("java");
+                        IvyPublication mainPublication = addMainPublication(publishing, mainComponent);
+                        addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+                    }
+                });
             }
         });
     }

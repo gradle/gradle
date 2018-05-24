@@ -21,18 +21,26 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserProvidedMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
@@ -66,8 +74,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
+    private final ImmutableAttributesFactory attributesFactory;
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator, RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
+    public DefaultComponentMetadataHandler(Instantiator instantiator,
+                                           RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter,
+                                           ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                           Interner<String> stringInterner,
+                                           ImmutableAttributesFactory attributesFactory) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
@@ -76,10 +89,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
             .toComposite();
         this.dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, stringInterner);
         this.dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, stringInterner);
+        this.attributesFactory = attributesFactory;
     }
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
-        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner);
+    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory) {
+        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory);
     }
 
     private static RuleActionAdapter<ComponentMetadataDetails> createAdapter() {
@@ -150,6 +164,22 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return updatedMetadata;
     }
 
+    @Override
+    public ComponentMetadata processMetadata(ComponentMetadata metadata) {
+        ComponentMetadata updatedMetadata;
+        if (rules.isEmpty()) {
+            updatedMetadata = metadata;
+        } else {
+            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
+            processAllRules(null, details);
+            updatedMetadata = details.asImmutable();
+        }
+        if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
+            throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().toString(), updatedMetadata.getStatusScheme()));
+        }
+        return updatedMetadata;
+    }
+
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
             processRule(rule, metadata, details);
@@ -197,6 +227,80 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
         public boolean isSatisfiedBy(ComponentMetadataDetails componentMetadataDetails) {
             return componentMetadataDetails.getId().getGroup().equals(target.getGroup()) && componentMetadataDetails.getId().getName().equals(target.getName());
+        }
+    }
+
+    static class ShallowComponentMetadataAdapter implements ComponentMetadataDetails {
+        private final ModuleVersionIdentifier id;
+        private boolean changing;
+        private List<String> statusScheme;
+        private AttributeContainerInternal attributes;
+
+        public ShallowComponentMetadataAdapter(ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
+            id = source.getId();
+            changing = source.isChanging();
+            statusScheme = source.getStatusScheme();
+            attributes = attributesFactory.mutable((AttributeContainerInternal) source.getAttributes());
+        }
+
+        @Override
+        public void setChanging(boolean changing) {
+            this.changing = changing;
+        }
+
+        @Override
+        public void setStatus(String status) {
+            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
+        }
+
+        @Override
+        public void setStatusScheme(List<String> statusScheme) {
+            this.statusScheme = statusScheme;
+        }
+
+        @Override
+        public void withVariant(String name, Action<? super VariantMetadata> action) {
+
+        }
+
+        @Override
+        public void allVariants(Action<? super VariantMetadata> action) {
+
+        }
+
+        @Override
+        public ModuleVersionIdentifier getId() {
+            return id;
+        }
+
+        @Override
+        public boolean isChanging() {
+            return changing;
+        }
+
+        @Override
+        public String getStatus() {
+            return attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
+        }
+
+        @Override
+        public List<String> getStatusScheme() {
+            return statusScheme;
+        }
+
+        @Override
+        public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
+            action.execute(attributes);
+            return this;
+        }
+
+        @Override
+        public AttributeContainer getAttributes() {
+            return attributes;
+        }
+
+        public ComponentMetadata asImmutable() {
+            return new UserProvidedMetadata(id, statusScheme, attributes.asImmutable());
         }
     }
 }

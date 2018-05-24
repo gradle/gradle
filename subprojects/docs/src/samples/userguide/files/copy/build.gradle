@@ -227,7 +227,7 @@ task test {
     dependsOn copyMethodWithExplicitDependencies
 }
 
-def appClasses = files("$buildDir/classes")
+def appClasses = layout.files("$buildDir/classes")
 
 // START SNIPPET standalone-copyspec
 CopySpec webAssetsSpec = copySpec {

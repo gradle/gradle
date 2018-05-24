@@ -23,6 +23,9 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorAuthor
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorDescription
+import org.gradle.api.publish.ivy.internal.publication.DefaultIvyModuleDescriptorLicense
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,6 +34,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
+
+import static org.gradle.util.TestUtil.objectFactory
 
 class IvyDescriptorFileGeneratorTest extends Specification {
     @Rule
@@ -92,6 +97,83 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 
         then:
         ivyXml.info.@branch == "someBranch"
+    }
+
+    def "writes supplied licenses" () {
+        given:
+        def objectFactory = objectFactory()
+        def license1 = new DefaultIvyModuleDescriptorLicense(objectFactory)
+        license1.name.set("EPL v2.0")
+        def license2 = new DefaultIvyModuleDescriptorLicense(objectFactory)
+        license2.name.set("Apache v2.0")
+        license2.url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+
+        when:
+        generator.addLicense(license1)
+        generator.addLicense(license2)
+
+        then:
+        with (ivyXml.info) {
+            license.size() == 2
+            license[0].@name == "EPL v2.0"
+            license[0].@url.isEmpty()
+            license[1].@name == "Apache v2.0"
+            license[1].@url == "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+    }
+
+    def "writes supplied authors" () {
+        given:
+        def objectFactory = objectFactory()
+        def author1 = new DefaultIvyModuleDescriptorAuthor(objectFactory)
+        author1.name.set("Alice")
+        def author2 = new DefaultIvyModuleDescriptorAuthor(objectFactory)
+        author2.name.set("Bob")
+        author2.url.set("http://example.com/bob/")
+
+        when:
+        generator.addAuthor(author1)
+        generator.addAuthor(author2)
+
+        then:
+        with (ivyXml.info) {
+            ivyauthor.size() == 2
+            ivyauthor[0].@name == "Alice"
+            ivyauthor[0].@url.isEmpty()
+            ivyauthor[1].@name == "Bob"
+            ivyauthor[1].@url == "http://example.com/bob/"
+        }
+    }
+
+    def "writes supplied description" () {
+        given:
+        def description = new DefaultIvyModuleDescriptorDescription(objectFactory())
+        description.text.set("Some lengthy description.")
+        description.homepage.set("http://example.com")
+
+        when:
+        generator.description = description
+
+        then:
+        with (ivyXml) {
+            info.description[0].text() == "Some lengthy description."
+            info.description[0].@homepage == "http://example.com"
+        }
+    }
+
+    def "writes supplied description without text" () {
+        given:
+        def description = new DefaultIvyModuleDescriptorDescription(objectFactory())
+        description.homepage.set("http://example.com")
+
+        when:
+        generator.description = description
+
+        then:
+        with (ivyXml) {
+            info.description[0].text() == ""
+            info.description[0].@homepage == "http://example.com"
+        }
     }
 
     def "writes supplied extra info elements" () {

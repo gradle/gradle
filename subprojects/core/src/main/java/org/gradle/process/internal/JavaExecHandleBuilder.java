@@ -19,6 +19,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
@@ -43,8 +44,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final FileResolver fileResolver;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor) {
-        super(fileResolver, executor);
+    public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(fileResolver, executor, buildCancellationToken);
         this.fileResolver = fileResolver;
         javaOptions = new DefaultJavaForkOptions(fileResolver);
         classpath = new DefaultConfigurableFileCollection(fileResolver, null);

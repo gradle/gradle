@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal
 
-import org.gradle.StartParameter
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 import static org.gradle.api.internal.FeaturePreviews.Feature.IMPROVED_POM_SUPPORT
+import static org.gradle.api.internal.FeaturePreviews.Feature.STABLE_PUBLISHING
 
 class FeaturePreviewsTest extends Specification {
 
     def 'has no features enabled by default'() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         when:
         def result = previews.isFeatureEnabled(feature)
@@ -40,7 +39,6 @@ class FeaturePreviewsTest extends Specification {
     @Unroll
     def "can enable #feature"() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         when:
         previews.enableFeature(feature)
@@ -53,7 +51,6 @@ class FeaturePreviewsTest extends Specification {
     @Unroll
     def "can enable #feature as String"() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         when:
         previews.enableFeature(feature)
@@ -65,7 +62,6 @@ class FeaturePreviewsTest extends Specification {
 
     def 'fails when enabling an unknown feature'() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         when:
         previews.enableFeature('UNKNOWN_FEATURE')
@@ -76,7 +72,6 @@ class FeaturePreviewsTest extends Specification {
 
     def 'fails when querying an unknown feature'() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         when:
         previews.isFeatureEnabled('UNKNOWN_FEATURE')
@@ -87,9 +82,8 @@ class FeaturePreviewsTest extends Specification {
 
     def 'lists active features'() {
         given:
-        StartParameter startParameter = Mock()
         def previews = new FeaturePreviews()
         expect:
-        previews.getActiveFeatures() == [IMPROVED_POM_SUPPORT, GRADLE_METADATA] as Set
+        previews.getActiveFeatures() == [IMPROVED_POM_SUPPORT, GRADLE_METADATA, STABLE_PUBLISHING] as Set
     }
 }

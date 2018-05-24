@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -39,10 +40,15 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
+        resolveSourceFiles(spec);
         resolveNonStringsInCompilerArgs(spec);
         logSourceFiles(spec);
         logCompilerArguments(spec);
         return delegateAndHandleErrors(spec);
+    }
+
+    private void resolveSourceFiles(JavaCompileSpec spec) {
+        spec.setSourceFiles(ImmutableSet.copyOf(spec.getSourceFiles()));
     }
 
     private void resolveNonStringsInCompilerArgs(JavaCompileSpec spec) {
