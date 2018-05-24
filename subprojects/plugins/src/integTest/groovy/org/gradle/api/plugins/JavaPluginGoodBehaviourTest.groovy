@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
 
-import org.gradle.api.NamedDomainObjectContainer;
+package org.gradle.api.plugins
 
-/**
- * A {@code SourceSetContainer} manages a set of {@link SourceSet} objects.
- */
-public interface SourceSetContainer extends NamedDomainObjectContainer<SourceSet> {
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
+
+
+class JavaPluginGoodBehaviourTest extends WellBehavedPluginTest {
 }

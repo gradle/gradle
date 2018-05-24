@@ -42,7 +42,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
 
-    void appliesBasePluginsAndAddsConventionObject() {
+    void appliesBasePluginsAndAddsConventionAndExtensions() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -50,6 +50,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
+        project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
     }
 
     void "creates tasks and applies mappings for source set"() {

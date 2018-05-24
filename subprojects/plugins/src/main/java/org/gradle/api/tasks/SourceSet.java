@@ -339,7 +339,7 @@ public interface SourceSet {
     String getRuntimeClasspathConfigurationName();
 
     /**
-     * Returns the name of the configuration containing elements that are stricly required
+     * Returns the name of the configuration containing elements that are strictly required
      * at runtime. Consumers of this configuration will get all the mandatory elements for
      * this component to execute at runtime.
      *
