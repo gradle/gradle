@@ -49,10 +49,10 @@ open class Benchmark : DefaultTask() {
     var latestInstallation: File? = null
 
     @get:Internal
-    var warmUpRuns = 7
+    var warmUpRuns = 11
 
     @get:Internal
-    var observationRuns = 11
+    var observationRuns = 40
 
     @get:Internal
     var maxQuotient: Double = 1.10 // fails if becomes 10% slower
