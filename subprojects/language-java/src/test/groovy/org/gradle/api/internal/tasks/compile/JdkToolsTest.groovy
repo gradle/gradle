@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.Requires
-import org.junit.Ignore
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
