@@ -39,11 +39,6 @@ public class EmptyFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public boolean isEmpty() {
-        return true;
-    }
-
-    @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String title, boolean includeAdded) {
         return Iterators.transform(oldSnapshot.getContentSnapshots().entrySet().iterator(), new Function<Map.Entry<String, FileContentSnapshot>, TaskStateChange>() {
             @Override

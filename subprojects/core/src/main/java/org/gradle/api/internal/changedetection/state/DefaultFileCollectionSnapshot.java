@@ -84,11 +84,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public boolean isEmpty() {
-        return snapshots.isEmpty();
-    }
-
-    @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, boolean includeAdded) {
         if (includeAdded && hashCode != null && getHash().equals(oldSnapshot.getHash())) {
             return Iterators.emptyIterator();

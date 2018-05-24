@@ -29,8 +29,6 @@ import java.util.Map;
  */
 public interface FileCollectionSnapshot extends Snapshot {
 
-    boolean isEmpty();
-
     /**
      * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
      */
