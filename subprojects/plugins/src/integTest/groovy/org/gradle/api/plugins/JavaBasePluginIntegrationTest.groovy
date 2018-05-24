@@ -16,7 +16,10 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import spock.lang.IgnoreIf
 
 
 class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
@@ -46,5 +49,29 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds(":test:unitTestClasses")
         file("main/build/classes/java/main").assertHasDescendants("Main.class")
         file("tests/build/classes/java/unitTest").assertHasDescendants("Test.class")
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) == null })
+    def "can configure source and target Java versions"() {
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        buildFile << """
+            apply plugin: 'java-base'
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_7
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+            sourceSets { 
+                unitTest { } 
+            }
+            compileUnitTestJava.options.forkOptions.javaHome = file('${jdk.javaHome}')
+            compileUnitTestJava.doFirst {
+                assert sourceCompatibility == "1.7"
+                assert targetCompatibility == "1.8"
+            }
+        """
+        file("src/unitTest/java/Test.java") << """public class Test { }"""
+
+        expect:
+        succeeds("unitTestClasses")
     }
 }

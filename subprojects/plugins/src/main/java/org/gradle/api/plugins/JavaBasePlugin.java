@@ -37,6 +37,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.SourceSetUtil;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
@@ -85,6 +86,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add("sourceSets", javaConvention.getSourceSets());
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
 
         configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
