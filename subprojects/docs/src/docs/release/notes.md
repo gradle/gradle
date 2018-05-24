@@ -39,17 +39,18 @@ in the next major Gradle version (Gradle 5.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Creating instances of JavaPluginConvention
+
+Instances of this class are intended to be created only by the `java-base` plugin and should not be created directly. Creating instances using the constructor of `JavaPluginConvention` will become an error in Gradle 5.0. The class itself is not deprecated and it is still be possible to use the instances created by the `java-base` plugin.
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Kotlin DSL breakages
+
+- `project.java.sourceSets` is now `project.sourceSets`
 
 ## External contributions
+
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 

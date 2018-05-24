@@ -46,10 +46,12 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.Factory;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -79,11 +81,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         this.objectFactory = objectFactory;
     }
 
-    public void apply(ProjectInternal project) {
+    public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
+        JavaPluginConvention javaConvention = DeprecationLogger.whileDisabled(new Factory<JavaPluginConvention>() {
+            @Override
+            public JavaPluginConvention create() {
+                return new JavaPluginConvention(project, instantiator);
+            }
+        });
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add("sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
