@@ -271,6 +271,7 @@
                                     <li><a href="https://guides.gradle.org/executing-gradle-builds-on-jenkins">Using Gradle with Jenkins</a></li>
                                     <li><a href="https://guides.gradle.org/executing-gradle-builds-on-teamcity">Using Gradle with TeamCity</a></li>
                                     <li><a href="https://guides.gradle.org/executing-gradle-builds-on-travisci">Using Gradle with Travis CI</a></li>
+                                    <li><a href="https://guides.gradle.org/executing-gradle-builds-on-teamcity">Using Gradle with TeamCity CI</a></li>
                                 </ul>
                             </li>
                             <li><a class="nav-dropdown" data-toggle="collapse" href="#ide-integration" aria-expanded="false" aria-controls="ide-integration">IDE Integration</a>
