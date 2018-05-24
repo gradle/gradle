@@ -49,6 +49,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
@@ -280,7 +281,9 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
         for (Map.Entry<String, String> entry : invocation.environmentVars.entrySet()) {
-            processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
+            if (processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue()) != EnvironmentModificationResult.SUCCESS) {
+                throw new IllegalStateException("Can't set environment variable: " + entry.getKey() + "=" + entry.getValue());
+            }
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
@@ -351,6 +354,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     public void assertCanExecute() {
+        super.assertCanExecute();
         assertNull(getExecutable());
         String defaultEncoding = getImplicitJvmSystemProperties().get("file.encoding");
         if (defaultEncoding != null) {

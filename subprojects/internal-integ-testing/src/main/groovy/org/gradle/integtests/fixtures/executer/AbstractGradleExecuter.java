@@ -1408,6 +1408,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
     }
 
+    @Override
+    public void assertCanExecute() throws AssertionError {
+        if (JavaVersion.current().isJava9Compatible() && !environmentVars.isEmpty() && !supportResettingEnvVariablesOnJava9Plus()) {
+            throw new AssertionError("Setting environment variables are not supported by Java 9+! Env: " + environmentVars);
+        }
+    }
+
+    private boolean supportResettingEnvVariablesOnJava9Plus() {
+        return getClass() == NoDaemonGradleExecuter.class;
+    }
+
     private boolean errorsShouldAppearOnStdout() {
         // If stderr is attached to the console or if we'll use the fallback console
         return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));

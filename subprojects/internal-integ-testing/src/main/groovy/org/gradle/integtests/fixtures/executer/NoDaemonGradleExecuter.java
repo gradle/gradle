@@ -53,7 +53,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
     }
 
+    @Override
     public void assertCanExecute() throws AssertionError {
+        super.assertCanExecute();
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             Map<String, String> environmentVars = buildInvocation().environmentVars;
             for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
