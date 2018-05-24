@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -296,6 +298,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent().trim()
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using external types"() {
         buildFile << """
             ${jcenterRepository()}
@@ -326,6 +329,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "validateTaskProperties"
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using types from other projects"() {
         settingsFile << """include 'lib'"""
         buildFile << """  
