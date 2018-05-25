@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.profiling.buildscan
 
+import com.google.gson.GsonBuilder
 import com.gradle.scan.plugin.BuildScanExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -28,6 +29,9 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.the
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.*
 import kotlin.concurrent.thread
 
 
@@ -43,6 +47,7 @@ open class BuildScanPlugin : Plugin<Project> {
 
         if (isCiServer) {
             extractAllReportsFromCI()
+            extractTeamCityCounters()
         }
 
         extractCheckstyleAndCodenarcData()
@@ -190,6 +195,19 @@ open class BuildScanPlugin : Plugin<Project> {
             value("Git Commit ID", commitId)
             link("Source", "https://github.com/gradle/gradle/commit/" + commitId)
         }
+
+
+    fun Project.extractTeamCityCounters() {
+        if (this.hasProperty("teamCityUsername") && this.hasProperty("teamCityUsername") && this.hasProperty("teamCityBuildId")) {
+            val user = this.property("teamCityUsername") as String
+            val pass = this.property("teamCityPassword") as String
+            val buildId = this.property("teamCityBuildId") as String
+            val tcClient = TeamCityClient(user, pass)
+            buildScan {
+                value("TeamCity queue date", tcClient.queueTime(buildId).queuedDate.toString())
+            }
+        }
+    }
 }
 
 
@@ -215,3 +233,28 @@ fun Project.buildScan(configure: BuildScanExtension.() -> Unit): Unit =
 
 val Project.buildScan
     get() = the<BuildScanExtension>()
+
+
+class TeamCityClient(val username: String, val password: String) {
+
+    fun queueTime(buildId: String) = query("builds/id:$buildId")
+
+    private
+    fun query(queryString: String): TeamCityBuild {
+        val connection = URL("$BASE_URL$queryString").openConnection() as HttpURLConnection
+        val auth = Base64.getEncoder().encode("$username:$password".toByteArray()).toString(Charsets.UTF_8)
+        connection.addRequestProperty("Authorization", "Basic $auth")
+        connection.addRequestProperty("Accept", "application/json")
+        connection.connect()
+        val text = connection.inputStream.use { it.reader().use { reader -> reader.readText() } }
+        val gson = GsonBuilder().create()
+        return gson.fromJson(text, TeamCityBuild::class.java)
+    }
+
+    companion object {
+        var BASE_URL = "https://builds.gradle.org/httpAuth/app/rest/"
+    }
+}
+
+
+class TeamCityBuild(val queuedDate: Date)

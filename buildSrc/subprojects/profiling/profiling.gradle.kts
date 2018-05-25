@@ -15,6 +15,7 @@ dependencies {
     implementation("com.gradle:build-scan-plugin:1.13.4")
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
+    implementation("com.google.code.gson:gson:2.7")
 }
 
 gradlePlugin {
