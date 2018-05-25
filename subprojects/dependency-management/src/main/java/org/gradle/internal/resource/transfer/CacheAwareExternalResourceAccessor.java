@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.local.AccessTrackingFileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
@@ -24,6 +25,8 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+
+import static java.util.Collections.singleton;
 
 public interface CacheAwareExternalResourceAccessor {
     /**
@@ -43,5 +46,31 @@ public interface CacheAwareExternalResourceAccessor {
          * Called when a resource is to be cached. Should *move* the given file into the appropriate location and return a handle to the file.
          */
         LocallyAvailableResource moveIntoCache(File downloadedResource);
+
+        /**
+         * Called when a cached resource is accessed. Should mark the given file as recently used so it will be exempt from cache cleanup.
+         */
+        void markAccessed(File cachedFile);
+    }
+
+    abstract class DefaultResourceFileStore<K> implements ResourceFileStore {
+
+        private final AccessTrackingFileStore<K> delegate;
+
+        public DefaultResourceFileStore(AccessTrackingFileStore<K> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public final LocallyAvailableResource moveIntoCache(File downloadedResource) {
+            return delegate.move(computeKey(), downloadedResource);
+        }
+
+        protected abstract K computeKey();
+
+        @Override
+        public void markAccessed(File cachedFile) {
+            delegate.markAccessed(singleton(cachedFile));
+        }
     }
 }

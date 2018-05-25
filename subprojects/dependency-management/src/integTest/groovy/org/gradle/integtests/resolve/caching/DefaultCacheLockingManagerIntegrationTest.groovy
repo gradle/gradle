@@ -23,6 +23,7 @@ import org.gradle.cache.internal.FixedAgeOldestCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
+import spock.lang.Unroll
 
 import static java.util.concurrent.TimeUnit.DAYS
 import static java.util.concurrent.TimeUnit.MILLISECONDS
@@ -35,7 +36,6 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
     def groupId = 'org.example'
     def artifactId = 'example'
     def snapshotModule = repo.module(groupId, artifactId, '1.0-SNAPSHOT').publish().allowAll()
-    def releaseModule = repo.module(groupId, artifactId, '1.0').publish().allowAll()
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -101,7 +101,65 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         metadata[0].assertDoesNotExist()
     }
 
-    private List<TestFile> findFiles(File baseDir, String includePattern) {
+    @Unroll
+    def "downloads deleted artifacts and metadata again when deleting #filesToDelete"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
+        resources.size() == 1
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
+        metadata.size() == 1
+
+        when:
+        findFiles(cacheDir, filesToDelete).each { it.delete() }
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        metadata[0].parentFile.assertExists()
+        files.findAll { it.name.endsWith(".jar") }.each { it.assertExists() }
+
+        where:
+        filesToDelete << ['files-*/**/*', 'metadata-*/descriptors/**/*']
+    }
+
+    def "marks artifacts and metadata as recently used when accessed"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
+        metadata.size() == 1
+
+        when:
+        markForCleanup(files[0].parentFile)
+        markForCleanup(files[1].parentFile)
+        markForCleanup(metadata[0].parentFile)
+        def timeBeforeAccess = SECONDS.toMillis(MILLISECONDS.toSeconds(System.currentTimeMillis()))
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        metadata[0].parentFile.lastModified() >= timeBeforeAccess
+        files.findAll { it.name.endsWith(".jar") }.each { it.parentFile.lastModified() >= timeBeforeAccess }
+        files.findAll { it.name.endsWith(".pom") }.each { it.parentFile.lastModified() < timeBeforeAccess }
+    }
+
+    private static List<TestFile> findFiles(File baseDir, String includePattern) {
         List<TestFile> files = []
         new SingleIncludePatternFileTree(baseDir, includePattern).visit(new FileVisitor() {
             @Override
@@ -113,7 +171,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
                 files.add(new TestFile(fileDetails.file))
             }
         })
-        return files;
+        return files
     }
 
     private void buildscriptWithDependency(MavenModule module) {
@@ -129,8 +187,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
             }
             task resolve {
                 doLast {
-                    // trigger download
-                    configurations.custom.incoming.files.each { it.exists() }
+                    configurations.custom.incoming.files.each { println it }
                 }
             }
         """

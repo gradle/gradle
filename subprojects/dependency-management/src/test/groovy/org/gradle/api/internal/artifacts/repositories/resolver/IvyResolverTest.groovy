@@ -33,8 +33,8 @@ import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resource.local.AccessTrackingFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
-import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.TestUtil
@@ -189,7 +189,7 @@ class IvyResolverTest extends Specification {
             transport,
             Stub(LocallyAvailableResourceFinder),
             false,
-            Stub(FileStore),
+            Stub(AccessTrackingFileStore),
             moduleIdentifierFactory,
             supplier,
             lister,

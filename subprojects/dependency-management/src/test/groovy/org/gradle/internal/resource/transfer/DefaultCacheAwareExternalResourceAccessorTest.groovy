@@ -144,7 +144,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def metaData = Mock(ExternalResourceMetaData)
         def cachedResource = Stub(CachedExternalResource)
-        def resultResource = Stub(LocallyAvailableExternalResource)
+        def resultResource = Mock(LocallyAvailableExternalResource)
 
         when:
         def result = cache.getResource(location, null, fileStore, localCandidates)
@@ -159,6 +159,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         _ * cachedResource.cachedFile >> cachedFile
         _ * cachedResource.externalResourceMetaData >> metaData
         1 * fileRepository.resource(cachedFile, location.uri, metaData) >> resultResource
+        1 * resultResource.getFile() >> cachedFile
+        1 * fileStore.markAccessed(cachedFile)
         0 * _._
     }
 

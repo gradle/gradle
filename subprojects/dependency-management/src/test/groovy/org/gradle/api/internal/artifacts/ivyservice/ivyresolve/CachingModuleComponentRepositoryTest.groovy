@@ -42,6 +42,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
+import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -61,7 +62,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def cachePolicy = Stub(CachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
-    def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
+    def fileAccessTracker = Stub(FileAccessTracker)
+    def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache, fileAccessTracker)
     def repo = new CachingModuleComponentRepository(realRepo, caches,
         cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor, moduleIdentifierFactory)
 

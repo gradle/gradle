@@ -45,7 +45,7 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.AccessTrackingFileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
@@ -68,7 +68,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     public MavenResolver(String name, URI rootUri,
                          RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+                         AccessTrackingFileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                          ImmutableMetadataSources metadataSources,
                          MetadataArtifactProvider metadataArtifactProvider,

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.caching.internal.BuildCacheHasher
 import org.gradle.internal.resource.ExternalResourceRepository
-import org.gradle.internal.resource.local.FileStore
+import org.gradle.internal.resource.local.AccessTrackingFileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import spock.lang.Specification
@@ -69,12 +69,12 @@ class DependencyResolverIdentifierTest extends Specification {
     }
 
     def resolver() {
-        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(LocallyAvailableResourceFinder), Stub(FileStore), Stub(ImmutableModuleIdentifierFactory), Stub(ImmutableMetadataSources), Stub(MetadataArtifactProvider))
+        return new TestResolver("repo", false, Stub(ExternalResourceRepository), Stub(CacheAwareExternalResourceAccessor), Stub(LocallyAvailableResourceFinder), Stub(AccessTrackingFileStore), Stub(ImmutableModuleIdentifierFactory), Stub(ImmutableMetadataSources), Stub(MetadataArtifactProvider))
     }
 
     static class TestResolver extends ExternalResourceResolver {
 
-        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, FileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
+        protected TestResolver(String name, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder locallyAvailableResourceFinder, AccessTrackingFileStore artifactFileStore, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
             super(name, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, metadataArtifactProvider, null, null, null)
         }
 

@@ -55,6 +55,7 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult;
+import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -64,6 +65,8 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.singleton;
 
 /**
  * A ModuleComponentRepository that loads and saves resolution results in the dependency resolution cache.
@@ -81,6 +84,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleMetadataCache moduleMetadataCache;
     private final ModuleArtifactsCache moduleArtifactsCache;
     private final ModuleArtifactCache moduleArtifactCache;
+    private final FileAccessTracker fileAccessTracker;
 
     private final ModuleComponentRepository delegate;
     private final CachePolicy cachePolicy;
@@ -100,6 +104,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.moduleArtifactsCache = caches.moduleArtifactsCache;
         this.moduleArtifactCache = caches.moduleArtifactCache;
         this.cachePolicy = cachePolicy;
+        this.fileAccessTracker = caches.fileAccessTracker;
         this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -342,6 +347,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     File cachedArtifactFile = cached.getCachedFile();
                     if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
+                        fileAccessTracker.markAccessed(singleton(cachedArtifactFile));
                         result.resolved(cachedArtifactFile);
                     }
                 }

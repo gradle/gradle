@@ -19,17 +19,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.hash.HashUtil;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 
 /**
  * A file store that stores items grouped by some provided function over the key and an SHA1 hash of the value. This means that files are only ever added and never modified once added, so a resource from this store can be used without locking. Locking is required to add entries.
  */
-public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStoreSearcher<K> {
+public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStore<K>, FileStoreSearcher<K> {
 
     private final PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -50,13 +48,11 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     }
 
     public Set<? extends LocallyAvailableResource> search(K key) {
-        Set<? extends LocallyAvailableResource> result = delegate.search(toPath(key, "*"));
-        markAccessed(result);
-        return result;
+        return delegate.search(toPath(key, "*"));
     }
 
-    private void markAccessed(Set<? extends LocallyAvailableResource> resources) {
-        List<File> files = CollectionUtils.collect(resources, new ArrayList<File>(resources.size()), LocallyAvailableResource.TO_FILE);
+    @Override
+    public void markAccessed(Collection<File> files) {
         checksumDirAccessTracker.markAccessed(files);
     }
 

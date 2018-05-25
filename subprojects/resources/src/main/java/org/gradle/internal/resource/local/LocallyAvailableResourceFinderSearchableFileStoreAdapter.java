@@ -37,12 +37,16 @@ public class LocallyAvailableResourceFinderSearchableFileStoreAdapter<C> extends
                 return new Factory<List<File>>() {
                     public List<File> create() {
                         Set<? extends LocallyAvailableResource> entries = fileStore.search(criterion);
-                        return CollectionUtils.collect(entries, new ArrayList<File>(entries.size()), LocallyAvailableResource.TO_FILE);
+                        return CollectionUtils.collect(entries, new ArrayList<File>(entries.size()), new Transformer<File, LocallyAvailableResource>() {
+                            @Override
+                            public File transform(LocallyAvailableResource original) {
+                                return original.getFile();
+                            }
+                        });
                     }
                 };
             }
         });
     }
-
 
 }

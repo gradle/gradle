@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.resource.Resource;
-
-import java.io.File;
-
-/**
- * Represents a file backed local resource.
- */
-public interface LocallyAvailableResource extends Resource {
-
-    File getFile();
-
-    HashValue getSha1();
-
-    long getLastModified();
-
-    long getContentLength();
+public interface AccessTrackingFileStore<K> extends FileStore<K>, FileAccessTracker {
 }
