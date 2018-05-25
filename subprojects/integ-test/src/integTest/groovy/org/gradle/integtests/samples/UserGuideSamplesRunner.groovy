@@ -118,9 +118,6 @@ class UserGuideSamplesRunner extends Runner {
                         if (run.executable != GRADLE_EXECUTABLE || (run.brokenForParallel && GradleContextualExecuter.parallel)) {
                             continue
                         }
-//                        if(run.id  in [
-//                            'listProjects', 'multitestingBuild', 'multitestingBuildDependents','multitestingBuildNeeded','publishingMavenSignAndPublish','scalaCrossCompilation','signingPluginSignPublication',
-//                            'softwareModelExtend-components'])
                         runSample(run)
                     }
                 } catch (Throwable t) {
