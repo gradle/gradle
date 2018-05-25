@@ -268,14 +268,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 T task = factory.apply(taskId);
                 addTask(task, replacement);
                 statistics.eagerTask(type);
-                context.setResult(new CreateTaskBuildOperationType.Result(){});
+//                context.setResult(new CreateTaskBuildOperationType.Result(){});
                 return task;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
 //                return new CreateTaskBuildOperationDetails(name, taskId, replacement, true).descriptor();
-                return new CreateTaskBuildOperationDetails().descriptor();
+                return BuildOperationDescriptor.displayName("create task " + taskId);
             }
         });
     }
@@ -286,14 +286,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             @Override
             public TaskCreatingProvider<T> call(BuildOperationContext context) {
                 TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskId, type, name, configurationAction);
-                context.setResult(new RegisterTaskBuildOperationType.Result(){});
+//                context.setResult(new RegisterTaskBuildOperationType.Result(){});
                 return provider;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
 //                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
-                return new RegisterTaskBuildOperationDetails().descriptor();
+                return BuildOperationDescriptor.displayName("register task " + taskId);
             }
         });
     }
@@ -304,14 +304,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             public T call(BuildOperationContext context) {
                 T task = createTask(taskId, name, type, constructorArgs);
                 statistics.lazyTaskRealized(type);
-                context.setResult(new CreateTaskBuildOperationType.Result(){});
+//                context.setResult(new CreateTaskBuildOperationType.Result(){});
                 return task;
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
 //                return new CreateTaskBuildOperationDetails(name, taskId, false, false).descriptor();
-                return new CreateTaskBuildOperationDetails().descriptor();
+                return BuildOperationDescriptor.displayName("realize task " + taskId);
             }
         });
     }
@@ -662,8 +662,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 //            return BuildOperationDescriptor.displayName(sb.toString())
             return BuildOperationDescriptor.displayName("create")
 //                .name(taskPath)
-                .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
-                .details(this);
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT); // or TASK?
+//                .details(this);
         }
     }
 
@@ -711,8 +711,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 //            }
             return BuildOperationDescriptor.displayName("register")
 //                .name(taskPath)
-                .operationType(BuildOperationCategory.CONFIGURE_PROJECT) // or TASK?
-                .details(this);
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT); // or TASK?
+//                .details(this);
 
         }
     }
