@@ -308,8 +308,16 @@ public class DependencyGraphBuilder {
         // TODO In order to collect all of the rejection failures, this should be done via a DependencyGraphVisitor.
         for (ModuleResolveState module : resolveState.getModules()) {
             if (module.getSelected() != null && module.getSelected().isRejected()) {
-                throw new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                attachFailureToEdges(error, module.getIncomingEdges());
+                attachFailureToEdges(error, module.getUnattachedDependencies());
             }
+        }
+    }
+
+    private void attachFailureToEdges(GradleException error, Collection<EdgeState> incomingEdges) {
+        for (EdgeState edge : incomingEdges) {
+            edge.failWith(error);
         }
     }
 

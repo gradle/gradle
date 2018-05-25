@@ -126,7 +126,11 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = null;
     }
 
-    public void restart(ComponentState selected) {
+    public void failWith(Throwable err) {
+        targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
+    }
+
+    public void restart() {
         removeFromTargetConfigurations();
         attachToTargetConfigurations();
     }
