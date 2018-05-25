@@ -53,6 +53,7 @@ Plugins or build scripts attempting to do this will now get a runtime exception.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Luke Usherwood](https://github.com/lukeu) Fix `ClassCastException` when generating Eclipse files for Gradle (gradle/gradle#5278)
+- [Theodore Ni](https://github.com/tjni) Suppress redundant warning message (gradle/gradle#5544)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
