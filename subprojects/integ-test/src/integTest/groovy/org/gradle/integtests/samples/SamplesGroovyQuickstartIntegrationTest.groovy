@@ -18,8 +18,10 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,8 +29,13 @@ class SamplesGroovyQuickstartIntegrationTest extends AbstractIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
 
+    @Before
+    void setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
+
     @Test
-    public void groovyProjectQuickstartSample() {
+    void groovyProjectQuickstartSample() {
         TestFile groovyProjectDir = sample.dir
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 

@@ -16,6 +16,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -25,6 +26,10 @@ import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'codeQuality')
+
+    def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
 
     @Requires(JDK8_OR_EARLIER)
     def checkReportsGenerated() {
