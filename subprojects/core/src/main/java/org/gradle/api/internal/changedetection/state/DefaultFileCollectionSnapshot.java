@@ -84,11 +84,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public boolean isEmpty() {
-        return snapshots.isEmpty();
-    }
-
-    @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, boolean includeAdded) {
         if (includeAdded && hashCode != null && getHash().equals(oldSnapshot.getHash())) {
             return Iterators.emptyIterator();
@@ -122,11 +117,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
             files.add(new File(name));
         }
         return files;
-    }
-
-    @Override
-    public List<File> getFiles() {
-        return cachedFilesFactory.create();
     }
 
     @Override
