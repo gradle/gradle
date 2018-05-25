@@ -319,6 +319,55 @@ org:foo:1.+ -> 1.1
 \\--- lockedConf"""
     }
 
+    def "displays a dependency insight report even if locks are out of date because of new constraint"() {
+        def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {    
+    constraints {
+        lockedConf('org:foo') {
+            version {
+                prefer '1.1'
+            }
+        }
+    }
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
+
+        then:
+        outputContains """org:foo:1.0 (via constraint, dependency was locked to version '1.0') FAILED
+\\--- lockedConf
+
+org:foo:1.1 (via constraint) FAILED
+\\--- lockedConf
+
+org:foo:1.+ FAILED
+\\--- lockedConf
+"""
+    }
+
     def "shows forced version"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()

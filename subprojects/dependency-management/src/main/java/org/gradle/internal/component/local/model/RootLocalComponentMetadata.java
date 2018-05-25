@@ -91,9 +91,9 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
 
         private String getLockReason(boolean strict, String lockedVersion) {
             if (strict) {
-                return "dependency was locked to version '" + lockedVersion + "' (update mode)";
+                return "dependency was locked to version '" + lockedVersion + "'";
             }
-            return "dependency was locked to version '" + lockedVersion;
+            return "dependency was locked to version '" + lockedVersion + "' (update mode)";
         }
 
         @Override

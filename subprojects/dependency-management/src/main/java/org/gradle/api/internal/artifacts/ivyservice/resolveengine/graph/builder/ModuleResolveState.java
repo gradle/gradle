@@ -188,16 +188,16 @@ class ModuleResolveState implements CandidateModule {
             selector.overrideSelection(selected);
         }
         if (!unattachedDependencies.isEmpty()) {
-            restartUnattachedDependencies(selected);
+            restartUnattachedDependencies();
         }
     }
 
-    private void restartUnattachedDependencies(ComponentState selected) {
+    private void restartUnattachedDependencies() {
         if (unattachedDependencies.size() == 1) {
-            unattachedDependencies.get(0).restart(selected);
+            unattachedDependencies.get(0).restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
-                dependency.restart(selected);
+                dependency.restart();
             }
         }
         unattachedDependencies.clear();
