@@ -24,6 +24,7 @@ dependencies {
     compile project(':core')
     compile project(':platformNative')
     compile project(':maven')
+    compile project(':toolingApi')
 
     implementation libraries.commons_io.coordinates
 
