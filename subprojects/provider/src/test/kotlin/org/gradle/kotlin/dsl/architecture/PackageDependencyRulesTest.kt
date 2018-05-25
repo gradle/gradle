@@ -19,8 +19,6 @@ package org.gradle.kotlin.dsl.architecture
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 
-import org.gradle.kotlin.dsl.execution.Interpreter
-import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 
 import org.junit.Test
 
@@ -54,6 +52,7 @@ class PackageDependencyRulesTest {
     val classes =
         ClassFileImporter()
             .importPackagesOf(
-                Interpreter::class.java,
-                KotlinScriptClassPathProvider::class.java)
+                org.gradle.kotlin.dsl.execution.Interpreter::class.java,
+                org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider::class.java,
+                org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider::class.java)
 }
