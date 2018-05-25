@@ -118,8 +118,7 @@ class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec 
             stringInterner,
             classLoaderHierarchyHasher,
             TestUtil.valueSnapshotter(),
-            snapshotterRegistry,
-            TestFiles.fileCollectionFactory()
+            snapshotterRegistry
         )
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, taskOutputFilesRepository, taskCacheKeyCalculator)
     }
