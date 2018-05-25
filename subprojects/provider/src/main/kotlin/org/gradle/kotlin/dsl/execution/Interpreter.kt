@@ -367,6 +367,7 @@ class Interpreter(val host: Host) {
                 host.compilationClassPathOf(targetScope)
             }
 
+            // TODO: Move this decision to the specialized program
             val accessorsClassPath: ClassPath? =
                 if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
                     accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
