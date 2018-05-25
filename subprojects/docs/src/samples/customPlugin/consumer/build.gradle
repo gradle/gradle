@@ -3,7 +3,7 @@
 buildscript {
     repositories {
         maven {
-            url uri('../repo')
+            url uri('../plugin/build/repo')
         }
     }
     dependencies {

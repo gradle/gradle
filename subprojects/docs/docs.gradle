@@ -216,8 +216,7 @@ ext.cssFiles = fileTree(css.destinationDir) {
 task samples(type: ExtractSnippetsTask) {
     samples = samplesSrcDir
     destDir = samplesDir
-    excludes = ['userguideOutput/**',
-                '**/readme.xml',
+    excludes = ['**/readme.xml',
                 '**/build/**',
                 '**/.gradle/**']
     nonFiltered = [ 'userguide/tutorial/antLoadfileResources/**',

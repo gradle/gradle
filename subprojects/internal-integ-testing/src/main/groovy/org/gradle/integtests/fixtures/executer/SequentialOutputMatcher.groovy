@@ -18,11 +18,10 @@
 
 package org.gradle.integtests.fixtures.executer
 
+import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TextUtil
 import org.junit.Assert
-
 /**
  * Check that the actual output lines match the expected output lines in content and order.
  */
@@ -30,7 +29,7 @@ class SequentialOutputMatcher {
     private static final String NL = SystemProperties.instance.lineSeparator
 
     public void assertOutputMatches(String expected, String actual, boolean ignoreExtraLines) {
-        List actualLines = normaliseOutput(actual.readLines()).findAll { !it.isEmpty() }
+        List actualLines = new ArtifactResolutionOmittingOutputNormalizer().normalize(actual).readLines().findAll { !it.isEmpty() }
         List expectedLines = expected.readLines().findAll { !it.isEmpty() }
         assertOutputLinesMatch(expectedLines, actualLines, ignoreExtraLines, actual)
     }
@@ -57,25 +56,6 @@ class SequentialOutputMatcher {
         if (!ignoreExtraLines && pos < actualLines.size() && pos == expectedLines.size()) {
             Assert.fail("Extra lines in actual result, starting at line ${pos + 1}.${NL}Actual: ${actualLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
         }
-    }
-
-    private List<String> normaliseOutput(List<String> lines) {
-        if (lines.empty) {
-            return lines;
-        }
-        boolean seenWarning = false
-        List<String> result = new ArrayList<String>()
-        for (String line : lines) {
-            if (line.matches('Download .+')) {
-                // ignore
-            } else if (!seenWarning && !Jvm.current().javaVersion.java7Compatible && line == 'Support for reading or changing file permissions is only available on this platform using Java 7 or later.') {
-                // ignore this warning once only on java < 7
-                seenWarning = true
-            } else {
-                result << line
-            }
-        }
-        return result
     }
 
     protected boolean compare(String expected, String actual) {
