@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -216,6 +217,30 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Received :task1")
         result.assertNotOutput("task2")
         result.assertNotOutput("task3")
+    }
+
+    @NotYetImplemented
+    def "tasks.all runs once for lazy tasks"() {
+        buildFile << '''
+            def configureCount = 0
+            tasks.createLater("task1", SomeTask) {
+                configureCount++
+                println "Configure ${path} " + configureCount
+            }
+            
+            def tasksAllCount = 0
+            tasks.all {
+                tasksAllCount++
+                println "tasks.all " + path + " " + tasksAllCount
+            }
+            
+            gradle.buildFinished {
+                assert configureCount == 1
+                assert tasksAllCount == 2 // help + task1
+            }
+        '''
+        expect:
+        succeeds("help")
     }
 
     def "build logic can configure each task of a given type only when required"() {
