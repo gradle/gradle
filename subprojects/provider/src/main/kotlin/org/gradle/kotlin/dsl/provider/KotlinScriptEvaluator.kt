@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
@@ -116,7 +117,7 @@ class StandardKotlinScriptEvaluator(
             addRepositoryTo(scriptHandler.repositories)
             pinDependenciesOn(
                 scriptHandler.configurations["classpath"],
-                "stdlib-jdk8", "reflect")
+                embeddedKotlinModules)
         }
     }
 
@@ -245,4 +246,10 @@ class StandardKotlinScriptEvaluator(
         override val implicitImports: List<String>
             get() = kotlinCompiler.implicitImports.list
     }
+}
+
+
+private
+val embeddedKotlinModules by lazy {
+    transitiveClosureOf("stdlib-jdk8", "reflect")
 }

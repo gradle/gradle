@@ -37,44 +37,6 @@ private
 const val embeddedRepositoryCacheKeyVersion = 2
 
 
-private
-data class EmbeddedModule(
-    val group: String,
-    val name: String,
-    val version: String,
-    val dependencies: List<EmbeddedModule> = emptyList()
-) {
-
-    val notation = "$group:$name:$version"
-    val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
-}
-
-
-private
-val embeddedModules: List<EmbeddedModule> by lazy {
-
-    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList()) =
-        EmbeddedModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies)
-
-    // TODO:pm could be generated at build time
-    val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
-    val stdlib = embeddedKotlin("stdlib", listOf(annotations))
-    val stdlibJdk7 = embeddedKotlin("stdlib-jdk7", listOf(stdlib))
-    val stdlibJdk8 = embeddedKotlin("stdlib-jdk8", listOf(stdlibJdk7))
-    val reflect = embeddedKotlin("reflect", listOf(stdlib))
-    val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
-    val scriptRuntime = embeddedKotlin("script-runtime")
-    val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
-    listOf(
-        annotations,
-        stdlib, stdlibJdk7, stdlibJdk8,
-        reflect,
-        compilerEmbeddable,
-        scriptRuntime,
-        samWithReceiverCompilerPlugin)
-}
-
-
 class EmbeddedKotlinProvider constructor(
     private val cacheRepository: CacheRepository,
     private val moduleRegistry: ModuleRegistry
@@ -103,33 +65,18 @@ class EmbeddedKotlinProvider constructor(
     }
 
     fun pinDependenciesOn(configuration: Configuration, vararg kotlinModules: String) {
-        val pinnedDependencies = transitiveClosureOf(embeddedKotlinModulesFor(kotlinModules))
+        val pinnedDependencies = transitiveClosureOf(*kotlinModules)
+        pinDependenciesOn(configuration, pinnedDependencies)
+    }
+
+    internal
+    fun pinDependenciesOn(configuration: Configuration, pinnedDependencies: Set<EmbeddedModule>) {
         configuration.resolutionStrategy.eachDependency { details ->
             pinnedDependencies.findWithSameGroupAndNameAs(details.requested)?.let { pinned ->
                 details.useTarget(pinned.notation)
             }
         }
     }
-
-    private
-    fun embeddedKotlinModulesFor(kotlinModules: Array<out String>) =
-        kotlinModules.map { embeddedKotlinModuleFor(it) }
-
-    private
-    fun transitiveClosureOf(modules: Collection<EmbeddedModule>): Set<EmbeddedModule> =
-        identitySetOf<EmbeddedModule>().apply {
-            val q = ArrayDeque(modules)
-            while (q.isNotEmpty()) {
-                val module = q.removeFirst()
-                if (add(module)) {
-                    q.addAll(module.dependencies)
-                }
-            }
-        }
-
-    private
-    fun <T> identitySetOf(): MutableSet<T> =
-        Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
 
     private
     val embeddedKotlinRepositoryURI: URI by lazy {
@@ -176,10 +123,77 @@ class EmbeddedKotlinProvider constructor(
         }
 
     private
-    fun embeddedKotlinModuleFor(kotlinModule: String) =
-        embeddedModules.first { it.group == "org.jetbrains.kotlin" && it.name == "kotlin-$kotlinModule" }
-
-    private
     fun Iterable<EmbeddedModule>.findWithSameGroupAndNameAs(requested: ModuleVersionSelector) =
         find { it.name == requested.name && it.group == requested.group }
 }
+
+
+internal
+data class EmbeddedModule(
+    val group: String,
+    val name: String,
+    val version: String,
+    val dependencies: List<EmbeddedModule> = emptyList()
+) {
+
+    val notation = "$group:$name:$version"
+    val jarRepoPath = "${group.replace(".", "/")}/$name/$version/$name-$version.jar"
+}
+
+
+private
+val embeddedModules: List<EmbeddedModule> by lazy {
+
+    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList()) =
+        EmbeddedModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies)
+
+    // TODO:pm could be generated at build time
+    val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
+    val stdlib = embeddedKotlin("stdlib", listOf(annotations))
+    val stdlibJdk7 = embeddedKotlin("stdlib-jdk7", listOf(stdlib))
+    val stdlibJdk8 = embeddedKotlin("stdlib-jdk8", listOf(stdlibJdk7))
+    val reflect = embeddedKotlin("reflect", listOf(stdlib))
+    val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
+    val scriptRuntime = embeddedKotlin("script-runtime")
+    val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
+    listOf(
+        annotations,
+        stdlib, stdlibJdk7, stdlibJdk8,
+        reflect,
+        compilerEmbeddable,
+        scriptRuntime,
+        samWithReceiverCompilerPlugin)
+}
+
+
+internal
+fun transitiveClosureOf(vararg kotlinModules: String) =
+    transitiveClosureOf(embeddedKotlinModulesFor(kotlinModules))
+
+
+private
+fun transitiveClosureOf(modules: Collection<EmbeddedModule>): Set<EmbeddedModule> =
+    identitySetOf<EmbeddedModule>().apply {
+        val q = ArrayDeque(modules)
+        while (q.isNotEmpty()) {
+            val module = q.removeFirst()
+            if (add(module)) {
+                q.addAll(module.dependencies)
+            }
+        }
+    }
+
+
+private
+fun embeddedKotlinModulesFor(kotlinModules: Array<out String>) =
+    kotlinModules.map { embeddedKotlinModuleFor(it) }
+
+
+private
+fun embeddedKotlinModuleFor(kotlinModule: String) =
+    embeddedModules.first { it.group == "org.jetbrains.kotlin" && it.name == "kotlin-$kotlinModule" }
+
+
+private
+fun <T> identitySetOf(): MutableSet<T> =
+    Collections.newSetFromMap(IdentityHashMap<T, Boolean>())
