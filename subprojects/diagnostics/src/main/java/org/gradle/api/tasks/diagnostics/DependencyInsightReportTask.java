@@ -52,6 +52,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.graph.GraphRenderer;
+import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -212,9 +213,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             public void execute(Throwable throwable) {
                 if (throwable instanceof ResolveException) {
                     Throwable cause = throwable.getCause();
-                    if (cause instanceof VersionConflictException) {
-                        handleConflict((VersionConflictException) cause, output);
-                    }
+                    handleResolutionError(cause, output);
                 }
             }
         });
@@ -265,6 +264,25 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.text("A web-based, searchable dependency report is available by adding the ");
         output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
         output.println(" option.");
+    }
+
+    private void handleResolutionError(Throwable cause, StyledTextOutput output) {
+        if (cause instanceof VersionConflictException) {
+            handleConflict((VersionConflictException) cause, output);
+        } else if (cause instanceof LockOutOfDateException) {
+            handleOutOfDateLocks((LockOutOfDateException) cause, output);
+        }
+    }
+
+    private void handleOutOfDateLocks(LockOutOfDateException cause, StyledTextOutput output) {
+        List<String> errors = cause.getErrors();
+        output.text("The dependency locks are out-of-date:");
+        output.println();
+        for (String error : errors) {
+            output.text("   - " + error);
+            output.println();
+        }
+        output.println();
     }
 
     private void handleConflict(VersionConflictException conflict, StyledTextOutput output) {

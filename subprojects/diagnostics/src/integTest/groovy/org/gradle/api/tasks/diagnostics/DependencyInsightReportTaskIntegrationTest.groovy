@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -272,6 +273,50 @@ org:leaf2:1.5 -> 2.5
 \\--- org:toplevel2:1.0
      \\--- conf
 """
+    }
+
+    def "displays a dependency insight report even if locks are out of date"() {
+        def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {    
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0'])
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
+
+        then:
+        outputContains """The dependency locks are out-of-date:
+   - Did not resolve 'org:bar:1.0' which is part of the lock state
+   - Resolved 'org:foo:1.1' which is not part of the lock state
+
+org:foo:1.1
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
+
+org:foo:1.+ -> 1.1
+\\--- lockedConf"""
     }
 
     def "shows forced version"() {

@@ -72,4 +72,6 @@ public interface ResolverResults {
     void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts);
 
     ResolveException consumeNonFatalFailure();
+
+    boolean hasResolutionResult();
 }
