@@ -52,9 +52,7 @@ Plugins or build scripts attempting to do this will now get a runtime exception.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
+- [Luke Usherwood](https://github.com/lukeu) Fix `ClassCastException` when generating Eclipse files for Gradle (gradle/gradle#5278)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
