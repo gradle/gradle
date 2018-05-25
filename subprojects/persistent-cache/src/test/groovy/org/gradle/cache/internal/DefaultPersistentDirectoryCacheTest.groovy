@@ -29,6 +29,8 @@ import org.gradle.util.GUtil
 
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
+import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
@@ -259,6 +261,44 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         then:
         0 * _
         gcFile.assertDoesNotExist()
+    }
+
+    def "will rebuild cache if not unlocked cleanly"() {
+        given:
+        def dir = temporaryFolder.testDirectory.createDir("cache")
+        def initialized = false
+        def init = { initialized = true } as Action
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", null, [:], CacheBuilder.LockTarget.DefaultTarget,
+            mode(FileLockManager.LockMode.Exclusive), init, CleanupAction.NO_OP, createDefaultFileLockManager(), Mock(ExecutorFactory))
+
+        when:
+        unlockUncleanly(dir.file("cache.properties"))
+        cache.open()
+
+        then:
+        initialized
+
+        cleanup:
+        cache.close()
+    }
+
+    def "will rebuild cache if cache.properties is missing"() {
+        given:
+        def dir = createCacheDir()
+        def initialized = false
+        def init = { initialized = true } as Action
+        def cache = new DefaultPersistentDirectoryCache(dir, "test", null, [:], CacheBuilder.LockTarget.DefaultTarget,
+            mode(FileLockManager.LockMode.Exclusive), init, CleanupAction.NO_OP, createDefaultFileLockManager(), Mock(ExecutorFactory))
+
+        when:
+        dir.file("cache.properties").delete()
+        cache.open()
+
+        then:
+        initialized
+
+        cleanup:
+        cache.close()
     }
 
     private static Map<String, String> loadProperties(TestFile file) {
