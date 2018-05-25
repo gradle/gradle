@@ -18,11 +18,12 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.integtests.resource.s3.fixtures.AddJavaXmBindModulesTrait
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
-class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest implements AddJavaXmBindModulesTrait {
 
     String mavenVersion = "1.45"
     String projectName = "publishS3Test"
@@ -33,6 +34,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
+        addJavaXmlBindModuleIfNecessary()
         disableModuleMetadataPublishing()
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
