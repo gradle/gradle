@@ -132,6 +132,7 @@ class InterpreterTest : TestWithTempFiles() {
                 subject.eval(
                     target,
                     scriptSource,
+                    sourceHash,
                     mock(),
                     targetScope,
                     baseScope,

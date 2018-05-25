@@ -112,6 +112,7 @@ class Interpreter(val host: Host) {
     fun eval(
         target: Any,
         scriptSource: ScriptSource,
+        sourceHash: HashCode,
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
@@ -120,9 +121,6 @@ class Interpreter(val host: Host) {
 
         val sourceText =
             scriptSource.resource!!.text
-
-        val sourceHash =
-            scriptSourceHash(sourceText)
 
         val programKind =
             if (topLevelScript) ProgramKind.TopLevel

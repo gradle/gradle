@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 import org.gradle.cache.internal.GeneratedGradleJarCache
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 
@@ -77,7 +78,8 @@ object BuildServices {
         pluginRequestsHandler: PluginRequestsHandler,
         embeddedKotlinProvider: EmbeddedKotlinProvider,
         classPathModeExceptionCollector: ClassPathModeExceptionCollector,
-        kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator
+        kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
+        scriptSourceHasher: ScriptSourceHasher
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -87,7 +89,8 @@ object BuildServices {
             pluginRequestsHandler,
             embeddedKotlinProvider,
             classPathModeExceptionCollector,
-            kotlinScriptBasePluginsApplicator)
+            kotlinScriptBasePluginsApplicator,
+            scriptSourceHasher)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

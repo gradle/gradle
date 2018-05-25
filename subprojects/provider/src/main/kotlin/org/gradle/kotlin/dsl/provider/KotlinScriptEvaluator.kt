@@ -27,6 +27,7 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -76,7 +77,8 @@ class StandardKotlinScriptEvaluator(
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
-    private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator
+    private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
+    private val scriptSourceHasher: ScriptSourceHasher
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -96,6 +98,7 @@ class StandardKotlinScriptEvaluator(
             interpreter.eval(
                 target,
                 scriptSource,
+                scriptSourceHasher.hash(scriptSource),
                 scriptHandler,
                 targetScope,
                 baseScope,
