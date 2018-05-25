@@ -131,6 +131,9 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
                     listOf(gradleParameterString) +
                             buildType.buildCache.gradleParameters(os) +
                             listOf(extraParameters) +
+                            "-PteamCityUsername=%teamcity.username.restbot%" +
+                            "-PteamCityPassword=%teamcity.password.restbot%" +
+                            "-PteamCityBuildId=%teamcity.build.id%" +
                             buildScanTags.map { buildScanTag(it) }
                     ).joinToString(separator = " ")
         }
