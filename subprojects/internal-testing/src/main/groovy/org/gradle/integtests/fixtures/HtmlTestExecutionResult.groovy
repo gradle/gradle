@@ -213,7 +213,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
-            String failureMethodName = "execution failure"
+            String failureMethodName = EXECUTION_FAILURE
             def testCase = testsFailures.find { it.name == failureMethodName }
             assert testCase
 
