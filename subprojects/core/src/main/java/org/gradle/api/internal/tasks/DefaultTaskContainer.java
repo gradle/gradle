@@ -491,16 +491,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    static class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
+    public static class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
         private Throwable cause;
+        private DefaultTaskContainer tasks;
 
         public TaskCreatingProvider(DefaultTaskContainer tasks, Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(tasks, type, name);
+            this.tasks = tasks;
+            tasks.statistics.lazyTask();
+
             if (configureAction != null) {
                 configure(configureAction);
             }
-            tasks.statistics.lazyTask();
         }
 
         @SuppressWarnings("unused")

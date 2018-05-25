@@ -104,13 +104,13 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return Cast.uncheckedCast(getInstantiator().newInstance(TaskLookupProvider.class, this, getType(), name));
     }
 
-    static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
-        final DefaultTaskContainer tasks;
+    public static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
+        final DefaultTaskCollection tasks;
         final Class<T> type;
         final String name;
         boolean removed = false;
 
-        DefaultTaskProvider(DefaultTaskContainer tasks, Class<T> type, String name) {
+        DefaultTaskProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
             this.tasks = tasks;
             this.type = type;
             this.name = name;
@@ -153,11 +153,11 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
     }
 
-    static class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
+    public static class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
 
         @SuppressWarnings("unused")
-        public TaskLookupProvider(DefaultTaskContainer tasks, Class<T> type, String name) {
+        public TaskLookupProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
             super(tasks, type, name);
         }
 
