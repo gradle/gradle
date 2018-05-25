@@ -63,7 +63,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         try {
             delegate.resolveGraph(configuration, results);
         } catch (Throwable e) {
-            if (e instanceof GraphValidationException) {
+            if (e instanceof GraphValidationException && results.hasResolutionResult()) {
                 // if it's just a validation error, we reached the end of graph building
                 // so we have a resolution result that we can give to consumers. By default,
                 // if they try to read the graph, it will throw an error, but they can choose

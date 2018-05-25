@@ -97,23 +97,26 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
                 for (ModuleComponentIdentifier lockedDependency : lockingState.getLockedDependencies()) {
                     errors.add("Did not resolve '" + lockedDependency.getGroup() + ":" + lockedDependency.getModule() + ":" + lockedDependency.getVersion() + "' which is part of the lock state");
                 }
+                results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
                 throw LockOutOfDateException.createLockOutOfDateException(configuration.getName(), errors);
             }
             dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), Collections.<ModuleComponentIdentifier>emptySet(), Collections.<ModuleComponentIdentifier>emptySet());
         }
-        results.graphResolved(emptyResult, emptyProjectResult, new EmptyResults());
+        results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
     }
 
     @Override
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
-            results.artifactsResolved(new EmptyResolvedConfiguration(), new EmptyResults());
+            results.artifactsResolved(new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
             delegate.resolveArtifacts(configuration, results);
         }
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet {
+        private static final EmptyResults INSTANCE = new EmptyResults();
+
         @Override
         public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
             return this;

@@ -115,11 +115,6 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
 
     @Override
     public void finishArtifacts() {
-        if (dependencyLockingState.mustValidateLockState()) {
-            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
-                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked), getSortedDisplayNames(extraModules));
-            }
-        }
     }
 
     private Set<String> getSortedDisplayNames(Set<ModuleComponentIdentifier> modules) {
@@ -143,6 +138,11 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
     }
 
     public void performValidation() {
+        if (dependencyLockingState.mustValidateLockState()) {
+            if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
+                throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked), getSortedDisplayNames(extraModules));
+            }
+        }
         Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
         dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
     }
