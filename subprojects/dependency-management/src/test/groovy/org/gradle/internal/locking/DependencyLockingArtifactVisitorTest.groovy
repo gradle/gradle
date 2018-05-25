@@ -165,7 +165,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedNode(identifier)
 
         when:
-        visitor.complete()
+        visitor.performValidation()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), emptySet())
@@ -179,7 +179,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedChangingNode(identifier)
 
         when:
-        visitor.complete()
+        visitor.performValidation()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), singleton(identifier))

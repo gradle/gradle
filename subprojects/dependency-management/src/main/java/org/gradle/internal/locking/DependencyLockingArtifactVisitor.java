@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ValidatingArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisitor {
+public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisitor {
 
     private final DependencyLockingProvider dependencyLockingProvider;
     private final String configurationName;
@@ -142,7 +142,7 @@ public class DependencyLockingArtifactVisitor implements DependencyArtifactsVisi
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }
 
-    public void complete() {
+    public void performValidation() {
         Set<ModuleComponentIdentifier> changingModules = this.changingResolvedModules == null ? Collections.<ModuleComponentIdentifier>emptySet() : this.changingResolvedModules;
         dependencyLockingProvider.persistResolvedDependencies(configurationName, allResolvedModules, changingModules);
     }
