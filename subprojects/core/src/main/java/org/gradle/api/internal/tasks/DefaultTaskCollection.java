@@ -29,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -95,22 +96,22 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Nullable
-    private ProviderInternal<? extends Task> findTask(String name) {
+    ProviderInternal<? extends Task> findTask(String name) {
         Task task = findByNameWithoutRules(name);
         if (task == null) {
             return findByNameLaterWithoutRules(name);
         }
-        Class<T> type = (Class<T>) getType();
-        return new TaskLookupProvider(type, name);
+        return Cast.uncheckedCast(getInstantiator().newInstance(TaskLookupProvider.class, this, getType(), name));
     }
 
-
-    protected abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
+    static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
+        final DefaultTaskContainer tasks;
         final Class<T> type;
         final String name;
         boolean removed = false;
 
-        DefaultTaskProvider(Class<T> type, String name) {
+        DefaultTaskProvider(DefaultTaskContainer tasks, Class<T> type, String name) {
+            this.tasks = tasks;
             this.type = type;
             this.name = name;
         }
@@ -127,12 +128,12 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
         @Override
         public boolean isPresent() {
-            return findTask(name) != null;
+            return tasks.findTask(name) != null;
         }
 
         @Override
         public void configure(final Action<? super T> action) {
-            configureEach(new Action<Task>() {
+            tasks.configureEach(new Action<Task>() {
                 private boolean alreadyExecuted = false;
 
                 @Override
@@ -152,17 +153,18 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
     }
 
-    private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
+    static class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
+        private T task;
 
-        public TaskLookupProvider(Class<T> type, String name) {
-            super(type, name);
+        @SuppressWarnings("unused")
+        public TaskLookupProvider(DefaultTaskContainer tasks, Class<T> type, String name) {
+            super(tasks, type, name);
         }
 
         @Override
         public T getOrNull() {
             if (task == null) {
-                task = type.cast(findByName(name));
+                task = type.cast(tasks.findByName(name));
             }
             return task;
         }

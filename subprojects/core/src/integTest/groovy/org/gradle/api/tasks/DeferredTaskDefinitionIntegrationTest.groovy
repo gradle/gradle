@@ -313,6 +313,32 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Task with name 'task1' not found")
     }
 
+    def "delegate of TaskProvider.configure is set properly"() {
+        buildFile << """
+            def eager = tasks.create("eager")
+            def eagerToo = tasks.create("eagerToo")
+            def lazy = tasks.createLater("lazy")
+            
+            tasks.configureEach {
+                doLast {
+                    println "Hello from " + path
+                }
+            }
+            
+            lazy.configure {
+                dependsOn eager 
+            }
+            
+            tasks.named("eagerToo").configure {
+                dependsOn lazy
+            }
+        """
+
+        expect:
+        succeeds("eagerToo")
+        result.assertTasksExecuted(":eager", ":lazy", ":eagerToo")
+    }
+
     @Issue("https://github.com/gradle/gradle-native/issues/661")
     def "executes each configuration actions once when realizing a task"() {
         buildFile << '''
