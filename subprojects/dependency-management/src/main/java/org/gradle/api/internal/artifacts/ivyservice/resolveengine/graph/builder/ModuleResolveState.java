@@ -91,6 +91,10 @@ class ModuleResolveState implements CandidateModule {
         return versions;
     }
 
+    public Collection<ComponentState> getAllVersions() {
+        return this.versions.values();
+    }
+
     private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
         boolean allCandidates = true;
         for (ComponentState value : values) {

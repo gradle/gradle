@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -25,9 +24,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -36,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 
@@ -61,18 +59,38 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+    public void resolveGraph(final ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         try {
             delegate.resolveGraph(configuration, results);
         } catch (Throwable e) {
+            if (e instanceof GraphValidationException) {
+                // if it's just a validation error, we reached the end of graph building
+                // so we have a resolution result that we can give to consumers. By default,
+                // if they try to read the graph, it will throw an error, but they can choose
+                // to ignore it, which can be useful for reporting
+                graphResolved(configuration, results);
+            }
             results.failed(wrapException(e, configuration));
+
             BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(e, configuration);
             results.artifactsResolved(broken, broken);
             return;
         }
+        graphResolved(configuration, results);
+    }
 
-        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
-        results.graphResolved(wrappedResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts());
+    private void graphResolved(ConfigurationInternal configuration, ResolverResults results) {
+        ResolutionResult resolutionResult = setupErrorHandler(configuration, results);
+        results.graphResolved(resolutionResult, results.getResolvedLocalComponents(), results.getVisitedArtifacts());
+    }
+
+    private ResolutionResult setupErrorHandler(final ConfigurationInternal configuration, ResolverResults results) {
+        return results.getResolutionResult().setErrorHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                throw wrapException(throwable, configuration);
+            }
+        });
     }
 
     @Override
@@ -175,56 +193,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
             } catch (Throwable e) {
                 throw wrapException(e, resolveContext);
             }
-        }
-    }
-
-    private static class ErrorHandlingResolutionResult implements ResolutionResult {
-        private final ResolutionResult resolutionResult;
-        private final ResolveContext resolveContext;
-
-        public ErrorHandlingResolutionResult(ResolutionResult resolutionResult, ResolveContext configuration) {
-            this.resolutionResult = resolutionResult;
-            this.resolveContext = configuration;
-        }
-
-        public ResolvedComponentResult getRoot() {
-            try {
-                return resolutionResult.getRoot();
-            } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
-            }
-        }
-
-        public void allDependencies(Action<? super DependencyResult> action) {
-            resolutionResult.allDependencies(action);
-        }
-
-        public Set<? extends DependencyResult> getAllDependencies() {
-            try {
-                return resolutionResult.getAllDependencies();
-            } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
-            }
-        }
-
-        public void allDependencies(Closure closure) {
-            resolutionResult.allDependencies(closure);
-        }
-
-        public Set<ResolvedComponentResult> getAllComponents() {
-            try {
-                return resolutionResult.getAllComponents();
-            } catch (Throwable e) {
-                throw wrapException(e, resolveContext);
-            }
-        }
-
-        public void allComponents(Action<? super ResolvedComponentResult> action) {
-            resolutionResult.allComponents(action);
-        }
-
-        public void allComponents(Closure closure) {
-            resolutionResult.allComponents(closure);
         }
     }
 

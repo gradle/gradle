@@ -209,6 +209,71 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    def "displays information about conflicting modules when failOnVersionConflict is used"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
+
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
+
+        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                }
+            }
+            dependencies {
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+
+        then:
+        outputContains """There were conflicts between the following modules which fail resolution, see below for details:
+   - org:leaf2:1.5
+   - org:leaf2:2.5
+   - org:leaf2:1.0
+
+org:leaf2:2.5 (conflict resolution)
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+\\--- org:toplevel3:1.0
+     \\--- conf
+
+org:leaf2:1.0 -> 2.5
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
+     \\--- conf
+"""
+    }
+
     def "shows forced version"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()

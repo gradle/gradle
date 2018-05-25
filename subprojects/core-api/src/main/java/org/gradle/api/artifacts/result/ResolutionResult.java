@@ -90,4 +90,18 @@ public interface ResolutionResult {
      * @param closure - closure that is applied for each component
      */
     void allComponents(Closure closure);
+
+    /**
+     * Sets a custom error handler, allowing catching non fatal resolution errors
+     * before starting to resolve. This is useful if you need to be able to perform
+     * resolution even if there are, for example, graph validation errors (like when doing
+     * strict conflict resolution or dependency locking)
+     *
+     * @param onError action to be executed on a non-fatal error
+     * @return this resolution result instance
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ResolutionResult setErrorHandler(Action<? super Throwable> onError);
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
@@ -186,8 +187,15 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
     void "wraps exceptions thrown by resolution result"() {
         given:
         def failure = new RuntimeException()
+        Action<Throwable> errorHandler
 
-        resolutionResult.root >> { throw failure }
+        resolutionResult.root >> {
+            errorHandler.execute(failure)
+        }
+        resolutionResult.setErrorHandler(_) >> {
+            errorHandler = it[0]
+            resolutionResult
+        }
 
         delegate.resolveGraph(context, results) >> { results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet) }
         delegate.resolveArtifacts(context, results) >> { results.artifactsResolved(resolvedConfiguration, visitedArtifactSet) }

@@ -23,8 +23,12 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -32,6 +36,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
@@ -45,6 +50,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -53,6 +59,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -174,6 +181,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     /**
      * An injected {@link ImmutableAttributesFactory}.
+     *
      * @since 4.9
      */
     @Inject
@@ -195,10 +203,21 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
 
-        StyledTextOutput output = getTextOutputFactory().create(getClass());
+        final StyledTextOutput output = getTextOutputFactory().create(getClass());
         final GraphRenderer renderer = new GraphRenderer(output);
 
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
+        result.setErrorHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                if (throwable instanceof ResolveException) {
+                    Throwable cause = throwable.getCause();
+                    if (cause instanceof VersionConflictException) {
+                        handleConflict((VersionConflictException) cause, output);
+                    }
+                }
+            }
+        });
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
         result.allDependencies(new Action<DependencyResult>() {
@@ -246,6 +265,41 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.text("A web-based, searchable dependency report is available by adding the ");
         output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
         output.println(" option.");
+    }
+
+    private void handleConflict(VersionConflictException conflict, StyledTextOutput output) {
+        for (List<ModuleVersionIdentifier> moduleVersionIdentifiers : conflict.getConflicts()) {
+            boolean matchesSpec = hasVersionConflictOnRequestedDependency(moduleVersionIdentifiers);
+            if (!matchesSpec) {
+                continue;
+            }
+            output.text("There were conflicts between the following modules which fail resolution, see below for details:");
+            output.println();
+            for (ModuleVersionIdentifier moduleVersionIdentifier : moduleVersionIdentifiers) {
+                output.text("   - ");
+                output.withStyle(StyledTextOutput.Style.Error).text(moduleVersionIdentifier.toString());
+                output.println();
+            }
+            output.println();
+        }
+    }
+
+    private boolean hasVersionConflictOnRequestedDependency(List<ModuleVersionIdentifier> moduleVersionIdentifiers) {
+        boolean matchesSpec = false;
+        for (final ModuleVersionIdentifier mvi : moduleVersionIdentifiers) {
+            matchesSpec |= dependencySpec.isSatisfiedBy(new DependencyResult() {
+                @Override
+                public ComponentSelector getRequested() {
+                    return DefaultModuleComponentSelector.newSelector(mvi.getGroup(), mvi.getName(), mvi.getVersion());
+                }
+
+                @Override
+                public ResolvedComponentResult getFrom() {
+                    return null;
+                }
+            });
+        }
+        return matchesSpec;
     }
 
     private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {

@@ -90,4 +90,9 @@ public class DefaultResolutionResult implements ResolutionResult {
         allComponents(ConfigureUtil.configureUsing(closure));
     }
 
+    @Override
+    public ResolutionResult setErrorHandler(Action<? super Throwable> onError) {
+        return this;
+    }
+
 }
