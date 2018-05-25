@@ -80,7 +80,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private boolean upToDate;
         private boolean outputsRemoved;
         private TaskUpToDateState states;
-        private IncrementalTaskInputsInternal taskInputs;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
@@ -101,6 +100,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public IncrementalTaskInputs getInputChanges(TaskProperties taskProperties) {
             assert !upToDate : "Should not be here if the task is up-to-date";
 
+            IncrementalTaskInputs taskInputs;
             if (!outputsRemoved && canPerformIncrementalBuild()) {
                 taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
             } else {
@@ -148,6 +148,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot = history.getCurrentExecution().getOutputFilesSnapshot();
             return Maps.transformValues(outputFilesSnapshot, new Function<FileCollectionSnapshot, Map<String, FileContentSnapshot>>() {
                 @Override
+                @SuppressWarnings("NullableProblems")
                 public Map<String, FileContentSnapshot> apply(FileCollectionSnapshot fileCollectionSnapshot) {
                     return fileCollectionSnapshot.getContentSnapshots();
                 }
@@ -177,7 +178,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterTaskExecution(Throwable failure, UniqueId buildInvocationId, TaskExecutionContext taskExecutionContext) {
-            history.updateCurrentExecution(taskInputs);
+            history.updateCurrentExecution();
             snapshotAfterOutputsWereGenerated(history, failure, new OriginTaskExecutionMetadata(
                 buildInvocationId,
                 taskExecutionContext.markExecutionTime()
@@ -186,7 +187,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public void snapshotAfterLoadedFromCache(ImmutableSortedMap<String, FileCollectionSnapshot> newOutputSnapshot, OriginTaskExecutionMetadata originMetadata) {
-            history.updateCurrentExecutionWithOutputs(taskInputs, newOutputSnapshot);
+            history.updateCurrentExecutionWithOutputs(newOutputSnapshot);
             snapshotAfterOutputsWereGenerated(history, null, originMetadata);
         }
 
