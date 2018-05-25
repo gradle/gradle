@@ -33,13 +33,33 @@ import static org.gradle.util.Matchers.containsText
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
+    def "fails when working directory is invalid"() {
+        buildWithApplicationAndDependencies()
+        buildFile << """
+            project(':app') {
+                tasks.withType(XCTest).configureEach {
+                    doFirst {
+                        workingDirectory = project.layout.projectDirectory.dir("does-not-exist")
+                    }
+                }
+            }
+        """
+        expect:
+        fails(':app:test')
+
+        and:
+        failure.assertHasCause("There were failing tests.")
+        def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
+        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("A problem occurred starting process"))
+    }
+
     def "fails when application cannot load shared library at runtime"() {
         buildWithApplicationAndDependencies()
         buildFile << """
             project(':app') {
                 tasks.withType(XCTest).configureEach {
                     doFirst {
-                        delete project(':hello').layout.buildDir.get()
+                        delete project(':hello').layout.buildDirectory.get()
                     }
                 }
             }
@@ -51,7 +71,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         and:
         failure.assertHasCause("There were failing tests.")
         def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
-        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("Failure while running xctest executable"))
+        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("finished with non-zero exit value"))
         if (OperatingSystem.current().isMacOsX()) {
             testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
         } else {
@@ -68,7 +88,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
 
         and:
         failure.assertHasCause("There were failing tests.")
-        testExecutionResult.testClass("ForceUnwrapTestSuite").assertTestFailed("testForceUnwrapOptional", containsText("Failure while running xctest executable"))
+        testExecutionResult.testClass("ForceUnwrapTestSuite").assertTestFailed("testForceUnwrapOptional", containsText("finished with non-zero exit value"))
     }
 
     void buildWithApplicationAndDependencies() {

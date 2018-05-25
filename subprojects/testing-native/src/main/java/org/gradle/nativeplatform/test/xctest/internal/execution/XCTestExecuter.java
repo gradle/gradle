@@ -151,12 +151,20 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
 
             execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut), new LineBufferingOutputStream(stdErr));
-            ExecResult result = execHandle.waitForFinish();
-            // Exit code 0 = success, Exit code 1 = failed test(s), anything else is considered an execution failure
-            if (result.getExitValue() != 0 && result.getExitValue() != 1) {
-                Exception failure = new ExecException("Failure while running xctest executable (exit code: " + result.getExitValue() + ").");
-                stdOut.endOfStream(failure);
+            try {
+                execHandle.start();
+                ExecResult result = execHandle.waitForFinish();
+                // Exit code 0 = success
+                // Exit code 1 = failed test(s)
+                // anything else is considered an execution failure
+                if (result.getExitValue() != 0 && result.getExitValue() != 1) {
+                    result.rethrowFailure().assertNormalExitValue();
+                }
+            } catch (ExecException e) {
+                stdOut.endOfStream(e);
                 stdErr.endOfStream(null);
+            } finally {
+                execHandle = null;
             }
         }
 
@@ -164,8 +172,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
             execHandleBuilder.setArgs(toTestArgs(testName));
             execHandleBuilder.setStandardOutput(outputStream);
             execHandleBuilder.setErrorOutput(errorStream);
-            ExecHandle handle = execHandleBuilder.build();
-            return handle.start();
+            return execHandleBuilder.build();
         }
 
         private static List<String> toTestArgs(String testName) {
