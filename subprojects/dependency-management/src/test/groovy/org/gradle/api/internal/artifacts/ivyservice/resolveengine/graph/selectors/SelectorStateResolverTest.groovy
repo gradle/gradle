@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors
 
+import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
@@ -30,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -52,7 +55,6 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
-
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
@@ -249,7 +251,8 @@ class SelectorStateResolverTest extends Specification {
         private Integer findDynamicVersion(VersionSelector prefer, VersionSelector reject) {
             def resolved = (13..9).find {
                 String candidateVersion = it as String
-                prefer.accept(candidateVersion) && !rejected(reject, candidateVersion)
+                ComponentMetadata candidate = new DummyComponentMetadata(candidateVersion)
+                prefer.accept(candidate) && !rejected(reject, candidateVersion)
             }
             if (!resolved) {
                 resolved = (13..9).find {
@@ -269,5 +272,39 @@ class SelectorStateResolverTest extends Specification {
             return new ModuleVersionNotFoundException(moduleComponentSelector, [])
         }
     }
+
+    private static class DummyComponentMetadata implements ComponentMetadata {
+        private final String version
+
+        DummyComponentMetadata(String version) {
+            this.version = version
+        }
+
+        @Override
+        ModuleVersionIdentifier getId() {
+            return new DefaultModuleVersionIdentifier("org", "foo", version)
+        }
+
+        @Override
+        boolean isChanging() {
+            return false
+        }
+
+        @Override
+        String getStatus() {
+            return "integration"
+        }
+
+        @Override
+        List<String> getStatusScheme() {
+            return ["integration"]
+        }
+
+        @Override
+        AttributeContainer getAttributes() {
+            return ImmutableAttributes.EMPTY
+        }
+    }
+
 
 }

@@ -53,7 +53,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory)
+        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(), artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory, externalResourceFileStore, Mock(FileResourceRepository), TestUtil.featurePreviews(), mavenMetadataFactory, TestUtil.valueSnapshotter())
 
     def "creates local repository"() {
         given:
@@ -180,7 +180,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         supplier.rule.ruleClass == CustomMetadataSupplier
-        supplier.rule.ruleParams == [] as Object[]
+        supplier.rule.ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -198,7 +198,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         supplier.rule.ruleClass == CustomMetadataSupplierWithParams
-        supplier.rule.ruleParams == ["a", 12, [1, 2, 3]] as Object[]
+        supplier.rule.ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -215,7 +215,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         lister.rule.ruleClass == CustomVersionLister
-        lister.rule.ruleParams == [] as Object[]
+        lister.rule.ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom version lister"() {
@@ -232,7 +232,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
         then:
         lister.rule.ruleClass == CustomVersionListerWithParams
-        lister.rule.ruleParams == ["a", 12, [1, 2, 3]] as Object[]
+        lister.rule.ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

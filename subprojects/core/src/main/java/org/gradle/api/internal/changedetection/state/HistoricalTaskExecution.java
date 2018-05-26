@@ -33,7 +33,6 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     private final boolean successful;
     private final OriginTaskExecutionMetadata originExecutionMetadata;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
-    private final FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
 
     public HistoricalTaskExecution(
@@ -42,14 +41,12 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
         ImmutableSortedMap<String, ValueSnapshot> inputProperties,
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        FileCollectionSnapshot discoveredInputFilesSnapshot,
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
         boolean successful,
         OriginTaskExecutionMetadata originExecutionMetadata
     ) {
         super(taskImplementation, taskActionsImplementations, inputProperties, outputPropertyNames);
         this.inputFilesSnapshot = inputFilesSnapshot;
-        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.successful = successful;
         this.originExecutionMetadata = originExecutionMetadata;
@@ -69,11 +66,6 @@ public class HistoricalTaskExecution extends AbstractTaskExecution {
     @Override
     public ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot() {
         return inputFilesSnapshot;
-    }
-
-    @Override
-    public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
-        return discoveredInputFilesSnapshot;
     }
 
     @Override

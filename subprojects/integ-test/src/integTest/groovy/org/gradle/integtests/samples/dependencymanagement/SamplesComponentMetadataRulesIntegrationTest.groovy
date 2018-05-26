@@ -49,17 +49,6 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
     }
 
     @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
-    def "can run custom status scheme with rule source sample" () {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds "listWithRule"
-
-        then:
-        output.contains("Resolved: api-1.9.jar")
-    }
-
-    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
     def "can run ivy metadata rule" () {
         executer.inDirectory(sample.dir)
 
@@ -68,5 +57,16 @@ class SamplesComponentMetadataRulesIntegrationTest extends AbstractIntegrationSp
 
         then:
         output.contains("Resolved: lib-2.0.jar")
+    }
+
+    @UsesSample('userguide/dependencyManagement/customizingResolution/metadataRule')
+    def "can run custom status scheme with parameterized class rule sample" () {
+        executer.inDirectory(sample.dir)
+
+        when:
+        succeeds "listWithConfiguredRule"
+
+        then:
+        output.contains("Resolved: api-1.9.jar")
     }
 }

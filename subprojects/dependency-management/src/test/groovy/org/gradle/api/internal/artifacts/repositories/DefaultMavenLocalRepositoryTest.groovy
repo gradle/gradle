@@ -54,7 +54,8 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         moduleIdentifierFactory,
         Mock(FileResourceRepository),
         TestUtil.featurePreviews(),
-        mavenMetadataFactory
+        mavenMetadataFactory,
+        TestUtil.valueSnapshotter()
     )
     final ProgressLoggerFactory progressLoggerFactory = Mock()
 

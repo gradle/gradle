@@ -44,11 +44,12 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.reflect.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -83,6 +84,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileStore<String> resourcesFileStore;
     private final FileResourceRepository fileResourceRepository;
     private final MavenMutableModuleMetadataFactory metadataFactory;
+    private final IsolatableFactory isolatableFactory;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
@@ -97,10 +99,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
-                                          MavenMutableModuleMetadataFactory metadataFactory) {
+                                          MavenMutableModuleMetadataFactory metadataFactory,
+                                          IsolatableFactory isolatableFactory) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer, moduleIdentifierFactory,
-            resourcesFileStore, fileResourceRepository, featurePreviews, metadataFactory);
+            resourcesFileStore, fileResourceRepository, featurePreviews, metadataFactory, isolatableFactory);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -115,7 +118,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           FileStore<String> resourcesFileStore,
                                           FileResourceRepository fileResourceRepository,
                                           FeaturePreviews featurePreviews,
-                                          MavenMutableModuleMetadataFactory metadataFactory) {
+                                          MavenMutableModuleMetadataFactory metadataFactory,
+                                          IsolatableFactory isolatableFactory) {
         super(instantiatorFactory.decorate(), authenticationContainer);
         this.describer = describer;
         this.fileResolver = fileResolver;
@@ -128,6 +132,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.resourcesFileStore = resourcesFileStore;
         this.fileResourceRepository = fileResourceRepository;
         this.metadataFactory = metadataFactory;
+        this.isolatableFactory = isolatableFactory;
         this.metadataSources.setDefaults(featurePreviews);
         this.instantiatorFactory = instantiatorFactory;
     }
@@ -197,8 +202,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
-        InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector);
-        InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector);
+        InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
+        InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister);
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect
+package org.gradle.internal.action
 
 import org.gradle.api.Action
 import org.gradle.api.ActionConfiguration
@@ -43,13 +43,13 @@ class InstantiatingActionTest extends Specification {
                 void execute(ActionConfiguration actionConfiguration) {
                     actionConfiguration.params(123, "test string")
                 }
-            }),
+            }, TestUtil.valueSnapshotter()),
             TestUtil.instantiatorFactory().decorate(),
             shouldNotFail
         )
 
         then:
-        action.rule.ruleParams == [123, "test string"] as Object[]
+        action.rule.ruleParams.isolate() == [123, "test string"] as Object[]
         action.rule.ruleClass == RuleWithParams
 
         when:
@@ -74,7 +74,7 @@ class InstantiatingActionTest extends Specification {
         )
 
         then:
-        action.rule.ruleParams == [] as Object[]
+        action.rule.ruleParams.isolate() == [] as Object[]
         action.rule.ruleClass == RuleWithInjectedParams
 
         when:
@@ -99,13 +99,13 @@ class InstantiatingActionTest extends Specification {
                 void execute(ActionConfiguration actionConfiguration) {
                     actionConfiguration.params(456)
                 }
-            }),
+            }, TestUtil.valueSnapshotter()),
             TestUtil.instantiatorFactory().inject(registry),
             shouldNotFail
         )
 
         then:
-        action.rule.ruleParams == [456] as Object[]
+        action.rule.ruleParams.isolate() == [456] as Object[]
         action.rule.ruleClass == RuleWithInjectedAndRegularParams
 
         when:

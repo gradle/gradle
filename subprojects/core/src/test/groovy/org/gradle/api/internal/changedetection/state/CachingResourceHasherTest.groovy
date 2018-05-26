@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry
 class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def fileSnapshot = new RegularFileSnapshot("path", RelativePath.parse(true, "path"), false, new FileHashSnapshot(HashCode.fromInt(456)))
-    def cachingHasher = new CachingResourceHasher(delegate, new ResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
+    def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
 
     def "returns result from delegate"() {
         def expectedHash = HashCode.fromInt(123)

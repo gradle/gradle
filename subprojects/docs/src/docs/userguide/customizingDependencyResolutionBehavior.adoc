@@ -175,7 +175,8 @@ Component metadata rules can be applied to a specified module. Modules must be s
 </sample>
 ++++
 
-Gradle can also create component metadata rules utilizing Ivy-specific metadata for modules resolved from an Ivy repository. Values from the Ivy descriptor are made available via the api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[] interface.
+Gradle can also provide to component metadata rules the Ivy-specific metadata for modules resolved from an Ivy repository.
+Values from the Ivy descriptor are made available via the api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[] interface.
 
 ++++
 <sample id="ivyComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Ivy component metadata rule">
@@ -183,21 +184,22 @@ Gradle can also create component metadata rules utilizing Ivy-specific metadata 
 </sample>
 ++++
 
-Note that any rule that declares specific arguments must _always_ include a api:org.gradle.api.artifacts.ComponentMetadataDetails[] argument as the first argument. The second Ivy metadata argument is optional.
+Note that while any rule can request the api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[], only components sourced from an Ivy repository will have a non-null value for it.
 
-Component metadata rules can also be defined using a _rule source_ object. A rule source object is any object that contains exactly one method that defines the rule action and is annotated with `@Mutate`.
+As can be seen in the examples above, component metadata rules are defined by implementing api:org.gradle.api.artifacts.ComponentMetadataRule[] which has a single `execute` method receiving an instance of api:org.gradle.api.artifacts.ComponentMetadataContext[] as parameter.
 
-This method:
-
-* must return void.
-* must have api:org.gradle.api.artifacts.ComponentMetadataDetails[] as the first argument.
-* may have an additional parameter of type api:org.gradle.api.artifacts.ivy.IvyModuleDescriptor[].
+The next example shows how you can pass build related information to the `ComponentMetadataRule` through an api:org.gradle.api.ActionConfiguration[].
 
 ++++
-<sample id="ruleSourceComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Rule source component metadata rule">
-    <sourcefile file="build.gradle" snippet="rule-source-component-metadata-rule"/>
+<sample id="configComponentMetadataRule" dir="userguide/dependencyManagement/customizingResolution/metadataRule" title="Configuration of ComponentMetadataRule">
+    <sourcefile file="build.gradle" snippet="config-component-metadata-rule"/>
 </sample>
 ++++
+
+[NOTE]
+====
+All other mechanisms for defining component metadata rules are deprecated and should no longer be used as they will be removed in a later version of Gradle.
+====
 
 [[sec:component_selection_rules]]
 === Using component selection rules

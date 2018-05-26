@@ -33,7 +33,7 @@ public class CachingCSourceParser implements CSourceParser {
             public IncludeDirectives calculate(File file, FileType fileType) {
                 return parser.parseSource(file);
             }
-        }, new IncludeDirectivesSerializer());
+        }, IncludeDirectivesSerializer.INSTANCE);
     }
 
     @Override

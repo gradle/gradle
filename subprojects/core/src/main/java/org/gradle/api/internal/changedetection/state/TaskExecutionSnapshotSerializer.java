@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.OriginTaskExecutionMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.id.UniqueId;
@@ -33,13 +32,11 @@ import java.util.Map;
 
 public class TaskExecutionSnapshotSerializer extends AbstractSerializer<HistoricalTaskExecution> {
     private final InputPropertiesSerializer inputPropertiesSerializer;
-    private final StringInterner stringInterner;
     private final Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer;
 
-    TaskExecutionSnapshotSerializer(StringInterner stringInterner, Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer) {
+    TaskExecutionSnapshotSerializer(Serializer<FileCollectionSnapshot> fileCollectionSnapshotSerializer) {
         this.fileCollectionSnapshotSerializer = fileCollectionSnapshotSerializer;
         this.inputPropertiesSerializer = new InputPropertiesSerializer();
-        this.stringInterner = stringInterner;
     }
 
     public HistoricalTaskExecution read(Decoder decoder) throws Exception {
@@ -52,7 +49,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
 
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshots = readSnapshots(decoder);
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshots = readSnapshots(decoder);
-        FileCollectionSnapshot discoveredFilesSnapshot = fileCollectionSnapshotSerializer.read(decoder);
 
         ImplementationSnapshot taskImplementation = readImplementation(decoder);
 
@@ -80,7 +76,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
             inputProperties,
             cacheableOutputProperties,
             inputFilesSnapshots,
-            discoveredFilesSnapshot,
             outputFilesSnapshots,
             successful,
             originExecutionMetadata
@@ -93,7 +88,6 @@ public class TaskExecutionSnapshotSerializer extends AbstractSerializer<Historic
         encoder.writeLong(execution.getOriginExecutionMetadata().getExecutionTime());
         writeSnapshots(encoder, execution.getInputFilesSnapshot());
         writeSnapshots(encoder, execution.getOutputFilesSnapshot());
-        fileCollectionSnapshotSerializer.write(encoder, execution.getDiscoveredInputFilesSnapshot());
         writeImplementation(encoder, execution.getTaskImplementation());
         encoder.writeSmallInt(execution.getTaskActionImplementations().size());
         for (ImplementationSnapshot actionImpl : execution.getTaskActionImplementations()) {

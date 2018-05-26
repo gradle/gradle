@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.caching.internal.BuildCacheHasher;
-import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 
-public class ResourceSnapshotterCacheService {
-    private static final HashCode NO_HASH = Hashing.md5().hashString(CachingResourceHasher.class.getName() + " : no hash");
-    private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
-
-    public ResourceSnapshotterCacheService(PersistentIndexedCache<HashCode, HashCode> persistentCache) {
-        this.persistentCache = persistentCache;
-    }
-
-    public HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash) {
-        HashCode resourceHashCacheKey = resourceHashCacheKey(fileSnapshot, configurationHash);
-
-        HashCode resourceHash = persistentCache.get(resourceHashCacheKey);
-        if (resourceHash != null) {
-            if (resourceHash.equals(NO_HASH)) {
-                return null;
-            }
-            return resourceHash;
-        }
-
-        resourceHash = hasher.hash(fileSnapshot);
-
-        if (resourceHash != null) {
-            persistentCache.put(resourceHashCacheKey, resourceHash);
-        } else {
-            persistentCache.put(resourceHashCacheKey, NO_HASH);
-        }
-        return resourceHash;
-    }
-
-    private static HashCode resourceHashCacheKey(RegularFileSnapshot fileSnapshot, HashCode configurationHash) {
-        BuildCacheHasher hasher = new DefaultBuildCacheHasher();
-        hasher.putHash(configurationHash);
-        hasher.putHash(fileSnapshot.getContent().getContentMd5());
-        return hasher.hash();
-    }
+public interface ResourceSnapshotterCacheService {
+    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash);
 }

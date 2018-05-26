@@ -92,14 +92,6 @@ val excludedTests = listOf(
     // Test compiles for Java 5
     "ToolingApiUnsupportedClientJvmCrossVersionSpec" to listOf(VERSION_1_9, VERSION_1_10),
 
-    // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
-    // These tests need jvmArgs '-addmods', 'java.xml.bind'
-    // At some point Gradle should import this module automatically
-    "IvyPublishS3IntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-    "IvyS3UploadArchivesIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-    "MavenPublishS3IntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-    "MavenPublishS3ErrorsIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-
     // Various problems, eg scala compile
     "UserGuideSamplesIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10)
 )

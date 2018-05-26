@@ -17,14 +17,16 @@
 package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
+import org.gradle.integtests.resource.s3.fixtures.AddJavaXmBindModulesTrait
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
 
-class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
+class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest implements AddJavaXmBindModulesTrait{
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
+        addJavaXmlBindModuleIfNecessary()
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.RunningPlayApp
@@ -39,6 +40,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {

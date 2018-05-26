@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.artifacts.ComponentMetadataContext;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 
-import java.io.File;
-import java.util.Set;
+public class TestComponentMetadataRule implements ComponentMetadataRule {
 
-public interface IncrementalTaskInputsInternal extends IncrementalTaskInputs, DiscoveredInputRecorder {
-    Set<File> getDiscoveredInputs();
+    static int instanceCount = 0;
+
+    public TestComponentMetadataRule() {
+        instanceCount++;
+    }
+
+    @Override
+    public void execute(ComponentMetadataContext componentMetadataContext) {
+        // Do nothing for now
+    }
 }

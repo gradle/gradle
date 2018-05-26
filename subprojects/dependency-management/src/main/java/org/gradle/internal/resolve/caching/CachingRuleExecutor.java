@@ -17,7 +17,7 @@ package org.gradle.internal.resolve.caching;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.InstantiatingAction;
 
 /**
  * A caching rule executor allows caching the result of processing a rule. A rule is represented by a

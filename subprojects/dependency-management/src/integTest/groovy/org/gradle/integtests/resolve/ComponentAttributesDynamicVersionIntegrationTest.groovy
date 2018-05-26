@@ -19,19 +19,12 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-    @Ignore
-    def "ignored test because Spock doesn't support Unroll-only tests"() {
-        expect:
-        true
-    }
 
     @Unroll("#outcome if component-level attribute is #requested")
     def "component attributes are used to reject fixed version"() {

@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
@@ -44,11 +45,13 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
 
     private final DefaultAttributeMatcher matcher;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory) {
+    public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
         matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -69,7 +72,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     public <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction) {
         AttributeMatchingStrategy<T> strategy = Cast.uncheckedCast(strategies.get(attribute));
         if (strategy == null) {
-            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory));
+            strategy = Cast.uncheckedCast(instantiatorFactory.decorate().newInstance(DefaultAttributeMatchingStrategy.class, instantiatorFactory, isolatableFactory));
             strategies.put(attribute, strategy);
             attributesByName.put(attribute.getName(), attribute);
         }

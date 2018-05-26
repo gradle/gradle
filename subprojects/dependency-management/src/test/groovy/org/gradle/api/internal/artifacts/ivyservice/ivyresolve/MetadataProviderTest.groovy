@@ -30,11 +30,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCa
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.cache.CacheRepository
+import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.reflect.DefaultConfigurableRule
-import org.gradle.internal.reflect.InstantiatingAction
+import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.serialize.Serializer
