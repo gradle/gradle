@@ -88,9 +88,10 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
+        testProject                              | _
+        LARGE_MONOLITHIC_JAVA_PROJECT            | _
+        LARGE_JAVA_MULTI_PROJECT                 | _
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 
     @Unroll
