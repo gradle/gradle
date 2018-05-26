@@ -35,7 +35,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         cacheDir = tmpDir.createDir("cache")
         def fileStore = Stub(CachedJarFileStore)
         fileStore.fileStoreRoots >> [cacheDir]
-        mirror = new DefaultFileSystemMirror([fileStore])
+        mirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([fileStore]))
     }
 
     def "keeps state about a file until task outputs are generated"() {

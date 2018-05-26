@@ -134,6 +134,38 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
+        0 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
+        _ * fileSnapshot.type >> FileType.RegularFile
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        0 * _
+    }
+
+    def "reuses calculated value for file across factory instances"() {
+        def file = new File("thing.txt")
+        def fileSnapshot = Stub(FileSnapshot)
+        def cache = factory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER)
+
+        when:
+        def result = cache.get(file)
+
+        then:
+        result == 12
+
+        and:
+        1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
+        _ * fileSnapshot.type >> FileType.RegularFile
+        _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
+        1 * calculator.calculate(file, FileType.RegularFile) >> 12
+        0 * _
+
+        when:
+        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, fileSystemSnapshotter, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+        result = otherFactory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER).get(file)
+
+        then:
+        result == 12
+
+        and:
         1 * fileSystemSnapshotter.snapshotSelf(file) >> fileSnapshot
         _ * fileSnapshot.type >> FileType.RegularFile
         _ * fileSnapshot.content >> new FileHashSnapshot(HashCode.fromInt(123), 123)
