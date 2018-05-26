@@ -41,10 +41,10 @@ class PackageDependencyRulesTest {
     }
 
     private
-    infix fun String.shouldNotDependOn(`package`: String) {
+    infix fun String.shouldNotDependOn(thatPackage: String) {
         noClasses()
             .that().resideInAPackage(this)
-            .should().accessClassesThat().resideInAPackage(`package`)
+            .should().accessClassesThat().resideInAPackage(thatPackage)
             .check(classes)
     }
 

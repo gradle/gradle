@@ -21,12 +21,16 @@ import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
+
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
+
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -56,6 +60,10 @@ import kotlin.script.experimental.dependencies.DependenciesResolver
 import kotlin.script.experimental.dependencies.ScriptDependencies
 
 
+/**
+ * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
+ * stored in the given [outputDir].
+ */
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
@@ -64,90 +72,78 @@ class ResidualProgramCompiler(
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
-    private val logger: Logger = loggerFor<Interpreter>()
+    private val logger: Logger = interpreterLogger
 ) {
 
-    /**
-     * Compiles the given residual [program] to an [ExecutableProgram] subclass named `Program`
-     * stored in the given [outputDir].
-     */
-    fun compile(program: Program) {
-        when (program) {
-            is Program.Empty -> emitEmptyProgram()
-            is Program.Buildscript -> emitStage1Program(program)
-            is Program.Plugins -> emitStage1Program(program)
-            is Program.Script -> emitScriptProgram(program)
-            is Program.PrecompiledScript -> emitPrecompiledScriptPluginProgram(program)
-            is Program.Staged -> emitStagedProgram(program)
-            else -> throw IllegalArgumentException("Unsupported program `$program'")
-        }
+    fun compile(program: ResidualProgram) = when (program) {
+        is Static -> emitStaticProgram(program)
+        is Dynamic -> emitDynamicProgram(program)
     }
 
     private
-    fun emitEmptyProgram() {
-        // TODO: consider caching the empty program bytes
-        when (programTarget) {
-            ProgramTarget.Project -> emitEmptyProjectProgram()
-            else -> program<ExecutableProgram.Empty>()
-        }
-    }
-
-    private
-    fun emitEmptyProjectProgram() {
+    fun emitStaticProgram(program: Static) {
 
         program<ExecutableProgram> {
 
             overrideExecute {
-
-                when (programKind) {
-                    ProgramKind.TopLevel -> {
-                        emitApplyEmptyPluginRequestsTo()
-                        emitApplyBasePluginsTo()
-                    }
-                    ProgramKind.ScriptPlugin -> {
-                        emitCloseTargetScopeOf()
-                        emitApplyBasePluginsTo()
-                    }
-                }
+                emit(program.instructions)
             }
         }
     }
 
     private
-    fun emitStage1Program(program: Program.Buildscript) {
-        val precompiledScriptClassName = compileBuildscript(program)
-        emitPrecompiledStage1Program(precompiledScriptClassName)
+    fun emitDynamicProgram(program: Dynamic) {
+
+        val scriptSource = program.source
+        val scriptFile = scriptFileFor(scriptSource)
+        val sourceFilePath = scriptFile.canonicalPath
+        val originalPath = scriptSource.path
+
+        program<ExecutableProgram.StagedProgram> {
+
+            overrideExecute {
+
+                emit(program.prelude.instructions)
+                emitEvaluateSecondStageOf()
+            }
+
+            overrideLoadSecondStageFor(sourceFilePath, originalPath)
+        }
     }
 
     private
-    fun emitStage1Program(program: Program.Plugins) {
-        val precompiledPluginsBlock = compilePlugins(program)
-        program<ExecutableProgram> {
-            overrideExecute {
-                emitPrecompiledPluginsBlock(precompiledPluginsBlock)
-                emitApplyBasePluginsTo()
+    fun MethodVisitor.emit(instructions: List<Instruction>) {
+        instructions.forEach {
+            emit(it)
+        }
+    }
+
+    private
+    fun MethodVisitor.emit(instruction: Instruction) = when (instruction) {
+        is Instruction.CloseTargetScope -> emitCloseTargetScopeOf()
+        is Instruction.Eval -> emitEval(instruction.script)
+        is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
+        is Instruction.ApplyDefaultPluginRequests -> emitApplyEmptyPluginRequestsTo()
+        is Instruction.ApplyPluginRequestsOf -> {
+            val program = instruction.program
+            when (program) {
+                is Program.Plugins -> emitPrecompiledPluginsBlock(compilePlugins(program))
+                is Program.Stage1Sequence -> emitStage1Sequence(program.buildscript, program.plugins)
+                else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
         }
     }
 
     private
-    fun emitScriptProgram(program: Program.Script) {
-        emitStagedProgram(null, program)
+    fun MethodVisitor.emitEval(source: ProgramSource) {
+        val scriptFile = scriptFileFor(source)
+        val scriptPath = source.path
+        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage1ScriptDefinition)
+        emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
     }
 
     private
-    fun emitStagedProgram(program: Program.Staged) {
-        val (stage1, stage2) = program
-        when (stage1) {
-            is Program.Buildscript -> emitStagedProgram(stage1, stage2)
-            is Program.Plugins -> emitStagedProgram(stage1, stage2)
-            is Program.Stage1Sequence -> emitStagedProgram(stage1.buildscript, stage1.plugins, stage2)
-            else -> throw IllegalStateException()
-        }
-    }
-
-    private
-    fun emitStagedProgram(buildscript: Program.Buildscript, plugins: Program.Plugins, stage2: Program.Script) {
+    fun MethodVisitor.emitStage1Sequence(buildscript: Program.Buildscript, plugins: Program.Plugins) {
 
         val precompiledBuildscriptWithPluginsBlock =
             compileScript(
@@ -158,32 +154,25 @@ class ResidualProgramCompiler(
                 },
                 buildscriptWithPluginsScriptDefinition)
 
-        val source = stage2.source
-        val scriptFile = scriptFileFor(source)
+        precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
 
-        stagedProgramWith(scriptFile.canonicalPath, source.path) {
+            // val collector = PluginRequestCollector(scriptSource)
+            emitPluginRequestCollectorInstantiation()
 
-            precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
+            NEW(precompiledBuildscriptWithPluginsBlock)
+            ALOAD(2) // scriptHost
+            // ${plugins}(temp.createSpec(lineNumber))
+            emitPluginRequestCollectorCreateSpec()
+            INVOKESPECIAL(
+                precompiledBuildscriptWithPluginsBlock,
+                "<init>",
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
 
-                // val collector = PluginRequestCollector(scriptSource)
-                emitPluginRequestCollectorInstantiation()
-
-                NEW(precompiledBuildscriptWithPluginsBlock)
-                ALOAD(2) // scriptHost
-                // ${plugins}(temp.createSpec(lineNumber))
-                emitPluginRequestCollectorCreateSpec()
-                INVOKESPECIAL(
-                    precompiledBuildscriptWithPluginsBlock,
-                    "<init>",
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
-
-                // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
-                ALOAD(1) // programHost
-                ALOAD(2) // scriptHost
-                emitPluginRequestCollectorGetPluginRequests()
-                invokeApplyPluginsTo()
-                emitApplyBasePluginsTo()
-            }
+            // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
+            ALOAD(1) // programHost
+            ALOAD(2) // scriptHost
+            emitPluginRequestCollectorGetPluginRequests()
+            invokeApplyPluginsTo()
         }
     }
 
@@ -202,47 +191,6 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun emitStagedProgram(stage1: Program.Plugins, stage2: Program.Script) {
-        val precompiledPluginsBlock = compilePlugins(stage1)
-        val source = stage2.source
-        val scriptFile = scriptFileFor(source)
-        emitStagedProgramWithPlugins(precompiledPluginsBlock, scriptFile.canonicalPath, source.path)
-    }
-
-    private
-    fun emitStagedProgram(stage1: Program.Buildscript, stage2: Program.Script) {
-        val precompiledScriptClassName = compileBuildscript(stage1)
-        if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
-            emitStagedTopLevelProjectProgram(precompiledScriptClassName, stage2)
-        else
-            emitStagedProgram(precompiledScriptClassName, stage2)
-    }
-
-    private
-    fun emitPrecompiledScriptPluginProgram(program: Program.PrecompiledScript) {
-        val source = program.source
-        val scriptFile = scriptFileFor(source)
-        val scriptPath = source.path
-        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage2ScriptDefinition)
-        emitPrecompiledScriptPluginProgram(precompiledScriptClass)
-    }
-
-    private
-    fun emitStagedTopLevelProjectProgram(precompiledScriptClassName: String, stage2: Program.Script) {
-
-        val source = stage2.source
-        val scriptFile = scriptFileFor(source)
-        val originalPath = source.path
-
-        stagedProgramWith(scriptFile.canonicalPath, originalPath) {
-
-            emitInstantiationOfPrecompiledScriptClass(precompiledScriptClassName)
-            emitApplyEmptyPluginRequestsTo()
-            emitApplyBasePluginsTo()
-        }
-    }
-
-    private
     fun MethodVisitor.emitApplyEmptyPluginRequestsTo() {
         ALOAD(1) // programHost
         ALOAD(2) // scriptHost
@@ -253,76 +201,20 @@ class ResidualProgramCompiler(
         invokeApplyPluginsTo()
     }
 
-    private
-    fun emitStagedProgram(stage1PrecompiledScript: String?, stage2: Program.Script) {
-
-        val source = stage2.source
-        val scriptFile = scriptFileFor(source)
-        val sourceFilePath = scriptFile.canonicalPath
-        val originalPath = source.path
-
-        stagedProgramWith(sourceFilePath = sourceFilePath, originalPath = originalPath) {
-
-            stage1PrecompiledScript?.let {
-                emitInstantiationOfPrecompiledScriptClass(it)
-            }
-
-            when (programTarget) {
-
-                ProgramTarget.Project -> {
-
-                    when (programKind) {
-                        ProgramKind.TopLevel -> {
-                            emitApplyEmptyPluginRequestsTo()
-                            emitApplyBasePluginsTo()
-                        }
-                        ProgramKind.ScriptPlugin -> {
-                            emitCloseTargetScopeOf()
-                            emitApplyBasePluginsTo()
-                        }
-                    }
-                }
-
-                ProgramTarget.Settings -> {
-                    emitCloseTargetScopeOf()
-                }
-            }
-        }
-    }
-
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
         val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
         emitPrecompiledStage2Program(precompiledScriptClass)
     }
 
     private
-    fun emitStagedProgramWithPlugins(
-        precompiledPluginsBlock: String,
-        sourceFilePath: String,
-        originalPath: String
-    ) {
-        stagedProgramWith(sourceFilePath, originalPath) {
+    fun emitPrecompiledStage2Program(precompiledScriptClass: String) {
 
-            emitPrecompiledPluginsBlock(precompiledPluginsBlock)
-            emitApplyBasePluginsTo()
-        }
-    }
-
-    private
-    fun stagedProgramWith(
-        sourceFilePath: String,
-        originalPath: String,
-        stage1Execution: MethodVisitor.() -> Unit
-    ) {
-        program<ExecutableProgram.StagedProgram> {
+        program<ExecutableProgram> {
 
             overrideExecute {
 
-                stage1Execution()
-                emitEvaluateSecondStageOf()
+                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
             }
-
-            overrideLoadSecondStageFor(sourceFilePath, originalPath)
         }
     }
 
@@ -397,49 +289,6 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun emitPrecompiledStage1Program(precompiledScriptClass: String) {
-
-        program<ExecutableProgram> {
-
-            overrideExecute {
-
-                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
-                emitCloseTargetScopeOf()
-            }
-        }
-    }
-
-    private
-    fun emitPrecompiledStage2Program(precompiledScriptClass: String) {
-
-        program<ExecutableProgram> {
-
-            overrideExecute {
-
-                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
-            }
-        }
-    }
-
-    private
-    fun emitPrecompiledScriptPluginProgram(precompiledScriptClass: String) {
-
-        program<ExecutableProgram> {
-
-            overrideExecute {
-
-                emitCloseTargetScopeOf()
-
-                if (programTarget == ProgramTarget.Project) {
-                    emitApplyBasePluginsTo()
-                }
-
-                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
-            }
-        }
-    }
-
-    private
     fun ClassWriter.overrideLoadSecondStageFor(sourceFilePath: String, originalPath: String) {
         publicMethod(
             "loadSecondStageFor",
@@ -494,12 +343,6 @@ class ResidualProgramCompiler(
             RETURN()
         }
     }
-
-    private
-    fun compileBuildscript(program: Program.Buildscript) =
-        compileScript(
-            program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
-            stage1ScriptDefinition)
 
     private
     fun compilePlugins(program: Program.Plugins) =
@@ -673,7 +516,9 @@ class ResidualProgramCompiler(
             ): DependenciesResolver.ResolveResult =
 
                 DependenciesResolver.ResolveResult.Success(
-                    ScriptDependencies(imports = implicitImports), emptyList())
+                    ScriptDependencies(imports = implicitImports),
+                    emptyList()
+                )
         }
     }
 }
@@ -780,12 +625,6 @@ fun MethodVisitor.BASTORE() {
 private
 fun MethodVisitor.DUP() {
     visitInsn(Opcodes.DUP)
-}
-
-
-private
-fun MethodVisitor.ACONST_NULL() {
-    visitInsn(Opcodes.ACONST_NULL)
 }
 
 

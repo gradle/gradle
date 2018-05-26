@@ -543,7 +543,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
 
         withBuildScript("""
             buildscript {
-              rootProject.apply(from = rootProject.file("gradle/dependencies.gradle.kts"))
+                rootProject.apply(from = rootProject.file("gradle/dependencies.gradle.kts"))
             }
             buildScan {
                 setLicenseAgreementUrl("https://gradle.com/terms-of-service")

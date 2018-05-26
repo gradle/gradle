@@ -16,6 +16,14 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -25,89 +33,302 @@ import org.junit.Test
 class PartialEvaluatorTest {
 
     @Test
-    fun `empty source reduces to empty program`() {
+    fun `an empty top-level Project script`() {
 
-        assertEmptyProgram("")
-        assertEmptyProgram(" // An empty program\n")
-        assertEmptyProgram("  \r\n// foo\r\n/* block comment */ ")
+        assertThat(
+            "reduces to static program that applies default plugin requests and base plugins",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyDefaultPluginRequests,
+                    ApplyBasePlugins
+                )))
     }
 
     @Test
-    fun `empty Stage 1 and empty Stage 2 reduce to empty program`() {
+    fun `a non-empty top-level Project script`() {
 
-        assertEmptyProgram("buildscript {}")
-        assertEmptyProgram("plugins {}")
-        assertEmptyProgram("buildscript {}\r\nplugins {}")
-        assertEmptyProgram(" /* before */buildscript { /* within */ }/* after */ ")
+        val source = ProgramSource("build.gradle.kts", "dynamic")
+        assertThat(
+            "reduces to dynamic program that applies default plugin requests and base plugins",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        ApplyDefaultPluginRequests,
+                        ApplyBasePlugins
+                    ),
+                    source
+                )))
     }
 
     @Test
-    fun `empty Stage 1 reduces to Stage 2 with Stage 1 fragments erased`() {
+    fun `a non-empty top-level Project script with a buildscript block`() {
 
-        val scriptOnlySource =
-            programSourceWith("println(\"Stage 2\")")
+        val buildscriptFragment =
+            fragment("buildscript", "...")
 
-        assertProgramOf(
-            scriptOnlySource,
-            Program.Script(scriptOnlySource))
+        val source =
+            ProgramSource("build.gradle.kts", "...")
 
-        val emptyBuildscriptSource =
-            programSourceWith("buildscript { }\nprintln(\"Stage 2\")")
-
-        assertProgramOf(
-            emptyBuildscriptSource,
-            Program.Script(
-                emptyBuildscriptSource.map {
-                    text("               \nprintln(\"Stage 2\")")
-                }))
+        assertThat(
+            "reduces to dynamic program that evaluates buildscript block, applies default plugin requests and base plugins",
+            partialEvaluationOf(
+                Program.Staged(
+                    Program.Buildscript(buildscriptFragment),
+                    Program.Script(source)
+                ),
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        Eval(buildscriptFragment.source),
+                        ApplyDefaultPluginRequests,
+                        ApplyBasePlugins
+                    ),
+                    source
+                )))
     }
 
     @Test
-    fun `empty Stage 2 reduces to Stage 1`() {
+    fun `a top-level Project plugins block`() {
 
-        val source = programSourceWith(" buildscript { println(\"Stage 1\") } ")
+        val program =
+            Program.Plugins(fragment("plugins", "..."))
 
-        assertProgramOf(
-            source,
-            Program.Buildscript(source.fragment(1..11, 13..34)))
+        assertThat(
+            "reduces to static program that applies plugin requests and base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyPluginRequestsOf(program),
+                    ApplyBasePlugins
+                )))
     }
 
     @Test
-    fun `given Stage 1 and Stage 2 are present, it reduces to Stage 1 followed by Stage 2`() {
+    fun `a top-level Project buildscript block followed by plugins block`() {
 
-        val source = ProgramSource(
-            "/src/fragment.gradle.kts",
-            "\r\n\r\nplugins {\r\n  java\r\n}\r\nprintln(\"Stage 2\")\r\n\r\n")
+        val program =
+            Program.Stage1Sequence(
+                Program.Buildscript(fragment("buildscript", "...")),
+                Program.Plugins(fragment("plugins", "...")))
 
-        assertProgramOf(
-            source,
+        assertThat(
+            "reduces to static program that applies plugin requests and base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyPluginRequestsOf(program),
+                    ApplyBasePlugins
+                )))
+    }
+
+    @Test
+    fun `a non-empty top-level Project script with a buildscript block followed by plugins block`() {
+
+        val program =
             Program.Staged(
-                Program.Plugins(source.fragment(2..8, 10..19)),
-                Program.Script(source.map { text("\n\n         \n      \n \nprintln(\"Stage 2\")") })))
+                Program.Stage1Sequence(
+                    Program.Buildscript(fragment("buildscript", "...")),
+                    Program.Plugins(fragment("plugins", "..."))
+                ),
+                Program.Script(ProgramSource("script.gradle.kts", "..."))
+            )
+
+        assertThat(
+            "reduces to static program that applies plugin requests and base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        ApplyPluginRequestsOf(program.stage1),
+                        ApplyBasePlugins
+                    ),
+                    program.stage2.source
+                )))
     }
 
     @Test
-    fun `Stage 2 only script plugin reduces to PrecompiledScript`() {
+    fun `empty Project script plugin`() {
 
-        val source = programSourceWith("println(\"no stage 1\")")
-        assertProgramOf(
-            programKind = ProgramKind.ScriptPlugin,
-            source = source,
-            expected = Program.PrecompiledScript(source))
+        assertThat(
+            "reduces to static program that closes target scope then applies base plugins",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope,
+                    ApplyBasePlugins
+                )))
+    }
+
+    @Test
+    fun `a non-empty Project script plugin`() {
+
+        val source =
+            ProgramSource("script-plugin.gradle.kts", "a script plugin")
+
+        assertThat(
+            "reduces to static program that closes target scope, applies base plugins then evaluates precompiled script",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope,
+                    ApplyBasePlugins,
+                    Eval(source)
+                )))
+    }
+
+    @Test
+    fun `an empty Settings script plugin`() {
+
+        assertThat(
+            "reduces to static program that closes target scope",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(CloseTargetScope)
+            ))
+    }
+
+    @Test
+    fun `a non-empty Settings script plugin`() {
+
+        val source =
+            ProgramSource("script-plugin.gradle.kts", "a script plugin")
+
+        assertThat(
+            "reduces to static program that closes target scope then evaluates precompiled script",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope,
+                    Eval(source)
+                )))
+    }
+
+    @Test
+    fun `a non-empty Settings top-level script`() {
+
+        val source =
+            ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
+
+        assertThat(
+            "reduces to static program that closes target scope",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope,
+                    Eval(source)
+                )))
+    }
+
+    @Test
+    fun `a top-level Settings buildscript block`() {
+
+        val fragment =
+            fragment("buildscript", "...")
+
+        assertThat(
+            "reduces to static program that evalutes precompiled script then closes target scope",
+            partialEvaluationOf(
+                Program.Buildscript(fragment),
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    Eval(fragment.source),
+                    CloseTargetScope
+                )))
+    }
+
+    @Test
+    fun `a top-level Settings script with a buildscript block`() {
+
+        val originalSource =
+            ProgramSource(
+                "settings.gradle.kts",
+                "\nbuildscript { dependencies {} }; include(\"stage-2\")")
+
+        val buildscriptFragment =
+            originalSource.fragment(1..10, 12..31)
+
+        val scriptSource =
+            originalSource.map { text("\n                               ; include(\"stage-2\")") }
+
+        val expectedEvalSource =
+            originalSource.map { text("\nbuildscript { dependencies {} }") }
+
+        assertThat(
+            "reduces to dynamic program that evaluates precompiled script then closes target scope in its prelude",
+            partialEvaluationOf(
+                Program.Staged(
+                    Program.Buildscript(buildscriptFragment),
+                    Program.Script(scriptSource)
+                ),
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        Eval(expectedEvalSource),
+                        CloseTargetScope
+                    ),
+                    scriptSource
+                )))
     }
 
     private
-    fun assertEmptyProgram(contents: String) {
-        assertProgramOf(programSourceWith(contents), Program.Empty)
-    }
+    fun partialEvaluationOf(
+        program: Program,
+        programKind: ProgramKind,
+        programTarget: ProgramTarget
+    ): ResidualProgram = PartialEvaluator(programKind, programTarget).reduce(program)
 
     private
-    fun assertProgramOf(source: ProgramSource, expected: Program, programKind: ProgramKind = ProgramKind.TopLevel) {
-        val program = PartialEvaluator.reduce(source, programKind)
-        assertThat(program, equalTo(expected))
-    }
-
-    private
-    fun programSourceWith(contents: String) =
-        ProgramSource("/src/build.gradle.kts", contents)
+    fun isResidualProgram(program: ResidualProgram) =
+        equalTo<ResidualProgram>(program)
 }

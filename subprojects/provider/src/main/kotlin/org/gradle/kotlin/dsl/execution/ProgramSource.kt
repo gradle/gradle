@@ -64,10 +64,17 @@ data class ProgramText private constructor(val text: String) {
 
         return erase(rangesToErase)
     }
+
+    fun subText(range: IntRange): ProgramText =
+        ProgramText(text.substring(range))
 }
 
 
 fun text(string: String) = ProgramText.from(string)
+
+
+fun ProgramText.erase(fragment: ProgramSourceFragment) =
+    erase(listOf(fragment.section.wholeRange))
 
 
 fun ProgramSource.fragment(identifier: IntRange, block: IntRange) =

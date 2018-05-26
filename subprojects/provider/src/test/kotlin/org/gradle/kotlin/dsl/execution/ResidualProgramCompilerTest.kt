@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
@@ -37,6 +38,14 @@ import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
+
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
@@ -45,6 +54,7 @@ import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -61,94 +71,24 @@ import java.lang.IllegalStateException
 class ResidualProgramCompilerTest : TestWithTempFiles() {
 
     @Test
-    fun `Empty Program compiles down to Empty ExecutableProgram`() {
+    fun `Static(CloseTargetScope)`() {
 
-        withExecutableProgramFor(Program.Empty) {
-            assertInstanceOf<ExecutableProgram.Empty>(this)
-        }
-    }
+        withExecutableProgramFor(Static(CloseTargetScope)) {
 
-    @Test
-    fun `Empty program closes target scope`() {
+            val programHost = mock<ExecutableProgram.Host>()
+            val scriptHost = scriptHostWith()
 
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(mock())
-
-        ExecutableProgram.Empty().execute(programHost, scriptHost)
-
-        verify(programHost).closeTargetScopeOf(scriptHost)
-    }
-
-    @Test
-    fun `Stage 2 Settings program closes target scope before evaluateScriptOf`() {
-
-        val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
-        val sourceHash = scriptSourceHash(source.text)
-        val target = mock<Settings>()
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target)
-
-        withExecutableProgramFor(Program.Script(source), sourceHash = sourceHash) {
-
-            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
-            program.execute(programHost, scriptHost)
+            execute(programHost, scriptHost)
 
             inOrder(programHost) {
                 verify(programHost).closeTargetScopeOf(scriptHost)
-                verify(programHost).evaluateSecondStageOf(
-                    program = program,
-                    scriptHost = scriptHost,
-                    scriptTemplateId = stage2TemplateId,
-                    // localClassPathHash = emptyHashCode, // only applicable once we have accessors
-                    sourceHash = sourceHash)
+                verifyNoMoreInteractions()
             }
-
-            program.loadSecondStageFor(
-                programHost,
-                scriptHost,
-                stage2TemplateId,
-                sourceHash)
-
-            val scriptFile = outputDir().resolve("settings.gradle.kts")
-            verify(programHost).compileSecondStageScript(
-                scriptFile.canonicalPath,
-                source.path,
-                scriptHost,
-                stage2TemplateId,
-                sourceHash,
-                ProgramKind.TopLevel,
-                ProgramTarget.Settings)
-
-            assertThat(
-                scriptFile.readText(),
-                equalTo(source.text))
         }
     }
 
     @Test
-    fun `Stage 1 Settings program closes target scope after Stage 1 execution`() {
-
-        val source = ProgramSource("settings.gradle.kts", "buildscript { repositories }")
-        val fragment = source.fragment(0..10, 12..source.text.lastIndex)
-        val scriptHandler = mock<ScriptHandlerInternal> {
-            on { repositories } doReturn mock<RepositoryHandler>()
-        }
-
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(mock<Settings>(), scriptHandler = scriptHandler)
-
-        withExecutableProgramFor(Program.Buildscript(fragment)) {
-            execute(programHost, scriptHost)
-        }
-
-        inOrder(programHost, scriptHandler) {
-            verify(scriptHandler).repositories
-            verify(programHost).closeTargetScopeOf(scriptHost)
-        }
-    }
-
-    @Test
-    fun `PrecompiledScript executes as precompiled script on Settings target`() {
+    fun `Static(CloseTargetScope, Eval(source))`() {
 
         val source =
             ProgramSource(
@@ -159,48 +99,93 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
 
-        withExecutableProgramFor(Program.PrecompiledScript(source)) {
+        withExecutableProgramFor(Static(CloseTargetScope, Eval(source))) {
             execute(programHost, scriptHost)
         }
 
         inOrder(programHost, target) {
             verify(programHost).closeTargetScopeOf(scriptHost)
             verify(target).include("precompiled stage 2")
+            verifyNoMoreInteractions()
         }
     }
 
     @Test
-    fun `PrecompiledScript executes as precompiled script on Project target`() {
-
-        val source =
-            ProgramSource(
-                "plugin.gradle.kts",
-                "task(\"precompiled stage 2\")")
+    fun `Static(CloseTargetScope, ApplyBasePlugins)`() {
 
         val target = mock<Project>()
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)
 
         withExecutableProgramFor(
-            Program.PrecompiledScript(source),
+            Static(CloseTargetScope, ApplyBasePlugins),
             programKind = ProgramKind.ScriptPlugin,
             programTarget = ProgramTarget.Project
         ) {
-
             execute(programHost, scriptHost)
         }
 
         inOrder(programHost, target) {
+
             verify(programHost).closeTargetScopeOf(scriptHost)
             verify(programHost).applyBasePluginsTo(target)
-            verify(target).task("precompiled stage 2")
 
             verifyNoMoreInteractions()
         }
     }
 
     @Test
-    fun `TopLevel Project Script program must apply plugins and base plugins`() {
+    fun `Dynamic(Static(CloseTargetScope))`() {
+
+        val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
+        val sourceHash = HashCode.fromInt(42)
+        val target = mock<Settings>()
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(target)
+
+        withExecutableProgramFor(
+            Dynamic(Static(CloseTargetScope), source),
+            sourceHash = sourceHash
+        ) {
+
+            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
+            program.execute(programHost, scriptHost)
+
+            inOrder(programHost) {
+                verify(programHost).closeTargetScopeOf(scriptHost)
+                verify(programHost).evaluateSecondStageOf(
+                    program = program,
+                    scriptHost = scriptHost,
+                    scriptTemplateId = stage2SettingsTemplateId,
+                    // localClassPathHash = emptyHashCode, // only applicable once we have accessors
+                    sourceHash = sourceHash)
+            }
+
+            program.loadSecondStageFor(
+                programHost,
+                scriptHost,
+                stage2SettingsTemplateId,
+                sourceHash)
+
+            val scriptFile = outputDir().resolve("settings.gradle.kts")
+            assertThat(
+                "Preprocessed script file is cached.",
+                scriptFile.readText(),
+                equalTo(source.text))
+
+            verify(programHost).compileSecondStageScript(
+                scriptFile.canonicalPath,
+                source.path,
+                scriptHost,
+                stage2SettingsTemplateId,
+                sourceHash,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings)
+        }
+    }
+
+    @Test
+    fun `Dynamic(Static(ApplyDefaultPluginRequests, ApplyBasePlugins))`() {
 
         val source =
             ProgramSource(
@@ -213,7 +198,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val scriptHost = scriptHostWith(target)
 
         withExecutableProgramFor(
-            Program.Script(source),
+            Dynamic(Static(ApplyDefaultPluginRequests, ApplyBasePlugins), source),
             programKind = ProgramKind.TopLevel,
             programTarget = ProgramTarget.Project,
             sourceHash = sourceHash
@@ -238,111 +223,150 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     }
 
     @Test
-    fun `Empty TopLevel Project program must apply plugins and base plugins`() {
+    fun `Dynamic(Static(Eval(buildscript), CloseTargetScope))`() {
 
-        val target = mock<Project>()
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target)
 
-        withExecutableProgramFor(Program.Empty, programKind = ProgramKind.TopLevel, programTarget = ProgramTarget.Project) {
-            execute(programHost, scriptHost)
+        val buildscriptFragment =
+            fragment("buildscript", "println(\"stage 1\"); repositories")
+
+        val scriptSource =
+            buildscriptFragment.source.map { text("println(\"stage 2\")") }
+
+        val sourceHash = HashCode.fromInt(42)
+
+        val scriptHandler = mock<ScriptHandlerInternal> {
+            on { repositories } doReturn mock<RepositoryHandler>()
         }
-
-        inOrder(programHost, target) {
-
-            verify(programHost).applyPluginsTo(scriptHost, DefaultPluginRequests.EMPTY)
-            verify(programHost).applyBasePluginsTo(target)
-
-            verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `Empty ScriptPlugin Project program must apply base plugins`() {
-
-        val target = mock<Project>()
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target)
-
-        withExecutableProgramFor(Program.Empty, programKind = ProgramKind.ScriptPlugin, programTarget = ProgramTarget.Project) {
-            execute(programHost, scriptHost)
-        }
-
-        inOrder(programHost, target) {
-
-            verify(programHost).closeTargetScopeOf(scriptHost)
-            verify(programHost).applyBasePluginsTo(target)
-
-            verifyNoMoreInteractions()
-        }
-    }
-
-    @Test
-    fun `can compile Plugins program`() {
-
-        val source = ProgramSource("build.gradle.kts", """plugins { println("stage 1") }""")
-        val fragment = source.fragment(0..6, 8..source.text.lastIndex)
-        val sourceHash = scriptSourceHash(source.text)
 
         val programHost = mock<ExecutableProgram.Host>()
-        val target = mock<Project>()
-        val scriptHost = scriptHostWith(target = target)
 
-        withExecutableProgramFor(Program.Plugins(fragment), sourceHash, programTarget = ProgramTarget.Project) {
+        val scriptHost = scriptHostWith(
+            target = mock<Settings>(),
+            scriptHandler = scriptHandler
+        )
+
+        withExecutableProgramFor(
+            Dynamic(
+                Static(
+                    Eval(buildscriptFragment.source),
+                    CloseTargetScope
+                ),
+                scriptSource
+            ),
+            sourceHash) {
+
+            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
 
             assertStandardOutputOf("stage 1\n") {
-                execute(programHost, scriptHost)
+                program.execute(programHost, scriptHost)
             }
+
+            inOrder(programHost, scriptHandler) {
+                verify(scriptHandler).repositories
+                verify(programHost).closeTargetScopeOf(scriptHost)
+                verify(programHost).evaluateSecondStageOf(
+                    program = program,
+                    scriptHost = scriptHost,
+                    scriptTemplateId = stage2SettingsTemplateId,
+                    sourceHash = sourceHash)
+            }
+        }
+    }
+
+    @Test
+    fun `Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins)`() {
+
+        val fragment =
+            fragment("plugins", """id("stage-1")""")
+
+        val target = mock<Project>()
+
+        val scriptHost = scriptHostWith(target = target)
+
+        val pluginRequests = mutableListOf<PluginRequests>()
+
+        val programHost = mock<ExecutableProgram.Host> {
+
+            on { applyPluginsTo(same(scriptHost), any()) } doAnswer {
+
+                pluginRequests.add(it.getArgument(1))
+                Unit
+            }
+        }
+
+        withExecutableProgramFor(
+            Static(
+                ApplyPluginRequestsOf(Program.Plugins(fragment)),
+                ApplyBasePlugins
+            ),
+            programTarget = ProgramTarget.Project
+        ) {
+
+            execute(programHost, scriptHost)
 
             inOrder(programHost) {
 
-                verify(programHost).applyPluginsTo(
-                    scriptHost,
-                    DefaultPluginRequests.EMPTY)
+                verify(programHost).applyPluginsTo(same(scriptHost), any())
 
                 verify(programHost).applyBasePluginsTo(target)
 
                 verifyNoMoreInteractions()
             }
         }
+
+        assertThat(
+            pluginRequests.single().asIterable().map { it.toString() },
+            equalTo(listOf("[id: 'stage-1']")))
     }
 
     @Test
-    fun `can compile staged top-level Project program with a plugins block`() {
+    fun `Dynamic(Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins))`() {
 
-        val source = ProgramSource("build.gradle.kts", """
+        val source = ProgramSource(
+            "build.gradle.kts", """
             plugins { println("stage 1") }
             print("stage 2")
         """.replaceIndent())
 
         val fragment = source.fragment(0..6, 8..29)
         val stage1 = Program.Plugins(fragment)
-        val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
-        val stagedProgram = Program.Staged(stage1, stage2)
+        val stage2 = source.map { it.erase(listOf(fragment.section.wholeRange)) }
+        val stagedProgram = Dynamic(
+            Static(ApplyPluginRequestsOf(stage1), ApplyBasePlugins),
+            stage2
+        )
 
-        assertStagedTopLevelProjectProgram(source, stagedProgram, "stage 1\n")
+        assertStagedTopLevelProjectProgram(stagedProgram, "stage 1\n")
     }
 
     @Test
-    fun `can compile staged top-level Project program with a buildscript block`() {
+    fun `Dynamic(Static(Eval(buildscript), ApplyDefaultPluginRequests, ApplyBasePlugins))`() {
 
-        val source = ProgramSource("build.gradle.kts", """
-            buildscript { println("stage 1") }
-            print("stage 2")
-        """.replaceIndent())
+        val fragment =
+            fragment("buildscript", """println("stage 1")""")
 
-        val fragment = source.fragment(0..10, 12..33)
-        val stage1 = Program.Buildscript(fragment)
-        val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
-        val stagedProgram = Program.Staged(stage1, stage2)
+        val stage2 =
+            fragment.source.map {
+                text("""println("stage 2")""")
+            }
 
-        assertStagedTopLevelProjectProgram(source, stagedProgram, "stage 1\n")
+        val stagedProgram =
+            Dynamic(
+                Static(
+                    Eval(fragment.source),
+                    ApplyDefaultPluginRequests,
+                    ApplyBasePlugins
+                ),
+                stage2
+            )
+        assertStagedTopLevelProjectProgram(stagedProgram, "stage 1\n")
     }
 
     @Test
-    fun `can compile staged top-level Project program with a buildscript followed by a plugins block`() {
+    fun `Dynamic(Static(ApplyPluginsRequestsOf(Stage1Sequence), ApplyBasePlugins))`() {
 
-        val source = ProgramSource("build.gradle.kts", """
+        val source = ProgramSource(
+            "build.gradle.kts", """
             buildscript { println("stage 1 buildscript") }
             plugins { println("stage 1 plugins") }
             print("stage 2")
@@ -351,13 +375,42 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
         val buildscript = Program.Buildscript(source.fragment(0..10, 12..45))
         val plugins = Program.Plugins(source.fragment(47..52, 54..84))
         val stage1 = Program.Stage1Sequence(buildscript, plugins)
-        val stage2 = Program.Script(source.map { it.without(buildscript, plugins) })
-        val stagedProgram = Program.Staged(stage1, stage2)
-
+        val stage2 = source.map { it.without(buildscript, plugins) }
+        val stagedProgram =
+            Dynamic(
+                Static(
+                    ApplyPluginRequestsOf(stage1),
+                    ApplyBasePlugins
+                ),
+                stage2
+            )
         assertStagedTopLevelProjectProgram(
-            source,
             stagedProgram,
             expectedStage1Output = "stage 1 buildscript\nstage 1 plugins\n")
+    }
+
+    @Test
+    fun `Static(Eval(buildscript)) reports script exception back to host`() {
+
+        val fragment =
+            fragment(
+                "buildscript",
+                "throw IllegalStateException(\"BOOM!\")")
+
+        val programHost = mock<ExecutableProgram.Host>()
+        val scriptHost = scriptHostWith(mock<Settings>())
+        withExecutableProgramFor(Static(Eval(fragment.source))) {
+
+            val program = this
+            program.execute(programHost, scriptHost)
+
+            inOrder(programHost) {
+                verify(programHost).handleScriptException(
+                    exception = any<IllegalStateException>(),
+                    scriptClass = same(program.javaClass.classLoader.loadClass("Buildscript_gradle")),
+                    scriptHost = same(scriptHost))
+            }
+        }
     }
 
     private
@@ -366,12 +419,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
     private
     fun assertStagedTopLevelProjectProgram(
-        source: ProgramSource,
-        stagedProgram: Program.Staged,
+        stagedProgram: Dynamic,
         expectedStage1Output: String
     ) {
 
-        val sourceHash = scriptSourceHash(source.text)
+        val sourceHash = HashCode.fromInt(42)
         val programHost = mock<ExecutableProgram.Host>()
         val target = mock<Project>()
         val scriptHost = scriptHostWith(target = target)
@@ -387,6 +439,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash)
             }
 
+            val originalScriptPath = stagedProgram.source.path
+
             inOrder(programHost) {
 
                 verify(programHost).applyPluginsTo(
@@ -401,10 +455,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptTemplateId = scriptTemplateId,
                     sourceHash = sourceHash)
 
-                val scriptFile = outputDir().resolve(source.path)
+                val scriptFile = outputDir().resolve(originalScriptPath)
                 verify(programHost).compileSecondStageScript(
                     scriptFile.canonicalPath,
-                    source.path,
+                    originalScriptPath,
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
@@ -412,74 +466,6 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     ProgramTarget.Project)
 
                 verifyNoMoreInteractions()
-            }
-        }
-    }
-
-    @Test
-    fun `can compile staged Settings program`() {
-
-        val source = ProgramSource("settings.gradle.kts", """
-            buildscript { println("stage 1"); repositories }
-            print("stage 2")
-        """.replaceIndent())
-
-        val fragment = source.fragment(0..10, 12..47)
-        val stage1 = Program.Buildscript(fragment)
-        val stage2 = Program.Script(source.map { it.erase(listOf(fragment.section.wholeRange)) })
-        val stagedProgram = Program.Staged(stage1, stage2)
-
-        val sourceHash = scriptSourceHash(source.text)
-
-        val scriptHandler = mock<ScriptHandlerInternal> {
-            on { repositories } doReturn mock<RepositoryHandler>()
-        }
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(target = mock<Settings>(), scriptHandler = scriptHandler)
-
-        withExecutableProgramFor(stagedProgram, sourceHash) {
-
-            val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
-
-            assertStandardOutputOf("stage 1\n") {
-                program.execute(programHost, scriptHost)
-            }
-
-            inOrder(programHost, scriptHandler) {
-                verify(scriptHandler).repositories
-                verify(programHost).closeTargetScopeOf(scriptHost)
-                verify(programHost).evaluateSecondStageOf(
-                    program = program,
-                    scriptHost = scriptHost,
-                    scriptTemplateId = stage2TemplateId,
-                    sourceHash = sourceHash)
-            }
-        }
-    }
-
-    @Test
-    fun `Stage 1 program reports script exception back to host`() {
-
-        val source =
-            ProgramSource(
-                "settings.gradle.kts",
-                "buildscript { throw IllegalStateException(\"BOOM!\") }")
-
-        val fragment =
-            source.fragment(0..10, 12..source.text.lastIndex)
-
-        val programHost = mock<ExecutableProgram.Host>()
-        val scriptHost = scriptHostWith(mock<Settings>())
-        withExecutableProgramFor(Program.Buildscript(fragment)) {
-
-            val program = this
-            program.execute(programHost, scriptHost)
-
-            inOrder(programHost) {
-                verify(programHost).handleScriptException(
-                    exception = any<IllegalStateException>(),
-                    scriptClass = same(program.javaClass.classLoader.loadClass("Settings_gradle")),
-                    scriptHost = same(scriptHost))
             }
         }
     }
@@ -492,13 +478,13 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     ) = KotlinScriptHost(target, scriptSource, scriptHandler, mock(), mock(), mock())
 
     private
-    fun <T> withExecutableProgramFor(
-        program: Program,
+    fun withExecutableProgramFor(
+        program: ResidualProgram,
         sourceHash: HashCode = HashCode.fromInt(0),
         programKind: ProgramKind = ProgramKind.TopLevel,
         programTarget: ProgramTarget = ProgramTarget.Settings,
-        action: ExecutableProgram.() -> T
-    ): T =
+        action: ExecutableProgram.() -> Unit
+    ) {
 
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
@@ -507,11 +493,12 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 action(executableProgram as ExecutableProgram)
             }
         }
+    }
 
     private
     fun compileProgramTo(
         outputDir: File,
-        program: Program,
+        program: ResidualProgram,
         sourceHash: HashCode,
         programKind: ProgramKind,
         programTarget: ProgramTarget
@@ -526,10 +513,17 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     }
 
     private
-    val stage2TemplateId = "Settings/TopLevel/stage2"
+    val stage2SettingsTemplateId = "Settings/TopLevel/stage2"
 
     private
     fun outputDir() = root.resolve("classes").apply { mkdir() }
+}
+
+
+internal
+fun fragment(identifier: String, body: String): ProgramSourceFragment {
+    val source = ProgramSource("$identifier.gradle.kts", "$identifier  { $body }")
+    return source.fragment(0..identifier.lastIndex, 12..source.text.lastIndex)
 }
 
 

@@ -16,10 +16,13 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.kotlin.dsl.support.compilerMessageFor
-
-import org.jetbrains.kotlin.lexer.KotlinLexer
-import org.jetbrains.kotlin.lexer.KtTokens
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 
 enum class ProgramKind {
@@ -35,103 +38,137 @@ enum class ProgramTarget {
 
 
 /**
- * Reduces a [ProgramSource] into a [Program] given its [kind][ProgramKind] and [target][ProgramTarget].
+ * Reduces a [Program] into a [ResidualProgram] given its [kind][ProgramKind] and [target][ProgramTarget].
  */
-object PartialEvaluator {
-
-    fun reduce(source: ProgramSource, kind: ProgramKind): Program = try {
-        residualProgramFor(source, kind)
-    } catch (unexpectedBlock: UnexpectedBlock) {
-        handleUnexpectedBlock(unexpectedBlock, source.text, source.path)
-    }
-
-    private
-    fun residualProgramFor(source: ProgramSource, kind: ProgramKind): Program {
-
-        val sourceWithoutComments =
-            source.map { it.erase(commentsOf(it.text)) }
-
-        val buildscriptFragment =
-            topLevelFragmentFrom(sourceWithoutComments, "buildscript")
-
-        val pluginsFragment =
-            if (kind == ProgramKind.TopLevel) topLevelFragmentFrom(sourceWithoutComments, "plugins")
-            else null
-
-        val buildscript =
-            buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
-
-        val plugins =
-            pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
-
-        val stage1 =
-            buildscript?.let { bs ->
-                plugins?.let { ps ->
-                    Program.Stage1Sequence(bs, ps)
-                } ?: bs
-            } ?: plugins
-
-        val remainingSource =
-            sourceWithoutComments.map {
-                it.erase(
-                    listOfNotNull(
-                        buildscriptFragment?.section?.wholeRange,
-                        pluginsFragment?.section?.wholeRange))
-            }
-
-        val stage2 = remainingSource
-            .takeIf { it.text.isNotBlank() }
-            ?.let(Program::Script)
-
-        stage1?.let { s1 ->
-            return stage2?.let { s2 ->
-                Program.Staged(s1, s2)
-            } ?: s1
-        }
-
-        stage2?.let { s2 ->
-            return when (kind) {
-                ProgramKind.TopLevel -> s2
-                ProgramKind.ScriptPlugin -> Program.PrecompiledScript(s2.source)
-            }
-        }
-        return Program.Empty
-    }
-
-    private
-    fun topLevelFragmentFrom(source: ProgramSource, identifier: String): ProgramSourceFragment? =
-        extractTopLevelBlock(source.text, identifier)
-            ?.let { source.fragment(it) }
-
-    private
-    fun ProgramSourceFragment.isNotBlank() =
-        source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
-}
-
-
-private
-fun commentsOf(script: String): List<IntRange> =
-    KotlinLexer().run {
-        val comments = mutableListOf<IntRange>()
-        start(script)
-        while (tokenType != null) {
-            if (tokenType in KtTokens.COMMENTS) {
-                comments.add(tokenStart..(tokenEnd - 1))
-            }
-            advance()
-        }
-        comments
-    }
-
-
 internal
-fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scriptPath: String): Nothing {
-    val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
-    throw IllegalStateException(message, unexpectedBlock)
+class PartialEvaluator(
+    private val programKind: ProgramKind,
+    private val programTarget: ProgramTarget
+) {
+
+    fun reduce(program: Program): ResidualProgram = when (program) {
+
+        is Program.Empty -> reduceEmptyProgram()
+
+        is Program.Buildscript -> reduceBuildscriptProgram(program)
+
+        is Program.Plugins -> stage1WithPlugins(program)
+
+        is Program.Stage1Sequence -> stage1WithPlugins(program)
+
+        is Program.Script -> reduceScriptProgram(program)
+
+        is Program.Staged -> reduceStagedProgram(program)
+
+        else -> throw IllegalArgumentException("Unsupported `$program'")
+    }
+
+    private
+    fun reduceEmptyProgram(): Static =
+
+        when (programTarget) {
+
+            ProgramTarget.Project ->
+
+                when (programKind) {
+
+                    ProgramKind.TopLevel -> Static(
+                        ApplyDefaultPluginRequests,
+                        ApplyBasePlugins
+                    )
+
+                    ProgramKind.ScriptPlugin -> Static(
+                        CloseTargetScope,
+                        ApplyBasePlugins
+                    )
+                }
+
+            else -> Static(CloseTargetScope)
+        }
+
+    private
+    fun reduceBuildscriptProgram(program: Program.Buildscript): Static =
+
+        Static(
+            Eval(buildscriptSourceFor(program)),
+            CloseTargetScope
+        )
+
+    private
+    fun buildscriptSourceFor(program: Program.Buildscript): ProgramSource {
+
+        val fragment = program.fragment
+        val section = fragment.section
+        return fragment.source.map { sourceText ->
+            sourceText
+                .subText(0..section.block.endInclusive)
+                .preserve(section.wholeRange)
+        }
+    }
+
+    private
+    fun reduceScriptProgram(program: Program.Script): ResidualProgram =
+
+        when (programTarget) {
+
+            ProgramTarget.Project -> {
+
+                when (programKind) {
+
+                    ProgramKind.TopLevel -> Dynamic(
+                        Static(
+                            ApplyDefaultPluginRequests,
+                            ApplyBasePlugins
+                        ),
+                        program.source
+                    )
+
+                    ProgramKind.ScriptPlugin -> Static(
+                        CloseTargetScope,
+                        ApplyBasePlugins,
+                        Eval(program.source)
+                    )
+                }
+            }
+
+            else -> Static(
+                CloseTargetScope,
+                Eval(program.source)
+            )
+        }
+
+    private
+    fun reduceStagedProgram(program: Program.Staged): Dynamic =
+
+        Dynamic(
+            reduceStage1Program(program.stage1),
+            program.stage2.source
+        )
+
+    private
+    fun reduceStage1Program(stage1: Program.Stage1): Static = when (stage1) {
+
+        is Program.Buildscript ->
+
+            when (programTarget) {
+
+                ProgramTarget.Project -> Static(
+                    Eval(buildscriptSourceFor(stage1)),
+                    ApplyDefaultPluginRequests,
+                    ApplyBasePlugins
+                )
+
+                else -> reduceBuildscriptProgram(stage1)
+            }
+
+        else -> stage1WithPlugins(stage1)
+    }
+
+    private
+    fun stage1WithPlugins(stage1: Program.Stage1): Static =
+
+        Static(
+            ApplyPluginRequestsOf(stage1),
+            ApplyBasePlugins
+        )
 }
-
-
-private
-fun unexpectedBlockMessage(block: UnexpectedBlock) =
-    "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."

@@ -18,16 +18,15 @@ package org.gradle.kotlin.dsl.execution
 
 
 /**
- * A residual Kotlin DSL program can be:
+ * A source Kotlin DSL program can be:
  * - empty
  * - a single buildscript block
  * - a single plugins block
  * - a buildscript block followed by a plugins block
  * - a script with neither a buildscript nor a plugins block
  * - a script preceded by a buildscript or plugins block or both
- * - a precompiled script plugin
  *
- * The evaluation of a residual Kotlin DSL program happens, in the general case, in two stages:
+ * The evaluation of a Kotlin DSL program happens, in the general case, in two stages:
  * - in stage 1, the [Buildscript] and [Plugins] programs are executed and their execution
  *   is assumed to affect the classpath available to the stage 2 program;
  * - in stage 2, the remaining [Script] must be evaluated against the dynamically resolved classpath and,
@@ -63,12 +62,6 @@ sealed class Program {
      * becomes available.
      */
     data class Script(val source: ProgramSource) : Program()
-
-    /**
-     * A script plugin - a non top-level script - without a [stage 1][Stage1] program thus
-     * no dynamic classpath.
-     */
-    data class PrecompiledScript(val source: ProgramSource) : Program()
 
     /**
      * A [Stage1] program followed by a stage 2 [Script] program.

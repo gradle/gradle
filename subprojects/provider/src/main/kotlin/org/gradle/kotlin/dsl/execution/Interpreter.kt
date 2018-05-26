@@ -31,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -223,8 +224,11 @@ class Interpreter(val host: Host) {
                 val programSource =
                     ProgramSource(scriptPath, sourceText)
 
+                val program =
+                    ProgramParser.parse(programSource, programKind)
+
                 val residualProgram =
-                    PartialEvaluator.reduce(programSource, programKind)
+                    PartialEvaluator(programKind, programTarget).reduce(program)
 
                 scriptSource.withLocationAwareExceptionHandling {
                     residualProgramCompilerFor(
@@ -292,6 +296,7 @@ class Interpreter(val host: Host) {
 
     private
     inner class ProgramHost : ExecutableProgram.Host {
+
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<Any>, pluginRequests: PluginRequests) {
             host.applyPluginsTo(scriptHost, pluginRequests)
         }
@@ -465,3 +470,7 @@ private
 fun maybeUnwrapInvocationTargetException(e: Throwable) =
     if (e is InvocationTargetException) e.targetException
     else e
+
+
+internal
+val interpreterLogger = loggerFor<Interpreter>()
