@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
@@ -40,7 +41,15 @@ class DefaultTaskContainerTest extends Specification {
     private project = Mock(ProjectInternal, name: "<project>")
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, new TaskStatistics()).create()
+    private container = new DefaultTaskContainerFactory(
+        modelRegistry,
+        DirectInstantiator.INSTANCE,
+        taskFactory,
+        project,
+        accessListener,
+        new TaskStatistics(),
+        new TestBuildOperationExecutor()
+    ).create()
 
     void 'cannot create task with no name'() {
         when:
