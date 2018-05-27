@@ -21,6 +21,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.locking.DefaultDependencyLockingState
 
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
@@ -58,6 +59,27 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         conf.dependencies.each {
             assert !it.transitive
         }
+    }
+
+    def 'provides useful reason for locking constraints'() {
+        given:
+        def constraint = DefaultModuleComponentIdentifier.newId('org', 'foo', '1.1')
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(partial, [constraint] as Set)
+        addConfiguration('conf').enableLocking()
+
+        when:
+        def conf = metadata.getConfiguration('conf')
+
+        then:
+        conf.dependencies.size() == 1
+        conf.dependencies.each { DependencyMetadata dep ->
+            assert dep.reason == reason
+        }
+
+        where:
+        reason                                                 | partial
+        "dependency was locked to version '1.1'"               | false
+        "dependency was locked to version '1.1' (update mode)" | true
     }
 
     private addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
