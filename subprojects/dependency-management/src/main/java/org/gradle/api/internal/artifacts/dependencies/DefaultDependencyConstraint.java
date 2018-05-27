@@ -36,10 +36,6 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
 
-    public static DefaultDependencyConstraint strictConstraint(String group, String name, String version) {
-        return new DefaultDependencyConstraint(group, name, new DefaultMutableVersionConstraint(version, true));
-    }
-
     private final String group;
     private final String name;
     private final MutableVersionConstraint versionConstraint;
