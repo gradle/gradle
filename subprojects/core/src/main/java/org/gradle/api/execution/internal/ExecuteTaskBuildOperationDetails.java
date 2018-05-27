@@ -47,7 +47,7 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public long getTaskId() {
-        return (long) System.identityHashCode(task);
+        return task.getInternalTaskInstanceId();
     }
 
     @Override

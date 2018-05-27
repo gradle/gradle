@@ -27,20 +27,33 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
+import static org.gradle.util.Path.path
 
 class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
-    private project = Mock(ProjectInternal, name: "<project>")
+    private project = Mock(ProjectInternal, name: "<project>") {
+        _ * it.projectPath >> path(':path')
+        _ * it.buildPath >> path(':buildPath')
+    }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
-    private container = new DefaultTaskContainerFactory(modelRegistry, DirectInstantiator.INSTANCE, taskFactory, project, accessListener, new TaskStatistics()).create()
+    private container = new DefaultTaskContainerFactory(
+        modelRegistry,
+        DirectInstantiator.INSTANCE,
+        taskFactory,
+        project,
+        accessListener,
+        new TaskStatistics(),
+        new TestBuildOperationExecutor()
+    ).create()
 
     void 'cannot create task with no name'() {
         when:
@@ -53,7 +66,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void 'can create task with dependencies'() {
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long, "task", DefaultTask) >> task
 
         when:
         def added = container.create([name: 'task', dependsOn: "/path1"])
@@ -85,7 +98,7 @@ class DefaultTaskContainerTest extends Specification {
     void 'can create task with Action'() {
         Action<Task> action = Mock()
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long, "task", DefaultTask) >> task
 
         when:
         Task added = container.create([name: 'task', action: action])
@@ -98,7 +111,7 @@ class DefaultTaskContainerTest extends Specification {
     void 'can create task with Action closure'() {
         Closure action = Mock()
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long, "task", DefaultTask) >> task
 
         when:
         Task added = container.create([name: 'task', action: action])
@@ -110,7 +123,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void 'can create task with description'() {
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long, "task", DefaultTask) >> task
 
         when:
         Task added = container.create([name: 'task', description: "some task"])
@@ -122,7 +135,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void 'can create task with group'() {
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         Task added = container.create([name: 'task', group: "some group"])
@@ -135,7 +148,7 @@ class DefaultTaskContainerTest extends Specification {
     void "creates by Map"() {
         def options = singletonMap("name", "task")
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         def added = container.create(options)
@@ -148,7 +161,7 @@ class DefaultTaskContainerTest extends Specification {
     void "creates by name"() {
         given:
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         expect:
         container.create("task") == task
@@ -158,7 +171,7 @@ class DefaultTaskContainerTest extends Specification {
     void "creates by name and type"() {
         given:
         def task = task("task", CustomTask)
-        taskFactory.create("task", CustomTask) >> task
+        taskFactory.create(_ as Long,"task", CustomTask) >> task
 
         expect:
         container.create("task", CustomTask.class) == task
@@ -169,7 +182,7 @@ class DefaultTaskContainerTest extends Specification {
         final Closure action = {}
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -184,7 +197,7 @@ class DefaultTaskContainerTest extends Specification {
         def action = Mock(Action)
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         def added = container.create("task", action)
@@ -197,7 +210,7 @@ class DefaultTaskContainerTest extends Specification {
     void "replaces task by name"() {
         given:
         def task = task("task")
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         def replaced = container.replace("task")
@@ -210,7 +223,7 @@ class DefaultTaskContainerTest extends Specification {
     void "replaces by name and type"() {
         given:
         def task = task("task", CustomTask)
-        taskFactory.create("task", CustomTask) >> task
+        taskFactory.create(_ as Long,"task", CustomTask) >> task
 
         expect:
         container.replace("task", CustomTask.class) == task
@@ -221,7 +234,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         container.addRule(rule)
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         container.create("task")
@@ -233,7 +246,7 @@ class DefaultTaskContainerTest extends Specification {
     void "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
-        1 * taskFactory.create("task", DefaultTask) >> { this.task("task") }
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> { this.task("task") }
 
         when:
         container.create("task")
@@ -248,7 +261,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         addTask("task")
         def newTask = task("task")
-        taskFactory.create("task", DefaultTask) >> newTask
+        taskFactory.create(_ as Long,"task", DefaultTask) >> newTask
 
         when:
         container.replace("task")
@@ -369,7 +382,7 @@ class DefaultTaskContainerTest extends Specification {
         container.realize()
 
         then:
-        1 * taskFactory.create("c", DefaultTask) >> { cTask }
+        1 * taskFactory.create(_ as Long,"c", DefaultTask) >> { cTask }
         0 * aTask.getTaskDependencies()
         0 * bTask.getTaskDependencies()
         0 * cTask.getTaskDependencies()
@@ -400,7 +413,7 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.createLater("task", DefaultTask, action)
 
         then:
-        0 * _
+        0 * taskFactory._
 
         and:
         container.names.contains("task")
@@ -417,7 +430,7 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.createLater("task", action)
 
         then:
-        0 * _
+        0 * taskFactory._
 
         and:
         container.names.contains("task")
@@ -427,7 +440,7 @@ class DefaultTaskContainerTest extends Specification {
         def result = provider.get()
 
         then:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_)
         result == task
     }
@@ -437,7 +450,7 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.createLater("task", DefaultTask)
 
         then:
-        0 * _
+        0 * taskFactory._
 
         and:
         container.names.contains("task")
@@ -453,7 +466,7 @@ class DefaultTaskContainerTest extends Specification {
         def provider = container.createLater("task")
 
         then:
-        0 * _
+        0 * taskFactory._
 
         and:
         container.names.contains("task")
@@ -463,14 +476,14 @@ class DefaultTaskContainerTest extends Specification {
         def result = provider.get()
 
         then:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         result == task
     }
 
     void "define task fails when task with given name already defined"() {
         given:
-        _ * taskFactory.create("task1", DefaultTask, _) >> task("task1")
-        _ * taskFactory.create("task2", DefaultTask, _) >> task("task2")
+        _ * taskFactory.create(_ as Long,"task1", DefaultTask, _) >> task("task1")
+        _ * taskFactory.create(_ as Long,"task2", DefaultTask, _) >> task("task2")
 
         container.create("task1")
         container.createLater("task2", {})
@@ -512,7 +525,7 @@ class DefaultTaskContainerTest extends Specification {
         provider.present
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
 
@@ -537,7 +550,7 @@ class DefaultTaskContainerTest extends Specification {
         result == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
     }
@@ -556,7 +569,7 @@ class DefaultTaskContainerTest extends Specification {
         result == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
     }
@@ -584,7 +597,7 @@ class DefaultTaskContainerTest extends Specification {
         result == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(task)
         0 * action._
     }
@@ -612,7 +625,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         result == task
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         then:
         1 * action.execute(task)
         then:
@@ -642,7 +655,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
     }
 
@@ -673,7 +686,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
 
         when:
@@ -690,7 +703,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         def action = Mock(Action)
         def task = task("task")
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long, "task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
         def creationProvider = container.createLater("task", DefaultTask, action)
         def provider = container.withType(DefaultTask).named("task")
@@ -744,7 +757,7 @@ class DefaultTaskContainerTest extends Specification {
         container.findByName("task") == null
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
         0 * action.execute(_)
     }
 
@@ -752,7 +765,7 @@ class DefaultTaskContainerTest extends Specification {
 
         given:
         def action = Mock(Action)
-        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        1 * taskFactory.create(_ as Long, "task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
         0 * action.execute(_)
 
         def provider = container.createLater("task", DefaultTask, action)
@@ -794,7 +807,7 @@ class DefaultTaskContainerTest extends Specification {
     void "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
         given:
         def action = Mock(Action)
-        1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
+        1 * taskFactory.create(_ as Long, "task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
         0 * action.execute(_)
         def creationProvider = container.createLater("task", DefaultTask, action)
         def provider = container.withType(DefaultTask).named("task")
@@ -849,7 +862,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule") }
     }
 
@@ -878,7 +891,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule")}
     }
 
@@ -905,7 +918,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
     }
 
@@ -937,7 +950,7 @@ class DefaultTaskContainerTest extends Specification {
         container.withType(DefaultTask).named("task").get() == task
 
         and:
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
         when:
@@ -954,7 +967,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         def action = Mock(Action)
         def task = task("task")
-        1 * taskFactory.create("task", DefaultTask) >> task
+        1 * taskFactory.create(_ as Long, "task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
         container.withType(DefaultTask).configureEach(action)
@@ -992,7 +1005,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        _ * taskFactory.create("task", DefaultTask, []) >> task
+        _ * taskFactory.create(_ as Long,"task", DefaultTask, []) >> task
         container.create("task")
 
         when:
@@ -1006,7 +1019,7 @@ class DefaultTaskContainerTest extends Specification {
     void "can add task via placeholder action"() {
         when:
         addPlaceholderTask("task")
-        1 * taskFactory.create("task", DefaultTask) >> { task(it[0], it[1]) }
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> { task(it[1], it[2]) }
 
         then:
         container.getByName("task") != null
@@ -1049,7 +1062,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task")
 
-        taskFactory.create("task", DefaultTask) >> task
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task
 
         when:
         def added = container.maybeCreate("task")
@@ -1070,7 +1083,7 @@ class DefaultTaskContainerTest extends Specification {
         given:
         def task = task("task", CustomTask)
 
-        taskFactory.create("task", CustomTask) >> task
+        taskFactory.create(_ as Long,"task", CustomTask) >> task
 
         when:
         def added = container.maybeCreate("task", CustomTask)
@@ -1098,7 +1111,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "get() fails if eagerly created task type is not a subtype"() {
         given:
-        taskFactory.create("task", DefaultTask) >> task("task")
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task("task")
         container.create("task", DefaultTask)
 
         when:
@@ -1118,12 +1131,12 @@ class DefaultTaskContainerTest extends Specification {
         then:
         def ex = thrown(UnknownTaskException)
         ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
-        0 * taskFactory.create("task", DefaultTask)
+        0 * taskFactory.create(_ as Long, "task", DefaultTask)
     }
 
     void "can get() for eagerly created task subtype"() {
         given:
-        taskFactory.create("task", CustomTask) >> task("task")
+        taskFactory.create(_ as Long,"task", CustomTask) >> task("task")
         container.create("task", CustomTask)
 
         when:
@@ -1141,12 +1154,12 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         noExceptionThrown()
-        0 * taskFactory.create("task", DefaultTask)
+        0 * taskFactory.create(_ as Long,"task", DefaultTask)
     }
 
     void "can get() if task is eagerly created before"() {
         given:
-        taskFactory.create("task", DefaultTask) >> task("task")
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task("task")
         container.create("task", DefaultTask)
 
         when:
@@ -1165,14 +1178,14 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         noExceptionThrown()
-        0 * taskFactory.create("task", DefaultTask)
+        0 * taskFactory.create(_ as Long,"task", DefaultTask)
     }
 
     void "can get() if eagerly created task type gets overwrite"() {
         given:
         def customTask = task("task", CustomTask)
-        taskFactory.create("task", CustomTask) >> customTask
-        taskFactory.create("task", DefaultTask) >> task("task", DefaultTask)
+        taskFactory.create(_ as Long,"task", CustomTask) >> customTask
+        taskFactory.create(_ as Long,"task", DefaultTask) >> task("task", DefaultTask)
         container.create("task", CustomTask)
 
         when:
@@ -1200,7 +1213,7 @@ class DefaultTaskContainerTest extends Specification {
         then:
         def ex = thrown(UnknownTaskException)
         ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
-        0 * taskFactory.create("task", CustomTask)
+        0 * taskFactory.create(_ as Long, "task", CustomTask)
 
         when:
         container.create([name: "task", type: DefaultTask, overwrite: true])
@@ -1208,7 +1221,7 @@ class DefaultTaskContainerTest extends Specification {
 
         then:
         noExceptionThrown()
-        1 * taskFactory.create("task", DefaultTask) >> task("task")
+        1 * taskFactory.create(_ as Long,"task", DefaultTask) >> task("task")
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
@@ -1243,7 +1256,7 @@ class DefaultTaskContainerTest extends Specification {
     private Task addTask(String name) {
         def task = task(name)
         def options = singletonMap(Task.TASK_NAME, name)
-        1 * taskFactory.create(name, DefaultTask) >> task
+        1 * taskFactory.create(_ as Long,name, DefaultTask) >> task
         container.create(options)
         return task
     }
@@ -1251,7 +1264,7 @@ class DefaultTaskContainerTest extends Specification {
     private <U extends Task> U addTask(String name, Class<U> type) {
         def task = task(name, type)
         def options = [name: name, type: type]
-        1 * taskFactory.create(name, type) >> task
+        1 * taskFactory.create(_ as Long,name, type) >> task
         container.create(options)
         return task
     }

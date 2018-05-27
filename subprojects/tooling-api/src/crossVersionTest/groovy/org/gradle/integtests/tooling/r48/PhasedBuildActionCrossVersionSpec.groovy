@@ -176,7 +176,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildActionFailureException)
-        !events.contains("hello")
+        !events.contains("Task hello")
     }
 
     @TargetGradleVersion(">=4.8")
