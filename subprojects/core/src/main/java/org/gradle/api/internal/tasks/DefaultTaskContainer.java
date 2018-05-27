@@ -274,20 +274,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private <T extends Task> TaskCreatingProvider<T> registerTask(final boolean replacement, final String name, final Class<T> type, final Action<? super T> configurationAction) {
         final long taskId = InternalTaskInstanceIdSequence.getNextId();
-        return buildOperationExecutor.call(new CallableBuildOperation<TaskCreatingProvider<T>>() {
-            @Override
-            public TaskCreatingProvider<T> call(BuildOperationContext context) {
-                TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskId, type, name, configurationAction);
-//                context.setResult(new RegisterTaskBuildOperationType.Result(){});
-                return provider;
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-//                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
-                return BuildOperationDescriptor.displayName("register task " + taskId);
-            }
-        });
+        return new TaskCreatingProvider<T>(taskId, type, name, configurationAction);
+//        return buildOperationExecutor.call(new CallableBuildOperation<TaskCreatingProvider<T>>() {
+//            @Override
+//            public TaskCreatingProvider<T> call(BuildOperationContext context) {
+//                TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskId, type, name, configurationAction);
+////                context.setResult(new RegisterTaskBuildOperationType.Result(){});
+//                return provider;
+//            }
+//
+//            @Override
+//            public BuildOperationDescriptor.Builder description() {
+////                return new RegisterTaskBuildOperationDetails(name, taskId, replacement).descriptor();
+//                return BuildOperationDescriptor.displayName("register task " + taskId);
+//            }
+//        });
     }
 
     private <T extends Task> T realizeTask(final long taskId, final String name, final Class<T> type, final Object... constructorArgs) {
