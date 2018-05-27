@@ -51,12 +51,7 @@ public class TaskFactory implements ITaskFactory {
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return create(name, type, NO_ARGS);
-    }
-
-    @Override
-    public <S extends Task> S create(String name, final Class<S> type, final Object... args) {
-        return create(null, name, type, args);
+        return create(null, name, type, NO_ARGS);
     }
 
     @Override
