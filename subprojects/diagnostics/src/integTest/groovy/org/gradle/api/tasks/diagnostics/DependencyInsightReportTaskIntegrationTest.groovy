@@ -1650,7 +1650,7 @@ org:foo -> $selected
     }
 
     @Unroll
-    def "renders custom dependency constraint reasons"() {
+    def "renders custom dependency constraint reasons (#version)"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()

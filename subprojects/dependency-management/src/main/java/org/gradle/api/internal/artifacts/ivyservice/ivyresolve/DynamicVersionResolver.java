@@ -57,7 +57,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -124,17 +123,15 @@ public class DynamicVersionResolver {
     }
 
     private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
-        Set<String> unmatchedVersions = new LinkedHashSet<String>();
-        Set<RejectedVersion> rejectedVersions = new LinkedHashSet<RejectedVersion>();
         for (RepositoryResolveState resolveState : resolveStates) {
-            resolveState.applyTo(result, unmatchedVersions, rejectedVersions);
+            resolveState.applyTo(result);
         }
         if (result.isRejected()) {
             // We have a matching component id that was rejected. These are handled later in the resolution process
             // (after conflict resolution), so it is not a failure at this stage.
             return;
         }
-        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), unmatchedVersions, rejectedVersions));
+        result.failed(new ModuleVersionNotFoundException(requested, result.getAttempted(), result.getUnmatchedVersions(), result.getRejectedVersions()));
     }
 
     private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
@@ -349,15 +346,19 @@ public class DynamicVersionResolver {
             return candidates;
         }
 
-        protected void applyTo(BuildableComponentIdResolveResult target, Set<String> unmatchedVersions, Set<RejectedVersion> rejectedVersions) {
-            versionListingResult.applyTo(target);
-            attemptCollector.applyTo(target);
-            unmatchedVersions.addAll(this.unmatchedVersions);
-            rejectedVersions.addAll(this.rejectedVersions);
+        protected void applyTo(BuildableComponentIdResolveResult target) {
+            registerAttempts(target);
 
             if (firstRejected != null) {
                 target.rejected(firstRejected, DefaultModuleVersionIdentifier.newId(firstRejected));
             }
+        }
+
+        private void registerAttempts(BuildableComponentIdResolveResult target) {
+            versionListingResult.applyTo(target);
+            attemptCollector.applyTo(target);
+            target.unmatched(unmatchedVersions);
+            target.rejections(rejectedVersions);
         }
     }
 
