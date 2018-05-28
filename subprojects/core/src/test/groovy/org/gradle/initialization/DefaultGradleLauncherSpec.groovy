@@ -168,11 +168,12 @@ class DefaultGradleLauncherSpec extends Specification {
         result == gradleMock
 
         and:
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build (:nested)"
         assert buildOperationExecutor.operations[1].displayName == "Configure build (:nested)"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph (:nested)"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Execute projectsEvaluated hooks (:nested)"
+        assert buildOperationExecutor.operations[3].displayName == "Calculate task graph (:nested)"
+        assert buildOperationExecutor.operations[4].displayName == "Run tasks (:nested)"
     }
 
     void testGetBuildAnalysis() {
@@ -317,11 +318,12 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     private void expectedBuildOperationsFired() {
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build"
         assert buildOperationExecutor.operations[1].displayName == "Configure build"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks"
+        assert buildOperationExecutor.operations[2].displayName == "Execute projectsEvaluated hooks"
+        assert buildOperationExecutor.operations[3].displayName == "Calculate task graph"
+        assert buildOperationExecutor.operations[4].displayName == "Run tasks"
     }
 
     private void isNestedBuild() {

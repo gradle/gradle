@@ -23,6 +23,7 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.EvaluateSettingsBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.ProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.ProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -71,12 +72,15 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(LoadProjectsBuildOperationType.Result)
         notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":"])
         notifications.finished(ProjectsLoadedBuildOperationType.Result)
+
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
         notifications.started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
         notifications.finished(ApplyPluginBuildOperationType.Result, [:])
         notifications.started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri: null])
         notifications.finished(ApplyScriptPluginBuildOperationType.Result, [:])
         notifications.finished(ConfigureProjectBuildOperationType.Result, [:])
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ':'])
+        notifications.finished(ProjectsEvaluatedBuildOperationType.Result, [:])
 
         notifications.started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
         notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
@@ -101,6 +105,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.notIncluded(ApplyPluginBuildOperationType.Details)
         notifications.notIncluded(ConfigureProjectBuildOperationType.Details)
 
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ':'])
         notifications.started(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':'])
         notifications.finished(CalculateTaskGraphBuildOperationType.Result, [excludedTaskPaths: [], requestedTaskPaths: [":t"]])
         notifications.started(ExecuteTaskBuildOperationType.Details, [taskPath: ":t", buildPath: ":", taskClass: "org.gradle.api.DefaultTask"])
@@ -156,6 +161,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":"])
+
         // evaluate hierarchies
         notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
         notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":"]).id
@@ -181,6 +191,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
         notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
         notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
     }
 
     def "emits for GradleBuild tasks"() {

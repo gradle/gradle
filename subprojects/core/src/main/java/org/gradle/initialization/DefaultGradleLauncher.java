@@ -47,8 +47,8 @@ import java.util.Set;
 
 public class DefaultGradleLauncher implements GradleLauncher {
 
-    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
-    };
+    private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {};
+    private static final ProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new ProjectsEvaluatedBuildOperationType.Result() {};
 
     private enum Stage {
         Load, LoadBuild, Configure, TaskGraph, Build, Finished
@@ -349,12 +349,33 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
+    private class ExecuteProjectsEvaluatedHooks implements RunnableBuildOperation {
+
+        @Override
+        public void run(BuildOperationContext context) {
+            buildListener.projectsEvaluated(gradle);
+            context.setResult(PROJECTS_EVALUATED_RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(contextualize("Execute projectsEvaluated hooks"))
+                .progressDisplayName(contextualize("Executing projectsEvaluated hooks"))
+                .details(new ProjectsEvaluatedBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                });
+        }
+    }
+
     private boolean isConfigureOnDemand() {
         return gradle.getStartParameter().isConfigureOnDemand();
     }
 
     private void projectsEvaluated() {
-        buildListener.projectsEvaluated(gradle);
+        buildOperationExecutor.run(new ExecuteProjectsEvaluatedHooks());
     }
 
     private String contextualize(String descriptor) {
