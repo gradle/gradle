@@ -176,6 +176,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
         notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
         notifications.op(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
+        notifications.op(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
     }
 
     def "emits for GradleBuild tasks"() {
