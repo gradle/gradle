@@ -27,7 +27,7 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
                                                        (PlayMajorVersion.PLAY_2_3_X): 102,
                                                        (PlayMajorVersion.PLAY_2_4_X): 96,
                                                        (PlayMajorVersion.PLAY_2_5_X): 105,
-                                                       (PlayMajorVersion.PLAY_2_6_X): 108]
+                                                       (PlayMajorVersion.PLAY_2_6_X): 109]
 
     @Override
     PlayApp getPlayApp() {
