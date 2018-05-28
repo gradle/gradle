@@ -10,6 +10,7 @@ val excludedTests = listOf(
     // Fail since build 125
     "InterfaceBackedManagedTypeIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
 
+<<<<<<< HEAD
     // Broken scala and twirl compilation
     // Play does not fully support Java 9 yet (https://github.com/playframework/playframework/issues/7879)
     "MixedPlayAndJvmLibraryProjectIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
