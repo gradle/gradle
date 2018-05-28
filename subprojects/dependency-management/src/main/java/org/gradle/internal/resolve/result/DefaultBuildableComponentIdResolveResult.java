@@ -16,10 +16,16 @@
 
 package org.gradle.internal.resolve.result;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedVersion;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
@@ -27,6 +33,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean rejected;
+    private List<String> unmatchedVersions = Collections.emptyList();
+    private List<RejectedVersion> rejections = Collections.emptyList();
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -76,6 +84,26 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     public void failed(ModuleVersionResolveException failure) {
         reset();
         this.failure = failure;
+    }
+
+    @Override
+    public void unmatched(Collection<String> unmatchedVersions) {
+        this.unmatchedVersions = ImmutableList.copyOf(unmatchedVersions);
+    }
+
+    @Override
+    public void rejections(Collection<RejectedVersion> rejections) {
+        this.rejections = ImmutableList.copyOf(rejections);
+    }
+
+    @Override
+    public Collection<String> getUnmatchedVersions() {
+        return unmatchedVersions;
+    }
+
+    @Override
+    public Collection<RejectedVersion> getRejectedVersions() {
+        return rejections;
     }
 
     private void assertResolved() {
