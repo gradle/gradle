@@ -143,15 +143,14 @@ class CustomVersionListerWithSupplierIntegrationTest extends AbstractModuleDepen
         succeeds 'checkDeps'
 
         and:
-        outputContains("""Listing versions for module testA
-Listed [3, 2, 1] for org:testA
-Supplying metadata for module org:testA:3
-Supplying metadata for module org:testA:2
-Supplying metadata for module org:testA:1
-Listing versions for module testB
-Listed [2, 1] for org:testB
-Supplying metadata for module org:testB:2
-""")
+        outputContains "Listing versions for module testA"
+        outputContains "Listed [3, 2, 1] for org:testA"
+        outputContains "Supplying metadata for module org:testA:3"
+        outputContains "Supplying metadata for module org:testA:2"
+        outputContains "Supplying metadata for module org:testA:1"
+        outputContains "Listing versions for module testB"
+        outputContains "Listed [2, 1] for org:testB"
+        outputContains "Supplying metadata for module org:testB:2"
         outputDoesNotContain("Supplying metadata for module org:testB:1")
     }
 
