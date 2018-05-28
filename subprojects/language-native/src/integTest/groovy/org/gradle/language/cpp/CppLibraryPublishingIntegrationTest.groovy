@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
@@ -480,7 +481,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
-    def "can adjust publication coordiantes"() {
+    def "can adjust main publication coordinates"() {
         def lib = new CppLib()
 
         given:
@@ -495,7 +496,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractInstalledToolChainInte
             }
             publishing {
                 repositories { maven { url 'repo' } }
-                publications.withType(MavenPublication) {
+                publications.main {
                     artifactId = "\${artifactId}-adjusted"
                 }
             }
