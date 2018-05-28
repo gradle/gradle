@@ -286,12 +286,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        final DefaultTaskProvider<T> provider;
-        if (configurationAction == null) {
-            provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name));
-        } else {
-            provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name, configurationAction));
-        }
+        DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name, configurationAction));
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
@@ -504,11 +499,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (configureAction != null) {
                 configure(configureAction);
             }
-        }
-
-        @SuppressWarnings("unused")
-        public TaskCreatingProvider(DefaultTaskContainer tasks, Class<T> type, String name) {
-            this(tasks, type, name, null);
         }
 
         @Override
