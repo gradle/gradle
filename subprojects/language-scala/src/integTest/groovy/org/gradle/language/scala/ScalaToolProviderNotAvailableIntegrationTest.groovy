@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
 
+import static org.gradle.language.scala.internal.DefaultScalaPlatform.DEFAULT_SCALA_PLATFORM_VERSION
+
 class ScalaToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSpec {
     TestJvmComponent app = new TestScalaComponent()
 
@@ -44,6 +46,6 @@ class ScalaToolProviderNotAvailableIntegrationTest extends AbstractIntegrationSp
         when:
         fails("assemble")
         then:
-        failure.assertHasCause("Cannot resolve external dependency org.scala-lang:scala-compiler:2.10.4 because no repositories are defined.")
+        failure.assertHasCause("Cannot resolve external dependency org.scala-lang:scala-compiler:${DEFAULT_SCALA_PLATFORM_VERSION} because no repositories are defined.")
     }
 }

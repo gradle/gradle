@@ -20,11 +20,12 @@ import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.util.VersionNumber;
 
 public class DefaultScalaPlatform implements ScalaPlatform {
+    public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
     private final String scalaCompatibilityVersion;
     private final String scalaVersion;
 
     public DefaultScalaPlatform() {
-        this("2.10.7"); // default Scala version
+        this(DEFAULT_SCALA_PLATFORM_VERSION); // default Scala version
     }
 
     public DefaultScalaPlatform(String scalaVersion) {
