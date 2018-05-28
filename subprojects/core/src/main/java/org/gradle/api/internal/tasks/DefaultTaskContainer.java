@@ -125,7 +125,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             @Override
             public Task call(BuildOperationContext context) {
                 Object[] constructorArgs = getConstructorArgs(actualArgs);
-                TaskInternal task = createTask(name, type, constructorArgs);
+                TaskInternal task = createTask(taskId, name, type, constructorArgs);
                 statistics.eagerTask(type);
 
                 Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
@@ -255,7 +255,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
-                T task = createTask(name, type, constructorArgs);
+                T task = createTask(taskId, name, type, constructorArgs);
                 statistics.eagerTask(type);
                 return addTask(task, false);
             }
@@ -268,13 +268,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
-    private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
+    private <T extends Task> T createTask(InternalTaskInstanceId taskId, String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
         for (int i = 0; i < constructorArgs.length; i++) {
             if (constructorArgs[i] == null) {
                 throw new NullPointerException(String.format("Received null for %s constructor argument #%s", type.getName(), i + 1));
             }
         }
-        return taskFactory.create(null, name, type, constructorArgs);
+        return taskFactory.create(taskId, name, type, constructorArgs);
     }
 
     public Task create(String name) {
@@ -351,7 +351,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
-                T task = taskFactory.create(name, type);
+                T task = taskFactory.create(taskId, name, type);
                 return addTask(task, true);
             }
 
@@ -564,7 +564,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 task = type.cast(tasks.findByNameWithoutRules(name));
                 if (task == null) {
                     try {
-                        task = tasks.createTask(name, type, constructorArgs);
+                        task = tasks.createTask(InternalTaskInstanceId.next(), name, type, constructorArgs);
                         tasks.statistics.lazyTaskRealized(type);
                         tasks.add(task);
                     } catch (RuntimeException ex) {
