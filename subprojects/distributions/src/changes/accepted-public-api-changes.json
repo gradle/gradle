@@ -15,6 +15,14 @@
             "changes": [
                 "org.gradle.api.artifacts.repositories.MetadataSupplierAware"
             ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Class org.gradle.api.DefaultTask",
+            "acceptation": "Internal decoration method altered to pass in task id",
+            "changes": [
+                "org.gradle.api.internal.AbstractTask.injectIntoNewInstance(org.gradle.api.internal.project.ProjectInternal,java.lang.String,java.lang.Class,java.util.concurrent.Callable)"
+            ]
         }
     ]
 }
