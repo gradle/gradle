@@ -28,7 +28,7 @@ public final class InternalTaskInstanceId {
         this.id = id;
     }
 
-    static InternalTaskInstanceId next() {
+    public static InternalTaskInstanceId next() {
         return new InternalTaskInstanceId(SEQUENCE.getAndIncrement());
     }
 
@@ -53,5 +53,10 @@ public final class InternalTaskInstanceId {
     @Override
     public int hashCode() {
         return (int) (id ^ (id >>> 32));
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(id);
     }
 }
