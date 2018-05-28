@@ -44,6 +44,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
@@ -329,16 +330,29 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return createTaskLater(name, type, null, constructorArgs);
     }
 
-    private <T extends Task> TaskProvider<T> createTaskLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction, Object... constructorArgs) {
+    private <T extends Task> TaskProvider<T> createTaskLater(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name, configurationAction, constructorArgs));
-        addLater(provider);
-        if (eagerlyCreateLazyTasks) {
-            provider.get();
-        }
-        return provider;
+        final InternalTaskInstanceId taskId = InternalTaskInstanceId.next();
+        return buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Register task " + taskId);
+            }
+
+            @Override
+            public TaskProvider<T> call(BuildOperationContext context) {
+                DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator()
+                    .newInstance(TaskCreatingProvider.class, taskId, DefaultTaskContainer.this, type, name, configurationAction, constructorArgs)
+                );
+                addLater(provider);
+                if (eagerlyCreateLazyTasks) {
+                    provider.get();
+                }
+                return provider;
+            }
+        });
     }
 
     @Override
@@ -496,11 +510,24 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
-    public <T extends Task> void addPlaceholderAction(final String placeholderName, Class<T> taskType, Action<? super T> configure) {
+    public <T extends Task> void addPlaceholderAction(final String placeholderName, final Class<T> taskType, final Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, taskType, placeholderName, configure, NO_ARGS));
-            placeholders.put(placeholderName, provider);
-            deferredElementKnown(placeholderName, provider);
+            final InternalTaskInstanceId taskId = InternalTaskInstanceId.next();
+            buildOperationExecutor.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator()
+                        .newInstance(TaskCreatingProvider.class, taskId, DefaultTaskContainer.this, taskType, placeholderName, configure, NO_ARGS)
+                    );
+                    placeholders.put(placeholderName, provider);
+                    deferredElementKnown(placeholderName, provider);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Add placeholder " + taskId);
+                }
+            });
         } else {
             warnAboutPlaceholderDeprecation(placeholderName);
         }
@@ -540,13 +567,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public static class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
+        private final InternalTaskInstanceId taskId;
         private T task;
         private Throwable cause;
         private Object[] constructorArgs;
         private DefaultTaskContainer tasks;
 
-        public TaskCreatingProvider(DefaultTaskContainer tasks, Class<T> type, String name, @Nullable Action<? super T> configureAction, Object... constructorArgs) {
+        public TaskCreatingProvider(InternalTaskInstanceId taskId, DefaultTaskContainer tasks, Class<T> type, String name, @Nullable Action<? super T> configureAction, Object... constructorArgs) {
             super(tasks, type, name);
+            this.taskId = taskId;
             this.tasks = tasks;
             tasks.statistics.lazyTask();
             this.constructorArgs = constructorArgs;
@@ -563,14 +592,24 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (task == null) {
                 task = type.cast(tasks.findByNameWithoutRules(name));
                 if (task == null) {
-                    try {
-                        task = tasks.createTask(InternalTaskInstanceId.next(), name, type, constructorArgs);
-                        tasks.statistics.lazyTaskRealized(type);
-                        tasks.add(task);
-                    } catch (RuntimeException ex) {
-                        cause = ex;
-                        throw throwFailure();
-                    }
+                    tasks.buildOperationExecutor.run(new RunnableBuildOperation() {
+                        @Override
+                        public void run(BuildOperationContext context) {
+                            try {
+                                task = tasks.createTask(taskId, name, type, constructorArgs);
+                                tasks.statistics.lazyTaskRealized(type);
+                                tasks.add(task);
+                            } catch (RuntimeException ex) {
+                                cause = ex;
+                                throw throwFailure();
+                            }
+                        }
+
+                        @Override
+                        public BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("Realize task " + taskId);
+                        }
+                    });
                 }
             }
             return task;
