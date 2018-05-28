@@ -32,6 +32,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.internal.project.taskfactory.InternalTaskInstanceId;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
@@ -39,7 +40,10 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
@@ -93,47 +97,61 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public Task create(Map<String, ?> options) {
         Map<String, ?> factoryOptions = options;
-        boolean replace = false;
+        final boolean replace;
         if (options.containsKey(Task.TASK_OVERWRITE)) {
             factoryOptions = new HashMap<String, Object>(options);
             Object replaceStr = factoryOptions.remove(Task.TASK_OVERWRITE);
             replace = "true".equals(replaceStr.toString());
+        } else {
+            replace = false;
         }
 
-        Map<String, ?> actualArgs = checkTaskArgsAndCreateDefaultValues(factoryOptions);
+        final Map<String, ?> actualArgs = checkTaskArgsAndCreateDefaultValues(factoryOptions);
 
-        String name = actualArgs.get(Task.TASK_NAME).toString();
+        final String name = actualArgs.get(Task.TASK_NAME).toString();
         if (!GUtil.isTrue(name)) {
             throw new InvalidUserDataException("The task name must be provided.");
         }
 
-        Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
-        Object[] constructorArgs = getConstructorArgs(actualArgs);
-        TaskInternal task = createTask(name, type, constructorArgs);
-        statistics.eagerTask(type);
+        final Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
 
-        Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
-        if (dependsOnTasks != null) {
-            task.dependsOn(dependsOnTasks);
-        }
-        Object description = actualArgs.get(Task.TASK_DESCRIPTION);
-        if (description != null) {
-            task.setDescription(description.toString());
-        }
-        Object group = actualArgs.get(Task.TASK_GROUP);
-        if (group != null) {
-            task.setGroup(group.toString());
-        }
-        Object action = actualArgs.get(Task.TASK_ACTION);
-        if (action instanceof Action) {
-            Action<? super Task> taskAction = Cast.uncheckedCast(action);
-            task.doFirst(taskAction);
-        } else if (action != null) {
-            Closure closure = (Closure) action;
-            task.doFirst(closure);
-        }
+        final InternalTaskInstanceId taskId = InternalTaskInstanceId.next();
+        return buildOperationExecutor.call(new CallableBuildOperation<Task>() {
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Create task " + taskId);
+            }
 
-        return addTask(task, replace);
+            @Override
+            public Task call(BuildOperationContext context) {
+                Object[] constructorArgs = getConstructorArgs(actualArgs);
+                TaskInternal task = createTask(name, type, constructorArgs);
+                statistics.eagerTask(type);
+
+                Object dependsOnTasks = actualArgs.get(Task.TASK_DEPENDS_ON);
+                if (dependsOnTasks != null) {
+                    task.dependsOn(dependsOnTasks);
+                }
+                Object description = actualArgs.get(Task.TASK_DESCRIPTION);
+                if (description != null) {
+                    task.setDescription(description.toString());
+                }
+                Object group = actualArgs.get(Task.TASK_GROUP);
+                if (group != null) {
+                    task.setGroup(group.toString());
+                }
+                Object action = actualArgs.get(Task.TASK_ACTION);
+                if (action instanceof Action) {
+                    Action<? super Task> taskAction = Cast.uncheckedCast(action);
+                    task.doFirst(taskAction);
+                } else if (action != null) {
+                    Closure closure = (Closure) action;
+                    task.doFirst(closure);
+                }
+
+                return addTask(task, replace);
+            }
+        });
     }
 
     private static Object[] getConstructorArgs(Map<String, ?> args) {
@@ -232,10 +250,22 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> T create(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
-        T task = createTask(name, type, constructorArgs);
-        statistics.eagerTask(type);
-        return addTask(task, false);
+    public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
+        final InternalTaskInstanceId taskId = InternalTaskInstanceId.next();
+        return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                T task = createTask(name, type, constructorArgs);
+                statistics.eagerTask(type);
+                return addTask(task, false);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Create task " + taskId);
+            }
+
+        });
     }
 
     private <T extends Task> T createTask(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException {
@@ -316,9 +346,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
-    public <T extends Task> T replace(String name, Class<T> type) {
-        T task = taskFactory.create(name, type);
-        return addTask(task, true);
+    public <T extends Task> T replace(final String name, final Class<T> type) {
+        final InternalTaskInstanceId taskId = InternalTaskInstanceId.next();
+        return buildOperationExecutor.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                T task = taskFactory.create(name, type);
+                return addTask(task, true);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Replace task " + taskId);
+            }
+        });
     }
 
     public Task findByPath(String path) {
