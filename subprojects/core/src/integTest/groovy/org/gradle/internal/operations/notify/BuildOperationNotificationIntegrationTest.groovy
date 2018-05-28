@@ -23,6 +23,7 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.EvaluateSettingsBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.ProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType
@@ -68,6 +69,8 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(EvaluateSettingsBuildOperationType.Result, [:])
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
         notifications.finished(LoadProjectsBuildOperationType.Result)
+        notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":"])
+        notifications.finished(ProjectsLoadedBuildOperationType.Result)
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
         notifications.started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
         notifications.finished(ApplyPluginBuildOperationType.Result, [:])
@@ -94,6 +97,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         // Operations that started before the listener registration are not included (even if they finish _after_ listener registration)
         notifications.notIncluded(EvaluateSettingsBuildOperationType.Details)
         notifications.notIncluded(LoadProjectsBuildOperationType.Details)
+        notifications.notIncluded(ProjectsLoadedBuildOperationType.Details)
         notifications.notIncluded(ApplyPluginBuildOperationType.Details)
         notifications.notIncluded(ConfigureProjectBuildOperationType.Details)
 
@@ -136,6 +140,11 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":a:buildSrc"])
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":a"])
         notifications.started(LoadProjectsBuildOperationType.Details, [buildPath: ":"])
+
+        notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":buildSrc"])
+        notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a:buildSrc"])
+        notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":a"])
+        notifications.started(ProjectsLoadedBuildOperationType.Details, [buildPath: ":"])
 
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
