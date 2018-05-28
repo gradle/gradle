@@ -266,6 +266,25 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         outputContains(DEFERRED_CONFIGURATION_WARNING)
     }
 
+    def "uses old deferred configuration logic if feature preview is not activated"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            def mode = "Deferred"
+            publishing {
+                mode = "Eager"
+            }
+            println mode
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputDoesNotContain("Eager")
+    }
+
     def "no warning if the user already activated the stable feature preview"() {
 
         given:

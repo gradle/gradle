@@ -105,12 +105,16 @@ public class PublishingPlugin implements Plugin<Project> {
     }
 
     private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
-        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
-            @Override
-            public void prepareForRuleBasedPlugins(Project project) {
-                project.getPluginManager().apply(PublishingPluginRules.class);
-            }
-        });
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_PUBLISHING)) {
+            project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+                @Override
+                public void prepareForRuleBasedPlugins(Project project) {
+                    project.getPluginManager().apply(PublishingPluginRules.class);
+                }
+            });
+        } else {
+            project.getPluginManager().apply(PublishingPluginRules.class);
+        }
     }
 
 }
