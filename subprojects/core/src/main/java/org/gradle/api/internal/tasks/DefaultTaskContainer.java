@@ -244,7 +244,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 throw new NullPointerException(String.format("Received null for %s constructor argument #%s", type.getName(), i + 1));
             }
         }
-        return taskFactory.create(name, type, constructorArgs);
+        return taskFactory.create(null, name, type, constructorArgs);
     }
 
     public Task create(String name) {
