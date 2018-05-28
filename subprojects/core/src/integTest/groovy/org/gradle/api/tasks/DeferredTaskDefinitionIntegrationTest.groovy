@@ -16,10 +16,8 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -219,28 +217,32 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("task3")
     }
 
-    @NotYetImplemented
-    def "tasks.all runs once for lazy tasks"() {
-        buildFile << '''
+    @Issue("https://github.com/gradle/gradle-native/issues/707")
+    def "task is created and configured eagerly when referenced using all { action }"() {
+        buildFile << """
             def configureCount = 0
             tasks.createLater("task1", SomeTask) {
                 configureCount++
-                println "Configure ${path} " + configureCount
+                println "Configure \${path} " + configureCount
             }
             
             def tasksAllCount = 0
             tasks.all {
                 tasksAllCount++
-                println "tasks.all " + path + " " + tasksAllCount
+                println "Action " + path + " " + tasksAllCount
             }
             
             gradle.buildFinished {
                 assert configureCount == 1
                 assert tasksAllCount == 2 // help + task1
             }
-        '''
+        """
+
         expect:
         succeeds("help")
+        result.output.count("Create :task1") == 1
+        result.output.count("Configure :task1") == 1
+        result.output.count("Action :task1") == 1
     }
 
     def "build logic can configure each task of a given type only when required"() {
@@ -280,7 +282,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5148")
     def "can get a task by name with a filtered collection"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
@@ -298,7 +300,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails to get a task by name when it does not match the filtered type"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
@@ -318,7 +320,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails to get a task by name when it does not match the collection filter"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
