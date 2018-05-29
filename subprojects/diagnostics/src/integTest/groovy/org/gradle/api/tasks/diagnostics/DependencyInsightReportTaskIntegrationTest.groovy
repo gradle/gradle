@@ -1868,4 +1868,58 @@ org:leaf2:1.0
 A web-based, searchable dependency report is available by adding the --scan option.
 """
     }
+
+    def "renders multiple rejected modules"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.1").publish()
+        mavenRepo.module("org", "bar", "1.2").publish()
+
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                constraints {
+                    implementation('org:foo') {
+                       version { 
+                          reject '1.0', '1.1', '1.2' 
+                       }
+                    }
+                    implementation('org:bar') {
+                       version { 
+                          rejectAll()
+                       }
+                       because "Nope, you won't use this"
+                    }
+                }
+                implementation 'org:foo:[1.0,)'
+                implementation 'org:bar:[1.0,)'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "org"
+
+        then:
+        outputContains """org:bar (via constraint, Nope, you won't use this) FAILED
+\\--- compileClasspath
+
+org:bar:[1.0,) FAILED
+\\--- compileClasspath
+
+org:foo (via constraint) FAILED
+\\--- compileClasspath
+
+org:foo:[1.0,) FAILED
+\\--- compileClasspath
+"""
+    }
 }

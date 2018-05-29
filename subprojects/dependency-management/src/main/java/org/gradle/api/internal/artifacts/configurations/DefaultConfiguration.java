@@ -129,7 +129,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw UncheckedException.throwAsUncheckedException(throwable);
         }
     };
-    
+
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
