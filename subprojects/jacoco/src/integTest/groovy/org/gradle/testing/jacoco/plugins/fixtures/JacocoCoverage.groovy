@@ -16,6 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 
 final class JacocoCoverage {
@@ -24,11 +25,7 @@ final class JacocoCoverage {
 
     final static String[] ALL = ['0.6.0.201210061924', '0.6.2.201302030002', '0.6.3.201306030806', '0.7.1.201405082137', '0.7.6.201602180812', JacocoPlugin.DEFAULT_JACOCO_VERSION].asImmutable()
 
-    final static List<String> COVERAGE_CHECK_SUPPORTED = ALL.findAll {
-        def jacocoVersion = new JacocoVersion(it)
-        def supportedJacocoVersion = JacocoVersion.CHECK_INTRODUCED
-        jacocoVersion.compareTo(supportedJacocoVersion) >= 0
-    }.asImmutable()
+    final static List<String> COVERAGE_CHECK_SUPPORTED = filter(JacocoVersion.CHECK_INTRODUCED)
 
     final static List<String> COVERAGE_CHECK_UNSUPPORTED = ALL.findAll {
         def jacocoVersion = new JacocoVersion(it)
@@ -36,15 +33,19 @@ final class JacocoCoverage {
         jacocoVersion.compareTo(supportedJacocoVersion) == -1
     }.asImmutable()
 
-    final static List<String> SUPPORTS_JDK_8_OR_HIGHER = ALL.findAll {
-        def jacocoVersion = new JacocoVersion(it)
-        def supportedJacocoVersion = JacocoVersion.SUPPORTS_JDK_8
-        jacocoVersion.compareTo(supportedJacocoVersion) >= 0
-    }.asImmutable()
+    final static List<String> SUPPORTS_JDK_8_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_8)
+    final static List<String> SUPPORTS_JDK_9_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_9)
+
+    final static List<String> DEFAULT_COVERAGE = JavaVersion.current().isJava9Compatible() ? SUPPORTS_JDK_9_OR_HIGHER : SUPPORTS_JDK_8_OR_HIGHER
+
+    static List<String> filter(JacocoVersion threshold) {
+        ALL.findAll { new JacocoVersion(it) >= threshold }
+    }
 
     private static class JacocoVersion implements Comparable<JacocoVersion> {
         final static CHECK_INTRODUCED = new JacocoVersion(0, 6, 3)
         final static SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
+        final static SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
         private final Integer major
         private final Integer minor
         private final Integer patch
