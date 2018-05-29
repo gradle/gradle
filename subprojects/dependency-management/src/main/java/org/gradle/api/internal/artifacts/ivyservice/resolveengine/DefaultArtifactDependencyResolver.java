@@ -144,18 +144,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
-        ModuleConflictResolver conflictResolver = null;
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
-        switch (conflictResolution) {
-            case strict:
-            case latest:
-                conflictResolver = new LatestModuleConflictResolver(versionComparator, versionParser);
-                break;
-            case preferProjectModules:
-                conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator, versionParser));
-                break;
-        }
-        conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
+        ModuleConflictResolver conflictResolver =
+            new ConflictResolverFactory(versionComparator, versionParser).createConflictResolver(conflictResolution);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }
 

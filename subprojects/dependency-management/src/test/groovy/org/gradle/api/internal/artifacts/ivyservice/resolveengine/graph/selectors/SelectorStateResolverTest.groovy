@@ -25,12 +25,14 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -61,7 +63,7 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 class SelectorStateResolverTest extends Specification {
     private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
-    private final conflictResolver = new TestModuleConflictResolver()
+    private final conflictResolver = new ConflictResolverFactory(new DefaultVersionComparator(), new VersionParser()).createConflictResolver(ConflictResolution.latest)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
 
@@ -194,7 +196,7 @@ class SelectorStateResolverTest extends Specification {
         }
     }
 
-    static class TestModuleConflictResolver implements ModuleConflictResolver {
+    static class TestModuleConflictResolver1 implements ModuleConflictResolver {
         @Override
         <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
             Comparator<T> versionComparator = new ComponentVersionComparator() as Comparator<T>
