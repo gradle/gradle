@@ -16,18 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.GradleException;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
+import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collection;
 
 public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
     private static final Logger LOGGER = Logging.getLogger(AbstractClasspathSnapshotBuilder.class);
@@ -61,13 +65,21 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
     }
 
     @Override
-    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
-        ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
-        try {
-            new FileTree(descendants).visit(entryResourceCollectionBuilder);
-        } catch (IOException e) {
-            throw new GradleException("Error while snapshotting directory in classpath", e);
-        }
+    public void visitFileTreeSnapshot(VisitableDirectoryTree tree) {
+        final ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
+        tree.visit(new PhysicalFileVisitor() {
+            @Override
+            public void visit(String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+                if (content.getType() == FileType.RegularFile) {
+                    RegularFileSnapshot fileSnapshot = Cast.uncheckedCast(FileSnapshotHelper.create(
+                        Joiner.on("/").skipNulls().join(Strings.emptyToNull(basePath), Strings.emptyToNull(Joiner.on('/').join(relativePath))),
+                        relativePath,
+                        content
+                    ));
+                    entryResourceCollectionBuilder.visitFileSnapshot(fileSnapshot);
+                }
+            }
+        });
         entryResourceCollectionBuilder.collectNormalizedSnapshots(builder);
     }
 
