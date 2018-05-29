@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state
+package org.gradle.api.internal.changedetection.state.mirror.logical
 
 import org.gradle.api.internal.changedetection.rules.CollectingTaskStateChangeVisitor
 import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.api.internal.changedetection.state.DefaultNormalizedFileSnapshot
+import org.gradle.api.internal.changedetection.state.FileHashSnapshot
+import org.gradle.api.internal.changedetection.state.NormalizedFileSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.compareTrivialSnapshots
+import static FingerprintCompareStrategy.ABSOLUTE
+import static FingerprintCompareStrategy.CLASSPATH
+import static FingerprintCompareStrategy.IGNORED_PATH
+import static FingerprintCompareStrategy.NORMALIZED
+import static FingerprintCompareStrategy.compareTrivialSnapshots
 
-class TaskFilePropertyCompareStrategyTest extends Specification {
+class FingerprintCompareStrategyTest extends Specification {
 
     @Unroll
     def "empty snapshots (#strategy, include added: #includeAdded)"() {
@@ -38,11 +43,15 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) as List == []
 
         where:
-        strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        strategy                             | includeAdded
+        CLASSPATH | true
+        CLASSPATH | false
+        NORMALIZED | true
+        NORMALIZED | false
+        IGNORED_PATH | true
+        IGNORED_PATH | false
+        ABSOLUTE  | true
+        ABSOLUTE  | false
     }
 
     @Unroll
@@ -54,11 +63,15 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) as List == results
 
         where:
-        strategy  | includeAdded | results
-        ORDERED   | true         | [added("one-new")]
-        ORDERED   | false        | []
-        UNORDERED | true         | [added("one-new")]
-        UNORDERED | false        | []
+        strategy     | includeAdded | results
+        CLASSPATH    | true         | [added("one-new")]
+        CLASSPATH    | false        | []
+        NORMALIZED   | true         | [added("one-new")]
+        NORMALIZED   | false        | []
+        IGNORED_PATH | true         | [added("one-new")]
+        IGNORED_PATH | false        | []
+        ABSOLUTE     | true         | [added("one-new")]
+        ABSOLUTE     | false        | []
     }
 
     @Unroll
@@ -70,11 +83,11 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
-        ORDERED   | true         | [added("two-new")]
-        ORDERED   | false        | []
-        UNORDERED | true         | [added("two-new")]
-        UNORDERED | false        | []
+        strategy   | includeAdded | results
+        CLASSPATH  | true         | [added("two-new")]
+        CLASSPATH  | false        | []
+        NORMALIZED | true         | [added("two-new")]
+        NORMALIZED | false        | []
     }
 
     @Unroll
@@ -86,11 +99,9 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ) == results
 
         where:
-        strategy  | includeAdded | results
-        ORDERED   | true         | [added("two")]
-        ORDERED   | false        | []
-        UNORDERED | true         | [added("two")]
-        UNORDERED | false        | []
+        strategy | includeAdded | results
+        ABSOLUTE | true         | [added("two")]
+        ABSOLUTE | false        | []
     }
 
     @Unroll
@@ -103,10 +114,12 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        CLASSPATH    | true
+        CLASSPATH    | false
+        NORMALIZED   | true
+        NORMALIZED   | false
+        ABSOLUTE   | true
+        ABSOLUTE   | false
     }
 
     @Unroll
@@ -119,10 +132,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        CLASSPATH    | true
+        CLASSPATH    | false
+        NORMALIZED   | true
+        NORMALIZED   | false
     }
 
     @Unroll
@@ -135,10 +148,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        ABSOLUTE   | true
+        ABSOLUTE   | false
     }
 
     @Unroll
@@ -151,16 +162,16 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        CLASSPATH    | true
+        CLASSPATH    | false
+        NORMALIZED   | true
+        NORMALIZED   | false
     }
 
     @Unroll
     def "non-trivial modification with re-ordering and same normalized paths (UNORDERED, include added: #includeAdded)"() {
         expect:
-        changes(UNORDERED, includeAdded,
+        changes(NORMALIZED, includeAdded,
             ["two-new": snapshot("", 0x9876cafe), "one-new": snapshot("")],
             ["one-old": snapshot(""), "two-old": snapshot("", 0xface1234)]
         ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
@@ -179,10 +190,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        ABSOLUTE   | true
+        ABSOLUTE   | false
     }
 
     @Unroll
@@ -195,10 +204,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [removed("one-old"), added("two-new")]
-        ORDERED   | false        | [removed("one-old")]
-        UNORDERED | true         | [removed("one-old"), added("two-new")]
-        UNORDERED | false        | [removed("one-old")]
+        CLASSPATH   | true         | [removed("one-old"), added("two-new")]
+        CLASSPATH   | false        | [removed("one-old")]
+        NORMALIZED | true         | [removed("one-old"), added("two-new")]
+        NORMALIZED | false        | [removed("one-old")]
     }
 
     @Unroll
@@ -211,10 +220,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [removed("three-old"), added("two-new")]
-        ORDERED   | false        | [removed("three-old")]
-        UNORDERED | true         | [removed("three-old"), added("two-new")]
-        UNORDERED | false        | [removed("three-old")]
+        CLASSPATH   | true         | [removed("three-old"), added("two-new")]
+        CLASSPATH   | false        | [removed("three-old")]
+        NORMALIZED | true         | [removed("three-old"), added("two-new")]
+        NORMALIZED | false        | [removed("three-old")]
     }
 
     @Unroll
@@ -227,10 +236,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [removed("three"), added("two")]
-        ORDERED   | false        | [removed("three")]
-        UNORDERED | true         | [added("two"), removed("three")]
-        UNORDERED | false        | [removed("three")]
+        ABSOLUTE | true         | [added("two"), removed("three")]
+        ABSOLUTE | false        | [removed("three")]
     }
 
     @Unroll
@@ -243,10 +250,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
-        ORDERED   | false        | [removed("three-old"), removed("two-old")]
-        UNORDERED | true         | []
-        UNORDERED | false        | []
+        CLASSPATH   | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
+        CLASSPATH   | false        | [removed("three-old"), removed("two-old")]
+        NORMALIZED | true         | []
+        NORMALIZED | false        | []
     }
 
     @Unroll
@@ -259,10 +266,8 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded | results
-        ORDERED   | true         | [removed("three"), added("two"), removed("two"), added("three")]
-        ORDERED   | false        | [removed("three"), removed("two")]
-        UNORDERED | true         | []
-        UNORDERED | false        | []
+        ABSOLUTE | true         | []
+        ABSOLUTE | false        | []
     }
 
     @Unroll
@@ -275,10 +280,10 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
 
         where:
         strategy  | includeAdded
-        ORDERED   | true
-        ORDERED   | false
-        UNORDERED | true
-        UNORDERED | false
+        CLASSPATH   | true
+        CLASSPATH   | false
+        NORMALIZED | true
+        NORMALIZED | false
     }
 
     @Unroll
@@ -293,15 +298,15 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         ["one": snapshot("one"), "two": snapshot("two")] | [:]
     }
 
-    def changes(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+    def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
-        strategy.accept(visitor, current, previous, "test", false, includeAdded)
+        strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(TaskFilePropertyCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
         def visitor = new CollectingTaskStateChangeVisitor()
-        strategy.accept(visitor, current, previous, "test", true, includeAdded)
+        strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
         visitor.getChanges().toList()
     }
 

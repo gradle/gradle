@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
+abstract class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
     FileCollectionInternal files
 

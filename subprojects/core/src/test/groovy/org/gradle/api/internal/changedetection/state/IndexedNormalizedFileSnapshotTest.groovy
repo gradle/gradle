@@ -63,4 +63,14 @@ class IndexedNormalizedFileSnapshotTest extends Specification {
         expect:
         snapshot1 != snapshot2
     }
+
+    def "normalized path always contains slashes"() {
+        given:
+        def relativePath = "some/subdir/in/somewhere"
+        def absolutePath = new File(relativePath).absolutePath
+        def snapshot = new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - relativePath.length(), content)
+
+        expect:
+        snapshot.normalizedPath == relativePath
+    }
 }

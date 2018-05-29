@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror;
 
-import java.util.Collection;
-
-/**
- * Represents the state of a directory tree.
- */
-public class DirectoryTreeDetails implements FileTreeSnapshot {
-    // Interned path
+public abstract class AbstractPhysicalSnapshot implements PhysicalSnapshot {
     private final String path;
-    // All elements, not just direct children
-    private final Collection<FileSnapshot> descendants;
+    private final String name;
 
-    public DirectoryTreeDetails(String path, Collection<FileSnapshot> descendants) {
+    public AbstractPhysicalSnapshot(String path, String name) {
         this.path = path;
-        this.descendants = descendants;
+        this.name = name;
     }
 
     @Override
@@ -38,13 +31,7 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
     }
 
     @Override
-    public Collection<FileSnapshot> getDescendants() {
-        return descendants;
+    public String getName() {
+        return name;
     }
-
-    @Override
-    public String toString() {
-        return path + " (" + descendants.size() + " descendants)";
-    }
-
 }

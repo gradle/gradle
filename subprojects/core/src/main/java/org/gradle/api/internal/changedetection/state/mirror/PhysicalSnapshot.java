@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror;
 
-import java.util.Collection;
+import org.gradle.internal.file.FileType;
 
 /**
- * An immutable snapshot of the content and meta-data of some part of the file system based at some root directory.
+ * A snapshot of a file/directory tree.
+ *
+ * The file is not required to exist (see {@link PhysicalMissingSnapshot}.
  */
-public interface FileTreeSnapshot {
+public interface PhysicalSnapshot {
+    
     /**
-     * The absolute path of the root directory of the tree. Can safely be used as a cache key.
+     * The type of the file.
+     */
+    FileType getType();
+
+    /**
+     * The file name.
+     */
+    String getName();
+
+    /**
+     * The absolute path of the file.
      */
     String getPath();
 
     /**
-     * The descendants of the root directory, if any. Includes direct and indirect children. Does not include the root directory.
+     * Walks the whole hierarchy represented by this snapshot.
+     *
+     * The walk is depth first.
      */
-    Collection<FileSnapshot> getDescendants();
+    void accept(PhysicalSnapshotVisitor visitor);
 }

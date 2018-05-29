@@ -22,7 +22,7 @@ import org.junit.Test
 class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest {
 
     @Test
-    public void removesStateResources() {
+    public void removesStaleResources() {
         file('build.gradle') << 'apply plugin: \'java\''
         file('src/main/resources/org/gradle/resource.txt').createFile()
 

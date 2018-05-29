@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.changedetection.state.mirror
 
-import java.io.IOException;
+import spock.lang.Specification
 
-public interface ResourceTree {
-    void visit(ResourceWithContentsVisitor visitor) throws IOException;
+class MutablePhysicalDirectorySnapshotTest extends Specification {
+
+    def "can rebuild tree from relative paths"() {
+
+    }
 }
