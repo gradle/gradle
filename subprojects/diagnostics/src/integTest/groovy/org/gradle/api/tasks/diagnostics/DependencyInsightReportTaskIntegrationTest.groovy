@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -1921,5 +1922,54 @@ org:foo (via constraint) FAILED
 org:foo:[1.0,) FAILED
 \\--- compileClasspath
 """
+    }
+
+    @ToBeImplemented("all dependency reasons are not yet collected")
+    def "shows all published dependency reasons"() {
+        given:
+        mavenRepo.with {
+            def leaf = module('org.test', 'leaf', '1.0').publish()
+            module('org.test', 'a', '1.0')
+                .dependsOn(leaf, reason: 'first reason')
+                .withModuleMetadata()
+                .publish()
+            module('org.test', 'b', '1.0')
+                .dependsOn('org.test', 'c', '1.0').publish()
+            module('org.test', 'c')
+                .dependsOn(leaf, reason: 'transitive reason')
+                .withModuleMetadata()
+                .publish()
+        }
+
+        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation 'org.test:a:1.0'
+                implementation 'org.test:b:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf"
+
+        then:
+        outputContains """org.test:leaf:1.0 (first reason)
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
++--- org.test:a:1.0
+|    \\--- compileClasspath
+\\--- org.test:c:1.0
+     \\--- org.test:b:1.0
+          \\--- compileClasspath"""
     }
 }
