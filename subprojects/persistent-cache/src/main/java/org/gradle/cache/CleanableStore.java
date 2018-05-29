@@ -19,10 +19,19 @@ package org.gradle.cache;
 import java.io.File;
 import java.util.Collection;
 
+/**
+ * Represents file-based store that can be cleaned by a {@link CleanupAction}.
+ */
 public interface CleanableStore {
 
+    /**
+     * Returns the human-readable name (for logging etc.) of this store.
+     */
     String getDisplayName();
 
+    /**
+     * Returns the base directory that should be cleaned for this store.
+     */
     File getBaseDir();
 
     /**

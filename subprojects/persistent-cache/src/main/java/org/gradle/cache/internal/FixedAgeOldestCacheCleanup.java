@@ -37,7 +37,7 @@ public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
 
     private final long minimumTimestamp;
 
-    public FixedAgeOldestCacheCleanup(EligibleFilesFinder eligibleFilesFinder, long ageInDays) {
+    public FixedAgeOldestCacheCleanup(FilesFinder eligibleFilesFinder, long ageInDays) {
         super(eligibleFilesFinder);
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(ageInDays));
     }

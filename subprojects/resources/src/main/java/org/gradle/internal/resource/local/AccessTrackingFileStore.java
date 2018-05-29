@@ -16,5 +16,8 @@
 
 package org.gradle.internal.resource.local;
 
+/**
+ * A file store that allows to track access to managed files and directories.
+ */
 public interface AccessTrackingFileStore<K> extends FileStore<K>, FileAccessTracker {
 }

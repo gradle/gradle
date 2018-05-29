@@ -25,10 +25,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class SingleDepthDescendantsFileFinder implements EligibleFilesFinder {
+public class SingleDepthFilesFinder implements FilesFinder {
     private final int depth;
 
-    public SingleDepthDescendantsFileFinder(int depth) {
+    public SingleDepthFilesFinder(int depth) {
         Preconditions.checkArgument(depth > 0, "depth must be > 0: %s", depth);
         this.depth = depth;
     }

@@ -32,7 +32,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.Factory;
@@ -77,7 +77,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
         fileAccessTracker = new TouchingFileAccessTracker(filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         CleanupAction cleanupAction = CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
         cache = cacheRepository
             .cache(transformsStoreDirectory)

@@ -27,7 +27,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
-import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.serialize.Serializer;
@@ -52,13 +52,14 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     }
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData) {
+        long maxAgeInDays = DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
         return CompositeCleanupAction.builder()
                 .add(cacheMetaData.getExternalResourcesStoreDirectory(),
-                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                    new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), maxAgeInDays))
                 .add(cacheMetaData.getFileStoreDirectory(),
-                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                    new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), maxAgeInDays))
                 .add(cacheMetaData.getMetaDataStoreDirectory(),
-                    new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(ModuleMetadataStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES))
+                    new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(ModuleMetadataStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), maxAgeInDays))
                 .build();
     }
 

@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class SingleDepthDescendantsFileFinderTest extends Specification {
+class SingleDepthFilesFinderTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Unroll
@@ -31,10 +31,10 @@ class SingleDepthDescendantsFileFinderTest extends Specification {
         tmpDir.file("b/bb/bbb").createFile("2")
 
         when:
-        def result = new SingleDepthDescendantsFileFinder(depth).find(tmpDir.getTestDirectory(), { true })
+        def result = new SingleDepthFilesFinder(depth).find(tmpDir.getTestDirectory(), { true })
 
         then:
-        result as List == expectedPaths.collect { tmpDir.file(it) }
+        result as Set == expectedPaths.collect { tmpDir.file(it) } as Set
 
         where:
         depth | expectedPaths
@@ -52,7 +52,7 @@ class SingleDepthDescendantsFileFinderTest extends Specification {
         FileFilter filter = { it != excludedFile }
 
         when:
-        def result = new SingleDepthDescendantsFileFinder(1).find(tmpDir.getTestDirectory(), filter)
+        def result = new SingleDepthFilesFinder(1).find(tmpDir.getTestDirectory(), filter)
 
         then:
         result as List == [includedFile]

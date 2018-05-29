@@ -23,7 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
-import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.GFileUtils;
@@ -46,7 +46,7 @@ public class DefaultVersionControlSystemFactory implements VersionControlSystemF
             .cache(workingDirectoryRoot.getDir())
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(1), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(1), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
             .open();
     }
 

@@ -30,9 +30,9 @@ import java.util.List;
 public abstract class AbstractCacheCleanup implements CleanupAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCacheCleanup.class);
 
-    private final EligibleFilesFinder eligibleFilesFinder;
+    private final FilesFinder eligibleFilesFinder;
 
-    public AbstractCacheCleanup(EligibleFilesFinder eligibleFilesFinder) {
+    public AbstractCacheCleanup(FilesFinder eligibleFilesFinder) {
         this.eligibleFilesFinder = eligibleFilesFinder;
     }
 

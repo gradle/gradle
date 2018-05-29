@@ -19,9 +19,17 @@ package org.gradle.internal.resource.local;
 import java.io.File;
 import java.util.Collection;
 
+/**
+ * Tracks access to files, usually within a {@link FileStore}.
+ */
 public interface FileAccessTracker {
     /**
      * Marks the supplied files as accessed.
+     *
+     * If the supplied files are unknown to this tracker, implementations must
+     * simply ignore them instead of throwing an exception. However, depending
+     * on their use case, implementations may throw an exception when marking a
+     * known file fails.
      */
     void markAccessed(Collection<File> files);
 }

@@ -19,6 +19,13 @@ package org.gradle.cache.internal;
 import java.io.File;
 import java.io.FileFilter;
 
-public interface EligibleFilesFinder {
+/**
+ * Encapsulates a criteria for finding files.
+ */
+public interface FilesFinder {
+    /**
+     * Find files according to this finder's criteria within the supplied base
+     * directory that pass the supplied {@link FileFilter}.
+     */
     File[] find(File baseDir, FileFilter filter);
 }

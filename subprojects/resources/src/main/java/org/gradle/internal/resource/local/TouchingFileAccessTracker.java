@@ -28,6 +28,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Tracks access to files by touching, i.e. updating the last modified
+ * timestamp, files and directory at the supplied depth within the supplied base
+ * directory.
+ */
 @SuppressWarnings("Since15")
 public class TouchingFileAccessTracker implements FileAccessTracker {
 

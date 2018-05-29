@@ -23,7 +23,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
-import org.gradle.cache.internal.SingleDepthDescendantsFileFinder;
+import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -81,7 +81,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(new SingleDepthDescendantsFileFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), removeUnusedEntriesAfterDays)))
+            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

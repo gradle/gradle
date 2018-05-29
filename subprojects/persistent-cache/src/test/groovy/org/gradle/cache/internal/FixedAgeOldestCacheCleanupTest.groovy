@@ -29,7 +29,7 @@ class FixedAgeOldestCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new FixedAgeOldestCacheCleanup(DIRECT_CHILDREN, 1)
+    def cleanupAction = new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(1), 1)
 
     def "finds files to delete when files are old"() {
         long now = System.currentTimeMillis()
