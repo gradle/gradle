@@ -286,7 +286,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name, configurationAction));
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
@@ -445,7 +445,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public <T extends Task> void addPlaceholderAction(final String placeholderName, Class<T> taskType, Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
+            TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, taskType, placeholderName, configure));
             placeholders.put(placeholderName, provider);
             deferredElementKnown(placeholderName, provider);
         } else {
@@ -486,16 +486,19 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
+    public static class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
         private Throwable cause;
+        private DefaultTaskContainer tasks;
 
-        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
-            super(type, name);
+        public TaskCreatingProvider(DefaultTaskContainer tasks, Class<T> type, String name, @Nullable Action<? super T> configureAction) {
+            super(tasks, type, name);
+            this.tasks = tasks;
+            tasks.statistics.lazyTask();
+
             if (configureAction != null) {
                 configure(configureAction);
             }
-            statistics.lazyTask();
         }
 
         @Override
@@ -504,12 +507,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 throw throwFailure();
             }
             if (task == null) {
-                task = type.cast(findByNameWithoutRules(name));
+                task = type.cast(tasks.findByNameWithoutRules(name));
                 if (task == null) {
                     try {
-                        task = createTask(name, type, NO_ARGS);
-                        statistics.lazyTaskRealized(type);
-                        add(task);
+                        task = tasks.createTask(name, type, NO_ARGS);
+                        tasks.statistics.lazyTaskRealized(type);
+                        tasks.add(task);
                     } catch (RuntimeException ex) {
                         cause = ex;
                         throw throwFailure();
