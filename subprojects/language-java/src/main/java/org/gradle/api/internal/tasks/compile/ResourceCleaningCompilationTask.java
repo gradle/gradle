@@ -19,15 +19,20 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import javax.annotation.processing.Processor;
+import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
 import javax.tools.StandardJavaFileManager;
+import java.nio.charset.Charset;
 import java.util.Locale;
 
-public class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
+/**
+ * Cleans up resources (e.g. file handles) after compilation has finished.
+ */
+class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
     private final JavaCompiler.CompilationTask delegate;
     private final StandardJavaFileManager fileManager;
 
-    public ResourceCleaningCompilationTask(JavaCompiler.CompilationTask delegate, StandardJavaFileManager fileManager) {
+    ResourceCleaningCompilationTask(JavaCompiler.CompilationTask delegate, StandardJavaFileManager fileManager) {
         this.delegate = delegate;
         this.fileManager = fileManager;
     }
@@ -48,6 +53,24 @@ public class ResourceCleaningCompilationTask implements JavaCompiler.Compilation
             return delegate.call();
         } finally {
             CompositeStoppable.stoppable(fileManager).stop();
+            cleanupZipCache();
+        }
+    }
+
+    /**
+     * The javac file manager uses a shared ZIP cache which keeps file handles open
+     * after compilation. It's supposed to be tunable with the -XDuseOptimizedZip parameter,
+     * but the {@link JavaCompiler#getStandardFileManager(DiagnosticListener, Locale, Charset)}
+     * method does not take arguments, so the cache can't be turned off.
+     * So instead we clean it ourselves using reflection.
+     */
+    private void cleanupZipCache() {
+        try {
+            Class<?> zipFileIndexCache = Class.forName("com.sun.tools.javac.file.ZipFileIndexCache");
+            Object instance = zipFileIndexCache.getMethod("getSharedInstance").invoke(null);
+            zipFileIndexCache.getMethod("clearCache").invoke(instance);
+        } catch (Throwable e) {
+            // Not an OpenJDK-compatible compiler or signature changed
         }
     }
 }
