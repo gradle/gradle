@@ -180,11 +180,11 @@ class SelectorStateResolverTest extends Specification {
             new TestSelectorState(componentIdResolver, version.versionConstraint)
         }
         def currentSelection = selectorStateResolver.selectBest(moduleId, selectors)
-        if (currentSelection.isRejected()) {
-            return VersionRangeResolveTestScenarios.REJECTED
-        }
         if (selectors.any { it.resolved?.failure != null }) {
             return VersionRangeResolveTestScenarios.FAILED
+        }
+        if (currentSelection.isRejected()) {
+            return VersionRangeResolveTestScenarios.REJECTED
         }
         return currentSelection.getVersion()
     }
