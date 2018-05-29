@@ -51,6 +51,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.locking.LockOutOfDateException;
@@ -272,6 +273,10 @@ public class DependencyInsightReportTask extends DefaultTask {
             handleConflict((VersionConflictException) cause, output);
         } else if (cause instanceof LockOutOfDateException) {
             handleOutOfDateLocks((LockOutOfDateException) cause, output);
+        } else {
+            // Fallback to failing the task in case we don't know anything special
+            // about the error
+            throw UncheckedException.throwAsUncheckedException(cause);
         }
     }
 
