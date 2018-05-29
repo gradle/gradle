@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * The result of resolving a module version selector to a particular component id.
@@ -60,5 +62,15 @@ public interface ComponentIdResolveResult extends ResolveResult {
      * Returns true if the component id was resolved, but it was rejected by constraint.
      */
     boolean isRejected();
+
+    /**
+     * @return the list of unmatched versions, that is to say versions which were listed but didn't match the selector
+     */
+    Collection<String> getUnmatchedVersions();
+
+    /**
+     * @return the list of versions which were considered for this module but rejected.
+     */
+    Collection<RejectedVersion> getRejectedVersions();
 
 }

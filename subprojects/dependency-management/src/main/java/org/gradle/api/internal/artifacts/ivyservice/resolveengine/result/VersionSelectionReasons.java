@@ -36,6 +36,7 @@ public class VersionSelectionReasons {
     public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
     public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
     public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
+    public static final ComponentSelectionDescriptorInternal REJECTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
 
     public static ComponentSelectionReasonInternal requested() {
         return new DefaultComponentSelectionReason(REQUESTED);

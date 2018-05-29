@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -25,7 +25,6 @@ import org.gradle.internal.resolve.RejectedVersion;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
     private ModuleVersionResolveException failure;
@@ -33,8 +32,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentIdentifier id;
     private ModuleVersionIdentifier moduleVersionId;
     private boolean rejected;
-    private List<String> unmatchedVersions = Collections.emptyList();
-    private List<RejectedVersion> rejections = Collections.emptyList();
+    private ImmutableSet.Builder<String> unmatchedVersions;
+    private ImmutableSet.Builder<RejectedVersion> rejections;
 
     public boolean hasResult() {
         return id != null || failure != null;
@@ -88,22 +87,41 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     @Override
     public void unmatched(Collection<String> unmatchedVersions) {
-        this.unmatchedVersions = ImmutableList.copyOf(unmatchedVersions);
+        if (unmatchedVersions.isEmpty()) {
+            return;
+        }
+        if (this.unmatchedVersions == null) {
+            this.unmatchedVersions = new ImmutableSet.Builder<String>();
+        }
+        this.unmatchedVersions.addAll(unmatchedVersions);
     }
 
     @Override
     public void rejections(Collection<RejectedVersion> rejections) {
-        this.rejections = ImmutableList.copyOf(rejections);
+        if (rejections.isEmpty()) {
+            return;
+        }
+        if (this.rejections == null) {
+            this.rejections = new ImmutableSet.Builder<RejectedVersion>();
+        }
+        this.rejections.addAll(rejections);
     }
 
     @Override
     public Collection<String> getUnmatchedVersions() {
-        return unmatchedVersions;
+        return safeBuild(unmatchedVersions);
     }
 
     @Override
     public Collection<RejectedVersion> getRejectedVersions() {
-        return rejections;
+        return safeBuild(rejections);
+    }
+
+    private static <T> Collection<T> safeBuild(ImmutableSet.Builder<T> builder) {
+        if (builder == null) {
+            return Collections.emptyList();
+        }
+        return builder.build();
     }
 
     private void assertResolved() {

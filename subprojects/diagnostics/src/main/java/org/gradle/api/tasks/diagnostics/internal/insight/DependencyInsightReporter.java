@@ -16,9 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -30,20 +37,39 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DefaultSection;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class DependencyInsightReporter {
+
+    private static final Predicate<ComponentSelectionDescriptorInternal> HAS_CUSTOM_DESCRIPTION = new Predicate<ComponentSelectionDescriptorInternal>() {
+        @Override
+        public boolean apply(@Nullable ComponentSelectionDescriptorInternal input) {
+            return input.hasCustomDescription();
+        }
+    };
+    private static final Function<ComponentSelectionDescriptorInternal, String> GET_DESCRIPTION = new Function<ComponentSelectionDescriptorInternal, String>() {
+        @Nullable
+        @Override
+        public String apply(@Nullable ComponentSelectionDescriptorInternal input) {
+            return input.getDescription();
+        }
+    };
 
     public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
@@ -70,7 +96,12 @@ public class DependencyInsightReporter {
             if (annotated.add(dependency.getActual())) {
                 //add a heading dependency with the annotation if the dependency does not exist in the graph
                 if (!dependency.getRequested().matchesStrictly(dependency.getActual())) {
-                    out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant));
+                    SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(dependency.getReason());
+                    if (selectionReasonsSection.replacesShortDescription) {
+                        reasonDescription = null;
+                    }
+                    List<Section> extraDetails = !selectionReasonsSection.replacesShortDescription ? Collections.<Section>emptyList() : Collections.<Section>singletonList(selectionReasonsSection);
+                    out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails));
                     current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
                     out.add(current);
                 } else {
@@ -86,6 +117,57 @@ public class DependencyInsightReporter {
         }
 
         return out;
+    }
+
+    private static SelectionReasonsSection buildSelectionReasonSection(ComponentSelectionReason reason) {
+        SelectionReasonsSection selectionReasons = new SelectionReasonsSection();
+        Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> descriptionsByCause = groupByCause(reason.getDescriptions());
+        for (Map.Entry<ComponentSelectionCause, Collection<ComponentSelectionDescriptorInternal>> entry : descriptionsByCause.asMap().entrySet()) {
+            ComponentSelectionCause cause = entry.getKey();
+            Collection<ComponentSelectionDescriptorInternal> descriptors = entry.getValue();
+            List<ComponentSelectionDescriptorInternal> withCustomDescription = ImmutableList.copyOf(Iterables.filter(descriptors, HAS_CUSTOM_DESCRIPTION));
+            boolean hasCustomDescription = !withCustomDescription.isEmpty();
+            String message = null;
+            if (hasCustomDescription) {
+                selectionReasons.shouldDisplay();
+                message = Joiner.on(", ").join(Iterables.transform(withCustomDescription, GET_DESCRIPTION));
+            }
+            String prettyCause = prettyCause(cause);
+            Section item = new DefaultSection(hasCustomDescription ? prettyCause + " : " + message : prettyCause);
+            selectionReasons.addChild(item);
+        }
+        return selectionReasons;
+    }
+
+    private static Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> groupByCause(List<ComponentSelectionDescriptor> descriptors) {
+        Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> groupedByCause = LinkedHashMultimap.create();
+        for (ComponentSelectionDescriptor raw : descriptors) {
+            ComponentSelectionDescriptorInternal desc = (ComponentSelectionDescriptorInternal) raw;
+            groupedByCause.put(desc.getCause(), desc);
+        }
+        return groupedByCause;
+    }
+
+    private static String prettyCause(ComponentSelectionCause cause) {
+        switch (cause) {
+            case ROOT:
+                return "Root component";
+            case REQUESTED:
+                return "Was requested";
+            case SELECTED_BY_RULE:
+                return "Selected by rule";
+            case FORCED:
+                return "Forced";
+            case CONFLICT_RESOLUTION:
+                return "By conflict resolution";
+            case COMPOSITE_BUILD:
+                return "By composite build";
+            case REJECTION:
+                return "Rejection";
+            case CONSTRAINT:
+                return "By constraint";
+        }
+        return "Unknown";
     }
 
     private static String getReasonDescription(ComponentSelectionReason reason) {
@@ -111,11 +193,24 @@ public class DependencyInsightReporter {
     private static String getLastCustomReason(ComponentSelectionReasonInternal reason) {
         String lastCustomReason = null;
         for (ComponentSelectionDescriptor descriptor : reason.getDescriptions()) {
-            if (((ComponentSelectionDescriptorInternal)descriptor).hasCustomDescription()) {
+            if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
                 lastCustomReason = descriptor.getDescription();
             }
         }
         return lastCustomReason;
+    }
+
+    private static class SelectionReasonsSection extends DefaultSection {
+
+        private boolean replacesShortDescription;
+
+        public SelectionReasonsSection() {
+            super("Selection reasons");
+        }
+
+        public void shouldDisplay() {
+            replacesShortDescription = true;
+        }
     }
 
 }
