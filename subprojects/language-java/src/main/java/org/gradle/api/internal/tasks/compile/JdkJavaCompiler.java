@@ -68,6 +68,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new IncrementalAnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
+        task = new ResourceCleaningCompilationTask(task, fileManager);
         return task;
     }
 
