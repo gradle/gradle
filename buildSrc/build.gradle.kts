@@ -22,15 +22,15 @@ import java.io.File
 import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
-plugins {
-    `kotlin-dsl` version "0.17.2"
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.7" apply false
-}
-
 buildscript {
     apply {
         from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
     }
+}
+
+plugins {
+    `kotlin-dsl` version "0.17.2"
+    id("org.gradle.kotlin.ktlint-convention") version "0.1.7" apply false
 }
 
 subprojects {

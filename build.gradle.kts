@@ -24,6 +24,12 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
 
+buildscript {
+    apply {
+        from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
+    }
+}
+
 plugins {
     `java-base`
     id("gradlebuild.build-types")
@@ -127,11 +133,6 @@ buildTypes {
     create("soakTest") {
         tasks("soak:soakTest")
         projectProperties("testAllVersions" to true)
-    }
-}
-buildscript {
-    apply {
-        from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
     }
 }
 
