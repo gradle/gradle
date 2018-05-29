@@ -360,7 +360,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(contextualize("Execute projectsEvaluated hooks"))
-                .progressDisplayName(contextualize("Executing projectsEvaluated hooks"))
                 .details(new ProjectsEvaluatedBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {

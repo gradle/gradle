@@ -76,7 +76,6 @@ public class NotifyingBuildLoader implements BuildLoader {
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Execute projectsLoaded hooks")
-                        .progressDisplayName("Executing projectsLoaded hooks")
                         .details(new ProjectsLoadedOperationDetails(buildPath));
                 }
             });

@@ -159,9 +159,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String suffix =  " (" + project.getIdentityPath() + ")";
-            return BuildOperationDescriptor.displayName("Execute beforeEvaluate hooks" + suffix)
-                .progressDisplayName("Executing beforeEvaluate hooks" + suffix)
+            return BuildOperationDescriptor.displayName("Execute beforeEvaluate hooks" + " (" + project.getIdentityPath() + ")")
                 .details(new ProjectBeforeEvaluatedBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }
@@ -184,9 +182,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String suffix =  " (" + project.getIdentityPath() + ")";
-            return BuildOperationDescriptor.displayName("Execute afterEvaluate hooks" + suffix)
-                .progressDisplayName("Executing afterEvaluate hooks" + suffix)
+            return BuildOperationDescriptor.displayName("Execute afterEvaluate hooks" + " (" + project.getIdentityPath() + ")")
                 .details(new ProjectAfterEvaluatedBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }

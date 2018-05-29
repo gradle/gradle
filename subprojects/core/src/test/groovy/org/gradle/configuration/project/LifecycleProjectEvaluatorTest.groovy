@@ -204,7 +204,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         descriptor.displayName == 'Execute beforeEvaluate hooks (:project1)'
-        descriptor.progressDisplayName == 'Executing beforeEvaluate hooks (:project1)'
+        descriptor.progressDisplayName == null
         details.buildPath == ':'
         details.projectPath == ':project1'
     }
@@ -219,7 +219,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
         and:
         descriptor.displayName == 'Execute beforeEvaluate hooks (:project1)'
-        descriptor.progressDisplayName == 'Executing beforeEvaluate hooks (:project1)'
+        descriptor.progressDisplayName == null
         details.buildPath == ':'
         details.projectPath == ':project1'
     }
