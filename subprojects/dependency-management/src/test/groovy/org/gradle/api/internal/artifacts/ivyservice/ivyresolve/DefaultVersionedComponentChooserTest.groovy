@@ -135,7 +135,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedByConstraint(b.id)
+        1 * selectedComponentResult.rejectedBySelector(b.id)
         0 * selectedComponentResult.notMatched(d.id) // versions are checked latest first
         1 * selectedComponentResult.matches(a.id)
         0 * _
@@ -173,7 +173,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedByConstraint(b.id)
+        1 * selectedComponentResult.rejectedBySelector(b.id)
         1 * selectedComponentResult.matches(a.id)
         0 * _
 

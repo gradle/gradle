@@ -112,7 +112,7 @@ public class DynamicVersionResolver {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
 
-            result.resolved(metaDataFactory.transform(latestResolved));
+            found(result, resolveStates, latestResolved);
             return;
         }
         if (!errors.isEmpty()) {
@@ -120,6 +120,13 @@ public class DynamicVersionResolver {
         } else {
             notFound(result, requested, resolveStates);
         }
+    }
+
+    private void found(BuildableComponentIdResolveResult result, List<RepositoryResolveState> resolveStates, RepositoryChainModuleResolution latestResolved) {
+        for (RepositoryResolveState resolveState : resolveStates) {
+            resolveState.registerAttempts(result);
+        }
+        result.resolved(metaDataFactory.transform(latestResolved));
     }
 
     private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
@@ -326,7 +333,7 @@ public class DynamicVersionResolver {
         }
 
         @Override
-        public void rejectedByConstraint(ModuleComponentIdentifier id) {
+        public void rejectedBySelector(ModuleComponentIdentifier id) {
             if (firstRejected == null) {
                 firstRejected = id;
             }
