@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
+package org.gradle.api.internal.artifacts.configurations;
 
-public interface ValidatingArtifactsVisitor extends DependencyArtifactsVisitor {
-    void complete();
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.result.ResolutionResult;
+
+public interface ResolvableDependenciesInternal extends ResolvableDependencies  {
+    ResolutionResult getResolutionResult(Action<? super Throwable> errorHandler);
 }

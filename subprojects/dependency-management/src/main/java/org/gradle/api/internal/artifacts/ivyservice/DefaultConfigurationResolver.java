@@ -178,7 +178,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         if (!results.hasError() && failures.isEmpty()) {
             for (DependencyArtifactsVisitor allVisitor : allVisitors) {
                 if (allVisitor instanceof ValidatingArtifactsVisitor) {
-                    ((ValidatingArtifactsVisitor) allVisitor).performValidation();
+                    ((ValidatingArtifactsVisitor) allVisitor).complete();
                 }
             }
         }

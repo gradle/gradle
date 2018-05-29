@@ -139,7 +139,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedNode(newId('org', 'foo', '1.0'))
 
         when:
-        visitor.performValidation()
+        visitor.complete()
 
         then:
         def ex = thrown(LockOutOfDateException)
@@ -151,7 +151,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         startWithState([newId('org', 'foo', '1.1')])
 
         when:
-        visitor.performValidation()
+        visitor.complete()
 
         then:
         def ex = thrown(LockOutOfDateException)
@@ -165,7 +165,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedNode(identifier)
 
         when:
-        visitor.performValidation()
+        visitor.complete()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), emptySet())
@@ -179,7 +179,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         addVisitedChangingNode(identifier)
 
         when:
-        visitor.performValidation()
+        visitor.complete()
 
         then:
         1 * dependencyLockingProvider.persistResolvedDependencies(configuration, singleton(identifier), singleton(identifier))

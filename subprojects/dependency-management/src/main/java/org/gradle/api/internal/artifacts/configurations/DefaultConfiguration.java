@@ -123,6 +123,13 @@ import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
+    private static final Action<Throwable> DEFAULT_ERROR_HANDLER = new Action<Throwable>() {
+        @Override
+        public void execute(Throwable throwable) {
+            throw UncheckedException.throwAsUncheckedException(throwable);
+        }
+    };
+    
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
@@ -1116,7 +1123,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return reply.toString();
     }
 
-    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
+    public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
         public String getName() {
             return name;
         }
@@ -1161,7 +1168,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ResolutionResult getResolutionResult() {
-            return new LenientResolutionResult();
+            return new LenientResolutionResult(DEFAULT_ERROR_HANDLER);
         }
 
         @Override
@@ -1190,6 +1197,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public AttributeContainer getAttributes() {
             return configurationAttributes;
+        }
+
+        @Override
+        public ResolutionResult getResolutionResult(Action<? super Throwable> errorHandler) {
+            return new LenientResolutionResult(errorHandler);
         }
 
         private class ConfigurationArtifactView implements ArtifactView {
@@ -1221,22 +1233,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
 
+        private void assertArtifactsResolved() {
+            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
+        }
+
         private class LenientResolutionResult implements ResolutionResult {
-            private Action<? super Throwable> errorHandler = new Action<Throwable>() {
-                @Override
-                public void execute(Throwable throwable) {
-                    throw UncheckedException.throwAsUncheckedException(throwable);
-                }
-            };
-            private ResolutionResult delegate;
+            private final Action<? super Throwable> errorHandler;
+            private volatile ResolutionResult delegate;
+
+            private LenientResolutionResult(Action<? super Throwable> errorHandler) {
+                this.errorHandler = errorHandler;
+            }
 
             private void resolve() {
                 if (delegate == null) {
                     synchronized (this) {
                         if (delegate == null) {
-                            DefaultConfiguration.this.resolveToStateOrLater(ARTIFACTS_RESOLVED);
+                            assertArtifactsResolved();
                             delegate = cachedResolverResults.getResolutionResult();
-                            delegate.setErrorHandler(errorHandler);
                             Throwable failure = cachedResolverResults.consumeNonFatalFailure();
                             if (failure != null) {
                                 errorHandler.execute(failure);
@@ -1286,12 +1300,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public void allComponents(Closure closure) {
                 resolve();
                 delegate.allComponents(closure);
-            }
-
-            @Override
-            public ResolutionResult setErrorHandler(Action<? super Throwable> onError) {
-                errorHandler = onError;
-                return this;
             }
 
             @Override
