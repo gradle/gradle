@@ -19,6 +19,8 @@ package org.gradle.internal.operations.notify
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.configuration.project.ProjectAfterEvaluatedBuildOperationType
+import org.gradle.configuration.project.ProjectBeforeEvaluatedBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.EvaluateSettingsBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
@@ -74,10 +76,12 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ProjectsLoadedBuildOperationType.Result)
 
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
+        notifications.started(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
         notifications.started(ApplyPluginBuildOperationType.Details, [pluginId: "org.gradle.help-tasks", pluginClass: "org.gradle.api.plugins.HelpTasksPlugin", targetType: "project", targetPath: ":", buildPath: ":"])
         notifications.finished(ApplyPluginBuildOperationType.Result, [:])
         notifications.started(ApplyScriptPluginBuildOperationType.Details, [targetType: "project", targetPath: ":", file: buildFile.absolutePath, buildPath: ":", uri: null])
         notifications.finished(ApplyScriptPluginBuildOperationType.Result, [:])
+        notifications.started(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ':', projectPath: ':'])
         notifications.finished(ConfigureProjectBuildOperationType.Result, [:])
         notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ':'])
         notifications.finished(ProjectsEvaluatedBuildOperationType.Result, [:])
@@ -156,10 +160,15 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
         notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
-        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
-        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
-        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
-        notifications.started(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+        notifications.started(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
+        notifications.started(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
+        notifications.started(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
+        notifications.started(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
+
+        notifications.started(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"])
+        notifications.started(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"])
+        notifications.started(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"])
+        notifications.started(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"])
 
         notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"])
         notifications.started(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"])
@@ -196,6 +205,16 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).id
         notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).id
         notifications.op(ProjectsEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
+
+        notifications.op(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).id
+        notifications.op(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).id
+        notifications.op(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).id
+        notifications.op(ProjectBeforeEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
+
+        notifications.op(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":", projectPath: ":"]).id
+        notifications.op(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a", projectPath: ":"]).id
+        notifications.op(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).id
+        notifications.op(ProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
     }
 
     def "emits for GradleBuild tasks"() {
