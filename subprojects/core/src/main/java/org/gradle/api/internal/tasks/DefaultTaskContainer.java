@@ -346,7 +346,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             return createTypeMismatchException(name, getDeclaredTaskType(task), type);
         }
 
-        return new TaskLookupProvider<T>(type, name);
+        return new TaskLookupProvider<T>(type, name, (T)task);
     }
 
     private <T extends Task> TaskProvider<T> createTypeMismatchException(String name, Class<?> actualType, Class<?> expectedType) {
@@ -588,15 +588,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
         T task;
 
-        public TaskLookupProvider(Class<T> type, String name) {
+        public TaskLookupProvider(Class<T> type, String name, T task) {
             super(type, name);
+            this.task = task;
         }
 
         @Override
         public T getOrNull() {
-            if (task == null) {
-                task = type.cast(findByName(name));
-            }
             return task;
         }
     }
