@@ -129,8 +129,11 @@ buildTypes {
         projectProperties("testAllVersions" to true)
     }
 }
-
-apply { from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts") }
+buildscript {
+    apply {
+        from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts")
+    }
+}
 
 allprojects {
     group = "org.gradle"

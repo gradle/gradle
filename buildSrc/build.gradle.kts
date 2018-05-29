@@ -27,7 +27,11 @@ plugins {
     id("org.gradle.kotlin.ktlint-convention") version "0.1.7" apply false
 }
 
-apply { from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts") }
+buildscript {
+    apply {
+        from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
+    }
+}
 
 subprojects {
 
