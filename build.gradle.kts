@@ -130,29 +130,10 @@ buildTypes {
     }
 }
 
-val gradleMirrorUrl = getCiMirrorUrls()["gradle"]
-if (gradleMirrorUrl != null) {
-    project.buildscript {
-        repositories {
-            maven {
-                name = "gradle-mirror"
-                url = uri(gradleMirrorUrl)
-            }
-        }
-    }
-}
+apply { from("$rootDir/gradle/shared-with-buildSrc/mirrors.gradle.kts") }
 
 allprojects {
     group = "org.gradle"
-
-    if (gradleMirrorUrl != null) {
-        repositories {
-            maven {
-                name = "gradle-mirror"
-                url = uri(gradleMirrorUrl)
-            }
-        }
-    }
 
     repositories {
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
@@ -166,7 +147,6 @@ allprojects {
             ignore("org/gradle/build-receipt.properties")
         }
     }
-
 }
 
 apply(plugin = "gradlebuild.cleanup")
@@ -325,13 +305,3 @@ fun Project.buildCacheConfiguration() =
 
 fun Configuration.usage(named: String) =
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(named))
-
-fun Project.getCiMirrorUrls(): Map<String, String> =
-    if ("CI" in System.getenv()) {
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
-    } else {
-        emptyMap()
-    }

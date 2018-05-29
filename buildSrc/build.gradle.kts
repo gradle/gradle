@@ -27,17 +27,7 @@ plugins {
     id("org.gradle.kotlin.ktlint-convention") version "0.1.7" apply false
 }
 
-val gradleMirrorUrl = getCiMirrorUrls()["gradle"]
-if (gradleMirrorUrl != null) {
-    project.buildscript {
-        repositories {
-            maven {
-                name = "gradle-mirror"
-                url = uri(gradleMirrorUrl)
-            }
-        }
-    }
-}
+apply { from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts") }
 
 subprojects {
 
@@ -83,15 +73,6 @@ subprojects {
 }
 
 allprojects {
-    if (gradleMirrorUrl != null) {
-        repositories {
-            maven {
-                name = "gradle-mirror"
-                url = uri(gradleMirrorUrl)
-            }
-        }
-    }
-
     repositories {
         maven(url = "https://repo.gradle.org/gradle/libs-releases")
         maven(url = "https://repo.gradle.org/gradle/libs-snapshots")
@@ -216,13 +197,3 @@ fun Project.applyKotlinProjectConventions() {
         }
     }
 }
-
-fun Project.getCiMirrorUrls(): Map<String, String> =
-    if ("CI" in System.getenv()) {
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-            val (name, url) = nameToUrl.split(':', limit = 2)
-            name to url
-        } ?: emptyMap()
-    } else {
-        emptyMap()
-    }
