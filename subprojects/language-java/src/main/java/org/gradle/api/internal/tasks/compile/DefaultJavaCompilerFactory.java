@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -31,13 +32,15 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final FileResolver fileResolver;
     private final ExecHandleFactory execHandleFactory;
+    private AnnotationProcessorDetector processorDetector;
 
-    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver, ExecHandleFactory execHandleFactory) {
+    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, FileResolver fileResolver, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector) {
         this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;
         this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
         this.fileResolver = fileResolver;
         this.execHandleFactory = execHandleFactory;
+        this.processorDetector = processorDetector;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     @Override
     public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
         Compiler<JavaCompileSpec> result = createTargetCompiler(type, false);
-        return new NormalizingJavaCompiler(result);
+        return new AnnotationProcessingCompiler<JavaCompileSpec>(new NormalizingJavaCompiler(result), processorDetector);
     }
 
     private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type, boolean jointCompilation) {

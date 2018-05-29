@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental
+package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType
@@ -26,7 +24,7 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class IncrementalAnnotationProcessingCompilerTest extends Specification {
+class AnnotationProcessingCompilerTest extends Specification {
     JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
         compileOptions = new CompileOptions(TestUtil.objectFactory())
         it
@@ -34,7 +32,7 @@ class IncrementalAnnotationProcessingCompilerTest extends Specification {
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)
     Compiler<JavaCompileSpec> delegate = Stub(Compiler)
 
-    IncrementalAnnotationProcessingCompiler compiler = new IncrementalAnnotationProcessingCompiler(delegate, detector)
+    AnnotationProcessingCompiler compiler = new AnnotationProcessingCompiler(delegate, detector)
 
     def "when neither processor path nor processor option are given, no processors are used"() {
         when:
