@@ -16,15 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.MirrorUpdatingDirectoryWalker;
+import org.gradle.api.internal.changedetection.state.mirror.MutablePhysicalDirectorySnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -43,8 +50,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.normalization.internal.InputNormalizationStrategy;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.Deque;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -57,24 +65,27 @@ import java.util.List;
  *
  * The implementations are currently intentionally very, very simple, and so there are a number of ways in which they can be made much more efficient. This can happen over time.
  */
+@SuppressWarnings("Since15")
+@NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+    private static final Joiner PATH_JOINER = Joiner.on(File.separatorChar);
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileSystemMirror fileSystemMirror;
     private final ProducerGuard<String> producingSelfSnapshots = ProducerGuard.striped();
     private final ProducerGuard<String> producingTrees = ProducerGuard.striped();
     private final ProducerGuard<String> producingAllSnapshots = ProducerGuard.striped();
     private final DefaultGenericFileCollectionSnapshotter snapshotter;
+    private final MirrorUpdatingDirectoryWalker mirrorUpdatingDirectoryWalker;
 
     public DefaultFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystemMirror fileSystemMirror) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileSystemMirror = fileSystemMirror;
-        snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+        this.snapshotter = new DefaultGenericFileCollectionSnapshotter(stringInterner, directoryFileTreeFactory, this);
+        this.mirrorUpdatingDirectoryWalker = new MirrorUpdatingDirectoryWalker(hasher, fileSystem);
     }
 
     @Override
@@ -125,27 +136,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
     }
 
-    @Override
-    public FileTreeSnapshot snapshotDirectoryTree(final File dir) {
-        // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
-        final String path = dir.getAbsolutePath();
-        FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
-        if (snapshot != null) {
-            return snapshot;
-        }
-        return producingTrees.guardByKey(path, new Factory<FileTreeSnapshot>() {
-            @Override
-            public FileTreeSnapshot create() {
-                FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
-                if (snapshot == null) {
-                    return snapshotAndCache(directoryFileTreeFactory.create(dir));
-                } else {
-                    return snapshot;
-                }
-            }
-        });
-    }
-
     /*
      * For simplicity this only caches trees without includes/excludes. However, if it is asked
      * to snapshot a filtered tree, it will try to find a snapshot for the underlying
@@ -154,22 +144,22 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * before any downstream task uses them.
      */
     @Override
-    public FileTreeSnapshot snapshotDirectoryTree(final DirectoryFileTree dirTree) {
+    public VisitableDirectoryTree snapshotDirectoryTree(final DirectoryFileTree dirTree) {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         final String path = dirTree.getDir().getAbsolutePath();
         final PatternSet patterns = dirTree.getPatterns();
 
-        FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
+        VisitableDirectoryTree snapshot = fileSystemMirror.getDirectoryTree(path);
         if (snapshot != null) {
             return filterSnapshot(snapshot, patterns);
         }
         if (!patterns.isEmpty()) {
             return snapshotWithoutCaching(dirTree);
         }
-        return producingTrees.guardByKey(path, new Factory<FileTreeSnapshot>() {
+        return producingTrees.guardByKey(path, new Factory<VisitableDirectoryTree>() {
             @Override
-            public FileTreeSnapshot create() {
-                FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
+            public VisitableDirectoryTree create() {
+                VisitableDirectoryTree snapshot = fileSystemMirror.getDirectoryTree(path);
                 if (snapshot == null) {
                     return snapshotAndCache(dirTree);
                 } else {
@@ -180,45 +170,139 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<FileSnapshot> snapshotTree(FileTreeInternal tree) {
-        List<FileSnapshot> elements = Lists.newArrayList();
-        tree.visitTreeOrBackingFile(new FileVisitorImpl(elements));
-        return elements;
+    public VisitableDirectoryTree snapshotTree(final FileTreeInternal tree) {
+        return new VisitableDirectoryTree() {
+            @Override
+            public void visit(final PhysicalFileTreeVisitor visitor) {
+                tree.visitTreeOrBackingFile(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        visitor.visit(dirDetails.getFile().toPath(), internPath(dirDetails.getFile()), dirDetails.getName(), RelativePath.EMPTY_ROOT, DirContentSnapshot.INSTANCE);
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        String basePath = internPath(fileDetails.getFile());
+                        String relativePath = PATH_JOINER.join(fileDetails.getRelativePath());
+                        if (basePath.endsWith(relativePath) && (basePath.charAt(basePath.length() - relativePath.length() - 1) == File.separatorChar)) {
+                            basePath =  stringInterner.intern(basePath.substring(0, basePath.length() - relativePath.length() - 1));
+                            visitor.visit(fileDetails.getFile().toPath(), basePath, fileDetails.getName(), fileDetails.getRelativePath(), fileSnapshot(fileDetails));
+                        } else {
+                            visitor.visit(fileDetails.getFile().toPath(), basePath, fileDetails.getName(), RelativePath.EMPTY_ROOT, fileSnapshot(fileDetails));
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void accept(HierarchicalFileTreeVisitor visitor) {
+                final AtomicReference<PhysicalSnapshot> root = new AtomicReference<PhysicalSnapshot>();
+                tree.visitTreeOrBackingFile(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        PhysicalSnapshot rootSnapshot = root.get();
+                        if (rootSnapshot == null) {
+                            File rootFile = dirDetails.getFile();
+                            for (String ignored : dirDetails.getRelativePath().getSegments()) {
+                                rootFile = rootFile.getParentFile();
+                            }
+                            rootSnapshot = physicalDirectorySnapshot(rootFile);
+                            root.set(rootSnapshot);
+                        }
+                        rootSnapshot.add(dirDetails.getRelativePath().getSegments(), 0, physicalDirectorySnapshot(dirDetails.getFile()));
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        PhysicalSnapshot rootSnapshot = root.get();
+                        if (rootSnapshot == null) {
+                            File rootFile = fileDetails.getFile();
+                            for (String ignored : fileDetails.getRelativePath().getSegments()) {
+                                rootFile = rootFile.getParentFile();
+                            }
+                            rootSnapshot = fileDetails.getRelativePath().length() == 0 ? physicalFileSnapshot(fileDetails) : physicalDirectorySnapshot(rootFile);
+                            root.set(rootSnapshot);
+                        }
+                        rootSnapshot.add(fileDetails.getRelativePath().getSegments(), 0, physicalFileSnapshot(fileDetails));
+                    }
+
+                    private MutablePhysicalDirectorySnapshot physicalDirectorySnapshot(File file) {
+                        return new MutablePhysicalDirectorySnapshot(file.toPath(), file.getName());
+                    }
+
+                    private PhysicalFileSnapshot physicalFileSnapshot(FileVisitDetails fileDetails) {
+                        FileHashSnapshot snapshot = fileSnapshot(fileDetails);
+                        return new PhysicalFileSnapshot(fileDetails.getFile().toPath(), fileDetails.getName(), snapshot.getLastModified(), snapshot.getContentMd5());
+                    }
+                });
+                PhysicalSnapshot rootSnapshot = root.get();
+                if (rootSnapshot != null) {
+                    rootSnapshot.accept(visitor);
+                }
+            }
+        };
     }
 
-    private FileTreeSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {
-        String path = internPath(directoryTree.getDir());
-        List<FileSnapshot> elements = Lists.newArrayList();
-        directoryTree.visit(new FileVisitorImpl(elements));
-        ImmutableList<FileSnapshot> descendants = ImmutableList.copyOf(elements);
-        DirectoryTreeDetails snapshot = new DirectoryTreeDetails(path, descendants);
-        fileSystemMirror.putDirectory(snapshot);
-        return snapshot;
+    @SuppressWarnings("Since15")
+    private VisitableDirectoryTree snapshotAndCache(DirectoryFileTree directoryTree) {
+        final FileSnapshot fileSnapshot = snapshotSelf(directoryTree.getDir());
+        VisitableDirectoryTree visitableDirectoryTree = mirrorUpdatingDirectoryWalker.walkDir(fileSnapshot);
+        fileSystemMirror.putDirectory(fileSnapshot.getPath(), visitableDirectoryTree);
+        return visitableDirectoryTree;
     }
 
     /*
      * We don't reuse code between this and #snapshotAndCache, because we can avoid
      * some defensive copying when the result won't be shared.
      */
-    private FileTreeSnapshot snapshotWithoutCaching(DirectoryFileTree directoryTree) {
-        String path = directoryTree.getDir().getAbsolutePath();
-        List<FileSnapshot> elements = Lists.newArrayList();
-        directoryTree.visit(new FileVisitorImpl(elements));
-        return new DirectoryTreeDetails(path, elements);
+    private VisitableDirectoryTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
+        return mirrorUpdatingDirectoryWalker.walkDir(snapshotSelf(directoryTree.getDir()), directoryTree.getPatterns());
     }
 
-    private FileTreeSnapshot filterSnapshot(FileTreeSnapshot snapshot, PatternSet patterns) {
+    private VisitableDirectoryTree filterSnapshot(final VisitableDirectoryTree snapshot, PatternSet patterns) {
         if (patterns.isEmpty()) {
             return snapshot;
         }
         final Spec<FileTreeElement> spec = patterns.getAsSpec();
-        Collection<FileSnapshot> filteredDescendants = Collections2.filter(snapshot.getDescendants(), new Predicate<FileSnapshot>() {
+        return new VisitableDirectoryTree() {
             @Override
-            public boolean apply(FileSnapshot descendant) {
-                return spec.isSatisfiedBy(new SnapshotFileTreeElement(descendant, fileSystem));
+            public void visit(final PhysicalFileTreeVisitor visitor) {
+                snapshot.visit(new PhysicalFileTreeVisitor() {
+                    @Override
+                    public void visit(Path path, String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+                        if (spec.isSatisfiedBy(new SnapshotFileTreeElement(FileSnapshotHelper.create(path, relativePath, content), fileSystem))) {
+                            visitor.visit(path, basePath, name, relativePath, content);
+                        }
+                    }
+                });
             }
-        });
-        return new DirectoryTreeDetails(snapshot.getPath(), filteredDescendants);
+
+            @Override
+            public void accept(final HierarchicalFileTreeVisitor visitor) {
+                snapshot.accept(new HierarchicalFileTreeVisitor() {
+                    private Deque<String> relativePath = Lists.newLinkedList();
+
+                    @Override
+                    public void preVisitDirectory(Path path, String name) {
+                        relativePath.addLast(name);
+                        visitor.preVisitDirectory(path, name);
+                    }
+
+                    @Override
+                    public void visit(Path path, String name, FileContentSnapshot content) {
+                        if (spec.isSatisfiedBy(new SnapshotFileTreeElement(FileSnapshotHelper.create(path, relativePath, content), fileSystem))) {
+                            visitor.visit(path, name, content);
+                        }
+                    }
+
+                    @Override
+                    public void postVisitDirectory() {
+                        relativePath.removeLast();
+                        visitor.postVisitDirectory();
+                    }
+                });
+            }
+        };
     }
 
     private String internPath(File file) {
@@ -277,24 +361,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         @Override
         public int hashCode() {
             return hashCode.hashCode();
-        }
-    }
-
-    private class FileVisitorImpl implements FileVisitor {
-        private final List<FileSnapshot> fileTreeElements;
-
-        FileVisitorImpl(List<FileSnapshot> fileTreeElements) {
-            this.fileTreeElements = fileTreeElements;
-        }
-
-        @Override
-        public void visitDir(FileVisitDetails dirDetails) {
-            fileTreeElements.add(new DirectoryFileSnapshot(internPath(dirDetails.getFile()), dirDetails.getRelativePath(), false));
-        }
-
-        @Override
-        public void visitFile(FileVisitDetails fileDetails) {
-            fileTreeElements.add(new RegularFileSnapshot(internPath(fileDetails.getFile()), fileDetails.getRelativePath(), false, fileSnapshot(fileDetails)));
         }
     }
 }

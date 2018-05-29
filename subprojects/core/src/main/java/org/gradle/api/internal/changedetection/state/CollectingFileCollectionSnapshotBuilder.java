@@ -19,8 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 
+import java.nio.file.Path;
 import java.util.Map;
 
+@SuppressWarnings("Since15")
 public class CollectingFileCollectionSnapshotBuilder implements FileCollectionSnapshotBuilder {
     private final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
     private final PathNormalizationStrategy pathNormalizationStrategy;
@@ -33,10 +35,18 @@ public class CollectingFileCollectionSnapshotBuilder implements FileCollectionSn
         this.compareStrategy = compareStrategy;
     }
 
-    public void collectFileSnapshot(FileSnapshot fileSnapshot) {
-        String absolutePath = fileSnapshot.getPath();
+    public void collectFile(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+        String absolutePath = path.toString();
         if (!snapshots.containsKey(absolutePath)) {
-            NormalizedFileSnapshot normalizedSnapshot = pathNormalizationStrategy.getNormalizedSnapshot(fileSnapshot, stringInterner);
+            NormalizedFileSnapshot normalizedSnapshot = pathNormalizationStrategy.getNormalizedSnapshot(path, relativePath, content, stringInterner);
+            collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
+        }
+    }
+
+    public void collectRootFile(Path path, String name, FileContentSnapshot content) {
+        String absolutePath = path.toString();
+        if (!snapshots.containsKey(absolutePath)) {
+            NormalizedFileSnapshot normalizedSnapshot = pathNormalizationStrategy.getNormalizedRootSnapshot(path, name, content, stringInterner);
             collectNormalizedFileSnapshot(absolutePath, normalizedSnapshot);
         }
     }

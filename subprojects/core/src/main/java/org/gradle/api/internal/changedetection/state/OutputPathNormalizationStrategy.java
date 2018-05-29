@@ -20,12 +20,14 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileType;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 
 /**
  * Path normalization strategy for output files.
  *
  * We use the absolute path of the files and ignore missing files and empty root directories.
  */
+@SuppressWarnings("Since15")
 public class OutputPathNormalizationStrategy implements PathNormalizationStrategy {
 
     private static final OutputPathNormalizationStrategy INSTANCE = new OutputPathNormalizationStrategy();
@@ -41,10 +43,16 @@ public class OutputPathNormalizationStrategy implements PathNormalizationStrateg
 
     @Nullable
     @Override
-    public NormalizedFileSnapshot getNormalizedSnapshot(FileSnapshot fileSnapshot, StringInterner stringInterner) {
-        if (fileSnapshot.getType() == FileType.Missing) {
+    public NormalizedFileSnapshot getNormalizedSnapshot(Path path, Iterable<String> relativePath, FileContentSnapshot content, StringInterner stringInterner) {
+        return new NonNormalizedFileSnapshot(path.toString(), content);
+    }
+
+    @Nullable
+    @Override
+    public NormalizedFileSnapshot getNormalizedRootSnapshot(Path path, String name, FileContentSnapshot content, StringInterner stringInterner) {
+        if (content.getType() == FileType.Missing) {
             return null;
         }
-        return new NonNormalizedFileSnapshot(fileSnapshot.getPath(), fileSnapshot.getContent());
+        return new NonNormalizedFileSnapshot(path.toString(), content);
     }
 }

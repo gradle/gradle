@@ -19,11 +19,13 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 
 public interface RegularFileHasher {
+
     /**
      * Returns {@code null} if the file should be ignored.
      */
     @Nullable
-    HashCode hash(RegularFileSnapshot fileSnapshot);
+    HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content);
 }

@@ -28,6 +28,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -51,7 +52,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -196,16 +196,16 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         FileCollectionSnapshot afterExecution
     ) {
         FileCollectionSnapshot filesSnapshot;
-        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
-        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
-            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
-            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, NormalizedFileSnapshot>();
+        Map<String, FileContentSnapshot> afterSnapshots = afterExecution.getContentSnapshots();
+        if (!beforeExecution.getContentSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
+            Map<String, FileContentSnapshot> beforeSnapshots = beforeExecution.getContentSnapshots();
+            Map<String, FileContentSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getContentSnapshots() : ImmutableMap.<String, FileContentSnapshot>of();
             int newEntryCount = 0;
-            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
+            ImmutableSortedMap.Builder<String, FileContentSnapshot> outputEntries = ImmutableSortedMap.naturalOrder();
 
-            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
+            for (Map.Entry<String, FileContentSnapshot> entry : afterSnapshots.entrySet()) {
                 final String path = entry.getKey();
-                NormalizedFileSnapshot fileSnapshot = entry.getValue();
+                FileContentSnapshot fileSnapshot = entry.getValue();
                 if (isOutputEntry(path, fileSnapshot, beforeSnapshots, afterPreviousSnapshots)) {
                     outputEntries.put(entry.getKey(), fileSnapshot);
                     newEntryCount++;
@@ -217,7 +217,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             } else if (newEntryCount == 0) {
                 filesSnapshot = EmptyFileCollectionSnapshot.INSTANCE;
             } else {
-                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.UNORDERED, true);
+                filesSnapshot = new AbsolutePathFileCollectionSnapshot(outputEntries.build(), null);
             }
         } else {
             filesSnapshot = afterExecution;
@@ -233,17 +233,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
      * <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
-    private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
-        if (fileSnapshot.getSnapshot().getType() == FileType.Missing) {
+    private static boolean isOutputEntry(String path, FileContentSnapshot fileSnapshot, Map<String, FileContentSnapshot> beforeSnapshots, Map<String, FileContentSnapshot> afterPreviousSnapshots) {
+        if (fileSnapshot.getType() == FileType.Missing) {
             return false;
         }
-        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+        FileContentSnapshot beforeSnapshot = beforeSnapshots.get(path);
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
         }
         // Was it updated during execution?
-        if (!fileSnapshot.getSnapshot().isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
+        if (!fileSnapshot.isContentAndMetadataUpToDate(beforeSnapshot)) {
             return true;
         }
         // Did we already consider it as an output after the previous execution?

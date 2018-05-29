@@ -20,8 +20,10 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 
 /**
@@ -29,6 +31,7 @@ import java.util.zip.ZipEntry;
  * It does not cache the result of hashing {@link ZipEntry}s.
  * It also caches the absence of a hash.
  */
+@SuppressWarnings("Since15")
 public class CachingResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
     private final ResourceSnapshotterCacheService resourceSnapshotterCacheService;
@@ -42,9 +45,10 @@ public class CachingResourceHasher implements ResourceHasher {
         this.delegateConfigurationHash = hasher.hash();
     }
 
+    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        return resourceSnapshotterCacheService.hashFile(fileSnapshot, delegate, delegateConfigurationHash);
+    public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+        return resourceSnapshotterCacheService.hashFile(path, relativePath, content, delegate, delegateConfigurationHash);
     }
 
     @Override

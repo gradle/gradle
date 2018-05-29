@@ -16,11 +16,25 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Ordering;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.changedetection.state.mirror.HierarchicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileTreeVisitor;
+import org.gradle.internal.file.FileType;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents the state of a directory tree.
  */
+@SuppressWarnings("Since15")
+@NonNullApi
 public class DirectoryTreeDetails implements FileTreeSnapshot {
     // Interned path
     private final String path;
@@ -47,4 +61,45 @@ public class DirectoryTreeDetails implements FileTreeSnapshot {
         return path + " (" + descendants.size() + " descendants)";
     }
 
+    @Override
+    public void visit(PhysicalFileTreeVisitor visitor) {
+        for (FileSnapshot descendant : descendants) {
+            visitor.visit(Paths.get(descendant.getPath()), path, descendant.getName(), descendant.getRelativePath(), descendant.getContent());
+        }
+    }
+
+    @Override
+    public void accept(HierarchicalFileTreeVisitor visitor) {
+        List<FileSnapshot> sortedDescendants = new ArrayList<FileSnapshot>(descendants);
+        Collections.sort(sortedDescendants, Ordering.usingToString());
+        boolean first = true;
+        boolean parentDirVisited = false;
+        RelativePath currentRelativePath = RelativePath.EMPTY_ROOT;
+        for (FileSnapshot descendant : sortedDescendants) {
+            if (first) {
+                first = false;
+                if (!descendant.getPath().equals(path)) {
+                    Path parentDir = Paths.get(path).getParent();
+                    visitor.preVisitDirectory(parentDir, parentDir.getFileName().toString());
+                    parentDirVisited = true;
+                }
+            }
+            while (!currentRelativePath.equals(descendant.getRelativePath().getParent())) {
+                visitor.postVisitDirectory();
+                currentRelativePath = currentRelativePath.getParent();
+            }
+            Path currentPath = Paths.get(descendant.getPath());
+            if (descendant.getType() == FileType.Directory) {
+                visitor.preVisitDirectory(currentPath, descendant.getName());
+                if (!descendant.getPath().equals(path)) {
+                    currentRelativePath = descendant.getRelativePath();
+                }
+            } else {
+                visitor.visit(currentPath, descendant.getName(), descendant.getContent());
+            }
+        }
+        if (parentDirVisited) {
+            visitor.postVisitDirectory();
+        }
+    }
 }

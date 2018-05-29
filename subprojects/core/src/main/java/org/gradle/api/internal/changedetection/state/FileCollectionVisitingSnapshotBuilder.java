@@ -16,11 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import java.util.Collection;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Used to build a {@link FileCollectionSnapshot} by collecting normalized file snapshots.
  */
+@SuppressWarnings("Since15")
+@NonNullApi
 public class FileCollectionVisitingSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
     private final CollectingFileCollectionSnapshotBuilder builder;
 
@@ -29,25 +36,28 @@ public class FileCollectionVisitingSnapshotBuilder implements VisitingFileCollec
     }
 
     @Override
-    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
-        for (FileSnapshot fileSnapshot : descendants) {
-            builder.collectFileSnapshot(fileSnapshot);
-        }
+    public void visitFileTreeSnapshot(VisitableDirectoryTree tree) {
+        tree.visit(new PhysicalFileTreeVisitor() {
+            @Override
+            public void visit(Path path, String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+                builder.collectFile(path, relativePath, content);
+            }
+        });
     }
 
     @Override
     public void visitDirectorySnapshot(DirectoryFileSnapshot directory) {
-        builder.collectFileSnapshot(directory);
+        builder.collectRootFile(Paths.get(directory.getPath()), directory.getName(), directory.getContent());
     }
 
     @Override
     public void visitFileSnapshot(RegularFileSnapshot file) {
-        builder.collectFileSnapshot(file);
+        builder.collectRootFile(Paths.get(file.getPath()), file.getName(), file.getContent());
     }
 
     @Override
     public void visitMissingFileSnapshot(MissingFileSnapshot missingFile) {
-        builder.collectFileSnapshot(missingFile);
+        builder.collectRootFile(Paths.get(missingFile.getPath()), missingFile.getName(), missingFile.getContent());
     }
 
     public FileCollectionSnapshot build() {

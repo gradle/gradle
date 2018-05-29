@@ -18,9 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 
 public interface ResourceWithContentsVisitor {
-    void visitFileSnapshot(RegularFileSnapshot fileSnapshot) throws IOException;
+    void visitFile(Path path, Iterable<String> relativePath, FileContentSnapshot content);
     void visitZipFileEntry(ZipEntry zipEntry, InputStream zipInput) throws IOException;
 }

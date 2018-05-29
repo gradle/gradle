@@ -26,6 +26,7 @@ import org.gradle.internal.hash.HashCode;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import static org.gradle.api.internal.changedetection.state.InputPathNormalizati
  * It can be either used on {@link RegularFileSnapshot}s or {@link ZipEntry}.
  * The {@link NormalizedFileSnapshot}s can be collected by a {@link CollectingFileCollectionSnapshotBuilder}.
  */
+@SuppressWarnings("Since15")
 public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisitor {
     private static final Ordering<Map.Entry<String, NormalizedFileSnapshot>> SNAPSHOT_ENTRY_ORDERING = Ordering.natural().onResultOf(new Function<Map.Entry<String, NormalizedFileSnapshot>, Comparable<NormalizedFileSnapshot>>() {
         @Override
@@ -58,10 +60,10 @@ public class ClasspathEntrySnapshotBuilder implements ResourceWithContentsVisito
     }
 
     @Override
-    public void visitFileSnapshot(RegularFileSnapshot file) {
-        HashCode hash = classpathResourceHasher.hash(file);
+    public void visitFile(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+        HashCode hash = classpathResourceHasher.hash(path, relativePath, content);
         if (hash != null) {
-            normalizedSnapshots.put(file.getPath(), RELATIVE.getNormalizedSnapshot(file.withContentHash(hash), stringInterner));
+            normalizedSnapshots.put(path.toString(), RELATIVE.getNormalizedSnapshot(path, relativePath, new FileHashSnapshot(hash), stringInterner));
         }
     }
 

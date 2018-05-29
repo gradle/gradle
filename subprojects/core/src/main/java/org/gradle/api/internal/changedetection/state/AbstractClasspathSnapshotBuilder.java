@@ -16,19 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileTreeVisitor;
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.Collection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+@SuppressWarnings("Since15")
 public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCollectionSnapshotBuilder {
     private static final Logger LOGGER = Logging.getLogger(AbstractClasspathSnapshotBuilder.class);
 
@@ -61,13 +64,16 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
     }
 
     @Override
-    public void visitFileTreeSnapshot(Collection<FileSnapshot> descendants) {
-        ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
-        try {
-            new FileTree(descendants).visit(entryResourceCollectionBuilder);
-        } catch (IOException e) {
-            throw new GradleException("Error while snapshotting directory in classpath", e);
-        }
+    public void visitFileTreeSnapshot(VisitableDirectoryTree tree) {
+        final ClasspathEntrySnapshotBuilder entryResourceCollectionBuilder = newClasspathEntrySnapshotBuilder();
+        tree.visit(new PhysicalFileTreeVisitor() {
+            @Override
+            public void visit(Path path, String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
+                if (content.getType() == FileType.RegularFile) {
+                    entryResourceCollectionBuilder.visitFile(path, relativePath, content);
+                }
+            }
+        });
         entryResourceCollectionBuilder.collectNormalizedSnapshots(builder);
     }
 
@@ -81,17 +87,18 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
     }
 
     private void visitJar(RegularFileSnapshot jarFile) {
-        HashCode hash = cacheService.hashFile(jarFile, jarHasher, jarHasherConfigurationHash);
+        Path path = Paths.get(jarFile.getPath());
+        HashCode hash = cacheService.hashFile(path, jarFile.getRelativePath(), jarFile.getContent(), jarHasher, jarHasherConfigurationHash);
         if (hash != null) {
-            builder.collectFileSnapshot(jarFile.withContentHash(hash));
+            builder.collectRootFile(path, jarFile.getName(), new FileHashSnapshot(hash));
         }
     }
 
     private class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         @Nullable
         @Override
-        public HashCode hash(RegularFileSnapshot fileSnapshot) {
-            return hashJarContents(fileSnapshot);
+        public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+            return hashJarContents(path, content);
         }
 
         @Override
@@ -100,19 +107,19 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
             classpathResourceHasher.appendConfigurationToHasher(hasher);
         }
 
-        private HashCode hashJarContents(RegularFileSnapshot jarFile) {
+        private HashCode hashJarContents(Path jarFile, FileContentSnapshot content) {
             try {
                 ClasspathEntrySnapshotBuilder classpathEntrySnapshotBuilder = newClasspathEntrySnapshotBuilder();
                 new ZipTree(jarFile).visit(classpathEntrySnapshotBuilder);
                 return classpathEntrySnapshotBuilder.getHash();
             } catch (Exception e) {
-                return hashMalformedZip(jarFile, e);
+                return hashMalformedZip(jarFile, content, e);
             }
         }
 
-        private HashCode hashMalformedZip(FileSnapshot fileSnapshot, Exception e) {
-            LOGGER.debug("Malformed jar '" + fileSnapshot.getName() + "' found on classpath. Falling back to full content hash instead of classpath hashing.", e);
-            return fileSnapshot.getContent().getContentMd5();
+        private HashCode hashMalformedZip(Path path, FileContentSnapshot content, Exception e) {
+            LOGGER.debug("Malformed jar '{}' found on classpath. Falling back to full content hash instead of classpath hashing.", path.getFileName(), e);
+            return content.getContentMd5();
         }
     }
 

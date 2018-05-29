@@ -21,23 +21,23 @@ import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@SuppressWarnings("Since15")
 public class ZipTree implements ResourceTree {
-    private final FileSnapshot zipFile;
+    private final Path zipFile;
 
-    public ZipTree(FileSnapshot zipFile) {
+    public ZipTree(Path zipFile) {
         this.zipFile = zipFile;
     }
 
     @Override
     public void visit(ResourceWithContentsVisitor visitor) throws IOException {
-        String zipFilePath = zipFile.getPath();
         InputStream fileInputStream = null;
         try {
-            fileInputStream = Files.newInputStream(Paths.get(zipFilePath));
+            fileInputStream = Files.newInputStream(zipFile);
             ZipInputStream zipInput = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
 

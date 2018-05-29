@@ -18,6 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+import org.gradle.api.internal.changedetection.state.mirror.logical.AbsolutePathFileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.NameOnlyPathFileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.mirror.logical.RelativePathFileCollectionSnapshot;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -27,8 +31,6 @@ import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.Serializers;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
@@ -46,6 +48,9 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
     public void registerSerializers(SerializerRegistry registry) {
         registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(AbsolutePathFileCollectionSnapshot.class, new AbsolutePathFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(RelativePathFileCollectionSnapshot.class, new RelativePathFileCollectionSnapshot.SerializerImpl(stringInterner));
+        registry.register(NameOnlyPathFileCollectionSnapshot.class, new NameOnlyPathFileCollectionSnapshot.SerializerImpl(stringInterner));
         registry.register(EmptyFileCollectionSnapshot.class, Serializers.constant(EmptyFileCollectionSnapshot.INSTANCE));
     }
 
@@ -91,15 +96,14 @@ public abstract class AbstractFileCollectionSnapshotter implements FileCollectio
 
         @Override
         public void visitTree(FileTreeInternal fileTree) {
-            List<FileSnapshot> descendants = fileSystemSnapshotter.snapshotTree(fileTree);
-            fileSnapshotVisitor.visitFileTreeSnapshot(descendants);
+            VisitableDirectoryTree treeSnapshot = fileSystemSnapshotter.snapshotTree(fileTree);
+            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
 
         @Override
         public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            FileTreeSnapshot treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
-            Collection<FileSnapshot> descendants = treeSnapshot.getDescendants();
-            fileSnapshotVisitor.visitFileTreeSnapshot(descendants);
+            VisitableDirectoryTree treeSnapshot = fileSystemSnapshotter.snapshotDirectoryTree(directoryTree);
+            fileSnapshotVisitor.visitFileTreeSnapshot(treeSnapshot);
         }
     }
 }

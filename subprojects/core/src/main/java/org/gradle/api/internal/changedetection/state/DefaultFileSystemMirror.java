@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
 
@@ -31,8 +32,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     private final Map<String, FileSnapshot> files = new ConcurrentHashMap<String, FileSnapshot>();
     private final Map<String, FileSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSnapshot>();
     // Maps from interned absolute path for a directory to known details for the directory.
-    private final Map<String, FileTreeSnapshot> trees = new ConcurrentHashMap<String, FileTreeSnapshot>();
-    private final Map<String, FileTreeSnapshot> cacheTrees = new ConcurrentHashMap<String, FileTreeSnapshot>();
+    private final Map<String, VisitableDirectoryTree> trees = new ConcurrentHashMap<String, VisitableDirectoryTree>();
+    private final Map<String, VisitableDirectoryTree> cacheTrees = new ConcurrentHashMap<String, VisitableDirectoryTree>();
     // Maps from interned absolute path to a snapshot
     private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
     private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
@@ -49,9 +50,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
         if (wellKnownFileLocations.isImmutable(path)) {
             return cacheFiles.get(path);
-        } else {
-            return files.get(path);
         }
+        return files.get(path);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Nullable
     @Override
-    public FileTreeSnapshot getDirectoryTree(String path) {
+    public VisitableDirectoryTree getDirectoryTree(String path) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly also short-circuit some scanning if we have details for some sub trees
         if (wellKnownFileLocations.isImmutable(path)) {
@@ -95,11 +95,11 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     }
 
     @Override
-    public void putDirectory(FileTreeSnapshot directory) {
-        if (wellKnownFileLocations.isImmutable(directory.getPath())) {
-            cacheTrees.put(directory.getPath(), directory);
+    public void putDirectory(String path, VisitableDirectoryTree directory) {
+        if (wellKnownFileLocations.isImmutable(path)) {
+            cacheTrees.put(path, directory);
         } else {
-            trees.put(directory.getPath(), directory);
+            trees.put(path, directory);
         }
     }
 
@@ -107,8 +107,8 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     public void beforeTaskOutputChanged() {
         // When the task outputs are generated, throw away all state for files that do not live in an append-only cache.
         // This is intentionally very simple, to be improved later
-        files.clear();
         trees.clear();
+        files.clear();
         snapshots.clear();
     }
 

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.changedetection.state.mirror.VisitableDirectoryTree;
+
 import java.util.Collection;
 
 /**
  * An immutable snapshot of the content and meta-data of some part of the file system based at some root directory.
  */
-public interface FileTreeSnapshot {
+public interface FileTreeSnapshot extends VisitableDirectoryTree {
     /**
      * The absolute path of the root directory of the tree. Can safely be used as a cache key.
      */

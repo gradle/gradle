@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import java.nio.file.Paths
+
 class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
     FileCollectionInternal files
@@ -78,7 +80,8 @@ class AbstractPathNormalizationStrategyTest extends AbstractProjectBuilderSpec {
 
         Map<File, String> snapshots = [:]
         fileTreeElements.each { details ->
-            def normalizedSnapshot = type.getNormalizedSnapshot(details, interner)
+            def normalizedSnapshot = details.root ? type.getNormalizedRootSnapshot(Paths.get(details.getPath()), details.name, details.content, interner) :
+                type.getNormalizedSnapshot(Paths.get(details.getPath()), details.relativePath, details.content, interner)
             String normalizedPath
             if (normalizedSnapshot == null) {
                 normalizedPath = "NO SNAPSHOT"

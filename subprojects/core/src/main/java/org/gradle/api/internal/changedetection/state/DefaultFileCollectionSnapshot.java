@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
@@ -125,6 +126,8 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         }
 
         public DefaultFileCollectionSnapshot read(Decoder decoder) throws Exception {
+            int type = decoder.readSmallInt();
+            Preconditions.checkState(type == 0);
             TaskFilePropertyCompareStrategy compareStrategy = TaskFilePropertyCompareStrategy.values()[decoder.readSmallInt()];
             boolean hasHash = decoder.readBoolean();
             HashCode hash = hasHash ? hashCodeSerializer.read(decoder) : null;
@@ -134,6 +137,7 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         }
 
         public void write(Encoder encoder, DefaultFileCollectionSnapshot value) throws Exception {
+            encoder.writeSmallInt(0);
             encoder.writeSmallInt(value.compareStrategy.ordinal());
             boolean hasHash = value.hashCode != null;
             encoder.writeBoolean(hasHash);

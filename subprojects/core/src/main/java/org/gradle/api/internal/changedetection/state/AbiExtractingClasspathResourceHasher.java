@@ -25,13 +25,15 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.objectweb.asm.ClassReader;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
 
+@SuppressWarnings("Since15")
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     private static final Logger LOGGER = Logging.getLogger(AbiExtractingClasspathResourceHasher.class);
 
@@ -49,19 +51,20 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         return null;
     }
 
+    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot fileSnapshot) {
-        String name = fileSnapshot.getName();
+    public HashCode hash(Path path, Iterable<String> relativePath, FileContentSnapshot content) {
+        String name = path.getFileName().toString();
         if (!isClassFile(name)) {
             return null;
         }
         InputStream inputStream = null;
         try {
-            inputStream = Files.newInputStream(Paths.get(fileSnapshot.getPath()));
+            inputStream = Files.newInputStream(path);
             return hashClassBytes(inputStream);
         } catch (Exception e) {
-            LOGGER.debug("Malformed class file '" + name + "' found on compile classpath. Falling back to full file hash instead of ABI hasing.", e);
-            return fileSnapshot.getContent().getContentMd5();
+            LOGGER.debug("Malformed class file '{}' found on compile classpath. Falling back to full file hash instead of ABI hasing.", name, e);
+            return content.getContentMd5();
         } finally {
             IoActions.closeQuietly(inputStream);
         }
