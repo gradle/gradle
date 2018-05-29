@@ -95,9 +95,9 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
             RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
             if (maybeRejectByAttributes != null) {
                 result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
-            } else if (isRejectedByConstraint(candidateId, rejectedVersionSelector)) {
+            } else if (isRejectedBySelector(candidateId, rejectedVersionSelector)) {
                 // Mark this version as rejected
-                result.rejectedByConstraint(candidateId);
+                result.rejectedBySelector(candidateId);
             } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
                 // Mark this version as rejected
                 result.rejectedByRule(candidateId);
@@ -194,7 +194,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return selection.isRejected();
     }
 
-    private boolean isRejectedByConstraint(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
+    private boolean isRejectedBySelector(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {
         return rejectedVersionSelector != null && rejectedVersionSelector.accept(candidateIdentifier.getVersion());
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -34,11 +35,13 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Resolution state for a given component
@@ -53,6 +56,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
+    private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
+    private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
+
     private volatile ComponentResolveMetadata metadata;
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
@@ -289,6 +295,18 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    @Override
+    public void unmatched(Collection<String> unmatchedVersions) {
+        // so nothing for them yet
+    }
+
+    @Override
+    public void rejected(Collection<RejectedVersion> rejectedVersions) {
+        for (RejectedVersion rejectedVersion : rejectedVersions) {
+            addCause(VersionSelectionReasons.REJECTION.withReason("version " + rejectedVersion.getId().getVersion() + " was rejected"));
+        }
     }
 
     public void removeOutgoingEdges() {

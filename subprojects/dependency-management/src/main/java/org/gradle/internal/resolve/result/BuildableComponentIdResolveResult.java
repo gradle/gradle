@@ -60,14 +60,4 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
      * @param rejections a collection of rejected versions
      */
     void rejections(Collection<RejectedVersion> rejections);
-
-    /**
-     * @return the list of unmatched versions, that is to say versions which were listed but didn't match the selector
-     */
-    Collection<String> getUnmatchedVersions();
-
-    /**
-     * @return the list of versions which were considered for this module but rejected.
-     */
-    Collection<RejectedVersion> getRejectedVersions();
 }

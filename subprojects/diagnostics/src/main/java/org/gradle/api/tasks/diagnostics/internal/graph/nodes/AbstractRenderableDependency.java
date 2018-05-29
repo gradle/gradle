@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
-public abstract class AbstractRenderableModuleResult extends AbstractRenderableDependency {
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-    protected final ResolvedComponentResult module;
-
-    public AbstractRenderableModuleResult(ResolvedComponentResult module) {
-        this.module = module;
-    }
-
+public abstract class AbstractRenderableDependency implements RenderableDependency {
     @Override
-    public ComponentIdentifier getId() {
-        return module.getId();
+    public Object getId() {
+        return null;
     }
 
     @Override
     public String getName() {
-        return getId().getDisplayName();
-    }
-
-    @Override
-    public ResolvedVariantResult getResolvedVariant() {
-        return module.getVariant();
+        return null;
     }
 
     @Override
@@ -49,12 +38,22 @@ public abstract class AbstractRenderableModuleResult extends AbstractRenderableD
     }
 
     @Override
-    public ResolutionState getResolutionState() {
-        return ResolutionState.RESOLVED;
+    public ResolvedVariantResult getResolvedVariant() {
+        return null;
     }
 
     @Override
-    public String toString() {
-        return module.toString();
+    public ResolutionState getResolutionState() {
+        return ResolutionState.UNRESOLVED;
+    }
+
+    @Override
+    public Set<? extends RenderableDependency> getChildren() {
+        return Collections.emptySet();
+    }
+
+    @Override
+    public List<Section> getExtraDetails() {
+        return Collections.emptyList();
     }
 }

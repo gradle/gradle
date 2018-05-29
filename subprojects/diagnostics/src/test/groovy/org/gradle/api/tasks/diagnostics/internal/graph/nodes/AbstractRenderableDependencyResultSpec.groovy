@@ -61,14 +61,6 @@ class AbstractRenderableDependencyResultSpec extends Specification {
             ComponentIdentifier getActual() {
                 return selected
             }
-
-            RenderableDependency.ResolutionState getResolutionState() {
-                throw new UnsupportedOperationException()
-            }
-
-            Set<RenderableDependency> getChildren() {
-                throw new UnsupportedOperationException()
-            }
         }
     }
 }

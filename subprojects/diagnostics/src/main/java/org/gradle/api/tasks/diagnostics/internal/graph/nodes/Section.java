@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-
 import java.util.List;
-import java.util.Set;
 
-public interface RenderableDependency {
-    Object getId();
-    String getName();
+public interface Section {
     String getDescription();
-    ResolvedVariantResult getResolvedVariant();
-    ResolutionState getResolutionState();
-    Set<? extends RenderableDependency> getChildren();
-    List<Section> getExtraDetails();
-
-    enum ResolutionState {
-        FAILED,
-        RESOLVED,
-        UNRESOLVED
-    }
+    List<Section> getChildren();
 }

@@ -48,6 +48,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
@@ -383,6 +384,7 @@ public class DependencyInsightReportTask extends DefaultTask {
                 out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
             }
             printVariantDetails(out);
+            printExtraDetails(out);
             switch (dependency.getResolutionState()) {
                 case FAILED:
                     out.withStyle(Failure).text(" FAILED");
@@ -393,6 +395,28 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" (n)");
                     break;
             }
+        }
+
+        private void printExtraDetails(StyledTextOutput out) {
+            List<Section> extraDetails = dependency.getExtraDetails();
+            if (!extraDetails.isEmpty()) {
+                out.println();
+                printSections(out, extraDetails, 1);
+            }
+        }
+
+        private void printSections(StyledTextOutput out, List<Section> extraDetails, int depth) {
+            for (Section extraDetail : extraDetails) {
+                printSection(out, extraDetail, depth);
+                printSections(out, extraDetail.getChildren(), depth + 1);
+            }
+        }
+
+        private void printSection(StyledTextOutput out, Section extraDetail, int depth) {
+            String indent = StringUtils.leftPad("", 3 * depth) + (depth > 1 ? "- " : "");
+            String appendix = extraDetail.getChildren().isEmpty() ? "" : ":";
+            out.withStyle(Description).text(indent + extraDetail.getDescription() + appendix);
+            out.println();
         }
 
         private void printVariantDetails(StyledTextOutput out) {

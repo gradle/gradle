@@ -52,7 +52,7 @@ public interface ComponentSelectionContext {
     /**
      * Adds a candidate version that matched the provided selector, but was rejected by some constraint.
      */
-    void rejectedByConstraint(ModuleComponentIdentifier id);
+    void rejectedBySelector(ModuleComponentIdentifier id);
 
     /**
      * Adds a candidate that matched the provided selector, but was rejected because it didn't match the consumer attributes.
