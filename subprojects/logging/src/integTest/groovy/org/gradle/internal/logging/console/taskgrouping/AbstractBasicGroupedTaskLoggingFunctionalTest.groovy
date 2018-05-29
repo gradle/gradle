@@ -214,7 +214,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         when:
         handle.waitForAllPendingCalls()
-        assertOutputContains(gradle, "Before${SystemProperties.instance.lineSeparator}")
+        assertOutputContains(gradle, "Before")
         handle.releaseAll()
         result = gradle.waitForFinish()
 
