@@ -74,7 +74,7 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
     }
 
     @Override
-    public void performValidation() {
+    public void complete() {
         if (!allConflicts.isEmpty()) {
             throw new VersionConflictException(projectPath, configurationName, allConflicts);
         }

@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -207,8 +208,8 @@ public class DependencyInsightReportTask extends DefaultTask {
         final StyledTextOutput output = getTextOutputFactory().create(getClass());
         final GraphRenderer renderer = new GraphRenderer(output);
 
-        ResolutionResult result = configuration.getIncoming().getResolutionResult();
-        result.setErrorHandler(new Action<Throwable>() {
+        ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
+        ResolutionResult result = incoming.getResolutionResult(new Action<Throwable>() {
             @Override
             public void execute(Throwable throwable) {
                 if (throwable instanceof ResolveException) {

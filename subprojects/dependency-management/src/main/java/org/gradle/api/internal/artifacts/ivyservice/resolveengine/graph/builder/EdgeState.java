@@ -126,6 +126,12 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = null;
     }
 
+    /**
+     * Call this method to attach a failure late in the process. This is typically
+     * done when a failure is caused by graph validation. In that case we want to
+     * perform as much resolution as possible, still have a valid graph, but in the
+     * end fail resolution.
+     */
     public void failWith(Throwable err) {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }

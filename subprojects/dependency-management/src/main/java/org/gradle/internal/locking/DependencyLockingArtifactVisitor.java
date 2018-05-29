@@ -137,7 +137,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
         throw LockOutOfDateException.createLockOutOfDateException(configurationName, errors);
     }
 
-    public void performValidation() {
+    public void complete() {
         if (dependencyLockingState.mustValidateLockState()) {
             if (!modulesToBeLocked.isEmpty() || !extraModules.isEmpty()) {
                 throwLockOutOfDateException(getSortedDisplayNames(modulesToBeLocked), getSortedDisplayNames(extraModules));
