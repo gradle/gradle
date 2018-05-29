@@ -505,6 +505,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5305")
     def "test can install an irreplaceable SecurityManager"() {
         given:
+        executer.withStackTraceChecksDisabled()
         buildFile << """
             apply plugin:'java'
             ${mavenCentralRepository()}
@@ -522,10 +523,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                     System.setSecurityManager(new SecurityManager() {
                         @Override
                         public void checkPermission(Permission perm) {
-                            if (perm.getName() == null) {
-                                return;
-                            }
-                            if (perm.getName().equals("setSecurityManager")) {
+                            if ("setSecurityManager".equals(perm.getName())) {
                                 throw new SecurityException("You cannot replace this security manager!");
                             }
                         }
@@ -534,7 +532,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         succeeds "test"
+
+        then:
+        outputContains "Unable to reset SecurityManager"
     }
 }

@@ -52,6 +52,8 @@ Plugins or build scripts attempting to do this will now get a runtime exception.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+ - [Aaron Hill](https://github.com/Aaron1011) - Continue executing tests if irreplaceable security manager is installed (gradle/gradle#5324)
+
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
 -->

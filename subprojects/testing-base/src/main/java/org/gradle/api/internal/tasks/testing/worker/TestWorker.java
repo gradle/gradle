@@ -77,10 +77,10 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
             if (System.getSecurityManager() != securityManager) {
                 try {
-                    // Clean out any security manager the tests might have installed
-                    System.setSecurityManager(null);
+                    // Reset security manager the tests seem to have installed
+                    System.setSecurityManager(securityManager);
                 } catch (SecurityException e) {
-                    LOGGER.info("Unable to clear out SecurityManager. Continuing anyway...", e);
+                    LOGGER.warn("Unable to reset SecurityManager. Continuing anyway...", e);
                 }
             }
             testServices.close();
