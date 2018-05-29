@@ -17,8 +17,11 @@
 package org.gradle.configuration.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
+
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         settingsFile << "rootProject.name='root'"
@@ -94,5 +97,40 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertNotOutput("Project evaluation failed including an error in afterEvaluate {}.")
         failure.assertHasDescription("A problem occurred configuring root project 'root'.")
         failure.assertHasCause("after evaluate failure")
+    }
+
+    def "captures lifecycle operations"() {
+        given:
+        settingsFile << """
+            include 'foo'
+        """
+        file("foo/build.gradle")
+        file("foo/before.gradle") << ""
+        file("foo/after.gradle") << ""
+        buildFile << """
+            project(':foo').beforeEvaluate {
+                project(':foo').apply from: 'before.gradle'
+            }
+            project(':foo').afterEvaluate {
+                project(':foo').apply from: 'after.gradle'
+            }
+        """
+
+
+        when:
+        succeeds('help')
+
+        then:
+        def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
+        with(operations.only(ProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Execute beforeEvaluate hooks (:foo)'
+            children*.displayName == ["Apply script before.gradle to project ':foo'"]
+            parentId == configOp.id
+        }
+        with(operations.only(ProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Execute afterEvaluate hooks (:foo)'
+            children*.displayName == ["Apply script after.gradle to project ':foo'"]
+            parentId == configOp.id
+        }
     }
 }

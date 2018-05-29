@@ -21,11 +21,11 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationCategory;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,11 +53,9 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     private void doConfigure(ProjectInternal project, ProjectStateInternal state) {
-        ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
-        try {
-            listener.beforeEvaluate(project);
-        } catch (Exception e) {
-            addConfigurationFailure(project, state, e);
+        ExecuteBeforeEvaluateHooks beforeEvaluateHooks = new ExecuteBeforeEvaluateHooks(project, state);
+        buildOperationExecutor.run(beforeEvaluateHooks);
+        if (beforeEvaluateHooks.failed) {
             return;
         }
 
@@ -69,12 +67,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         } finally {
             state.setExecuting(false);
             state.executed();
-            notifyAfterEvaluate(listener, project, state);
+            buildOperationExecutor.run(new AfterBeforeEvaluateHooks(project, state));
         }
     }
 
-    private void notifyAfterEvaluate(ProjectEvaluationListener firstBatch, final ProjectInternal project, final ProjectStateInternal state) {
-        @Nullable ProjectEvaluationListener nextBatch = firstBatch;
+    private void notifyAfterEvaluate(final ProjectInternal project, final ProjectStateInternal state) {
+        @Nullable ProjectEvaluationListener nextBatch = project.getProjectEvaluationBroadcaster();
         do {
             try {
                 nextBatch = project.stepEvaluationListener(nextBatch, new Action<ProjectEvaluationListener>() {
@@ -135,5 +133,63 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
 
+    }
+
+    private class ExecuteBeforeEvaluateHooks implements RunnableBuildOperation {
+
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
+        private boolean failed;
+
+        private ExecuteBeforeEvaluateHooks(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            try {
+                project.getProjectEvaluationBroadcaster().beforeEvaluate(project);
+                context.setResult(ProjectBeforeEvaluatedBuildOperationType.RESULT);
+            } catch (Exception e) {
+                addConfigurationFailure(project, state, e);
+                failed = true;
+            }
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String suffix =  " (" + project.getIdentityPath() + ")";
+            return BuildOperationDescriptor.displayName("Execute beforeEvaluate hooks" + suffix)
+                .progressDisplayName("Executing beforeEvaluate hooks" + suffix)
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                .details(new ProjectBeforeEvaluatedBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+        }
+    }
+
+    private class AfterBeforeEvaluateHooks implements RunnableBuildOperation {
+
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
+
+        private AfterBeforeEvaluateHooks(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            notifyAfterEvaluate(project, state);
+            context.setResult(ProjectAfterEvaluatedBuildOperationType.RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            String suffix =  " (" + project.getIdentityPath() + ")";
+            return BuildOperationDescriptor.displayName("Execute afterEvaluate hooks" + suffix)
+                .progressDisplayName("Executing afterEvaluate hooks" + suffix)
+                .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                .details(new ProjectAfterEvaluatedBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
+        }
     }
 }

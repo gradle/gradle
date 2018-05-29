@@ -183,8 +183,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         evaluator.evaluate(project, state)
 
         then:
-        buildOperationExecutor.operations.size() == 1
-        BuildOperationDescriptor descriptor = buildOperationExecutor.operations[0]
+        BuildOperationDescriptor descriptor = buildOperationExecutor.operations.find { it.details instanceof ConfigureProjectBuildOperationType.Details }
         ConfigureProjectBuildOperationType.Details details = descriptor.details
 
         and:
@@ -193,6 +192,36 @@ class LifecycleProjectEvaluatorTest extends Specification {
         descriptor.progressDisplayName == null
         details.buildPath == Path.path(':').path
         details.projectPath == Path.path(':project1').path
+    }
+
+    def "emits beforeEvaluate build operation"() {
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        BuildOperationDescriptor descriptor = buildOperationExecutor.operations.find { it.details instanceof ProjectBeforeEvaluatedBuildOperationType.Details }
+        ProjectBeforeEvaluatedBuildOperationType.Details details = descriptor.details
+
+        and:
+        descriptor.displayName == 'Execute beforeEvaluate hooks (:project1)'
+        descriptor.progressDisplayName == 'Executing beforeEvaluate hooks (:project1)'
+        details.buildPath == ':'
+        details.projectPath == ':project1'
+    }
+
+    def "emits afterEvaluate build operation"() {
+        when:
+        evaluator.evaluate(project, state)
+
+        then:
+        BuildOperationDescriptor descriptor = buildOperationExecutor.operations.find { it.details instanceof ProjectBeforeEvaluatedBuildOperationType.Details }
+        ProjectBeforeEvaluatedBuildOperationType.Details details = descriptor.details
+
+        and:
+        descriptor.displayName == 'Execute beforeEvaluate hooks (:project1)'
+        descriptor.progressDisplayName == 'Executing beforeEvaluate hooks (:project1)'
+        details.buildPath == ':'
+        details.projectPath == ':project1'
     }
 
 }
