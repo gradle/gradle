@@ -35,7 +35,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
                 apply plugin: 'java'
                 tasks.withType(JavaCompile) {
                     options.incremental = true
-                    options.fork = true
                 }
                 ${mavenCentralRepository()}
             }

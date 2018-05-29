@@ -169,7 +169,12 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
     def "all files are recompiled if compiler does not support incremental annotation processing"() {
         given:
-        buildFile << "compileJava.options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'"
+        buildFile << """
+            compileJava {
+                options.fork = true
+                options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'
+            }
+        """
         def a = java "@Helper class A {}"
         java "class Unrelated {}"
 

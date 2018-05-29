@@ -29,8 +29,8 @@ class SamplesGroovyMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder)
     private final static String TEST_PROJECT_NAME = "testproject"
 
+    @LeaksFileHandles("Workaround till https://github.com/apache/groovy/pull/735 is merged")
     @UsesSample("groovy/multiproject")
-    @LeaksFileHandles
     void groovyProjectSamples() {
         def groovySources = ["GroovyPerson", "GroovyJavaPerson"]
         def javaSources = ["JavaPerson"]

@@ -54,7 +54,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             
             compileJava {
                 compileJava.options.incremental = true
-                options.fork = true
             }
         """
 
