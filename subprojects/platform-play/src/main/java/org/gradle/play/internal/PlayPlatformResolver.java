@@ -34,9 +34,9 @@ import java.util.Map;
 // TODO Resolve the JavaPlatform and ScalaPlatform from their PlatformResolvers, rather than instantiating directly
 public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
     public static final Map<String, String> LATEST_SCALA_VERSIONS =
-        ImmutableMap.of("2.10", "2.10.6",
-            "2.11", "2.11.11",
-            "2.12", "2.12.4");
+        ImmutableMap.of("2.10", "2.10.7",
+            "2.11", "2.11.12",
+            "2.12", "2.12.6");
 
     @Override
     public Class<PlayPlatform> getType() {
