@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console.jvm
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.LogContent
 
 abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractIntegrationSpec {
     private static final String TEST_TASK_NAME = 'test'
@@ -200,7 +201,7 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
     }
 
     static String getTaskOutput(ExecutionResult result) {
-        result.groupedOutput.task(TEST_TASK_PATH).output
+        LogContent.stripJavaIllegalAccessWarnings(result.groupedOutput.task(TEST_TASK_PATH).output).trim()
     }
 
     static boolean matchesTaskOutput(String taskOutput, String regexToFind) {

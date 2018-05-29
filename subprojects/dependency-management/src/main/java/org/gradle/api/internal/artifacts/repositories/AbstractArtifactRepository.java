@@ -19,43 +19,35 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.action.ConfigurableRule;
+import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
 import java.net.URI;
 
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
-    private static final Object[] NO_PARAMS = new Object[0];
-    private final static Factory<ComponentMetadataSupplier> NO_METADATA_SUPPLIER = new Factory<ComponentMetadataSupplier>() {
-        @Override
-        public ComponentMetadataSupplier create() {
-            return null;
-        }
-    };
-    private final static Factory<ComponentMetadataVersionLister> NO_LISTER = new Factory<ComponentMetadataVersionLister>() {
-        @Override
-        public ComponentMetadataVersionLister create() {
-            return null;
-        }
-    };
-
     private String name;
     private boolean isPartOfContainer;
-    private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierClass;
-    private Object[] componentMetadataSupplierParams;
-    private Class<? extends ComponentMetadataVersionLister> componentMetadataListerClass;
-    private Object[] componentMetadataListerParams;
+    private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierRuleClass;
+    private Class<? extends ComponentMetadataVersionLister> componentMetadataListerRuleClass;
+    private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
+    private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -78,38 +70,42 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
-        this.componentMetadataSupplierClass = ruleClass;
-        this.componentMetadataSupplierParams = NO_PARAMS;
+        this.componentMetadataSupplierRuleClass = ruleClass;
+        this.componentMetadataSupplierRuleConfiguration = null;
     }
 
     @Override
     public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
-        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
-        configureAction.execute(configuration);
-        this.componentMetadataSupplierClass = rule;
-        this.componentMetadataSupplierParams = configuration.getParams();
+        this.componentMetadataSupplierRuleClass = rule;
+        this.componentMetadataSupplierRuleConfiguration = configureAction;
     }
 
     @Override
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister) {
-        this.componentMetadataListerClass = lister;
-        this.componentMetadataListerParams = NO_PARAMS;
+        this.componentMetadataListerRuleClass = lister;
+        this.componentMetadataListerRuleConfiguration = null;
     }
 
     @Override
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
-        DefaultActionConfiguration configuration = new DefaultActionConfiguration();
-        configureAction.execute(configuration);
-        this.componentMetadataListerClass = lister;
-        this.componentMetadataListerParams = configuration.getParams();
+        this.componentMetadataListerRuleClass = lister;
+        this.componentMetadataListerRuleConfiguration = configureAction;
     }
 
-    Factory<ComponentMetadataSupplier> createComponentMetadataSupplierFactory(Instantiator instantiator) {
-        return createFactory(instantiator, componentMetadataSupplierClass, componentMetadataSupplierParams, NO_METADATA_SUPPLIER);
+    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        if (componentMetadataSupplierRuleClass != null) {
+            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataSupplierDetails>of(componentMetadataSupplierRuleClass, componentMetadataSupplierRuleConfiguration, isolatableFactory));
+        } else {
+            return null;
+        }
     }
 
-    Factory<ComponentMetadataVersionLister> createComponentMetadataVersionLister(final Instantiator instantiator) {
-        return createFactory(instantiator, componentMetadataListerClass, componentMetadataListerParams, NO_LISTER);
+    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        if (componentMetadataListerRuleClass != null) {
+            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataListerDetails>of(componentMetadataListerRuleClass, componentMetadataListerRuleConfiguration, isolatableFactory));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -120,14 +116,14 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @param externalResourcesFileStore
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
-    Instantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
+    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
         DefaultServiceRegistry registry = new DefaultServiceRegistry();
         registry.addProvider(new Object() {
             RepositoryResourceAccessor createResourceAccessor() {
                 return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
             }
         });
-        return instantiatorFactory.inject(registry);
+        return new ImplicitInputsCapturingInstantiator(registry, instantiatorFactory);
     }
 
     private RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
@@ -135,17 +131,13 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
 
-    private static <T> Factory<T> createFactory(final Instantiator instantiator, final Class<? extends T> clazz, final Object[] params, Factory<T> fallback) {
-        if (clazz == null) {
-            return fallback;
-        }
-
-        return new Factory<T>() {
+    private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
+        return new InstantiatingAction<T>(rule, instantiator, new InstantiatingAction.ExceptionHandler<T>() {
             @Override
-            public T create() {
-                return instantiator.newInstance(clazz, params);
+            public void handleException(T target, Throwable throwable) {
+                throw UncheckedException.throwAsUncheckedException(throwable);
             }
-        };
+        });
     }
 
 }

@@ -15,7 +15,6 @@
  */
 package gradlebuild
 
-import org.gradle.internal.impldep.aQute.bnd.osgi.Constants.options
 import org.gradle.plugins.strictcompile.StrictCompileExtension
 
 val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")

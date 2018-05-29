@@ -29,14 +29,20 @@ task listConfigs {
 // END SNIPPET latest-selector
 
 // START SNIPPET custom-status-scheme
+class CustomStatusRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        def details = context.details
+        if (details.id.group == "org.sample" && details.id.name == "api") {
+            details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+        }
+    }
+}
+
 dependencies {
     config3 "org.sample:api:latest.silver"
     components {
-        all { ComponentMetadataDetails details ->
-            if (details.id.group == "org.sample" && details.id.name == "api") {
-                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
-            }
-        }
+        all(CustomStatusRule)
     }
 }
 // END SNIPPET custom-status-scheme
@@ -48,12 +54,17 @@ task listApi {
 }
 
 // START SNIPPET custom-status-scheme-module
+class ModuleStatusRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.statusScheme = ["int", "rc", "prod"]
+    }
+}
+
 dependencies {
     config4 "org.sample:lib:latest.prod"
     components {
-        withModule('org.sample:lib') { ComponentMetadataDetails details ->
-            details.statusScheme = ["int", "rc", "prod"]
-        }
+        withModule('org.sample:lib', ModuleStatusRule)
     }
 }
 // END SNIPPET custom-status-scheme-module
@@ -64,43 +75,59 @@ task listLib {
     }
 }
 
-// START SNIPPET rule-source-component-metadata-rule
-dependencies {
-    config5 "org.sample:api:latest.gold"
-    components {
-        withModule('org.sample:api', new CustomStatusRule())
-    }
-}
-
-class CustomStatusRule {
-    @Mutate
-    void setStatusScheme(ComponentMetadataDetails details) {
-        details.statusScheme = ["bronze", "silver", "gold", "platinum"]
-    }
-}
-// END SNIPPET rule-source-component-metadata-rule
-
-task listWithRule {
-    doLast {
-        configurations.config5.each { println "Resolved: ${it.name}" }
-    }
-}
-
 // START SNIPPET ivy-component-metadata-rule
-dependencies {
-    config6 "org.sample:lib:latest.rc"
-    components {
-        withModule("org.sample:lib") { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
-            if (ivyModule.branch == 'testing') {
-                details.status = "rc"
-            }
+class IvyComponentRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        def descriptor = context.getDescriptor(IvyModuleDescriptor)
+        if (descriptor != null && descriptor.branch == 'testing') {
+            context.details.status = "rc"
         }
+    }
+}
+dependencies {
+    config5 "org.sample:lib:latest.rc"
+    components {
+        withModule("org.sample:lib", IvyComponentRule)
     }
 }
 // END SNIPPET ivy-component-metadata-rule
 
 task listWithIvyRule {
     doLast {
+        configurations.config5.each { println "Resolved: ${it.name}" }
+    }
+}
+
+// START SNIPPET config-component-metadata-rule
+class ConfiguredRule implements ComponentMetadataRule {
+    String param
+
+    ConfiguredRule(String param) {
+        this.param = param
+    }
+
+    @Override
+    void execute(ComponentMetadataContext context) {
+        if (param == 'sampleValue') {
+            context.details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+        }
+    }
+}
+dependencies {
+    config6 "org.sample:api:latest.gold"
+    components {
+        withModule('org.sample:api', ConfiguredRule, {
+            params('sampleValue')
+        })
+    }
+}
+
+// END SNIPPET config-component-metadata-rule
+
+task listWithConfiguredRule {
+    doLast {
         configurations.config6.each { println "Resolved: ${it.name}" }
     }
 }
+

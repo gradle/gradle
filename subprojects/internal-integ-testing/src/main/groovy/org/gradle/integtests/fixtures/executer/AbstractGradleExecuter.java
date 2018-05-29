@@ -43,7 +43,6 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.logging.sink.ConsoleConfigureAction;
 import org.gradle.internal.logging.sink.ConsoleStateUtil;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -401,13 +400,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             executer.withWelcomeMessageEnabled();
         }
 
-        if (consoleAttachment == ConsoleAttachment.ATTACHED) {
-            executer.withTestConsoleAttached();
-        }
-
-        if (consoleAttachment == ConsoleAttachment.ATTACHED_STDOUT_ONLY) {
-            executer.withTestConsoleAttachedToStdoutOnly();
-        }
+        executer.withTestConsoleAttached(consoleAttachment);
 
         return executer;
     }
@@ -1004,7 +997,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         collectStateBeforeExecution();
         try {
             ExecutionResult result = doRun();
-            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+            if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
             return result;
@@ -1078,7 +1071,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         collectStateBeforeExecution();
         try {
             ExecutionFailure executionFailure = doRunWithFailure();
-            if (consoleAttachment == ConsoleAttachment.ATTACHED) {
+            if (errorsShouldAppearOnStdout()) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
             return executionFailure;
@@ -1398,13 +1391,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withTestConsoleAttached() {
-        consoleAttachment = ConsoleAttachment.ATTACHED;
-        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_BOTH);
+        return withTestConsoleAttached(ConsoleAttachment.ATTACHED);
     }
 
     @Override
-    public GradleExecuter withTestConsoleAttachedToStdoutOnly() {
-        consoleAttachment = ConsoleAttachment.ATTACHED_STDOUT_ONLY;
-        return withCommandLineGradleOpts("-D" + ConsoleConfigureAction.TEST_CONSOLE_PROPERTY + "=" + ConsoleConfigureAction.CONSOLE_STDOUT_ONLY);
+    public GradleExecuter withTestConsoleAttached(ConsoleAttachment consoleAttachment) {
+        this.consoleAttachment = consoleAttachment;
+        return configureConsoleCommandLineArgs();
+    }
+
+    protected GradleExecuter configureConsoleCommandLineArgs() {
+        if (consoleAttachment == ConsoleAttachment.NOT_ATTACHED) {
+            return this;
+        } else {
+            return withCommandLineGradleOpts(consoleAttachment.getConsoleMetaData().getCommandLineArgument());
+        }
+    }
+
+    private boolean errorsShouldAppearOnStdout() {
+        // If stderr is attached to the console or if we'll use the fallback console
+        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
     }
 }

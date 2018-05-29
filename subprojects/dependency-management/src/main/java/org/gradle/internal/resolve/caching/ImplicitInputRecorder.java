@@ -13,29 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.resolve.caching;
 
-package org.gradle.internal.nativeintegration.console;
+public interface ImplicitInputRecorder {
 
-public enum StdoutOnlyConsoleMetadata implements ConsoleMetaData {
-    INSTANCE;
+    <IN, OUT> void register(String serviceName, ImplicitInputRecord<IN, OUT> input);
 
-    @Override
-    public boolean isStdOut() {
-        return true;
-    }
-
-    @Override
-    public boolean isStdErr() {
-        return false;
-    }
-
-    @Override
-    public int getCols() {
-        return 0;
-    }
-
-    @Override
-    public int getRows() {
-        return 0;
-    }
 }

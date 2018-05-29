@@ -20,6 +20,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
@@ -44,6 +45,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
         javaprojectDir = sample.dir
         projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
     }
@@ -124,8 +126,8 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
                 "WEB-INF/lib/$API_NAME-1.0.jar".toString(),
                 "WEB-INF/lib/$API_NAME-spi-1.0.jar".toString(),
                 'WEB-INF/lib/commons-collections-3.2.2.jar',
-                'WEB-INF/lib/commons-io-1.2.jar',
-                'WEB-INF/lib/commons-lang-2.4.jar'
+                'WEB-INF/lib/commons-io-2.6.jar',
+                'WEB-INF/lib/commons-lang3-3.7.jar'
         )
 
         // Check contents of dist zip
@@ -135,8 +137,8 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationTest {
                 'README.txt',
                 "libs/$API_NAME-spi-1.0.jar".toString(),
                 "libs/$SHARED_NAME-1.0.jar".toString(),
-                'libs/commons-io-1.2.jar',
-                'libs/commons-lang-2.4.jar'
+                'libs/commons-io-2.6.jar',
+                'libs/commons-lang3-3.7.jar'
         )
     }
 

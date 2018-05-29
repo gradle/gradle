@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
@@ -30,20 +31,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
-        buildFile << """
-          import javax.inject.Inject
-     
-          if (project.hasProperty('refreshDynamicVersions')) {
-                configurations.all {
-                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
-                }
-          }
-          
-          dependencies {
-              conf group: "group", name: "projectA", version: "1.+"
-              conf group: "group", name: "projectB", version: "latest.release"
-          }
-          """
+        addDependenciesTo(buildFile)
 
         repository {
             'group:projectA' {
@@ -131,10 +119,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
         and: "re-execute the same build"
         resetExpectations()
-        // the two HEAD request below document the existing behavior, not the expected one
-        // In particular once we introduce external resource cache policy there shouldn't be any request at all
-        supplierInteractions.refresh('group:projectB:1.1')
-        supplierInteractions.refresh('group:projectB:2.2')
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
     }
@@ -178,7 +163,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         executer.withArgument('-PrefreshDynamicVersions')
 
         then:
-        supplierInteractions.refresh('group:projectB:1.1', 'group:projectB:2.2')
         repositoryInteractions {
             'group:projectA' {
                 expectHeadVersionListing()
@@ -195,6 +179,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
                 }
             }
         }
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
     }
 
@@ -259,7 +244,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
     def "can use --offline to use cached result after remote failure"() {
         given:
-        def supplierInteractions = withPerVersionStatusSupplier()
+        def supplierInteractions = withPerVersionStatusSupplier(buildFile, false)
 
         when:
         repositoryInteractions {
@@ -646,7 +631,9 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
     def "can use a single remote request to get status of multiple components"() {
         given:
-        buildFile << """
+        buildFile << """import org.gradle.api.artifacts.CacheableRule
+
+          @CacheableRule
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -715,11 +702,10 @@ group:projectB:2.2;integration
 
         when: "resolving the same dependencies"
         server.expectHead("/repo/status.txt", statusFile)
-
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
 
-        then: "should parse the result from cache"
-        outputContains('Parsing status file call count: 1')
+        then: "should get the result from cache"
+        outputDoesNotContain('Parsing status file call count')
 
         when: "force refresh dependencies"
         executer.withArgument("-PrefreshDynamicVersions")
@@ -735,6 +721,10 @@ group:projectB:2.2;release
         repositoryInteractions {
             'group:projectA' {
                 expectHeadVersionListing()
+                '1.2' {
+                    expectHeadMetadata()
+                    expectHeadArtifact()
+                }
             }
             'group:projectB' {
                 expectHeadVersionListing()
@@ -745,6 +735,7 @@ group:projectB:2.2;release
         }
 
         then: "shouldn't use the cached resource"
+        executer.withArguments('--refresh-dependencies')
         checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.2"
         outputContains 'Providing metadata for group:projectB:2.2'
         outputDoesNotContain('Providing metadata for group:projectB:1.1')
@@ -990,9 +981,283 @@ group:projectB:2.2;release
         outputContains 'Providing metadata for group:projectA:1.2'
     }
 
+    def "can cache the result of processing a rule accross projects"() {
+        settingsFile << """
+            include 'b'
+        """
+        def otherBuildFile = file('b/build.gradle')
+        otherBuildFile << """
+            $repositoryDeclaration
 
-    private SimpleSupplierInteractions withPerVersionStatusSupplier() {
-        buildFile << """
+            configurations {
+                conf
+            }
+        """
+        addDependenciesTo(otherBuildFile)
+        otherBuildFile << """
+            // this is for parallel execution
+            checkDeps.mustRunAfter(rootProject.checkDeps)
+        """
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(file("buildSrc/src/main/groovy/MP.groovy"))
+        otherBuildFile << supplierDeclaration('MP')
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps', '--debug'
+
+        then:
+        noExceptionThrown()
+        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:2.2"
+        outputContains "Found result for rule DefaultConfigurableRule{rule=class MP, ruleParams=[]} and key group:projectB:1.1"
+    }
+
+    def "changing the implementation of a rule invalidates the cache"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+        when:
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputDoesNotContain("Providing metadata for group:projectB:1.1")
+
+        when:
+        metadataFile.text = ''
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        supplierInteractions = withPerVersionStatusSupplier(metadataFile, true, "println 'Alternate implementation'")
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+        outputContains("Alternate implementation")
+
+    }
+
+
+    def "caching is repository aware"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+        executer.requireIsolatedDaemons() // because we're going to --stop
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        when:
+        run 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+        when:
+        // stop the daemon to make sure that when we run the build again
+        // it's fetched from the persistent cache
+        run '--stop'
+        supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputDoesNotContain("Providing metadata for group:projectB:1.1")
+
+        when:
+        run '--stop'
+        // bust the artifact cache because we don't want to fall into the smart behavior
+        // of reusing metadata from cache for a different repository
+        new File(executer.gradleUserHomeDir, 'caches/modules-2').deleteDir()
+
+        resetExpectations()
+        // Changing the host makes Gradle consider that the 2 repositories are distinct
+        buildFile.text = buildFile.text.replaceAll("(?m)http://localhost", "http://127.0.0.1")
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectResolve()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+
+        run 'checkDeps'
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+
+    }
+
+    def "cross-build caching is resilient to failure"() {
+        def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
+        executer.requireIsolatedDaemons() // because we're going to --stop
+
+        given:
+        def supplierInteractions = withPerVersionStatusSupplier(metadataFile)
+
+        repositoryInteractions {
+            'group:projectA' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                }
+            }
+            'group:projectB' {
+                expectVersionListing()
+                '2.2' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'integration')
+                    }
+                }
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release', true)
+
+                    }
+                }
+            }
+        }
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        outputContains("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+        failure.assertHasCause('Could not resolve group:projectB:latest.release')
+
+        when:
+        resetExpectations()
+        supplierInteractions.refresh('group:projectB:2.2')
+        repositoryInteractions {
+            'group:projectA' {
+                '1.2' {
+                    expectGetArtifact()
+                }
+            }
+            'group:projectB' {
+                '1.1' {
+                    withModule {
+                        supplierInteractions.expectGetStatus(delegate, 'release')
+
+                    }
+                    expectResolve()
+                }
+            }
+        }
+        // stop the daemon to make sure that when we run the build again
+        // it's fetched from the persistent cache
+        run '--stop'
+        run 'checkDeps'
+
+        then: "processing of the rule is cached"
+        outputDoesNotContain("Providing metadata for group:projectB:2.2")
+        outputContains("Providing metadata for group:projectB:1.1")
+    }
+
+    private SimpleSupplierInteractions withPerVersionStatusSupplier(TestFile file = buildFile, boolean cacheable = true, String implementationChange = '') {
+        file << """import org.gradle.api.artifacts.ComponentMetadataSupplier
+          import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+          import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
+          import javax.inject.Inject
+          import org.gradle.api.artifacts.CacheableRule
+          
+          ${cacheable?'@CacheableRule':''}
           class MP implements ComponentMetadataSupplier {
           
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -1010,6 +1275,7 @@ group:projectB:2.2;release
                     details.result.status = new String(it.bytes)
                 }
                 count++
+                $implementationChange
             }
           }
 
@@ -1028,7 +1294,9 @@ group:projectB:2.2;release
 
         buildFile << """
         import org.gradle.api.internal.project.ProjectInternal
+        import org.gradle.api.artifacts.CacheableRule
 
+        @CacheableRule
         class MP implements ComponentMetadataSupplier {
             void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
@@ -1054,6 +1322,23 @@ group:projectB:2.2;release
             }
         }
         true
+    }
+
+    void addDependenciesTo(TestFile buildFile) {
+        buildFile << """
+          import javax.inject.Inject
+     
+          if (project.hasProperty('refreshDynamicVersions')) {
+                configurations.all {
+                    resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
+                }
+          }
+          
+          dependencies {
+              conf group: "group", name: "projectA", version: "1.+"
+              conf group: "group", name: "projectB", version: "latest.release"
+          }
+          """
     }
 
     interface SupplierInteractions {

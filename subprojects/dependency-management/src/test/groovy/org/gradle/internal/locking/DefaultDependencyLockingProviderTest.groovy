@@ -18,7 +18,6 @@ package org.gradle.internal.locking
 
 import org.gradle.StartParameter
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +27,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static java.util.Collections.emptySet
-import static org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint.strictConstraint
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 
 class DefaultDependencyLockingProviderTest extends Specification {
     @Rule
@@ -74,7 +73,7 @@ org:foo:1.0
 
         then:
         result.mustValidateLockState()
-        result.getLockedDependencies() == [strictConstraint('org', 'bar', '1.3'), strictConstraint('org', 'foo', '1.0')] as Set
+        result.getLockedDependencies() == [newId('org', 'bar', '1.3'), newId('org', 'foo', '1.0')] as Set
     }
 
     def 'can load lockfile as prefer constraints in update mode'() {
@@ -91,7 +90,7 @@ org:foo:1.0
 
         then:
         !result.mustValidateLockState()
-        result.getLockedDependencies() == [new DefaultDependencyConstraint('org', 'bar', '1.3')] as Set
+        result.getLockedDependencies() == [newId('org', 'bar', '1.3')] as Set
     }
 
     def 'can filter lock entries using module update patterns'() {
@@ -125,7 +124,7 @@ com:foo:1.0
 
         then:
         !result.mustValidateLockState()
-        result.getLockedDependencies() == [new DefaultDependencyConstraint('com', 'foo', '1.0')] as Set
+        result.getLockedDependencies() == [newId('com', 'foo', '1.0')] as Set
     }
 
     def 'fails with invalid content in lock file'() {

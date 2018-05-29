@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.changes;
+package org.gradle.api.publish.ivy;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
 
-import java.io.File;
-import java.util.Set;
+/**
+ * An author of an Ivy publication.
+ *
+ * @since 4.8
+ * @see IvyModuleDescriptorSpec
+ */
+@Incubating
+public interface IvyModuleDescriptorAuthor {
 
-public interface IncrementalTaskInputsInternal extends IncrementalTaskInputs, DiscoveredInputRecorder {
-    Set<File> getDiscoveredInputs();
+    /**
+     * The name of this author.
+     */
+    Property<String> getName();
+
+    /**
+     * The URL of this author.
+     */
+    Property<String> getUrl();
+
 }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testfixtures.ProjectBuilder
@@ -28,7 +29,7 @@ class ToolingApiDistributionResolver {
     private final DependencyResolutionServices resolutionServices
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    private boolean useExternalToolingApiDistribution = false;
+    private boolean useExternalToolingApiDistribution = false
 
     ToolingApiDistributionResolver() {
         resolutionServices = createResolutionServices()
@@ -41,7 +42,7 @@ class ToolingApiDistributionResolver {
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
-        withRepository("https://repo.gradle.org/gradle/repo")
+        withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {

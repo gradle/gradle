@@ -17,7 +17,10 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.test.fixtures.dsl.GradleDsl
 
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.BINTRAY_JCENTER_URL
@@ -33,7 +36,9 @@ class RepoScriptBlockUtil {
         LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
         SPRING_RELEASES('https://maven.springframework.org/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
         SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
-        RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven')
+        RESTLET('https://maven.restlet.com', System.getProperty('org.gradle.integtest.mirrors.restlet'), 'maven'),
+        GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
+        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven')
 
         String originalUrl
         String mirrorUrl
@@ -47,39 +52,48 @@ class RepoScriptBlockUtil {
             this.type = type
         }
 
-        String getRepositoryDefinition() {
-            """
-                ${type}{
-                    name '${name}'
-                    url '${mirrorUrl}'
-                }
-            """
+        String getRepositoryDefinition(GradleDsl dsl = GROOVY) {
+            if (dsl == KOTLIN) {
+                """
+                    ${type} {
+                        name = "${name}"
+                        url = uri("${mirrorUrl}")
+                    }
+                """
+            } else {
+                """
+                    ${type} {
+                        name '${name}'
+                        url '${mirrorUrl}'
+                    }
+                """
+            }
         }
     }
 
     private RepoScriptBlockUtil() {
     }
 
-    static String jcenterRepository() {
+    static String jcenterRepository(GradleDsl dsl = GROOVY) {
         return """
             repositories {
-                ${jcenterRepositoryDefinition()}
+                ${jcenterRepositoryDefinition(dsl)}
             }
         """
     }
 
-    static String mavenCentralRepository() {
+    static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
         return """
             repositories {
-                ${mavenCentralRepositoryDefinition()}
+                ${mavenCentralRepositoryDefinition(dsl)}
             }
         """
     }
 
-    static String googleRepository() {
+    static String googleRepository(GradleDsl dsl = GROOVY) {
         return """
             repositories {
-                ${googleRepositoryDefinition()}
+                ${googleRepositoryDefinition(dsl)}
             }
         """
     }
@@ -93,24 +107,32 @@ class RepoScriptBlockUtil {
         }
     }
 
-    static String jcenterRepositoryDefinition() {
-        MirroredRepository.JCENTER.repositoryDefinition
+    static String jcenterRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.JCENTER.getRepositoryDefinition(dsl)
     }
 
-    static String mavenCentralRepositoryDefinition() {
-        MirroredRepository.MAVEN_CENTRAL.repositoryDefinition
+    static String mavenCentralRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.MAVEN_CENTRAL.getRepositoryDefinition(dsl)
     }
 
-    static String lightbendMavenRepositoryDefinition() {
-        MirroredRepository.LIGHTBEND_MAVEN.repositoryDefinition
+    static String lightbendMavenRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.LIGHTBEND_MAVEN.getRepositoryDefinition(dsl)
     }
 
-    static String lightbendIvyRepositoryDefinition() {
-        MirroredRepository.LIGHTBEND_IVY.repositoryDefinition
+    static String lightbendIvyRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.LIGHTBEND_IVY.getRepositoryDefinition(dsl)
     }
 
-    static String googleRepositoryDefinition() {
-        MirroredRepository.GOOGLE.repositoryDefinition
+    static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GOOGLE.getRepositoryDefinition(dsl)
+    }
+
+    static String gradleRepositoryMirrorUrl() {
+        MirroredRepository.GRADLE.mirrorUrl
+    }
+
+    static String gradleRepositoryDefintion(GradleDsl dsl = GROOVY) {
+        MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
 
     static File createMirrorInitScript() {

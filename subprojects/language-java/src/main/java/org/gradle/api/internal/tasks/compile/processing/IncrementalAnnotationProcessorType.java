@@ -21,19 +21,10 @@ package org.gradle.api.internal.tasks.compile.processing;
  * See the user guide chapter on incremental annotation processing for more information.
  */
 public enum IncrementalAnnotationProcessorType {
-    ISOLATING(true),
-    AGGREGATING(true),
-    UNKNOWN(false);
-
-    private final boolean incremental;
-
-    IncrementalAnnotationProcessorType(boolean incremental) {
-        this.incremental = incremental;
-    }
-
-    public boolean isIncremental() {
-        return incremental;
-    }
+    ISOLATING,
+    AGGREGATING,
+    DYNAMIC,
+    UNKNOWN;
 
     public String getProcessorOption() {
         return "org.gradle.annotation.processing." + name().toLowerCase();

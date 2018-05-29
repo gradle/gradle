@@ -48,8 +48,6 @@ public interface TaskExecution {
 
     ImmutableSortedMap<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
-
     boolean isSuccessful();
 
 }

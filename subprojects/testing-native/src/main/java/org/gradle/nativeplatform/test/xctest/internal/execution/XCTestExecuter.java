@@ -31,12 +31,15 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -83,13 +86,16 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         File executable = testExecutionSpec.getRunScript();
         File workingDir = testExecutionSpec.getWorkingDir();
-        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator());
+
+        String rootTestSuiteId = testExecutionSpec.getPath();
+
+        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator(), rootTestSuiteId);
 
         Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
         Object testTaskOperationId = getBuildOperationExcecutor().getCurrentOperation().getParentId();
 
-        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, getTimeProvider(), testTaskOperationId, rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
 
     @Override
@@ -121,12 +127,14 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         private final ExecHandleBuilder execHandleBuilder;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
+        private final String rootTestSuiteId;
 
         @Inject
-        public XCTestProcessor(Clock clock, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator) {
+        public XCTestProcessor(Clock clock, File executable, File workingDir, ExecHandleBuilder execHandleBuilder, IdGenerator<?> idGenerator, String rootTestSuiteId) {
             this.execHandleBuilder = execHandleBuilder;
             this.idGenerator = idGenerator;
             this.clock = clock;
+            this.rootTestSuiteId = rootTestSuiteId;
             execHandleBuilder.executable(executable);
             execHandleBuilder.setWorkingDir(workingDir);
         }
@@ -138,20 +146,33 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         @Override
         public void processTestClass(TestClassRunInfo testClass) {
-            execHandle = executeTest(testClass.getTestClassName());
-            execHandle.waitForFinish();
+            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
+            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
+            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
+
+            execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut), new LineBufferingOutputStream(stdErr));
+            try {
+                execHandle.start();
+                ExecResult result = execHandle.waitForFinish();
+                // Exit code 0 = success
+                // Exit code 1 = failed test(s)
+                // anything else is considered an execution failure
+                if (result.getExitValue() != 0 && result.getExitValue() != 1) {
+                    result.rethrowFailure().assertNormalExitValue();
+                }
+            } catch (ExecException e) {
+                stdOut.endOfStream(e);
+                stdErr.endOfStream(null);
+            } finally {
+                execHandle = null;
+            }
         }
 
-        private ExecHandle executeTest(String testName) {
+        private ExecHandle executeTest(String testName, OutputStream outputStream, OutputStream errorStream) {
             execHandleBuilder.setArgs(toTestArgs(testName));
-
-            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
-            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, testDescriptors);
-            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, testDescriptors);
-            execHandleBuilder.setStandardOutput(new LineBufferingOutputStream(stdOut));
-            execHandleBuilder.setErrorOutput(new LineBufferingOutputStream(stdErr));
-            ExecHandle handle = execHandleBuilder.build();
-            return handle.start();
+            execHandleBuilder.setStandardOutput(outputStream);
+            execHandleBuilder.setErrorOutput(errorStream);
+            return execHandleBuilder.build();
         }
 
         private static List<String> toTestArgs(String testName) {

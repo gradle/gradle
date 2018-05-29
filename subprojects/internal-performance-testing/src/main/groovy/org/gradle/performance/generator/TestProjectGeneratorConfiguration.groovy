@@ -16,8 +16,12 @@
 
 package org.gradle.performance.generator
 
+import org.gradle.test.fixtures.dsl.GradleDsl
+
 class TestProjectGeneratorConfiguration {
     String projectName
+
+    GradleDsl dsl
 
     String[] plugins
     String[] repositories

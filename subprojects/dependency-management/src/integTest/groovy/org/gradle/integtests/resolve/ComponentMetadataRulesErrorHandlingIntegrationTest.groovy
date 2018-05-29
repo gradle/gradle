@@ -44,11 +44,14 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
 
     def "produces sensible error when bad code is supplied in component metadata rule" () {
         buildFile << """
+            class WrongRule implements ComponentMetadataRule {
+                public void execute(ComponentMetadataContext context) {
+                    foo()
+                }
+            }
             dependencies {
                 components {
-                    all { metadata ->
-                        foo()
-                    }
+                    all(WrongRule)
                 }
             }
         """
@@ -57,9 +60,9 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(23)
+        failure.assertHasLineNumber(22)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
-        failure.assertHasCause("Could not find method foo() for arguments [] on org.test:projectA:1.0 of type org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter_Decorated.")
+        failure.assertHasCause("Could not find method foo() for arguments [] on object of type WrongRule.")
     }
 
     def "produces sensible error for invalid component metadata rule" () {
@@ -87,11 +90,16 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
                                                "org.gradle.api.artifacts.ivy.IvyModuleDescriptor."
     }
 
-    def "produces sensible error when closure rule throws an exception" () {
+    def "produces sensible error when rule throws an exception" () {
         buildFile << """
+            class ThrowingRule implements ComponentMetadataRule {
+                public void execute(ComponentMetadataContext context) {
+                    throw new Exception('From Test')
+                }
+            }
             dependencies {
                 components {
-                    all { throw new Exception('From Test') }
+                    all(ThrowingRule)
                 }
             }
         """
@@ -107,9 +115,15 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
 
     def "produces sensible error for invalid module target id" () {
         buildFile << """
+            class UnusedRule implements ComponentMetadataRule {
+                public void execute(ComponentMetadataContext context) {
+                    throw new Exception('From Test')
+                }
+            }
+             
             dependencies {
                 components {
-                    withModule('org.test') { }
+                    withModule('org.test', UnusedRule)
                 }
             }
         """
@@ -118,7 +132,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         fails 'resolve'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(22)
+        failure.assertHasLineNumber(28)
         failureHasCause("Could not add a component metadata rule for module 'org.test'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.test")
     }

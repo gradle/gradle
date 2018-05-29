@@ -51,8 +51,8 @@ subprojects {
                     conf "compile"
                 }
 // END SNIPPET publish-custom-artifact
-                descriptor.withXml {
-                    asNode().info[0].appendNode('description', description)
+                descriptor.description {
+                    text = description
                 }
 // START SNIPPET publish-custom-artifact
             }

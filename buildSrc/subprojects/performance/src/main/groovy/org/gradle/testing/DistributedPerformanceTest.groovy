@@ -23,17 +23,16 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import groovy.xml.XmlUtil
 import groovyx.net.http.ContentType
+import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.IoActions
 
+import javax.inject.Inject
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
@@ -86,8 +85,12 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
 
-    DistributedPerformanceTest() {
+    private final BuildCancellationToken cancellationToken
+
+    @Inject
+    DistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         this.testEventsGenerator = new JUnitXmlTestEventsGenerator(listenerManager.createAnonymousBroadcaster(TestListener.class), listenerManager.createAnonymousBroadcaster(TestOutputListener.class))
+        this.cancellationToken = cancellationToken
     }
 
     @Override
@@ -134,7 +137,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         def scenarios = scenarioList.readLines()
             .collect { line ->
                 def parts = Splitter.on(';').split(line).toList()
-                new Scenario(id : parts[0], estimatedRuntime: new BigDecimal(parts[1]), templates: parts.subList(2, parts.size()))
+                new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
             }
             .sort{ -it.estimatedRuntime }
 
@@ -183,10 +186,10 @@ class DistributedPerformanceTest extends PerformanceTest {
             requestContentType: ContentType.XML,
             body: buildRequest
         )
-        if (!response.success) {
-            throw new RuntimeException("Cannot schedule build job. build request: $buildRequest\nresponse: ${xmlToString(response.data)}")
+        String workerBuildId = response.data.@id
+        cancellationToken.addCallback {
+            cancel(workerBuildId)
         }
-        def workerBuildId = response.data.@id
         def scheduledChangeId = findLastChangeIdInXml(response.data)
         if (lastChangeId && scheduledChangeId != lastChangeId) {
             throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId , actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
@@ -254,6 +257,35 @@ class DistributedPerformanceTest extends PerformanceTest {
         } catch (e) {
             e.printStackTrace(System.err)
         }
+    }
+
+    void cancel(String buildId) {
+        try {
+            cancel(buildId, "buildQueue")
+        } catch (HttpResponseException eq) {
+            rethrowIfNonRecoverable(eq)
+            try {
+                cancel(buildId, "builds")
+            } catch (HttpResponseException eb) {
+                rethrowIfNonRecoverable(eb)
+            }
+        }
+    }
+
+    private void rethrowIfNonRecoverable(HttpResponseException e) {
+        if (e.statusCode != 404) {
+            throw e
+        }
+    }
+
+    void cancel(String buildId, String endpoint) {
+        String link = XmlUtil.escapeXml("$teamCityUrl/viewLog.html?buildId=$coordinatorBuildId&buildTypeId=$buildTypeId")
+        String cancelRequest = """<buildCancelRequest comment="Coordinator build was canceled: $link" readdIntoQueue="false" />"""
+        client.post(
+            path: "$endpoint/id:$buildId",
+            requestContentType: ContentType.XML,
+            body: cancelRequest
+        )
     }
 
     private void fireTestListener(List<File> results, Object build) {

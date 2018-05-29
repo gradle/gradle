@@ -23,7 +23,7 @@ class TestProjectGenerator {
 
     TestProjectGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
-        this.fileContentGenerator = new FileContentGenerator(config)
+        this.fileContentGenerator = FileContentGenerator.forConfig(config)
     }
 
     def generate(File outputBaseDir) {
@@ -60,8 +60,8 @@ class TestProjectGenerator {
     def generateProject(File projectDir, DependencyTree dependencyTree, Integer subProjectNumber) {
         def isRoot = subProjectNumber == null
 
-        file projectDir, "build.gradle", fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
-        file projectDir, "settings.gradle", fileContentGenerator.generateSettingsGradle(isRoot)
+        file projectDir, config.dsl.fileNameFor('build'), fileContentGenerator.generateBuildGradle(subProjectNumber, dependencyTree)
+        file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
         file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree)
         file projectDir, "performance.scenarios", fileContentGenerator.generatePerformanceScenarios(isRoot)
@@ -76,6 +76,17 @@ class TestProjectGenerator {
                 file projectDir, "src/test/java/${packageName}/Test${it}.java", fileContentGenerator.generateTestClassFile(subProjectNumber, it, dependencyTree)
             }
         }
+
+        if (isRoot) {
+            addDummyBuildSrcProject(projectDir)
+        }
+    }
+
+    /**
+     * This is just to ensure we test the overhead of having a buildSrc project, e.g. snapshotting the Gradle API.
+     */
+    private addDummyBuildSrcProject(File projectDir) {
+        file projectDir, "buildSrc/src/main/java/Thing.java", "public class Thing {}"
     }
 
     void file(File dir, String name, String content) {

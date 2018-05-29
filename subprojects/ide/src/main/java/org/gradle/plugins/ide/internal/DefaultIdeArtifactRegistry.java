@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.composite.internal.IncludedBuildTaskReference;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.CollectionUtils;
 
@@ -74,7 +72,6 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
     @Override
     public <T extends IdeProjectMetadata> List<Reference<T>> getIdeProjects(Class<T> type) {
         List<Reference<T>> result = Lists.newArrayList();
-        BuildIdentifier currentBuild = currentProject.getBuild();
         for (ProjectState project : projectRegistry.getAllProjects()) {
             if (project.getOwner().isImplicitBuild()) {
                 // Do not include implicit builds in workspace
@@ -83,14 +80,8 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
             ProjectComponentIdentifier projectId = project.getComponentIdentifier();
             for (IdeProjectMetadata ideProjectMetadata : store.get(projectId)) {
                 if (type.isInstance(ideProjectMetadata)) {
-                    final T metadata = type.cast(ideProjectMetadata);
-                    // Need to use different APIs to reference a required task from outside the current build
-                    // There should be one mechanism rather than two.
-                    if (projectId.getBuild().equals(currentBuild)) {
-                        result.add(new MetadataFromThisBuild<T>(metadata, projectId));
-                    } else {
-                        result.add(new MetadataFromOtherBuild<T>(metadata, projectId));
-                    }
+                    T metadata = type.cast(ideProjectMetadata);
+                    result.add(new MetadataReference<T>(metadata, projectId));
                 }
             }
         }
@@ -116,11 +107,11 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         });
     }
 
-    private static abstract class AbstractReference<T extends IdeProjectMetadata> implements Reference<T> {
+    private static class MetadataReference<T extends IdeProjectMetadata> implements Reference<T> {
         private final T metadata;
         private final ProjectComponentIdentifier projectId;
 
-        AbstractReference(T metadata, ProjectComponentIdentifier projectId) {
+        MetadataReference(T metadata, ProjectComponentIdentifier projectId) {
             this.metadata = metadata;
             this.projectId = projectId;
         }
@@ -134,12 +125,6 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
         public ProjectComponentIdentifier getOwningProject() {
             return projectId;
         }
-    }
-
-    private static class MetadataFromThisBuild<T extends IdeProjectMetadata> extends AbstractReference<T> {
-        MetadataFromThisBuild(T metadata, ProjectComponentIdentifier projectId) {
-            super(metadata, projectId);
-        }
 
         @Override
         public TaskDependency getBuildDependencies() {
@@ -148,24 +133,6 @@ public class DefaultIdeArtifactRegistry implements IdeArtifactRegistry {
                 public void visitDependencies(TaskDependencyResolveContext context) {
                     for (Task task : get().getGeneratorTasks()) {
                         context.add(task);
-                    }
-                }
-            };
-        }
-    }
-
-    private static class MetadataFromOtherBuild<T extends IdeProjectMetadata> extends AbstractReference<T> {
-        MetadataFromOtherBuild(T metadata, ProjectComponentIdentifier projectId) {
-            super(metadata, projectId);
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return new AbstractTaskDependency() {
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    for (Task task : get().getGeneratorTasks()) {
-                        context.add(new IncludedBuildTaskReference(getOwningProject().getBuild(), task.getPath()));
                     }
                 }
             };

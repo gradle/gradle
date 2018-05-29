@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.internal.action.InstantiatingAction;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -48,8 +50,9 @@ public interface ModuleComponentRepository {
      */
     ModuleComponentRepositoryAccess getRemoteAccess();
 
-    ComponentMetadataSupplier createMetadataSupplier();
-
     // TODO - put this somewhere else
     Map<ComponentArtifactIdentifier, ResolvableArtifact> getArtifactCache();
+
+    @Nullable
+    InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
 }

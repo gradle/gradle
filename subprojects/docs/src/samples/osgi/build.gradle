@@ -9,7 +9,7 @@ apply plugin: 'osgi'
 repositories {
     mavenCentral()
     maven {
-        url 'http://repository.jboss.org/maven2/'
+        url 'https://repository.jboss.org/maven2/'
     }
 }
 

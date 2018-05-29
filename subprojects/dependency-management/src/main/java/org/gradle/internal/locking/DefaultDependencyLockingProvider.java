@@ -19,7 +19,6 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -38,7 +37,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    private final DependencyLockingNotationConverter converter;
+    private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
     private final boolean partialUpdate;
@@ -51,9 +50,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             LOGGER.debug("Write locks is enabled");
         }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
-        this.partialUpdate = !lockedDependenciesToUpdate.isEmpty();
+        partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
-        converter = new DependencyLockingNotationConverter(!lockedDependenciesToUpdate.isEmpty());
     }
 
     @Override
@@ -61,15 +59,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules != null) {
-                Set<DependencyConstraint> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
+                Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
-                    if (lockEntryFilter.filters(module)) {
-                        continue;
-                    }
-                    try {
-                        results.add(converter.convertToDependencyConstraint(module));
-                    } catch (IllegalArgumentException e) {
-                        throw new InvalidLockFileException(configurationName, e);
+                    ModuleComponentIdentifier lockedIdentifier = parseLockNotation(configurationName, module);
+                    if (!lockEntryFilter.isSatisfiedBy(lockedIdentifier)) {
+                        results.add(lockedIdentifier);
                     }
                 }
                 if (LOGGER.isDebugEnabled()) {
@@ -81,6 +75,16 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private ModuleComponentIdentifier parseLockNotation(String configurationName, String module) {
+        ModuleComponentIdentifier lockedIdentifier;
+        try {
+            lockedIdentifier = converter.convertFromLockNotation(module);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidLockFileException(configurationName, e);
+        }
+        return lockedIdentifier;
     }
 
     @Override

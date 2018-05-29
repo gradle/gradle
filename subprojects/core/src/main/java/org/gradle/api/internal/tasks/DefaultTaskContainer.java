@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
@@ -31,11 +30,8 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.provider.AbstractProvider;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
@@ -331,32 +327,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 
-    @Override
-    public <T extends Task> TaskProvider<T> get(Class<T> type, String name) throws InvalidUserDataException {
-        Task task = findByNameWithoutRules(name);
-        if (task == null) {
-            ProviderInternal<? extends Task> taskProvider = findByNameLaterWithoutRules(name);
-            if (taskProvider == null) {
-                throw createNotFoundException(name);
-            } else if (!type.isAssignableFrom(taskProvider.getType())) {
-                return createTypeMismatchException(name, taskProvider.getType(), type);
-            }
-            return (TaskProvider<T>)taskProvider;
-        } else if(!type.isAssignableFrom(task.getClass())) {
-            return createTypeMismatchException(name, getDeclaredTaskType(task), type);
-        }
-
-        return new TaskLookupProvider<T>(type, name);
-    }
-
-    private <T extends Task> TaskProvider<T> createTypeMismatchException(String name, Class<?> actualType, Class<?> expectedType) {
-        throw new IllegalArgumentException(String.format("Task with name '%s' exists in %s, but task does not have requested type. Found %s expected %s.", name, project, actualType.getName(), expectedType.getName()));
-    }
-
-    private Class getDeclaredTaskType(Task original) {
-        return new DslObject(original).getDeclaredType();
-    }
-
     public Task resolveTask(String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
@@ -516,51 +486,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    private abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
-        final Class<T> type;
-        final String name;
-        boolean removed = false;
-
-        DefaultTaskProvider(Class<T> type, String name) {
-            this.type = type;
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Class<T> getType() {
-            return type;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return findByNameWithoutRules(name) != null;
-        }
-
-        @Override
-        public void configure(final Action<? super T> action) {
-            configureEach(new Action<Task>() {
-                private boolean alreadyExecuted = false;
-
-                @Override
-                public void execute(Task task) {
-                    // Task specific configuration action should only be executed once
-                    if (task.getName().equals(name) && !removed && !alreadyExecuted) {
-                        alreadyExecuted = true;
-                        action.execute((T)task);
-                    }
-                }
-            });
-        }
-    }
-
     private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
-        boolean failed = false;
+        private T task;
+        private Throwable cause;
 
         public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
             super(type, name);
@@ -572,36 +500,27 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public T getOrNull() {
+            if (cause != null) {
+                throw throwFailure();
+            }
             if (task == null) {
                 task = type.cast(findByNameWithoutRules(name));
-                if (task == null && !failed) {
+                if (task == null) {
                     try {
                         task = createTask(name, type, NO_ARGS);
                         statistics.lazyTaskRealized(type);
                         add(task);
                     } catch (RuntimeException ex) {
-                        failed = true;
-                        throw ex;
+                        cause = ex;
+                        throw throwFailure();
                     }
                 }
             }
             return task;
         }
-    }
 
-    private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
-
-        public TaskLookupProvider(Class<T> type, String name) {
-            super(type, name);
-        }
-
-        @Override
-        public T getOrNull() {
-            if (task == null) {
-                task = type.cast(findByName(name));
-            }
-            return task;
+        private IllegalStateException throwFailure() {
+            throw new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
         }
     }
 }

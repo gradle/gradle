@@ -23,6 +23,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
     private boolean locked;
     private T value;
     private Class<T> type;
+    private String realizedToString;
 
     public AbstractLockableProperty(PropertyInternal<T> delegate) {
         this.delegate = delegate;
@@ -51,6 +52,7 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
         T currentValue = delegate.getOrNull();
         value = currentValue == null ? null : immutableCopy(currentValue);
         type = delegate.getType();
+        realizedToString = delegate.toString();
         delegate = null;
     }
 
@@ -60,5 +62,13 @@ public abstract class AbstractLockableProperty<T> extends AbstractProvider<T> im
         if (locked) {
             throw new IllegalStateException("This property is locked and cannot be changed.");
         }
+    }
+
+    @Override
+    public String toString() {
+        if (locked) {
+            return String.format("locked(%s, %s)", realizedToString, value);
+        }
+        return String.format("unlocked(%s)", delegate);
     }
 }

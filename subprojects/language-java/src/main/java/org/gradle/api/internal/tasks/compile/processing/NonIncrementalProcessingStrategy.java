@@ -18,28 +18,32 @@ package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import java.util.Set;
 
 /**
- * Decorates the filer to validate the correct behavior for {@link IsolatingProcessor}s.
+ * The strategy used for non-incremental annotation processors.
+ * @see NonIncrementalProcessor
  */
-class IsolatingFiler extends IncrementalFiler {
+public class NonIncrementalProcessingStrategy extends IncrementalProcessingStrategy {
+    private final String name;
+    private final AnnotationProcessingResult result;
 
-    IsolatingFiler(Filer delegate, AnnotationProcessingResult result) {
-        super(delegate, result);
+    NonIncrementalProcessingStrategy(String name, AnnotationProcessingResult result) {
+        super(result);
+        this.name = name;
+        this.result = result;
     }
 
     @Override
-    protected void recordGeneratedType(CharSequence name, Element[] originatingElements) {
-        String generatedType = name.toString();
-        Set<String> originatingTypes = ElementUtils.getTopLevelTypeNames(originatingElements);
-        int size = originatingTypes.size();
-        if (size != 1) {
-            result.setFullRebuildCause("the generated type '" + generatedType + "' must have exactly one originating element, but had " + size);
-        }
-        result.addGeneratedType(generatedType, originatingTypes);
+    public void recordProcessingInputs(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        result.setFullRebuildCause(name + " is not incremental");
     }
 
+    @Override
+    public void recordGeneratedType(CharSequence name, Element[] originatingElements) {
+
+    }
 }

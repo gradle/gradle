@@ -18,11 +18,16 @@ package org.gradle.plugins.ide.fixtures
 
 import groovy.util.slurpersupport.GPathResult
 
-class IdeaProjectFixture {
+class IdeaProjectFixture extends IdeWorkspaceFixture {
     private GPathResult ipr
 
     IdeaProjectFixture(GPathResult ipr) {
         this.ipr = ipr
+    }
+
+    @Override
+    void assertExists() {
+        // Already done
     }
 
     String getLanguageLevel() {

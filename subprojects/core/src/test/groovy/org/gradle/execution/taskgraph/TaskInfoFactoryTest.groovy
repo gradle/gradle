@@ -16,21 +16,38 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.composite.internal.IncludedBuildTaskGraph
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class TaskInfoFactoryTest extends Specification {
-    def graph = new TaskInfoFactory()
+    def gradle = Stub(GradleInternal)
+    def project = Stub(ProjectInternal)
+    def graph
     def a = task('a')
     def b = task('b')
     def c = task('c')
     def d = task('d')
     def e = task('e')
 
+    def setup() {
+        def services = Stub(ServiceRegistry)
+        gradle.services >> services
+        services.get(BuildState) >> Stub(BuildState)
+        project.gradle >> gradle
+
+        graph = new TaskInfoFactory(gradle, Stub(IncludedBuildTaskGraph))
+    }
+
     private TaskInternal task(String name) {
         Mock(TaskInternal) {
             getName() >> name
             compareTo(_) >> { args -> name.compareTo(args[0].name)}
+            getProject() >> project
         }
     }
 

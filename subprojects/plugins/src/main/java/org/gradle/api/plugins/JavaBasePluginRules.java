@@ -87,9 +87,8 @@ class JavaBasePluginRules implements Plugin<Project> {
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
 
-                Provider<ProcessResources> resourcesTask = tasks.get(ProcessResources.class, sourceSet.getProcessResourcesTaskName());
-                Provider<JavaCompile> compileTask = tasks.get(JavaCompile.class, sourceSet.getCompileJavaTaskName());
-                Provider<Task> classesTask = tasks.get(Task.class, sourceSet.getClassesTaskName());
+                Provider<ProcessResources> resourcesTask = tasks.withType(ProcessResources.class).named(sourceSet.getProcessResourcesTaskName());
+                Provider<JavaCompile> compileTask = tasks.withType(JavaCompile.class).named(sourceSet.getCompileJavaTaskName());
 
                 DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
                 ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
@@ -101,6 +100,7 @@ class JavaBasePluginRules implements Plugin<Project> {
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
 
+                Provider<Task> classesTask = tasks.named(sourceSet.getClassesTaskName());
                 attachTasksToBinary(binary, compileTask, resourcesTask, classesTask);
                 binaries.add(binary);
             }

@@ -217,37 +217,40 @@ org:leaf:1.0
         mavenRepo.module('org', 'testB', '1.0').publish()
 
         buildFile << """
-            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', CustomAttributeType)
             dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            def configValue = objects.named(CustomAttributeType.class, 'conf_value')
+            def dependencyValue = objects.named(CustomAttributeType.class, 'dep_value')
             
             repositories {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
-                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                    attributes.attribute(CUSTOM_ATTRIBUTE, configValue)
                 }
             }
             dependencies {
                 components {
                     all {
                         attributes {
-                            attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                            attribute(CUSTOM_ATTRIBUTE, dependencyValue)
                         }
                     }
                 }
                 conf('org:testA:1.0') {
                     attributes {
-                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                        attribute(CUSTOM_ATTRIBUTE, dependencyValue)
                     }
                 }
                 conf('org:testB:+') {
                     attributes {
-                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                        attribute(CUSTOM_ATTRIBUTE, dependencyValue)
                     }
                 }
             }
             
+            interface CustomAttributeType extends Named {}
         """
 
         when:

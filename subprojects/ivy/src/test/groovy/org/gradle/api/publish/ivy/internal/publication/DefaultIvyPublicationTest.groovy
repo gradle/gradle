@@ -37,6 +37,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.model.DefaultObjectFactory
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskOutputs
@@ -53,6 +55,7 @@ class DefaultIvyPublicationTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
+    def objectFactory = new DefaultObjectFactory(instantiator, NamedObjectInstantiator.INSTANCE)
     def projectIdentity = new DefaultIvyPublicationIdentity("organisation", "module", "revision")
     def notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
@@ -281,6 +284,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = instantiator.newInstance(DefaultIvyPublication,
             "pub-name",
             instantiator,
+            objectFactory,
             projectIdentity,
             notationParser,
             projectDependencyResolver,
@@ -364,6 +368,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = instantiator.newInstance(DefaultIvyPublication,
             "pub-name",
             instantiator,
+            objectFactory,
             projectIdentity,
             notationParser,
             projectDependencyResolver,

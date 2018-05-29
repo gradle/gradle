@@ -91,11 +91,11 @@ broken!
         def failure = OutputScrapingExecutionFailure.from(output, "")
 
         when:
-        failure.assertHasFailureSummary("broken!")
+        failure.assertHasFailures(12)
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "broken!"')
+        e.message.trim().startsWith('Expected: <12>')
 
         when:
         failure.assertHasDescription("broken!")
@@ -126,27 +126,37 @@ broken!
         e5.message.trim().startsWith('Expected: "23"')
     }
 
-    def "can assert that failure summary is present"() {
+    def "can assert that given number of failures are present"() {
         given:
         def output = """
-FAILURE: broken
+FAILURE: Build completed with 2 failures.
 
 * Where: build file 'build.gradle' line: 123
 
-* What went wrong: something bad
+* What went wrong:
+something bad
+
+* Try:
+fixing
+
+* What went wrong:
+something else bad
+
+* Try:
+fixing
 """
         when:
         def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
-        failure.assertHasFailureSummary("broken")
+        failure.assertHasFailures(2)
 
         when:
-        failure.assertHasFailureSummary("other")
+        failure.assertHasFailures(1)
 
         then:
         def e = thrown(AssertionError)
-        e.message.trim().startsWith('Expected: "other"')
+        e.message.trim().startsWith('Expected: <1>')
     }
 
     def "can assert that failure with description is present"() {

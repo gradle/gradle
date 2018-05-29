@@ -798,6 +798,25 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @Issue("gradle/gradle#5450")
+    def "doesn't fail with NPE if no component is attached to a publication"() {
+        createBuildScripts("""
+        publishing {
+            publications {
+                java(MavenPublication) {
+                    artifact jar
+                }
+            }
+        }
+        """)
+
+        when:
+        run "generateMetadataFileForJavaPublication"
+
+        then:
+        skipped(':generateMetadataFileForJavaPublication')
+        outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
+    }
 
     def createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "

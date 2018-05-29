@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeDefinitionSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
@@ -161,6 +163,9 @@ public class ValueSnapshotter implements IsolatableFactory {
             }
             return new ArrayValueSnapshot(elements);
         }
+        if (value instanceof Attribute) {
+            return new AttributeDefinitionSnapshot((Attribute<?>) value, classLoaderHasher);
+        }
         if (value instanceof Provider) {
             Provider<?> provider = (Provider) value;
             ValueSnapshot valueSnapshot = strategy.snapshot(provider.get());
@@ -168,6 +173,12 @@ public class ValueSnapshotter implements IsolatableFactory {
         }
         if (value instanceof NamedObjectInstantiator.Managed) {
             return new ManagedNamedTypeSnapshot((Named)value);
+        }
+        if (value instanceof ValueSnapshottable) {
+            return ((ValueSnapshottable) value).snapshot();
+        }
+        if (value instanceof ValueSnapshot) {
+            return (ValueSnapshot) value;
         }
 
         // Fall back to serialization

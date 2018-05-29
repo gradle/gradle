@@ -116,6 +116,7 @@ public class DefaultPropertyState<T> implements PropertyInternal<T>, PropertySta
 
     @Override
     public String toString() {
-        return String.format("value: %s", getOrNull());
+        // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
+        return String.format("property(%s, %s)", type, provider);
     }
 }

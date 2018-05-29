@@ -25,7 +25,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DefaultDisambiguationRuleChainTest extends Specification {
-    def ruleChain = new DefaultDisambiguationRuleChain(TestUtil.instantiatorFactory().inject())
+    def ruleChain = new DefaultDisambiguationRuleChain(TestUtil.instantiatorFactory().inject(), TestUtil.valueSnapshotter())
 
     static class SelectionRule implements AttributeDisambiguationRule<String> {
         @Override

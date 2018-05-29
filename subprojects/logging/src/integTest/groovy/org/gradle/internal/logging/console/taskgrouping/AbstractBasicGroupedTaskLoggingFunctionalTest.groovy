@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -59,7 +58,8 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         then:
         result.groupedOutput.taskCount == 3
-        if (consoleAttachment.isStderrAttached()) {
+        if (errorsShouldAppearOnStdout()) {
+            // both stdout and stderr are attached to the console
             assert result.groupedOutput.task(':1:log').output == "Error from 1\nOutput from 1\nDone with 1\nDone with 1"
             assert result.groupedOutput.task(':2:log').output == "Error from 2\nOutput from 2\nDone with 2\nDone with 2"
             assert result.groupedOutput.task(':3:log').output == "Error from 3\nOutput from 3\nDone with 3\nDone with 3"
@@ -68,19 +68,9 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
             assert result.groupedOutput.task(':2:log').output == "Output from 2\nDone with 2"
             assert result.groupedOutput.task(':3:log').output == "Output from 3\nDone with 3"
 
-            // TODO - These should all behave the same way and also group messages on stderr
-            if (consoleType == ConsoleOutput.Plain) {
-                result.assertHasErrorOutput("Error from 1\nDone with 1")
-                result.assertHasErrorOutput("Error from 2\nDone with 2")
-                result.assertHasErrorOutput("Error from 3\nDone with 3")
-            } else {
-                result.assertHasErrorOutput("Error from 1")
-                result.assertHasErrorOutput("Error from 2")
-                result.assertHasErrorOutput("Error from 3")
-                result.assertHasErrorOutput("Done with 1")
-                result.assertHasErrorOutput("Done with 2")
-                result.assertHasErrorOutput("Done with 3")
-            }
+            result.assertHasErrorOutput("Error from 1\nDone with 1")
+            result.assertHasErrorOutput("Error from 2\nDone with 2")
+            result.assertHasErrorOutput("Error from 3\nDone with 3")
         }
     }
 
@@ -121,7 +111,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         succeeds('log')
 
         then:
-        if (consoleAttachment.isStderrAttached()) {
+        if (errorsShouldAppearOnStdout()) {
             result.groupedOutput.task(':log').output == "Standard out 1\nStandard err 1\nStandard out 2\nStandard err 2"
         } else {
             result.groupedOutput.task(':log').output == "Standard out 1\nStandard out 2\n"
@@ -239,11 +229,9 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         return "new URL('${server.uri}/${name}').text"
     }
 
-    private static void assertOutputContains(GradleHandle gradle, String str) {
+    protected static void assertOutputContains(GradleHandle gradle, String str) {
         ConcurrentTestUtil.poll(sleepTimeout/1000 as double) {
             assert gradle.standardOutput =~ /(?ms)$str/
         }
     }
-
-
 }

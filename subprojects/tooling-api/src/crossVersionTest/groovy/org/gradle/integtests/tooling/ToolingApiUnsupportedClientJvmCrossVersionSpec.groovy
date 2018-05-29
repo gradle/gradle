@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -32,13 +33,10 @@ apply plugin: 'application'
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 repositories {
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
+    ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
     maven {
         url '${buildContext.libsRepo.toURI()}'
     }
-    ${mavenCentralRepository()}
 }
 
 dependencies {

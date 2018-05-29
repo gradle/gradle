@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
     public DefaultSetProperty(Class<T> elementType) {
-        super(Set.class);
+        super(Set.class, elementType);
     }
 
     @Override

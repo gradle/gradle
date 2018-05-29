@@ -17,10 +17,9 @@
 package org.gradle.api.internal.buildevents
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 
 class VerboseConsoleBuildResultLoggerFunctionalTest extends AbstractBuildResultLoggerFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Verbose
-    String failureMessage = consoleAttachment == ConsoleAttachment.ATTACHED ? buildFailedStyled : buildFailed
-    String successMessage = buildSuccessStyled
+    String failureMessage = buildFailedStyled.errorOutput
+    String successMessage = buildSuccessStyled.output
 }

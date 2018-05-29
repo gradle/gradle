@@ -17,8 +17,10 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
+import org.gradle.api.artifacts.ComponentMetadataRule;
 
 /**
  * Allows the build to provide rules that modify the metadata of depended-on software components.
@@ -31,29 +33,39 @@ import org.gradle.api.artifacts.ComponentMetadataDetails;
  *
  * <p> Example:
  * <pre class='autoTested'>
+ * class StatusRule implements ComponentMetadataRule {
+ *     {@literal @}Override
+ *     void execute(ComponentMetadataContext context) {
+ *         def details = context.details
+ *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
+ *         if (details.id.group == "org.foo") {
+ *             def version = details.id.version
+ *             // assuming status is last part of version string
+ *             details.status = version.substring(version.lastIndexOf("-") + 1)
+ *             details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+ *         }
+ *     }
+ * }
+ * class ChangingRule implements ComponentMetadataRule {
+ *     {@literal @}Override
+ *     void execute(ComponentMetadataContext context) {
+ *         // Treat all components as changing
+ *         context.details.changing = true
+ *     }
+ * }
  * dependencies {
  *     components {
- *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
- *         all { ComponentMetadataDetails details -&gt;
- *             if (details.id.group == "org.foo") {
- *                 def version = details.id.version
- *                 // assuming status is last part of version string
- *                 details.status = version.substring(version.lastIndexOf("-") + 1)
- *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
- *             }
- *         }
+ *         // Apply the status rule to all components
+ *         all(StatusRule)
  *
- *         // Treat all components in the module "org.foo:bar" as changing
- *         withModule("org.foo:bar") { ComponentMetadataDetails details -&gt;
- *             details.changing = true
- *         }
+ *         // Apply the changing rule to the module "org.foo:bar"
+ *         withModule("org.foo:bar", ChangingRule)
  *     }
  * }
  * </pre>
  *
  * @since 1.8
  */
-@Incubating
 public interface ComponentMetadataHandler {
     /**
      * Adds a rule action that may modify the metadata of any resolved software component.
@@ -61,6 +73,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
@@ -81,6 +94,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Closure<?> rule);
 
     /**
@@ -98,7 +112,32 @@ public interface ComponentMetadataHandler {
      * @param ruleSource  the rule source object to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler all(Object ruleSource);
+
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component.
+     *
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule);
+
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component.
+     * The rule itself is configured by the provided configure action.
+     *
+     * @param rule the rule to be added
+     * @param configureAction the rule configuration
+     * @return this
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
@@ -107,6 +146,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
 
     /**
@@ -118,6 +158,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Closure<?> rule);
 
     /**
@@ -129,6 +170,30 @@ public interface ComponentMetadataHandler {
      * @param ruleSource the rule source object to be added
      * @return this
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule);
+
+    /**
+     * Adds a class based rule that may modify the metadata of any resolved software component belonging to the specified module.
+     *
+     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param rule the rule to be added
+     * @return this
+     *
+     * @since 4.9
+     */
+    @Incubating
+    ComponentMetadataHandler withModule(Object id, Class<? extends ComponentMetadataRule> rule, Action<? super ActionConfiguration> configureAction);
 }

@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 public interface JvmLanguageCompileSpec extends CompileSpec {
@@ -44,7 +43,7 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     @Deprecated
     void setSource(FileCollection source);
 
-    Collection<File> getSourceFiles();
+    Iterable<File> getSourceFiles();
 
     void setSourceFiles(Iterable<File> sourceFiles);
 

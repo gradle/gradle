@@ -18,13 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.classpath.CachedJarFileStore;
-import org.gradle.internal.file.DefaultFileHierarchySet;
-import org.gradle.internal.file.FileHierarchySet;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,16 +36,10 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     // Maps from interned absolute path to a snapshot
     private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<String, Snapshot>();
     private final Map<String, Snapshot> cacheSnapshots = new ConcurrentHashMap<String, Snapshot>();
-    private final FileHierarchySet cachedDirectories;
+    private final WellKnownFileLocations wellKnownFileLocations;
 
-    public DefaultFileSystemMirror(List<CachedJarFileStore> fileStores) {
-        FileHierarchySet cachedDirectories = DefaultFileHierarchySet.of();
-        for (CachedJarFileStore fileStore : fileStores) {
-            for (File file : fileStore.getFileStoreRoots()) {
-                cachedDirectories = cachedDirectories.plus(file);
-            }
-        }
-        this.cachedDirectories = cachedDirectories;
+    public DefaultFileSystemMirror(WellKnownFileLocations wellKnownFileLocations) {
+        this.wellKnownFileLocations = wellKnownFileLocations;
     }
 
     @Nullable
@@ -58,7 +47,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     public FileSnapshot getFile(String path) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
-        if (cachedDirectories.contains(path)) {
+        if (wellKnownFileLocations.isImmutable(path)) {
             return cacheFiles.get(path);
         } else {
             return files.get(path);
@@ -67,7 +56,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Override
     public void putFile(FileSnapshot file) {
-        if (cachedDirectories.contains(file.getPath())) {
+        if (wellKnownFileLocations.isImmutable(file.getPath())) {
             cacheFiles.put(file.getPath(), file);
         } else {
             files.put(file.getPath(), file);
@@ -77,7 +66,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     @Nullable
     @Override
     public Snapshot getContent(String path) {
-        if (cachedDirectories.contains(path)) {
+        if (wellKnownFileLocations.isImmutable(path)) {
             return cacheSnapshots.get(path);
         } else {
             return snapshots.get(path);
@@ -86,7 +75,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Override
     public void putContent(String path, Snapshot snapshot) {
-        if (cachedDirectories.contains(path)) {
+        if (wellKnownFileLocations.isImmutable(path)) {
             cacheSnapshots.put(path, snapshot);
         } else {
             snapshots.put(path, snapshot);
@@ -98,7 +87,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
     public FileTreeSnapshot getDirectoryTree(String path) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly also short-circuit some scanning if we have details for some sub trees
-        if (cachedDirectories.contains(path)) {
+        if (wellKnownFileLocations.isImmutable(path)) {
             return cacheTrees.get(path);
         } else {
             return trees.get(path);
@@ -107,7 +96,7 @@ public class DefaultFileSystemMirror implements FileSystemMirror, TaskOutputChan
 
     @Override
     public void putDirectory(FileTreeSnapshot directory) {
-        if (cachedDirectories.contains(directory.getPath())) {
+        if (wellKnownFileLocations.isImmutable(directory.getPath())) {
             cacheTrees.put(directory.getPath(), directory);
         } else {
             trees.put(directory.getPath(), directory);

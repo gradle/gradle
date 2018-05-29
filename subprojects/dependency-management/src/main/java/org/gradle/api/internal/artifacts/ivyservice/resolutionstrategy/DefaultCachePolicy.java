@@ -195,6 +195,11 @@ public class DefaultCachePolicy implements CachePolicy {
         return mustRefreshModule(component, resolvedModuleVersion, ageMillis, false);
     }
 
+    @Override
+    public boolean mustRefreshModule(ResolvedModuleVersion resolvedModuleVersion, long ageMillis, boolean changing) {
+        return mustRefreshModule(resolvedModuleVersion.getId(), resolvedModuleVersion, ageMillis, changing);
+    }
+
     public boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis) {
         return mustRefreshModule(component, resolvedModuleVersion, ageMillis, true);
     }

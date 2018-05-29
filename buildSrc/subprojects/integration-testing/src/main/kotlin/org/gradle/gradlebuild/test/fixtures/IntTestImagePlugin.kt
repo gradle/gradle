@@ -59,7 +59,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         }
 
         if (useAllDistribution) {
-            val unpackedPath = layout.buildDirectory.file("tmp/unpacked-all-distribution/gradle-$version")
+            val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
             val unpackAllDistribution = tasks.createLater("unpackAllDistribution", Sync::class.java) {
                 dependsOn(":distributions:allZip")
@@ -74,7 +74,7 @@ open class IntTestImagePlugin : Plugin<Project> {
 
             intTestImage.configure {
                 dependsOn(unpackAllDistribution)
-                from(unpackedPath)
+                from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
             val selfRuntime by configurations.creating {

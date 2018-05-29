@@ -35,17 +35,29 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             configurations {
                 conf.attributes.attribute(quality, 'qa')
             }
+
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute targetAttribute
+
+                public AttributeRule(Attribute attribute) {
+                    targetAttribute = attribute
+                }
+
+                public void execute(ComponentMetadataContext context) {
+                    context.details.attributes {
+                        attribute targetAttribute, ${fixApplied ? '"qa"' : '"canary"'}
+                    }
+                }
+            }
             
             dependencies {
                 attributesSchema {
                     attribute(quality)
                 }
                 components {
-                    withModule('org.test:module') {                        
-                        attributes {
-                            attribute quality, ${fixApplied ? '"qa"' : '"canary"'}
-                        }
-                    }
+                    withModule('org.test:module', AttributeRule, {
+                        params(quality)
+                    })
                 }
                 conf 'org.test:module:1.0'
             }
@@ -94,16 +106,29 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
         buildFile << """
             def usage = Attribute.of('org.gradle.usage', String)
+
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute targetAttribute
+
+                public AttributeRule(Attribute attribute) {
+                    targetAttribute = attribute
+                }
+
+                public void execute(ComponentMetadataContext context) {
+                    if ($componentLevel) {
+                        context.details.attributes { attribute targetAttribute, 'unknown' }
+                    } else {
+                        context.details.withVariant('api') { attributes { attribute targetAttribute, 'unknownApiVariant' } }
+                        context.details.withVariant('runtime') { attributes { attribute targetAttribute, 'unknownRuntimeVariant' } }
+                    }
+                }
+            }
+
             dependencies {
                 components {
-                    withModule('org.test:module') {                       
-                        if ($componentLevel) {
-                            attributes { attribute usage, 'unknown' }
-                        } else {
-                            withVariant('api') { attributes { attribute usage, 'unknownApiVariant' } }
-                            withVariant('runtime') { attributes { attribute usage, 'unknownRuntimeVariant' } }
-                        }
-                    }
+                    withModule('org.test:module', AttributeRule, {
+                        params(usage)
+                    })
                 }
                 conf 'org.test:module:1.0'
             }
@@ -150,26 +175,31 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             configurations {
                 conf {
                    attributes.attribute(quality, 'qa')
-                   // TODO: this shouldn't be necessary, because ideally we should consider attributes
-                   // during version listing too
-                   resolutionStrategy.componentSelection.all { ComponentSelection selection, ComponentMetadata md ->
-                      if (md.attributes.getAttribute(quality) != 'qa') {
-                         selection.reject('Not approved by QA')
-                      }
-                   }
                 }
             }
             
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute targetAttribute
+
+                public AttributeRule(Attribute attribute) {
+                    targetAttribute = attribute
+                }
+
+                public void execute(ComponentMetadataContext context) {
+                        context.details.attributes {
+                            attribute targetAttribute, context.details.id.version=='1.1' ? 'qa' : 'low'
+                        }
+                }
+            }
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
                 }
                 components {
-                    withModule('org.test:module') { module ->                   
-                        attributes {
-                            attribute quality, module.id.version=='1.1' ? 'qa' : 'low'
-                        }
-                    }
+                    withModule('org.test:module', AttributeRule, {
+                        params(quality)
+                    })
                 }
                 conf 'org.test:module:[1.0,2.0)'
             }
@@ -216,18 +246,31 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 conf.attributes.attribute(quality, 'qa')
             }
             
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute targetAttribute
+
+                public AttributeRule(Attribute attribute) {
+                    targetAttribute = attribute
+                }
+
+                public void execute(ComponentMetadataContext context) {
+                    if ($fixApplied) {
+                       context.details.attributes {
+                          attribute targetAttribute, 'qa'
+                       }
+                    }
+                }
+            }
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
                 }
+
                 components {
-                    withModule('org.test:module') {
-                        if ($fixApplied) {
-                           attributes {
-                              attribute quality, 'qa'
-                           }
-                        }
-                    }
+                    withModule('org.test:module', AttributeRule, {
+                        params(quality)
+                    })
                 }
                 conf 'org.test:module:1.0'
             }
@@ -274,18 +317,30 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                 conf.attributes.attribute(quality, 'qa')
             }
             
+            class AttributeRule implements ComponentMetadataRule {
+                Attribute targetAttribute
+
+                public AttributeRule(Attribute attribute) {
+                    targetAttribute = attribute
+                }
+
+                public void execute(ComponentMetadataContext context) {
+                   context.details.allVariants {
+                       attributes {
+                          attribute targetAttribute, 'qa'
+                       }
+                   }
+                }
+            }
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
                 }
                 components {
-                    withModule('org.test:module') {
-                       allVariants {
-                           attributes {
-                              attribute quality, 'qa'
-                           }
-                       }
-                    }
+                    withModule('org.test:module', AttributeRule, {
+                        params(quality)
+                    })
                 }
                 conf 'org.test:module:1.0'
             }
@@ -349,20 +404,25 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                    attributes.attribute(org.gradle.api.internal.project.ProjectInternal.STATUS_ATTRIBUTE, '$status')
                 }
             }
+            
+            class StatusRule implements ComponentMetadataRule {
+                public void execute(ComponentMetadataContext context) {
+                    if (${!GradleMetadataResolveRunner.useIvy()}) {
+                        // this is just a hack to get the configuration from the test context
+                        def release = 'release'
+                        def integration = 'integration'
+                        def milestone = 'milestone'
+                        def versions = $versions
+                        // Maven doesn't publish a status, but we can patch it!
+                        context.details.status = "\${versions[context.details.id.version as int]}"
+                    }
+                }
+            }
+            
             dependencies {
                 conf 'org:test:[1,)'
                 components {
-                    withModule('org:test') { mod ->
-                        if (${!GradleMetadataResolveRunner.useIvy()}) {
-                            // this is just a hack to get the configuration from the test context
-                            def release = 'release'
-                            def integration = 'integration'
-                            def milestone = 'milestone'
-                            def versions = $versions
-                            // Maven doesn't publish a status, but we can patch it!
-                            status = "\${versions[mod.id.version as int]}"
-                        }
-                    }
+                    withModule('org:test', StatusRule)
                 }
             }
         """

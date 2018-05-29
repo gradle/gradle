@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.internal.action.InstantiatingAction;
 
 import java.util.Map;
 
@@ -64,8 +65,9 @@ public class BaseModuleComponentRepository implements ModuleComponentRepository 
         return delegate.getArtifactCache();
     }
 
-    public ComponentMetadataSupplier createMetadataSupplier() {
-        return delegate.createMetadataSupplier();
+    @Override
+    public InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier() {
+        return delegate.getComponentMetadataSupplier();
     }
 
 }
