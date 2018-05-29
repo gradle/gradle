@@ -159,11 +159,11 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").delete()
 
         and:
-        run("run", "--args", "3")
+        run("run", "--args", "2")
 
         then:
         executedAndNotSkipped ":run"
-        assertOutputFileIs("3\n")
+        assertOutputFileIs("2\n")
     }
 
     def "arguments can be passed by using argument providers"() {
