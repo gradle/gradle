@@ -122,13 +122,13 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
-        with(operations.only(ProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
-            displayName == 'Execute beforeEvaluate hooks (:foo)'
+        with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Notify beforeEvaluate listeners of :foo'
             children*.displayName == ["Apply script before.gradle to project ':foo'"]
             parentId == configOp.id
         }
-        with(operations.only(ProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
-            displayName == 'Execute afterEvaluate hooks (:foo)'
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Notify afterEvaluate listeners of :foo'
             children*.displayName == ["Apply script after.gradle to project ':foo'"]
             parentId == configOp.id
         }

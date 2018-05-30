@@ -25,7 +25,7 @@ import org.gradle.util.Path;
  *
  * @since 4.9
  */
-public final class ProjectBeforeEvaluatedBuildOperationType implements BuildOperationType<ProjectBeforeEvaluatedBuildOperationType.Details, ProjectBeforeEvaluatedBuildOperationType.Result> {
+public final class NotifyProjectBeforeEvaluatedBuildOperationType implements BuildOperationType<NotifyProjectBeforeEvaluatedBuildOperationType.Details, NotifyProjectBeforeEvaluatedBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
@@ -63,7 +63,7 @@ public final class ProjectBeforeEvaluatedBuildOperationType implements BuildOper
     final static Result RESULT = new Result() {
     };
 
-    private ProjectBeforeEvaluatedBuildOperationType() {
+    private NotifyProjectBeforeEvaluatedBuildOperationType() {
     }
 
 }
