@@ -20,10 +20,15 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.play.integtest.fixtures.PlayCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest.isPlay22
 
 @TargetCoverage({ PlayCoverage.PLAY23_OR_EARLIER })
+@Requires(TestPrecondition.JDK8)
+@Issue("Play 2.2/2.3 don't support Java 9+")
 class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
     @Override
     def getJavaRoutesFileName(String packageName, String namespace) {
