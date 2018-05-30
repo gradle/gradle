@@ -19,7 +19,7 @@ class BuildTypesPlugin : Plugin<Project> {
 
     private
     fun Project.register(buildType: BuildType) =
-        tasks.create(buildType.name) {
+        tasks.createLater(buildType.name) {
 
             val invokedTaskNames = gradle.startParameter.taskNames
             buildType.findUsedTaskNameAndIndexIn(invokedTaskNames)?.let { (usedName, index) ->

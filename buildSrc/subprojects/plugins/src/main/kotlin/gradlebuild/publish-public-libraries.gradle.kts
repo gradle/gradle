@@ -30,10 +30,10 @@ plugins {
     `maven`
 }
 
-val generatePom by tasks.creating(GeneratePom::class)
+val generatePom = tasks.createLater("generatePom", GeneratePom::class.java)
 
 val main by java.sourceSets
-val sourceJar by tasks.creating(Jar::class) {
+val sourceJar = tasks.createLater("sourceJar", Jar::class.java) {
     classifier = "sources"
     from(main.java.srcDirs + main.groovy.srcDirs)
 }
@@ -43,9 +43,9 @@ configureUploadArchivesTask(generatePom)
 artifacts {
 
     fun publishRuntime(artifact: Any) =
-        add(generatePom.publishRuntime.name, artifact)
+        add(generatePom.get().publishRuntime.name, artifact) // TODO: This prevent `generatePom` from being lazy
 
-    publishRuntime(tasks["jar"])
+    publishRuntime(tasks.named("jar"))
     publishRuntime(sourceJar)
     publishRuntime(
         DefaultPublishArtifact(
@@ -54,15 +54,16 @@ artifacts {
             "pom",
             null,
             Date(),
-            generatePom.pomFile,
+            generatePom.get().pomFile,
             generatePom))
 }
 
-fun Project.configureUploadArchivesTask(generatePom: GeneratePom) {
+fun Project.configureUploadArchivesTask(generatePom: TaskProvider<GeneratePom>) {
+    // TODO: Make this lazy, see https://github.com/gradle/gradle-native/issues/718
     tasks.getByName<Upload>("uploadArchives") {
         // TODO Add magic property to upcoming configuration interface
         onlyIf { !project.hasProperty("noUpload") }
-        configuration = generatePom.publishRuntime
+        configuration = generatePom.get().publishRuntime
         dependsOn(generatePom)
         isUploadDescriptor = false
 

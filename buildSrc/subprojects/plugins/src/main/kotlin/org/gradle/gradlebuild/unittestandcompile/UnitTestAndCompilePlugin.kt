@@ -73,11 +73,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         afterEvaluate {
             val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
 
-            tasks.withType(JavaCompile::class.java).configureEach {
+            tasks.withType<JavaCompile>().configureEach {
                 options.isIncremental = true
                 configureCompileTask(this, options, availableJavaInstallations)
             }
-            tasks.withType(GroovyCompile::class.java).configureEach {
+            tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
                 configureCompileTask(this, options, availableJavaInstallations)
             }
@@ -144,7 +144,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureJarTasks() {
-        tasks.withType(Jar::class.java).configureEach {
+        tasks.withType<Jar>().configureEach {
             version = rootProject.extra["baseVersion"] as String
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
@@ -156,7 +156,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Project.configureTests() {
         val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
 
-        tasks.withType(Test::class.java).configureEach {
+        tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
             jvmArgumentProviders.add(createCiEnvironmentProvider(this))
             executable = Jvm.forHome(javaInstallationForTest.javaHome).javaExecutable.absolutePath
@@ -169,7 +169,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             inputs.property("javaInstallation", javaInstallationForTest.displayName)
             doFirst {
                 if (BuildEnvironment.isCiServer) {
-                    println("maxParallelForks for '$path' is $maxParallelForks")
+                    logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
                 }
             }
         }
