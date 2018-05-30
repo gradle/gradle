@@ -69,7 +69,7 @@ class ExtensionsStorageTest extends Specification {
         storage.configureExtension(shouldNotExist, {})
         then:
         def t = thrown UnknownDomainObjectException
-        t.message == storage.extensionWithNameDoesNotExistMessage(shouldNotExist)
+        t.message.startsWith("Extension with name '$shouldNotExist' does not exit.")
     }
 
     def "find extension"() {
