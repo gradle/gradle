@@ -1,5 +1,5 @@
-GET     /                          controllers.Application.index
-GET     /shutdown                  controllers.Application.shutdown
-GET     /submodule                 controllers.submodule.Application.index
-GET     /assets/*file              controllers.Assets.at(path="/public", file)
+GET     /                          @controllers.Application.index
+GET     /shutdown                  @controllers.Application.shutdown
+GET     /submodule                 @controllers.submodule.Application.index
+GET     /assets/*file              @controllers.Assets.at(path="/public", file)
 

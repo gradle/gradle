@@ -39,8 +39,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
     def setup() {
         playApp.writeSources(testDirectory)
-        // Lots of deprecation warnings since Play 2.6.0
-        executer.noDeprecationChecks()
     }
 
     def "can build play app binary"() {

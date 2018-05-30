@@ -9,7 +9,8 @@ import models.Person
 
 import javax.inject._
 
-class QuestionsThreeController @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+@Singleton
+class QuestionsThreeController @Inject()(val messagesApi: MessagesApi) extends InjectedController with I18nSupport {
     val personForm = Form(
         mapping(
             "name" -> nonEmptyText,

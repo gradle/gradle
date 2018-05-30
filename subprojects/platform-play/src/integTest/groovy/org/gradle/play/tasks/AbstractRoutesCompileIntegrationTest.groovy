@@ -253,12 +253,13 @@ GET     /                          controllers${packageId}.Application.index()
         file << """
 package controllers${packageId}
 
-
+import import javax.inject._
 import play.api._
 import play.api.mvc._
 import models._
 
-object Application extends Controller {
+@Singleton
+class Application @Inject() extends InjectedController {
   def index = Action {
     Ok("Your new application is ready.")
   }

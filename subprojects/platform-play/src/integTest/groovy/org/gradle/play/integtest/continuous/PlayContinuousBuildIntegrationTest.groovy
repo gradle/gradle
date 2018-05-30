@@ -64,7 +64,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         def original = file("app/controllers/Application.scala").text
 
         when: "source file is broken"
-        file("app/controllers/Application.scala").text = "object Application extends Controller {"
+        file("app/controllers/Application.scala").text = "class Application extends Controller {"
 
         then:
         fails("runPlayBinary")

@@ -48,9 +48,6 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
-
-        // Lots of deprecation warnings since Play 2.6.0
-        executer.noDeprecationChecks()
     }
 
     def "assemble builds jvm component and play component binaries"() {
