@@ -135,6 +135,7 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
+        @Suppress("DEPRECATION")
         withModule(provider) {
             allVariants {
                 withCapabilities {
@@ -146,6 +147,7 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
+        @Suppress("DEPRECATION")
         withModule(module) {
             allVariants {
                 withCapabilities {
@@ -175,6 +177,7 @@ class CapabilitySpec {
 
 
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: DirectDependenciesMetadata.() -> Any) {
+    @Suppress("DEPRECATION")
     withModule(module) {
         allVariants {
             withDependencies {
@@ -186,6 +189,7 @@ fun ComponentMetadataHandler.withLibraryDependencies(module: String, action: Dir
 
 
 fun ComponentMetadataHandler.downgradeIvy(module: String) {
+    @Suppress("DEPRECATION")
     withModule(module) {
         allVariants {
             withDependencyConstraints {
@@ -200,6 +204,7 @@ fun ComponentMetadataHandler.downgradeIvy(module: String) {
 
 
 fun ComponentMetadataHandler.downgradeTestNG(module: String) {
+    @Suppress("DEPRECATION")
     withModule(module) {
         allVariants {
             withDependencyConstraints {
@@ -214,6 +219,7 @@ fun ComponentMetadataHandler.downgradeTestNG(module: String) {
 
 
 fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
+    @Suppress("DEPRECATION")
     withModule(module) {
         allVariants {
             withDependencies {
@@ -228,6 +234,7 @@ fun ComponentMetadataHandler.downgradeXmlApis(module: String) {
 
 
 fun ComponentMetadataHandler.replaceCglibNodepWithCglib(module: String) {
+    @Suppress("DEPRECATION")
     withModule(module) {
         allVariants {
             withDependencies {

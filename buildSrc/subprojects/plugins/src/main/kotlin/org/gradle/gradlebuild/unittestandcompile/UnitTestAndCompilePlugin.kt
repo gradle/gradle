@@ -117,6 +117,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testLibraries("jmock").forEach { testCompile(it) }
 
             components {
+                @Suppress("DEPRECATION")
                 withModule("org.spockframework:spock-core") {
                     allVariants {
                         withDependencyConstraints {
