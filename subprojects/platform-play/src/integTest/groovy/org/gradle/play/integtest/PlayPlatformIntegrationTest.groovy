@@ -42,7 +42,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/stage/playBinary/lib").assertContainsDescendants(
-            "com.typesafe.play-play_2.11-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
+            "com.typesafe.play-play_2.12-${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}.jar"
         )
     }
 
