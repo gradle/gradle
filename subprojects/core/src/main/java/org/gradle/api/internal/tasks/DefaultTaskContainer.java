@@ -346,7 +346,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             return createTypeMismatchException(name, getDeclaredTaskType(task), type);
         }
 
-        return new TaskLookupProvider<T>(type, name, (T)task);
+        return new ExistingTaskProvider<T>(type, name, (T)task);
     }
 
     private <T extends Task> TaskProvider<T> createTypeMismatchException(String name, Class<?> actualType, Class<?> expectedType) {
@@ -585,10 +585,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-    private class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
-        T task;
+    private class ExistingTaskProvider<T extends Task> extends DefaultTaskProvider<T> {
+        final T task;
 
-        public TaskLookupProvider(Class<T> type, String name, T task) {
+        public ExistingTaskProvider(Class<T> type, String name, T task) {
             super(type, name);
             this.task = task;
         }
