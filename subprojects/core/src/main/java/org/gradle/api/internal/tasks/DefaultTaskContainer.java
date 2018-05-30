@@ -594,6 +594,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
+        public boolean isPresent() {
+            return task != null;
+        }
+
+        @Override
         public T getOrNull() {
             return task;
         }
