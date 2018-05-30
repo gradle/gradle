@@ -46,22 +46,31 @@ class DependencyInsightReporterSpec extends Specification {
         def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
-        sorted.size() == 5
+        sorted.size() == 8
 
         sorted[0].name == 'a:x:2.0'
         !sorted[0].description
 
-        sorted[1].name == 'a:x:1.0 -> 2.0'
+        sorted[1].name == 'a:x:2.0'
         !sorted[1].description
 
-        sorted[2].name == 'a:x:1.5 -> 2.0'
+        sorted[2].name == 'a:x:1.0 -> 2.0'
         !sorted[2].description
 
-        sorted[3].name == 'a:z:1.0'
+        sorted[3].name == 'a:x:1.5 -> 2.0'
         !sorted[3].description
 
-        sorted[4].name == 'b:a:5.0'
+        sorted[4].name == 'a:z:1.0'
         !sorted[4].description
+
+        sorted[5].name == 'a:z:1.0'
+        !sorted[5].description
+
+        sorted[6].name == 'b:a:5.0'
+        !sorted[6].description
+
+        sorted[7].name == 'b:a:5.0'
+        !sorted[7].description
     }
 
     def "adds header dependency if the selected version does not exist in the graph"() {
@@ -71,7 +80,7 @@ class DependencyInsightReporterSpec extends Specification {
         def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
-        sorted.size() == 4
+        sorted.size() == 5
 
         sorted[0].name == 'a:x:2.0'
         sorted[0].description == 'forced'
@@ -84,6 +93,9 @@ class DependencyInsightReporterSpec extends Specification {
 
         sorted[3].name == 'b:a:5.0'
         !sorted[3].description
+
+        sorted[4].name == 'b:a:5.0'
+        !sorted[4].description
     }
 
     def "annotates only first dependency in the group"() {
@@ -93,16 +105,22 @@ class DependencyInsightReporterSpec extends Specification {
         def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
 
         then:
-        sorted.size() == 3
+        sorted.size() == 5
 
         sorted[0].name == 'a:x:2.0'
         sorted[0].description == 'conflict resolution'
 
-        sorted[1].name == 'a:x:1.0 -> 2.0'
-        !sorted[1].description
+        sorted[1].name == 'a:x:2.0'
+        sorted[1].description == null
 
-        sorted[2].name == 'b:a:5.0'
-        sorted[2].description == 'forced'
+        sorted[2].name == 'a:x:1.0 -> 2.0'
+        !sorted[2].description
+
+        sorted[3].name == 'b:a:5.0'
+        sorted[3].description == 'forced'
+
+        sorted[4].name == 'b:a:5.0'
+        sorted[4].description == null
     }
 
     private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {

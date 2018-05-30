@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
-import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -143,12 +142,12 @@ org:leaf2:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:1.0
 +--- org:middle:1.0
 |    \\--- org:top:1.0
 |         \\--- conf
 \\--- org:top:1.0 (*)
-
-(*) - dependencies omitted (listed previously)
 """
     }
 
@@ -190,10 +189,13 @@ org:leaf2:1.0
 
         then:
         outputContains """
+Task :dependencyInsight
 org:leaf2:2.5 (conflict resolution)
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:2.5
 \\--- org:toplevel3:1.0
      \\--- conf
 
@@ -259,6 +261,8 @@ org:leaf2:2.5 (conflict resolution)
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:2.5
 \\--- org:toplevel3:1.0
      \\--- conf
 
@@ -358,11 +362,22 @@ dependencies {
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
 
         then:
-        outputContains """org:foo:1.0 (via constraint, dependency was locked to version '1.0') FAILED
+        outputContains """
+org:foo:1.0 FAILED
+   Selection reasons:
+      - Was requested
+      - By constraint : dependency was locked to version '1.0'
+
+
+org:foo:1.0 FAILED
 \\--- lockedConf
 
 org:foo:1.1 (via constraint) FAILED
+
+org:foo:1.1 FAILED
 \\--- lockedConf
+
+org:foo:1.+ FAILED
 
 org:foo:1.+ FAILED
 \\--- lockedConf
@@ -403,6 +418,8 @@ org:leaf:1.0 (forced)
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf:1.0
 \\--- org:foo:1.0
      \\--- conf
 
@@ -453,6 +470,8 @@ org:leaf:1.0
    variant "default" [
       org.gradle.status = integration (not requested)
    ]
+
+org:leaf:1.0
 \\--- org:middle:1.0
      \\--- org:top:1.0
           \\--- conf
@@ -504,6 +523,8 @@ org:leaf:1.0 (selected by rule)
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf:1.0
 \\--- org:foo:1.0
      \\--- conf
 
@@ -556,7 +577,8 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        outputContains """org.test:bar:2.0
+        outputContains """
+org.test:bar:2.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
@@ -572,6 +594,8 @@ org:baz:1.0 (selected by rule)
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+
+org:baz:1.0
 \\--- conf
 
 org:foo:2.0
@@ -823,6 +847,8 @@ org:leaf:2.0 (forced)
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf:2.0
 \\--- org:bar:1.0
      \\--- conf
 
@@ -914,6 +940,8 @@ org:leaf:1.0 (forced)
    variant "default+runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf:1.0
 +--- conf
 \\--- org:foo:1.0
      \\--- conf
@@ -1205,12 +1233,18 @@ org:leaf:[1.5,1.9] -> 1.5
         then:
         outputContains """
 org:leaf:1.0 FAILED
+
+org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:1.6+ FAILED
+
+org:leaf:1.6+ FAILED
 \\--- org:top:1.0
      \\--- conf
+
+org:leaf:[1.5,2.0] FAILED
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -1248,6 +1282,8 @@ org:leaf2:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:1.0
 \\--- org:leaf1:1.0
      +--- conf
      \\--- org:leaf2:1.0 (*)
@@ -1286,6 +1322,8 @@ org:leaf2:1.0
         outputContains """
 project :
    variant "compile+runtimeElements"
+
+project :
 \\--- project :impl
      \\--- project : (*)
 """
@@ -1331,6 +1369,8 @@ org:leaf2:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:1.0
 \\--- org:leaf1:1.0
      \\--- project :impl
           \\--- compile
@@ -1377,6 +1417,8 @@ project :impl
    variant "runtimeElements" [
       org.gradle.usage = java-runtime-jars (not requested)
    ]
+
+project :impl
 \\--- compile
 """
     }
@@ -1426,6 +1468,8 @@ org:leaf4:1.0
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+
+org:leaf4:1.0
 \\--- project :impl
      \\--- compileClasspath
 """
@@ -1458,6 +1502,8 @@ org:leaf1:1.0
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+
+org:leaf1:1.0
 \\--- compileClasspath
 """
 
@@ -1472,6 +1518,8 @@ org:leaf2:1.0
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+
+org:leaf2:1.0
 \\--- compileClasspath
 """
     }
@@ -1519,6 +1567,8 @@ project :api
    variant "apiElements" [
       org.gradle.usage = java-api
    ]
+
+project :api
 \\--- project :impl
      \\--- compileClasspath
 """
@@ -1568,12 +1618,15 @@ org:leaf3:1.0
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+
+org:leaf3:1.0
 \\--- org:leaf2:1.0
      +--- project :api
      |    \\--- project :impl
      |         \\--- compileClasspath
      \\--- org:leaf1:1.0
           \\--- project :impl (*)
+
 """
     }
 
@@ -1609,12 +1662,16 @@ org:leaf3:1.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+
+foo:bar:2.0
 \\--- compile
 
 foo:foo:1.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+
+foo:foo:1.0
 \\--- compile
 """)
     }
@@ -1953,11 +2010,14 @@ org:foo:[1.0,) -> 1.1
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        outputContains """org:leaf:1.0 (via constraint)
+        outputContains """
+org:leaf:1.0 (via constraint)
    variant "compile" [
       org.gradle.status = release (not requested)
       org.gradle.usage  = java-api
    ]
+
+org:leaf:1.0
 \\--- org:bom:1.0
      \\--- compileClasspath
 
@@ -1994,14 +2054,21 @@ org:leaf -> 1.0
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        outputContains """org.test:leaf:1.0 (first reason)
+        outputContains """
+org.test:leaf:1.0
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+   Selection reasons:
+      - Was requested : first reason
+
+
+org.test:leaf:1.0
 \\--- org.test:a:1.0
-     \\--- compileClasspath"""
+     \\--- compileClasspath
+"""
     }
 
     def "mentions web-based dependency insight report available using build scans"() {
@@ -2038,6 +2105,8 @@ org:leaf2:1.0
    variant "runtime" [
       org.gradle.status = release (not requested)
    ]
+
+org:leaf2:1.0
 +--- org:middle:1.0
 |    \\--- org:top:1.0
 |         \\--- conf
@@ -2089,21 +2158,33 @@ A web-based, searchable dependency report is available by adding the --scan opti
         run "dependencyInsight", "--dependency", "org"
 
         then:
-        outputContains """org:bar (via constraint, Nope, you won't use this) FAILED
+        outputContains """
+org:bar: FAILED
+   Selection reasons:
+      - Was requested
+      - By constraint : Nope, you won't use this
+
+
+org:bar FAILED
 \\--- compileClasspath
+
+org:bar:[1.0,) FAILED
 
 org:bar:[1.0,) FAILED
 \\--- compileClasspath
 
-org:foo (via constraint) FAILED
+org:foo: (via constraint) FAILED
+
+org:foo FAILED
 \\--- compileClasspath
+
+org:foo:[1.0,) FAILED
 
 org:foo:[1.0,) FAILED
 \\--- compileClasspath
 """
     }
 
-    @ToBeImplemented("all dependency reasons are not yet collected")
     def "shows all published dependency reasons"() {
         given:
         mavenRepo.with {
@@ -2139,17 +2220,24 @@ org:foo:[1.0,) FAILED
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        outputContains """org.test:leaf:1.0 (first reason)
+        outputContains """org.test:leaf:1.0
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+   Selection reasons:
+      - Was requested : first reason
+      - Was requested : transitive reason
+
+
+org.test:leaf:1.0
 +--- org.test:a:1.0
 |    \\--- compileClasspath
 \\--- org.test:c:1.0
      \\--- org.test:b:1.0
-          \\--- compileClasspath"""
+          \\--- compileClasspath
+"""
     }
 
     @Unroll
