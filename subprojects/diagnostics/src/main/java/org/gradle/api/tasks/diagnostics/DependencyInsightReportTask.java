@@ -383,8 +383,6 @@ public class DependencyInsightReportTask extends DefaultTask {
             if (StringUtils.isNotEmpty(dependency.getDescription())) {
                 out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
             }
-            printVariantDetails(out);
-            printExtraDetails(out);
             switch (dependency.getResolutionState()) {
                 case FAILED:
                     out.withStyle(Failure).text(" FAILED");
@@ -395,6 +393,8 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" (n)");
                     break;
             }
+            printVariantDetails(out);
+            printExtraDetails(out);
         }
 
         private void printExtraDetails(StyledTextOutput out) {

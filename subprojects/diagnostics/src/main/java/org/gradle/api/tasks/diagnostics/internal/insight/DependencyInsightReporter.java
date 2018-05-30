@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -43,7 +41,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.util.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,20 +48,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DependencyInsightReporter {
-
-    private static final Predicate<ComponentSelectionDescriptorInternal> HAS_CUSTOM_DESCRIPTION = new Predicate<ComponentSelectionDescriptorInternal>() {
-        @Override
-        public boolean apply(@Nullable ComponentSelectionDescriptorInternal input) {
-            return input.hasCustomDescription();
-        }
-    };
-    private static final Function<ComponentSelectionDescriptorInternal, String> GET_DESCRIPTION = new Function<ComponentSelectionDescriptorInternal, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable ComponentSelectionDescriptorInternal input) {
-            return input.getDescription();
-        }
-    };
 
     public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
@@ -89,20 +72,14 @@ public class DependencyInsightReporter {
             ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
             //add description only to the first module
             if (annotated.add(dependency.getActual())) {
-                //add a heading dependency with the annotation if the dependency does not exist in the graph
-                if (!dependency.getRequested().matchesStrictly(dependency.getActual())) {
-                    SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(dependency.getReason());
-                    if (selectionReasonsSection.replacesShortDescription) {
-                        reasonDescription = null;
-                    }
-                    List<Section> extraDetails = !selectionReasonsSection.replacesShortDescription ? Collections.<Section>emptyList() : Collections.<Section>singletonList(selectionReasonsSection);
-                    out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails));
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
-                    out.add(current);
-                } else {
-                    current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), reasonDescription, selectedVariant);
-                    out.add(current);
+                SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(dependency.getReason());
+                if (selectionReasonsSection.replacesShortDescription) {
+                    reasonDescription = null;
                 }
+                List<Section> extraDetails = !selectionReasonsSection.replacesShortDescription ? Collections.<Section>emptyList() : Collections.<Section>singletonList(selectionReasonsSection);
+                out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails));
+                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
+                out.add(current);
             } else if (!current.getRequested().equals(dependency.getRequested())) {
                 current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
                 out.add(current);
