@@ -117,7 +117,6 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getServices() >> buildScopeServices
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
-        0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
@@ -268,7 +267,7 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildBroadcaster.buildStarted(gradleMock)
         1 * buildBroadcaster.projectsEvaluated(gradleMock)
         1 * modelListenerMock.onConfigure(gradleMock)
-        1 * exceptionAnalyserMock.transform({it instanceof MultipleBuildFailures && it.cause == failure}) >> transformedException
+        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
@@ -294,7 +293,7 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildBroadcaster.buildStarted(gradleMock)
         1 * buildBroadcaster.projectsEvaluated(gradleMock)
         1 * modelListenerMock.onConfigure(gradleMock)
-        1 * exceptionAnalyserMock.transform({it instanceof MultipleBuildFailures && it.causes == [failure, failure2]}) >> transformedException
+        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
@@ -329,10 +328,12 @@ class DefaultGradleLauncherSpec extends Specification {
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
         _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.contextualize(_) >> {"${it[0]} (:nested)"}
     }
 
     private void isRootBuild() {
         _ * gradleMock.parent >> null
+        _ * gradleMock.contextualize(_) >> { it[0] }
     }
 
     private void expectInitScriptsExecuted() {
