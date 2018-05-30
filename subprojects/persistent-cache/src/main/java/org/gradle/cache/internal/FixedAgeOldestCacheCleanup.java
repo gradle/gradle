@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -43,10 +44,10 @@ public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
     }
 
     @Override
-    protected List<File> findFilesToDelete(final CleanableStore cleanableStore, File[] filesEligibleForCleanup) {
+    protected List<File> findFilesToDelete(final CleanableStore cleanableStore, Collection<File> filesEligibleForCleanup) {
         LOGGER.info("{} remove files older than {}.", cleanableStore.getDisplayName(), new Date(minimumTimestamp));
 
-        List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.length);
+        List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.size());
 
         for (File file : filesEligibleForCleanup) {
             if (file.lastModified() < minimumTimestamp) {

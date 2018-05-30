@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractCacheCleanup implements CleanupAction {
@@ -38,9 +39,9 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
 
     @Override
     public final void clean(CleanableStore cleanableStore) {
-        File[] filesEligibleForCleanup = findEligibleFiles(cleanableStore);
+        Collection<File> filesEligibleForCleanup = findEligibleFiles(cleanableStore);
 
-        if (filesEligibleForCleanup.length > 0) {
+        if (!filesEligibleForCleanup.isEmpty()) {
             List<File> filesForDeletion = findFilesToDelete(cleanableStore, filesEligibleForCleanup);
 
             if (!filesForDeletion.isEmpty()) {
@@ -49,9 +50,9 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         }
     }
 
-    protected abstract List<File> findFilesToDelete(CleanableStore cleanableStore, File[] filesEligibleForCleanup);
+    protected abstract List<File> findFilesToDelete(CleanableStore cleanableStore, Collection<File> filesEligibleForCleanup);
 
-    protected File[] findEligibleFiles(CleanableStore cleanableStore) {
+    protected Collection<File> findEligibleFiles(CleanableStore cleanableStore) {
         return eligibleFilesFinder.find(cleanableStore.getBaseDir(), new NonReservedCacheFileFilter(cleanableStore));
     }
 

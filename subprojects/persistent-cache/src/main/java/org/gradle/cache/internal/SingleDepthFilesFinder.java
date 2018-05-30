@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,10 +35,10 @@ public class SingleDepthFilesFinder implements FilesFinder {
     }
 
     @Override
-    public File[] find(File baseDir, FileFilter filter) {
+    public Collection<File> find(File baseDir, FileFilter filter) {
         List<File> result = new ArrayList<File>();
         find(baseDir, filter, 1, result);
-        return result.toArray(new File[0]);
+        return result;
     }
 
     private void find(File baseDir, FileFilter filter, int currentDepth, List<File> result) {

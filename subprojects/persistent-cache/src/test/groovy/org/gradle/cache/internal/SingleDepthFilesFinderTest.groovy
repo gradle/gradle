@@ -55,6 +55,6 @@ class SingleDepthFilesFinderTest extends Specification {
         def result = new SingleDepthFilesFinder(1).find(tmpDir.getTestDirectory(), filter)
 
         then:
-        result as List == [includedFile]
+        result == [includedFile]
     }
 }

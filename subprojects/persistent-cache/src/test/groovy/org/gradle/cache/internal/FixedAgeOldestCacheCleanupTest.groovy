@@ -41,7 +41,7 @@ class FixedAgeOldestCacheCleanupTest extends Specification {
             createCacheEntry(1024, fiveDaysAgo),
         ]
         expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])
+        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries)
         filesToDelete.size() == 1
         // we should only delete the last one
         filesToDelete[0] == cacheEntries.last()
@@ -55,7 +55,7 @@ class FixedAgeOldestCacheCleanupTest extends Specification {
             createCacheEntry(1024, now - TimeUnit.HOURS.toMillis(5)),
         ]
         expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries as File[])
+        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries)
         filesToDelete.size() == 0
     }
 
