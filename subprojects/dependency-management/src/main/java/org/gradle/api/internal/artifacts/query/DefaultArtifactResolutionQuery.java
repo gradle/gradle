@@ -125,7 +125,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         }
         List<ResolutionAwareRepository> repositories = CollectionUtils.collect(repositoryHandler, Transformers.cast(ResolutionAwareRepository.class));
         ResolutionStrategyInternal resolutionStrategy = configurationContainer.detachedConfiguration().getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);

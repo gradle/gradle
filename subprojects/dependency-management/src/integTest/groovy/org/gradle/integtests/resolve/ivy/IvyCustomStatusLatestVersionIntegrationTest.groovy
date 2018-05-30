@@ -80,6 +80,7 @@ class StatusRule implements ComponentMetadataRule {
 
     String releaseVersion
     
+    @javax.inject.Inject
     public StatusRule(String releaseVersion) {
         this.releaseVersion = releaseVersion
     }

@@ -30,6 +30,8 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.MetadataResolutionContext;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
@@ -41,6 +43,7 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.text.TreeFormatter;
 
@@ -72,22 +75,22 @@ public class MetadataProvider {
             return cachedComponentMetadata.orNull();
         }
 
-        ComponentMetadata metadata = null;
         if (resolveState != null) {
             InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier = resolveState.getComponentMetadataSupplier();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-            metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
+            ComponentMetadata metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, new Transformer<BuildableComponentMetadataSupplierDetails, ModuleVersionIdentifier>() {
                 @Override
                 public BuildableComponentMetadataSupplierDetails transform(ModuleVersionIdentifier id) {
                     final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory());
                     return new BuildableComponentMetadataSupplierDetails(builder);
                 }
             }, resolveState.getCachePolicy());
-        }
-        if (metadata != null) {
-            metadata = resolveState.getComponentMetadataProcessor().processMetadata(metadata);
-            cachedComponentMetadata = Optional.of(metadata);
-            return metadata;
+            if (metadata != null) {
+                DefaultMetadataResolutionContext resolutionContext = new DefaultMetadataResolutionContext(resolveState.getCachePolicy(), componentMetadataSupplier.getInstantiator());
+                metadata = resolveState.getComponentMetadataProcessorFactory().createComponentMetadataProcessor(resolutionContext).processMetadata(metadata);
+                cachedComponentMetadata = Optional.of(metadata);
+                return metadata;
+            }
         }
         if (resolve()) {
             ComponentMetadataAdapter adapter = new ComponentMetadataAdapter(getMetaData());
@@ -233,5 +236,26 @@ public class MetadataProvider {
             return null;
         }
 
+    }
+
+    private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
+
+        private final CachePolicy cachePolicy;
+        private final Instantiator instantiator;
+
+        private DefaultMetadataResolutionContext(CachePolicy cachePolicy, Instantiator instantiator) {
+            this.cachePolicy = cachePolicy;
+            this.instantiator = instantiator;
+        }
+
+        @Override
+        public CachePolicy getCachePolicy() {
+            return cachePolicy;
+        }
+
+        @Override
+        public Instantiator getInjectingInstantiator() {
+            return instantiator;
+        }
     }
 }

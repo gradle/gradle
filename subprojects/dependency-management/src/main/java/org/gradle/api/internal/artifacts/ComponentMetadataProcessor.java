@@ -16,13 +16,12 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ComponentMetadata;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 
 public interface ComponentMetadataProcessor {
     ComponentMetadataProcessor NO_OP = new ComponentMetadataProcessor() {
         @Override
-        public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy) {
+        public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
             return metadata;
         }
 
@@ -32,7 +31,7 @@ public interface ComponentMetadataProcessor {
         }
     };
 
-    ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy);
+    ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata);
 
     /**
      * Processes "shallow" metadata, only for selecting a version. This metadata is typically

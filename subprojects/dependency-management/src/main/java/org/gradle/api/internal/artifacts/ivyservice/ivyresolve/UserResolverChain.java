@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.Transformer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -48,7 +48,7 @@ public class UserResolverChain implements ComponentResolvers {
                              AttributeContainer consumerAttributes,
                              AttributesSchema attributesSchema,
                              ImmutableAttributesFactory attributesFactory,
-                             ComponentMetadataProcessor componentMetadataProcessor, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+                             ComponentMetadataProcessorFactory componentMetadataProcessor, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema);
         ModuleTransformer metaDataFactory = new ModuleTransformer();

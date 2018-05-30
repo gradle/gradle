@@ -82,9 +82,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     private final ModuleArtifactsCache moduleArtifactsCache;
     private final ModuleArtifactCache moduleArtifactCache;
 
-    private final CachePolicy cachePolicy;
-
     private final ModuleComponentRepository delegate;
+    private final CachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -100,8 +99,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         this.moduleVersionsCache = caches.moduleVersionsCache;
         this.moduleArtifactsCache = caches.moduleArtifactsCache;
         this.moduleArtifactCache = caches.moduleArtifactCache;
-        this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
+        this.timeProvider = timeProvider;
         this.metadataProcessor = metadataProcessor;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
@@ -230,7 +229,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         private ModuleComponentResolveMetadata getProcessedMetadata(ModuleMetadataCache.CachedMetadata cachedMetadata) {
             ModuleComponentResolveMetadata metadata = cachedMetadata.getProcessedMetadata();
             if (metadata == null) {
-                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata(), cachePolicy);
+                metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 // Save the processed metadata for next time.
                 cachedMetadata.setProcessedMetadata(metadata);
             }
@@ -385,7 +384,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleComponentResolveMetadata resolvedMetadata = result.getMetaData();
                     ModuleSource moduleSource = resolvedMetadata.getSource();
                     ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.cacheMetaData(delegate, moduleComponentIdentifier, resolvedMetadata);
-                    ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata, cachePolicy);
+                    ModuleComponentResolveMetadata processedMetadata = metadataProcessor.processMetadata(resolvedMetadata);
                     cachedMetadata.setProcessedMetadata(processedMetadata);
                     moduleSource = new CachingModuleSource(processedMetadata.getContentHash().asBigInteger(), requestMetaData.isChanging() || processedMetadata.isChanging(), moduleSource);
                     result.resolved(processedMetadata.withSource(moduleSource));
