@@ -18,9 +18,29 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-
+import spock.lang.Unroll
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
+    private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
+        import javax.inject.Inject
+
+        class CustomTask extends DefaultTask {
+            final String message
+            final int number
+
+            @Inject
+            CustomTask(String message, int number) {
+                this.message = message
+                this.number = number
+            }
+
+            @TaskAction
+            void printIt() {
+                println("\$message \$number")
+            }
+        }
+    """
+
     def setup() {
         buildFile << '''
             class SomeTask extends DefaultTask {
@@ -218,6 +238,34 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("task3")
     }
 
+    @Issue("https://github.com/gradle/gradle-native/issues/707")
+    def "task is created and configured eagerly when referenced using all { action }"() {
+        buildFile << """
+            def configureCount = 0
+            tasks.createLater("task1", SomeTask) {
+                configureCount++
+                println "Configure \${path} " + configureCount
+            }
+            
+            def tasksAllCount = 0
+            tasks.all {
+                tasksAllCount++
+                println "Action " + path + " " + tasksAllCount
+            }
+            
+            gradle.buildFinished {
+                assert configureCount == 1
+                assert tasksAllCount == 2 // help + task1
+            }
+        """
+
+        expect:
+        succeeds("help")
+        result.output.count("Create :task1") == 1
+        result.output.count("Configure :task1") == 1
+        result.output.count("Action :task1") == 1
+    }
+
     def "build logic can configure each task of a given type only when required"() {
         buildFile << '''
             tasks.createLater("task1", SomeTask) {
@@ -256,7 +304,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5148")
     def "can get a task by name with a filtered collection"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
@@ -274,7 +322,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails to get a task by name when it does not match the filtered type"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
@@ -294,7 +342,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "fails to get a task by name when it does not match the collection filter"() {
-        buildFile <<'''
+        buildFile << '''
             tasks.createLater("task1", SomeTask) {
                 println "Configure ${path}"
             }
@@ -311,6 +359,32 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task1")
         outputContains("Configure :task1")
         failure.assertHasCause("Task with name 'task1' not found")
+    }
+
+    def "delegate of TaskProvider.configure is set properly"() {
+        buildFile << """
+            def eager = tasks.create("eager")
+            def eagerToo = tasks.create("eagerToo")
+            def lazy = tasks.createLater("lazy")
+            
+            tasks.configureEach {
+                doLast {
+                    println "Hello from " + path
+                }
+            }
+            
+            lazy.configure {
+                dependsOn eager 
+            }
+            
+            tasks.named("eagerToo").configure {
+                dependsOn lazy
+            }
+        """
+
+        expect:
+        succeeds("eagerToo")
+        result.assertTasksExecuted(":eager", ":lazy", ":eagerToo")
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/661")
@@ -549,5 +623,139 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         result.output.count("Create :myTask") == 1
         result.output.count("Configure :myTask") == 1
+    }
+
+    def "can construct a custom task with constructor arguments"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, 'hello', 42)"
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains("hello 42")
+    }
+
+    def "fails to create custom task if constructor arguments are missing"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, 'hello')"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+    }
+
+    def "fails to create custom task if all constructor arguments missing"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+    }
+
+    @Unroll
+    def "fails when #description constructor argument is wrong type"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << "tasks.createLater('myTask', CustomTask, $constructorArgs)"
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+
+        where:
+        description | constructorArgs | argumentNumber | outputType
+        'first'     | '123, 234'      | 1              | 'class java.lang.String'
+        'last'      | '"abc", "123"'  | 2              | 'int'
+    }
+
+    @Unroll
+    def "fails to create when null passed as a constructor argument value at #position"() {
+        given:
+        buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
+        buildFile << script
+
+        when:
+        fails 'myTask'
+
+        then:
+        failure.assertHasCause("Could not create task 'myTask' (CustomTask)")
+
+        where:
+        position | script
+        1        | "tasks.createLater('myTask', CustomTask, null, 1)"
+        2        | "tasks.createLater('myTask', CustomTask, 'abc', null)"
+    }
+
+    def "can construct a task with @Inject services"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                private final WorkerExecutor executor
+
+                @Inject
+                CustomTask(WorkerExecutor executor) {
+                    this.executor = executor
+                }
+
+                @TaskAction
+                void printIt() {
+                    println(executor != null ? "got it" : "NOT IT")
+                }
+            }
+
+            tasks.createLater('myTask', CustomTask)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains("got it")
+    }
+
+    def "can construct a task with @Inject services and constructor args"() {
+        given:
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+            import javax.inject.Inject
+
+            class CustomTask extends DefaultTask {
+                private final int number
+                private final WorkerExecutor executor
+
+                @Inject
+                CustomTask(int number, WorkerExecutor executor) {
+                    this.number = number
+                    this.executor = executor
+                }
+
+                @TaskAction
+                void printIt() {
+                    println(executor != null ? "got it \$number" : "\$number NOT IT")
+                }
+            }
+
+            tasks.createLater('myTask', CustomTask, 15)
+        """
+
+        when:
+        run 'myTask'
+
+        then:
+        outputContains("got it 15")
     }
 }

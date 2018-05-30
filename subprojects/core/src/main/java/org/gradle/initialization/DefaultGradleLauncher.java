@@ -39,7 +39,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.util.Path;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +47,8 @@ import java.util.Set;
 public class DefaultGradleLauncher implements GradleLauncher {
 
     private static final ConfigureBuildBuildOperationType.Result CONFIGURE_BUILD_RESULT = new ConfigureBuildBuildOperationType.Result() {
+    };
+    private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
 
     private enum Stage {
@@ -247,7 +248,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Load build"))
+            return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
                 .details(new LoadBuildBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {
@@ -273,7 +274,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Configure build")).
+            return BuildOperationDescriptor.displayName(gradle.contextualize("Configure build")).
                 details(new ConfigureBuildBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {
@@ -321,7 +322,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Calculate task graph"))
+            return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
                 .details(new CalculateTaskGraphBuildOperationType.Details() {
                     @Override
                     public String getBuildPath() {
@@ -345,7 +346,27 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(contextualize("Run tasks"));
+            return BuildOperationDescriptor.displayName(gradle.contextualize("Run tasks"));
+        }
+    }
+
+    private class NotifyProjectsEvaluatedListeners implements RunnableBuildOperation {
+
+        @Override
+        public void run(BuildOperationContext context) {
+            buildListener.projectsEvaluated(gradle);
+            context.setResult(PROJECTS_EVALUATED_RESULT);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
+                .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                });
         }
     }
 
@@ -354,19 +375,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void projectsEvaluated() {
-        buildListener.projectsEvaluated(gradle);
+        buildOperationExecutor.run(new NotifyProjectsEvaluatedListeners());
     }
 
-    private String contextualize(String descriptor) {
-        if (isNestedBuild()) {
-            Path contextPath = gradle.findIdentityPath();
-            String context = contextPath == null ? gradle.getStartParameter().getCurrentDir().getName() : contextPath.getPath();
-            return descriptor + " (" + context + ")";
-        }
-        return descriptor;
-    }
-
-    private boolean isNestedBuild() {
-        return gradle.getParent() != null;
-    }
 }

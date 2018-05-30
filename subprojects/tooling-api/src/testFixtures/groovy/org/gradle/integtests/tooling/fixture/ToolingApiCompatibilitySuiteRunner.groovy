@@ -18,10 +18,9 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.junit.runner.notification.RunNotifier
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
-    private List<ToolingApiDistributionResolver> distributionResolvers = []
+    static ToolingApiDistributionResolver resolver
 
     ToolingApiCompatibilitySuiteRunner(Class<? extends ToolingApiSpecification> target) {
         super(target)
@@ -35,28 +34,23 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
         return previousVersions.all
     }
 
-    @Override
-    void run(RunNotifier notifier) {
-        try {
-            super.run(notifier)
+    private static ToolingApiDistributionResolver getResolver() {
+        if (resolver == null) {
+            resolver = new ToolingApiDistributionResolver().withDefaultRepository()
         }
-        finally {
-            distributionResolvers*.cleanup()
-        }
+        return resolver
     }
 
     @Override
     protected void createExecutions() {
-        def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
         if (implicitVersion) {
-            add(new ToolingApiExecution(resolver.resolve(current.version.version), current))
+            add(new ToolingApiExecution(getResolver().resolve(current.version.version), current))
         }
         previous.each {
             if (it.toolingApiSupported) {
-                add(new ToolingApiExecution(resolver.resolve(current.version.version), it))
-                add(new ToolingApiExecution(resolver.resolve(it.version.version), current))
+                add(new ToolingApiExecution(getResolver().resolve(current.version.version), it))
+                add(new ToolingApiExecution(getResolver().resolve(it.version.version), current))
             }
         }
-        distributionResolvers.add(resolver)
     }
 }

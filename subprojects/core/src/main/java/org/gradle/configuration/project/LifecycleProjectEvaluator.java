@@ -21,20 +21,37 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.operations.BuildOperationCategory;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 /**
- * Manages lifecycle concerns while delegating actual evaluation to another evaluator
+ * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,
+ * wrapping the work in build operations.
+ *
+ * The build operation structure is:
+ *
+ * - Evaluate project
+ * -- Notify before evaluate
+ * -- Notify after evaluate
+ *
+ * Notably, there is no explicit operation for just the project.evaluate() (which is where the build scripts etc. run).
+ * However, in practice there is usually an operation for evaluating the project's build script.
+ *
+ * The before/after evaluate operations are fired regardless whether anyone is actually listening.
+ * This may change in future versions.
+ *
+ * The use of term “evaluate” is a legacy constraint.
+ * Project evaluation is synonymous with “project configuration” (the latter being the preferred term).
+ *
+ * @see ProjectEvaluationListener
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -46,85 +63,56 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
-        if (state.getExecuted() || state.getExecuting()) {
-            return;
-        }
-        buildOperationExecutor.run(new ConfigureProject(project, state));
-    }
-
-    private void doConfigure(ProjectInternal project, ProjectStateInternal state) {
-        ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
-        try {
-            listener.beforeEvaluate(project);
-        } catch (Exception e) {
-            addConfigurationFailure(project, state, e);
-            return;
-        }
-
-        state.setExecuting(true);
-        try {
-            delegate.evaluate(project, state);
-        } catch (Exception e) {
-            addConfigurationFailure(project, state, e);
-        } finally {
-            state.setExecuting(false);
-            state.executed();
-            notifyAfterEvaluate(listener, project, state);
+        if (state.getNotExecuted()) {
+            buildOperationExecutor.run(new EvaluateProject(project, state));
         }
     }
 
-    private void notifyAfterEvaluate(ProjectEvaluationListener firstBatch, final ProjectInternal project, final ProjectStateInternal state) {
-        @Nullable ProjectEvaluationListener nextBatch = firstBatch;
-        do {
-            try {
-                nextBatch = project.stepEvaluationListener(nextBatch, new Action<ProjectEvaluationListener>() {
-                    @Override
-                    public void execute(ProjectEvaluationListener listener) {
-                        listener.afterEvaluate(project, state);
-                    }
-                });
-            } catch (Exception e) {
-                onAfterEvaluateFailure(e, project, state);
-                return;
-            }
-        } while (nextBatch != null);
+    private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
+        Exception exception = wrapException(project, e);
+        ctx.failed(exception);
+        state.executed(exception);
     }
 
-    private void onAfterEvaluateFailure(Exception e, ProjectInternal project, ProjectStateInternal state) {
-        if (state.hasFailure()) {
-            // Just log this failure, and pass the existing failure out in the project state
-            boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-            String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
-            if (logStackTraces) {
-                LOGGER.error(infoMessage, e);
-            } else {
-                LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
-            }
-            return;
-        }
-        addConfigurationFailure(project, state, e);
+    private static Exception wrapException(ProjectInternal project, Exception e) {
+        return new ProjectConfigurationException(
+            String.format("A problem occurred configuring %s.", project.getDisplayName()), e
+        );
     }
 
-    private void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e) {
-        ProjectConfigurationException failure = new ProjectConfigurationException(String.format("A problem occurred configuring %s.", project.getDisplayName()), e);
-        state.executed(failure);
-    }
+    private class EvaluateProject implements RunnableBuildOperation {
 
-    private class ConfigureProject implements RunnableBuildOperation {
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
 
-        private ProjectInternal project;
-        private ProjectStateInternal state;
-
-        private ConfigureProject(ProjectInternal project, ProjectStateInternal state) {
+        private EvaluateProject(ProjectInternal project, ProjectStateInternal state) {
             this.project = project;
             this.state = state;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            doConfigure(project, state);
-            state.rethrowFailure();
-            context.setResult(ConfigureProjectBuildOperationType.RESULT);
+            state.executing();
+
+            // Note: operation does not throw, instead marks state as failed
+            buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
+            state.rethrowFailure(); // throw now if a beforeEvaluate failed
+
+            try {
+                delegate.evaluate(project, state);
+            } catch (Exception e) {
+                addConfigurationFailure(project, state, e, context);
+            } finally {
+                // Note: operation does not throw, instead marks state as failed
+                buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+            }
+
+            if (state.hasFailure()) {
+                state.rethrowFailure();
+            } else {
+                context.setResult(ConfigureProjectBuildOperationType.RESULT);
+                state.executed();
+            }
         }
 
         @Override
@@ -134,6 +122,93 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
+    }
 
+    private static class NotifyBeforeEvaluate implements RunnableBuildOperation {
+
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
+
+        private NotifyBeforeEvaluate(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            try {
+                project.getProjectEvaluationBroadcaster().beforeEvaluate(project);
+                context.setResult(NotifyProjectBeforeEvaluatedBuildOperationType.RESULT);
+            } catch (Exception e) {
+                addConfigurationFailure(project, state, e, context);
+            }
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Notify beforeEvaluate listeners of " + project.getIdentityPath())
+                .details(new NotifyProjectBeforeEvaluatedBuildOperationType.DetailsImpl(
+                    project.getProjectPath(),
+                    project.getGradle().getIdentityPath()
+                ));
+        }
+    }
+
+    private static class NotifyAfterEvaluate implements RunnableBuildOperation {
+
+        private final ProjectInternal project;
+        private final ProjectStateInternal state;
+
+        private NotifyAfterEvaluate(ProjectInternal project, ProjectStateInternal state) {
+            this.project = project;
+            this.state = state;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            ProjectEvaluationListener nextBatch = project.getProjectEvaluationBroadcaster();
+            Action<ProjectEvaluationListener> fireAction = new Action<ProjectEvaluationListener>() {
+                @Override
+                public void execute(ProjectEvaluationListener listener) {
+                    listener.afterEvaluate(project, state);
+                }
+            };
+
+            do {
+                try {
+                    nextBatch = project.stepEvaluationListener(nextBatch, fireAction);
+                } catch (Exception e) {
+                    if (state.hasFailure()) {
+                        // Just log this failure, and pass the existing failure out in the project state
+                        logError(e, project);
+                        context.failed(wrapException(project, e));
+                    } else {
+                        addConfigurationFailure(project, state, e, context);
+                    }
+                    return;
+                }
+            } while (nextBatch != null);
+
+            context.setResult(NotifyProjectAfterEvaluatedBuildOperationType.RESULT);
+        }
+
+        private void logError(Exception e, ProjectInternal project) {
+            boolean logStackTraces = project.getGradle().getStartParameter().getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
+            String infoMessage = "Project evaluation failed including an error in afterEvaluate {}.";
+            if (logStackTraces) {
+                LOGGER.error(infoMessage, e);
+            } else {
+                LOGGER.error(infoMessage + " Run with --stacktrace for details of the afterEvaluate {} error.");
+            }
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Notify afterEvaluate listeners of " + project.getIdentityPath())
+                .details(new NotifyProjectAfterEvaluatedBuildOperationType.DetailsImpl(
+                    project.getProjectPath(),
+                    project.getGradle().getIdentityPath()
+                ));
+        }
     }
 }

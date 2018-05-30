@@ -556,7 +556,7 @@ public class IdeaModule {
      * @since 3.5
      */
     public void iml(Action<? super IdeaModuleIml> action) {
-        action.execute(getIml());
+        action.execute(iml);
     }
 
     /**
@@ -573,7 +573,7 @@ public class IdeaModule {
 
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
-        iml.setGenerateTo(newOutputFile.getParentFile());
+        getIml().setGenerateTo(newOutputFile.getParentFile());
     }
 
     /**

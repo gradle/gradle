@@ -244,6 +244,24 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> TaskProvider<T> createLater(String name, Class<T> type);
 
     /**
+     * Defines a new task, which will be created when it is required passing the given arguments to the {@code @Inject}-annotated constructor. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method. All values passed to the task constructor must be non-null; otherwise a {@code NullPointerException} will be thrown
+     *
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     *
+     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
+     *
+     * @param name The name of the task.
+     * @param type The task type.
+     * @param constructorArgs The arguments to pass to the task constructor
+     * @param <T> The task type
+     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
+     * @since 4.9
+     */
+    @Incubating
+    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Object... constructorArgs);
+
+    /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String)}, as that methods will eagerly create he task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>

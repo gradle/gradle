@@ -27,7 +27,6 @@ import org.gradle.caching.internal.BuildCacheHasher;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -48,12 +47,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         @Override
         public List<File> create() {
             return doGetElements();
-        }
-    });
-    private final Factory<List<File>> cachedFilesFactory = Factories.softReferenceCache(new Factory<List<File>>() {
-        @Override
-        public List<File> create() {
-            return doGetFiles();
         }
     });
     private HashCode hashCode;
@@ -122,16 +115,6 @@ public class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     @Override
     public String toString() {
         return compareStrategy + (pathIsAbsolute ? " with absolute paths" : "") + ": " + snapshots;
-    }
-
-    private List<File> doGetFiles() {
-        List<File> files = Lists.newArrayList();
-        for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            if (entry.getValue().getSnapshot().getType() == FileType.RegularFile) {
-                files.add(new File(entry.getKey()));
-            }
-        }
-        return files;
     }
 
     public static class SerializerImpl extends AbstractSerializer<DefaultFileCollectionSnapshot> {

@@ -20,7 +20,6 @@ import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.tasks.execution.TaskOutputChangesListener;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
@@ -37,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -46,13 +46,14 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
+    private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<String, DefaultFileContentCache<?>>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Object scope) {
         this.listenerManager = listenerManager;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
-            .cache(gradle, "fileContent")
+            .cache(scope, "fileContent")
             .withDisplayName("file content cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
@@ -66,11 +67,21 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         PersistentIndexedCacheParameters<HashCode, V> parameters = new PersistentIndexedCacheParameters<HashCode, V>(name, hashCodeSerializer, serializer)
-                .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
+            .cacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         PersistentIndexedCache<HashCode, V> store = cache.createCache(parameters);
 
-        DefaultFileContentCache<V> cache = new DefaultFileContentCache<V>(name, fileSystemSnapshotter, store, calculator);
-        listenerManager.addListener(cache);
+        DefaultFileContentCache<V> cache = (DefaultFileContentCache<V>) caches.get(name);
+        if (cache == null) {
+            cache = new DefaultFileContentCache<V>(name, fileSystemSnapshotter, store, calculator);
+            DefaultFileContentCache<V> existing = (DefaultFileContentCache<V>) caches.putIfAbsent(name, cache);
+            if (existing == null) {
+                listenerManager.addListener(cache);
+            } else {
+                cache = existing;
+            }
+        }
+
+        cache.assertStoredIn(store);
         return cache;
     }
 
@@ -81,9 +92,9 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      */
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, TaskOutputChangesListener {
         private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
+        private final String name;
         private final FileSystemSnapshotter fileSystemSnapshotter;
         private final PersistentIndexedCache<HashCode, V> contentCache;
-        private final String name;
         private final Calculator<? extends V> calculator;
 
         DefaultFileContentCache(String name, FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
@@ -119,6 +130,12 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
                 cache.put(file, value);
             }
             return value;
+        }
+
+        private void assertStoredIn(PersistentIndexedCache<HashCode, V> store) {
+            if (this.contentCache != store) {
+                throw new IllegalStateException("Cache " + name + " cannot be recreated with different parameters");
+            }
         }
     }
 }
