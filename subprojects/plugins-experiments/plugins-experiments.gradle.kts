@@ -5,7 +5,7 @@ import org.gradle.internal.hash.Hashing
 
 plugins {
     id("kotlin-dsl-plugin-bundle")
-    id("com.github.johnrengelman.shadow") version "2.0.2" apply false
+    id("com.github.johnrengelman.shadow") version "2.0.3" apply false
 }
 
 base {
@@ -19,7 +19,7 @@ repositories {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.3.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:4.0.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
@@ -37,7 +37,7 @@ bundledGradlePlugin(
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.22.0"
+val ktlintVersion = "0.23.1"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources: ProcessResources by tasks
