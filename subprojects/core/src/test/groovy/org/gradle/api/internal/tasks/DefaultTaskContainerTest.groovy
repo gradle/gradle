@@ -1186,10 +1186,34 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can remove lazy created task without breaking TaskProvider"() {
         given:
-        def createProvider = container.createLater("task", CustomTask)
-        def getProvider = container.getByNameLater(CustomTask, "task")
         def customTask = task("task", CustomTask)
         taskFactory.create("task", CustomTask) >> customTask
+
+        and:
+        def createProvider = container.createLater("task", CustomTask)
+
+        when:
+        container.remove(customTask)
+
+        then:
+        createProvider.get() == customTask
+        createProvider.present
+
+        when:
+        def getProvider = container.getByNameLater(CustomTask, "task")
+
+        then:
+        getProvider.get() == customTask
+        getProvider.present
+    }
+
+    void "can remove eager created task without breaking TaskProvider"() {
+        given:
+        taskFactory.create("task", CustomTask) >> task("task", CustomTask)
+
+        and:
+        def customTask = container.create("task", CustomTask)
+        def getProvider = container.getByNameLater(CustomTask, "task")
 
         when:
         container.remove(customTask)
@@ -1197,10 +1221,6 @@ class DefaultTaskContainerTest extends Specification {
         then:
         getProvider.get() == customTask
         getProvider.present
-
-        and:
-        createProvider.get() == customTask
-        createProvider.present
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
