@@ -27,7 +27,11 @@ import spock.lang.Specification
 
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = new EclipseModel(classpath: new EclipseClasspath(null))
+    EclipseModel model = new EclipseModel()
+
+    def setup() {
+        model.classpath = new EclipseClasspath(null)
+    }
 
     def "enables setting path variables even if wtp is not configured"() {
         given:

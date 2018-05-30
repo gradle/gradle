@@ -27,6 +27,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +145,7 @@ public class EclipseProject {
 
     private final XmlFileContentMerger file;
 
+    @Inject
     public EclipseProject(XmlFileContentMerger file) {
         this.file = file;
     }

@@ -171,7 +171,7 @@ public class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}
      */
     public void ipr(Closure closure) {
-        configure(closure, getIpr());
+        configure(closure, ipr);
     }
 
     /**
@@ -183,7 +183,7 @@ public class IdeaProject implements IdeWorkspace {
      * @since 3.5
      */
     public void ipr(Action<? super XmlFileContentMerger> action) {
-        action.execute(getIpr());
+        action.execute(ipr);
     }
 
     /**

@@ -87,8 +87,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
             'visual-studio',
             'xcode',
-            'idea',
-            'eclipse',
             'scala',
             'java-gradle-plugin',
 
