@@ -110,7 +110,7 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
 
         and:
         buildFile <<
-            """
+"""
 compileScala.scalaCompileOptions.failOnError = false
 """
 
@@ -171,7 +171,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
         and:
         buildFile <<
-            """
+"""
 apply plugin: "application"
 mainClassName = "Main"
 compileScala.scalaCompileOptions.encoding = "ISO8859_7"
@@ -197,7 +197,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 
         when:
         buildFile <<
-            """
+"""
 compileScala.scalaCompileOptions.debugLevel = "line"
 """
         run("compileScala")
@@ -213,7 +213,7 @@ compileScala.scalaCompileOptions.debugLevel = "line"
 
         when:
         buildFile <<
-            """
+"""
 compileScala.scalaCompileOptions.debugLevel = "none"
 """
         run("compileScala")
@@ -230,7 +230,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
     }
 
     def buildScript() {
-        """
+"""
 apply plugin: "scala"
 
 repositories {
@@ -247,7 +247,7 @@ dependencies {
 
     def goodCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-            """
+"""
 package compile.test
 
 import scala.collection.JavaConversions._
@@ -260,7 +260,7 @@ class Person(val name: String, val age: Int) {
 }
 """
         file("src/main/scala/compile/test/Person2.scala") <<
-            """
+"""
 package compile.test
 
 class Person2(name: String, age: Int) extends Person(name, age) {
@@ -270,7 +270,7 @@ class Person2(name: String, age: Int) extends Person(name, age) {
 
     def goodCodeEncodedWith(String encoding) {
         def code =
-            """
+"""
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
@@ -296,7 +296,7 @@ object Main {
 
     def badCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-            """
+"""
 package compile.test
 
 class Person(val name: String, val age: Int) {

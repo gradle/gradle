@@ -22,5 +22,5 @@ import static org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvi
 
 
 class ZincCoverage {
-    public static final List<String> ALL_VERSIONS = JavaVersion.current().isJava9Compatible() ? DEFAULT_ZINC_VERSION : ["0.3.0", "0.3.5.3", DEFAULT_ZINC_VERSION]
+    public static final List<String> ALL_VERSIONS = JavaVersion.current().isJava9Compatible() ? [DEFAULT_ZINC_VERSION] : ["0.3.0", "0.3.5.3", DEFAULT_ZINC_VERSION]
 }
