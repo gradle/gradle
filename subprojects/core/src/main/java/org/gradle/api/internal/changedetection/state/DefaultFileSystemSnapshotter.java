@@ -131,27 +131,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         });
     }
 
-    @Override
-    public FileTreeSnapshot snapshotDirectoryTree(final File dir) {
-        // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
-        final String path = dir.getAbsolutePath();
-        FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
-        if (snapshot != null) {
-            return snapshot;
-        }
-        return producingTrees.guardByKey(path, new Factory<FileTreeSnapshot>() {
-            @Override
-            public FileTreeSnapshot create() {
-                FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
-                if (snapshot == null) {
-                    return snapshotAndCache(directoryFileTreeFactory.create(dir));
-                } else {
-                    return snapshot;
-                }
-            }
-        });
-    }
-
     /*
      * For simplicity this only caches trees without includes/excludes. However, if it is asked
      * to snapshot a filtered tree, it will try to find a snapshot for the underlying
@@ -172,10 +151,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (!patterns.isEmpty()) {
             return snapshotWithoutCaching(dirTree);
         }
-        return producingTrees.guardByKey(path, new Factory<FileTreeSnapshot>() {
+        return producingTrees.guardByKey(path, new Factory<VisitableDirectoryTree>() {
             @Override
-            public FileTreeSnapshot create() {
-                FileTreeSnapshot snapshot = fileSystemMirror.getDirectoryTree(path);
+            public VisitableDirectoryTree create() {
+                VisitableDirectoryTree snapshot = fileSystemMirror.getDirectoryTree(path);
                 if (snapshot == null) {
                     return snapshotAndCache(dirTree);
                 } else {
@@ -212,7 +191,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         };
     }
 
-    private FileTreeSnapshot snapshotAndCache(DirectoryFileTree directoryTree) {
+    private VisitableDirectoryTree snapshotAndCache(DirectoryFileTree directoryTree) {
         String path = internPath(directoryTree.getDir());
         List<FileSnapshot> elements = Lists.newArrayList();
         directoryTree.visit(new FileVisitorImpl(elements));
@@ -226,7 +205,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
      * We don't reuse code between this and #snapshotAndCache, because we can avoid
      * some defensive copying when the result won't be shared.
      */
-    private FileTreeSnapshot snapshotWithoutCaching(DirectoryFileTree directoryTree) {
+    private VisitableDirectoryTree snapshotWithoutCaching(DirectoryFileTree directoryTree) {
         String path = directoryTree.getDir().getAbsolutePath();
         List<FileSnapshot> elements = Lists.newArrayList();
         directoryTree.visit(new FileVisitorImpl(elements));

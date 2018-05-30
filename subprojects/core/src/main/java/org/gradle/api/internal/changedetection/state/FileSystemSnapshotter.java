@@ -56,12 +56,6 @@ public interface FileSystemSnapshotter {
     Snapshot snapshotAll(File file);
 
     /**
-     * Returns the current snapshot of the contents and meta-data of the given directory.
-     * The provided directory must exist and be a directory.
-     */
-    FileTreeSnapshot snapshotDirectoryTree(File dir);
-
-    /**
      * Returns the current snapshot of the contents and meta-data of the given directory tree.
      */
     VisitableDirectoryTree snapshotDirectoryTree(DirectoryFileTree dirTree);

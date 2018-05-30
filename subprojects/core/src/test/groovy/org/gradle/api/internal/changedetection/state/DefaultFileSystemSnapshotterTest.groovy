@@ -87,11 +87,11 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createDir("d2")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(d)
+        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
         snapshot.path == d.path
         snapshot.descendants.size() == 4
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(d)
+        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
         snapshot2.is(snapshot)
     }
 
@@ -99,11 +99,11 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def d = tmpDir.createDir("d")
 
         expect:
-        def snapshot = snapshotter.snapshotDirectoryTree(d)
+        def snapshot = snapshotter.snapshotDirectoryTree(dirTree(d))
         snapshot.path == d.path
         snapshot.descendants.empty
 
-        def snapshot2 = snapshotter.snapshotDirectoryTree(d)
+        def snapshot2 = snapshotter.snapshotDirectoryTree(dirTree(d))
         snapshot2.is(snapshot)
     }
 
@@ -112,7 +112,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("f1")
         d.createFile("d1/f2")
         d.createDir("d2")
-        def tree = TestFiles.directoryFileTreeFactory().create(d)
+        def tree = dirTree(d)
 
         expect:
         def snapshot = snapshotter.snapshotDirectoryTree(tree)
@@ -122,7 +122,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
         snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(d)
+        def snapshot3 = snapshotter.snapshotDirectoryTree(dirTree(d))
         snapshot3.is(snapshot)
     }
 
@@ -146,11 +146,11 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot2 = snapshotter.snapshotDirectoryTree(tree)
         !snapshot2.is(snapshot)
 
-        def snapshot3 = snapshotter.snapshotDirectoryTree(d)
+        def snapshot3 = snapshotter.snapshotDirectoryTree(dirTree(d))
         !snapshot3.is(snapshot)
         snapshot3.descendants.size() == 7
 
-        def snapshot4 = snapshotter.snapshotDirectoryTree(TestFiles.directoryFileTreeFactory().create(d))
+        def snapshot4 = snapshotter.snapshotDirectoryTree(dirTree(d))
         !snapshot4.is(snapshot)
         snapshot4.is(snapshot3)
     }
@@ -161,7 +161,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         d.createFile("f1")
         d.createFile("d1/f2")
         d.createFile("d1/f1")
-        def unfilteredTree = TestFiles.directoryFileTreeFactory().create(d)
+        def unfilteredTree = dirTree(d)
         snapshotter.snapshotDirectoryTree(unfilteredTree)
 
         and: "A filtered tree over the same directory"
@@ -254,5 +254,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def builder = new DefaultBuildCacheHasher()
         snapshot.appendToHasher(builder)
         return builder.hash()
+    }
+
+    private static DirectoryFileTree dirTree(File dir) {
+        TestFiles.directoryFileTreeFactory().create(dir)
     }
 }

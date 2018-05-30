@@ -40,10 +40,6 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
         throw new UnsupportedOperationException()
     }
 
-    @Override
-    FileTreeSnapshot snapshotDirectoryTree(File dir) {
-        throw new UnsupportedOperationException()
-    }
 
     @Override
     VisitableDirectoryTree snapshotDirectoryTree(DirectoryFileTree dirTree) {
