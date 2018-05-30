@@ -76,6 +76,7 @@ fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
     if (entry.isDirectory) {
         output.mkdirs()
     } else {
+        output.parentFile.mkdirs()
         zip.getInputStream(entry).use { it.copyTo(output) }
     }
 }
