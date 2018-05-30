@@ -111,14 +111,48 @@ class ProgramParserTest {
                 Program.Script(source.map { text(expectedScript) })))
     }
 
+    @Test
+    fun `non-empty init script Stage 1 with empty Stage 2 parse to Stage 1`() {
+
+        val source = programSourceWith(" initscript { println(\"Stage 1\") } ")
+
+        assertProgramOf(
+            source,
+            Program.Buildscript(source.fragment(1..10, 12..33)),
+            programTarget = ProgramTarget.Gradle)
+    }
+
+    @Test
+    fun `non empty Gradle script with initscript block`() {
+
+        val source =
+            programSourceWith(" initscript { println(\"Stage 1\") }; println(\"stage 2\")")
+
+        val scriptText =
+            text("                                  ; println(\"stage 2\")")
+
+        assertProgramOf(
+            source,
+            Program.Staged(
+                Program.Buildscript(source.fragment(1..10, 12..33)),
+                Program.Script(source.map { scriptText })
+            ),
+            programTarget = ProgramTarget.Gradle)
+    }
+
     private
     fun assertEmptyProgram(contents: String) {
         assertProgramOf(programSourceWith(contents), Program.Empty)
     }
 
     private
-    fun assertProgramOf(source: ProgramSource, expected: Program, programKind: ProgramKind = ProgramKind.TopLevel) {
-        val program = ProgramParser.parse(source, programKind)
+    fun assertProgramOf(
+        source: ProgramSource,
+        expected: Program,
+        programKind: ProgramKind = ProgramKind.TopLevel,
+        programTarget: ProgramTarget = ProgramTarget.Project
+    ) {
+        val program = ProgramParser.parse(source, programKind, programTarget)
         assertThat(program, equalTo(expected))
     }
 

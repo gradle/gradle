@@ -33,7 +33,8 @@ enum class ProgramKind {
 
 enum class ProgramTarget {
     Project,
-    Settings
+    Settings,
+    Gradle
 }
 
 

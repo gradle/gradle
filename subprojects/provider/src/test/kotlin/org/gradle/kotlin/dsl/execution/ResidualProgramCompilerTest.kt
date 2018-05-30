@@ -167,7 +167,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 stage2SettingsTemplateId,
                 sourceHash)
 
-            val scriptFile = outputDir().resolve("settings.gradle.kts")
+            val scriptFile = outputDir().resolve("stage-2").resolve("settings.gradle.kts")
             assertThat(
                 "Preprocessed script file is cached.",
                 scriptFile.readText(),
@@ -455,7 +455,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptTemplateId = scriptTemplateId,
                     sourceHash = sourceHash)
 
-                val scriptFile = outputDir().resolve(originalScriptPath)
+                val scriptFile = outputDir().resolve("stage-2").resolve(originalScriptPath)
                 verify(programHost).compileSecondStageScript(
                     scriptFile.canonicalPath,
                     originalScriptPath,

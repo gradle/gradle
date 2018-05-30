@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.invocation.Gradle
 
 import org.gradle.groovy.scripts.ScriptSource
 
@@ -173,6 +174,7 @@ class Interpreter(val host: Host) {
         when (target) {
             is Settings -> ProgramTarget.Settings
             is Project -> ProgramTarget.Project
+            is Gradle -> ProgramTarget.Gradle
             else -> throw IllegalArgumentException("Unsupported target: $target")
         }
 
@@ -197,6 +199,7 @@ class Interpreter(val host: Host) {
     fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
         ProgramTarget.Project -> serviceRegistryOf(target as Project)
         ProgramTarget.Settings -> serviceRegistryOf(target as Settings)
+        ProgramTarget.Gradle -> serviceRegistryOf(target as Gradle)
     }
 
     private
@@ -225,7 +228,7 @@ class Interpreter(val host: Host) {
                     ProgramSource(scriptPath, sourceText)
 
                 val program =
-                    ProgramParser.parse(programSource, programKind)
+                    ProgramParser.parse(programSource, programKind, programTarget)
 
                 val residualProgram =
                     PartialEvaluator(programKind, programTarget).reduce(program)

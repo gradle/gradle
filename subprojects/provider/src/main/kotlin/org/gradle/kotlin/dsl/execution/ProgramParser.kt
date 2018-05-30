@@ -25,23 +25,23 @@ import org.jetbrains.kotlin.lexer.KtTokens
 internal
 object ProgramParser {
 
-    fun parse(source: ProgramSource, kind: ProgramKind): Program = try {
-        programFor(source, kind)
+    fun parse(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program = try {
+        programFor(source, kind, target)
     } catch (unexpectedBlock: UnexpectedBlock) {
         handleUnexpectedBlock(unexpectedBlock, source.text, source.path)
     }
 
     private
-    fun programFor(source: ProgramSource, kind: ProgramKind): Program {
+    fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program {
 
         val sourceWithoutComments =
             source.map { it.erase(commentsOf(it.text)) }
 
         val buildscriptFragment =
-            topLevelFragmentFrom(sourceWithoutComments, "buildscript")
+            topLevelFragmentFrom(sourceWithoutComments, if (target == ProgramTarget.Gradle) "initscript" else "buildscript")
 
         val pluginsFragment =
-            if (kind == ProgramKind.TopLevel) topLevelFragmentFrom(sourceWithoutComments, "plugins")
+            if (kind == ProgramKind.TopLevel && target == ProgramTarget.Project) topLevelFragmentFrom(sourceWithoutComments, "plugins")
             else null
 
         val buildscript =

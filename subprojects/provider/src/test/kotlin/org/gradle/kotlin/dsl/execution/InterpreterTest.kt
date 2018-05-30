@@ -48,7 +48,7 @@ class InterpreterTest : TestWithTempFiles() {
     @Test
     fun `caches specialized programs`() {
 
-        val text = "println(\"stage 2\")"
+        val text = "buildscript { println(\"stage 1\") }; println(\"stage 2\")"
         val sourceHash = scriptSourceHash(text)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
@@ -128,7 +128,7 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             val subject = Interpreter(host)
-            assertStandardOutputOf("stage 2\n") {
+            assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
                     scriptSource,

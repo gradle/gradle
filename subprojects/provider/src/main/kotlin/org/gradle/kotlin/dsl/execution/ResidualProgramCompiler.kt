@@ -20,6 +20,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
+import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
@@ -28,6 +29,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
@@ -38,6 +40,7 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
+import org.jetbrains.kotlin.preprocessor.mkdirsOrFail
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
@@ -95,9 +98,9 @@ class ResidualProgramCompiler(
     fun emitDynamicProgram(program: Dynamic) {
 
         val scriptSource = program.source
-        val scriptFile = scriptFileFor(scriptSource)
+        val originalScriptPath = scriptSource.path
+        val scriptFile = scriptFileFor(scriptSource, "stage-2")
         val sourceFilePath = scriptFile.canonicalPath
-        val originalPath = scriptSource.path
 
         program<ExecutableProgram.StagedProgram> {
 
@@ -107,7 +110,7 @@ class ResidualProgramCompiler(
                 emitEvaluateSecondStageOf()
             }
 
-            overrideLoadSecondStageFor(sourceFilePath, originalPath)
+            overrideLoadSecondStageFor(sourceFilePath, originalScriptPath)
         }
     }
 
@@ -136,9 +139,9 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
-        val scriptFile = scriptFileFor(source)
-        val scriptPath = source.path
-        val precompiledScriptClass = compileScript(scriptFile, scriptPath, stage1ScriptDefinition)
+        val originalScriptPath = source.path
+        val scriptFile = scriptFileFor(source, "stage-1")
+        val precompiledScriptClass = compileScript(scriptFile, originalScriptPath, stage1ScriptDefinition)
         emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
     }
 
@@ -202,12 +205,8 @@ class ResidualProgramCompiler(
     }
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
-        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
-        emitPrecompiledStage2Program(precompiledScriptClass)
-    }
 
-    private
-    fun emitPrecompiledStage2Program(precompiledScriptClass: String) {
+        val precompiledScriptClass = compileScript(scriptFile, originalPath, stage2ScriptDefinition)
 
         program<ExecutableProgram> {
 
@@ -316,10 +315,10 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalPath: String) {
+    fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalScriptPath: String) {
         ALOAD(1) // programHost
         LDC(sourceFilePath)
-        LDC(originalPath)
+        LDC(originalScriptPath)
         ALOAD(2) // scriptHost
         ALOAD(3)
         ALOAD(4)
@@ -444,9 +443,9 @@ class ResidualProgramCompiler(
 
     private
     fun compileScript(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
-        val originalPath = source.path
-        val scriptFile = scriptFileFor(source)
-        return compileScript(scriptFile, originalPath, scriptDefinition)
+        val scriptFile = scriptFileFor(source, "stage-1")
+        val originalScriptPath = source.path
+        return compileScript(scriptFile, originalScriptPath, scriptDefinition)
     }
 
     private
@@ -462,14 +461,17 @@ class ResidualProgramCompiler(
             })
 
     private
-    fun scriptFileFor(source: ProgramSource) =
-        scriptFileFor(source.path).apply {
+    fun scriptFileFor(source: ProgramSource, stage: String) =
+        uniqueScriptFileFor(source.path, stage).apply {
             writeText(source.text)
         }
 
     private
-    fun scriptFileFor(sourcePath: String) =
-        outputFile(scriptFileNameFor(sourcePath))
+    fun uniqueScriptFileFor(sourcePath: String, stage: String) =
+        outputDir
+            .resolve(stage)
+            .apply { mkdirsOrFail() }
+            .resolve(scriptFileNameFor(sourcePath))
 
     private
     fun scriptFileNameFor(scriptPath: String) = scriptPath.run {
@@ -483,6 +485,7 @@ class ResidualProgramCompiler(
             when (programTarget) {
                 ProgramTarget.Project -> KotlinBuildscriptBlock::class
                 ProgramTarget.Settings -> KotlinSettingsBuildscriptBlock::class
+                ProgramTarget.Gradle -> KotlinInitscriptBlock::class
             })
 
     private
@@ -491,6 +494,7 @@ class ResidualProgramCompiler(
             when (programTarget) {
                 ProgramTarget.Project -> KotlinBuildScript::class
                 ProgramTarget.Settings -> KotlinSettingsScript::class
+                ProgramTarget.Gradle -> KotlinInitScript::class
             })
 
     private

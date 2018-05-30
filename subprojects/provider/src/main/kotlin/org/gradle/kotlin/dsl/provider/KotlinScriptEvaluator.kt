@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
-import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -94,7 +93,7 @@ class StandardKotlinScriptEvaluator(
         // TODO: Optimise away this call whenever possible via partial evaluation
         setupEmbeddedKotlinForBuildscript(scriptHandler)
 
-        if (options.isEmpty() && (target is Project || target is Settings)) {
+        if (options.isEmpty()) {
             interpreter.eval(
                 target,
                 scriptSource,
