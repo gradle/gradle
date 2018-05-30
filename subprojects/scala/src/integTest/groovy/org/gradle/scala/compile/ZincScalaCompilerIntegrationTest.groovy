@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.ClassFile
-
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
@@ -109,7 +110,7 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
 
         and:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.failOnError = false
 """
 
@@ -170,7 +171,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
         and:
         buildFile <<
-"""
+            """
 apply plugin: "application"
 mainClassName = "Main"
 compileScala.scalaCompileOptions.encoding = "ISO8859_7"
@@ -196,7 +197,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 
         when:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.debugLevel = "line"
 """
         run("compileScala")
@@ -212,7 +213,7 @@ compileScala.scalaCompileOptions.debugLevel = "line"
 
         when:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.debugLevel = "none"
 """
         run("compileScala")
@@ -229,7 +230,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
     }
 
     def buildScript() {
-"""
+        """
 apply plugin: "scala"
 
 repositories {
@@ -246,7 +247,7 @@ dependencies {
 
     def goodCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-"""
+            """
 package compile.test
 
 import scala.collection.JavaConversions._
@@ -259,7 +260,7 @@ class Person(val name: String, val age: Int) {
 }
 """
         file("src/main/scala/compile/test/Person2.scala") <<
-"""
+            """
 package compile.test
 
 class Person2(name: String, age: Int) extends Person(name, age) {
@@ -269,7 +270,7 @@ class Person2(name: String, age: Int) extends Person(name, age) {
 
     def goodCodeEncodedWith(String encoding) {
         def code =
-"""
+            """
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
@@ -295,7 +296,7 @@ object Main {
 
     def badCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-"""
+            """
 package compile.test
 
 class Person(val name: String, val age: Int) {
@@ -315,6 +316,10 @@ class Person(val name: String, val age: Int) {
         return new ClassFile(scalaClassFile(path))
     }
 
+    // Zinc incremental analysis doesn't work for Java 9+:
+    // Pruning sources from previous analysis, due to incompatible CompileSetup.
+    // Tried -source/-target 1.8 but still no luck
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -337,6 +342,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -356,6 +362,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
