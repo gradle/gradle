@@ -36,9 +36,6 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
     def patchForPlay() {
         if (versionNumber >= VersionNumber.parse('2.6.0')) {
             addDependency("com.typesafe.play:play-guice_2.12:${version.toString()}")
-            // method at in object Assets is deprecated (since 2.6.0): Inject Assets and use Assets#at
-            // https://www.playframework.com/documentation/2.4.x/ScalaRouting#Dependency-Injection
-            replace('conf/routes', 'controllers.Assets', '@controllers.Assets')
             // Don't know why deadlock happens on Play 2.6 System.exit
             replace('app/controllers/Application.scala', 'System.exit(0)', 'Runtime.getRuntime().halt(0)')
         }
