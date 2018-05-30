@@ -27,34 +27,31 @@ tasks {
             delete(gitRepoDir)
             delete(temporaryDir)
 
-            val bare = Git.init()
-                .setDirectory(gitRepoDir)
-                .setBare(true)
-                .call()
-
-            val clone = Git.cloneRepository()
-                .setURI(bare.repository.directory.toURI().toString())
-                .setDirectory(temporaryDir)
-                .call()
-            copy {
-                from(".") {
-                    include("src/**")
-                    include("*.gradle.kts")
-                }
-                into(temporaryDir)
+            val bareUri = Git.init().setDirectory(gitRepoDir).setBare(true).call().use { bare ->
+                bare.repository.directory.toURI().toString()
             }
 
-            clone.add()
-                .addFilepattern("build.gradle.kts")
-                .addFilepattern("settings.gradle.kts")
-                .addFilepattern("src")
-                .call()
-            clone.commit()
-                .setMessage("Initial import")
-                .setAuthor("name", "email")
-                .call()
+            Git.cloneRepository().setURI(bareUri).setDirectory(temporaryDir).call().use { clone ->
+                copy {
+                    from(".") {
+                        include("src/**")
+                        include("*.gradle.kts")
+                    }
+                    into(temporaryDir)
+                }
 
-            clone.push().call()
+                clone.add()
+                    .addFilepattern("build.gradle.kts")
+                    .addFilepattern("settings.gradle.kts")
+                    .addFilepattern("src")
+                    .call()
+                clone.commit()
+                    .setMessage("Initial import")
+                    .setAuthor("name", "email")
+                    .call()
+
+                clone.push().call()
+            }
         }
     }
 }
