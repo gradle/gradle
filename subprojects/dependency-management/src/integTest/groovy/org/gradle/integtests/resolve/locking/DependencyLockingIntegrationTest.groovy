@@ -136,11 +136,7 @@ configurations {
 
 dependencies {
     constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
+        lockedConf('org:foo:1.1')
     }
     lockedConf 'org:foo:1.+'
 }
@@ -280,11 +276,7 @@ configurations {
 
 dependencies {
     constraints {
-        lockedConf('org:foo') {
-            version {
-                prefer '1.1'
-            }
-        }
+        lockedConf('org:foo:1.1')
     }
     lockedConf 'org:foo:[1.0, 1.1]'
 }
