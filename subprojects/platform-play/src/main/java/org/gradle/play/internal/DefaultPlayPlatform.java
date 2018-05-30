@@ -20,7 +20,7 @@ import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
 
 public class DefaultPlayPlatform implements PlayPlatformInternal {
-    public final static String DEFAULT_PLAY_VERSION = "2.6.13";
+    public final static String DEFAULT_PLAY_VERSION = "2.6.15";
     private final String playVersion;
     private final ScalaPlatform scalaPlatform;
     private final JavaPlatform javaPlatform;
