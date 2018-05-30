@@ -204,15 +204,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         details.projectPath == ":project1"
         details.buildPath == ":"
 
-        if (failureCause) {
-            assert op.result == null
-            assert op.failure instanceof ProjectConfigurationException
-            assert op.failure.message == "A problem occurred configuring <project>."
-            assert op.failure.cause.is(failureCause)
-        } else {
-            assert op.result instanceof ConfigureProjectBuildOperationType.Result
-            assert op.failure == null
-        }
+        assertOpFailureOrNot(op, ConfigureProjectBuildOperationType.Result, failureCause)
     }
 
     static void assertBeforeEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
@@ -223,7 +215,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         details.projectPath == ":project1"
         details.buildPath == ":"
 
-        assertFailureOrResult(op, NotifyProjectBeforeEvaluatedBuildOperationType.Result, failureCause)
+        assertOpFailureOrNot(op, NotifyProjectBeforeEvaluatedBuildOperationType.Result, failureCause)
     }
 
     static void assertAfterEvaluateOp(TestBuildOperationExecutor.Log.Record op, Throwable failureCause = null) {
@@ -234,13 +226,15 @@ class LifecycleProjectEvaluatorTest extends Specification {
         details.projectPath == ":project1"
         details.buildPath == ":"
 
-        assertFailureOrResult(op, NotifyProjectAfterEvaluatedBuildOperationType.Result, failureCause)
+        assertOpFailureOrNot(op, NotifyProjectAfterEvaluatedBuildOperationType.Result, failureCause)
     }
 
-    static void assertFailureOrResult(TestBuildOperationExecutor.Log.Record op, Class<?> resultType, Throwable failureCause = null) {
+    private static void assertOpFailureOrNot(TestBuildOperationExecutor.Log.Record op, Class<?> resultType, Throwable failureCause) {
         if (failureCause) {
             assert op.result == null
-            assert op.failure.is(failureCause)
+            assert op.failure instanceof ProjectConfigurationException
+            assert op.failure.message == "A problem occurred configuring <project>."
+            assert op.failure.cause.is(failureCause)
         } else {
             assert resultType.isInstance(op.result)
             assert op.failure == null

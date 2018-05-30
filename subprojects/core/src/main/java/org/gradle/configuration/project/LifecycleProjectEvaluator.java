@@ -69,10 +69,15 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
-        ctx.failed(e);
-        state.executed(new ProjectConfigurationException(
+        Exception exception = wrapException(project, e);
+        ctx.failed(exception);
+        state.executed(exception);
+    }
+
+    private static Exception wrapException(ProjectInternal project, Exception e) {
+        return new ProjectConfigurationException(
             String.format("A problem occurred configuring %s.", project.getDisplayName()), e
-        ));
+        );
     }
 
     private class EvaluateProject implements RunnableBuildOperation {
@@ -176,7 +181,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
                     if (state.hasFailure()) {
                         // Just log this failure, and pass the existing failure out in the project state
                         logError(e, project);
-                        context.failed(e);
+                        context.failed(wrapException(project, e));
                     } else {
                         addConfigurationFailure(project, state, e, context);
                     }
