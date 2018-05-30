@@ -42,11 +42,13 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
+import org.gradle.internal.text.TreeFormatter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -325,14 +327,19 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public void rejected(Collection<RejectedVersion> rejectedVersions) {
         for (RejectedVersion rejectedVersion : rejectedVersions) {
+            String version = rejectedVersion.getId().getVersion();
             if (rejectedVersion instanceof RejectedBySelectorVersion) {
                 if (rejectedBySelectors == null) {
                     rejectedBySelectors = HashMultimap.create();
                 }
-                rejectedBySelectors.put(((RejectedBySelectorVersion) rejectedVersion).getRejectionSelector(), rejectedVersion.getId().getVersion());
+                rejectedBySelectors.put(((RejectedBySelectorVersion) rejectedVersion).getRejectionSelector(), version);
             } else if (rejectedVersion instanceof RejectedByRuleVersion) {
                 String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                addCause(VersionSelectionReasons.REJECTION.withReason("Rejected by rule" + (reason != null ? " because " + reason : "")));
+                addCause(VersionSelectionReasons.REJECTION.withReason(version + " by rule" + (reason != null ? " because " + reason : "")));
+            } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
+                TreeFormatter formatter = new TreeFormatter();
+                rejectedVersion.describeTo(formatter);
+                addCause(VersionSelectionReasons.REJECTION.withReason("version " + formatter.toString()));
             }
         }
     }
