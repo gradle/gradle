@@ -208,7 +208,7 @@ Searched in the following locations:
 
 
     static RejectedVersion reject(String version) {
-        new RejectedVersion(DefaultModuleComponentIdentifier.newId("org", "foo", version))
+        new RejectedVersion(DefaultModuleComponentIdentifier.newId("org", "foo", version)) {}
     }
 
     static RejectedByAttributesVersion rejectedByAttributes(String version, Map<String, List<String>> attributes) {

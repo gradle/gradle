@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -97,19 +98,22 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
             } else if (isRejectedBySelector(candidateId, rejectedVersionSelector)) {
                 // Mark this version as rejected
-                result.rejectedBySelector(candidateId);
-            } else if (isRejectedByRules(candidateId, rules, metadataProvider)) {
-                // Mark this version as rejected
-                result.rejectedByRule(candidateId);
-
-                // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
-                if (requestedVersionMatcher.matchesUniqueVersion()) {
-                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
-                    break;
-                }
+                result.rejectedBySelector(candidateId, rejectedVersionSelector);
             } else {
-                result.matches(candidateId);
-                return;
+                RejectedByRuleVersion rejectedByRules = isRejectedByRule(candidateId, rules, metadataProvider);
+                if (rejectedByRules != null) {
+                    // Mark this version as rejected
+                    result.rejectedByRule(rejectedByRules);
+
+                    // TODO:DAZ This logic should apply to rejection by constraint as well (or should at least be consistent)
+                    if (requestedVersionMatcher.matchesUniqueVersion()) {
+                        // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                        break;
+                    }
+                } else {
+                    result.matches(candidateId);
+                    return;
+                }
             }
         }
 
@@ -184,14 +188,17 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         }
     }
 
-    public boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
-        return isRejectedByRules(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
+    public RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider) {
+        return isRejectedByRule(candidateIdentifier, componentSelectionRules.getRules(), metadataProvider);
     }
 
-    private boolean isRejectedByRules(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
+    private RejectedByRuleVersion isRejectedByRule(ModuleComponentIdentifier candidateIdentifier, Collection<SpecRuleAction<? super ComponentSelection>> rules, MetadataProvider metadataProvider) {
         ComponentSelectionInternal selection = new DefaultComponentSelection(candidateIdentifier);
         rulesProcessor.apply(selection, rules, metadataProvider);
-        return selection.isRejected();
+        if (selection.isRejected()) {
+            return new RejectedByRuleVersion(candidateIdentifier, selection.getRejectionReason());
+        }
+        return null;
     }
 
     private boolean isRejectedBySelector(ModuleComponentIdentifier candidateIdentifier, VersionSelector rejectedVersionSelector) {

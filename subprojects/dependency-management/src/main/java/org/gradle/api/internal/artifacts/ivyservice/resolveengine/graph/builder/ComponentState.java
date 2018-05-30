@@ -16,13 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
@@ -35,18 +42,31 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
+    private final static Comparator<String> VERSION_COMPARATOR = new Comparator<String>() {
+        private final VersionParser parser = new VersionParser();
+        private final Comparator<Version> comparator = new DefaultVersionComparator().asVersionComparator();
+
+        @Override
+        public int compare(String o1, String o2) {
+            return comparator.compare(parser.transform(o2), parser.transform(o1));
+        }
+    };
+
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
     private final ComponentMetaDataResolver resolver;
@@ -56,8 +76,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
     private final ImmutableCapability implicitCapability;
-    private final Set<String> unmatchedVersions = Sets.newLinkedHashSet();
-    private final Set<RejectedVersion> rejectedVersions = Sets.newLinkedHashSet();
+    private Multimap<VersionSelector, String> rejectedBySelectors;
 
     private volatile ComponentResolveMetadata metadata;
 
@@ -193,12 +212,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public ComponentSelectionReasonInternal getSelectionReason() {
         if (root) {
-            return (ComponentSelectionReasonInternal) VersionSelectionReasons.root();
+            return VersionSelectionReasons.root();
         }
         ComponentSelectionReasonInternal reason = VersionSelectionReasons.empty();
-        for (SelectorState selectorState : module.getSelectors()) {
+        for (final SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason);
+                selectorState.addReasonsForSelector(reason, new RejectedBySelectorDescriptorBuilder(selectorState));
+
             }
         }
         for (ComponentSelectionDescriptorInternal selectionCause : selectionCauses) {
@@ -305,7 +325,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public void rejected(Collection<RejectedVersion> rejectedVersions) {
         for (RejectedVersion rejectedVersion : rejectedVersions) {
-            addCause(VersionSelectionReasons.REJECTION.withReason("version " + rejectedVersion.getId().getVersion() + " was rejected"));
+            if (rejectedVersion instanceof RejectedBySelectorVersion) {
+                if (rejectedBySelectors == null) {
+                    rejectedBySelectors = HashMultimap.create();
+                }
+                rejectedBySelectors.put(((RejectedBySelectorVersion) rejectedVersion).getRejectionSelector(), rejectedVersion.getId().getVersion());
+            } else if (rejectedVersion instanceof RejectedByRuleVersion) {
+                String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
+                addCause(VersionSelectionReasons.REJECTION.withReason("Rejected by rule" + (reason != null ? " because " + reason : "")));
+            }
         }
     }
 
@@ -386,4 +414,26 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return null;
     }
 
+    private class RejectedBySelectorDescriptorBuilder implements Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> {
+        private final SelectorState selectorState;
+
+        public RejectedBySelectorDescriptorBuilder(SelectorState selectorState) {
+            this.selectorState = selectorState;
+        }
+
+        @Override
+        public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal descriptor) {
+            if (rejectedBySelectors != null) {
+                Collection<String> rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getRejectedSelector());
+                if (!rejectedByThisSelector.isEmpty()) {
+                    List<String> sorted = Lists.newArrayList(rejectedByThisSelector);
+                    Collections.sort(sorted, VERSION_COMPARATOR);
+                    String description = descriptor.hasCustomDescription() ? " because " + descriptor.getDescription() : "";
+                    String intro = rejectedByThisSelector.size() > 1 ? "rejected versions " : "rejected version ";
+                    descriptor = descriptor.withReason(intro + Joiner.on(", ").join(sorted) + description);
+                }
+            }
+            return descriptor;
+        }
+    }
 }

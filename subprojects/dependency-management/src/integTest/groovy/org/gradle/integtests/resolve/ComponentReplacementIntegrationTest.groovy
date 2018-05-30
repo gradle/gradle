@@ -388,13 +388,17 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         run 'dependencyInsight', '--configuration=conf', '--dependency=a'
 
         then:
-        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1 (A replaced with B)
+        result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - By conflict resolution
+      - Selected by rule : A replaced with B
 
-org:a:1 -> org:b:1
-\\--- conf""")
+
+org:a:1 -> org:b:1""")
 
         when:
         run 'check'

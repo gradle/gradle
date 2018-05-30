@@ -567,7 +567,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:$notation", "org:foo:1.0")
+                edge("org:foo:$notation", "org:foo:1.0").byReason("rejected version 1.1")
             }
         }
 
@@ -656,7 +656,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:[1.0,)", "org:foo:1.1")
+                edge("org:foo:[1.0,)", "org:foo:1.1").byReason("rejected versions 1.5, 1.4, 1.3, 1.2")
             }
         }
     }
@@ -738,7 +738,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:$notation", "org:foo:1.$selected")
+                String rejectedVersions = (selected+1..5).collect { "1.${it}" }.reverse().join(", ")
+                edge("org:foo:$notation", "org:foo:1.$selected").byReason("rejected versions ${rejectedVersions}")
             }
         }
 
