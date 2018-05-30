@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state.mirror;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.changedetection.state.DirectoryFileSnapshot;
@@ -24,10 +26,15 @@ import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.MissingFileSnapshot;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshot;
 
+import java.io.File;
+
 public class FileSnapshotHelper {
-    public static FileSnapshot create(String absolutePath, Iterable<String> relativePath, FileContentSnapshot content) {
+    private static final Joiner JOINER =Joiner.on(File.separatorChar).skipNulls();
+
+    public static FileSnapshot create(String basePath, Iterable<String> relativePath, FileContentSnapshot content) {
         String[] segments = Iterables.toArray(relativePath, String.class);
         FileSnapshot snapshot;
+        String absolutePath = JOINER.join(Strings.emptyToNull(basePath), Strings.emptyToNull(JOINER.join(relativePath)));
         switch (content.getType()) {
             case Directory:
                 snapshot = new DirectoryFileSnapshot(absolutePath, new RelativePath(false, segments), false);

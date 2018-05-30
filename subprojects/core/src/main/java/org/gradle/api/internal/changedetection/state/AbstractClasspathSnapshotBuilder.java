@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileVisitor;
@@ -72,7 +70,7 @@ public abstract class AbstractClasspathSnapshotBuilder implements VisitingFileCo
             public void visit(String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
                 if (content.getType() == FileType.RegularFile) {
                     RegularFileSnapshot fileSnapshot = Cast.uncheckedCast(FileSnapshotHelper.create(
-                        Joiner.on("/").skipNulls().join(Strings.emptyToNull(basePath), Strings.emptyToNull(Joiner.on('/').join(relativePath))),
+                        basePath,
                         relativePath,
                         content
                     ));

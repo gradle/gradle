@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.changedetection.state.mirror.FileSnapshotHelper;
 import org.gradle.api.internal.changedetection.state.mirror.PhysicalFileVisitor;
@@ -39,8 +37,7 @@ public class FileCollectionVisitingSnapshotBuilder implements VisitingFileCollec
         tree.visit(new PhysicalFileVisitor() {
             @Override
             public void visit(String basePath, String name, Iterable<String> relativePath, FileContentSnapshot content) {
-                String absolutePath = Joiner.on("/").skipNulls().join(Strings.emptyToNull(basePath), Strings.emptyToNull(Joiner.on('/').join(relativePath)));
-                builder.collectFileSnapshot(FileSnapshotHelper.create(absolutePath, relativePath, content));
+                builder.collectFileSnapshot(FileSnapshotHelper.create(basePath, relativePath, content));
             }
         });
     }

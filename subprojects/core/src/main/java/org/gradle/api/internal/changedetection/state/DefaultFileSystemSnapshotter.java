@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
@@ -62,6 +63,7 @@ import java.util.List;
  */
 @NonNullApi
 public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
+    private static final Joiner PATH_JOINER = Joiner.on(File.separatorChar);
     private final FileHasher hasher;
     private final StringInterner stringInterner;
     private final FileSystem fileSystem;
@@ -197,8 +199,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                     @Override
                     public void visitFile(FileVisitDetails fileDetails) {
                         String absolutePath = internPath(fileDetails.getFile());
-                        String relativePath = fileDetails.getPath();
-                        if (absolutePath.endsWith(relativePath) && (absolutePath.charAt(absolutePath.length() - relativePath.length() - 1) == '/')) {
+                        String relativePath = PATH_JOINER.join(fileDetails.getRelativePath());
+                        if (absolutePath.endsWith(relativePath) && (absolutePath.charAt(absolutePath.length() - relativePath.length() - 1) == File.separatorChar)) {
                             absolutePath =  stringInterner.intern(absolutePath.substring(0, absolutePath.length() - relativePath.length() - 1));
                             visitor.visit(absolutePath, fileDetails.getName(), fileDetails.getRelativePath(), fileSnapshot(fileDetails));
                         } else {
