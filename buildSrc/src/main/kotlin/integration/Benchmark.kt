@@ -149,17 +149,17 @@ open class Benchmark : DefaultTask() {
         val sampleName = sampleDir.name
         println("samples/$sampleName")
 
-        val baselineConfig = BenchmarkRunConfig("baseline", sampleName, sampleDir, config)
-        val baseline = benchmarkWith(
-            connectorFor(baselineConfig),
-            baselineConfig)
-        println("\tbaseline: ${format(baseline)}")
-
         val latestConfig = BenchmarkRunConfig("latest", sampleName, sampleDir, config)
         val latest = benchmarkWith(
             connectorFor(latestConfig).useInstallation(latestInstallation!!),
             latestConfig)
         println("\tlatest:   ${format(latest)}")
+
+        val baselineConfig = BenchmarkRunConfig("baseline", sampleName, sampleDir, config)
+        val baseline = benchmarkWith(
+            connectorFor(baselineConfig),
+            baselineConfig)
+        println("\tbaseline: ${format(baseline)}")
 
         val quotient = latest.median.ms / baseline.median.ms
         println("\tlatest / baseline: %.2f".format(quotient))
