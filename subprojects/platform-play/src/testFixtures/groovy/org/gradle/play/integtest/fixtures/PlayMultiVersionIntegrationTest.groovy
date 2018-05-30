@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
-import static org.gradle.api.JavaVersion.current
-
-@TargetCoverage({ current().isJava9Compatible() ? PlayCoverage.JDK9_COMPATIBLE_VERSIONS : (current().isJava8Compatible() ? PlayCoverage.ALL : PlayCoverage.PLAY23_OR_EARLIER) })
+@TargetCoverage({ PlayCoverage.DEFAULT })
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     static boolean isPlay22(def version) {
