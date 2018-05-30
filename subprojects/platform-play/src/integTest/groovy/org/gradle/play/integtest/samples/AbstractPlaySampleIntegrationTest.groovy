@@ -20,11 +20,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
 
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
     File initScript
@@ -45,6 +47,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
             gradle.allprojects {
                 tasks.withType(PlayRun) {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
         """

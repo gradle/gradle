@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.VersionNumber
 
@@ -45,6 +46,14 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
         if (versionNumber >= VersionNumber.parse('2.5.0')) {
             // Failed to load class "org.slf4j.impl.StaticLoggerBinder"
             addDependency("ch.qos.logback:logback-classic:1.2.3")
+        }
+    }
+
+    static java9AddJavaSqlModuleArgs() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            return "forkOptions.jvmArgs += ['--add-modules', 'java.sql']"
+        } else {
+            return ""
         }
     }
 

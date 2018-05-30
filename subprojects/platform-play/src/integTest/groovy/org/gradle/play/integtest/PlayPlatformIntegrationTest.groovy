@@ -15,6 +15,7 @@
  */
 package org.gradle.play.integtest
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest.isPlay22
@@ -47,6 +49,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "can build play app binary for specified platform [#platform]"() {
         when:
         buildFile << """
@@ -84,7 +87,7 @@ model {
 
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @IgnoreIf({ !JavaVersion.current().isJava8() })
     @Unroll
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         when:

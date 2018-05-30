@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
+import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
@@ -29,6 +30,8 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+
+import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.*
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
@@ -98,6 +101,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     model {
         tasks.runPlayBinary {
             httpPort = 0
+            ${java9AddJavaSqlModuleArgs()}
         }
     }
 """

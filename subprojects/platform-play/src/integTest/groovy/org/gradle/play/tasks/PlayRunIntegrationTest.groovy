@@ -28,6 +28,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
             model {
                 tasks.runPlayBinary {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
         """

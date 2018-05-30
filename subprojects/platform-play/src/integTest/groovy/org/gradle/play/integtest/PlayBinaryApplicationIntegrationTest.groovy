@@ -45,6 +45,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
             model {
                 tasks.runPlayBinary {
                     httpPort = 0
+                    ${java9AddJavaSqlModuleArgs()}
                 }
             }
         """
