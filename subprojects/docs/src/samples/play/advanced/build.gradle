@@ -9,7 +9,7 @@ plugins {
 model {
     components {
         play {
-            platform play: '2.5.18', scala: '2.11', java: '1.8'
+            platform play: '2.6.15', scala: '2.12', java: '1.8'
             injectedRoutesGenerator = true
         }
     }

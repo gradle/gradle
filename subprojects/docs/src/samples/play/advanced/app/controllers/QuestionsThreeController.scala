@@ -10,7 +10,7 @@ import models.Person
 import javax.inject._
 
 @Singleton
-class QuestionsThreeController @Inject()(val messagesApi: MessagesApi) extends InjectedController with I18nSupport {
+class QuestionsThreeController @Inject()(override val messagesApi: MessagesApi) extends InjectedController with I18nSupport {
     val personForm = Form(
         mapping(
             "name" -> nonEmptyText,
@@ -31,7 +31,7 @@ class QuestionsThreeController @Inject()(val messagesApi: MessagesApi) extends I
         )
     }
 
-    def index = Action {
+    def index = Action { implicit request =>
         Ok(views.html.person(personForm))
     }
 }

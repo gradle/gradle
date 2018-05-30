@@ -34,7 +34,7 @@ class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpe
             $PLAY_REPOSITORIES
 
             dependencies {
-                play 'org.projectlombok:lombok:1.16.2'
+                play 'org.projectlombok:lombok:1.16.22'
             }
         """
 
