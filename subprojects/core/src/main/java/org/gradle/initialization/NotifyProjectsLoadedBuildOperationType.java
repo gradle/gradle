@@ -20,17 +20,14 @@ import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * An operation to run the projectsEvaluated lifecycle hook.
+ * An operation to run the projectsLoaded lifecycle hook.
  *
  * @since 4.9
  */
-public final class ProjectsEvaluatedBuildOperationType implements BuildOperationType<ProjectsEvaluatedBuildOperationType.Details, ProjectsEvaluatedBuildOperationType.Result> {
+public final class NotifyProjectsLoadedBuildOperationType implements BuildOperationType<NotifyProjectsLoadedBuildOperationType.Details, NotifyProjectsLoadedBuildOperationType.Result> {
 
     @UsedByScanPlugin
     public interface Details {
-        /**
-         * @since 4.9
-         */
         String getBuildPath();
     }
 

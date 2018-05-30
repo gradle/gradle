@@ -171,7 +171,7 @@ class DefaultGradleLauncherSpec extends Specification {
         assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build (:nested)"
         assert buildOperationExecutor.operations[1].displayName == "Configure build (:nested)"
-        assert buildOperationExecutor.operations[2].displayName == "Execute projectsEvaluated hooks (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Notify projectsEvaluated listeners (:nested)"
         assert buildOperationExecutor.operations[3].displayName == "Calculate task graph (:nested)"
         assert buildOperationExecutor.operations[4].displayName == "Run tasks (:nested)"
     }
@@ -321,7 +321,7 @@ class DefaultGradleLauncherSpec extends Specification {
         assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build"
         assert buildOperationExecutor.operations[1].displayName == "Configure build"
-        assert buildOperationExecutor.operations[2].displayName == "Execute projectsEvaluated hooks"
+        assert buildOperationExecutor.operations[2].displayName == "Notify projectsEvaluated listeners"
         assert buildOperationExecutor.operations[3].displayName == "Calculate task graph"
         assert buildOperationExecutor.operations[4].displayName == "Run tasks"
     }

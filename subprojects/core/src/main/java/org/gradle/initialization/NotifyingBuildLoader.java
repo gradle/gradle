@@ -22,9 +22,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Comparator;
@@ -32,7 +32,8 @@ import java.util.Set;
 
 public class NotifyingBuildLoader implements BuildLoader {
 
-    private static final ProjectsLoadedBuildOperationType.Result PROJECTS_LOADED_OP_RESULT = new ProjectsLoadedBuildOperationType.Result() {};
+    private static final NotifyProjectsLoadedBuildOperationType.Result PROJECTS_LOADED_OP_RESULT = new NotifyProjectsLoadedBuildOperationType.Result() {
+    };
 
     private final BuildLoader buildLoader;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -51,11 +52,11 @@ public class NotifyingBuildLoader implements BuildLoader {
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Load projects").
                         progressDisplayName("Loading projects").details(new LoadProjectsBuildOperationType.Details() {
-                            @Override
-                            public String getBuildPath() {
-                                return buildPath;
-                            }
-                        });
+                        @Override
+                        public String getBuildPath() {
+                            return buildPath;
+                        }
+                    });
                 }
 
                 @Override
@@ -75,8 +76,13 @@ public class NotifyingBuildLoader implements BuildLoader {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Execute projectsLoaded hooks")
-                        .details(new ProjectsLoadedOperationDetails(buildPath));
+                    return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsLoaded listeners"))
+                        .details(new NotifyProjectsLoadedBuildOperationType.Details() {
+                            @Override
+                            public String getBuildPath() {
+                                return buildPath;
+                            }
+                        });
                 }
             });
 
@@ -118,19 +124,6 @@ public class NotifyingBuildLoader implements BuildLoader {
         @Override
         public Project getRootProject() {
             return rootProject;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return buildPath;
-        }
-    }
-
-    private static final class ProjectsLoadedOperationDetails implements ProjectsLoadedBuildOperationType.Details {
-        private final String buildPath;
-
-        private ProjectsLoadedOperationDetails(String buildPath) {
-            this.buildPath = buildPath;
         }
 
         @Override
