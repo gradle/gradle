@@ -20,50 +20,64 @@ import org.gradle.api.ProjectState;
 import org.gradle.internal.UncheckedException;
 
 public class ProjectStateInternal implements ProjectState {
-    private boolean executing;
-    private boolean executed;
+
+    enum State {
+        NOT_EXECUTED,
+        EXECUTING,
+        EXECUTED
+    }
+
+    private State state = State.NOT_EXECUTED;
     private Throwable failure;
 
+    @Override
     public boolean getExecuted() {
-        return executed;
+        return state == State.EXECUTED;
+    }
+
+    public boolean getNotExecuted() {
+        return state == State.NOT_EXECUTED;
+    }
+
+    public boolean getExecuting() {
+        return state == State.EXECUTING;
+    }
+
+    public void executing() {
+        state = State.EXECUTING;
     }
 
     public void executed() {
-        executed = true;
+        state = State.EXECUTED;
     }
 
     public void executed(Throwable failure) {
         assert this.failure == null;
         this.failure = failure;
-        executed = true;
-    }
-
-    public boolean getExecuting() {
-        return executing;
-    }
-
-    public void setExecuting(boolean executing) {
-        this.executing = executing;
+        executed();
     }
 
     public boolean hasFailure() {
         return failure != null;
     }
 
+    @Override
     public Throwable getFailure() {
         return failure;
     }
 
+    @Override
     public void rethrowFailure() {
         if (failure == null) {
             return;
         }
         throw UncheckedException.throwAsUncheckedException(failure);
     }
-    
+
+    @Override
     public String toString() {
         String state;
-        
+
         if (getExecuting()) {
             state = "EXECUTING";
         } else if (getExecuted()) {
@@ -75,7 +89,7 @@ public class ProjectStateInternal implements ProjectState {
         } else {
             state = "NOT EXECUTED";
         }
-        
+
         return String.format("project state '%s'", state);
     }
 }

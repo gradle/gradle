@@ -452,12 +452,12 @@ class DefaultProjectTest {
     @Test(expected = CircularReferenceException)
     void testEvaluationDependsOnWithCircularDependency() {
         final ProjectEvaluator mockReader1 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+            state.executing()
             project.evaluationDependsOn(child1.path)
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [evaluate: { DefaultProject project, ProjectState state ->
-            state.executing = true
+            state.executing()
             project.evaluationDependsOn(project.path)
             testScript
         }] as ProjectEvaluator
