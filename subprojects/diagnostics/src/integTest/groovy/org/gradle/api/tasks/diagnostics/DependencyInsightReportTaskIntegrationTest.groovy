@@ -1903,7 +1903,8 @@ org:bar:1.0
    ]
    Selection reasons:
       - Was requested
-      - Rejection : Rejected by rule because version 1.2 is bad, Rejected by rule because version 1.1 is bad
+      - Rejection : 1.2 by rule because version 1.2 is bad
+      - Rejection : 1.1 by rule because version 1.1 is bad
 
 
 org:bar:[1.0,) -> 1.0
@@ -2149,5 +2150,72 @@ org:foo:[1.0,) FAILED
 \\--- org.test:c:1.0
      \\--- org.test:b:1.0
           \\--- compileClasspath"""
+    }
+
+    @Unroll
+    def "shows that version is rejected because of attributes (#type)"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+
+        def attributes = """{
+                    attributes {
+                        attribute(COLOR, 'blue')
+                    }
+                }"""
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            def COLOR = Attribute.of('color', String)
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+               compileClasspath ${type=='configuration'?attributes:''}
+            }
+
+            dependencies {
+                implementation('org:foo:[1.0,)') ${type=='dependency'?attributes:''}
+                
+                components.all { details ->
+                   attributes {
+                      def colors = ['1.0' : 'blue', '1.1': 'green', '1.2': 'red']
+                      attribute(COLOR, colors[details.id.version])
+                   }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "foo"
+
+        then:
+        outputContains """Task :dependencyInsight
+org:foo:1.0
+   variant "default" [
+      color             = blue
+      org.gradle.status = release (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested
+      - Rejection : version 1.2:
+          - Attribute 'color' didn't match. Requested 'blue', was: 'red'
+          - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
+      - Rejection : version 1.1:
+          - Attribute 'color' didn't match. Requested 'blue', was: 'green'
+          - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
+
+
+org:foo:[1.0,) -> 1.0
+\\--- compileClasspath
+"""
+        where:
+        type << ['configuration', 'dependency']
     }
 }

@@ -17,12 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
@@ -53,7 +49,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class DependencyInsightReporter {
 
@@ -121,31 +116,20 @@ public class DependencyInsightReporter {
 
     private static SelectionReasonsSection buildSelectionReasonSection(ComponentSelectionReason reason) {
         SelectionReasonsSection selectionReasons = new SelectionReasonsSection();
-        Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> descriptionsByCause = groupByCause(reason.getDescriptions());
-        for (Map.Entry<ComponentSelectionCause, Collection<ComponentSelectionDescriptorInternal>> entry : descriptionsByCause.asMap().entrySet()) {
-            ComponentSelectionCause cause = entry.getKey();
-            Collection<ComponentSelectionDescriptorInternal> descriptors = entry.getValue();
-            List<ComponentSelectionDescriptorInternal> withCustomDescription = ImmutableList.copyOf(Iterables.filter(descriptors, HAS_CUSTOM_DESCRIPTION));
-            boolean hasCustomDescription = !withCustomDescription.isEmpty();
+        for (ComponentSelectionDescriptor entry : reason.getDescriptions()) {
+            ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) entry;
+            ComponentSelectionCause cause = descriptor.getCause();
+            boolean hasCustomDescription = descriptor.hasCustomDescription();
             String message = null;
             if (hasCustomDescription) {
                 selectionReasons.shouldDisplay();
-                message = Joiner.on(", ").join(Iterables.transform(withCustomDescription, GET_DESCRIPTION));
+                message = descriptor.getDescription();
             }
             String prettyCause = prettyCause(cause);
             Section item = new DefaultSection(hasCustomDescription ? prettyCause + " : " + message : prettyCause);
             selectionReasons.addChild(item);
         }
         return selectionReasons;
-    }
-
-    private static Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> groupByCause(List<ComponentSelectionDescriptor> descriptors) {
-        Multimap<ComponentSelectionCause, ComponentSelectionDescriptorInternal> groupedByCause = LinkedHashMultimap.create();
-        for (ComponentSelectionDescriptor raw : descriptors) {
-            ComponentSelectionDescriptorInternal desc = (ComponentSelectionDescriptorInternal) raw;
-            groupedByCause.put(desc.getCause(), desc);
-        }
-        return groupedByCause;
     }
 
     private static String prettyCause(ComponentSelectionCause cause) {
