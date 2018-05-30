@@ -23,7 +23,7 @@ import java.util.Properties
 import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
 
 buildscript {
-    apply {
+    project.apply {
         from("$rootDir/../gradle/shared-with-buildSrc/mirrors.gradle.kts")
     }
 }
