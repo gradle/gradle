@@ -18,8 +18,14 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.play.internal.DefaultPlayPlatform
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
+
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
+@Issue("Play 2.2/2.3 don't support Java 9+")
 class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def baseBuildFile = """
         plugins {
