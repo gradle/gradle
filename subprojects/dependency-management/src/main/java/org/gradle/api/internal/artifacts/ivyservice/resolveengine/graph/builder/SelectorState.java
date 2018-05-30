@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -50,6 +51,12 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
  *    In this case {@link #resolved} will be `true` and {@link ModuleResolveState#selected} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+    public static final Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> IDENTITY = new Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal>() {
+        @Override
+        public ComponentSelectionDescriptorInternal transform(ComponentSelectionDescriptorInternal componentSelectionDescriptorInternal) {
+            return componentSelectionDescriptorInternal;
+        }
+    };
     private final Long id;
     private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
@@ -184,15 +191,15 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public ComponentSelectionReasonInternal getSelectionReason() {
         // Create a component selection reason specific to this selector.
-        return addReasonsForSelector(VersionSelectionReasons.empty());
+        return addReasonsForSelector(VersionSelectionReasons.empty(), IDENTITY);
     }
 
-    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
+    ComponentSelectionReasonInternal addReasonsForSelector(ComponentSelectionReasonInternal selectionReason, Transformer<ComponentSelectionDescriptorInternal, ComponentSelectionDescriptorInternal> transformer) {
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
         if (dependencyMetadata.getReason() != null) {
             dependencyDescriptor = dependencyDescriptor.withReason(dependencyMetadata.getReason());
         }
-        selectionReason.addCause(dependencyDescriptor);
+        selectionReason.addCause(transformer.transform(dependencyDescriptor));
 
         if (dependencyState.getRuleDescriptor() != null) {
             selectionReason.addCause(dependencyState.getRuleDescriptor());

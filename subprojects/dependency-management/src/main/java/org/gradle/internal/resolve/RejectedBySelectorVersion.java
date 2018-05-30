@@ -15,23 +15,24 @@
  */
 package org.gradle.internal.resolve;
 
-import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 
-public abstract class RejectedVersion {
-    private final ModuleComponentIdentifier id;
+public class RejectedBySelectorVersion extends RejectedVersion {
+    private final VersionSelector rejectionSelector;
 
-    public RejectedVersion(ModuleComponentIdentifier id) {
-        this.id = id;
+    public RejectedBySelectorVersion(ModuleComponentIdentifier id, VersionSelector rejectionSelector) {
+        super(id);
+        this.rejectionSelector = rejectionSelector;
     }
 
-    public ModuleComponentIdentifier getId() {
-        return id;
+    public VersionSelector getRejectionSelector() {
+        return rejectionSelector;
     }
 
-    public void describeTo(TreeFormatter builder) {
-        builder.node(id.getVersion());
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
     }
 
     @Override
@@ -42,12 +43,8 @@ public abstract class RejectedVersion {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RejectedVersion that = (RejectedVersion) o;
-        return Objects.equal(id, that.id);
-    }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+        RejectedBySelectorVersion that = (RejectedBySelectorVersion) o;
+        return getId().equals(that.getId());
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 
 class DependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
