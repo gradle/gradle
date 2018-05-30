@@ -196,7 +196,14 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
                     @Override
                     public void visitFile(FileVisitDetails fileDetails) {
-                        visitor.visit(internPath(fileDetails.getFile()), fileDetails.getName(), RelativePath.EMPTY_ROOT, fileSnapshot(fileDetails));
+                        String absolutePath = internPath(fileDetails.getFile());
+                        String relativePath = fileDetails.getPath();
+                        if (absolutePath.endsWith(relativePath) && (absolutePath.charAt(absolutePath.length() - relativePath.length() - 1) == '/')) {
+                            absolutePath =  stringInterner.intern(absolutePath.substring(0, absolutePath.length() - relativePath.length() - 1));
+                            visitor.visit(absolutePath, fileDetails.getName(), fileDetails.getRelativePath(), fileSnapshot(fileDetails));
+                        } else {
+                            visitor.visit(absolutePath, fileDetails.getName(), RelativePath.EMPTY_ROOT, fileSnapshot(fileDetails));
+                        }
                     }
                 });
             }
