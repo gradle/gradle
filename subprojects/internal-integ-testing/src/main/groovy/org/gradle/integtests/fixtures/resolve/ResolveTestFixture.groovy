@@ -210,7 +210,7 @@ allprojects {
         String module = line.substring(start, idx) // [mv:
         start = idx + 9
         idx = line.indexOf(']', start) // [reason:
-        List<String> reasons = line.substring(start, idx).split(',') as List<String>
+        List<String> reasons = line.substring(start, idx).split('!!') as List<String>
         start = idx + 15
         String variant = null
         Map<String, String> attributes = [:]
@@ -534,7 +534,7 @@ allprojects {
         }
 
         String getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
+            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
         }
 
         private NodeBuilder addNode(String id, String moduleVersionId = id) {
@@ -821,7 +821,7 @@ class GenerateGraphTask extends DefaultTask {
     }
 
     def formatReason(ComponentSelectionReason reason) {
-        def reasons = reason.descriptions.collect { it.description }.join(',')
+        def reasons = reason.descriptions.collect { it.description }.join('!!')
         return reasons
     }
 }

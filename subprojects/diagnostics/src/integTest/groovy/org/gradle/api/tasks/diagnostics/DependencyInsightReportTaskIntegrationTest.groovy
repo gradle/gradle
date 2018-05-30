@@ -301,7 +301,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0'])
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -352,7 +352,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -556,11 +556,14 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        outputContains """
-org.test:bar:2.0 (why not?)
+        outputContains """org.test:bar:2.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - Selected by rule : why not?
+
 
 org:bar:1.0 -> org.test:bar:2.0
 \\--- conf
@@ -571,10 +574,14 @@ org:baz:1.0 (selected by rule)
    ]
 \\--- conf
 
-org:foo:2.0 (because I am in control)
+org:foo:2.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - Selected by rule : because I am in control
+
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -613,10 +620,14 @@ org:foo:1.0 -> 2.0
         run "insight"
 
         then:
-        outputContains """org:bar:1.0 (foo superceded by bar)
+        outputContains """org:bar:1.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - Selected by rule : foo superceded by bar
+
 
 org:foo:1.0 -> org:bar:1.0
 \\--- conf
@@ -703,19 +714,26 @@ org:leaf:2.0 -> org:new-leaf:77
         run "insight"
 
         then:
-        outputContains """
-org:bar:2.0 (I am not sure I want to explain)
+        outputContains """org:bar:2.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - Selected by rule : I am not sure I want to explain
+
 
 org:bar:1.0 -> 2.0
 \\--- conf
 
-org:foo:2.0 (I want to)
+org:foo:2.0
    variant "default" [
       org.gradle.status = release (not requested)
    ]
+   Selection reasons:
+      - Was requested
+      - Selected by rule : I want to
+
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -1633,7 +1651,8 @@ foo:foo:1.0
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        outputContains """org:foo:$selected (via constraint)
+        if (!rejected) {
+            outputContains """org:foo:$selected (via constraint)
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
@@ -1643,11 +1662,27 @@ foo:foo:1.0
 org:foo -> $selected
 \\--- compileClasspath
 """
+        } else {
+            outputContains """org:foo:$selected
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested
+      - By constraint : $rejected
+
+
+org:foo -> $selected
+\\--- compileClasspath"""
+        }
+
         where:
-        version                             | selected
-        "prefer '[1.0, 2.0)'"               | '1.5'
-        "strictly '[1.1, 1.4]'"             | '1.4'
-        "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'
+        version                             | selected | rejected
+        "prefer '[1.0, 2.0)'"               | '1.5'    | ""
+        "strictly '[1.1, 1.4]'"             | '1.4'    | ""
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'    | "rejected version 1.4"
     }
 
     @Unroll
@@ -1663,11 +1698,11 @@ org:foo -> $selected
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org:foo' // no version
                 constraints {
@@ -1683,21 +1718,25 @@ org:foo -> $selected
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        outputContains """org:foo:$selected (via constraint, $reason)
+        outputContains """org:foo:$selected
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+   Selection reasons:
+      - Was requested
+      - By constraint : ${rejected}${reason}
+
 
 org:foo -> $selected
 \\--- compileClasspath
 """
         where:
-        version                             | reason                                          | selected
-        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'
-        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'
-        "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'
+        version                             | reason                                          | selected | rejected
+        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'    | ""
+        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'    | ""
+        "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
     @Unroll
@@ -1713,11 +1752,11 @@ org:foo -> $selected
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation('org:foo') {
                    version { $version }
@@ -1730,22 +1769,161 @@ org:foo -> $selected
         run "dependencyInsight", "--dependency", "foo"
 
         then:
-        outputContains """org:foo:$selected ($reason)
+        outputContains """org:foo:$selected
    variant "default" [
       org.gradle.status = release (not requested)
       Requested attributes not found in the selected variant:
          org.gradle.usage  = java-api
    ]
+   Selection reasons:
+      - Was requested : ${rejected}${reason}
 
-org:foo:$displayVersion -> $selected
+
+org:foo:${displayVersion} -> $selected
 \\--- compileClasspath
 """
         where:
-        version                             | displayVersion | reason                                          | selected
-        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'
-        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'
-        "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'
+        version                             | displayVersion | reason                                          | selected | rejected
+        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | ""
+        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | ""
+        "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
+
+    def "does't mix rejected versions on different constraints"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.1").publish()
+        mavenRepo.module("org", "bar", "1.2").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation('org:foo') {
+                   version {
+                      prefer '[1.0,)'
+                      reject '1.2'
+                   }
+                }
+                implementation('org:bar') {
+                   version {
+                      prefer '[1.0,)'
+                      reject '[1.1, 1.2]'
+                   }
+                }
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "org"
+
+        then:
+        outputContains """org:bar:1.0
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested : rejected versions 1.2, 1.1
+
+
+org:bar:[1.0,) -> 1.0
+\\--- compileClasspath
+
+org:foo:1.1
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested : rejected version 1.2
+
+
+org:foo:[1.0,) -> 1.1
+\\--- compileClasspath
+"""
+    }
+
+    def "shows versions rejected by rule"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.1").publish()
+        mavenRepo.module("org", "bar", "1.2").publish()
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation('org:foo') {
+                   version {
+                      prefer '[1.0,)'
+                      reject '1.2'
+                   }
+                }
+                implementation('org:bar') {
+                   version {
+                      prefer '[1.0,)'
+                   }
+                }
+            }
+            
+            configurations.compileClasspath.resolutionStrategy.componentSelection.all { ComponentSelection selection ->
+               if (selection.candidate.module == 'bar' && selection.candidate.version in ['1.2', '1.1']) {
+                  selection.reject("version \${selection.candidate.version} is bad")
+               } 
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "org"
+
+        then:
+        outputContains """Task :dependencyInsight
+org:bar:1.0
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested
+      - Rejection : Rejected by rule because version 1.2 is bad, Rejected by rule because version 1.1 is bad
+
+
+org:bar:[1.0,) -> 1.0
+\\--- compileClasspath
+
+org:foo:1.1
+   variant "default" [
+      org.gradle.status = release (not requested)
+      Requested attributes not found in the selected variant:
+         org.gradle.usage  = java-api
+   ]
+   Selection reasons:
+      - Was requested : rejected version 1.2
+
+
+org:foo:[1.0,) -> 1.1
+\\--- compileClasspath
+"""
+    }
+
 
     def "renders dependency from BOM as a constraint"() {
         given:
@@ -1759,11 +1937,11 @@ org:foo:$displayVersion -> $selected
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org:bom:1.0'
                 implementation 'org:leaf'
@@ -1801,11 +1979,11 @@ org:leaf -> 1.0
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org.test:a:1.0'
             }
@@ -1882,20 +2060,20 @@ A web-based, searchable dependency report is available by adding the --scan opti
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 constraints {
                     implementation('org:foo') {
-                       version { 
-                          reject '1.0', '1.1', '1.2' 
+                       version {
+                          reject '1.0', '1.1', '1.2'
                        }
                     }
                     implementation('org:bar') {
-                       version { 
+                       version {
                           rejectAll()
                        }
                        because "Nope, you won't use this"
@@ -1945,11 +2123,11 @@ org:foo:[1.0,) FAILED
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org.test:a:1.0'
                 implementation 'org.test:b:1.0'

@@ -17,21 +17,22 @@ package org.gradle.internal.resolve;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.text.TreeFormatter;
 
-public abstract class RejectedVersion {
-    private final ModuleComponentIdentifier id;
+public class RejectedByRuleVersion extends RejectedVersion {
+    private final String reason;
 
-    public RejectedVersion(ModuleComponentIdentifier id) {
-        this.id = id;
+    public RejectedByRuleVersion(ModuleComponentIdentifier id, String reason) {
+        super(id);
+        this.reason = reason;
     }
 
-    public ModuleComponentIdentifier getId() {
-        return id;
+    public String getReason() {
+        return reason;
     }
 
-    public void describeTo(TreeFormatter builder) {
-        builder.node(id.getVersion());
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getId(), reason);
     }
 
     @Override
@@ -42,12 +43,8 @@ public abstract class RejectedVersion {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RejectedVersion that = (RejectedVersion) o;
-        return Objects.equal(id, that.id);
-    }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
+        RejectedByRuleVersion that = (RejectedByRuleVersion) o;
+        return getId().equals(that.getId()) && Objects.equal(reason, that.reason);
     }
 }

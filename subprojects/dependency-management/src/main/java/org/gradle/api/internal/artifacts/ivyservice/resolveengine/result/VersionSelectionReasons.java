@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -46,7 +45,7 @@ public class VersionSelectionReasons {
         return new DefaultComponentSelectionReason(Collections.<ComponentSelectionDescriptor>emptyList());
     }
 
-    public static ComponentSelectionReason root() {
+    public static ComponentSelectionReasonInternal root() {
         return new DefaultComponentSelectionReason(ROOT);
     }
 

@@ -43,6 +43,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -323,8 +325,8 @@ public class DynamicVersionResolver {
         }
 
         @Override
-        public void rejectedByRule(ModuleComponentIdentifier id) {
-            rejectedVersions.add(new RejectedVersion(id));
+        public void rejectedByRule(RejectedByRuleVersion id) {
+            rejectedVersions.add(id);
         }
 
         @Override
@@ -333,11 +335,11 @@ public class DynamicVersionResolver {
         }
 
         @Override
-        public void rejectedBySelector(ModuleComponentIdentifier id) {
+        public void rejectedBySelector(ModuleComponentIdentifier id, VersionSelector versionSelector) {
             if (firstRejected == null) {
                 firstRejected = id;
             }
-            rejectedVersions.add(new RejectedVersion(id));
+            rejectedVersions.add(new RejectedBySelectorVersion(id, versionSelector));
         }
 
         private List<CandidateResult> candidates() {

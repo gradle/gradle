@@ -135,7 +135,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedBySelector(b.id)
+        1 * selectedComponentResult.rejectedBySelector(b.id, _)
         0 * selectedComponentResult.notMatched(d.id) // versions are checked latest first
         1 * selectedComponentResult.matches(a.id)
         0 * _
@@ -173,7 +173,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedBySelector(b.id)
+        1 * selectedComponentResult.rejectedBySelector(b.id, _)
         1 * selectedComponentResult.matches(a.id)
         0 * _
 
@@ -197,7 +197,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
             }
         })
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedByRule(d.id) // 1.2 won't be rejected because of latest first sorting
+        1 * selectedComponentResult.rejectedByRule({it.id == d.id}) // 1.2 won't be rejected because of latest first sorting
         1 * selectedComponentResult.matches(b.id)
         0 * _
     }
@@ -219,7 +219,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
             }
         })
         1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.rejectedByRule(b.id)
+        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -324,9 +324,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * componentSelectionRules.rules >> rules({ ComponentSelection selection ->
             selection.reject("Rejecting everything")
         })
-        1 * selectedComponentResult.rejectedByRule(c.id)
-        1 * selectedComponentResult.rejectedByRule(b.id)
-        1 * selectedComponentResult.rejectedByRule(a.id)
+        1 * selectedComponentResult.rejectedByRule({it.id == c.id})
+        1 * selectedComponentResult.rejectedByRule({it.id == b.id})
+        1 * selectedComponentResult.rejectedByRule({it.id == a.id})
         1 * selectedComponentResult.noMatchFound()
         0 * _
     }
