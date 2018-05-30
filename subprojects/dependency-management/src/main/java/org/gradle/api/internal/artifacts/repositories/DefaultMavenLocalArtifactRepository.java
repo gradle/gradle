@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
@@ -73,6 +74,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
         RepositoryTransport transport = getTransport(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), getResourcesFileStore());
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, getInstantiatorFactory(), getUrl(), getResourcesFileStore());
         MavenResolver resolver = new MavenResolver(
             getName(),
             rootUri,
@@ -84,7 +86,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             MavenMetadataArtifactProvider.INSTANCE,
             mavenMetadataLoader,
             null,
-            null);
+            null, injector);
         for (URI repoUrl : getArtifactUrls()) {
             resolver.addArtifactLocation(repoUrl);
         }

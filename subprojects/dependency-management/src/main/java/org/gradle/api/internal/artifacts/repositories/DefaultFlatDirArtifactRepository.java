@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifa
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
@@ -52,19 +54,22 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
+    private final InstantiatorFactory instantiatorFactory;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                             FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                            IvyMutableModuleMetadataFactory metadataFactory) {
+                                            IvyMutableModuleMetadataFactory metadataFactory,
+                                            InstantiatorFactory instantiatorFactory) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataFactory = metadataFactory;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
@@ -110,7 +115,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        IvyResolver resolver = new IvyResolver(getName(), transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList()), locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE);
+        RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
+        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, instantiatorFactory.inject());
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");

@@ -16,48 +16,33 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Interner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataContext;
-import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserProvidedMetadata;
-import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
+import org.gradle.api.internal.artifacts.MetadataResolutionContext;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
-import org.gradle.internal.action.DefaultConfigurableRules;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
 import org.gradle.internal.rules.DefaultRuleActionValidator;
@@ -69,12 +54,11 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
+public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessorFactory {
     private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
     private static final List<Class<?>> VALIDATOR_PARAM_LIST = Collections.<Class<?>>singletonList(IvyModuleDescriptor.class);
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
@@ -210,134 +194,9 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return new SpecConfigurableRule(instantiatingAction, Specs.<ModuleVersionIdentifier>satisfyAll());
     }
 
-    public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy) {
-        ModuleComponentResolveMetadata updatedMetadata;
-        if (rules.isEmpty() && classBasedRules.isEmpty()) {
-            updatedMetadata = metadata;
-        } else if (rules.isEmpty()) {
-            updatedMetadata = processClassRuleWithCaching(metadata, cachePolicy);
-        } else {
-            MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
-            processAllRules(metadata, details, metadata.getModuleVersionId());
-            updatedMetadata = mutableMetadata.asImmutable();
-        }
-
-        if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(updatedMetadata.getModuleVersionId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().getDisplayName(), updatedMetadata.getStatusScheme()));
-        }
-        return updatedMetadata;
-    }
-
     @Override
-    public ComponentMetadata processMetadata(ComponentMetadata metadata) {
-        ComponentMetadata updatedMetadata;
-        if (rules.isEmpty() && classBasedRules.isEmpty()) {
-            updatedMetadata = metadata;
-        } else {
-            ShallowComponentMetadataAdapter details = new ShallowComponentMetadataAdapter(metadata, attributesFactory);
-            processAllRules(null, details, metadata.getId());
-            updatedMetadata = details.asImmutable();
-        }
-        if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().toString(), updatedMetadata.getStatusScheme()));
-        }
-        return updatedMetadata;
-    }
-
-    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details, ModuleVersionIdentifier id) {
-        for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
-            processRule(rule, metadata, details);
-        }
-        processClassRule(metadata, details, id);
-    }
-
-    private void processClassRule(final ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details, ModuleVersionIdentifier id) {
-        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(id);
-
-        DefaultComponentMetadataContext componentMetadataContext = new DefaultComponentMetadataContext(details, metadata);
-        try {
-            synchronized (this) {
-                action.execute(componentMetadataContext);
-            }
-        } catch (InvalidUserCodeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", details.getId()), e);
-        }
-    }
-
-    private ModuleComponentResolveMetadata processClassRuleWithCaching(final ModuleComponentResolveMetadata metadata, CachePolicy cachePolicy) {
-        InstantiatingAction<ComponentMetadataContext> action = collectRulesAndCreateAction(metadata.getModuleVersionId());
-        try {
-            synchronized (this) {
-                return ruleExecutor.execute(metadata, action, new Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext>() {
-                        @Override
-                        public ModuleComponentResolveMetadata transform(WrappingComponentMetadataContext componentMetadataContext) {
-                            return componentMetadataContext.getMutableMetadata().asImmutable();
-                        }
-                    },
-                    new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
-                        @Override
-                        public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                            return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser);
-                        }
-                    }, cachePolicy);
-            }
-        } catch (InvalidUserCodeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", metadata.getModuleVersionId()), e);
-        }
-    }
-
-    private InstantiatingAction<ComponentMetadataContext> collectRulesAndCreateAction(ModuleVersionIdentifier id) {
-        ArrayList<ConfigurableRule<ComponentMetadataContext>> rules = new ArrayList<ConfigurableRule<ComponentMetadataContext>>();
-        for (SpecConfigurableRule classBasedRule : classBasedRules) {
-            if (classBasedRule.getSpec().isSatisfiedBy(id)) {
-                rules.add(classBasedRule.getConfigurableRule());
-            }
-        }
-        return new InstantiatingAction<ComponentMetadataContext>(new DefaultConfigurableRules<ComponentMetadataContext>(rules), instantiator, new ExceptionHandler());
-    }
-
-
-    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, final ComponentMetadataDetails details) {
-        if (!specRuleAction.getSpec().isSatisfiedBy(details)) {
-            return;
-        }
-
-        final List<Object> inputs = Lists.newArrayList();
-        final RuleAction<? super ComponentMetadataDetails> action = specRuleAction.getAction();
-        for (Class<?> inputType : action.getInputTypes()) {
-            if (inputType == IvyModuleDescriptor.class) {
-                // Ignore the rule if it expects Ivy metadata and this isn't an Ivy module
-                if (!(metadata instanceof IvyModuleResolveMetadata)) {
-                    return;
-                }
-
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
-                continue;
-            }
-
-            // We've already validated the inputs: should never get here.
-            throw new IllegalStateException();
-        }
-
-        try {
-            synchronized (this) {
-                action.execute(details, inputs);
-            }
-        } catch (InvalidUserCodeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", details.getId()), e);
-        }
-    }
-
-    private List<Class<?>> getParamsList(Class<? extends ComponentMetadataRule> rule) {
-        return Collections.emptyList();
+    public ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext) {
+        return new DefaultComponentMetadataProcessor(rules, classBasedRules, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, attributesFactory, ruleExecutor, resolutionContext);
     }
 
     static class ComponentMetadataDetailsMatchingSpec implements Spec<ComponentMetadataDetails> {
@@ -365,85 +224,4 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    private static class ExceptionHandler implements InstantiatingAction.ExceptionHandler<ComponentMetadataContext> {
-
-        @Override
-        public void handleException(ComponentMetadataContext context, Throwable throwable) {
-            throw new InvalidUserCodeException(String.format("There was an error while evaluating a component metadata rule for %s.", context.getDetails().getId()), throwable);
-        }
-    }
-
-    static class ShallowComponentMetadataAdapter implements ComponentMetadataDetails {
-        private final ModuleVersionIdentifier id;
-        private boolean changing;
-        private List<String> statusScheme;
-        private AttributeContainerInternal attributes;
-
-        public ShallowComponentMetadataAdapter(ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
-            id = source.getId();
-            changing = source.isChanging();
-            statusScheme = source.getStatusScheme();
-            attributes = attributesFactory.mutable((AttributeContainerInternal) source.getAttributes());
-        }
-
-        @Override
-        public void setChanging(boolean changing) {
-            this.changing = changing;
-        }
-
-        @Override
-        public void setStatus(String status) {
-            this.attributes.attribute(ProjectInternal.STATUS_ATTRIBUTE, status);
-        }
-
-        @Override
-        public void setStatusScheme(List<String> statusScheme) {
-            this.statusScheme = statusScheme;
-        }
-
-        @Override
-        public void withVariant(String name, Action<? super VariantMetadata> action) {
-
-        }
-
-        @Override
-        public void allVariants(Action<? super VariantMetadata> action) {
-
-        }
-
-        @Override
-        public ModuleVersionIdentifier getId() {
-            return id;
-        }
-
-        @Override
-        public boolean isChanging() {
-            return changing;
-        }
-
-        @Override
-        public String getStatus() {
-            return attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
-        }
-
-        @Override
-        public List<String> getStatusScheme() {
-            return statusScheme;
-        }
-
-        @Override
-        public ComponentMetadataDetails attributes(Action<? super AttributeContainer> action) {
-            action.execute(attributes);
-            return this;
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            return attributes;
-        }
-
-        public ComponentMetadata asImmutable() {
-            return new UserProvidedMetadata(id, statusScheme, attributes.asImmutable());
-        }
-    }
 }

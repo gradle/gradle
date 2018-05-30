@@ -33,6 +33,7 @@ import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.action.ConfigurableRule
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -145,6 +146,6 @@ class MavenResolverTest extends Specification {
         def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
         def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
-        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister)
+        new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator))
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.MetadataResolutionContext
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
@@ -38,7 +39,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
@@ -68,16 +68,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    MetadataResolutionContext context = Mock()
 
     def 'setup'() {
         TestComponentMetadataRule.instanceCount = 0
-    }
-
-    def "does nothing when no rules registered"() {
-        def metadata = ivyMetadata().asImmutable()
-
-        expect:
-        mockedHandler.processMetadata(metadata, cachePolicy).is(metadata)
     }
 
     def "add action rule that applies to all components" () {
@@ -233,33 +227,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         TestComponentMetadataRule.instanceCount == 0
     }
 
-    def "instantiates class rule when processing metadata"() {
-        String notation = "${GROUP}:${MODULE}"
-        handler.withModule(notation, TestComponentMetadataRule)
-
-
-        when:
-        handler.processMetadata(ivyMetadata().asImmutable(), cachePolicy)
-
-        then:
-        TestComponentMetadataRule.instanceCount == 1
-    }
-
-    def "instantiates class rule with params when processing metadata"() {
-        String notation = "${GROUP}:${MODULE}"
-        handler.withModule(notation, TestComponentMetadataRuleWithArgs,  {
-            it.params("foo")
-            it.params(42L)
-        } as Action<ActionConfiguration>)
-
-        when:
-        handler.processMetadata(ivyMetadata().asImmutable(), cachePolicy)
-
-        then:
-        TestComponentMetadataRuleWithArgs.instanceCount == 1
-        TestComponentMetadataRuleWithArgs.constructorParams == ["foo", 42L] as Object[]
-    }
-
     def "propagates error creating rule for closure" () {
         when:
         mockedHandler.all { }
@@ -298,19 +265,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         1 * adapter.createFromRuleSource(ComponentMetadataDetails, _) >> { throw new InvalidUserCodeException("bad rule source") }
     }
 
-    def "processing fails when status is not present in status scheme"() {
-        def metadata = ivyMetadata()
-        metadata.status = "green"
-        metadata.statusScheme = ["alpha", "beta"]
-
-        when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
-
-        then:
-        ModuleVersionResolveException e = thrown()
-        e.message == /Unexpected status 'green' specified for group:module:version. Expected one of: [alpha, beta]/
-    }
-
     def "produces sensible error when rule action throws an exception" () {
         def failure = new Exception("from test")
         def metadata = ivyMetadata()
@@ -319,7 +273,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { throw failure }
 
         and:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         InvalidUserCodeException e = thrown()
@@ -337,7 +291,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         closuresCalled.sort() == [ 1, 2, 3 ]
@@ -351,7 +305,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -381,7 +335,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -412,7 +366,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -428,7 +382,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         !invoked
@@ -477,7 +431,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable(), cachePolicy)
+        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()

@@ -103,6 +103,7 @@ task listWithIvyRule {
 class ConfiguredRule implements ComponentMetadataRule {
     String param
 
+    @javax.inject.Inject
     ConfiguredRule(String param) {
         this.param = param
     }

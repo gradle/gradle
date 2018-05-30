@@ -204,7 +204,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister);
+        return new MavenResolver(getName(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, moduleIdentifierFactory, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector);
     }
 
     @Override
@@ -255,6 +255,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     protected LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> getLocallyAvailableResourceFinder() {
         return locallyAvailableResourceFinder;
+    }
+
+    protected InstantiatorFactory getInstantiatorFactory() {
+        return instantiatorFactory;
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {

@@ -29,6 +29,7 @@ import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.action.ConfigurableRule
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -187,7 +188,7 @@ class IvyResolverTest extends Specification {
             supplier,
             lister,
             metadataSources,
-            metadataArtifactProvider).with {
+            metadataArtifactProvider, Mock(Instantiator)).with {
             if (ivyPattern) {
                 it.addDescriptorLocation(URI.create(""), ivyPattern)
             }

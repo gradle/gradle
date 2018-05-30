@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -294,7 +295,8 @@ class DependencyManagementBuildScopeServices {
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryBlacklister repositoryBlacklister,
-                                              VersionParser versionParser) {
+                                              VersionParser versionParser,
+                                              InstantiatorFactory instantiatorFactory) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
@@ -304,7 +306,8 @@ class DependencyManagementBuildScopeServices {
             versionComparator,
             moduleIdentifierFactory,
             repositoryBlacklister,
-            versionParser);
+            versionParser,
+            instantiatorFactory);
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
