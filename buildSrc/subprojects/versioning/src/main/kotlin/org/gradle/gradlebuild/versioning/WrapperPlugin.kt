@@ -17,6 +17,7 @@ package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.wrapper.Wrapper
 import com.google.gson.Gson
 
@@ -27,11 +28,11 @@ import java.net.URL
 class WrapperPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        wrapperUpdateTask("nightly", "nightly")
-        wrapperUpdateTask("rc", "release-candidate")
-        wrapperUpdateTask("current", "current")
+        wrapperUpdateTask(project.getTasks(), "nightly", "nightly")
+        wrapperUpdateTask(project.getTasks(), "rc", "release-candidate")
+        wrapperUpdateTask(project.getTasks(), "current", "current")
 
-        tasks.withType<Wrapper>() {
+        tasks.withType(Wrapper::class.java).configureEach {
             val jvmOpts = "-Xmx128m -Dfile.encoding=UTF-8"
             inputs.property("jvmOpts", jvmOpts)
             // TODO Do we want to use doLast or a finalizedBy task?
@@ -44,22 +45,22 @@ class WrapperPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.wrapperUpdateTask(name: String, label: String) {
+    fun Project.wrapperUpdateTask(tasks: TaskContainer, name: String, label: String) {
         val wrapperTaskName = "${name}Wrapper"
         val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
-        val wrapperTask = task<Wrapper>(wrapperTaskName) {
+        val wrapperTask = tasks.createLater(wrapperTaskName, Wrapper::class.java) {
             dependsOn(configureWrapperTaskName)
             group = "wrapper"
         }
 
         // TODO Avoid late configuration
-        task(configureWrapperTaskName) {
+        tasks.createLater(configureWrapperTaskName) {
             doLast {
                 val jsonText = URL("https://services.gradle.org/versions/$label").readText()
                 val versionInfo = Gson().fromJson(jsonText, VersionDownloadInfo::class.java)
                 println("updating wrapper to $label version: ${versionInfo.version} (downloadUrl: ${versionInfo.downloadUrl})")
-                wrapperTask.distributionUrl = versionInfo.downloadUrl
+                wrapperTask.get().distributionUrl = versionInfo.downloadUrl
             }
         }
     }

@@ -38,7 +38,7 @@ apply {
     }
 }
 
-tasks.getByName("check") {
+tasks.named("check").configure {
     dependsOn(":docs:checkstyleApi")
     dependsOn("codeQuality")
 }
