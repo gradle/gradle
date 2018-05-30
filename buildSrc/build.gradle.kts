@@ -6,7 +6,7 @@ buildscript {
 
     val kotlinVersion = file("../kotlin-version.txt").readText().trim()
 
-    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.7"
+    val pluginsExperiments = "gradle.plugin.org.gradle.kotlin:gradle-kotlin-dsl-plugins-experiments:0.1.8"
 
     dependencies {
         classpath(kotlin("gradle-plugin", version = kotlinVersion))

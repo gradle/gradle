@@ -75,4 +75,3 @@ fun buildTagFor(version: String): String =
         "SNAPSHOT" -> "snapshot"
         else -> "release"
     }
-
