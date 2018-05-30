@@ -33,7 +33,7 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
 }
 
 
-private
+internal
 val primitiveTypeStrings =
     mapOf(
         "java.lang.Object" to "Any",
