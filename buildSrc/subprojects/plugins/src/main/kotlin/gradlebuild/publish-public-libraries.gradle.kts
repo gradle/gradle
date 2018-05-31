@@ -45,8 +45,8 @@ artifacts {
     fun publishRuntime(artifact: Any) =
         add(generatePom.get().publishRuntime.name, artifact) // TODO: This prevent `generatePom` from being lazy
 
-    publishRuntime(tasks.named("jar"))
-    publishRuntime(sourceJar)
+    publishRuntime(tasks.named("jar").get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
+    publishRuntime(sourceJar.get()) // TODO: LazyPublishArtifact has custom provider unpacking, see https://github.com/gradle/gradle-native/issues/719
     publishRuntime(
         DefaultPublishArtifact(
             base.archivesBaseName,
