@@ -33,6 +33,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.InternalTaskInstanceId;
+import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType.RealizeDetailsImpl;
+import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType.RegisterDetailsImpl;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.TaskReference;
@@ -65,6 +67,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import static org.gradle.api.internal.tasks.RealizeTaskBuildOperationType.REALIZE_RESULT_INSTANCE;
+import static org.gradle.api.internal.tasks.RegisterTaskBuildOperationType.REGISTER_RESULT_INSTANCE;
 
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
@@ -121,7 +126,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return buildOperationExecutor.call(new CallableBuildOperation<Task>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Create task " + taskId);
+                return new RealizeDetailsImpl(taskId, project, name, replace, true).descriptor();
             }
 
             @Override
@@ -151,6 +156,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     task.doFirst(closure);
                 }
 
+                context.setResult(REALIZE_RESULT_INSTANCE);
                 return addTask(task, replace);
             }
         });
@@ -259,14 +265,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             public T call(BuildOperationContext context) {
                 T task = createTask(taskId, name, type, constructorArgs);
                 statistics.eagerTask(type);
+                context.setResult(REALIZE_RESULT_INSTANCE);
                 return addTask(task, false);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Create task " + taskId);
+                return new RealizeDetailsImpl(taskId, project, name, false, true).descriptor();
             }
-
         });
     }
 
@@ -339,7 +345,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Register task " + taskId);
+                return new RegisterDetailsImpl(taskId, project, name, false).descriptor();
             }
 
             @Override
@@ -351,6 +357,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 if (eagerlyCreateLazyTasks) {
                     provider.get();
                 }
+                context.setResult(REGISTER_RESULT_INSTANCE);
                 return provider;
             }
         });
@@ -367,12 +374,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             @Override
             public T call(BuildOperationContext context) {
                 T task = taskFactory.create(taskId, name, type);
+                context.setResult(REALIZE_RESULT_INSTANCE);
                 return addTask(task, true);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Replace task " + taskId);
+                return new RealizeDetailsImpl(taskId, project, name, true, true).descriptor();
             }
         });
     }
@@ -522,11 +530,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     );
                     placeholders.put(placeholderName, provider);
                     deferredElementKnown(placeholderName, provider);
+                    context.setResult(REGISTER_RESULT_INSTANCE);
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Add placeholder " + taskId);
+                    return new RegisterDetailsImpl(taskId, project, placeholderName, false).descriptor();
                 }
             });
         } else {
@@ -600,6 +609,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 task = tasks.createTask(taskId, name, type, constructorArgs);
                                 tasks.statistics.lazyTaskRealized(type);
                                 tasks.add(task);
+                                context.setResult(REGISTER_RESULT_INSTANCE);
                             } catch (RuntimeException ex) {
                                 cause = ex;
                                 throw throwFailure();
@@ -608,7 +618,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                         @Override
                         public BuildOperationDescriptor.Builder description() {
-                            return BuildOperationDescriptor.displayName("Realize task " + taskId);
+                            return new RealizeDetailsImpl(taskId, tasks.project, name, false, false).descriptor();
                         }
                     });
                 }
