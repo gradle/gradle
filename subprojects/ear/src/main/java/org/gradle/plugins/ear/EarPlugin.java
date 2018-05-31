@@ -132,7 +132,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        TaskProvider<Ear> ear = project.getTasks().createLater(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
+        TaskProvider<Ear> ear = project.getTasks().register(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
             @Override
             public void execute(Ear ear) {
                 ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");

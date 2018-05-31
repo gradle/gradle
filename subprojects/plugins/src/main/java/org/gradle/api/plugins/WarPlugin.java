@@ -82,7 +82,7 @@ public class WarPlugin implements Plugin<Project> {
             }
         });
 
-        TaskProvider<War> war = project.getTasks().createLater(WAR_TASK_NAME, War.class, new Action<War>() {
+        TaskProvider<War> war = project.getTasks().register(WAR_TASK_NAME, War.class, new Action<War>() {
             @Override
             public void execute(War war) {
                 war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");

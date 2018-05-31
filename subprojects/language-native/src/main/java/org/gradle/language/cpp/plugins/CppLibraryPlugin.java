@@ -206,7 +206,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                 project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
                     @Override
                     public void execute(AppliedPlugin appliedPlugin) {
-                        final TaskProvider<Zip> headersZip = tasks.createLater("cppHeaders", Zip.class, new Action<Zip>() {
+                        final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, new Action<Zip>() {
                             @Override
                             public void execute(Zip headersZip) {
                                 headersZip.from(library.getPublicHeaderFiles());

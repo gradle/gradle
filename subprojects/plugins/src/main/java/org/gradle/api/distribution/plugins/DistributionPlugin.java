@@ -99,7 +99,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     private <T extends AbstractArchiveTask> TaskProvider<T> configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {
-        final TaskProvider<T> archiveTask = project.getTasks().createLater(taskName, type, new Action<T>() {
+        final TaskProvider<T> archiveTask = project.getTasks().register(taskName, type, new Action<T>() {
             @Override
             public void execute(T archiveTask) {
                 archiveTask.setDescription("Bundles the project as a distribution.");
