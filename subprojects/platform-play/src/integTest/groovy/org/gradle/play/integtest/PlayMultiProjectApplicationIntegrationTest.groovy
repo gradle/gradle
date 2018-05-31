@@ -73,7 +73,8 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
             "playBinary/lib/submodule-submodule-assets.jar",
             "playBinary/lib/javalibrary-javalibrary.jar",
             "playBinary/bin/playBinary",
-            "playBinary/bin/playBinary.bat"
+            "playBinary/bin/playBinary.bat",
+            "playBinary/conf/application.conf"
         )
 
         when:
@@ -87,7 +88,8 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
             "lib/submodule-submodule-assets.jar",
             "lib/javalibrary-javalibrary.jar",
             "bin/playBinary",
-            "bin/playBinary.bat"
+            "bin/playBinary.bat",
+            "conf/application.conf"
         )
     }
 

@@ -253,7 +253,7 @@ GET     /                          controllers${packageId}.Application.index()
         file << """
 package controllers${packageId}
 
-import import javax.inject._
+import javax.inject._
 import play.api._
 import play.api.mvc._
 import models._

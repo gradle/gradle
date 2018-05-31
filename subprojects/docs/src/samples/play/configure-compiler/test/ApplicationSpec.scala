@@ -10,7 +10,6 @@ import com.google.common.collect.Lists
 /**
  * https://github.com/playframework/play-scala-starter-example/blob/2.6.x/test/FunctionalSpec.scala
  */
-//@RunWith(classOf[JUnitRunner])
 class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite{
 
   "Application" should {

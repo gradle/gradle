@@ -80,7 +80,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         file(twirlOutputDir + "/views/html/index.template.scala").exists()
 
         when:
-        withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
+        withPlayVersion('2.3.10')
         succeeds "playBinary"
 
         then:

@@ -23,9 +23,10 @@ import org.gradle.util.RelativePathUtil
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 abstract class PlayApp {
+    boolean oldVersion
 
     String getName() {
-        getClass().getSimpleName().toLowerCase()
+        getClass().getSimpleName().toLowerCase() + (oldVersion ? ".old" : "")
     }
 
     List<SourceFile> getAllFiles() {
@@ -65,12 +66,12 @@ abstract class PlayApp {
     }
 
     List<SourceFile> getOtherSources() {
-        return [ sourceFile("", "README", "shared") ]
+        return [sourceFile("", "README", "shared")]
     }
 
 
     protected SourceFile sourceFile(String path, String name, String baseDir = getName()) {
-        URL resource = getClass().getResource("$baseDir/$path/$name");
+        URL resource = getClass().getResource("$baseDir/$path/$name")
         File file = new File(resource.toURI())
         return new SourceFile(path, name, file.text);
     }
@@ -86,10 +87,10 @@ abstract class PlayApp {
         List sourceFiles = new ArrayList()
 
         URL resource = getClass().getResource("$rootDir/$baseDir")
-        if(resource != null){
+        if (resource != null) {
             File baseDirFile = new File(resource.toURI())
             baseDirFile.eachFileRecurse { File source ->
-                if(!source.isDirectory()){
+                if (!source.isDirectory()) {
                     String fileName = source.getName()
                     def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile);
                     sourceFiles.add(sourceFile("$baseDir/$subpath", fileName, rootDir))

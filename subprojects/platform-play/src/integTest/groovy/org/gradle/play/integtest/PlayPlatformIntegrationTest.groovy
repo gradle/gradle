@@ -16,7 +16,6 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.play.internal.PlayPlatformResolver
@@ -25,18 +24,16 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest.isPlay22
 
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
-    PlayApp playApp = new BasicPlayApp()
-
-    def setup() {
-        playApp.writeSources(testDirectory)
-    }
-
     def "can build play app binary for default platform"() {
+        given:
+        new BasicPlayApp().writeSources(testDirectory)
+
         when:
         succeeds("stage")
 
@@ -49,6 +46,9 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "can build play app binary for specified platform [#platform]"() {
+        given:
+        new BasicPlayApp(oldVersion: true).writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
@@ -88,6 +88,9 @@ model {
     @Requires(TestPrecondition.JDK8)
     @Unroll
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
+        given:
+        new BasicPlayApp(oldVersion: VersionNumber.parse(playVersion) < VersionNumber.parse('2.6')).writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
@@ -119,6 +122,9 @@ model {
 
     @Unroll
     def "fails when trying to build a Play #playVersion application with Scala #scalaVersion"() {
+        given:
+        new BasicPlayApp(oldVersion: VersionNumber.parse(playVersion) < VersionNumber.parse('2.6')).writeSources(testDirectory)
+
         when:
         buildFile << """
 model {
@@ -147,6 +153,9 @@ model {
     }
 
     def "fails when trying to build for multiple play platforms"() {
+        given:
+        new BasicPlayApp().writeSources(testDirectory)
+
         when:
         buildFile << """
 model {

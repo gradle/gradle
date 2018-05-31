@@ -68,6 +68,9 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ !AbstractPlaySampleIntegrationTest.portForWithBrowserTestIsFree() })
     def "compiler sample is buildable" () {
         when:
+        // The following annotation processors were detected on the compile classpath: 'org.atteo.classindex.processor.ClassIndexProcessor'.
+        // Detecting annotation processors on the compile classpath is deprecated
+        executer.expectDeprecationWarning()
         sample compilerPlaySample
 
         then:
