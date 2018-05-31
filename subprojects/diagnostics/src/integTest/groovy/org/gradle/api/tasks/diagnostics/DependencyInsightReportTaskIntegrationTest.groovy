@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
@@ -25,6 +26,9 @@ import spock.lang.Unroll
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         executer.requireOwnGradleUserHomeDir()
+        settingsFile << """
+            rootProject.name = 'insight-test'
+        """
     }
 
     def "requires use of configuration flag if Java plugin isn't applied"() {
@@ -366,16 +370,26 @@ dependencies {
 org:foo:1.0 FAILED
    Selection reasons:
       - By constraint : dependency was locked to version '1.0'
+   Failures:
+      - Could not resolve org:foo:1.0.:
+          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
+               Dependency path ':insight-test:unspecified' --> 'org:foo' prefers '1.+'
+               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.1'
+               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '1.0', rejects ']1.0,)' because of the following reason: dependency was locked to version '1.0'
 
 org:foo:1.0 FAILED
 \\--- lockedConf
 
 org:foo:1.1 (via constraint) FAILED
+   Failures:
+      - Could not resolve org:foo:1.1. (already reported)
 
 org:foo:1.1 FAILED
 \\--- lockedConf
 
 org:foo:1.+ FAILED
+   Failures:
+      - Could not resolve org:foo:1.+. (already reported)
 
 org:foo:1.+ FAILED
 \\--- lockedConf
@@ -1066,8 +1080,12 @@ org:middle:1.0 FAILED
         run "insight"
 
         then:
-        outputContains """
-org:middle:2.0 (forced) FAILED
+        outputContains """org:middle:2.0 (forced) FAILED
+   Failures:
+      - Could not find org:middle:2.0.
+        Searched in the following locations:
+          - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
+          - ${mavenRepoURL}/org/middle/2.0/middle-2.0.jar
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1142,6 +1160,10 @@ org:middle:1.0 -> 2.0 FAILED
         then:
         outputContains """
 org:middle:2.0+ (selected by rule) FAILED
+   Failures:
+      - Could not find any version that matches org:middle:2.0+.
+        Versions that do not match: 1.0
+        Searched in the following locations: ${mavenRepoURL}/org/middle/maven-metadata.xml
 
 org:middle:1.0 -> 2.0+ FAILED
 \\--- org:top:1.0
@@ -1226,18 +1248,28 @@ org:leaf:[1.5,1.9] -> 1.5
         then:
         outputContains """
 org:leaf:1.0 FAILED
+   Failures:
+      - Could not find org:leaf:1.0.
+        Searched in the following locations:
+          - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
+          - ${ivyRepoURL}/org/leaf/1.0/leaf-1.0.jar
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:1.6+ FAILED
+   Failures:
+      - Could not find any matches for org:leaf:1.6+ as no versions of org:leaf are available.
 
 org:leaf:1.6+ FAILED
 \\--- org:top:1.0
      \\--- conf
 
 org:leaf:[1.5,2.0] FAILED
+   Failures:
+      - Could not find any matches for org:leaf:[1.5,2.0] as no versions of org:leaf are available.
+        Searched in the following locations: ${ivyRepoURL}/org/leaf/
 
 org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
@@ -2147,21 +2179,35 @@ A web-based, searchable dependency report is available by adding the --scan opti
 org:bar: FAILED
    Selection reasons:
       - By constraint : Nope, you won't use this
+   Failures:
+      - Could not resolve org:bar.:
+          - Module 'org:bar' has been rejected:
+               Dependency path ':insight-test:unspecified' --> 'org:bar' prefers '[1.0,)'
+               Constraint path ':insight-test:unspecified' --> 'org:bar' rejects all versions because of the following reason: Nope, you won't use this
 
 org:bar FAILED
 \\--- compileClasspath
 
 org:bar:[1.0,) FAILED
+   Failures:
+      - Could not resolve org:bar:[1.0,). (already reported)
 
 org:bar:[1.0,) FAILED
 \\--- compileClasspath
 
 org:foo: (via constraint) FAILED
+   Failures:
+      - Could not resolve org:foo.:
+          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
+               Dependency path ':insight-test:unspecified' --> 'org:foo' prefers '[1.0,)'
+               Constraint path ':insight-test:unspecified' --> 'org:foo' prefers '', rejects any of "'1.0', '1.1', '1.2'"
 
 org:foo FAILED
 \\--- compileClasspath
 
 org:foo:[1.0,) FAILED
+   Failures:
+      - Could not resolve org:foo:[1.0,). (already reported)
 
 org:foo:[1.0,) FAILED
 \\--- compileClasspath
@@ -2286,5 +2332,24 @@ org:foo:[1.0,) -> 1.0
 """
         where:
         type << ['configuration', 'dependency']
+    }
+
+    @CompileStatic
+    static String decodeURI(URI uri) {
+        def url = URLDecoder.decode(uri.toASCIIString(), 'utf-8')
+        if (url.endsWith('/')) {
+            url = url.substring(0, url.length()-1)
+        }
+        url
+    }
+
+    @CompileStatic
+    String getMavenRepoURL() {
+        decodeURI(mavenRepo.uri)
+    }
+
+    @CompileStatic
+    String getIvyRepoURL() {
+        decodeURI(ivyRepo.uri)
     }
 }

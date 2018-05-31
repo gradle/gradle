@@ -38,6 +38,10 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
         actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersionConstraint().getPreferredVersion());
     }
 
+    public Throwable getFailure() {
+        return dependency.getFailure();
+    }
+
     @Override
     public boolean isResolvable() {
         return false;
