@@ -135,10 +135,6 @@ class ResidualProgramCompiler(
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
         }
-        else -> {
-            /** The [Instruction.StageTransition] intermediate class confuses the Kotlin exhaustiveness checker */
-            throw IllegalStateException()
-        }
     }
 
     private

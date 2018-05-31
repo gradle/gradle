@@ -45,19 +45,19 @@ sealed class ResidualProgram {
         /**
          * Causes the target scope to be closed without applying any plugins.
          */
-        object CloseTargetScope : StageTransition()
+        object CloseTargetScope : StageTransition, Instruction()
 
         /**
          * Causes the target scope to be closed by applying a default set of plugin requests that includes
          * the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
          */
-        object ApplyDefaultPluginRequests : StageTransition()
+        object ApplyDefaultPluginRequests : StageTransition, Instruction()
 
         /**
          * Causes the target scope to be closed by applying the plugin requests collected during the execution
          * of the given [program] plus the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
          */
-        data class ApplyPluginRequestsOf(val program: Program.Stage1) : StageTransition()
+        data class ApplyPluginRequestsOf(val program: Program.Stage1) : StageTransition, Instruction()
 
         /**
          * An instruction that marks the transition from stage 1 to stage 2 by causing the
@@ -65,7 +65,7 @@ sealed class ResidualProgram {
          *
          * A valid [Static] program must contain one and only one [StageTransition] instruction.
          */
-        abstract class StageTransition : Instruction()
+        interface StageTransition
 
         /**
          * Causes the Kotlin DSL base plugins to be applied.
