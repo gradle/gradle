@@ -125,7 +125,7 @@ public class EclipsePlugin extends IdePlugin {
 
         });
 
-        final TaskProvider<GenerateEclipseProject> task = project.getTasks().createLater(ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, model.getProject());
+        final TaskProvider<GenerateEclipseProject> task = project.getTasks().register(ECLIPSE_PROJECT_TASK_NAME, GenerateEclipseProject.class, model.getProject());
         task.configure(new Action<GenerateEclipseProject>() {
             @Override
             public void execute(GenerateEclipseProject task) {
@@ -194,7 +194,7 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                final TaskProvider<GenerateEclipseClasspath> task = project.getTasks().createLater(ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, model.getClasspath());
+                final TaskProvider<GenerateEclipseClasspath> task = project.getTasks().register(ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath.class, model.getClasspath());
                 task.configure(new Action<GenerateEclipseClasspath>() {
                     @Override
                     public void execute(final GenerateEclipseClasspath task) {
@@ -293,7 +293,7 @@ public class EclipsePlugin extends IdePlugin {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
                 model.setJdt(project.getObjects().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
-                final TaskProvider<GenerateEclipseJdt> task = project.getTasks().createLater(ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, model.getJdt());
+                final TaskProvider<GenerateEclipseJdt> task = project.getTasks().register(ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, model.getJdt());
                 task.configure(new Action<GenerateEclipseJdt>() {
                     @Override
                     public void execute(GenerateEclipseJdt task) {

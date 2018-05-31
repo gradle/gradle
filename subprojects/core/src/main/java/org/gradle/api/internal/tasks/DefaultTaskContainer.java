@@ -276,27 +276,54 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    // TODO: Remove
     @Override
     public TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
-        return createTaskLater(name, type, configurationAction, NO_ARGS);
+        return registerTask(name, type, configurationAction, NO_ARGS);
     }
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
-        return createLater(name, type, NO_ARGS);
+        return register(name, type, NO_ARGS);
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Object... constructorArgs) {
-        return createTaskLater(name, type, null, constructorArgs);
+    public TaskProvider<Task> createLater(String name) {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+    // TODO: Remove ^^^
+
+    @Override
+    public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
-    private <T extends Task> TaskProvider<T> createTaskLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction, Object... constructorArgs) {
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
+        return registerTask(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException {
+        return register(name, type, NO_ARGS);
+    }
+
+    @Override
+    public TaskProvider<Task> register(String name) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
+        return registerTask(name, type, null, constructorArgs);
+    }
+
+    private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction, Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
@@ -306,11 +333,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             provider.get();
         }
         return provider;
-    }
-
-    @Override
-    public TaskProvider<Task> createLater(String name) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
