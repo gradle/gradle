@@ -32,17 +32,14 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
     def "does not emit build ops when not collecting task stats"() {
         given:
-        buildFile << """
-            tasks.create("eager")
-            tasks.replace("eager")
-            tasks.createLater("deferred")
-           
-        """
+        create('eager')
+        replace('eager')
+        register('deferred')
+
         when:
         run 'deferred'
 
         then:
-        verifyTaskIds()
         // no ops captured
         buildOperations.none(RegisterTaskBuildOperationType, withAnyPath(':eager', ':deferred'))
         buildOperations.none(RealizeTaskBuildOperationType, withAnyPath(':eager', ':deferred'))
@@ -52,7 +49,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         given:
         enable()
         stopBeforeTaskGraphCalculation()
-        createLater('foo')
+        register('foo')
 
         when:
         runAndFail()
@@ -66,8 +63,8 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     def "emits registration, realization build ops when tasks later realized"() {
         given:
         enable()
-        createLater('foo')
-        createLater('bar')
+        register('foo')
+        register('bar')
 
         when:
         run 'foo'
@@ -86,7 +83,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         create('foo')
         create('bar')
         replace('bar')
-        createLater('baz')
+        register('baz')
         replace('baz')
 
         when:
@@ -157,9 +154,9 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
-    private void createLater(String name) {
+    private void register(String name) {
         buildFile << """
-            tasks.createLater("$name")
+            tasks.register("$name")
         """
     }
     private void create(String name) {
