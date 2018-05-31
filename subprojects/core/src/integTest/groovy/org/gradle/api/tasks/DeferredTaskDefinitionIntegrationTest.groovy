@@ -202,8 +202,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.createLater("task1", SomeTask).configure {
                 println "Configure ${path}"
+            }
+            tasks.named("task1").configure {
+                println "Configure again ${path}"
             }
             tasks.createLater("task2", SomeOtherTask) {
                 println "Configure ${path}"
@@ -233,6 +236,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Received :other")
         outputContains("Create :task1")
         outputContains("Configure :task1")
+        outputContains("Configure again :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
         result.assertNotOutput("task3")
@@ -268,8 +272,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
     def "build logic can configure each task of a given type only when required"() {
         buildFile << '''
-            tasks.createLater("task1", SomeTask) {
+            tasks.createLater("task1", SomeTask).configure {
                 println "Configure ${path}"
+            }
+            tasks.named("task1").configure {
+                println "Configure again ${path}"
             }
             tasks.createLater("task2", SomeOtherTask) {
                 println "Configure ${path}"
@@ -298,6 +305,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Create :task1")
         outputContains("Configure :task1")
+        outputContains("Configure again :task1")
         outputContains("Received :task1")
         result.assertNotOutput("task2")
     }
@@ -359,32 +367,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Create :task1")
         outputContains("Configure :task1")
         failure.assertHasCause("Task with name 'task1' not found")
-    }
-
-    def "delegate of TaskProvider.configure is set properly"() {
-        buildFile << """
-            def eager = tasks.create("eager")
-            def eagerToo = tasks.create("eagerToo")
-            def lazy = tasks.createLater("lazy")
-            
-            tasks.configureEach {
-                doLast {
-                    println "Hello from " + path
-                }
-            }
-            
-            lazy.configure {
-                dependsOn eager 
-            }
-            
-            tasks.named("eagerToo").configure {
-                dependsOn lazy
-            }
-        """
-
-        expect:
-        succeeds("eagerToo")
-        result.assertTasksExecuted(":eager", ":lazy", ":eagerToo")
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/661")
