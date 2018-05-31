@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Plugin;
@@ -35,7 +34,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -55,7 +53,6 @@ import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -127,7 +124,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
-        final List<ClassDirectoryBinarySpecInternal> binaries = Lists.newArrayList();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
@@ -146,7 +142,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        target.getTasks().createLater(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
+        target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
                 compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
@@ -169,7 +165,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
-        target.getTasks().createLater(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
+        target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, new Action<ProcessResources>() {
             @Override
             public void execute(ProcessResources resourcesTask) {
                 resourcesTask.setDescription("Processes " + resourceSet + ".");
@@ -184,7 +180,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void createClassesTask(final SourceSet sourceSet, Project target) {
-        Provider<Task> classesTask = target.getTasks().createLater(sourceSet.getClassesTaskName(), new Action<Task>() {
+        Provider<Task> classesTask = target.getTasks().register(sourceSet.getClassesTaskName(), new Action<Task>() {
             @Override
             public void execute(Task classesTask) {
                 classesTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
@@ -329,7 +325,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuildNeeded(Project project) {
-        project.getTasks().createLater(BUILD_NEEDED_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(BUILD_NEEDED_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task buildTask) {
                 buildTask.setDescription("Assembles and tests this project and all projects it depends on.");
@@ -340,7 +336,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureBuildDependents(Project project) {
-        project.getTasks().createLater(BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task buildTask) {
                 buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
