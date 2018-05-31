@@ -60,6 +60,10 @@ public class TaskStatistics implements Closeable {
         }
     }
 
+    public boolean isCollecting() {
+        return collectStatistics;
+    }
+
     public void eagerTask(Class<?> type) {
         if (collectStatistics) {
             eagerTasks.incrementAndGet();
