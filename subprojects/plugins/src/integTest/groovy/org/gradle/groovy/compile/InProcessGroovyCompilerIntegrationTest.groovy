@@ -22,6 +22,12 @@ import spock.lang.Timeout
 @Timeout(300)
 class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
 
+    def setup() {
+        if (groovyVersionNumber < "2.0") {
+            testDirectoryProvider.suppressCleanupErrors()
+        }
+    }
+
     String compilerConfiguration() {
 '''
     tasks.withType(GroovyCompile) {
