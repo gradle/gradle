@@ -101,7 +101,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         if (task == null) {
             return findByNameLaterWithoutRules(name);
         }
-        return Cast.uncheckedCast(getInstantiator().newInstance(TaskLookupProvider.class, this, getType(), name));
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, getType(), name, task));
     }
 
     public static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
@@ -153,19 +153,22 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
     }
 
-    public static class TaskLookupProvider<T extends Task> extends DefaultTaskProvider<T> {
+    public static class ExistingTaskProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
 
         @SuppressWarnings("unused")
-        public TaskLookupProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
+        public ExistingTaskProvider(DefaultTaskCollection tasks, Class<T> type, String name, T task) {
             super(tasks, type, name);
+            this.task = task;
+        }
+
+        @Override
+        public boolean isPresent() {
+            return task != null;
         }
 
         @Override
         public T getOrNull() {
-            if (task == null) {
-                task = type.cast(tasks.findByName(name));
-            }
             return task;
         }
     }

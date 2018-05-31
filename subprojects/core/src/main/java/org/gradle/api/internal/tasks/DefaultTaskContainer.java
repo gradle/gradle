@@ -514,7 +514,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (cause != null) {
-                throw throwFailure();
+                throw createIllegalStateException();
             }
             if (task == null) {
                 task = type.cast(tasks.findByNameWithoutRules(name));
@@ -525,15 +525,15 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         tasks.add(task);
                     } catch (RuntimeException ex) {
                         cause = ex;
-                        throw throwFailure();
+                        throw createIllegalStateException();
                     }
                 }
             }
             return task;
         }
 
-        private IllegalStateException throwFailure() {
-            throw new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
+        private IllegalStateException createIllegalStateException() {
+            return new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
         }
     }
 }
