@@ -156,7 +156,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
         with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, {it.details.buildPath == ':included-build'})) {
             displayName == 'Notify afterEvaluate listeners of :included-build'
-            // parent is not the plugin application operation, as we fire the build op when hooks are executed, not evaluated.
+            // parent is not the plugin application operation, as we fire the build op when hooks are executed, not registered.
             parentId == configureIncludedBuild.id
         }
     }
