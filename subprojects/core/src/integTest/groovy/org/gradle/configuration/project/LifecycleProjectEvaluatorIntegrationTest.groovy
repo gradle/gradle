@@ -101,9 +101,28 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
     def "captures lifecycle operations"() {
         given:
+        file('included-build/settings.gradle') << """
+            rootProject.name = 'included-build'
+        """
+        file('included-build/build.gradle') << """
+            apply plugin: AcmePlugin
+            
+            class AcmePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.afterEvaluate {
+                        project.tasks.create('bar')
+                    }
+                }
+            }
+            
+        """
+
+
         settingsFile << """
+            includeBuild 'included-build'
             include 'foo'
         """
+
         file("foo/build.gradle")
         file("foo/before.gradle") << ""
         file("foo/after.gradle") << ""
@@ -116,11 +135,11 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-
         when:
         succeeds('help')
 
         then:
+
         def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
         with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
             displayName == 'Notify beforeEvaluate listeners of :foo'
@@ -131,6 +150,14 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             displayName == 'Notify afterEvaluate listeners of :foo'
             children*.displayName == ["Apply script after.gradle to project ':foo'"]
             parentId == configOp.id
+        }
+
+        def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, {it.details.buildPath== ':included-build'})
+
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, {it.details.buildPath == ':included-build'})) {
+            displayName == 'Notify afterEvaluate listeners of :included-build'
+            // parent is not the plugin application operation, as we fire the build op when hooks are executed, not registered.
+            parentId == configureIncludedBuild.id
         }
     }
 }
