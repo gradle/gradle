@@ -6,7 +6,6 @@ org.ow2.asm:asm:6.0
    Selection reasons:
       - Was requested : we require a JDK 9 compatible bytecode generator
 
-
 org.ow2.asm:asm:6.0
 \--- compileClasspath
 

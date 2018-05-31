@@ -397,7 +397,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
       - By conflict resolution
       - Selected by rule : A replaced with B
 
-
 org:a:1 -> org:b:1""")
 
         when:
