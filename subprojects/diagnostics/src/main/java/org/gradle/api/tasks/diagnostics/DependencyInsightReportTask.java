@@ -400,7 +400,6 @@ public class DependencyInsightReportTask extends DefaultTask {
         private void printExtraDetails(StyledTextOutput out) {
             List<Section> extraDetails = dependency.getExtraDetails();
             if (!extraDetails.isEmpty()) {
-                out.println();
                 printSections(out, extraDetails, 1);
             }
         }
@@ -413,13 +412,13 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
         private void printSection(StyledTextOutput out, Section extraDetail, int depth) {
+            out.println();
             String indent = StringUtils.leftPad("", 3 * depth) + (depth > 1 ? "- " : "");
             String appendix = extraDetail.getChildren().isEmpty() ? "" : ":";
-            String description = extraDetail.getDescription();
+            String description = StringUtils.trim(extraDetail.getDescription());
             String padding = "\n" + StringUtils.leftPad("", indent.length());
             description = description.replaceAll("(?m)(\r?\n)", padding);
             out.withStyle(Description).text(indent + description + appendix);
-            out.println();
         }
 
         private void printVariantDetails(StyledTextOutput out) {

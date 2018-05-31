@@ -365,9 +365,7 @@ dependencies {
         outputContains """
 org:foo:1.0 FAILED
    Selection reasons:
-      - Was requested
       - By constraint : dependency was locked to version '1.0'
-
 
 org:foo:1.0 FAILED
 \\--- lockedConf
@@ -586,7 +584,6 @@ org.test:bar:2.0
       - Was requested
       - Selected by rule : why not?
 
-
 org:bar:1.0 -> org.test:bar:2.0
 \\--- conf
 
@@ -605,7 +602,6 @@ org:foo:2.0
    Selection reasons:
       - Was requested
       - Selected by rule : because I am in control
-
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -651,7 +647,6 @@ org:foo:1.0 -> 2.0
    Selection reasons:
       - Was requested
       - Selected by rule : foo superceded by bar
-
 
 org:foo:1.0 -> org:bar:1.0
 \\--- conf
@@ -746,7 +741,6 @@ org:leaf:2.0 -> org:new-leaf:77
       - Was requested
       - Selected by rule : I am not sure I want to explain
 
-
 org:bar:1.0 -> 2.0
 \\--- conf
 
@@ -757,7 +751,6 @@ org:foo:2.0
    Selection reasons:
       - Was requested
       - Selected by rule : I want to
-
 
 org:foo:1.0 -> 2.0
 \\--- conf
@@ -1730,7 +1723,6 @@ org:foo -> $selected
       - Was requested
       - By constraint : $rejected
 
-
 org:foo -> $selected
 \\--- compileClasspath"""
         }
@@ -1785,7 +1777,6 @@ org:foo -> $selected
       - Was requested
       - By constraint : ${rejected}${reason}
 
-
 org:foo -> $selected
 \\--- compileClasspath
 """
@@ -1834,7 +1825,6 @@ org:foo -> $selected
    ]
    Selection reasons:
       - Was requested : ${rejected}${reason}
-
 
 org:foo:${displayVersion} -> $selected
 \\--- compileClasspath
@@ -1891,7 +1881,6 @@ org:foo:${displayVersion} -> $selected
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
 
-
 org:bar:[1.0,) -> 1.0
 \\--- compileClasspath
 
@@ -1903,7 +1892,6 @@ org:foo:1.1
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
-
 
 org:foo:[1.0,) -> 1.1
 \\--- compileClasspath
@@ -1963,7 +1951,6 @@ org:bar:1.0
       - Rejection : 1.2 by rule because version 1.2 is bad
       - Rejection : 1.1 by rule because version 1.1 is bad
 
-
 org:bar:[1.0,) -> 1.0
 \\--- compileClasspath
 
@@ -1975,7 +1962,6 @@ org:foo:1.1
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
-
 
 org:foo:[1.0,) -> 1.1
 \\--- compileClasspath
@@ -2063,7 +2049,6 @@ org.test:leaf:1.0
    ]
    Selection reasons:
       - Was requested : first reason
-
 
 org.test:leaf:1.0
 \\--- org.test:a:1.0
@@ -2161,9 +2146,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
         outputContains """
 org:bar: FAILED
    Selection reasons:
-      - Was requested
       - By constraint : Nope, you won't use this
-
 
 org:bar FAILED
 \\--- compileClasspath
@@ -2229,7 +2212,6 @@ org:foo:[1.0,) FAILED
    Selection reasons:
       - Was requested : first reason
       - Was requested : transitive reason
-
 
 org.test:leaf:1.0
 +--- org.test:a:1.0
@@ -2298,7 +2280,6 @@ org:foo:1.0
       - Rejection : version 1.1:
           - Attribute 'color' didn't match. Requested 'blue', was: 'green'
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
-
 
 org:foo:[1.0,) -> 1.0
 \\--- compileClasspath

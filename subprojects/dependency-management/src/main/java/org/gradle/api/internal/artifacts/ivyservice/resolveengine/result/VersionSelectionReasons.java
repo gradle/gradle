@@ -129,13 +129,9 @@ public class VersionSelectionReasons {
 
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
-            if (!descriptions.contains(description)) {
-                ComponentSelectionCause cause = description.getCause();
-                if (descriptions.isEmpty() && cause != ComponentSelectionCause.REQUESTED && cause != ComponentSelectionCause.ROOT) {
-                    // initial reason must always be either root or requested
-                    descriptions.add(REQUESTED);
-                }
-                descriptions.add((ComponentSelectionDescriptorInternal) description);
+            ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) description;
+            if (!descriptions.contains(descriptor)) {
+                descriptions.add(descriptor);
             }
             return this;
         }
