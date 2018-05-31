@@ -7,8 +7,8 @@ import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.get
@@ -73,13 +73,14 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
         createTestTask(taskName, executer, sourceSet, testType, Action {})
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
-    tasks["check"].dependsOn(createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {}))
+    val testTask = createTestTask(prefix + "Test", defaultExecuter, sourceSet, testType, Action {})
+    tasks.named("check").configure { dependsOn(testTask) }
 }
 
 
 internal
-fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): Provider<IntegrationTest> {
-    return tasks.register(name, IntegrationTest::class.java, {
+fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> {
+    return tasks.register(name, IntegrationTest::class.java) {
         addBaseConfigurationForIntegrationAndCrossVersionTestTasks(currentTestJavaVersion)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
@@ -88,7 +89,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         classpath = sourceSet.runtimeClasspath
         libsRepository.required = testType.libRepoRequired
         extraConfig.execute(this)
-    })
+    }
 }
 
 

@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.*
 
@@ -117,12 +118,12 @@ open class ShadedJarPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addShadedJarTask(shadedJarExtension: ShadedJarExtension): ShadedJar {
+    fun Project.addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
         val configurationToShade = shadedJarExtension.shadedConfiguration
         val baseVersion: String by rootProject.extra
-        val jar: Jar by tasks
+        val jar: TaskProvider<Jar> = tasks.withType(Jar::class.java).named("jar")
 
-        return tasks.create<ShadedJar>("${project.name}ShadedJar") {
+        return tasks.createLater("${project.name}ShadedJar", ShadedJar::class.java) {
             dependsOn(jar)
             jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
@@ -134,9 +135,9 @@ open class ShadedJarPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addShadedJarArtifact(shadedJarTask: ShadedJar) {
+    fun Project.addShadedJarArtifact(shadedJarTask: TaskProvider<ShadedJar>) {
         artifacts.add("publishRuntime", mapOf(
-            "file" to shadedJarTask.jarFile.get().asFile,
+            "file" to shadedJarTask.get().jarFile.get().asFile,
             "name" to base.archivesBaseName,
             "type" to "jar",
             "builtBy" to shadedJarTask
