@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
@@ -39,13 +41,14 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class DependencyInsightReporter {
 
@@ -66,7 +69,7 @@ public class DependencyInsightReporter {
         //remember if module id was annotated
         HashSet<ComponentIdentifier> annotated = new HashSet<ComponentIdentifier>();
         RequestedVersion current = null;
-
+        Set<Throwable> alreadyReportedErrors = Sets.newHashSet();
         for (DependencyEdge dependency : sorted) {
             String reasonDescription = getReasonDescription(dependency.getReason());
             ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
@@ -76,7 +79,7 @@ public class DependencyInsightReporter {
                 if (selectionReasonsSection.replacesShortDescription) {
                     reasonDescription = null;
                 }
-                List<Section> extraDetails = !selectionReasonsSection.replacesShortDescription ? Collections.<Section>emptyList() : Collections.<Section>singletonList(selectionReasonsSection);
+                List<Section> extraDetails = buildExtraDetails(!selectionReasonsSection.replacesShortDescription ? null : selectionReasonsSection, buildFailureSection(dependency, alreadyReportedErrors));
                 out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails));
                 current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
                 out.add(current);
@@ -89,6 +92,51 @@ public class DependencyInsightReporter {
         }
 
         return out;
+    }
+
+    private static Section buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors) {
+        if (edge instanceof UnresolvedDependencyEdge) {
+            UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
+            Throwable failure = unresolved.getFailure();
+            if (failure != null) {
+                DefaultSection failures = new DefaultSection("Failures");
+                String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
+                failures.addChild(new DefaultSection(errorMessage));
+                return failures;
+            }
+        }
+        return null;
+    }
+
+    private static String collectErrorMessages(Throwable failure, Set<Throwable> alreadyReportedErrors) {
+        TreeFormatter formatter = new TreeFormatter(false);
+        collectErrorMessages(failure, formatter, alreadyReportedErrors);
+        return formatter.toString();
+    }
+
+    private static void collectErrorMessages(Throwable failure, TreeFormatter formatter, Set<Throwable> alreadyReportedErrors) {
+        if (alreadyReportedErrors.add(failure)) {
+            formatter.node(failure.getMessage());
+            Throwable cause = failure.getCause();
+            if (alreadyReportedErrors.contains(cause)) {
+                formatter.append(" (already reported)");
+            }
+            if (cause != null && cause != failure) {
+                formatter.startChildren();
+                collectErrorMessages(cause, formatter, alreadyReportedErrors);
+                formatter.endChildren();
+            }
+        }
+    }
+
+    private static List<Section> buildExtraDetails(Section... sections) {
+        ImmutableList.Builder<Section> builder = new ImmutableList.Builder<Section>();
+        for (Section section : sections) {
+            if (section != null) {
+                builder.add(section);
+            }
+        }
+        return builder.build();
     }
 
     private static SelectionReasonsSection buildSelectionReasonSection(ComponentSelectionReason reason) {
