@@ -63,7 +63,9 @@ import java.lang.reflect.InvocationTargetException
  * body but no `buildscript` block since the classpath is completely determined at
  * the time the specialized program is emitted.
  *
+ * @see Program
  * @see PartialEvaluator
+ * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
 class Interpreter(val host: Host) {

@@ -42,14 +42,39 @@ sealed class ResidualProgram {
 
     sealed class Instruction {
 
-        object CloseTargetScope : Instruction()
+        /**
+         * Causes the target scope to be closed without applying any plugins.
+         */
+        object CloseTargetScope : StageTransition()
 
-        object ApplyDefaultPluginRequests : Instruction()
+        /**
+         * Causes the target scope to be closed by applying a default set of plugin requests that includes
+         * the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
+         */
+        object ApplyDefaultPluginRequests : StageTransition()
 
+        /**
+         * Causes the target scope to be closed by applying the plugin requests collected during the execution
+         * of the given [program] plus the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
+         */
+        data class ApplyPluginRequestsOf(val program: Program.Stage1) : StageTransition()
+
+        /**
+         * An instruction that marks the transition from stage 1 to stage 2 by causing the
+         * target scope to be closed thus making the resolved classpath available to stage 2.
+         *
+         * A valid [Static] program must contain one and only one [StageTransition] instruction.
+         */
+        abstract class StageTransition : Instruction()
+
+        /**
+         * Causes the Kotlin DSL base plugins to be applied.
+         */
         object ApplyBasePlugins : Instruction()
 
-        data class ApplyPluginRequestsOf(val program: Program.Stage1) : Instruction()
-
+        /**
+         * Causes the evaluation of the precompiled [script] against the script host.
+         */
         data class Eval(val script: ProgramSource) : Instruction()
 
         override fun toString(): String = javaClass.simpleName

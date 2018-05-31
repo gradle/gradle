@@ -26,7 +26,8 @@ package org.gradle.kotlin.dsl.execution
  * - a script with neither a buildscript nor a plugins block
  * - a script preceded by a buildscript or plugins block or both
  *
- * The evaluation of a Kotlin DSL program happens, in the general case, in two stages:
+ * The evaluation of a Kotlin DSL program happens, in the general case, in
+ * [two stages](https://en.wikipedia.org/wiki/Multi-stage_programming):
  * - in stage 1, the [Buildscript] and [Plugins] programs are executed and their execution
  *   is assumed to affect the classpath available to the stage 2 program;
  * - in stage 2, the remaining [Script] must be evaluated against the dynamically resolved classpath and,
