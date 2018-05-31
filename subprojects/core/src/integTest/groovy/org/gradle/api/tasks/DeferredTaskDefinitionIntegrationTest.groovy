@@ -576,4 +576,21 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         result.output.count("Create :myTask") == 1
         result.output.count("Configure :myTask") == 1
     }
+
+    def "configure rule can create additional tasks"() {
+        buildFile << '''
+            def fooTasks = tasks.withType(SomeTask)
+            
+            tasks.createLater('foo', SomeTask) {
+                dependsOn tasks.createLater('bar')
+            }
+            
+            task('baz') {
+                dependsOn fooTasks
+            }
+        '''
+
+        expect:
+        succeeds "baz"
+    }
 }
