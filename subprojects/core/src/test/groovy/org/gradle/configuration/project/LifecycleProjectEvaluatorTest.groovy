@@ -57,7 +57,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
     void "nothing happens if project was already configured"() {
         given:
-        state.executed()
+        state.configured()
 
         when:
         evaluate()
@@ -72,13 +72,13 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
     void "nothing happens if project is being configured now"() {
         given:
-        state.executing()
+        state.toBeforeEvaluate()
 
         when:
         evaluate()
 
         then:
-        state.executing
+        state.configuring
         0 * delegate._
 
         and:
@@ -91,17 +91,24 @@ class LifecycleProjectEvaluatorTest extends Specification {
 
         then:
         1 * listener.beforeEvaluate(project) >> {
-            assert state.executing
+            assert !state.unconfigured
+            assert !state.executed
+            assert state.configuring
         }
 
         then:
         1 * delegate.evaluate(project, state) >> {
-            assert state.executing
+            assert !state.unconfigured
+            assert !state.executed
+            assert state.configuring
+
         }
 
         then:
         1 * listener.afterEvaluate(project, state) >> {
-            assert state.executing
+            assert !state.unconfigured
+            assert state.executed
+            assert state.configuring
         }
 
         and:

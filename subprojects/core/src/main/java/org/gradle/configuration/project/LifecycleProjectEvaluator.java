@@ -63,7 +63,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     }
 
     public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
-        if (state.getNotExecuted()) {
+        if (state.isUnconfigured()) {
             buildOperationExecutor.run(new EvaluateProject(project, state));
         }
     }
@@ -71,7 +71,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private static void addConfigurationFailure(ProjectInternal project, ProjectStateInternal state, Exception e, BuildOperationContext ctx) {
         Exception exception = wrapException(project, e);
         ctx.failed(exception);
-        state.executed(exception);
+        state.failed(exception);
     }
 
     private static Exception wrapException(ProjectInternal project, Exception e) {
@@ -92,26 +92,31 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public void run(BuildOperationContext context) {
-            state.executing();
-
-            // Note: operation does not throw, instead marks state as failed
-            buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
-            state.rethrowFailure(); // throw now if a beforeEvaluate failed
+            // Note: beforeEvaluate and afterEvaluate ops do not throw, instead mark state as failed
 
             try {
-                delegate.evaluate(project, state);
-            } catch (Exception e) {
-                addConfigurationFailure(project, state, e, context);
-            } finally {
-                // Note: operation does not throw, instead marks state as failed
-                buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
-            }
+                state.toBeforeEvaluate();
+                buildOperationExecutor.run(new NotifyBeforeEvaluate(project, state));
 
-            if (state.hasFailure()) {
-                state.rethrowFailure();
-            } else {
-                context.setResult(ConfigureProjectBuildOperationType.RESULT);
-                state.executed();
+                if (!state.hasFailure()) {
+                    state.toEvaluate();
+                    try {
+                        delegate.evaluate(project, state);
+                    } catch (Exception e) {
+                        addConfigurationFailure(project, state, e, context);
+                    } finally {
+                        state.toAfterEvaluate();
+                        buildOperationExecutor.run(new NotifyAfterEvaluate(project, state));
+                    }
+                }
+
+                if (state.hasFailure()) {
+                    state.rethrowFailure();
+                } else {
+                    context.setResult(ConfigureProjectBuildOperationType.RESULT);
+                }
+            } finally {
+                state.configured();
             }
         }
 
