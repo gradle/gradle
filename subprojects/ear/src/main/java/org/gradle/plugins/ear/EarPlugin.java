@@ -32,6 +32,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -131,8 +132,14 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention) {
-        Ear ear = project.getTasks().create(EAR_TASK_NAME, Ear.class);
-        ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+        TaskProvider<Ear> ear = project.getTasks().createLater(EAR_TASK_NAME, Ear.class, new Action<Ear>() {
+            @Override
+            public void execute(Ear ear) {
+                ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
+                ear.setGroup(BasePlugin.BUILD_GROUP);
+            }
+        });
+
         DeploymentDescriptor deploymentDescriptor = convention.getDeploymentDescriptor();
         if (deploymentDescriptor != null) {
             if (deploymentDescriptor.getDisplayName() == null) {
@@ -142,7 +149,6 @@ public class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-        ear.setGroup(BasePlugin.BUILD_GROUP);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new ArchivePublishArtifact(ear));
 
         project.getTasks().withType(Ear.class, new Action<Ear>() {

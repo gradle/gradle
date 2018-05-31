@@ -29,6 +29,7 @@ import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 
 import javax.inject.Inject;
@@ -56,7 +57,7 @@ public class WarPlugin implements Plugin<Project> {
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
-        project.getTasks().withType(War.class, new Action<War>() {
+        project.getTasks().withType(War.class).configureEach(new Action<War>() {
             public void execute(War task) {
                 task.from(new Callable() {
                     public Object call() throws Exception {
@@ -81,9 +82,14 @@ public class WarPlugin implements Plugin<Project> {
             }
         });
 
-        War war = project.getTasks().create(WAR_TASK_NAME, War.class);
-        war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
-        war.setGroup(BasePlugin.BUILD_GROUP);
+        TaskProvider<War> war = project.getTasks().createLater(WAR_TASK_NAME, War.class, new Action<War>() {
+            @Override
+            public void execute(War war) {
+                war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
+                war.setGroup(BasePlugin.BUILD_GROUP);
+            }
+        });
+
         ArchivePublishArtifact warArtifact = new ArchivePublishArtifact(war);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());

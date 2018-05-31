@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.GUtil;
 
@@ -30,9 +31,9 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
     private Date date;
     private File file;
 
-    private AbstractArchiveTask archiveTask;
+    private Provider<? extends AbstractArchiveTask> archiveTask;
 
-    public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
+    public ArchivePublishArtifact(Provider<? extends AbstractArchiveTask> archiveTask) {
         super(archiveTask);
         this.archiveTask = archiveTask;
     }
@@ -47,38 +48,39 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         if (name != null) {
             return name;
         }
-        if (archiveTask.getBaseName() != null) {
-            return withAppendix(archiveTask.getBaseName());
+
+        if (archiveTask.get().getBaseName() != null) {
+            return withAppendix(archiveTask.get().getBaseName());
         }
-        return archiveTask.getAppendix();
+        return archiveTask.get().getAppendix();
     }
 
     private String withAppendix(String baseName) {
-        return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
+        return baseName + (GUtil.isTrue(archiveTask.get().getAppendix())? "-" + archiveTask.get().getAppendix() : "");
     }
 
     public String getExtension() {
-        return GUtil.elvis(extension, archiveTask.getExtension());
+        return GUtil.elvis(extension, archiveTask.get().getExtension());
     }
 
     public String getType() {
-        return GUtil.elvis(type, archiveTask.getExtension());
+        return GUtil.elvis(type, archiveTask.get().getExtension());
     }
 
     public String getClassifier() {
-        return GUtil.elvis(classifier, archiveTask.getClassifier());
+        return GUtil.elvis(classifier, archiveTask.get().getClassifier());
     }
 
     public File getFile() {
-        return GUtil.elvis(file, archiveTask.getArchivePath());
+        return GUtil.elvis(file, archiveTask.get().getArchivePath());
     }
 
     public Date getDate() {
-        return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
+        return GUtil.elvis(date, new Date(archiveTask.get().getArchivePath().lastModified()));
     }
 
     public AbstractArchiveTask getArchiveTask() {
-        return archiveTask;
+        return archiveTask.get();
     }
 
     public void setName(String name) {

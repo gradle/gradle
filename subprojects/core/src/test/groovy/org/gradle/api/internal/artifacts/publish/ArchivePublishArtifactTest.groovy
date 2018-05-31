@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
+import org.gradle.api.Task
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -29,26 +31,26 @@ public class ArchivePublishArtifactTest extends Specification {
     def TestUtil testUtil = TestUtil.create(temporaryFolder)
 
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = testUtil.task(DummyJar)
+        def quiteEmptyJar = taskProvider(DummyJar)
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
 
         then:
-        a.archiveTask == quiteEmptyJar
+        a.archiveTask == quiteEmptyJar.get()
         a.classifier == ""
-        a.date.time == quiteEmptyJar.archivePath.lastModified()
+        a.date.time == quiteEmptyJar.get().archivePath.lastModified()
         a.extension == "jar"
-        a.file == quiteEmptyJar.archivePath
+        a.file == quiteEmptyJar.get().archivePath
         a.type == "jar"
     }
 
     def "configures name correctly"() {
-        def noName = testUtil.task(DummyJar)
-        def withArchiveName = testUtil.task(DummyJar, [archiveName: "hey"])
-        def withBaseName = testUtil.task(DummyJar, [baseName: "foo"])
-        def withAppendix = testUtil.task(DummyJar, [baseName: "foo", appendix: "javadoc"])
-        def withAppendixOnly = testUtil.task(DummyJar, [appendix: "javadoc"])
+        def noName = taskProvider(DummyJar)
+        def withArchiveName = taskProvider(DummyJar, [archiveName: "hey"])
+        def withBaseName = taskProvider(DummyJar, [baseName: "foo"])
+        def withAppendix = taskProvider(DummyJar, [baseName: "foo", appendix: "javadoc"])
+        def withAppendixOnly = taskProvider(DummyJar, [appendix: "javadoc"])
 
         expect:
         new ArchivePublishArtifact(noName).name == null
@@ -59,6 +61,13 @@ public class ArchivePublishArtifactTest extends Specification {
         baseNameArtifact.name == "haha"
         new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
         new ArchivePublishArtifact(withAppendixOnly).name == "javadoc"
+    }
+
+    TaskProvider taskProvider(Class<?> type, Map attributes = [:]) {
+        Task task = testUtil.task(type, attributes)
+        TaskProvider taskProvider = Mock(TaskProvider)
+        _ * taskProvider.get() >> task
+        return taskProvider
     }
 
     static class DummyJar extends AbstractArchiveTask {

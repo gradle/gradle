@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -299,7 +300,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+        TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jar) {
                 jar.setDescription("Assembles a jar archive containing the main classes.");

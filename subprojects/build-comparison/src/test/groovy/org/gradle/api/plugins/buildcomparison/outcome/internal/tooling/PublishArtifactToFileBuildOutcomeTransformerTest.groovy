@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
@@ -41,9 +42,11 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
         given:
         AbstractArchiveTask task = Mock(taskClass)
-        PublishArtifact artifact = new ArchivePublishArtifact(task)
+        TaskProvider taskProvider = Mock(TaskProvider)
+        PublishArtifact artifact = new ArchivePublishArtifact(taskProvider)
 
         and:
+        _ * taskProvider.get() >> task
         _ * task.getArchivePath() >> project.file("file")
 
         when:
