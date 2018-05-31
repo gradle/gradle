@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
+import org.jetbrains.kotlin.utils.fileUtils.descendantRelativeTo
 
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -60,7 +62,6 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
 }
 
 
-internal
 fun unzipTo(outputDirectory: File, zipFile: File) {
     ZipFile(zipFile).use { zip ->
         for (entry in zip.entries()) {
@@ -73,6 +74,9 @@ fun unzipTo(outputDirectory: File, zipFile: File) {
 private
 fun unzipEntryTo(outputDirectory: File, zip: ZipFile, entry: ZipEntry) {
     val output = File(outputDirectory, entry.name)
+    if (!output.canonicalPath.startsWith(outputDirectory.canonicalPath)) {
+        throw IOException("Zip entry path outside of output directory")
+    }
     if (entry.isDirectory) {
         output.mkdirs()
     } else {

@@ -237,9 +237,9 @@ data class KotlinExtensionFunction(
     fun List<MappedApiFunctionParameter>.toDeclarationString(): String =
         takeIf { it.isNotEmpty() }?.let { list ->
             list.mapIndexed { index, p ->
-                if (index == list.size - 1 && p.type.isKotlinArray) "vararg ${p.name}: ${p.type.typeArguments.single().toTypeArgumentString()}"
-                else if (p.type.isGradleAction) "${p.name}: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
-                else "${p.name}: ${p.type.toTypeArgumentString()}"
+                if (index == list.size - 1 && p.type.isKotlinArray) "vararg `${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}"
+                else if (p.type.isGradleAction) "`${p.name}`: ${p.type.typeArguments.single().toTypeArgumentString()}.() -> Unit"
+                else "`${p.name}`: ${p.type.toTypeArgumentString()}"
             }.joinToString(separator = ", ")
         } ?: ""
 

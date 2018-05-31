@@ -5,6 +5,7 @@ rootProject.name = "gradle-kotlin-dsl"
 include(
     "provider",
     "provider-plugins",
+    "build-plugins",
     "tooling-models",
     "tooling-builders",
     "plugins",

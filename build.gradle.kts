@@ -45,7 +45,7 @@ project(":plugins-experiments") {
 }
 
 // --- Configure publications ------------------------------------------
-val publishedProjects =
+val distributionProjects =
     listOf(
         project(":provider"),
         project(":provider-plugins"),
@@ -55,7 +55,7 @@ val publishedProjects =
 // For documentation and meaningful `./gradlew dependencies` output
 val distribution by configurations.creating
 dependencies {
-    publishedProjects.forEach {
+    distributionProjects.forEach {
         distribution(it)
     }
 }
