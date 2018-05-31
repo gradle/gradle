@@ -107,7 +107,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Requires(TestPrecondition.JDK8)
     def "injected routes sample is buildable for Play 2.4" () {
         when:
         sample play24Sample

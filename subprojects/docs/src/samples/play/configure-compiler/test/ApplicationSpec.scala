@@ -1,41 +1,37 @@
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-
-import play.api.test._
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.http.Status
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import org.apache.commons.lang.StringUtils
 import com.google.common.collect.Lists
 
 /**
- * Add your spec here.
- * You can mock out a whole application including requests, plugins etc.
- * For more information, consult the wiki.
+ * https://github.com/playframework/play-scala-starter-example/blob/2.6.x/test/FunctionalSpec.scala
  */
-@RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification {
+//@RunWith(classOf[JUnitRunner])
+class ApplicationSpec extends PlaySpec with GuiceOneAppPerSuite{
 
   "Application" should {
-
-    "send 404 on a bad request" in new WithApplication{
-      route(FakeRequest(GET, "/boum")) must beNone
+    "send 404 on a bad request" in {
+      route(app, FakeRequest(GET, "/boum")) mustBe Some(NOT_FOUND)
     }
 
-    "render the index page" in new WithApplication{
-      val home = route(FakeRequest(GET, "/")).get
+    "render the index page" in {
+      val home = route(app, FakeRequest(GET, "/")).get
 
-      status(home) must equalTo(OK)
-      contentType(home) must beSome.which(_ == "text/html")
-      contentAsString(home) must contain ("Your new application is ready.")
+      status(home) mustBe OK
+      contentType(home) mustBe Some("text/html")
+      contentAsString(home) must include ("Your new application is ready.")
     }
 
     "tests can use commons-lang play dependency" in {
-      StringUtils.reverse("foobar") must equalTo("raboof")
+      StringUtils.reverse("foobar") mustBe "raboof"
     }
 
     "tests can use guava play-test dependency" in {
-      Lists.newArrayList("foo", "bar").size() must equalTo(2)
+      Lists.newArrayList("foo", "bar").size() mustBe 2
     }
   }
 }
