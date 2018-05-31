@@ -51,7 +51,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     @Override
     public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
         Compiler<JavaCompileSpec> result = createTargetCompiler(type, false);
-        return new AnnotationProcessingCompiler<JavaCompileSpec>(new NormalizingJavaCompiler(result), processorDetector);
+        return new AnnotationProcessorDiscoveringCompiler<JavaCompileSpec>(new NormalizingJavaCompiler(result), processorDetector);
     }
 
     private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type, boolean jointCompilation) {

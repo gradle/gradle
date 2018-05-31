@@ -32,12 +32,12 @@ import java.util.Set;
 /**
  * Sets up annotation processing before delegating to the actual Java compiler.
  */
-public class AnnotationProcessingCompiler<T extends JavaCompileSpec> implements Compiler<T> {
+public class AnnotationProcessorDiscoveringCompiler<T extends JavaCompileSpec> implements Compiler<T> {
 
     private final Compiler<T> delegate;
     private final AnnotationProcessorDetector annotationProcessorDetector;
 
-    public AnnotationProcessingCompiler(Compiler<T> delegate, AnnotationProcessorDetector annotationProcessorDetector) {
+    public AnnotationProcessorDiscoveringCompiler(Compiler<T> delegate, AnnotationProcessorDetector annotationProcessorDetector) {
         this.delegate = delegate;
         this.annotationProcessorDetector = annotationProcessorDetector;
     }

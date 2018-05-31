@@ -45,7 +45,7 @@ import java.util.Set;
  * It replaces the normal processor discovery, which suffers from file descriptor leaks
  * on Java 8 and below. Our own discovery mechanism does not have that issue.
  */
-class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
+class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
     private final JavaCompiler.CompilationTask delegate;
     private final Set<AnnotationProcessorDeclaration> processorDeclarations;
@@ -55,7 +55,7 @@ class IncrementalAnnotationProcessingCompileTask implements JavaCompiler.Compila
     private URLClassLoader processorClassloader;
     private boolean called;
 
-    IncrementalAnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath, AnnotationProcessingResult result) {
+    AnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath, AnnotationProcessingResult result) {
         this.delegate = delegate;
         this.processorDeclarations = processorDeclarations;
         this.annotationProcessorPath = annotationProcessorPath;

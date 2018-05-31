@@ -24,7 +24,7 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class AnnotationProcessingCompilerTest extends Specification {
+class AnnotationProcessorDiscoveringCompilerTest extends Specification {
     JavaCompileSpec spec = new DefaultJavaCompileSpec().with {
         compileOptions = new CompileOptions(TestUtil.objectFactory())
         it
@@ -32,7 +32,7 @@ class AnnotationProcessingCompilerTest extends Specification {
     AnnotationProcessorDetector detector = Stub(AnnotationProcessorDetector)
     Compiler<JavaCompileSpec> delegate = Stub(Compiler)
 
-    AnnotationProcessingCompiler compiler = new AnnotationProcessingCompiler(delegate, detector)
+    AnnotationProcessorDiscoveringCompiler compiler = new AnnotationProcessorDiscoveringCompiler(delegate, detector)
 
     def "when neither processor path nor processor option are given, no processors are used"() {
         when:

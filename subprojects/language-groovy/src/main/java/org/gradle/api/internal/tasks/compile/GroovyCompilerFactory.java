@@ -59,7 +59,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
             workerFactory = inProcessWorkerFactory;
         }
         Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(project.getServices().get(WorkerDirectoryProvider.class).getIdleWorkingDirectory(), new DaemonSideCompiler(), project.getServices().get(ClassPathRegistry.class), workerFactory, fileResolver);
-        return new AnnotationProcessingCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
+        return new AnnotationProcessorDiscoveringCompiler<GroovyJavaJointCompileSpec>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 
     private static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
