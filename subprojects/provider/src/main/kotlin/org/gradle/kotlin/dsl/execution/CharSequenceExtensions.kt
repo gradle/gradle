@@ -52,10 +52,20 @@ fun CharSequence.linePreservingBlankRange(range: IntRange): String {
 internal
 fun CharSequence.lineAndColumnFromRange(range: IntRange): Pair<Int, Int> {
     require(range.endInclusive <= lastIndex)
-    val prefix = take(range.start)
+    return lineAndColumnFor(range.start)
+}
+
+
+/**
+ * Computes the 1-based line and column numbers for the given [index].
+ */
+internal
+fun CharSequence.lineAndColumnFor(index: Int): Pair<Int, Int> {
+    val prefix = take(index)
     val lineCountBefore = prefix.count { it == '\n' }
+    val lineNumber = lineCountBefore + 1
     val lastNewLineIndex = prefix.lastIndexOf('\n')
-    return (lineCountBefore + 1) to (range.start - lastNewLineIndex)
+    return lineNumber to (index - lastNewLineIndex)
 }
 
 

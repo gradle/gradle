@@ -130,7 +130,7 @@ class ResidualProgramCompiler(
         is Instruction.ApplyPluginRequestsOf -> {
             val program = instruction.program
             when (program) {
-                is Program.Plugins -> emitPrecompiledPluginsBlock(compilePlugins(program))
+                is Program.Plugins -> emitPrecompiledPluginsBlock(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.buildscript, program.plugins)
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
@@ -159,24 +159,30 @@ class ResidualProgramCompiler(
 
         precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
 
-            // val collector = PluginRequestCollector(scriptSource)
             emitPluginRequestCollectorInstantiation()
 
             NEW(precompiledBuildscriptWithPluginsBlock)
             ALOAD(2) // scriptHost
             // ${plugins}(temp.createSpec(lineNumber))
-            emitPluginRequestCollectorCreateSpec()
+            emitPluginRequestCollectorCreateSpecFor(plugins)
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
                 "<init>",
                 "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
 
-            // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
-            ALOAD(1) // programHost
-            ALOAD(2) // scriptHost
-            emitPluginRequestCollectorGetPluginRequests()
-            invokeApplyPluginsTo()
+            emitApplyPluginsTo()
         }
+    }
+
+    /**
+     * programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
+     */
+    private
+    fun MethodVisitor.emitApplyPluginsTo() {
+        ALOAD(1) // programHost
+        ALOAD(2) // scriptHost
+        emitPluginRequestCollectorGetPluginRequests()
+        invokeApplyPluginsTo()
     }
 
     private
@@ -218,7 +224,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitPrecompiledPluginsBlock(precompiledPluginsBlock: String) {
+    fun MethodVisitor.emitPrecompiledPluginsBlock(program: Program.Plugins) {
+
+        val precompiledPluginsBlock = compilePlugins(program)
 
         precompiledScriptClassInstantiation(precompiledPluginsBlock) {
 
@@ -227,23 +235,21 @@ class ResidualProgramCompiler(
 
             // ${plugins}(temp.createSpec(lineNumber))
             NEW(precompiledPluginsBlock)
-            emitPluginRequestCollectorCreateSpec()
+            emitPluginRequestCollectorCreateSpecFor(program)
             INVOKESPECIAL(
                 precompiledPluginsBlock,
                 "<init>",
                 "(Lorg/gradle/plugin/use/PluginDependenciesSpec;)V")
 
-            // programHost.applyPluginsTo(scriptHost, collector.getPluginRequests())
-            ALOAD(1) // programHost
-            ALOAD(2) // scriptHost
-            emitPluginRequestCollectorGetPluginRequests()
-            invokeApplyPluginsTo()
+            emitApplyPluginsTo()
         }
     }
 
+    /**
+     * val collector = PluginRequestCollector(scriptSource)
+     */
     private
     fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
-        // val temp = PluginRequestCollector(scriptHost.scriptSource)
         NEW(pluginRequestCollectorType)
         DUP()
         ALOAD(2) // scriptHost
@@ -268,9 +274,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitPluginRequestCollectorCreateSpec() {
+    fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins) {
         ALOAD(3)
-        LDC(0)
+        LDC(plugins.fragment.lineNumber)
         INVOKEVIRTUAL(
             pluginRequestCollectorType,
             "createSpec",

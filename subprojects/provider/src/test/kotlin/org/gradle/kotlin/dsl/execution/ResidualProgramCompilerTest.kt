@@ -67,6 +67,8 @@ import java.io.PrintStream
 
 import java.lang.IllegalStateException
 
+import java.util.Arrays.fill
+
 
 class ResidualProgramCompilerTest : TestWithTempFiles() {
 
@@ -277,19 +279,19 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     fun `Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins)`() {
 
         val fragment =
-            fragment("plugins", """id("stage-1")""")
+            fragmentAtLine(3, "plugins", """id("stage-1")""")
 
         val target = mock<Project>()
 
         val scriptHost = scriptHostWith(target = target)
 
-        val pluginRequests = mutableListOf<PluginRequests>()
+        val capturedPluginRequests = mutableListOf<PluginRequests>()
 
         val programHost = mock<ExecutableProgram.Host> {
 
             on { applyPluginsTo(same(scriptHost), any()) } doAnswer {
 
-                pluginRequests.add(it.getArgument(1))
+                capturedPluginRequests.add(it.getArgument(1))
                 Unit
             }
         }
@@ -314,9 +316,15 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
             }
         }
 
+        val pluginRequests = capturedPluginRequests.single()
+
         assertThat(
-            pluginRequests.single().asIterable().map { it.toString() },
+            pluginRequests.asIterable().map { it.toString() },
             equalTo(listOf("[id: 'stage-1']")))
+
+        assertThat(
+            pluginRequests.single().lineNumber,
+            equalTo(3))
     }
 
     @Test
@@ -520,10 +528,30 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 }
 
 
+/**
+ * Creates a text fragment placed at the given 1-based [lineNumber].
+ */
 internal
-fun fragment(identifier: String, body: String): ProgramSourceFragment {
-    val source = ProgramSource("$identifier.gradle.kts", "$identifier  { $body }")
-    return source.fragment(0..identifier.lastIndex, 12..source.text.lastIndex)
+fun fragmentAtLine(lineNumber: Int, identifier: String, body: String): ProgramSourceFragment {
+    require(lineNumber >= 1) { "Line numbers are 1-based" }
+    return fragment(identifier, body, prefix = String(repeat('\n', lineNumber - 1)))
+}
+
+
+private
+fun repeat(char: Char, times: Int) =
+    CharArray(times).also { fill(it, char) }
+
+
+internal
+fun fragment(identifier: String, body: String, prefix: String = ""): ProgramSourceFragment {
+    val source = ProgramSource("$identifier.gradle.kts", "$prefix$identifier { $body }")
+    val identifierStart = prefix.length
+    val identifierEnd = (identifierStart + identifier.lastIndex)
+    return source.fragment(
+        identifierStart..identifierEnd,
+        (identifierEnd + 2)..source.text.lastIndex
+    )
 }
 
 

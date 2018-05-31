@@ -67,6 +67,9 @@ data class ProgramText private constructor(val text: String) {
 
     fun subText(range: IntRange): ProgramText =
         ProgramText(text.substring(range))
+
+    fun lineNumberOf(index: Int): Int =
+        text.lineAndColumnFor(index).first
 }
 
 
@@ -89,6 +92,10 @@ data class ProgramSourceFragment(
     val source: ProgramSource,
     val section: ScriptSection
 ) {
+
+    val lineNumber: Int
+        get() = source.contents.lineNumberOf(section.identifier.start)
+
     override fun toString(): String =
         "ProgramSourceFragment(\"${source.text.subSequence(section.wholeRange)}\")"
 }
