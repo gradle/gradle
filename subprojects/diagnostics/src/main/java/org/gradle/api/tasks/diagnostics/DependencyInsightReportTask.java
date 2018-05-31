@@ -297,7 +297,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             if (!matchesSpec) {
                 continue;
             }
-            output.text("There were conflicts between the following modules which fail resolution, see below for details:");
+            output.text("Dependency resolution failed because of conflicts between the following modules:");
             output.println();
             for (ModuleVersionIdentifier moduleVersionIdentifier : moduleVersionIdentifiers) {
                 output.text("   - ");
