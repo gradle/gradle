@@ -44,6 +44,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.NullBuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.ModelNode;
@@ -92,7 +93,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationExecutor = statistics.isCollecting() ? buildOperationExecutor : new NullBuildOperationExecutor(buildOperationExecutor);
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
     }
 
