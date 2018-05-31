@@ -111,7 +111,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureScalaCompile(final Project project, final SourceSet sourceSet) {
-        final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().createLater(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
+        final TaskProvider<ScalaCompile> scalaCompile = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, new Action<ScalaCompile>() {
             @Override
             public void execute(ScalaCompile scalaCompile) {
                 scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
@@ -138,7 +138,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().get(Task.class, sourceSet.getClassesTaskName()).configure(new Action<Task>() {
+        project.getTasks().named(sourceSet.getClassesTaskName()).configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.dependsOn(scalaCompile);

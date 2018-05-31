@@ -63,7 +63,7 @@ public class ScalaPlugin implements Plugin<Project> {
                 scalaDoc.setSource(InvokerHelper.invokeMethod(main, "getScala", null));
             }
         });
-        project.getTasks().createLater(SCALA_DOC_TASK_NAME, ScalaDoc.class, new Action<ScalaDoc>() {
+        project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, new Action<ScalaDoc>() {
             @Override
             public void execute(ScalaDoc scalaDoc) {
                 scalaDoc.setDescription("Generates Scaladoc for the main source code.");

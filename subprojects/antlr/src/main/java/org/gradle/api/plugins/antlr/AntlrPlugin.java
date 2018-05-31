@@ -99,7 +99,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         final File outputDirectory = new File(outputDirectoryName);
                         sourceSet.getJava().srcDir(outputDirectory);
 
-                        project.getTasks().createLater(taskName, AntlrTask.class, new Action<AntlrTask>() {
+                        project.getTasks().register(taskName, AntlrTask.class, new Action<AntlrTask>() {
                             @Override
                             public void execute(AntlrTask antlrTask) {
                                 antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
@@ -110,7 +110,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         });
 
                         // 5) register fact that antlr should be run before compiling
-                        project.getTasks().get(Task.class, sourceSet.getCompileJavaTaskName()).configure(new Action<Task>() {
+                        project.getTasks().named(sourceSet.getCompileJavaTaskName()).configure(new Action<Task>() {
                             @Override
                             public void execute(Task task) {
                                 task.dependsOn(taskName);
