@@ -19,7 +19,7 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.AbstractArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.War;
@@ -57,8 +57,8 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
     }
 
     private String getTypeIdentifier(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) artifact;
+        if (artifact instanceof AbstractArchivePublishArtifact) {
+            AbstractArchivePublishArtifact publishArtifact = (AbstractArchivePublishArtifact) artifact;
             AbstractArchiveTask task = publishArtifact.getArchiveTask();
 
             // There is an inheritance hierarchy in play here, so the order
@@ -86,8 +86,8 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
     }
 
     private String getTaskPath(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
+        if (artifact instanceof AbstractArchivePublishArtifact) {
+            return ((AbstractArchivePublishArtifact) artifact).getArchiveTask().getPath();
         } else {
             String taskPath = null;
             Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);

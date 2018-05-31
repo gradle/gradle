@@ -16,21 +16,26 @@
 
 package org.gradle.api.internal.artifacts.publish
 
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 
-class ArchivePublishArtifactTest extends AbstractArchivePublishArtifactTest {
+class ArchiveProviderPublishArtifactTest extends AbstractArchivePublishArtifactTest {
     @Override
-    Object taskOrProvider(Class<?> type, Map attributes) {
-        return testUtil.task(type, attributes)
+    AbstractArchivePublishArtifact archiveArtifact(Object taskOrProvider) {
+        return new ArchiveProviderPublishArtifact(taskOrProvider)
     }
 
     @Override
-    AbstractArchivePublishArtifact archiveArtifact(Object taskOrProvider) {
-        return new ArchivePublishArtifact(taskOrProvider)
+    TaskProvider taskOrProvider(Class<?> type, Map attributes = [:]) {
+        Task task = testUtil.task(type, attributes)
+        TaskProvider taskProvider = Mock(TaskProvider)
+        _ * taskProvider.get() >> task
+        return taskProvider
     }
 
     @Override
     AbstractArchiveTask taskFrom(Object taskOrProvider) {
-        return taskOrProvider
+        return taskOrProvider.get()
     }
 }

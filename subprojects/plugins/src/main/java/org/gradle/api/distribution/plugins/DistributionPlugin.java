@@ -28,7 +28,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -133,7 +133,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
                 t.with(childSpec);
             }
         });
-        ArchivePublishArtifact archiveArtifact = new ArchivePublishArtifact(archiveTask);
+        ArchiveProviderPublishArtifact archiveArtifact = new ArchiveProviderPublishArtifact(archiveTask);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
         return archiveTask;
     }

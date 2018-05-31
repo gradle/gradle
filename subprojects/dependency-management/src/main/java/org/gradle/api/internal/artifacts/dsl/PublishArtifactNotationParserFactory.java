@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -37,7 +36,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
@@ -86,23 +84,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchivePublishArtifact.class, taskProvider(notation));
-        }
-
-        private Provider<AbstractArchiveTask> taskProvider(final AbstractArchiveTask task) {
-            return new AbstractProvider<AbstractArchiveTask>() {
-                @Nullable
-                @Override
-                public Class<AbstractArchiveTask> getType() {
-                    return AbstractArchiveTask.class;
-                }
-
-                @Nullable
-                @Override
-                public AbstractArchiveTask getOrNull() {
-                    return task;
-                }
-            };
+            return instantiator.newInstance(ArchivePublishArtifact.class, notation);
         }
     }
 

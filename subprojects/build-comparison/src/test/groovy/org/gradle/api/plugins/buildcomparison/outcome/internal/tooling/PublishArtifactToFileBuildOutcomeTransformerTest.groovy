@@ -18,7 +18,7 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
@@ -43,7 +43,7 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
         given:
         AbstractArchiveTask task = Mock(taskClass)
         TaskProvider taskProvider = Mock(TaskProvider)
-        PublishArtifact artifact = new ArchivePublishArtifact(taskProvider)
+        PublishArtifact artifact = new ArchiveProviderPublishArtifact(taskProvider)
 
         and:
         _ * taskProvider.get() >> task

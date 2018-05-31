@@ -32,7 +32,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
@@ -309,7 +309,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             }
         });
         // TODO: Allow this to be added lazily
-        ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
+        ArchiveProviderPublishArtifact jarArtifact = new ArchiveProviderPublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -327,7 +327,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
-    private void addJar(Configuration configuration, ArchivePublishArtifact jarArtifact) {
+    private void addJar(Configuration configuration, ArchiveProviderPublishArtifact jarArtifact) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -335,7 +335,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, ArchivePublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, ArchiveProviderPublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant

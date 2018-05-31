@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -90,7 +90,7 @@ public class WarPlugin implements Plugin<Project> {
             }
         });
 
-        ArchivePublishArtifact warArtifact = new ArchivePublishArtifact(war);
+        ArchiveProviderPublishArtifact warArtifact = new ArchiveProviderPublishArtifact(war);
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());
         configureComponent(project, warArtifact);
