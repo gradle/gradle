@@ -31,7 +31,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val releasedVersionsJsonFile = file("released-versions.json")
 
-        tasks.withType(UpdateReleasedVersions::class.java).configureEach {
+        tasks.withType<UpdateReleasedVersions>().configureEach {
             releasedVersionsFile = releasedVersionsJsonFile
             group = "Versioning"
         }

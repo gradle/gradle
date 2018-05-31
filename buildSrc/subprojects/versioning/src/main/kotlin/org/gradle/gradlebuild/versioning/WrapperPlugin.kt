@@ -17,7 +17,6 @@ package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.wrapper.Wrapper
 import com.google.gson.Gson
 
@@ -28,11 +27,11 @@ import java.net.URL
 class WrapperPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        wrapperUpdateTask(project.getTasks(), "nightly", "nightly")
-        wrapperUpdateTask(project.getTasks(), "rc", "release-candidate")
-        wrapperUpdateTask(project.getTasks(), "current", "current")
+        wrapperUpdateTask("nightly", "nightly")
+        wrapperUpdateTask("rc", "release-candidate")
+        wrapperUpdateTask("current", "current")
 
-        tasks.withType(Wrapper::class.java).configureEach {
+        tasks.withType<Wrapper>().configureEach {
             val jvmOpts = "-Xmx128m -Dfile.encoding=UTF-8"
             inputs.property("jvmOpts", jvmOpts)
             // TODO Do we want to use doLast or a finalizedBy task?
@@ -45,7 +44,7 @@ class WrapperPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.wrapperUpdateTask(tasks: TaskContainer, name: String, label: String) {
+    fun Project.wrapperUpdateTask(name: String, label: String) {
         val wrapperTaskName = "${name}Wrapper"
         val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
