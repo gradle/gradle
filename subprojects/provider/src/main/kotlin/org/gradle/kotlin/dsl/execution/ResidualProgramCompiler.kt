@@ -162,7 +162,7 @@ class ResidualProgramCompiler(
             emitPluginRequestCollectorInstantiation()
 
             NEW(precompiledBuildscriptWithPluginsBlock)
-            ALOAD(2) // scriptHost
+            ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
             INVOKESPECIAL(
@@ -179,16 +179,16 @@ class ResidualProgramCompiler(
      */
     private
     fun MethodVisitor.emitApplyPluginsTo() {
-        ALOAD(1) // programHost
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
         emitPluginRequestCollectorGetPluginRequests()
         invokeApplyPluginsTo()
     }
 
     private
     fun MethodVisitor.emitApplyBasePluginsTo() {
-        ALOAD(1) // programHost
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
         INVOKEVIRTUAL(
             "org/gradle/kotlin/dsl/support/KotlinScriptHost",
             "getTarget",
@@ -201,8 +201,8 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitApplyEmptyPluginRequestsTo() {
-        ALOAD(1) // programHost
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
         GETSTATIC(
             DefaultPluginRequests::class.internalName,
             "EMPTY",
@@ -252,7 +252,7 @@ class ResidualProgramCompiler(
     fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
         NEW(pluginRequestCollectorType)
         DUP()
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ScriptHost)
         INVOKEVIRTUAL(
             "org/gradle/kotlin/dsl/support/KotlinScriptHost",
             "getScriptSource",
@@ -261,12 +261,12 @@ class ResidualProgramCompiler(
             pluginRequestCollectorType,
             "<init>",
             "(Lorg/gradle/groovy/scripts/ScriptSource;)V")
-        ASTORE(3) // collector
+        ASTORE(Vars.PluginRequestCollector)
     }
 
     private
     fun MethodVisitor.emitPluginRequestCollectorGetPluginRequests() {
-        ALOAD(3) // collector
+        ALOAD(Vars.PluginRequestCollector)
         INVOKEVIRTUAL(
             pluginRequestCollectorType,
             "getPluginRequests",
@@ -275,7 +275,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins) {
-        ALOAD(3)
+        ALOAD(Vars.PluginRequestCollector)
         LDC(plugins.fragment.lineNumber)
         INVOKEVIRTUAL(
             pluginRequestCollectorType,
@@ -309,9 +309,9 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitEvaluateSecondStageOf() {
         // programHost.evaluateSecondStageOf(...)
-        ALOAD(1) // programHost
-        ALOAD(0) // program/this
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.Program)
+        ALOAD(Vars.ScriptHost)
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
@@ -322,10 +322,10 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalScriptPath: String) {
-        ALOAD(1) // programHost
+        ALOAD(Vars.ProgramHost)
         LDC(sourceFilePath)
         LDC(originalScriptPath)
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ScriptHost)
         ALOAD(3)
         ALOAD(4)
         GETSTATIC(programKind)
@@ -371,7 +371,7 @@ class ResidualProgramCompiler(
 
             // ${precompiledScriptClass}(scriptHost)
             NEW(precompiledScriptClass)
-            ALOAD(2) // scriptHost
+            ALOAD(Vars.ScriptHost)
             INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
         }
     }
@@ -394,10 +394,10 @@ class ResidualProgramCompiler(
     fun MethodVisitor.emitOnScriptException(precompiledScriptClass: String) {
         // Exception is on the stack
         ASTORE(4)
-        ALOAD(1) // programHost
+        ALOAD(Vars.ProgramHost)
         ALOAD(4)
         LDC(Type.getType("L$precompiledScriptClass;"))
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ScriptHost)
         invokeHost(
             "handleScriptException",
             "(Ljava/lang/Throwable;Ljava/lang/Class;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V")
@@ -406,14 +406,27 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitCloseTargetScopeOf() {
         // programHost.closeTargetScopeOf(scriptHost)
-        ALOAD(1) // programHost
-        ALOAD(2) // scriptHost
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.ScriptHost)
         invokeHost("closeTargetScopeOf", kotlinScriptHostToVoid)
     }
 
     private
     fun MethodVisitor.invokeHost(name: String, desc: String) {
         INVOKEINTERFACE(ExecutableProgram.Host::class.internalName, name, desc)
+    }
+
+    private
+    object Vars {
+
+        const val Program = 0
+
+        const val ProgramHost = 1
+
+        const val ScriptHost = 2
+
+        // Only valid within the context of `overrideExecute`
+        const val PluginRequestCollector = 3
     }
 
     private
