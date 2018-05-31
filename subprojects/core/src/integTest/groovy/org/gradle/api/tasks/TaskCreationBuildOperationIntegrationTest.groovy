@@ -220,7 +220,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     ]
 
     private static <T extends BuildOperationType<?, ?>> void verifyTaskDetails(Map<String, ?> expectedDetails, BuildOperationRecord op) {
-        (DEFAULT_EXPECTED_DETAILS + expectedDetails).forEach { key, value ->
+        (DEFAULT_EXPECTED_DETAILS + expectedDetails).each { key, value ->
             if (value instanceof Spec) {
                 assert value.isSatisfiedBy(op.details[key])
             } else {
