@@ -54,7 +54,6 @@ class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
         given:
         withRoutesTemplate()
         withInjectedRoutesController()
-        fixForPlayVersion()
         buildFile << """
 model {
     components {
@@ -73,7 +72,6 @@ model {
     def "recompiles when route compiler type is changed"() {
         when:
         withRoutesTemplate()
-        fixForPlayVersion()
         then:
         succeeds("compilePlayBinaryScala")
 

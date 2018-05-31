@@ -19,6 +19,7 @@ package org.gradle.play.plugins.ide
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.internal.platform.PlayMajorVersion
+import org.gradle.util.VersionNumber
 
 class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTest {
     static final Map PLAY_VERSION_TO_CLASSPATH_SIZE = [(PlayMajorVersion.PLAY_2_2_X): 111,
@@ -29,7 +30,7 @@ class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTes
 
     @Override
     PlayApp getPlayApp() {
-        new AdvancedPlayApp()
+        new AdvancedPlayApp(oldVersion: versionNumber < VersionNumber.parse('2.6.0'))
     }
 
     String[] getSourcePaths() {

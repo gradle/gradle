@@ -30,7 +30,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
         buildScript(classes.buildScript())
-        def newScalaVersion = '2.12.6'
+        def newScalaVersion = '2.11.12'
 
         when:
         succeeds scaladoc

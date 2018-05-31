@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.play.integtest.fixtures.PlayCoverage
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -64,6 +65,30 @@ class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
             executer.expectDeprecationWarning()
         }
         return super.fails(tasks)
+    }
+
+    def withControllerSource(TestFile file, String packageId) {
+        file.createFile()
+        file << """
+package controllers${packageId}
+
+
+import play.api._
+import play.api.mvc._
+import models._
+
+object Application extends Controller {
+  def index = Action {
+    Ok("Your new application is ready.")
+  }
+}
+"""
+    }
+
+    protected String newRoute(String route, String pkg) {
+        return """
+GET     /${route}                controllers${pkg}.Application.index()
+"""
     }
 
     def "trying to use injected router with older versions of Play produces reasonable error"() {
