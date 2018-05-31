@@ -53,7 +53,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addHelloWorld() {
-        file("primary/conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+        file("primary/conf/routes") << "\nGET     /hello                   @controllers.Application.hello"
         file("primary/app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
@@ -82,7 +82,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addSubmoduleHelloWorld() {
-        file("primary/conf/routes") << "\nGET     /subhello                   controllers.submodule.Application.hello"
+        file("primary/conf/routes") << "\nGET     /subhello                   @controllers.submodule.Application.hello"
         file("submodule/app/controllers/submodule/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
@@ -111,7 +111,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     }
 
     private void addSubmoduleHelloWorldFromJavaClass() {
-        file("primary/conf/routes") << "\nGET     /subhello                   controllers.submodule.Application.hello"
+        file("primary/conf/routes") << "\nGET     /subhello                   @controllers.submodule.Application.hello"
         file("submodule/app/controllers/submodule/Application.scala").with {
             text = text.replaceFirst(~/(?m)^import\s/, '''
 import org.test.Util

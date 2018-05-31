@@ -43,6 +43,8 @@ abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMul
     }
 
     protected getServerStartCount() {
-        gradle.standardOutput.count('play - Application started')
+        // play - Application started
+        // Play - Application started
+        gradle.standardOutput.count('lay - Application started')
     }
 }

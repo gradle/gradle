@@ -33,24 +33,12 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
         runningApp.initialize(build)
     }
 
-    def patchForPlay() {
-        if (versionNumber >= VersionNumber.parse('2.6.0')) {
-            // Don't know why deadlock happens on Play 2.6 System.exit
-            replace('app/controllers/Application.scala', 'System.exit(0)', 'Runtime.getRuntime().halt(0)')
-        }
-    }
-
     static java9AddJavaSqlModuleArgs() {
         if (JavaVersion.current().isJava9Compatible()) {
             return "forkOptions.jvmArgs += ['--add-modules', 'java.sql']"
         } else {
             return ""
         }
-    }
-
-    private replace(String filePath, String oldText, String newText) {
-        String text = file(filePath).text
-        file(filePath).write(text.replace(oldText, newText))
     }
 
     String determineRoutesClassName() {

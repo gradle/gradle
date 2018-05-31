@@ -54,7 +54,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         jar("primary/build/playBinary/lib/primary.jar").containsDescendants(
-            "Routes.class",
+            "router/Routes.class",
             "controllers/Application.class")
         jar("primary/build/playBinary/lib/primary-assets.jar").hasDescendants(
             "public/primary.txt")
@@ -74,8 +74,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
             "playBinary/lib/submodule-submodule-assets.jar",
             "playBinary/lib/javalibrary-javalibrary.jar",
             "playBinary/bin/playBinary",
-            "playBinary/bin/playBinary.bat",
-            "playBinary/conf/application.conf"
+            "playBinary/bin/playBinary.bat"
         )
 
         when:
@@ -89,8 +88,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
             "lib/submodule-submodule-assets.jar",
             "lib/javalibrary-javalibrary.jar",
             "bin/playBinary",
-            "bin/playBinary.bat",
-            "conf/application.conf"
+            "bin/playBinary.bat"
         )
     }
 

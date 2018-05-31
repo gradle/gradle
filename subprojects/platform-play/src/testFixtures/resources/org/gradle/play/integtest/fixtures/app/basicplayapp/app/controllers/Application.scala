@@ -28,7 +28,7 @@ class Application @Inject() extends InjectedController {
   }
 
   def shutdown = Action {
-    System.exit(0)
+    Runtime.getRuntime().halt(0)
     Ok("shutdown")
   }
 }

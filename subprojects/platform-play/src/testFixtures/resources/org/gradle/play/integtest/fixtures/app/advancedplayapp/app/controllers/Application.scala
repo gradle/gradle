@@ -30,7 +30,7 @@ class Application @Inject() extends InjectedController {
     Ok(views.html.awesome.index(List(new DataType("bar", 2))))
   }
   def shutdown = Action {
-    System.exit(0)
+    Runtime.getRuntime().halt(0)
     Ok("shutdown")
   }
 }

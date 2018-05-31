@@ -38,7 +38,6 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         withLoadProjectClassController()
 
         setup:
-        patchForPlay()
         // build once to speed up the playRun build and avoid spurious timeouts
         succeeds "assemble"
 

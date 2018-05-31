@@ -39,7 +39,6 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
     def "can run play app"() {
         setup:
-        patchForPlay()
         run "assemble"
         buildFile << """
             model {

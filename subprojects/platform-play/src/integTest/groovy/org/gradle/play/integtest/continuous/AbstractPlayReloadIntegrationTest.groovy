@@ -41,7 +41,7 @@ abstract class AbstractPlayReloadIntegrationTest extends AbstractMultiVersionPla
     }
 
     protected void addNewRoute(String route) {
-        file("conf/routes") << "\nGET     /${route}                   controllers.Application.${route}"
+        file("conf/routes") << "\nGET     /${route}                   @controllers.Application.${route}"
         file("app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, """
   def ${route} = Action {
@@ -61,7 +61,7 @@ abstract class AbstractPlayReloadIntegrationTest extends AbstractMultiVersionPla
     }
 
     protected void addBadCode() {
-        file("conf/routes") << "\nGET     /hello                   controllers.Application.hello"
+        file("conf/routes") << "\nGET     /hello                   @controllers.Application.hello"
         file("app/controllers/Application.scala").with {
             text = text.replaceFirst(/(?s)\}\s*$/, '''
   def hello = Action {
