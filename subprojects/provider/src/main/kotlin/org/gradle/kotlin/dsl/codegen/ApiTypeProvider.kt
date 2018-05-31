@@ -50,11 +50,12 @@ import kotlin.LazyThreadSafetyMode.NONE
 
 internal
 fun apiTypeProviderFor(
-    jarsOrDirs: List<File>,
+    classPath: List<File>,
+    additionalClassPath: List<File> = emptyList(),
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
-    ApiTypeProvider(classPathBytesRepositoryFor(jarsOrDirs), parameterNamesSupplier)
+    ApiTypeProvider(classPathBytesRepositoryFor(classPath, additionalClassPath), parameterNamesSupplier)
 
 
 private
