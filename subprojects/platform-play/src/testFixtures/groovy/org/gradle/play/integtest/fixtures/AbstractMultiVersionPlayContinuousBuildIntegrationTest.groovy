@@ -18,11 +18,14 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.junit.runner.RunWith
 
 @RunWith(MultiVersionSpecRunner)
 @TargetCoverage({ PlayCoverage.DEFAULT })
+@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     static def version
 

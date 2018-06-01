@@ -17,13 +17,10 @@
 package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
-@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class AbstractMultiVersionPlayReloadIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     protected boolean serverRestart() {
         poll {
