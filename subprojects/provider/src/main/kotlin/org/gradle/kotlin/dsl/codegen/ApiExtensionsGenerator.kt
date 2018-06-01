@@ -118,7 +118,7 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
         .flatMap { function ->
 
             val candidateFor = object {
-                val groovyNamedArgumentsToVarargs = function.parameters.firstOrNull()?.type?.isMapOfStringStar == true
+                val groovyNamedArgumentsToVarargs = function.parameters.firstOrNull()?.type?.isGroovyNamedArgumentMap == true
                 val javaClassToKotlinClass = function.parameters.any {
                     it.type.isJavaClass || (it.type.isKotlinArray && it.type.typeArguments.single().isJavaClass) || (it.type.isKotlinCollection && it.type.typeArguments.single().isJavaClass)
                 }
@@ -172,7 +172,7 @@ data class MappedApiFunctionParameter(
 
 private
 fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
-    firstOrNull()?.takeIf { it.type.isMapOfStringStar }?.let { first ->
+    firstOrNull()?.takeIf { it.type.isGroovyNamedArgumentMap }?.let { first ->
         drop(1) + first.copy(
             type = ApiTypeUsage(
                 sourceName = SourceNames.kotlinArray,
@@ -312,10 +312,12 @@ fun <T> List<T>?.joinInAngleBrackets(transform: (T) -> CharSequence = { it.toStr
 
 
 private
-val ApiTypeUsage.isMapOfStringStar
-    get() = sourceName == "kotlin.collections.Map"
-        && typeArguments[0].sourceName == "String"
-        && typeArguments[1].isStarProjectionTypeUsage
+val ApiTypeUsage.isGroovyNamedArgumentMap
+    get() = isMap && (
+        typeArguments.all { it.isAny }
+            || typeArguments.all { it.isStarProjectionTypeUsage }
+            || (typeArguments[0].isString && (typeArguments[1].isStarProjectionTypeUsage || typeArguments[1].isAny))
+        )
 
 
 private
@@ -328,6 +330,21 @@ object SourceNames {
     const val kotlinArray = "kotlin.Array"
     const val kotlinCollection = "kotlin.collections.Collection"
 }
+
+
+private
+val ApiTypeUsage.isAny
+    get() = sourceName == "Any"
+
+
+private
+val ApiTypeUsage.isString
+    get() = sourceName == "String"
+
+
+private
+val ApiTypeUsage.isMap
+    get() = sourceName == "kotlin.collections.Map"
 
 
 private
