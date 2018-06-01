@@ -36,22 +36,21 @@ open class ClassyclePlugin : Plugin<Project> {
         val extension = extensions.create<ClassycleExtension>(classycleBaseName, project)
         configurations.create(classycleBaseName)
         dependencies.add(classycleBaseName, "classycle:classycle:1.4@jar")
-        tasks {
-            val classycle by creating
-            java.sourceSets.all {
-                val taskName = getTaskName(classycle.name, null)
-                val sourceSetTask = project.tasks.create<Classycle>(
-                    taskName,
-                    output.classesDirs,
-                    extension.excludePatterns,
-                    name,
-                    reporting.file(classycle.name),
-                    extension.reportResourcesZip
-                )
-                classycle.dependsOn(sourceSetTask)
-                "check" { dependsOn(sourceSetTask) }
-                "codeQuality" { dependsOn(sourceSetTask) }
-            }
+        val classycle = tasks.createLater("classycle")
+        java.sourceSets.all {
+            val taskName = getTaskName("classycle", null)
+            val sourceSetTask = project.tasks.createLater(
+                taskName,
+                Classycle::class.java,
+                output.classesDirs,
+                extension.excludePatterns,
+                name,
+                reporting.file("classycle"),
+                extension.reportResourcesZip
+            )
+        classycle.configure { dependsOn(sourceSetTask) }
+        tasks.named("check").configure { dependsOn(sourceSetTask) }
+        tasks.named("codeQuality").configure { dependsOn(sourceSetTask) }
         }
     }
 }

@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 
 open class AddVerifyProductionEnvironmentTaskPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        tasks.create("verifyIsProductionBuildEnvironment") {
+        tasks.createLater("verifyIsProductionBuildEnvironment") {
             doLast {
                 rootProject.availableJavaInstallations {
                     validateProductionEnvironment()

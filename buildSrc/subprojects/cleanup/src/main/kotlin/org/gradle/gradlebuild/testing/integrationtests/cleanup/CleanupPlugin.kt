@@ -24,20 +24,20 @@ import org.gradle.kotlin.dsl.*
 class CleanupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.create<CleanUpCaches>("cleanUpCaches") {
+        tasks.createLater("cleanUpCaches", CleanUpCaches::class.java) {
             dependsOn(":createBuildReceipt")
         }
-        tasks.create<CleanUpDaemons>("cleanUpDaemons")
+        tasks.createLater("cleanUpDaemons", CleanUpDaemons::class.java)
 
-        val killExistingProcessesStartedByGradle by tasks.creating(KillLeakingJavaProcesses::class)
+        val killExistingProcessesStartedByGradle = tasks.createLater("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class.java)
 
         if (BuildEnvironment.isCiServer) {
             tasks {
-                getByName("clean") {
+                getByName("clean") { // TODO: See https://github.com/gradle/gradle-native/issues/718
                     dependsOn(killExistingProcessesStartedByGradle)
                 }
                 subprojects {
-                    this.tasks.all {
+                    this.tasks.configureEach {
                         mustRunAfter(killExistingProcessesStartedByGradle)
                     }
                 }
