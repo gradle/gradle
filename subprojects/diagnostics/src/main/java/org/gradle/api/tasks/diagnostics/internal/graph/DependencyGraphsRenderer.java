@@ -38,6 +38,7 @@ public class DependencyGraphsRenderer {
     private final NodeRenderer rootRenderer;
     private final NodeRenderer dependenciesRenderer;
     private final LegendRenderer legendRenderer;
+    private boolean showSinglePath;
 
     public DependencyGraphsRenderer(StyledTextOutput output, GraphRenderer renderer, NodeRenderer rootRenderer, NodeRenderer dependenciesRenderer) {
         this.output = output;
@@ -45,6 +46,14 @@ public class DependencyGraphsRenderer {
         this.rootRenderer = rootRenderer;
         this.dependenciesRenderer = dependenciesRenderer;
         this.legendRenderer = new LegendRenderer(output);
+    }
+
+    public boolean isShowSinglePath() {
+        return showSinglePath;
+    }
+
+    public void setShowSinglePath(boolean showSinglePath) {
+        this.showSinglePath = showSinglePath;
     }
 
     public void render(Collection<RenderableDependency> items) {
@@ -78,12 +87,16 @@ public class DependencyGraphsRenderer {
 
     private void renderChildren(Set<? extends RenderableDependency> children, Set<Object> visited) {
         int i = 0;
-        int count = children.size();
+        int childCould = children.size();
+        int count = showSinglePath ? Math.min(1, childCould) : childCould;
         if (count > 0) {
             renderer.startChildren();
             for (RenderableDependency child : children) {
                 boolean last = ++i == count;
                 doRender(child, last, visited);
+                if (last) {
+                    break;
+                }
             }
             renderer.completeChildren();
         }
