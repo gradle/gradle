@@ -26,14 +26,16 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.FORCED
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class DependencyInsightReporterSpec extends Specification {
     def versionParser = new VersionParser()
@@ -47,7 +49,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0"), dep("a", "z", "1.0"), dep("a", "x", "2.0")]
 
         when:
-        def sorted = reporter.convertToRenderableItems(dependencies)
+        def sorted = reporter.convertToRenderableItems(dependencies, false)
 
         then:
         sorted.size() == 8
@@ -81,7 +83,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", forced()), dep("a", "x", "1.5", "2.0", forced()), dep("b", "a", "5.0")]
 
         when:
-        def sorted = reporter.convertToRenderableItems(dependencies)
+        def sorted = reporter.convertToRenderableItems(dependencies, false)
 
         then:
         sorted.size() == 5
@@ -106,7 +108,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", conflict()), dep("a", "x", "2.0", "2.0", conflict()), dep("b", "a", "5.0", "5.0", forced())]
 
         when:
-        def sorted = reporter.convertToRenderableItems(dependencies)
+        def sorted = reporter.convertToRenderableItems(dependencies, false)
 
         then:
         sorted.size() == 5
@@ -127,11 +129,86 @@ class DependencyInsightReporterSpec extends Specification {
         sorted[4].description == null
     }
 
-    private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY))
-        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(group, name, new DefaultMutableVersionConstraint(requested)),
+    def "can limit to a single path to a dependency"() {
+        def dependencies = [
+                path('a:1.0 -> b:1.0 -> c:1.0'),
+                path('a:1.0 -> d:1.0'),
+                path('a:1.0 -> e:1.0 -> f:1.0')
+        ]
+
+        when:
+        def sorted = reporter.convertToRenderableItems(dependencies, false)
+
+        then:
+        sorted.size() == 2
+        verify(sorted[0]) {
+            selected'group:a:1.0'
+            isHeader()
+            noMoreChildren()
+        }
+        verify(sorted[1]) {
+            selected'group:a:1.0'
+            isNotHeader()
+            hasChild('group:b:1.0') {
+                noMoreChildren()
+            }
+            hasChild('group:d:1.0') {
+                noMoreChildren()
+            }
+            hasChild('group:e:1.0') {
+                noMoreChildren()
+            }
+            noMoreChildren()
+        }
+
+        when:
+        sorted = reporter.convertToRenderableItems(dependencies, true)
+
+        then:
+        sorted.size() == 2
+        verify(sorted[0]) {
+            selected'group:a:1.0'
+            isHeader()
+            noMoreChildren()
+        }
+        verify(sorted[1]) {
+            selected'group:a:1.0'
+            isNotHeader()
+            hasChild('group:b:1.0') {
+                noMoreChildren()
+            }
+            // siblings are ignored
+            noMoreChildren()
+        }
+    }
+
+    private static void verify(RenderableDependency result, @DelegatesTo(value=RenderableDependencyResultFixture, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        spec.delegate = new RenderableDependencyResultFixture(result)
+        spec.resolveStrategy = Closure.DELEGATE_FIRST
+        spec()
+    }
+
+    private DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.requested()) {
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected), defaultVariant())
+        new DefaultResolvedDependencyResult(newSelector(group, name, new DefaultMutableVersionConstraint(requested)),
                 selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(group, name, selected), new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY)))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier(group, name, selected), defaultVariant()))
+    }
+
+    private DefaultResolvedVariantResult defaultVariant() {
+        new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY)
+    }
+
+    private DefaultResolvedDependencyResult path(String path) {
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), VersionSelectionReasons.requested(), new DefaultModuleComponentIdentifier("group", "root", "1"), defaultVariant())
+        List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
+            def (name, version) = it.split(':')
+            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), VersionSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId('group', name, version), defaultVariant())
+            def result = new DefaultResolvedDependencyResult(newSelector("group", name, version), componentResult, from)
+            from = componentResult
+            result
+        }
+        return pathElements[-1]
     }
 
     private static ComponentSelectionReason forced() {
@@ -140,5 +217,37 @@ class DependencyInsightReporterSpec extends Specification {
 
     private static ComponentSelectionReason conflict() {
         VersionSelectionReasons.of([CONFLICT_RESOLUTION])
+    }
+
+    private static class RenderableDependencyResultFixture {
+        private final RenderableDependency actual
+        private final Set<RenderableDependency> checkedChildren = []
+
+        RenderableDependencyResultFixture(RenderableDependency result) {
+            this.actual = result
+        }
+
+        void selected(String name) {
+            assert actual.name == name
+        }
+
+        void isHeader() {
+            assert actual instanceof DependencyReportHeader
+        }
+
+        void isNotHeader() {
+            assert !(actual instanceof DependencyReportHeader)
+        }
+
+        void hasChild(String name, Closure<?> spec) {
+            def child = actual.children.find { it.name == name }
+            assert child != null : "Unable to find child named $name. Known children to ${actual.name} = ${actual.children.name}"
+            checkedChildren << child
+            verify(child, spec)
+        }
+
+        void noMoreChildren() {
+            assert checkedChildren.size() == actual.children.size()
+        }
     }
 }

@@ -72,7 +72,7 @@ public class DependencyInsightReporter {
         this.versionParser = versionParser;
     }
 
-    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies) {
+    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
         LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
@@ -89,8 +89,9 @@ public class DependencyInsightReporter {
             } else if (!current.getRequested().equals(dependency.getRequested())) {
                 current = newRequestedVersion(out, dependency);
             }
-
-            current.addChild(dependency);
+            if (!singlePathToDependency || current.getChildren().isEmpty()) {
+                current.addChild(dependency);
+            }
         }
 
         return out;

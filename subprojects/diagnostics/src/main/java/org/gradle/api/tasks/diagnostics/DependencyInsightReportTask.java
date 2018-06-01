@@ -95,6 +95,7 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
+    private boolean showSinglePathToDependency;
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
@@ -154,6 +155,27 @@ public class DependencyInsightReportTask extends DefaultTask {
         this.configuration = getProject().getConfigurations().getByName(configurationName);
     }
 
+    /**
+     * Tells if the report should only show one path to each dependency.
+     *
+     * @since 4.9
+     */
+    @Internal
+    public boolean isShowSinglePathToDependency() {
+        return showSinglePathToDependency;
+    }
+
+    /**
+     * Tells if the report should only display a single path to each dependency, which
+     * can be useful when the graph is large. This is false by default, meaning that for
+     * each dependency, the report will display all paths leading to it.
+     * @since 4.9
+     */
+    @Option(option = "singlepath", description = "Show at most one path to each dependency")
+    public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
+        this.showSinglePathToDependency = showSinglePathToDependency;
+    }
+
     @Inject
     protected StyledTextOutputFactory getTextOutputFactory() {
         throw new UnsupportedOperationException();
@@ -205,10 +227,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
         GraphRenderer renderer = new GraphRenderer(output);
         DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies);
+        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
         RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory());
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
         DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
+        dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
         dependencyGraphRenderer.render(itemsToRender);
         dependencyGraphRenderer.complete();
     }

@@ -217,6 +217,67 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    def "can limit the report to one path to each dependency"() {
+        given:
+        mavenRepo.with {
+            def leaf = module('org', 'leaf').publish()
+            def a = module('org', 'a').dependsOn(leaf).publish()
+            def b = module('org', 'b').dependsOn(a).publish()
+            def c = module('org', 'c').dependsOn(a).publish()
+            def d = module('org', 'd').dependsOn(leaf).publish()
+        }
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:b:1.0'
+                conf 'org:c:1.0'
+                conf 'org:d:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf", "--configuration", "conf"
+
+        then:
+        outputContains """
+org:leaf:1.0
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+
+org:leaf:1.0
++--- org:a:1.0
+|    +--- org:b:1.0
+|    |    \\--- conf
+|    \\--- org:c:1.0
+|         \\--- conf
+\\--- org:d:1.0
+     \\--- conf
+"""
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf", "--configuration", "conf", "--singlepath"
+
+        then:
+        outputContains """
+org:leaf:1.0
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+
+org:leaf:1.0
+\\--- org:a:1.0
+     \\--- org:b:1.0
+          \\--- conf
+"""
+    }
+
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
