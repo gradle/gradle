@@ -88,7 +88,7 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
         """)
 
         println()
-        run("assemble").apply {
+        run("generateKotlinDslApiExtensions").apply {
             println(output)
         }
 
@@ -98,10 +98,15 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
             println(it.readText().prependIndent())
         }
 
-        println("\n>> Generated resources")
+        println("\n>> Generated sources")
         existing("build/generated-sources").walkTopDown().filter { it.isFile }.forEach {
             println(it)
             println(it.readText().prependIndent())
+        }
+
+        println()
+        run("assemble").apply {
+            println(output)
         }
 
         println("\n>> Classes")
