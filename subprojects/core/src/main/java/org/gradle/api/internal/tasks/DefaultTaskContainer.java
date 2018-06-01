@@ -276,32 +276,63 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    // TODO: Remove
     @Override
     public TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
+        return registerTask(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
+        return register(name, type, NO_ARGS);
+    }
+
+    @Override
+    public TaskProvider<Task> createLater(String name) {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+    // TODO: Remove ^^^
+
+    @Override
+    public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
+        return registerTask(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException {
+        return register(name, type, NO_ARGS);
+    }
+
+    @Override
+    public TaskProvider<Task> register(String name) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
+        return registerTask(name, type, null, constructorArgs);
+    }
+
+    private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction, Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
-        DefaultTaskProvider<T> provider = new TaskCreatingProvider<T>(type, name, configurationAction);
+        DefaultTaskProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, type, name, configurationAction, constructorArgs));
         addLater(provider);
         if (eagerlyCreateLazyTasks) {
             provider.get();
         }
         return provider;
-    }
-
-    @Override
-    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
-        return createLater(name, type, null);
-    }
-
-    @Override
-    public TaskProvider<Task> createLater(String name) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
     public <T extends Task> T replace(String name, Class<T> type) {
@@ -445,7 +476,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     public <T extends Task> void addPlaceholderAction(final String placeholderName, Class<T> taskType, Action<? super T> configure) {
         if (findByNameWithoutRules(placeholderName) == null) {
-            TaskCreatingProvider<T> provider = new TaskCreatingProvider<T>(taskType, placeholderName, configure);
+            TaskCreatingProvider<T> provider = Cast.uncheckedCast(getInstantiator().newInstance(TaskCreatingProvider.class, this, taskType, placeholderName, configure, NO_ARGS));
             placeholders.put(placeholderName, provider);
             deferredElementKnown(placeholderName, provider);
         } else {
@@ -486,41 +517,45 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return Cast.uncheckedCast(instantiator.newInstance(RealizableTaskCollection.class, type, super.withType(type), modelNode, instantiator));
     }
 
-    private class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
+    public static class TaskCreatingProvider<T extends Task> extends DefaultTaskProvider<T> {
         private T task;
         private Throwable cause;
+        private Object[] constructorArgs;
+        private DefaultTaskContainer tasks;
 
-        public TaskCreatingProvider(Class<T> type, String name, @Nullable Action<? super T> configureAction) {
-            super(type, name);
+        public TaskCreatingProvider(DefaultTaskContainer tasks, Class<T> type, String name, @Nullable Action<? super T> configureAction, Object... constructorArgs) {
+            super(tasks, type, name);
+            this.tasks = tasks;
+            tasks.statistics.lazyTask();
+            this.constructorArgs = constructorArgs;
             if (configureAction != null) {
                 configure(configureAction);
             }
-            statistics.lazyTask();
         }
 
         @Override
         public T getOrNull() {
             if (cause != null) {
-                throw throwFailure();
+                throw createIllegalStateException();
             }
             if (task == null) {
-                task = type.cast(findByNameWithoutRules(name));
+                task = type.cast(tasks.findByNameWithoutRules(name));
                 if (task == null) {
                     try {
-                        task = createTask(name, type, NO_ARGS);
-                        statistics.lazyTaskRealized(type);
-                        add(task);
+                        task = tasks.createTask(name, type, constructorArgs);
+                        tasks.statistics.lazyTaskRealized(type);
+                        tasks.add(task);
                     } catch (RuntimeException ex) {
                         cause = ex;
-                        throw throwFailure();
+                        throw createIllegalStateException();
                     }
                 }
             }
             return task;
         }
 
-        private IllegalStateException throwFailure() {
-            throw new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
+        private IllegalStateException createIllegalStateException() {
+            return new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
         }
     }
 }

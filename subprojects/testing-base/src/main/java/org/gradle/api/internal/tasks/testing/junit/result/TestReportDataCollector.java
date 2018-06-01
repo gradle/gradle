@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.serialize.PlaceholderException;
@@ -23,6 +24,7 @@ import org.gradle.internal.serialize.PlaceholderException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,9 +32,11 @@ import java.util.Map;
  */
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
+    public static final String EXECUTION_FAILURE = "failed to execute tests";
     private final Map<String, TestClassResult> results;
     private final TestOutputStore.Writer outputWriter;
     private final Map<TestDescriptor, TestMethodResult> currentTestMethods = new HashMap<TestDescriptor, TestMethodResult>();
+    private final List<TestOutputEvent> rootOutputEvents = Lists.newArrayList();
     private long internalIdCounter = 1;
 
     public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
@@ -49,12 +53,18 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
             //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
             //this may happen for example when suite initialisation fails and no tests are executed
-            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, "execution failure");
+            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, EXECUTION_FAILURE);
+            TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
             for (Throwable throwable : result.getExceptions()) {
                 methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
             }
+            if (((TestDescriptorInternal)suite).isRoot() && !rootOutputEvents.isEmpty()) {
+                for (TestOutputEvent outputEvent : rootOutputEvents) {
+                    outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
+                }
+                rootOutputEvents.clear();
+            }
             methodResult.completed(result);
-            TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
             classResult.add(methodResult);
             results.put(suite.getName(), classResult);
         }
@@ -120,6 +130,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
         String className = testDescriptor.getClassName();
         if (className == null) {
+            if (((TestDescriptorInternal)testDescriptor).isRoot()) {
+                rootOutputEvents.add(outputEvent);
+            }
             //this means that we receive an output before even starting any class (or too late).
             //we don't have a place for such output in any of the reports so skipping.
             //Unfortunately, this happens pretty often with current level of TestNG support

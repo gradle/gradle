@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFacto
 import org.gradle.api.internal.changedetection.state.SnapshotSerializer;
 import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
+import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
@@ -35,8 +36,8 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.reflect.ConfigurableRule;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.ConfigurableRule;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -154,7 +155,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(4);
         toBeSnapshotted.add(ketToSnapshottable.transform(key));
         Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
-        Object[] ruleParams = rule.getRuleParams();
+        Isolatable<Object[]> ruleParams = rule.getRuleParams();
         toBeSnapshotted.add(ruleClass);
         toBeSnapshotted.add(ruleParams);
         return snapshotter.snapshot(toBeSnapshotted);

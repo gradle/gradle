@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import java.util.Locale;
+
 /**
  * The different kinds of annotation processors that the incremental compiler knows how to handle.
  * See the user guide chapter on incremental annotation processing for more information.
@@ -27,6 +29,6 @@ public enum IncrementalAnnotationProcessorType {
     UNKNOWN;
 
     public String getProcessorOption() {
-        return "org.gradle.annotation.processing." + name().toLowerCase();
+        return "org.gradle.annotation.processing." + name().toLowerCase(Locale.ROOT);
     }
 }

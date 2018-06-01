@@ -23,6 +23,7 @@ import org.hamcrest.Matchers
 import org.junit.Assert
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 
 class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     GPathResult testClassNode
@@ -124,7 +125,7 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
 
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         Map<String, Node> testMethods = findTests()
-        String failureMethodName = "execution failure"
+        String failureMethodName = EXECUTION_FAILURE
         Assert.assertThat(testMethods.keySet(), Matchers.hasItem(failureMethodName))
 
         String causeLinePrefix = "Caused by: "

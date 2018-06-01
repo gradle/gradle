@@ -130,11 +130,16 @@ repositories {
                 .expectSourceArtifactNotFound("my-sources")
                 .prepare()
         buildFile << """
+class ChangingRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        context.details.changing = true
+    }
+}
+
 dependencies {
     components {
-        all { details ->
-            details.changing = true
-        }
+        all(ChangingRule)
     }
 }
 

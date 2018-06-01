@@ -29,10 +29,11 @@ import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.reflect.ConfigurableRule;
-import org.gradle.internal.reflect.DefaultConfigurableRule;
-import org.gradle.internal.reflect.InstantiatingAction;
+import org.gradle.internal.action.ConfigurableRule;
+import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
@@ -43,8 +44,10 @@ import java.net.URI;
 public abstract class AbstractArtifactRepository implements ArtifactRepositoryInternal, MetadataSupplierAware {
     private String name;
     private boolean isPartOfContainer;
-    private ConfigurableRule<ComponentMetadataSupplierDetails> componentMetadataSupplierRule;
-    private ConfigurableRule<ComponentMetadataListerDetails> componentMetadataListerRule;
+    private Class<? extends ComponentMetadataSupplier> componentMetadataSupplierRuleClass;
+    private Class<? extends ComponentMetadataVersionLister> componentMetadataListerRuleClass;
+    private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
+    private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
 
     public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
         isPartOfContainer = true;
@@ -67,30 +70,42 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> ruleClass) {
-        this.componentMetadataSupplierRule = DefaultConfigurableRule.of(ruleClass);
+        this.componentMetadataSupplierRuleClass = ruleClass;
+        this.componentMetadataSupplierRuleConfiguration = null;
     }
 
     @Override
     public void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction) {
-        this.componentMetadataSupplierRule = DefaultConfigurableRule.of(rule, configureAction);
+        this.componentMetadataSupplierRuleClass = rule;
+        this.componentMetadataSupplierRuleConfiguration = configureAction;
     }
 
     @Override
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister) {
-        this.componentMetadataListerRule = DefaultConfigurableRule.of(lister);
+        this.componentMetadataListerRuleClass = lister;
+        this.componentMetadataListerRuleConfiguration = null;
     }
 
     @Override
     public void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction) {
-        this.componentMetadataListerRule = DefaultConfigurableRule.of(lister, configureAction);
+        this.componentMetadataListerRuleClass = lister;
+        this.componentMetadataListerRuleConfiguration = configureAction;
     }
 
-    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator) {
-        return createRuleAction(instantiator, componentMetadataSupplierRule);
+    InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        if (componentMetadataSupplierRuleClass != null) {
+            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataSupplierDetails>of(componentMetadataSupplierRuleClass, componentMetadataSupplierRuleConfiguration, isolatableFactory));
+        } else {
+            return null;
+        }
     }
 
-    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(final Instantiator instantiator) {
-        return createRuleAction(instantiator, componentMetadataListerRule);
+    InstantiatingAction<ComponentMetadataListerDetails> createComponentMetadataVersionLister(Instantiator instantiator, IsolatableFactory isolatableFactory) {
+        if (componentMetadataListerRuleClass != null) {
+            return createRuleAction(instantiator, DefaultConfigurableRule.<ComponentMetadataListerDetails>of(componentMetadataListerRuleClass, componentMetadataListerRuleConfiguration, isolatableFactory));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -117,10 +132,6 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        if (rule == null) {
-            return null;
-        }
-
         return new InstantiatingAction<T>(rule, instantiator, new InstantiatingAction.ExceptionHandler<T>() {
             @Override
             public void handleException(T target, Throwable throwable) {

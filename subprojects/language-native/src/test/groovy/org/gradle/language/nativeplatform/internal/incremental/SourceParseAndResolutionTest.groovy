@@ -38,7 +38,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def fileSystemSnapshotter = new TestFileSnapshotter()
     def resolver = new DefaultSourceIncludesResolver([includeDir], fileSystemSnapshotter)
     def parser = new RegexBackedCSourceParser()
-    def serializer = new IncludeDirectivesSerializer()
+    def serializer = IncludeDirectivesSerializer.INSTANCE
 
     def "resolves macro with value that is a string constant"() {
         given:

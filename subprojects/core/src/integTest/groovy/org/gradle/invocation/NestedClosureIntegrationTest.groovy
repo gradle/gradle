@@ -41,6 +41,6 @@ gradle.projectsLoaded { g ->
         then:
         output.count('projectsLoaded') == 1
         output.count('rootProject') == 1
-        output.count('beforeEvaluate') == 1
+        output.count('beforeEvaluate\n') == 1
     }
 }

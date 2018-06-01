@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -59,6 +60,7 @@ import javax.annotation.Nullable;
  */
 @Incubating
 @HasInternalProtocol
+@NonExtensible
 public interface Provider<T> {
 
     /**

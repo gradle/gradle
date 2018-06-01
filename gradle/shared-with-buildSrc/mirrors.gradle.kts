@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
+
 val gradleMirrorUrl = findMirrorUrls()["gradle"]
 if (gradleMirrorUrl != null) {
-    allprojects {
-        buildscript {
-            repositories {
-                maven {
-                    name = "gradle-mirror"
-                    url = uri(gradleMirrorUrl)
-                }
+    project.buildscript {
+        repositories {
+            maven {
+                name = "gradle-mirror"
+                url = uri(gradleMirrorUrl)
             }
         }
+    }
+
+    project.allprojects {
         repositories {
             maven {
                 name = "gradle-mirror"
@@ -35,7 +37,11 @@ if (gradleMirrorUrl != null) {
 }
 
 fun findMirrorUrls(): Map<String, String> =
-    System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
-        val (name, url) = nameToUrl.split(':', limit = 2)
-        name to url
-    } ?: emptyMap()
+    if ("CI" in java.lang.System.getenv()) {
+        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+            val (name, url) = nameToUrl.split(':', limit = 2)
+            name to url
+        } ?: emptyMap()
+    } else {
+        emptyMap()
+    }

@@ -19,10 +19,12 @@ package org.gradle.integtests.samples
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -33,8 +35,13 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'scala/mixedJavaAndScala')
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
+    @Before
+    void setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
+
     @Test
-    public void canBuildJar() {
+    void canBuildJar() {
         TestFile projectDir = sample.dir
 
         // Build and test projects
@@ -58,7 +65,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canBuildDocs() {
+    void canBuildDocs() {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load scala into the daemon as it exhausts permgen
             return

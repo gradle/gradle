@@ -25,7 +25,7 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
 
         expect:
-        serialize(directives, new IncludeDirectivesSerializer()) == directives
+        serialize(directives, IncludeDirectivesSerializer.INSTANCE) == directives
     }
 
     def "serializes include directives"() {
@@ -37,7 +37,7 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include1, include2, include3, include4, include5]), ImmutableList.of(), ImmutableList.of())
 
         expect:
-        serialize(directives, new IncludeDirectivesSerializer()) == directives
+        serialize(directives, IncludeDirectivesSerializer.INSTANCE) == directives
     }
 
     def "serializes nested expression"() {
@@ -48,7 +48,7 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include]), ImmutableList.of(), ImmutableList.of())
 
         expect:
-        serialize(directives, new IncludeDirectivesSerializer()) == directives
+        serialize(directives, IncludeDirectivesSerializer.INSTANCE) == directives
     }
 
     def "replaces common expressions with constants"() {
@@ -61,7 +61,7 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.copyOf([include]), ImmutableList.of(), ImmutableList.of())
 
         expect:
-        def expressions = serialize(directives, new IncludeDirectivesSerializer()).all.first().arguments
+        def expressions = serialize(directives, IncludeDirectivesSerializer.INSTANCE).all.first().arguments
         expressions[0].is(SimpleExpression.EMPTY_EXPRESSIONS)
         expressions[1].is(SimpleExpression.EMPTY_ARGS)
         expressions[2].is(SimpleExpression.COMMA)
@@ -81,7 +81,7 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8]), ImmutableList.of())
 
         expect:
-        serialize(directives, new IncludeDirectivesSerializer()) == directives
+        serialize(directives, IncludeDirectivesSerializer.INSTANCE) == directives
     }
 
     def "serializes macro function directives"() {
@@ -95,6 +95,6 @@ class IncludeDirectivesSerializerTest extends SerializerSpec {
         def directives = new DefaultIncludeDirectives(ImmutableList.of(), ImmutableList.of(), ImmutableList.copyOf([macro1, macro2, macro3, macro4, macro5, macro6, macro7]))
 
         expect:
-        serialize(directives, new IncludeDirectivesSerializer()) == directives
+        serialize(directives, IncludeDirectivesSerializer.INSTANCE) == directives
     }
 }

@@ -29,8 +29,6 @@ import java.util.Map;
  */
 public interface FileCollectionSnapshot extends Snapshot {
 
-    boolean isEmpty();
-
     /**
      * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
      */
@@ -45,11 +43,6 @@ public interface FileCollectionSnapshot extends Snapshot {
      * Returns the elements of this snapshot, including regular files, directories and missing files
      */
     Collection<File> getElements();
-
-    /**
-     * Returns the regular files that make up this snapshot.
-     */
-    Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();
 

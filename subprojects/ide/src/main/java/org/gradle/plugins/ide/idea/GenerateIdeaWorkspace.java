@@ -16,9 +16,12 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
 import org.gradle.plugins.ide.idea.model.Workspace;
+
+import javax.inject.Inject;
 
 /**
  * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
@@ -26,6 +29,13 @@ import org.gradle.plugins.ide.idea.model.Workspace;
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
     private IdeaWorkspace workspace;
+
+    public GenerateIdeaWorkspace() {}
+
+    @Inject
+    public GenerateIdeaWorkspace(IdeaWorkspace workspace) {
+        this.workspace = workspace;
+    }
 
     @Override
     protected Workspace create() {
@@ -35,6 +45,14 @@ public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
     @Override
     protected void configure(Workspace xmlWorkspace) {
         getWorkspace().mergeXmlWorkspace(xmlWorkspace);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (workspace == null) {
+            return super.getXmlTransformer();
+        }
+        return workspace.getIws().getXmlTransformer();
     }
 
     /**

@@ -312,7 +312,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(expected, candidates)
+        checkScenarioResolution(expected, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
@@ -325,7 +325,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(expected, candidates)
+        checkScenarioResolution(expected, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_DEPENDENCY_WITH_REJECT
@@ -338,7 +338,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(expected, candidates)
+        checkScenarioResolution(expected, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
@@ -351,7 +351,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(expected, candidates)
+        checkScenarioResolution(expected, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
@@ -364,17 +364,17 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         def expected = permutation.expected
 
         expect:
-        resolve(expected, candidates)
+        checkScenarioResolution(expected, candidates)
 
         where:
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_FOUR_DEPENDENCIES
     }
 
-    void resolve(String expected, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
-        resolve(expected, versions as List)
+    void checkScenarioResolution(String expected, VersionRangeResolveTestScenarios.RenderableVersion... versions) {
+        checkScenarioResolution(expected, versions as List)
     }
 
-    void resolve(String expected, List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
+    void checkScenarioResolution(String expected, List<VersionRangeResolveTestScenarios.RenderableVersion> versions) {
         settingsFile.text = baseSettings
 
         def singleProjectConfs = []

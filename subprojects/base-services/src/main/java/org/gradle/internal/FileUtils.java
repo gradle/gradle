@@ -77,17 +77,17 @@ public class FileUtils {
         files:
         for (File file : files) {
             File absoluteFile = file.getAbsoluteFile();
-            String path = absoluteFile + File.separator;
+            String path = file.getPath();
             Iterator<File> rootsIterator = roots.iterator();
 
             while (rootsIterator.hasNext()) {
                 File root = rootsIterator.next();
-                String rootPath = root.getPath() + File.separator;
-                if (path.startsWith(rootPath)) { // is lower than root
+                String rootPath = root.getPath();
+                if (doesPathStartWith(path, rootPath)) { // is lower than root
                     continue files;
                 }
 
-                if (rootPath.startsWith(path)) { // is higher than root
+                if (doesPathStartWith(rootPath, path)) { // is higher than root
                     rootsIterator.remove();
                 }
             }
@@ -96,6 +96,24 @@ public class FileUtils {
         }
 
         return roots;
+    }
+
+    /**
+     * Checks if one path is a prefix to another.
+     * <p>
+     * Conceptually, it appends a file separator to both paths before doing a prefix check.
+     *
+     * @param path a path to check a prefix against, without a trailing file separator
+     * @param startsWithPath a prefix path without a trailing file separator
+     * @return true if the path starts with the prefix
+     */
+    public static boolean doesPathStartWith(String path, String startsWithPath) {
+        if (!path.startsWith(startsWithPath)) {
+            return false;
+        }
+
+        return path.length() == startsWithPath.length()
+            || path.charAt(startsWithPath.length()) == File.separatorChar;
     }
 
     /**

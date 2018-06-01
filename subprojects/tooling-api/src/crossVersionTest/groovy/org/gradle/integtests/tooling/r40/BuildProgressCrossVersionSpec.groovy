@@ -275,7 +275,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :').children.size() == 1 //only 'Apply plugin org.gradle.help-tasks'
+        events.operation('Configure project :').children.size() <= 3 //only 'Apply plugin org.gradle.help-tasks', maybe before/afterEvaluated
     }
 
     def "generates events for applied script plugins"() {

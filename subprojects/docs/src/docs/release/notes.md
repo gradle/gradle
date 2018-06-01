@@ -2,6 +2,11 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Command line args supported by JavaExec
+
+Since Gradle 4.9, the command line arguments can be passed to `JavaExec` with `--args`. For example, if you want to launch the application with command line arguments `foo --bar`, 
+you don't need to hardcode it into the build script - you can just run `gradle run --args 'foo --bar'` (see [application plugin](userguide/application_plugin.html) for more information).
+
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
@@ -52,9 +57,9 @@ Plugins or build scripts attempting to do this will now get a runtime exception.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
+- [Luke Usherwood](https://github.com/lukeu) Fix `ClassCastException` when generating Eclipse files for Gradle (gradle/gradle#5278)
+- [Theodore Ni](https://github.com/tjni) Reduce string allocations when working with paths. (gradle/gradle#5543)
+- [Theodore Ni](https://github.com/tjni) Suppress redundant warning message (gradle/gradle#5544)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 

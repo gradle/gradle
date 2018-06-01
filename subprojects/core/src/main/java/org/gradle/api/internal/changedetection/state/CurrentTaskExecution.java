@@ -32,7 +32,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
     private final ImmutableSet<String> declaredOutputFilePaths;
     private ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot;
     private final ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot;
-    private FileCollectionSnapshot discoveredInputFilesSnapshot;
     private final OverlappingOutputs detectedOverlappingOutputs;
     private Boolean successful;
     private OriginTaskExecutionMetadata originExecutionMetadata;
@@ -44,7 +43,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         ImmutableSortedSet<String> outputPropertyNames,
         ImmutableSet<String> declaredOutputFilePaths,
         ImmutableSortedMap<String, FileCollectionSnapshot> inputFilesSnapshot,
-        FileCollectionSnapshot discoveredInputFilesSnapshot,
         ImmutableSortedMap<String, FileCollectionSnapshot> outputFilesSnapshot,
         @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
@@ -52,7 +50,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
         this.outputFilesSnapshot = outputFilesSnapshot;
         this.inputFilesSnapshot = inputFilesSnapshot;
-        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
         this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
@@ -89,15 +86,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
         return inputFilesSnapshot;
     }
 
-    @Override
-    public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
-        return discoveredInputFilesSnapshot;
-    }
-
-    public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredInputFilesSnapshot) {
-        this.discoveredInputFilesSnapshot = discoveredInputFilesSnapshot;
-    }
-
     @Nullable
     public OverlappingOutputs getDetectedOverlappingOutputs() {
         return detectedOverlappingOutputs;
@@ -110,7 +98,6 @@ public class CurrentTaskExecution extends AbstractTaskExecution {
             getInputProperties(),
             getOutputPropertyNamesForCacheKey(),
             inputFilesSnapshot,
-            discoveredInputFilesSnapshot,
             outputFilesSnapshot,
             successful,
             originExecutionMetadata

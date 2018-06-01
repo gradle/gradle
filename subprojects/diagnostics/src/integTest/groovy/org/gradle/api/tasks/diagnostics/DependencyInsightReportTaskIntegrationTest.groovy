@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -206,6 +207,164 @@ org:leaf2:1.0 -> 2.5
 org:leaf2:1.5 -> 2.5
 \\--- org:toplevel2:1.0
      \\--- conf
+"""
+    }
+
+    def "displays information about conflicting modules when failOnVersionConflict is used"() {
+        given:
+        mavenRepo.module("org", "leaf1").publish()
+        mavenRepo.module("org", "leaf2").publish()
+        mavenRepo.module("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "leaf2", "2.5").publish()
+        mavenRepo.module("org", "leaf3").publish()
+        mavenRepo.module("org", "leaf4").publish()
+
+        mavenRepo.module("org", "middle1").dependsOnModules('leaf1', 'leaf2').publish()
+        mavenRepo.module("org", "middle2").dependsOnModules('leaf3', 'leaf4').publish()
+        mavenRepo.module("org", "middle3").dependsOnModules('leaf2').publish()
+
+        mavenRepo.module("org", "toplevel").dependsOnModules("middle1", "middle2").publish()
+
+        mavenRepo.module("org", "toplevel2").dependsOn("org", "leaf2", "1.5").publish()
+        mavenRepo.module("org", "toplevel3").dependsOn("org", "leaf2", "2.5").publish()
+
+        mavenRepo.module("org", "toplevel4").dependsOnModules("middle3").publish()
+
+        file("build.gradle") << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf {
+                    resolutionStrategy.failOnVersionConflict()
+                }
+            }
+            dependencies {
+                conf 'org:toplevel:1.0', 'org:toplevel2:1.0', 'org:toplevel3:1.0', 'org:toplevel4:1.0'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
+
+        then:
+        outputContains """Dependency resolution failed because of conflicts between the following modules:
+   - org:leaf2:1.5
+   - org:leaf2:2.5
+   - org:leaf2:1.0
+
+org:leaf2:2.5 (conflict resolution)
+   variant "runtime" [
+      org.gradle.status = release (not requested)
+   ]
+\\--- org:toplevel3:1.0
+     \\--- conf
+
+org:leaf2:1.0 -> 2.5
++--- org:middle1:1.0
+|    \\--- org:toplevel:1.0
+|         \\--- conf
+\\--- org:middle3:1.0
+     \\--- org:toplevel4:1.0
+          \\--- conf
+
+org:leaf2:1.5 -> 2.5
+\\--- org:toplevel2:1.0
+     \\--- conf
+"""
+    }
+
+    def "displays a dependency insight report even if locks are out of date"() {
+        def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {    
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0'])
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
+
+        then:
+        outputContains """The dependency locks are out-of-date:
+   - Did not resolve 'org:bar:1.0' which is part of the lock state
+   - Resolved 'org:foo:1.1' which is not part of the lock state
+
+org:foo:1.1
+   variant "default" [
+      org.gradle.status = release (not requested)
+   ]
+
+org:foo:1.+ -> 1.1
+\\--- lockedConf"""
+    }
+
+    def "displays a dependency insight report even if locks are out of date because of new constraint"() {
+        def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {    
+    constraints {
+        lockedConf('org:foo') {
+            version {
+                prefer '1.1'
+            }
+        }
+    }
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
+
+        then:
+        outputContains """org:foo:1.0 (via constraint, dependency was locked to version '1.0') FAILED
+\\--- lockedConf
+
+org:foo:1.1 (via constraint) FAILED
+\\--- lockedConf
+
+org:foo:1.+ FAILED
+\\--- lockedConf
 """
     }
 
@@ -1707,6 +1866,60 @@ org:leaf2:1.0
 (*) - dependencies omitted (listed previously)
 
 A web-based, searchable dependency report is available by adding the --scan option.
+"""
+    }
+
+    def "renders multiple rejected modules"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "1.1").publish()
+        mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "bar", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.1").publish()
+        mavenRepo.module("org", "bar", "1.2").publish()
+
+
+        file("build.gradle") << """
+            apply plugin: 'java-library'
+            
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            
+            dependencies {
+                constraints {
+                    implementation('org:foo') {
+                       version { 
+                          reject '1.0', '1.1', '1.2' 
+                       }
+                    }
+                    implementation('org:bar') {
+                       version { 
+                          rejectAll()
+                       }
+                       because "Nope, you won't use this"
+                    }
+                }
+                implementation 'org:foo:[1.0,)'
+                implementation 'org:bar:[1.0,)'
+            }
+        """
+
+        when:
+        run "dependencyInsight", "--dependency", "org"
+
+        then:
+        outputContains """org:bar (via constraint, Nope, you won't use this) FAILED
+\\--- compileClasspath
+
+org:bar:[1.0,) FAILED
+\\--- compileClasspath
+
+org:foo (via constraint) FAILED
+\\--- compileClasspath
+
+org:foo:[1.0,) FAILED
+\\--- compileClasspath
 """
     }
 }

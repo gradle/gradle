@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ public class EclipseWtpFacet {
     private final XmlFileContentMerger file;
     private List<Facet> facets = Lists.newArrayList();
 
+    @Inject
     public EclipseWtpFacet(XmlFileContentMerger file) {
         this.file = file;
     }

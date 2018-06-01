@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.reflect;
 
-import org.gradle.api.Action;
+@NonNullApi
+package org.gradle.api.internal.changedetection.changes;
 
-public interface ConfigurableRule<DETAILS> {
-    Class<? extends Action<DETAILS>> getRuleClass();
-    Object[] getRuleParams();
-    boolean isCacheable();
-}
+import org.gradle.api.NonNullApi;

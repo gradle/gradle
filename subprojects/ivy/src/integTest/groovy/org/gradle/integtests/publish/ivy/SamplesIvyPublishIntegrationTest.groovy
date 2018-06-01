@@ -16,17 +16,24 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-public class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
+class SamplesIvyPublishIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, "ivypublish")
 
+    @Before
+    void setup() {
+        executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+    }
+
     @Test
-    public void testPublish() {
+    void testPublish() {
         // the actual testing is done in the build script.
         File projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks("uploadArchives").run()
