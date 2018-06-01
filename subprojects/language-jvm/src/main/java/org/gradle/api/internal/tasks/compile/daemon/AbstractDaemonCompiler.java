@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -61,6 +62,7 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     @Override
     public WorkResult execute(T spec) {
+        ClassLoaderUtils.disableUrlConnectionCaching();
         InvocationContext invocationContext = toInvocationContext(spec);
         DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
         Worker worker = workerFactory.getWorker(daemonForkOptions);
