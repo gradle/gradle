@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType
 import org.gradle.api.specs.Spec
@@ -60,6 +61,24 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType)
     }
 
+    def "emits two ops for eager lazy realization"() {
+        given:
+        enable()
+        stopBeforeTaskGraphCalculation()
+        register('foo')
+
+        when:
+        args("-D${DefaultTaskContainer.EAGERLY_CREATE_LAZY_TASKS_PROPERTY}=true")
+        runAndFail()
+
+        then:
+        verifyTaskIds()
+        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo')).children.empty
+        def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
+        realize.children.empty
+        realize.details.eager == false
+    }
+
     def "emits registration, realization build ops when tasks later realized"() {
         given:
         enable()
@@ -71,9 +90,9 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         verifyTaskIds()
-        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo'))
-        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':bar'))
-        verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'), eager: false)
+        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo')).children.empty
+        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':bar')).children.empty
+        verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'), eager: false).children.empty
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
@@ -91,11 +110,13 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         verifyTaskIds()
-        verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'), eager: true)
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && !it.details.replacement }, eager: true)
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && it.details.replacement }, eager: true, replacement: true)
-        def firstBazId = verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':baz'))
-        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':baz' && it.details.replacement }, eager: true, replacement: true)
+        verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'), eager: true).children.empty
+        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && !it.details.replacement }, eager: true).children.empty
+        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':bar' && it.details.replacement }, eager: true, replacement: true).children.empty
+        def bazOp = verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':baz'))
+        bazOp.children.empty
+        def firstBazId = bazOp.details.taskId
+        verifyTaskDetails(RealizeTaskBuildOperationType, { it.details.taskPath == ':baz' && it.details.replacement }, eager: true, replacement: true).children.empty
         // original baz task never realized
         buildOperations.none(RealizeTaskBuildOperationType, { it.details.taskId == firstBazId })
     }
@@ -159,11 +180,13 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             tasks.register("$name")
         """
     }
+
     private void create(String name) {
         buildFile << """
             tasks.create("$name")
         """
     }
+
     private void replace(String name) {
         buildFile << """
             tasks.replace("$name")
@@ -188,10 +211,14 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static Spec<? super BuildOperationRecord> withAnyPath(String buildPath, String... paths) {
-        return { (it.details.buildPath as String) == buildPath &&  (it.details.taskPath as String) in (paths as List) }
+        return { (it.details.buildPath as String) == buildPath && (it.details.taskPath as String) in (paths as List) }
     }
 
     private static Spec<? super BuildOperationRecord> withPath(String buildPath, String taskPath) {
+        return { (it.details.buildPath as String) == buildPath && (it.details.taskPath as String) == taskPath }
+    }
+
+    private static Spec<? super BuildOperationRecord> noChildren(String buildPath, String taskPath) {
         return { (it.details.buildPath as String) == buildPath && (it.details.taskPath as String) == taskPath }
     }
 
@@ -199,16 +226,16 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         return { !predicate.isSatisfiedBy(it) }
     }
 
-    private <T extends BuildOperationType<?, ?>> Long verifyTaskDetails(Map<String, ?> expectedDetails, Class<T> type, Spec<? super BuildOperationRecord> spec) {
+    private <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Map<String, ?> expectedDetails, Class<T> type, Spec<? super BuildOperationRecord> spec) {
         def op = buildOperations.only(type, spec)
         verifyTaskDetails(expectedDetails, op)
-        op.details.taskId as Long
+        op
     }
 
-    private <T extends BuildOperationType<?, ?>> Long verifyTaskDetails(Class<T> type, Spec<? super BuildOperationRecord> spec) {
+    private <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Class<T> type, Spec<? super BuildOperationRecord> spec) {
         def op = buildOperations.only(type, spec)
         verifyTaskDetails([:], op)
-        op.details.taskId as Long
+        op
     }
 
     static final Map<?, ?> DEFAULT_EXPECTED_DETAILS = [
@@ -216,7 +243,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         taskId: instanceOf(Number)
     ]
 
-    private static <T extends BuildOperationType<?, ?>> void verifyTaskDetails(Map<String, ?> expectedDetails, BuildOperationRecord op) {
+    private static <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Map<String, ?> expectedDetails, BuildOperationRecord op) {
         (DEFAULT_EXPECTED_DETAILS + expectedDetails).each { key, value ->
             if (value instanceof Spec) {
                 assert value.isSatisfiedBy(op.details[key])
@@ -224,6 +251,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
                 assert op.details[key] == value
             }
         }
+        op
     }
 
     private static Spec<Object> instanceOf(Class<?> cls) {

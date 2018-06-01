@@ -69,7 +69,7 @@ import java.util.TreeSet;
 @NonNullApi
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private static final Object[] NO_ARGS = new Object[0];
-    private final static String EAGERLY_CREATE_LAZY_TASKS_PROPERTY = "org.gradle.internal.tasks.eager";
+    public final static String EAGERLY_CREATE_LAZY_TASKS_PROPERTY = "org.gradle.internal.tasks.eager";
 
     private static final Set<String> VALID_TASK_ARGUMENTS = ImmutableSet.of(
         Task.TASK_ACTION, Task.TASK_DEPENDS_ON, Task.TASK_DESCRIPTION, Task.TASK_GROUP, Task.TASK_NAME, Task.TASK_OVERWRITE, Task.TASK_TYPE, Task.TASK_CONSTRUCTOR_ARGS
@@ -367,7 +367,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             duplicateTask(name);
         }
         final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
-        return buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
+        TaskProvider<T> provider = buildOperationExecutor.call(new CallableBuildOperation<TaskProvider<T>>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return registerDescriptor(identity);
@@ -379,13 +379,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                     .newInstance(TaskCreatingProvider.class, DefaultTaskContainer.this, identity, configurationAction, constructorArgs)
                 );
                 addLater(provider);
-                if (eagerlyCreateLazyTasks) {
-                    provider.get();
-                }
                 context.setResult(REGISTER_RESULT);
                 return provider;
             }
         });
+
+        if (eagerlyCreateLazyTasks) {
+            provider.get();
+        }
+
+        return provider;
     }
 
     public <T extends Task> T replace(final String name, final Class<T> type) {
