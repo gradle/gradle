@@ -24,8 +24,7 @@ import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.reporting.Reporting
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import kotlin.concurrent.thread
@@ -33,10 +32,12 @@ import kotlin.concurrent.thread
 
 open class BuildScanPlugin : Plugin<Project> {
 
+    private
+    lateinit var buildScan: BuildScanExtension
+
     override fun apply(project: Project): Unit = project.run {
-        apply {
-            plugin("com.gradle.build-scan")
-        }
+        apply(plugin = "com.gradle.build-scan")
+        buildScan = the()
 
         extractCiOrLocalData()
         extractVcsData()
@@ -47,6 +48,11 @@ open class BuildScanPlugin : Plugin<Project> {
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
+    }
+
+    private
+    fun buildScan(configure: BuildScanExtension.() -> Unit) {
+        buildScan.apply(configure)
     }
 
     private
@@ -208,11 +214,3 @@ fun Project.system(vararg args: String): String =
 private
 fun awaitAll(threads: Iterable<Thread>) =
     threads.forEach(Thread::join)
-
-
-fun Project.buildScan(configure: BuildScanExtension.() -> Unit): Unit =
-    configure(configure)
-
-
-val Project.buildScan
-    get() = the<BuildScanExtension>()
