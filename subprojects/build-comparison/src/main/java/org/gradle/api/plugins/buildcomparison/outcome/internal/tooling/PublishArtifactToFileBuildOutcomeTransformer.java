@@ -19,7 +19,7 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.AbstractArchivePublishArtifact;
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.War;
@@ -57,45 +57,60 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
     }
 
     private String getTypeIdentifier(PublishArtifact artifact) {
-        if (artifact instanceof AbstractArchivePublishArtifact) {
-            AbstractArchivePublishArtifact publishArtifact = (AbstractArchivePublishArtifact) artifact;
+        if (artifact instanceof ArchivePublishArtifact) {
+            ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) artifact;
             AbstractArchiveTask task = publishArtifact.getArchiveTask();
 
-            // There is an inheritance hierarchy in play here, so the order
-            // of the clauses is very important.
-
-            if (task instanceof War) {
-                return WAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Ear) {
-                return EAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Jar) {
-                return JAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Zip) {
-                return ZIP_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Tar) {
-                return TAR_ARTIFACT.getTypeIdentifier();
-            } else {
-                // we don't know about this kind of archive task
-                return ARCHIVE_ARTIFACT.getTypeIdentifier();
-            }
+            return getTypeIdentifier(task);
         } else {
+            Task task = inferTask(artifact);
+            if (task instanceof AbstractArchiveTask) {
+                return getTypeIdentifier((AbstractArchiveTask)task);
+            }
             // This could very well be a zip (or something else we understand), but we can't know for sure.
             // The client may try to infer from the file extension.
             return UNKNOWN_ARTIFACT.getTypeIdentifier();
         }
     }
 
+    private String getTypeIdentifier(AbstractArchiveTask task) {
+        // There is an inheritance hierarchy in play here, so the order
+        // of the clauses is very important.
+        if (task instanceof War) {
+            return WAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Ear) {
+            return EAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Jar) {
+            return JAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Zip) {
+            return ZIP_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Tar) {
+            return TAR_ARTIFACT.getTypeIdentifier();
+        } else {
+            // we don't know about this kind of archive task
+            return ARCHIVE_ARTIFACT.getTypeIdentifier();
+        }
+    }
+
     private String getTaskPath(PublishArtifact artifact) {
-        if (artifact instanceof AbstractArchivePublishArtifact) {
-            return ((AbstractArchivePublishArtifact) artifact).getArchiveTask().getPath();
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
         } else {
             String taskPath = null;
-            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-            if (!tasks.isEmpty()) {
-                taskPath = tasks.iterator().next().getPath();
+            Task task = inferTask(artifact);
+            if (task != null) {
+                taskPath = task.getPath();
             }
             return taskPath;
         }
     }
 
+    private Task inferTask(PublishArtifact artifact) {
+        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+        if (!tasks.isEmpty()) {
+            return tasks.iterator().next();
+        }
+
+        return null;
+    }
 }

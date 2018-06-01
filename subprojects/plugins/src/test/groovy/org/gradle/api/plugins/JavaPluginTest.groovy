@@ -215,13 +215,13 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
 
         then:
-        runtimeConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
+        runtimeConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
 
         when:
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
 
         then:
-        archivesConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
+        archivesConfiguration.artifacts.collect { it.file } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME).archivePath]
     }
 
     def addsJavaLibraryComponent() {
@@ -233,7 +233,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def javaLibrary = project.components.getByName("java")
 
         then:
-        javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
+        javaLibrary.artifacts.collect {it.file} == [jarTask.archivePath]
         javaLibrary.usages[0].dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
     }
 

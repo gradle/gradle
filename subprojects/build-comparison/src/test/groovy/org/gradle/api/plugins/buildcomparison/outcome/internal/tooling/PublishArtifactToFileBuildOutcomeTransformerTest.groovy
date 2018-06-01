@@ -18,7 +18,8 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
@@ -42,8 +43,34 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
         given:
         AbstractArchiveTask task = Mock(taskClass)
+        PublishArtifact artifact = new ArchivePublishArtifact(task)
+
+        and:
+        _ * task.getArchivePath() >> project.file("file")
+
+        when:
+        GradleFileBuildOutcome outcome = transformer.transform(artifact, project)
+
+        then:
+        outcome.typeIdentifier == typeIdentifier.typeIdentifier
+        outcome.id == "file"
+
+        where:
+        taskClass           | typeIdentifier
+        Zip                 | ZIP_ARTIFACT
+        Jar                 | JAR_ARTIFACT
+        Ear                 | EAR_ARTIFACT
+        Tar                 | TAR_ARTIFACT
+        War                 | WAR_ARTIFACT
+        AbstractArchiveTask | ARCHIVE_ARTIFACT
+    }
+
+    @Unroll
+    "can create outcome for lazy #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
+        given:
+        AbstractArchiveTask task = Mock(taskClass)
         TaskProvider taskProvider = Mock(TaskProvider)
-        PublishArtifact artifact = new ArchiveProviderPublishArtifact(taskProvider)
+        PublishArtifact artifact = new LazyPublishArtifact(taskProvider)
 
         and:
         _ * taskProvider.get() >> task
@@ -72,10 +99,10 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
         def taskDependency = Mock(TaskDependency)
         def artifact = Mock(PublishArtifact)
 
-        1 * taskDependency.getDependencies(null) >>> [[task] as Set]
+        2 * taskDependency.getDependencies(null) >>> [[task] as Set]
         1 * task.getPath() >> "path"
         _ * artifact.getFile() >> project.file("file")
-        1 * artifact.getBuildDependencies() >> taskDependency
+        2 * artifact.getBuildDependencies() >> taskDependency
 
         when:
         def outcome = transformer.transform(artifact, project)

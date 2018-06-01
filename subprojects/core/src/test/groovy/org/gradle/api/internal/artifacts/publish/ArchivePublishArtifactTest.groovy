@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.publish
 
+import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
+import spock.lang.Specification
 
-class ArchivePublishArtifactTest extends AbstractArchivePublishArtifactTest {
-    @Override
-    Object taskOrProvider(Class<?> type, Map attributes) {
-        return testUtil.task(type, attributes)
+public class ArchivePublishArtifactTest extends Specification {
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+
+    def TestUtil testUtil = TestUtil.create(temporaryFolder)
+
+    def "provides sensible default values for quite empty archive tasks"() {
+        def quiteEmptyJar = testUtil.task(DummyJar)
+
+        when:
+        def a = new ArchivePublishArtifact(quiteEmptyJar)
+
+        then:
+        a.archiveTask == quiteEmptyJar
+        a.classifier == ""
+        a.date.time == quiteEmptyJar.archivePath.lastModified()
+        a.extension == "jar"
+        a.file == quiteEmptyJar.archivePath
+        a.type == "jar"
     }
 
-    @Override
-    AbstractArchivePublishArtifact archiveArtifact(Object taskOrProvider) {
-        return new ArchivePublishArtifact(taskOrProvider)
+    def "configures name correctly"() {
+        def noName = testUtil.task(DummyJar)
+        def withArchiveName = testUtil.task(DummyJar, [archiveName: "hey"])
+        def withBaseName = testUtil.task(DummyJar, [baseName: "foo"])
+        def withAppendix = testUtil.task(DummyJar, [baseName: "foo", appendix: "javadoc"])
+        def withAppendixOnly = testUtil.task(DummyJar, [appendix: "javadoc"])
+
+        expect:
+        new ArchivePublishArtifact(noName).name == null
+        new ArchivePublishArtifact(withArchiveName).name == null
+        def baseNameArtifact = new ArchivePublishArtifact(withBaseName)
+        baseNameArtifact.name == "foo"
+        baseNameArtifact.setName("haha")
+        baseNameArtifact.name == "haha"
+        new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
+        new ArchivePublishArtifact(withAppendixOnly).name == "javadoc"
     }
 
-    @Override
-    AbstractArchiveTask taskFrom(Object taskOrProvider) {
-        return taskOrProvider
+    static class DummyJar extends AbstractArchiveTask {
+        DummyJar() {
+            extension = "jar"
+        }
+
+        protected CopyAction createCopyAction() {
+            return null
+        }
     }
 }

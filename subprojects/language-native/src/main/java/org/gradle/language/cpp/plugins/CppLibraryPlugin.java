@@ -25,7 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -216,7 +216,7 @@ public class CppLibraryPlugin implements Plugin<ProjectInternal> {
                                 headersZip.setArchiveName("cpp-api-headers.zip");
                             }
                         });
-                        mainVariant.addArtifact(new ArchiveProviderPublishArtifact(headersZip));
+                        mainVariant.addArtifact(new LazyPublishArtifact(headersZip));
                     }
                 });
 

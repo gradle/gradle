@@ -27,12 +27,13 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.ArchiveProviderPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
@@ -309,7 +310,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             }
         });
         // TODO: Allow this to be added lazily
-        ArchiveProviderPublishArtifact jarArtifact = new ArchiveProviderPublishArtifact(jar);
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -327,7 +328,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
     }
 
-    private void addJar(Configuration configuration, ArchiveProviderPublishArtifact jarArtifact) {
+    private void addJar(Configuration configuration, PublishArtifact jarArtifact) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
@@ -335,7 +336,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         publications.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private void addRuntimeVariants(Configuration configuration, ArchiveProviderPublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
+    private void addRuntimeVariants(Configuration configuration, PublishArtifact jarArtifact, final Provider<JavaCompile> javaCompile, final Provider<ProcessResources> processResources) {
         ConfigurationPublications publications = configuration.getOutgoing();
 
         // Configure an implicit variant
