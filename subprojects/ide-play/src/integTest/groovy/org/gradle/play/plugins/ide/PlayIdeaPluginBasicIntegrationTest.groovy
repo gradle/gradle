@@ -19,7 +19,6 @@ package org.gradle.play.plugins.ide
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.platform.PlayMajorVersion
-import org.gradle.util.VersionNumber
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 
@@ -28,11 +27,11 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
                                                        (PlayMajorVersion.PLAY_2_3_X): 102,
                                                        (PlayMajorVersion.PLAY_2_4_X): 96,
                                                        (PlayMajorVersion.PLAY_2_5_X): 105,
-                                                       (PlayMajorVersion.PLAY_2_6_X): 109]
+                                                       (PlayMajorVersion.PLAY_2_6_X): 111]
 
     @Override
     PlayApp getPlayApp() {
-        new BasicPlayApp(oldVersion: versionNumber < VersionNumber.parse('2.6.0'))
+        new BasicPlayApp(oldVersion: isOldVersion())
     }
 
     String[] getSourcePaths() {

@@ -31,7 +31,7 @@ abstract class AbstractPlayReloadIntegrationTest extends AbstractMultiVersionPla
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)
-    PlayApp playApp = new AdvancedPlayApp()
+    PlayApp playApp = new AdvancedPlayApp(oldVersion: isOldVersion())
 
     def cleanup() {
         stopGradle()

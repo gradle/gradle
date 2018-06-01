@@ -26,6 +26,10 @@ import org.junit.runner.RunWith
 abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     static def version
 
+    protected boolean isOldVersion() {
+        return version < VersionNumber.parse('2.6.0')
+    }
+
     static VersionNumber getVersionNumber() {
         VersionNumber.parse(version.toString())
     }

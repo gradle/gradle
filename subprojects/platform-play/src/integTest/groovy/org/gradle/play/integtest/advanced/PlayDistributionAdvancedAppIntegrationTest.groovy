@@ -28,7 +28,7 @@ class PlayDistributionAdvancedAppIntegrationTest extends PlayDistributionApplica
 
     @Override
     PlayApp getPlayApp() {
-        return new AdvancedPlayApp()
+        return new AdvancedPlayApp(oldVersion: isOldVersion())
     }
 
     @Override

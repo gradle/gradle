@@ -19,13 +19,12 @@ package org.gradle.play.plugins.ide
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.play.internal.platform.PlayMajorVersion
-import org.gradle.util.VersionNumber
 
 class PlayIdeaPluginMultiprojectIntegrationTest extends PlayIdeaPluginIntegrationTest {
 
     @Override
     PlayApp getPlayApp() {
-        new PlayMultiProject(oldVersion: versionNumber < VersionNumber.parse('2.6.0'))
+        new PlayMultiProject(oldVersion: isOldVersion())
     }
 
     File getModuleFile() {

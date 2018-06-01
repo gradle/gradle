@@ -17,7 +17,10 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {

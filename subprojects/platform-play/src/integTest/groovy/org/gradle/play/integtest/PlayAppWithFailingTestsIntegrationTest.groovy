@@ -25,7 +25,7 @@ import org.junit.Assume
 
 class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegrationTest {
 
-    PlayApp playApp = new WithFailingTestsApp()
+    PlayApp playApp = new WithFailingTestsApp(oldVersion: isOldVersion())
 
     def setup() {
         playApp.writeSources(testDirectory)

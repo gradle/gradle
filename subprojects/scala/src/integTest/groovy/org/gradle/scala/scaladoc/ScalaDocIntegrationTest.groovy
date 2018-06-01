@@ -20,6 +20,8 @@ import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.scala.ScalaCompilationFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -27,10 +29,11 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
         buildScript(classes.buildScript())
-        def newScalaVersion = '2.11.12'
+        def newScalaVersion = '2.12.6'
 
         when:
         succeeds scaladoc
