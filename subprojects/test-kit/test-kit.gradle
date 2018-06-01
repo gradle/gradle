@@ -9,6 +9,9 @@ dependencies {
     compile project(':toolingApi')
     compile libraries.commons_io.coordinates
     runtime project(':native')
+    compileOnly('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+    }
     integTestRuntime project(':toolingApiBuilders')
     integTestRuntime project(':pluginDevelopment')
 }

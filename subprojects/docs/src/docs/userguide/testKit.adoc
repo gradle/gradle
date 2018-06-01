@@ -62,6 +62,8 @@ Any test execution framework can be used.
 
 As Gradle build scripts are written in the Groovy programming language, and as many plugins are implemented in Groovy, it is often a productive choice to write Gradle functional tests in Groovy. Furthermore, it is recommended to use the (Groovy based) https://code.google.com/p/spock/[Spock test execution framework] as it offers many compelling features over the use of JUnit.
 
+The TestKit also integrates tightly with Spock. That means that any field or parameter of type api:org.gradle.testkit.runner.GradleRunner[] in Spock tests that is not manually assigned gets automatically an individual instance injected, each with their own automatically generated temporary project directory if you don't specify an explicit project directory using the `@ProjectDirProvider` annotation on the field or parameter.
+
 The following demonstrates the usage of Gradle runner in a Groovy Spock test:
 
 ++++
@@ -71,6 +73,62 @@ The following demonstrates the usage of Gradle runner in a Groovy Spock test:
 ++++
 
 It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
+
+[[sec:injecting_gradle_runner_into_spock_test]]
+=== Injecting Gradle runner into Spock tests
+
+When using TestKit with Spock, any field or parameter of type api:org.gradle.testkit.runner.GradleRunner[] that is not manually assigned gets automatically an individual instance injected, each with their own automatically generated temporary project directory if you don't specify an explicit project directory using the `@ProjectDirProvider` annotation on the field or parameter. If an automatically generated temporary project directory is used, it gets deleted when the injected instance gets out of scope.
+
+Shared fields are filled in and cleaned up in a specification interceptor. This means that all iterations of all feature methods see the same value with the same underlying data on disk and also all setup and cleanup methods see those values. They are created before the specification starts and are cleaned up after the specification ends.
+
+Non-shared fields are filled in and cleaned up in an iteration interceptor. This means that the fields are filled in at the start of each iteration. Iteration means that for data-driven feature methods with a `where:` block the fields are filled at the start of each individual iteration and at the start means before any setup methods. The filled in objects and their underlying data on disk is available until the end of the iteration, i. e. until after all cleanup methods.
+
+++++
+<sample id="testKitInjectGradleRunnerIntoFieldsWithSpock" dir="testKit/gradleRunner/gradleRunnerInjectionIntoSpockTests/src/test/groovy/org/gradle/sample" title="Inject GradleRunner into fields with Spock">
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="fields"/>
+</sample>
+++++
+
+Parameters are filled in and cleaned up in a feature method interceptor. This means that each call of the feature method (i. e. each individual iteration) gets individual injected values with individual underlying data on disk and they are cleaned up as soon as the feature method is finished. Those values and their underlying data on disk are not available during setup methods or in cleanup methods.
+
+++++
+<sample id="testKitInjectGradleRunnerIntoParametersWithSpock" dir="testKit/gradleRunner/gradleRunnerInjectionIntoSpockTests/src/test/groovy/org/gradle/sample" title="Inject GradleRunner into parameters with Spock">
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="parameter"/>
+</sample>
+++++
+
+As of Spock 1.1 special care has to be taken for data-driven features (methods with a `where:` block) due to https://github.com/spockframework/spock/issues/651[issue #651] and https://github.com/spockframework/spock/issues/652[issue #652].
+
+This means for a data-driven feature where a parameter has to be injected
+
+ * all data variables and all to-be-injected parameters have to be defined as method parameters
+ * all method parameters have to be assigned a value in the `where:` block
+ * the order of the method parameters has to be identical to the order of the data variables in the `where:` block
+ * the to-be-injected parameters have to be set to `null` in the `where:` block
+
+++++
+<sample id="testKitInjectGradleRunnerIntoParametersOfDataDrivenFeatureWithSpock" dir="testKit/gradleRunner/gradleRunnerInjectionIntoSpockTests/src/test/groovy/org/gradle/sample" title="Inject GradleRunner into parameters of data-driven feature with Spock">
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="parameter-in-data-driven-feature"/>
+</sample>
+++++
+
+When injecting `GradleRunner` instances, they by default have a newly created temporary directory per instance as project directory. Alternatively you can specify what should be used as project directory by annotating the respective field or parameter with a `@ProjectDirProvider` annotation.
+
+This annotation needs one argument, which is a closure that has to return what should be used as project directory for the Gradle runner. The valid return types for the given closure are defined by the availability of a `get` method for the type or one of its supertypes or interfaces in the class `ProjectDirProviderCategory`. These currently are `java.io.File`, `java.nio.file.Path` and `org.junit.rules.TemporaryFolder`. The valid types are also mentioned in the error message if you use an invalid type, so simply use `@ProjectDirProvider({ new Object() })` and run the test to get a list of supported return types. The closure must not return `null`, otherwise you get an error.
+
+This annotation makes only sense on unassigned `GradleRunner` fields and parameters. On any other field or parameter this annotation will be ignored.
+
+++++
+<sample id="testKitInjectGradleRunnerWithCustomProjectDirIntoFieldsWithSpock" dir="testKit/gradleRunner/gradleRunnerInjectionIntoSpockTests/src/test/groovy/org/gradle/sample" title="Inject GradleRunner with custom project dir into fields with Spock">
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="fields-with-custom-project-dir"/>
+</sample>
+++++
+
+++++
+<sample id="testKitInjectGradleRunnerWithCustomProjectDirIntoParametersWithSpock" dir="testKit/gradleRunner/gradleRunnerInjectionIntoSpockTests/src/test/groovy/org/gradle/sample" title="Inject GradleRunner with custom project dir into parameters with Spock">
+    <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="parameter-with-custom-project-dir"/>
+</sample>
+++++
 
 [[sub:test-kit-classpath-injection]]
 === Getting the plugin-under-test into the test build
