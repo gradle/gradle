@@ -23,6 +23,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.provider.AbstractProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
@@ -104,44 +105,41 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, getType(), name, task));
     }
 
-    public static abstract class DefaultTaskProvider<T extends Task> extends AbstractProvider<T> implements Named, TaskProvider<T> {
-        final DefaultTaskCollection tasks;
-        final Class<T> type;
-        final String name;
+    protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
+
+        final TaskIdentity<I> identity;
         boolean removed = false;
 
-        DefaultTaskProvider(DefaultTaskCollection tasks, Class<T> type, String name) {
-            this.tasks = tasks;
-            this.type = type;
-            this.name = name;
+        DefaultTaskProvider(TaskIdentity<I> identity) {
+            this.identity = identity;
         }
 
         @Override
         public String getName() {
-            return name;
+            return identity.name;
         }
 
         @Override
-        public Class<T> getType() {
-            return type;
+        public Class<I> getType() {
+            return identity.type;
         }
 
         @Override
         public boolean isPresent() {
-            return tasks.findTask(name) != null;
+            return findTask(identity.name) != null;
         }
 
         @Override
-        public void configure(final Action<? super T> action) {
-            tasks.configureEach(new Action<Task>() {
+        public void configure(final Action<? super I> action) {
+            configureEach(new Action<Task>() {
                 private boolean alreadyExecuted = false;
 
                 @Override
                 public void execute(Task task) {
                     // Task specific configuration action should only be executed once
-                    if (task.getName().equals(name) && !removed && !alreadyExecuted) {
+                    if (task.getName().equals(identity.name) && !removed && !alreadyExecuted) {
                         alreadyExecuted = true;
-                        action.execute((T)task);
+                        action.execute(identity.type.cast(task));
                     }
                 }
             });
@@ -149,17 +147,15 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
         @Override
         public String toString() {
-            return String.format("provider(task %s, %s)", name, type);
+            return String.format("provider(task %s, %s)", identity.name, identity.type);
         }
     }
 
-    public static class ExistingTaskProvider<T extends Task> extends DefaultTaskProvider<T> {
-        private T task;
+    private class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
+        private I task;
 
-        @SuppressWarnings("unused")
-        public ExistingTaskProvider(DefaultTaskCollection tasks, Class<T> type, String name, T task) {
-            super(tasks, type, name);
-            this.task = task;
+        public ExistingTaskProvider(TaskIdentity<I> identity) {
+            super(identity);
         }
 
         @Override
@@ -167,8 +163,10 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
             return task != null;
         }
 
-        @Override
-        public T getOrNull() {
+        public I getOrNull() {
+            if (task == null) {
+                task = getType().cast(findByName(getName()));
+            }
             return task;
         }
     }

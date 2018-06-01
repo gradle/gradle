@@ -22,7 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.project.taskfactory.InternalTaskInstanceId
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
@@ -59,13 +59,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        def id = InternalTaskInstanceId.next()
-        Task task = AbstractTask.injectIntoNewInstance(id, project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        Task task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.dependsOn.isEmpty()
         task.actions == []
-        (task as TaskInternal).internalTaskInstanceId == id
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "useful toString()"() {
@@ -75,13 +75,13 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def id = InternalTaskInstanceId.next()
-        def task = AbstractTask.injectIntoNewInstance(id, project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def task = AbstractTask.injectIntoNewInstance(project, identity, { new DefaultTask() } as Callable)
 
         expect:
         task.project.is(project)
         task.name == TEST_TASK_NAME
-        (task as TaskInternal).internalTaskInstanceId == id
+        (task as TaskInternal).taskIdentity == identity
     }
 
     def "dependsOn() works"() {
