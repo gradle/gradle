@@ -45,53 +45,79 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class DependencyInsightReporter {
 
-    public Collection<RenderableDependency> prepare(Collection<DependencyResult> input, VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
-        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
-        List<DependencyEdge> dependencies = CollectionUtils.collect(input, new Transformer<DependencyEdge, DependencyResult>() {
-            @Override
-            public DependencyEdge transform(DependencyResult result) {
-                if (result instanceof UnresolvedDependencyResult) {
-                    return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
-                } else {
-                    return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
-                }
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final VersionComparator versionComparator;
+    private final VersionParser versionParser;
+
+    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = new Transformer<DependencyEdge, DependencyResult>() {
+        @Override
+        public DependencyEdge transform(DependencyResult result) {
+            if (result instanceof UnresolvedDependencyResult) {
+                return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
+            } else {
+                return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
             }
-        });
-        Collection<DependencyEdge> sorted = DependencyResultSorter.sort(dependencies, versionSelectorScheme, versionComparator, versionParser);
+        }
+    };
+
+    public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
+        this.versionSelectorScheme = versionSelectorScheme;
+        this.versionComparator = versionComparator;
+        this.versionParser = versionParser;
+    }
+
+    public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies) {
+        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
+        Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
         //remember if module id was annotated
-        HashSet<ComponentIdentifier> annotated = new HashSet<ComponentIdentifier>();
-        RequestedVersion current = null;
+        Set<ComponentIdentifier> annotated = Sets.newHashSet();
         Set<Throwable> alreadyReportedErrors = Sets.newHashSet();
-        for (DependencyEdge dependency : sorted) {
-            String reasonDescription = getReasonDescription(dependency.getReason());
-            ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
+        RequestedVersion current = null;
+        for (DependencyEdge dependency : sortedEdges) {
             //add description only to the first module
             if (annotated.add(dependency.getActual())) {
-                SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(dependency.getReason());
-                if (selectionReasonsSection.replacesShortDescription) {
-                    reasonDescription = null;
-                }
-                List<Section> extraDetails = buildExtraDetails(!selectionReasonsSection.replacesShortDescription ? null : selectionReasonsSection, buildFailureSection(dependency, alreadyReportedErrors));
-                out.add(new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails));
-                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
-                out.add(current);
+                DependencyReportHeader header = createHeaderForDependency(dependency, alreadyReportedErrors);
+                out.add(header);
+                current = newRequestedVersion(out, dependency);
             } else if (!current.getRequested().equals(dependency.getRequested())) {
-                current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable(), null, null);
-                out.add(current);
+                current = newRequestedVersion(out, dependency);
             }
 
             current.addChild(dependency);
         }
 
         return out;
+    }
+
+    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
+        ComponentSelectionReason reason = dependency.getReason();
+        String reasonDescription = getReasonDescription(reason);
+        SelectionReasonsSection selectionReasonsSection = buildSelectionReasonSection(reason);
+        if (selectionReasonsSection.replacesShortDescription) {
+            reasonDescription = null;
+        }
+        List<Section> extraDetails = buildExtraDetails(!selectionReasonsSection.replacesShortDescription ? null : selectionReasonsSection, buildFailureSection(dependency, alreadyReportedErrors));
+        ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
+        return new DependencyReportHeader(dependency, reasonDescription, selectedVariant, extraDetails);
+    }
+
+    private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
+        RequestedVersion current;
+        current = new RequestedVersion(dependency.getRequested(), dependency.getActual(), dependency.isResolvable());
+        out.add(current);
+        return current;
+    }
+
+    private Collection<DependencyEdge> toDependencyEdges(Collection<DependencyResult> dependencies) {
+        List<DependencyEdge> edges = CollectionUtils.collect(dependencies, TO_EDGES);
+        return DependencyResultSorter.sort(edges, versionSelectorScheme, versionComparator, versionParser);
     }
 
     private static Section buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors) {

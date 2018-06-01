@@ -23,24 +23,53 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigu
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DependencyGraphRenderer {
+/**
+ * This class is responsible for rendering multiple dependency graphs.
+ * Each of them <i>may</i> have a specific root renderer (to display the dependency name, for example),
+ * but it's not required. The graph renderer is used to render each of them.
+ */
+public class DependencyGraphsRenderer {
+    private final StyledTextOutput output;
     private final GraphRenderer renderer;
-    private final NodeRenderer nodeRenderer;
+    private final NodeRenderer rootRenderer;
+    private final NodeRenderer dependenciesRenderer;
     private final LegendRenderer legendRenderer;
 
-
-    public DependencyGraphRenderer(GraphRenderer renderer, NodeRenderer nodeRenderer, LegendRenderer legendRenderer) {
+    public DependencyGraphsRenderer(StyledTextOutput output, GraphRenderer renderer, NodeRenderer rootRenderer, NodeRenderer dependenciesRenderer) {
+        this.output = output;
         this.renderer = renderer;
-        this.nodeRenderer = nodeRenderer;
-        this.legendRenderer = legendRenderer;
+        this.rootRenderer = rootRenderer;
+        this.dependenciesRenderer = dependenciesRenderer;
+        this.legendRenderer = new LegendRenderer(output);
     }
 
-    public void render(RenderableDependency root) {
+    public void render(Collection<RenderableDependency> items) {
+        int i = 0;
+        int size = items.size();
+        for (final RenderableDependency item : items) {
+            renderRoot(item);
+            boolean last = ++i == size;
+            if (!last) {
+                output.println();
+            }
+        }
+    }
+
+    private void renderRoot(final RenderableDependency root) {
         if (root instanceof UnresolvableConfigurationResult) {
             legendRenderer.setHasUnresolvableConfigurations(true);
+        }
+        if (rootRenderer != NodeRenderer.NO_OP) {
+            renderer.visit(new Action<StyledTextOutput>() {
+                @Override
+                public void execute(StyledTextOutput styledTextOutput) {
+                    rootRenderer.renderNode(styledTextOutput, root, false);
+                }
+            }, true);
         }
         HashSet<Object> visited = Sets.newHashSet();
         visited.add(root.getId());
@@ -48,14 +77,16 @@ public class DependencyGraphRenderer {
     }
 
     private void renderChildren(Set<? extends RenderableDependency> children, Set<Object> visited) {
-        renderer.startChildren();
-        Integer i = 0;
-        for (RenderableDependency child : children) {
-            boolean last = i++ == children.size() - 1;
-            doRender(child, last, visited);
+        int i = 0;
+        int count = children.size();
+        if (count > 0) {
+            renderer.startChildren();
+            for (RenderableDependency child : children) {
+                boolean last = ++i == count;
+                doRender(child, last, visited);
+            }
+            renderer.completeChildren();
         }
-
-        renderer.completeChildren();
     }
 
     private void doRender(final RenderableDependency node, boolean last, Set<Object> visited) {
@@ -65,10 +96,9 @@ public class DependencyGraphRenderer {
             legendRenderer.setHasCyclicDependencies(true);
         }
 
-
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput output) {
-                nodeRenderer.renderNode(output, node, alreadyRendered);
+                dependenciesRenderer.renderNode(output, node, alreadyRendered);
             }
 
         }, last);
@@ -79,4 +109,7 @@ public class DependencyGraphRenderer {
 
     }
 
+    public void complete() {
+        legendRenderer.printLegend();
+    }
 }
