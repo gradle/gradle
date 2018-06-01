@@ -29,6 +29,8 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -49,9 +51,11 @@ public class WorkerDaemonClientsManager implements Stoppable {
     private final LoggingManagerInternal loggingManager;
     private final SessionLifecycleListener stopSessionScopeWorkers;
     private final OutputEventListener logLevelChangeEventListener;
+    private final WorkerDaemonExpiration workerDaemonExpiration;
+    private final MemoryManager memoryManager;
     private LogLevel currentLogLevel;
 
-    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager) {
+    public WorkerDaemonClientsManager(WorkerDaemonStarter workerDaemonStarter, ListenerManager listenerManager, LoggingManagerInternal loggingManager, MemoryManager memoryManager) {
         this.workerDaemonStarter = workerDaemonStarter;
         this.listenerManager = listenerManager;
         this.loggingManager = loggingManager;
@@ -60,6 +64,9 @@ public class WorkerDaemonClientsManager implements Stoppable {
         this.logLevelChangeEventListener = new LogLevelChangeEventListener();
         loggingManager.addOutputEventListener(logLevelChangeEventListener);
         this.currentLogLevel = loggingManager.getLevel();
+        this.memoryManager = memoryManager;
+        this.workerDaemonExpiration = new WorkerDaemonExpiration(this, getTotalPhysicalMemory());
+        memoryManager.addMemoryHolder(workerDaemonExpiration);
     }
 
     // TODO - should supply and check for the same parameters as passed to reserveNewClient()
@@ -110,6 +117,15 @@ public class WorkerDaemonClientsManager implements Stoppable {
             idleClients.clear();
             listenerManager.removeListener(stopSessionScopeWorkers);
             loggingManager.removeOutputEventListener(logLevelChangeEventListener);
+            memoryManager.removeMemoryHolder(workerDaemonExpiration);
+        }
+    }
+
+    private static long getTotalPhysicalMemory() {
+        try {
+            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
+        } catch (UnsupportedOperationException e) {
+            return -1;
         }
     }
 

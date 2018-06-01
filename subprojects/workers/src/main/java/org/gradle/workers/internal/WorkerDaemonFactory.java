@@ -17,31 +17,23 @@
 package org.gradle.workers.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.process.internal.health.memory.MemoryManager;
-import org.gradle.process.internal.health.memory.TotalPhysicalMemoryProvider;
 import org.gradle.workers.IsolationMode;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
  */
 @ThreadSafe
-public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
+public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
-    private final MemoryManager memoryManager;
-    private final WorkerDaemonExpiration workerDaemonExpiration;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, MemoryManager memoryManager, BuildOperationExecutor buildOperationExecutor) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationExecutor buildOperationExecutor) {
         this.clientsManager = clientsManager;
-        this.memoryManager = memoryManager;
-        this.workerDaemonExpiration = new WorkerDaemonExpiration(clientsManager, getTotalPhysicalMemory());
-        memoryManager.addMemoryHolder(workerDaemonExpiration);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -85,18 +77,5 @@ public class WorkerDaemonFactory implements WorkerFactory, Stoppable {
     @Override
     public IsolationMode getIsolationMode() {
         return IsolationMode.PROCESS;
-    }
-
-    @Override
-    public void stop() {
-        memoryManager.removeMemoryHolder(workerDaemonExpiration);
-    }
-
-    private static long getTotalPhysicalMemory() {
-        try {
-            return TotalPhysicalMemoryProvider.getTotalPhysicalMemory();
-        } catch (UnsupportedOperationException e) {
-            return -1;
-        }
     }
 }

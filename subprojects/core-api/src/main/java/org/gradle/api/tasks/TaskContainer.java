@@ -197,58 +197,77 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Action)} or {@link #create(String)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param name The name of the task.
      * @param configurationAction The action to run to configure the task. This action runs when the task is required.
      * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.9
+     */
+    @Incubating
+    TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException;
+
+    /**
+     * TODO: Remove this
+     *
      * @since 4.8
      */
     @Incubating
-    TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction);
+    @Deprecated
+    TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param name The name of the task.
      * @param type The task type.
      * @param configurationAction The action to run to configure the task. This action runs when the task is required.
      * @param <T> The task type
      * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.9
+     */
+    @Incubating
+    <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException;
+
+    /**
+     * TODO: Remove this
+     *
      * @since 4.8
      */
     @Incubating
-    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction);
+    @Deprecated
+    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param name The name of the task.
      * @param type The task type.
      * @param <T> The task type
      * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.9
+     */
+    @Incubating
+    <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException;
+
+    /**
+     * TODO: Remove this
+     *
      * @since 4.8
      */
     @Incubating
-    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type);
+    @Deprecated
+    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created when it is required passing the given arguments to the {@code @Inject}-annotated constructor. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method. All values passed to the task constructor must be non-null; otherwise a {@code NullPointerException} will be thrown
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
-     *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
      *
      * @param name The name of the task.
      * @param type The task type.
@@ -259,22 +278,29 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @since 4.9
      */
     @Incubating
-    <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Object... constructorArgs);
+    <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link #getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
      * <p>It is generally more efficient to use this method instead of {@link #create(String)}, as that methods will eagerly create he task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param name The name of the task.
      * @return A {@link Provider} that whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @since 4.9
+     */
+    @Incubating
+    TaskProvider<Task> register(String name) throws InvalidUserDataException;
+
+    /**
+     * TODO: Remove this
+     *
      * @since 4.8
      */
     @Incubating
-    TaskProvider<Task> createLater(String name);
+    @Deprecated
+    TaskProvider<Task> createLater(String name) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container, replacing any existing task with the

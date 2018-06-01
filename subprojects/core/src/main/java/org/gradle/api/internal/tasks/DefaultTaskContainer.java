@@ -320,27 +320,54 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    // TODO: Remove
     @Override
     public TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class, configurationAction));
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
-        return createTaskLater(name, type, configurationAction, NO_ARGS);
+        return registerTask(name, type, configurationAction, NO_ARGS);
     }
 
     @Override
     public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
-        return createLater(name, type, NO_ARGS);
+        return register(name, type, NO_ARGS);
     }
 
     @Override
-    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type, Object... constructorArgs) {
-        return createTaskLater(name, type, null, constructorArgs);
+    public TaskProvider<Task> createLater(String name) {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+    // TODO: Remove ^^^
+
+    @Override
+    public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
-    private <T extends Task> TaskProvider<T> createTaskLater(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException {
+        return registerTask(name, type, configurationAction, NO_ARGS);
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException {
+        return register(name, type, NO_ARGS);
+    }
+
+    @Override
+    public TaskProvider<Task> register(String name) throws InvalidUserDataException {
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
+    }
+
+    @Override
+    public <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) {
+        return registerTask(name, type, null, constructorArgs);
+    }
+
+    private <T extends Task> TaskProvider<T> registerTask(final String name, final Class<T> type, @Nullable final Action<? super T> configurationAction, final Object... constructorArgs) {
         if (hasWithName(name)) {
             duplicateTask(name);
         }
@@ -364,11 +391,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 return provider;
             }
         });
-    }
-
-    @Override
-    public TaskProvider<Task> createLater(String name) {
-        return Cast.uncheckedCast(createLater(name, DefaultTask.class));
     }
 
     public <T extends Task> T replace(final String name, final Class<T> type) {
@@ -600,7 +622,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         @Override
         public T getOrNull() {
             if (cause != null) {
-                throw throwFailure();
+                throw createIllegalStateException();
             }
             if (task == null) {
                 task = type.cast(tasks.findByNameWithoutRules(name));
@@ -615,7 +637,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                                 context.setResult(REGISTER_RESULT_INSTANCE);
                             } catch (RuntimeException ex) {
                                 cause = ex;
-                                throw throwFailure();
+                                throw createIllegalStateException();
                             }
                         }
 
@@ -629,8 +651,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             return task;
         }
 
-        private IllegalStateException throwFailure() {
-            throw new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
+        private IllegalStateException createIllegalStateException() {
+            return new IllegalStateException(String.format("Could not create task '%s' (%s)", name, type.getSimpleName()), cause);
         }
     }
 }

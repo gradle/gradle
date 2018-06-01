@@ -128,7 +128,7 @@ public class EclipseWtpPlugin extends IdePlugin {
         final EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
         model.getWtp().setComponent(component);
 
-        TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().createLater(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
+        TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().register(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
         task.configure(new Action<GenerateEclipseWtpComponent>() {
             @Override
             public void execute(final GenerateEclipseWtpComponent task) {
@@ -257,7 +257,7 @@ public class EclipseWtpPlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpFacet(final Project project, final EclipseModel eclipseModel) {
-        TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().createLater(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, eclipseModel.getWtp().getFacet());
+        TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().register(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, eclipseModel.getWtp().getFacet());
         task.configure(new Action<GenerateEclipseWtpFacet>() {
             @Override
             public void execute(final GenerateEclipseWtpFacet task) {

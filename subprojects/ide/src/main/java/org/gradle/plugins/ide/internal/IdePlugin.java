@@ -74,14 +74,14 @@ public abstract class IdePlugin implements Plugin<Project> {
     public void apply(Project target) {
         project = target;
         String lifecycleTaskName = getLifecycleTaskName();
-        lifecycleTask = target.getTasks().createLater(lifecycleTaskName);
+        lifecycleTask = target.getTasks().register(lifecycleTaskName);
         lifecycleTask.configure(new Action<Task>() {
             @Override
             public void execute(Task task) {
                 task.setGroup("IDE");
             }
         });
-        cleanTask = target.getTasks().createLater(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
+        cleanTask = target.getTasks().register(cleanName(lifecycleTaskName), Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete task) {
                 task.setGroup("IDE");
@@ -116,7 +116,7 @@ public abstract class IdePlugin implements Plugin<Project> {
 
     public void addWorker(final TaskProvider<? extends Task> worker, String workerName, boolean includeInClean) {
         lifecycleTask.configure(dependsOn(worker));
-        final TaskProvider<Delete> cleanWorker = project.getTasks().createLater(cleanName(workerName), Delete.class, new Action<Delete>() {
+        final TaskProvider<Delete> cleanWorker = project.getTasks().register(cleanName(workerName), Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete cleanWorker) {
                 cleanWorker.delete(worker);
@@ -171,7 +171,7 @@ public abstract class IdePlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().createLater("open" + StringUtils.capitalize(getLifecycleTaskName()), new Action<Task>() {
+        project.getTasks().register("open" + StringUtils.capitalize(getLifecycleTaskName()), new Action<Task>() {
             @Override
             public void execute(Task openTask) {
                 openTask.dependsOn(lifecycleTask);

@@ -63,7 +63,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
         buildOutputCleanupRegistry.registerOutputs(buildDir);
 
-        final Provider<Delete> clean = project.getTasks().createLater(CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
+        final Provider<Delete> clean = project.getTasks().register(CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
             @Override
             public void execute(final Delete cleanTask) {
                 cleanTask.setDescription("Deletes the build directory.");
@@ -84,7 +84,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addAssemble(ProjectInternal project) {
-        project.getTasks().createLater(ASSEMBLE_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(ASSEMBLE_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task assembleTask) {
                 assembleTask.setDescription("Assembles the outputs of this project.");
@@ -94,7 +94,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addCheck(ProjectInternal project) {
-        project.getTasks().createLater(CHECK_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task checkTask) {
                 checkTask.setDescription("Runs all checks.");
@@ -104,7 +104,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void addBuild(final ProjectInternal project) {
-        project.getTasks().createLater(BUILD_TASK_NAME, new Action<Task>() {
+        project.getTasks().register(BUILD_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task buildTask) {
                 buildTask.setDescription("Assembles and tests this project.");
