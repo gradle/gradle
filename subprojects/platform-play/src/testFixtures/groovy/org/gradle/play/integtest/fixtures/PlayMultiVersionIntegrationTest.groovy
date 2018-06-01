@@ -18,26 +18,7 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
-    static boolean isPlay22(def version) {
-        return version.toString().startsWith('2.2')
-    }
-
-    protected ExecutionFailure fails(String... tasks) {
-        if (isPlay22(version)) {
-            executer.expectDeprecationWarning()
-        }
-        return super.fails(tasks)
-    }
-
-    protected ExecutionResult succeeds(String... tasks) {
-        if (isPlay22(version)) {
-            executer.expectDeprecationWarning()
-        }
-        return super.succeeds(tasks)
-    }
 }

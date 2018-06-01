@@ -24,7 +24,7 @@ import static org.gradle.api.JavaVersion.current
 class PlayCoverage {
     static final List<VersionNumber> ALL_VERSIONS = ["2.4.11", "2.5.18", DefaultPlayPlatform.DEFAULT_PLAY_VERSION].collect { VersionNumber.parse(it) }
     static final List<VersionNumber> JDK9_COMPATIBLE_VERSIONS = [DefaultPlayPlatform.DEFAULT_PLAY_VERSION]
-    static final List<String> PLAY24_OR_LATER = ALL_VERSIONS.findAll { it.major >= 2 && it.minor >= 4 }.asImmutable()
+    static final List<VersionNumber> JDK7_COMPATIBLE_VERSIONS = ALL_VERSIONS.subList(0, 2)
     static final List<String> ALL = ALL_VERSIONS.asImmutable()
-    static final List<String> DEFAULT = current().isJava9Compatible() ? JDK9_COMPATIBLE_VERSIONS : ALL
+    static final List<String> DEFAULT = current().isJava9Compatible() ? JDK9_COMPATIBLE_VERSIONS : (current().isJava7() ? JDK7_COMPATIBLE_VERSIONS : ALL)
 }
