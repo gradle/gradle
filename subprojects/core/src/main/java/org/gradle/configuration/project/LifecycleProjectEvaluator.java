@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,9 +123,17 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            String name = "Configure project " + project.getIdentityPath();
-            return BuildOperationDescriptor.displayName(name)
+            Path identityPath = project.getIdentityPath();
+            String displayName = "Configure project " + identityPath.toString();
+
+            String progressDisplayName = project.getPath();
+            if (progressDisplayName.equals(":")) {
+                progressDisplayName = "root project";
+            }
+
+            return BuildOperationDescriptor.displayName(displayName)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                .progressDisplayName(progressDisplayName)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }
