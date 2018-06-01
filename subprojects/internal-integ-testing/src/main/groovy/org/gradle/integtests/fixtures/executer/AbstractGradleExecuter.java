@@ -41,6 +41,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -86,12 +87,15 @@ import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .provider(new GlobalScopeServices(true))
         .build();
+
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -541,6 +545,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isProfile()) {
             buildJvmOpts.add(profiler);
         }
+
+        if (isUseDaemon() && isSharedDaemons()) {
+            if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+                buildJvmOpts.add("-XX:MaxPermSize=320m");
+            }
+            buildJvmOpts.add("-Xmx4g");
+        } else {
+            buildJvmOpts.add("-Xmx1g");
+        }
+
+        buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
+        buildJvmOpts.add("-XX:HeapDumpPath=" + getGradleUserHomeDir().getAbsolutePath());
         return buildJvmOpts;
     }
 
