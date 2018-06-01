@@ -21,6 +21,7 @@ import com.typesafe.zinc.IncOptions;
 import com.typesafe.zinc.Inputs;
 import org.gradle.api.internal.tasks.compile.CompilationFailedException;
 import org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder;
+import org.gradle.api.internal.tasks.compile.ResourceCleaningCompilationTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -84,6 +85,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             }
             LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
 
+            ResourceCleaningCompilationTask.cleanupZipCache();
             return WorkResults.didWork(true);
         }
 
