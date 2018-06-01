@@ -31,6 +31,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.groovy.scripts.ScriptSource
 
+import org.gradle.internal.hash.HashCode
+
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 
@@ -49,7 +51,7 @@ class InterpreterTest : TestWithTempFiles() {
     fun `caches specialized programs`() {
 
         val text = "buildscript { println(\"stage 1\") }; println(\"stage 2\")"
-        val sourceHash = scriptSourceHash(text)
+        val sourceHash = HashCode.fromInt(42)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 

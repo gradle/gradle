@@ -120,7 +120,8 @@ class Interpreter(val host: Host) {
         scriptHandler: ScriptHandler,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
-        topLevelScript: Boolean
+        topLevelScript: Boolean,
+        options: EvalOptions = defaultEvalOptions
     ) {
 
         val sourceText =
@@ -145,8 +146,11 @@ class Interpreter(val host: Host) {
         val scriptHost =
             scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
 
+        val programHost =
+            programHostFor(options)
+
         if (cachedProgram != null) {
-            eval(cachedProgram, scriptHost)
+            programHost.eval(cachedProgram, scriptHost)
             return
         }
 
@@ -168,7 +172,7 @@ class Interpreter(val host: Host) {
             parentClassLoader,
             specializedProgram)
 
-        eval(specializedProgram, scriptHost)
+        programHost.eval(specializedProgram, scriptHost)
     }
 
     private
@@ -196,6 +200,11 @@ class Interpreter(val host: Host) {
             targetScope,
             baseScope,
             serviceRegistryFor(programTarget, target))
+
+    private
+    fun programHostFor(options: EvalOptions) =
+        if (options.isEmpty()) defaultProgramHost
+        else ConfigurableProgramHost(options)
 
     private
     fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
@@ -291,16 +300,34 @@ class Interpreter(val host: Host) {
             host.implicitImports)
 
     private
-    fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
-        (specializedProgram.newInstance() as ExecutableProgram)
-            .execute(programHost, scriptHost)
+    val defaultProgramHost = ProgramHost()
+
+    private
+    inner class ConfigurableProgramHost(val options: EvalOptions) : ProgramHost() {
+
+        override fun evaluateSecondStageOf(
+            program: ExecutableProgram.StagedProgram,
+            scriptHost: KotlinScriptHost<*>,
+            scriptTemplateId: String,
+            sourceHash: HashCode
+        ) {
+            if (EvalOption.SkipBody in options) return
+            super.evaluateSecondStageOf(program, scriptHost, scriptTemplateId, sourceHash)
+        }
+
+        override fun handleScriptException(
+            exception: Throwable,
+            scriptClass: Class<*>,
+            scriptHost: KotlinScriptHost<*>
+        ) {
+            // TODO:partial-evaluator let the host collect this exception
+            if (EvalOption.IgnoreErrors in options) return
+            super.handleScriptException(exception, scriptClass, scriptHost)
+        }
     }
 
     private
-    val programHost = ProgramHost()
-
-    private
-    inner class ProgramHost : ExecutableProgram.Host {
+    open inner class ProgramHost : ExecutableProgram.Host {
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<Any>, pluginRequests: PluginRequests) {
             host.applyPluginsTo(scriptHost, pluginRequests)
@@ -375,7 +402,7 @@ class Interpreter(val host: Host) {
                 host.compilationClassPathOf(targetScope)
             }
 
-            // TODO: Move this decision to the specialized program
+            // TODO:partial-evaluator Move this decision to the specialized program
             val accessorsClassPath: ClassPath? =
                 if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project)
                     accessorsClassPathFor(scriptHost.target as Project, targetScopeClassPath).bin
@@ -411,6 +438,11 @@ class Interpreter(val host: Host) {
                 cacheDir,
                 scriptTemplateId,
                 accessorsClassPath)
+        }
+
+        open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
+            (specializedProgram.newInstance() as ExecutableProgram)
+                .execute(this, scriptHost)
         }
     }
 }
@@ -475,6 +507,20 @@ private
 fun maybeUnwrapInvocationTargetException(e: Throwable) =
     if (e is InvocationTargetException) e.targetException
     else e
+
+
+// TODO:partial-evaluator restore contextClassLoader behaviour
+private
+inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
+    val currentThread = Thread.currentThread()
+    val previous = currentThread.contextClassLoader
+    try {
+        currentThread.contextClassLoader = classLoader
+        block()
+    } finally {
+        currentThread.contextClassLoader = previous
+    }
+}
 
 
 internal

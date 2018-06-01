@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.gradle.internal.hash.Hashing
-
 
 data class ProgramSource(val path: String, val contents: ProgramText) {
 
@@ -49,15 +47,16 @@ data class ProgramText private constructor(val text: String) {
 
         require(ranges.isNotEmpty())
 
+        val sortedRanges = ranges.sortedBy { it.start }
         val rangesToErase = ArrayList<IntRange>(ranges.size + 1)
 
         var last = 0
-        for (range in ranges) {
+        for (range in sortedRanges) {
             rangesToErase.add(last..(range.start - 1))
             last = range.endInclusive + 1
         }
 
-        val lastIndexToPreserve = ranges.last().endInclusive
+        val lastIndexToPreserve = sortedRanges.last().endInclusive
         if (lastIndexToPreserve < text.lastIndex) {
             rangesToErase.add(lastIndexToPreserve + 1..text.lastIndex)
         }
@@ -74,10 +73,6 @@ data class ProgramText private constructor(val text: String) {
 
 
 fun text(string: String) = ProgramText.from(string)
-
-
-fun ProgramText.erase(fragment: ProgramSourceFragment) =
-    erase(listOf(fragment.section.wholeRange))
 
 
 fun ProgramSource.fragment(identifier: IntRange, block: IntRange) =
@@ -120,7 +115,7 @@ fun String.erase(ranges: List<IntRange>): String {
 
     val result = StringBuilder(length)
 
-    for (range in ranges) {
+    for (range in ranges.sortedBy { it.start }) {
 
         result.append(this, result.length, range.start)
 
@@ -132,7 +127,7 @@ fun String.erase(ranges: List<IntRange>): String {
         }
     }
 
-    // TODO: this doesn't make sense to be here
+    // TODO:partial-evaluator this doesn't make sense to be here
     val lastNonWhitespace = indexOfLast { !Character.isWhitespace(it) }
     if (lastNonWhitespace > result.length) {
         result.append(this, result.length, lastNonWhitespace + 1)
@@ -140,8 +135,3 @@ fun String.erase(ranges: List<IntRange>): String {
 
     return result.toString()
 }
-
-
-internal
-fun scriptSourceHash(source: String) =
-    Hashing.md5().hashString(source)

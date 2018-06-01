@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 import org.gradle.cache.internal.GeneratedGradleJarCache
+
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -34,15 +35,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 internal
 object BuildServices {
-
-    @Suppress("unused")
-    fun createCachingKotlinCompiler(
-        scriptCache: ScriptCache,
-        implicitImports: ImplicitImports,
-        progressLoggerFactory: ProgressLoggerFactory
-    ) =
-
-        CachingKotlinCompiler(scriptCache, implicitImports, progressLoggerFactory)
 
     @Suppress("unused")
     fun createKotlinScriptClassPathProvider(
@@ -71,26 +63,28 @@ object BuildServices {
         ClassPathModeExceptionCollector()
 
     @Suppress("unused")
-    fun createKotlinScriptFactory(
+    fun createKotlinScriptEvaluator(
         classPathProvider: KotlinScriptClassPathProvider,
-        kotlinCompiler: CachingKotlinCompiler,
         classloadingCache: KotlinScriptClassloadingCache,
         pluginRequestsHandler: PluginRequestsHandler,
         embeddedKotlinProvider: EmbeddedKotlinProvider,
         classPathModeExceptionCollector: ClassPathModeExceptionCollector,
         kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
-        scriptSourceHasher: ScriptSourceHasher
+        scriptSourceHasher: ScriptSourceHasher,
+        scriptCache: ScriptCache,
+        implicitImports: ImplicitImports
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
             classPathProvider,
-            kotlinCompiler,
             classloadingCache,
             pluginRequestsHandler,
             embeddedKotlinProvider,
             classPathModeExceptionCollector,
             kotlinScriptBasePluginsApplicator,
-            scriptSourceHasher)
+            scriptSourceHasher,
+            scriptCache,
+            implicitImports)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

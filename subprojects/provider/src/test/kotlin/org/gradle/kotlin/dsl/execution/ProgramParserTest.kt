@@ -140,6 +140,48 @@ class ProgramParserTest {
             programTarget = ProgramTarget.Gradle)
     }
 
+    @Test
+    fun `buildscript block after plugins block`() {
+
+        val source = programSourceWith("""
+            plugins {
+                `kotlin-dsl`
+            }
+
+            buildscript {
+                dependencies {
+                    classpath("org.acme:plugin:1.0")
+                }
+            }
+
+            dependencies {
+                implementation("org.acme:lib:1.0")
+            }
+        """)
+
+        val expectedScriptSource = programSourceWith(
+            "\n                     " +
+                "\n                            " +
+                "\n             " +
+                "\n\n                         " +
+                "\n                              " +
+                "\n                                                    " +
+                "\n                 " +
+                "\n             " +
+                "\n\n            dependencies {" +
+                "\n                implementation(\"org.acme:lib:1.0\")" +
+                "\n            }")
+
+        assertProgramOf(
+            source,
+            Program.Staged(
+                Program.Stage1Sequence(
+                    Program.Buildscript(source.fragment(79..89, 91..207)),
+                    Program.Plugins(source.fragment(13..19, 21..64))
+                ),
+                Program.Script(expectedScriptSource)))
+    }
+
     private
     fun assertEmptyProgram(contents: String) {
         assertProgramOf(programSourceWith(contents), Program.Empty)

@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
 import org.gradle.cache.CacheOpenException
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -32,10 +33,16 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
+import org.gradle.kotlin.dsl.cache.ScriptCache
+
+import org.gradle.kotlin.dsl.execution.EvalOption
+import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
+
 import org.gradle.kotlin.dsl.get
 
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
+import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.transitiveClosureOf
@@ -44,8 +51,6 @@ import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 
 import java.io.File
-
-import java.util.*
 
 
 interface KotlinScriptEvaluator {
@@ -57,27 +62,22 @@ interface KotlinScriptEvaluator {
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean,
-        options: EnumSet<KotlinScriptOption>
+        options: EvalOptions
     )
-}
-
-
-enum class KotlinScriptOption {
-    IgnoreErrors,
-    SkipBody
 }
 
 
 internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
-    private val kotlinCompiler: CachingKotlinCompiler,
     private val classloadingCache: KotlinScriptClassloadingCache,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
-    private val scriptSourceHasher: ScriptSourceHasher
+    private val scriptSourceHasher: ScriptSourceHasher,
+    private val scriptCache: ScriptCache,
+    private val implicitImports: ImplicitImports
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -87,30 +87,36 @@ class StandardKotlinScriptEvaluator(
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean,
-        options: EnumSet<KotlinScriptOption>
+        options: EvalOptions
     ) {
 
-        // TODO: Optimise away this call whenever possible via partial evaluation
+        // TODO:partial-evaluator Optimise away this call whenever possible via partial evaluation
         setupEmbeddedKotlinForBuildscript(scriptHandler)
 
-        if (options.isEmpty()) {
+        val sourceHash = scriptSourceHasher.hash(scriptSource)
+
+        if (EvalOption.IgnoreErrors in options)
+            classPathModeExceptionCollector.ignoringErrors {
+                interpreter.eval(
+                    target,
+                    scriptSource,
+                    sourceHash,
+                    scriptHandler,
+                    targetScope,
+                    baseScope,
+                    topLevelScript,
+                    options)
+            }
+        else
             interpreter.eval(
                 target,
                 scriptSource,
-                scriptSourceHasher.hash(scriptSource),
+                sourceHash,
                 scriptHandler,
                 targetScope,
                 baseScope,
-                topLevelScript)
-            return
-        }
-
-        evaluationFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript).run {
-            if (KotlinScriptOption.IgnoreErrors in options)
-                executeIgnoringErrors(executeScriptBody = KotlinScriptOption.SkipBody !in options)
-            else
-                execute()
-        }
+                topLevelScript,
+                options)
     }
 
     private
@@ -123,27 +129,14 @@ class StandardKotlinScriptEvaluator(
         }
     }
 
-    private
-    fun evaluationFor(
-        target: Any,
-        scriptSource: ScriptSource,
-        scriptHandler: ScriptHandler,
-        targetScope: ClassLoaderScope,
-        baseScope: ClassLoaderScope,
-        topLevelScript: Boolean
-    ): KotlinScriptEvaluation =
+    fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
+        scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 
-        KotlinScriptEvaluation(
-            kotlinScriptTargetFor(target, scriptSource, scriptHandler, targetScope, baseScope, topLevelScript),
-            KotlinScriptSource(scriptSource),
-            scriptHandler as ScriptHandlerInternal,
-            targetScope,
-            baseScope,
-            classloadingCache,
-            kotlinCompiler,
-            pluginRequestsHandler,
-            classPathProvider,
-            classPathModeExceptionCollector)
+    private
+    val cacheProperties = mapOf("version" to "6")
+
+    private
+    val cacheKeyPrefix = CacheKeyBuilder.CacheKeySpec.withPrefix("gradle-kotlin-dsl")
 
     private
     val interpreter by lazy {
@@ -183,7 +176,6 @@ class StandardKotlinScriptEvaluator(
         ): Class<*>? =
             classloadingCache
                 .get(cacheKeyFor(templateId, sourceHash, parentClassLoader))
-                ?.scriptClass
 
         override fun cache(
             templateId: String,
@@ -193,9 +185,7 @@ class StandardKotlinScriptEvaluator(
         ) {
             classloadingCache.put(
                 cacheKeyFor(templateId, sourceHash, parentClassLoader),
-                LoadedScriptClass(
-                    CompiledScript(File(""), specializedProgram.name, Unit),
-                    specializedProgram))
+                specializedProgram)
         }
 
         private
@@ -216,7 +206,7 @@ class StandardKotlinScriptEvaluator(
             initializer: (File) -> Unit
         ): File =
             try {
-                kotlinCompiler.cacheDirFor(cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
+                cacheDirFor(cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
                     initializer(baseDir)
                 }
             } catch (e: CacheOpenException) {
@@ -246,7 +236,7 @@ class StandardKotlinScriptEvaluator(
                 .loadClass(className)
 
         override val implicitImports: List<String>
-            get() = kotlinCompiler.implicitImports.list
+            get() = this@StandardKotlinScriptEvaluator.implicitImports.list
     }
 }
 
@@ -255,3 +245,13 @@ private
 val embeddedKotlinModules by lazy {
     transitiveClosureOf("stdlib-jdk8", "reflect")
 }
+
+
+private
+inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) =
+    try {
+        action()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        collect(e)
+    }

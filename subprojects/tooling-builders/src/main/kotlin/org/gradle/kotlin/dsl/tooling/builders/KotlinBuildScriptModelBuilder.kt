@@ -37,12 +37,14 @@ import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.accessorsClassPathFor
+
+import org.gradle.kotlin.dsl.execution.EvalOption
+
 import org.gradle.kotlin.dsl.findPlugin
 
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
-import org.gradle.kotlin.dsl.provider.KotlinScriptOption
 
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
@@ -59,6 +61,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 import java.io.File
 import java.io.Serializable
+
 import java.util.*
 
 import kotlin.coroutines.experimental.buildSequence
@@ -257,7 +260,7 @@ fun compilationClassPathForScriptPluginOf(
             targetScope = scriptScope,
             baseScope = baseScope,
             topLevelScript = false,
-            options = EnumSet.of(KotlinScriptOption.IgnoreErrors, KotlinScriptOption.SkipBody))
+            options = EnumSet.of(EvalOption.IgnoreErrors, EvalOption.SkipBody))
 
     return scriptHandler to project.compilationClassPathOf(scriptScope)
 }

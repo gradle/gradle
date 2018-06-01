@@ -15,20 +15,10 @@
  */
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 
-import org.gradle.internal.Cast.uncheckedCast
-import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
-
-import org.gradle.kotlin.dsl.support.loggerFor
-
-import java.io.File
 
 import java.lang.ref.WeakReference
 
@@ -36,88 +26,20 @@ import javax.inject.Inject
 
 
 internal
-data class LoadedScriptClass<out T>(
-    val compiledScript: CompiledScript<T>,
-    val scriptClass: Class<*>
-)
-
-
-private
-val logger = loggerFor<KotlinScriptPluginFactory>()
-
-
-internal
 class KotlinScriptClassloadingCache @Inject constructor(
-    cacheFactory: CrossBuildInMemoryCacheFactory,
-    private val classpathHasher: ClasspathHasher
+    cacheFactory: CrossBuildInMemoryCacheFactory
 ) {
 
     private
-    val cache: CrossBuildInMemoryCache<ScriptCacheKey, LoadedScriptClass<*>> = cacheFactory.newCache()
+    val cache: CrossBuildInMemoryCache<ScriptCacheKey, Class<*>> = cacheFactory.newCache()
 
-    fun <T> loadScriptClass(
-        scriptBlock: ScriptBlock<T>,
-        parentClassLoader: ClassLoader,
-        compile: (ScriptBlock<T>) -> CompiledScript<T>,
-        createClassLoaderScope: () -> ClassLoaderScope,
-        additionalClassPath: ClassPath? = null
-    ): LoadedScriptClass<T> {
-
-        val key = cacheKeyFor(scriptBlock, parentClassLoader, additionalClassPath)
-        val cached = get(key)
-        if (cached != null) {
-            return uncheckedCast(cached)
-        }
-
-        val compiledScript = compile(scriptBlock)
-
-        logClassloadingOf(scriptBlock)
-        val scriptClass = classFrom(compiledScript, createClassLoaderScope())
-
-        return LoadedScriptClass(compiledScript, scriptClass).also {
-            put(key, it)
-        }
-    }
-
-    fun get(key: ScriptCacheKey): LoadedScriptClass<*>? =
+    fun get(key: ScriptCacheKey): Class<*>? =
         cache.get(key)
 
-    fun <T> put(key: ScriptCacheKey, loadedScriptClass: LoadedScriptClass<T>) {
+    fun <T> put(key: ScriptCacheKey, loadedScriptClass: Class<T>) {
+        // logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
         cache.put(key, loadedScriptClass)
     }
-
-    private
-    fun <T> cacheKeyFor(
-        scriptBlock: ScriptBlock<T>,
-        parentClassLoader: ClassLoader,
-        additionalClassPath: ClassPath?
-    ) =
-
-        ScriptCacheKey(
-            scriptBlock.scriptTemplate.qualifiedName!!,
-            scriptBlock.sourceHash,
-            parentClassLoader,
-            hashOf(additionalClassPath))
-
-    private
-    fun hashOf(additionalClassPath: ClassPath?) =
-        additionalClassPath?.let { classpathHasher.hash(it) }
-
-    private
-    fun classFrom(compiledScript: CompiledScript<*>, scope: ClassLoaderScope): Class<*> =
-        classLoaderFor(compiledScript.location, scope)
-            .loadClass(compiledScript.className)
-
-    private
-    fun classLoaderFor(location: File, scope: ClassLoaderScope) =
-        scope
-            .local(DefaultClassPath.of(location))
-            .lock()
-            .localClassLoader
-
-    private
-    fun <T> logClassloadingOf(scriptBlock: ScriptBlock<T>) =
-        logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
 }
 
 

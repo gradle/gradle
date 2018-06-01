@@ -24,11 +24,15 @@ import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.ScriptSource
 
+import org.gradle.kotlin.dsl.execution.EvalOption
+import org.gradle.kotlin.dsl.execution.defaultEvalOptions
+
 import java.util.*
 
 import javax.inject.Inject
 
 
+@Suppress("unused") // This name of this class is hardcoded in Gradle
 class KotlinScriptPluginFactory @Inject internal constructor(
     private val kotlinScriptEvaluator: KotlinScriptEvaluator
 ) : ScriptPluginFactory {
@@ -55,15 +59,11 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         }
 
     private
-    fun kotlinScriptOptions(): EnumSet<KotlinScriptOption> =
+    fun kotlinScriptOptions(): EnumSet<EvalOption> =
         if (inClassPathMode()) classPathModeScriptOptions
-        else defaultScriptOptions
+        else defaultEvalOptions
 }
 
 
 private
-val classPathModeScriptOptions = EnumSet.of(KotlinScriptOption.IgnoreErrors)
-
-
-private
-val defaultScriptOptions = EnumSet.noneOf(KotlinScriptOption::class.java)
+val classPathModeScriptOptions = EnumSet.of(EvalOption.IgnoreErrors)

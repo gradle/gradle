@@ -194,7 +194,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 "build.gradle.kts",
                 "task(\"precompiled stage 2\")")
 
-        val sourceHash = scriptSourceHash(source.text)
+        val sourceHash = HashCode.fromInt(42)
         val target = mock<Project>()
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(target)

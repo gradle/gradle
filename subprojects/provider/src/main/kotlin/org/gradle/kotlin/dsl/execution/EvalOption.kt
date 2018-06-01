@@ -16,28 +16,18 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
-
-import org.junit.Test
+import java.util.*
 
 
-class ProgramTextTest {
-
-    @Test
-    fun `preserve`() {
-
-        val text = text("0123456789")
-        assertThat(
-            text.preserve(0..1),
-            equalTo(text("01        ")))
-
-        assertThat(
-            text.preserve(0..1, 7..9),
-            equalTo(text("01     789")))
-
-        assertThat(
-            text.preserve(7..9, 0..1),
-            equalTo(text("01     789")))
-    }
+enum class EvalOption {
+    IgnoreErrors,
+    SkipBody
 }
+
+
+typealias EvalOptions = EnumSet<EvalOption>
+
+
+internal
+val defaultEvalOptions: EvalOptions =
+    EnumSet.noneOf(EvalOption::class.java)
