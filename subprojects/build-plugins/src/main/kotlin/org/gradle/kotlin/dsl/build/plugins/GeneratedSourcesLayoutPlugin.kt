@@ -58,7 +58,6 @@ open class GeneratedSourcesLayout @Inject constructor(
     private
     fun outputDirFor(baseDir: DirectoryProperty, sourceSet: SourceSet, identifier: String): Provider<Directory> =
         baseDir.dir("${sourceSet.name}/$identifier")
-
 }
 
 

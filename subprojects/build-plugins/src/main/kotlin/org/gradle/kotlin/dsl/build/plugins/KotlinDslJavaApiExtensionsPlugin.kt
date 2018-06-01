@@ -129,7 +129,6 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
                 it.outputDirectory.set(generatedSourcesLayout.sourcesOutputDirFor(extensionsSourceSet, "kotlinDslExtensions"))
 
                 it.dependsOn(sourceSet.output)
-
             }.also { task ->
                 extensionsSourceSet.kotlin.srcDir(files(provider { task.get().outputDirectory }).apply { builtBy(task) })
             }

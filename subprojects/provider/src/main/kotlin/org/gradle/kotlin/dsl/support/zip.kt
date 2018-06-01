@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
-import org.jetbrains.kotlin.utils.fileUtils.descendantRelativeTo
 
 import java.io.File
 import java.io.IOException
