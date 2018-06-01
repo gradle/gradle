@@ -155,7 +155,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
     }
 
-    class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
+    // Cannot be private due to reflective instantiation
+    public class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
 
         private final I task;
 

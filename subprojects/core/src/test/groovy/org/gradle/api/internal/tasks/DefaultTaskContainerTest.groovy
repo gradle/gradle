@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -31,6 +32,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import static java.util.Collections.singletonMap
@@ -39,7 +41,11 @@ class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
     def modelRegistry = Mock(ModelRegistry)
-    private project = Mock(ProjectInternal, name: "<project>")
+    private project = Mock(ProjectInternal, name: "<project>") {
+        getGradle() >> Mock(GradleInternal) {
+            getIdentityPath() >> Path.path(":")
+        }
+    }
     private taskCount = 1;
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(
@@ -479,8 +485,8 @@ class DefaultTaskContainerTest extends Specification {
 
     void "define task fails when task with given name already defined"() {
         given:
-        _ * taskFactory.create(_ as TaskIdentity, _) >> task("task1")
-        _ * taskFactory.create(_ as TaskIdentity, _) >> task("task2")
+        1 * taskFactory.create(_ as TaskIdentity, _) >> task("task1")
+        1 * taskFactory.create(_ as TaskIdentity, _) >> task("task2")
 
         container.create("task1")
         container.register("task2", {})
@@ -889,7 +895,7 @@ class DefaultTaskContainerTest extends Specification {
 
         and:
         1 * taskFactory.create(_ as TaskIdentity) >> task
-        1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule")}
+        1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule") }
     }
 
     void "fails task creation when task configuration via configureEach is unsuccessful"() {
@@ -1016,7 +1022,7 @@ class DefaultTaskContainerTest extends Specification {
     void "can add task via placeholder action"() {
         when:
         addPlaceholderTask("task")
-        1 * taskFactory.create(_ as TaskIdentity) >> { task(it[1], it[2]) }
+        1 * taskFactory.create(_ as TaskIdentity) >> { TaskIdentity identity, Object[] args -> task(identity.name, identity.type) }
 
         then:
         container.getByName("task") != null
@@ -1181,8 +1187,8 @@ class DefaultTaskContainerTest extends Specification {
     void "can get() if eagerly created task type gets overwrite"() {
         given:
         def customTask = task("task", CustomTask)
-        taskFactory.create(_ as TaskIdentity) >> customTask
-        taskFactory.create(_ as TaskIdentity) >> task("task", DefaultTask)
+        1 * taskFactory.create(_ as TaskIdentity, _ as Object[]) >> customTask
+        1 * taskFactory.create(_ as TaskIdentity, _ as Object[]) >> task("task", DefaultTask)
         container.create("task", CustomTask)
 
         when:
@@ -1224,7 +1230,7 @@ class DefaultTaskContainerTest extends Specification {
     void "can remove lazy created task without breaking TaskProvider"() {
         given:
         def customTask = task("task", CustomTask)
-        taskFactory.create("task", CustomTask) >> customTask
+        1 * taskFactory.create(_ as TaskIdentity, _ as Object[]) >> customTask
 
         and:
         def createProvider = container.createLater("task", CustomTask)
@@ -1246,7 +1252,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can remove eager created task without breaking TaskProvider"() {
         given:
-        taskFactory.create("task", CustomTask) >> task("task", CustomTask)
+        taskFactory.create(_ as TaskIdentity) >> task("task", CustomTask)
 
         and:
         def customTask = container.create("task", CustomTask)

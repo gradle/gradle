@@ -603,7 +603,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     // Cannot be private due to reflective instantiation
-    class TaskCreatingProvider<I extends Task> extends DefaultTaskProvider<I> {
+    public class TaskCreatingProvider<I extends Task> extends DefaultTaskProvider<I> {
 
         private final Object[] constructorArgs;
 
