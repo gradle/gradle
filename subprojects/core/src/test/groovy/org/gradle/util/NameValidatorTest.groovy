@@ -18,9 +18,11 @@ package org.gradle.util
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.featurelifecycle.FeatureUsage
@@ -37,13 +39,13 @@ import spock.lang.Unroll
 class NameValidatorTest extends Specification {
     static forbiddenCharacters = NameValidator.FORBIDDEN_CHARACTERS
     static forbiddenLeadingAndTrailingCharacter = NameValidator.FORBIDDEN_LEADING_AND_TRAILING_CHARACTER
-    static invalidNames = forbiddenCharacters.collect { "a${it}b"} + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
+    static invalidNames = forbiddenCharacters.collect { "a${it}b" } + ["${forbiddenLeadingAndTrailingCharacter}ab", "ab${forbiddenLeadingAndTrailingCharacter}", '']
 
     @Shared
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(DirectInstantiator.INSTANCE, TestUtil.attributesFactory())],
         ["configurations", new DefaultConfigurationContainer(null, DirectInstantiator.INSTANCE, domainObjectContext(), Mock(ListenerManager), null, null, null, null, Mock(FileCollectionFactory), null, null, null, null, null, TestUtil.attributesFactory(), null, null, null)],
-        ["flavors",  new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
+        ["flavors", new DefaultFlavorContainer(DirectInstantiator.INSTANCE)]
     ]
 
     def loggingDeprecatedFeatureHandler = Mock(LoggingDeprecatedFeatureHandler)
@@ -59,10 +61,17 @@ class NameValidatorTest extends Specification {
     @Unroll
     def "tasks are not allowed to be named '#name'"() {
         when:
-        new TaskFactory(Mock(ClassGenerator), null, Mock(Instantiator)).create(name, DefaultTask)
+        def project = Mock(ProjectInternal) {
+            projectPath(_) >> Path.path(":foo:bar")
+            identityPath(_) >> Path.path("build:foo:bar")
+            getGradle() >> Mock(GradleInternal) {
+                getIdentityPath() >> Path.path(":build:foo:bar")
+            }
+        }
+        new TaskFactory(Mock(ClassGenerator), project, Mock(Instantiator)).create(name, DefaultTask)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_ as FeatureUsage) >> { FeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 
@@ -76,7 +85,7 @@ class NameValidatorTest extends Specification {
         domainObjectContainer.create(name)
 
         then:
-        1 * loggingDeprecatedFeatureHandler.featureUsed(_  as FeatureUsage) >> { FeatureUsage usage ->
+        1 * loggingDeprecatedFeatureHandler.featureUsed(_ as FeatureUsage) >> { FeatureUsage usage ->
             assertForbidden(name, usage.message)
         }
 

@@ -451,6 +451,7 @@ fun Element.configureCodeStyleSettings() {
         "USE_SAME_INDENTS" to "true",
         "IGNORE_SAME_INDENTS_FOR_LANGUAGES" to "true",
         "RIGHT_MARGIN" to "200",
+        "FORMATTER_TAGS_ENABLED" to "true",
         "WRAP_COMMENTS" to "true",
         "IF_BRACE_FORCE" to "3",
         "DOWHILE_BRACE_FORCE" to "3",

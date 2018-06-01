@@ -16,8 +16,6 @@
 
 package org.gradle.api.execution.internal;
 
-import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.ExecuteTaskBuildOperationType;
 
@@ -37,22 +35,22 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public String getBuildPath() {
-        return ((GradleInternal) task.getProject().getGradle()).getIdentityPath().toString();
+        return task.getTaskIdentity().buildPath.toString();
     }
 
     @Override
     public String getTaskPath() {
-        return task.getPath();
+        return task.getTaskIdentity().projectPath.toString();
     }
 
     @Override
     public long getTaskId() {
-        return (long) System.identityHashCode(task);
+        return task.getTaskIdentity().uniqueId;
     }
 
     @Override
     public Class<?> getTaskClass() {
-        return GeneratedSubclasses.unpack(task.getClass());
+        return task.getTaskIdentity().type;
     }
 
 }
