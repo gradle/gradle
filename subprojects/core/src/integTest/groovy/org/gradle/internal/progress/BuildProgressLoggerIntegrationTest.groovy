@@ -16,8 +16,8 @@
 package org.gradle.internal.progress
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -66,7 +66,29 @@ class BuildProgressLoggerIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         ConcurrentTestUtil.poll {
             // This asserts that we see incremental progress, not just 0% => 100%
-            gradleHandle.standardOutput.matches(/(?s).*-> \d{2}% INITIALIZING \[.*$/)
+            assert gradleHandle.standardOutput.matches(/(?s).*-> \d{2}% INITIALIZING \[.*$/)
+        }
+
+        testExecution.releaseAll()
+        gradleHandle.waitForFinish()
+    }
+
+    def "operations during project configuration are nested under project operation"() {
+        given:
+        file("subproj/build.gradle") << server.callFromBuild(SERVER_RESOURCE)
+        file("settings.gradle") << "include 'subproj'"
+        buildFile << "task hello {}"
+
+        def testExecution = server.expectAndBlock(SERVER_RESOURCE)
+
+        when:
+        def gradleHandle = executer.withTasks('hello').start()
+        testExecution.waitForAllPendingCalls()
+
+        then:
+        ConcurrentTestUtil.poll {
+            assert gradleHandle.standardOutput.matches(/(?s).*-> \d+% CONFIGURING \[.*$/)
+            assert gradleHandle.standardOutput.contains("> Configure project :subproj > Compiling ")
         }
 
         testExecution.releaseAll()
