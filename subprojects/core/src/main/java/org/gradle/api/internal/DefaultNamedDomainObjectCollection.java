@@ -33,7 +33,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
-import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -70,7 +70,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private final List<Rule> rules = new ArrayList<Rule>();
     private final Set<String> applyingRulesFor = new HashSet<String>();
-    private ImmutableActionSet<ElementInfo<T>> whenKnown = ImmutableActionSet.empty();
+    private MutableActionSet<ElementInfo<T>> whenKnown = new MutableActionSet<ElementInfo<T>>();
 
     public DefaultNamedDomainObjectCollection(Class<? extends T> type, ElementSource<T> store, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store);
@@ -139,7 +139,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public void whenElementKnown(Action<? super ElementInfo<T>> action) {
-        whenKnown = whenKnown.add(action);
+        whenKnown.add(action);
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
             T next = iterator.next();
