@@ -16,12 +16,10 @@
 
 package org.gradle.kotlin.dsl.build.plugins
 
-import org.gradle.kotlin.dsl.fixtures.customInstallation
+import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.support.unzipTo
 
 import org.junit.Test
-import java.io.File
-import java.io.FileFilter
 
 
 class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
@@ -126,24 +124,91 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
 
     @Test
     fun `generates extensions for the whole gradle public api`() {
-        // TODO implement me!
+
+        withSettings("""
+            rootProject.name = "gradle-api"
+        """)
+
+        withBuildScript("""
+            import org.gradle.internal.installation.CurrentGradleInstallation
+
+            import org.gradle.kotlin.dsl.build.tasks.GenerateKotlinDslApiExtensions
+            import org.gradle.kotlin.dsl.build.tasks.GenerateParameterNamesIndexProperties
+
+            plugins {
+                `java-library`
+                id("org.gradle.kotlin.dsl.build.java-api-extensions") apply false
+            }
+
+            repositories {
+                jcenter()
+            }
+
+            $gradlePublicApiObjectDeclaration
+
+            val resolver = ${SourceDistributionResolver::class.qualifiedName}(project)
+            val sourceDirs = resolver.sourceDirs().filterNot { it.name.endsWith("resources") }
+
+            val currentInstall = CurrentGradleInstallation.get()!!
+            val classPath = currentInstall.libDirs.flatMap {
+                it.listFiles().filter { it.name.endsWith(".jar") && !it.name.startsWith("gradle-kotlin-") && it.name.startsWith("gradle-") }
+            }
+            val additionalClassPath = currentInstall.libDirs.flatMap {
+                it.listFiles().filter { it.name.endsWith(".jar") && !it.name.startsWith("gradle-") }
+            }
+
+            println("sourceDirs: ${'$'}sourceDirs")
+            println("classPath: ${'$'}classPath")
+            println("additionalClassPath: ${'$'}additionalClassPath")
+
+            tasks {
+                val paramNamesIndex = file("build/paramNames.properties")
+                val paramNames by creating(GenerateParameterNamesIndexProperties::class) {
+                    sources.from(sourceDirs.map { project.fileTree(it) as FileTree }
+                        .reduce { acc, fileTree -> acc.plus(fileTree) }
+                        .matching {
+                            PublicApi.includes.takeIf { it.isNotEmpty() }?.let { includes ->
+                                include(includes)
+                            }
+                            PublicApi.excludes.takeIf { it.isNotEmpty() }?.let { excludes ->
+                                exclude(excludes)
+                            }
+                        })
+                    classpath.from(classPath)
+                    outputFile.set(paramNamesIndex)
+                    doLast {
+                        println(outputFile.get().asFile.readText())
+                    }
+                }
+                val extOutputDir = file("build/extensions")
+                val genExtensions by creating(GenerateKotlinDslApiExtensions::class) {
+                    isUseEmbeddedKotlinDslProvider.set(true)
+                    dependsOn(paramNames)
+                    classes.from(classPath)
+                    classpath.from(additionalClassPath)
+                    includes.set(PublicApi.includes)
+                    excludes.set(PublicApi.excludes)
+                    parameterNamesIndices.from(paramNamesIndex)
+                    outputDirectory.set(extOutputDir)
+                    doLast {
+                        println("-----------------------------")
+                        outputDirectory.get().asFile.walk().forEach { println(it) }
+                        println("-----------------------------")
+                        outputDirectory.get().asFile.resolve("org/gradle/kotlin/dsl/GeneratedGenExtensionsKotlinDslApiExtensions.kt").let {
+                            println(it.readText())
+                        }
+                    }
+                }
+            }
+        """)
+
+        println("============================")
+        run("genExtensions").apply {
+            println(output)
+        }
+
+        // TODO add assertions
     }
-}
-
-
-private
-val gradleClasspath: List<File> by lazy {
-    customInstallation().let { custom ->
-        sequenceOf(custom.resolve("lib"), custom.resolve("lib/plugins")).flatMap {
-            it.listFiles(FileFilter { it.name.endsWith(".jar") }).asSequence()
-        }.toList()
-    }
-}
-
-
-private
-val gradleClasspathString: String by lazy {
-    gradleClasspath.map { it.absolutePath }.joinToString(", ") { "\"$it\"" }
 }
 
 
