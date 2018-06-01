@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
+import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
@@ -39,11 +40,14 @@ class DependencyInsightReporterSpec extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
     def versionComparator = new DefaultVersionComparator()
 
+    @Subject
+    def reporter = new DependencyInsightReporter(versionSelectorScheme, versionComparator, versionParser)
+
     def "sorts dependencies"() {
         def dependencies = [dep("a", "x", "1.0", "2.0"), dep("a", "x", "1.5", "2.0"), dep("b", "a", "5.0"), dep("a", "z", "1.0"), dep("a", "x", "2.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
+        def sorted = reporter.convertToRenderableItems(dependencies)
 
         then:
         sorted.size() == 8
@@ -77,7 +81,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", forced()), dep("a", "x", "1.5", "2.0", forced()), dep("b", "a", "5.0")]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
+        def sorted = reporter.convertToRenderableItems(dependencies)
 
         then:
         sorted.size() == 5
@@ -102,7 +106,7 @@ class DependencyInsightReporterSpec extends Specification {
         def dependencies = [dep("a", "x", "1.0", "2.0", conflict()), dep("a", "x", "2.0", "2.0", conflict()), dep("b", "a", "5.0", "5.0", forced())]
 
         when:
-        def sorted = new DependencyInsightReporter().prepare(dependencies, versionSelectorScheme, versionComparator, versionParser);
+        def sorted = reporter.convertToRenderableItems(dependencies)
 
         then:
         sorted.size() == 5

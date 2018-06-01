@@ -23,12 +23,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -37,25 +33,20 @@ import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesIn
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
-import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -196,6 +187,40 @@ public class DependencyInsightReportTask extends DefaultTask {
     @TaskAction
     public void report() {
         final Configuration configuration = getConfiguration();
+        assertValidTaskConfiguration(configuration);
+
+        StyledTextOutput output = getTextOutputFactory().create(getClass());
+        ResolutionErrorRenderer errorHandler = new ResolutionErrorRenderer(dependencySpec);
+        Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
+
+        if (selectedDependencies.isEmpty()) {
+            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
+            return;
+        }
+        errorHandler.renderErrors(output);
+        renderSelectedDependencies(configuration, output, selectedDependencies);
+        renderBuildScanHint(output);
+    }
+
+    private void renderSelectedDependencies(Configuration configuration, StyledTextOutput output, Set<DependencyResult> selectedDependencies) {
+        GraphRenderer renderer = new GraphRenderer(output);
+        DependencyInsightReporter reporter = new DependencyInsightReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
+        Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies);
+        RootDependencyRenderer rootRenderer = new RootDependencyRenderer(configuration, getAttributesFactory());
+        ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configuration);
+        DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
+        dependencyGraphRenderer.render(itemsToRender);
+        dependencyGraphRenderer.complete();
+    }
+
+    private void renderBuildScanHint(StyledTextOutput output) {
+        output.println();
+        output.text("A web-based, searchable dependency report is available by adding the ");
+        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        output.println(" option.");
+    }
+
+    private void assertValidTaskConfiguration(Configuration configuration) {
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
@@ -205,21 +230,11 @@ public class DependencyInsightReportTask extends DefaultTask {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the dependency to show was not specified."
                 + "\nIt can be specified from the command line, e.g: '" + getPath() + " --dependency someDep'");
         }
+    }
 
-
-        final StyledTextOutput output = getTextOutputFactory().create(getClass());
-        final GraphRenderer renderer = new GraphRenderer(output);
-
+    private Set<DependencyResult> selectDependencies(Configuration configuration, ResolutionErrorRenderer errorHandler) {
         ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
-        ResolutionResult result = incoming.getResolutionResult(new Action<Throwable>() {
-            @Override
-            public void execute(Throwable throwable) {
-                if (throwable instanceof ResolveException) {
-                    Throwable cause = throwable.getCause();
-                    handleResolutionError(cause, output);
-                }
-            }
-        });
+        ResolutionResult result = incoming.getResolutionResult(errorHandler);
 
         final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
         result.allDependencies(new Action<DependencyResult>() {
@@ -230,102 +245,9 @@ public class DependencyInsightReportTask extends DefaultTask {
                 }
             }
         });
-
-        if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
-            return;
-        }
-
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-
-        NodeRenderer nodeRenderer = new NodeRenderer() {
-            public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
-                boolean leaf = node.getChildren().isEmpty();
-                target.text(leaf ? configuration.getName() : node.getName());
-                if (alreadyRendered && !leaf) {
-                    target.withStyle(Info).text(" (*)");
-                }
-            }
-        };
-
-        LegendRenderer legendRenderer = new LegendRenderer(output);
-        DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer, legendRenderer);
-
-        int i = 1;
-        for (final RenderableDependency dependency : sortedDeps) {
-            renderer.visit(new RenderDependencyAction(dependency, configuration, getAttributesFactory()), true);
-            dependencyGraphRenderer.render(dependency);
-            boolean last = i++ == sortedDeps.size();
-            if (!last) {
-                output.println();
-            }
-        }
-
-        legendRenderer.printLegend();
-
-        output.println();
-        output.text("A web-based, searchable dependency report is available by adding the ");
-        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
-        output.println(" option.");
+        return selectedDependencies;
     }
 
-    private void handleResolutionError(Throwable cause, StyledTextOutput output) {
-        if (cause instanceof VersionConflictException) {
-            handleConflict((VersionConflictException) cause, output);
-        } else if (cause instanceof LockOutOfDateException) {
-            handleOutOfDateLocks((LockOutOfDateException) cause, output);
-        } else {
-            // Fallback to failing the task in case we don't know anything special
-            // about the error
-            throw UncheckedException.throwAsUncheckedException(cause);
-        }
-    }
-
-    private void handleOutOfDateLocks(LockOutOfDateException cause, StyledTextOutput output) {
-        List<String> errors = cause.getErrors();
-        output.text("The dependency locks are out-of-date:");
-        output.println();
-        for (String error : errors) {
-            output.text("   - " + error);
-            output.println();
-        }
-        output.println();
-    }
-
-    private void handleConflict(VersionConflictException conflict, StyledTextOutput output) {
-        for (List<ModuleVersionIdentifier> moduleVersionIdentifiers : conflict.getConflicts()) {
-            boolean matchesSpec = hasVersionConflictOnRequestedDependency(moduleVersionIdentifiers);
-            if (!matchesSpec) {
-                continue;
-            }
-            output.text("Dependency resolution failed because of conflicts between the following modules:");
-            output.println();
-            for (ModuleVersionIdentifier moduleVersionIdentifier : moduleVersionIdentifiers) {
-                output.text("   - ");
-                output.withStyle(StyledTextOutput.Style.Error).text(moduleVersionIdentifier.toString());
-                output.println();
-            }
-            output.println();
-        }
-    }
-
-    private boolean hasVersionConflictOnRequestedDependency(List<ModuleVersionIdentifier> moduleVersionIdentifiers) {
-        boolean matchesSpec = false;
-        for (final ModuleVersionIdentifier mvi : moduleVersionIdentifiers) {
-            matchesSpec |= dependencySpec.isSatisfiedBy(new DependencyResult() {
-                @Override
-                public ComponentSelector getRequested() {
-                    return DefaultModuleComponentSelector.newSelector(mvi.getGroup(), mvi.getName(), mvi.getVersion());
-                }
-
-                @Override
-                public ResolvedComponentResult getFrom() {
-                    return null;
-                }
-            });
-        }
-        return matchesSpec;
-    }
 
     private static AttributeMatchDetails match(Attribute<?> actualAttribute, Object actualValue, AttributeContainer requestedAttributes) {
         for (Attribute<?> requested : requestedAttributes.keySet()) {
@@ -367,18 +289,17 @@ public class DependencyInsightReportTask extends DefaultTask {
         not_requested
     }
 
-    private static class RenderDependencyAction implements Action<StyledTextOutput> {
-        private final RenderableDependency dependency;
+    private static class RootDependencyRenderer implements NodeRenderer {
         private final Configuration configuration;
         private final ImmutableAttributesFactory attributesFactory;
 
-        public RenderDependencyAction(RenderableDependency dependency, Configuration configuration, ImmutableAttributesFactory attributesFactory) {
-            this.dependency = dependency;
+        public RootDependencyRenderer(Configuration configuration, ImmutableAttributesFactory attributesFactory) {
             this.configuration = configuration;
             this.attributesFactory = attributesFactory;
         }
 
-        public void execute(StyledTextOutput out) {
+        @Override
+        public void renderNode(StyledTextOutput out, RenderableDependency dependency, boolean alreadyRendered) {
             out.withStyle(Identifier).text(dependency.getName());
             if (StringUtils.isNotEmpty(dependency.getDescription())) {
                 out.withStyle(Description).text(" (" + dependency.getDescription() + ")");
@@ -393,11 +314,11 @@ public class DependencyInsightReportTask extends DefaultTask {
                     out.withStyle(Failure).text(" (n)");
                     break;
             }
-            printVariantDetails(out);
-            printExtraDetails(out);
+            printVariantDetails(out, dependency);
+            printExtraDetails(out, dependency);
         }
 
-        private void printExtraDetails(StyledTextOutput out) {
+        private void printExtraDetails(StyledTextOutput out, RenderableDependency dependency) {
             List<Section> extraDetails = dependency.getExtraDetails();
             if (!extraDetails.isEmpty()) {
                 printSections(out, extraDetails, 1);
@@ -421,7 +342,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             out.withStyle(Description).text(indent + description + appendix);
         }
 
-        private void printVariantDetails(StyledTextOutput out) {
+        private void printVariantDetails(StyledTextOutput out, RenderableDependency dependency) {
             ResolvedVariantResult resolvedVariant = dependency.getResolvedVariant();
             if (resolvedVariant != null) {
                 out.println();
@@ -508,4 +429,21 @@ public class DependencyInsightReportTask extends DefaultTask {
         }
 
     }
+
+    private static class ReplaceProjectWithConfigurationNameRenderer implements NodeRenderer {
+        private final Configuration configuration;
+
+        public ReplaceProjectWithConfigurationNameRenderer(Configuration configuration) {
+            this.configuration = configuration;
+        }
+
+        public void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {
+            boolean leaf = node.getChildren().isEmpty();
+            target.text(leaf ? configuration.getName() : node.getName());
+            if (alreadyRendered && !leaf) {
+                target.withStyle(Info).text(" (*)");
+            }
+        }
+    }
+
 }

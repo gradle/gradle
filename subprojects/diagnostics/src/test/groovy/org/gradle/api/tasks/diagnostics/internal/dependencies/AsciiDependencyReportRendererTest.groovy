@@ -16,8 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal.dependencies
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
-import org.gradle.api.tasks.diagnostics.internal.graph.LegendRenderer
+import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -28,7 +27,6 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         renderer.output = textOutput
-        renderer.legendRenderer = Mock(LegendRenderer)
     }
 
     def "informs if no configurations"() {
@@ -50,6 +48,7 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
         configuration2.isCanBeResolved() >> true
 
         when:
+        renderer.prepareVisit()
         renderer.startConfiguration(configuration1);
         renderer.completeConfiguration(configuration1);
         renderer.startConfiguration(configuration2);
@@ -64,7 +63,7 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
     }
 
     def "renders dependency graph"() {
-        renderer.dependencyGraphRenderer = Mock(DependencyGraphRenderer)
+        renderer.dependencyGraphRenderer = Mock(DependencyGraphsRenderer)
         def root = new SimpleDependency("root")
         root.children.add(new SimpleDependency("dep"))
 
@@ -72,17 +71,7 @@ class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
         renderer.renderNow(root)
 
         then:
-        1 * renderer.dependencyGraphRenderer.render(root)
-    }
-
-    def "renders legend on complete"() {
-        renderer.dependencyGraphRenderer = Mock(DependencyGraphRenderer)
-
-        when:
-        renderer.complete()
-
-        then:
-        1 * renderer.legendRenderer.printLegend()
+        1 * renderer.dependencyGraphRenderer.render([root])
     }
 
     def "safely completes if no configurations"() {
