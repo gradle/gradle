@@ -23,6 +23,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestFile
@@ -77,6 +78,38 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
         realize.children.empty
         realize.details.eager == false
+    }
+
+    def "op during realize are child ops"() {
+        given:
+        enable()
+        register('foo')
+        register('bar')
+        buildFile << """
+            tasks.configureEach {
+                logger.lifecycle "output 1"
+            }
+            tasks.named("foo").configure {
+                logger.lifecycle "output 2"
+                tasks.named("bar").get()   
+            }
+        """
+
+        when:
+        run("foo")
+
+        then:
+        verifyTaskIds()
+        verifyTaskDetails(RegisterTaskBuildOperationType, withPath(':', ':foo')).children.empty
+        def realize = verifyTaskDetails(RealizeTaskBuildOperationType, withPath(':', ':foo'))
+        realize.progress.size() == 2
+        realize.progress[0].detailsClassName == LogEvent.name
+        realize.progress[0].details.message.startsWith("output 1")
+        realize.progress[1].detailsClassName == LogEvent.name
+        realize.progress[1].details.message.startsWith("output 2")
+        realize.children.size() == 1
+        buildOperations.isType(realize.children[0], RealizeTaskBuildOperationType)
+        withPath(":", ":bar").isSatisfiedBy(realize.children[0])
     }
 
     def "emits registration, realization build ops when tasks later realized"() {

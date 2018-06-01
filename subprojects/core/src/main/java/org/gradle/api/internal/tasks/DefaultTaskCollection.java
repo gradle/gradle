@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
@@ -102,7 +103,10 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         if (task == null) {
             return findByNameLaterWithoutRules(name);
         }
-        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, getType(), name, task));
+
+        TaskInternal taskInternal = (TaskInternal) task;
+        TaskIdentity<?> taskIdentity = taskInternal.getTaskIdentity();
+        return Cast.uncheckedCast(getInstantiator().newInstance(ExistingTaskProvider.class, this, task, taskIdentity));
     }
 
     protected abstract class DefaultTaskProvider<I extends Task> extends AbstractProvider<I> implements Named, TaskProvider<I> {
@@ -151,22 +155,21 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
     }
 
-    private class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
-        private I task;
+    class ExistingTaskProvider<I extends T> extends DefaultTaskProvider<I> {
 
-        public ExistingTaskProvider(TaskIdentity<I> identity) {
+        private final I task;
+
+        public ExistingTaskProvider(I task, TaskIdentity<I> identity) {
             super(identity);
+            this.task = task;
         }
 
         @Override
         public boolean isPresent() {
-            return task != null;
+            return true;
         }
 
         public I getOrNull() {
-            if (task == null) {
-                task = getType().cast(findByName(getName()));
-            }
             return task;
         }
     }
