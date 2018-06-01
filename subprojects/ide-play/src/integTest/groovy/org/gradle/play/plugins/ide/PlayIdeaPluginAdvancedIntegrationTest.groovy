@@ -29,7 +29,7 @@ class PlayIdeaPluginAdvancedIntegrationTest extends PlayIdeaPluginIntegrationTes
 
     @Override
     PlayApp getPlayApp() {
-        new AdvancedPlayApp(oldVersion: isOldVersion())
+        new AdvancedPlayApp()
     }
 
     String[] getSourcePaths() {

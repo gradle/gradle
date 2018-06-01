@@ -31,7 +31,7 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
 
     @Override
     PlayApp getPlayApp() {
-        new BasicPlayApp(oldVersion: isOldVersion())
+        new BasicPlayApp()
     }
 
     String[] getSourcePaths() {

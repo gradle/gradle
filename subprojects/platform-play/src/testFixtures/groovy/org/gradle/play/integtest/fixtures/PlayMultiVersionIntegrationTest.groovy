@@ -20,14 +20,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.VersionNumber
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 abstract class PlayMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
-    protected isOldVersion() {
-        return version < VersionNumber.parse('2.6.0')
-    }
-
     static boolean isPlay22(def version) {
         return version.toString().startsWith('2.2')
     }

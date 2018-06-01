@@ -28,7 +28,7 @@ class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrat
 
     @Override
     PlayApp getPlayApp() {
-        return new AdvancedPlayApp(oldVersion: isOldVersion())
+        return new AdvancedPlayApp()
     }
 
     @Override

@@ -20,7 +20,7 @@ import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayCompositeBuild
 
 class PlayCompositeBuildIntegrationTest extends PlayBinaryApplicationIntegrationTest {
-    PlayApp playApp = new PlayCompositeBuild(oldVersion: isOldVersion())
+    PlayApp playApp = new PlayCompositeBuild()
 
     @Override
     PlayApp getPlayApp() {

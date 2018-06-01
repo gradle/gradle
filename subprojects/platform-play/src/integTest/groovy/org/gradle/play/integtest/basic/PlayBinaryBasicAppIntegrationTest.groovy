@@ -23,6 +23,6 @@ import org.gradle.play.integtest.fixtures.PlayApp
 class PlayBinaryBasicAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
     @Override
     PlayApp getPlayApp() {
-        return new BasicPlayApp(oldVersion: isOldVersion())
+        return new BasicPlayApp()
     }
 }

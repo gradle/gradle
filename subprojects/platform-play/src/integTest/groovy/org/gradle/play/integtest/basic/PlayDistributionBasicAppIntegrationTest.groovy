@@ -23,6 +23,6 @@ import org.gradle.play.integtest.fixtures.PlayApp
 class PlayDistributionBasicAppIntegrationTest extends PlayDistributionApplicationIntegrationTest {
     @Override
     PlayApp getPlayApp() {
-        return new BasicPlayApp(oldVersion: isOldVersion())
+        return new BasicPlayApp()
     }
 }

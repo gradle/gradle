@@ -17,6 +17,7 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.WithFailingTestsApp
@@ -25,7 +26,7 @@ import org.junit.Assume
 
 class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegrationTest {
 
-    PlayApp playApp = new WithFailingTestsApp(oldVersion: isOldVersion())
+    PlayApp playApp = new WithFailingTestsApp()
 
     def setup() {
         playApp.writeSources(testDirectory)

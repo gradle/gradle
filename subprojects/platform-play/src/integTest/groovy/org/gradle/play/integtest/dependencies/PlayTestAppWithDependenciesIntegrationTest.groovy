@@ -24,7 +24,7 @@ import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
 class PlayTestAppWithDependenciesIntegrationTest extends PlayTestApplicationIntegrationTest {
     @Override
     PlayApp getPlayApp() {
-        return new PlayAppWithDependencies(oldVersion: isOldVersion())
+        return new PlayAppWithDependencies()
     }
 
     @Override

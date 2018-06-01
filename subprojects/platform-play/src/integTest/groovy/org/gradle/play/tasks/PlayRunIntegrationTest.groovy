@@ -21,7 +21,7 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrat
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
-    PlayApp playApp = new BasicPlayApp(oldVersion: isOldVersion())
+    PlayApp playApp = new BasicPlayApp()
 
     def setup() {
         buildFile << """

@@ -23,7 +23,7 @@ import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
-    PlayApp playApp = new BasicPlayApp(oldVersion: isOldVersion())
+    PlayApp playApp = new BasicPlayApp()
 
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"

@@ -21,14 +21,9 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import org.gradle.util.VersionNumber
 
 abstract class PlayMultiVersionApplicationIntegrationTest extends PlayMultiVersionIntegrationTest {
     abstract PlayApp getPlayApp()
-
-    protected isOldVersion() {
-        return version < VersionNumber.parse('2.6.0')
-    }
 
     def setup() {
         playApp.writeSources(testDirectory)
