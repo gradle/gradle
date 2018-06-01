@@ -98,7 +98,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.buildOperationExecutor = statistics.isCollecting() ? buildOperationExecutor : new NullBuildOperationExecutor(buildOperationExecutor);
+        this.buildOperationExecutor = statistics.isCollecting() ? buildOperationExecutor : NullBuildOperationExecutor.INSTANCE;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
     }
 
@@ -206,7 +206,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private <T extends Task> T addTask(T task, boolean replaceExisting) {
         String name = task.getName();
 
-        DefaultTaskProvider<? extends Task> placeholderProvider = (DefaultTaskProvider)placeholders.remove(name);
+        DefaultTaskProvider<? extends Task> placeholderProvider = (DefaultTaskProvider) placeholders.remove(name);
         if (placeholderProvider != null) {
             placeholderProvider.removed = true;
             if (!replaceExisting) {
@@ -222,7 +222,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             if (existing != null) {
                 remove(existing);
             } else {
-                DefaultTaskProvider<? extends Task> taskProvider = (DefaultTaskProvider)findByNameLaterWithoutRules(name);
+                DefaultTaskProvider<? extends Task> taskProvider = (DefaultTaskProvider) findByNameLaterWithoutRules(name);
                 if (taskProvider != null) {
                     taskProvider.removed = true;
                 }
@@ -473,7 +473,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private void flushPlaceholders() {
-        for (Iterator<TaskProvider<?>> iterator = placeholders.values().iterator(); iterator.hasNext();) {
+        for (Iterator<TaskProvider<?>> iterator = placeholders.values().iterator(); iterator.hasNext(); ) {
             iterator.next().get();
             iterator.remove();
         }

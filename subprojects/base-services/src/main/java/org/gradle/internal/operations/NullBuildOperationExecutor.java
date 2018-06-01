@@ -21,16 +21,27 @@ import org.gradle.api.Action;
 import javax.annotation.Nullable;
 
 /**
- * BuildOperationExecutor that executes the given commands without issuing build operations.
+ * Executes the given commands without issuing build operations.
  */
 public final class NullBuildOperationExecutor implements BuildOperationExecutor {
 
-    private static final BuildOperationContext CONTEXT = new NullBuildOperationContext();
+    public static final BuildOperationExecutor INSTANCE = new NullBuildOperationExecutor();
 
-    private final BuildOperationExecutor delegate;
+    private static final BuildOperationContext CONTEXT = new BuildOperationContext() {
+        @Override
+        public void failed(@Nullable Throwable failure) {
+        }
 
-    public NullBuildOperationExecutor(BuildOperationExecutor delegate) {
-        this.delegate = delegate;
+        @Override
+        public void setResult(Object result) {
+        }
+
+        @Override
+        public void setStatus(String status) {
+        }
+    };
+
+    private NullBuildOperationExecutor() {
     }
 
     @Override
@@ -55,21 +66,7 @@ public final class NullBuildOperationExecutor implements BuildOperationExecutor 
 
     @Override
     public BuildOperationRef getCurrentOperation() {
-        return delegate.getCurrentOperation();
+        throw new UnsupportedOperationException();
     }
 
-    private static final class NullBuildOperationContext implements BuildOperationContext {
-
-        @Override
-        public void failed(@Nullable Throwable failure) {
-        }
-
-        @Override
-        public void setResult(Object result) {
-        }
-
-        @Override
-        public void setStatus(String status) {
-        }
-    }
 }
