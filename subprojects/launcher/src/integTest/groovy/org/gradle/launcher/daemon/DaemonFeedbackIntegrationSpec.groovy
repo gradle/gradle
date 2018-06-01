@@ -170,7 +170,7 @@ task sleep {
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
         when:
-        def infoBuild = executer.withArguments("-i", "-Dorg.gradle.jvmargs=-ea").run()
+        def infoBuild = executer.withArguments("-i").run()
 
         then:
         infoBuild.output.count("debug me!") == 0
@@ -184,7 +184,7 @@ task sleep {
         daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         when:
-        def debugBuild = executer.withArguments("-d", "-Dorg.gradle.jvmargs=-ea").run()
+        def debugBuild = executer.withArguments("-d").run()
 
         then:
         debugBuild.output.count("debug me!") == 1

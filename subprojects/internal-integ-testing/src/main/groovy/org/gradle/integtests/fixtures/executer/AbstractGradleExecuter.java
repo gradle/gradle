@@ -40,6 +40,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -85,12 +86,16 @@ import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .provider(new GlobalScopeServices(true))
         .build();
+
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
+
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
     private static final List<String> JDK7_PATHS = Arrays.asList("1.7", "jdk7", "-7-", "jdk-7", "7u");
 
@@ -530,6 +535,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isProfile()) {
             buildJvmOpts.add(profiler);
         }
+
+        if (isSharedDaemons()) {
+            if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+                buildJvmOpts.add("-XX:MaxPermSize=320m");
+            }
+            buildJvmOpts.add("-Xmx2g");
+        } else {
+            buildJvmOpts.add("-Xmx512m");
+        }
+        if (gradleUserHomeDir != null) {
+            buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
+            buildJvmOpts.add("-XX:HeapDumpPath=" + gradleUserHomeDir.getAbsolutePath());
+        }
         return buildJvmOpts;
     }
 
@@ -739,7 +757,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public boolean isUseDaemon() {
         CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
-        if (cliDaemonArgument == NO_DAEMON) {
+        if (cliDaemonArgument == NO_DAEMON ||cliDaemonArgument == FOREGROUND) {
             return false;
         }
         return requireDaemon || cliDaemonArgument == DAEMON;
