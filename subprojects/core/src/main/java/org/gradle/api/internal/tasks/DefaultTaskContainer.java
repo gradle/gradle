@@ -98,8 +98,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
         this.statistics = statistics;
-        this.buildOperationExecutor = statistics.isCollecting() ? buildOperationExecutor : NullBuildOperationExecutor.INSTANCE;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
+
+        // Note: this conditional use of operations is intended to be temporary.
+        // The extra operations create extra overhead that we do not want to impose at this time.
+        this.buildOperationExecutor = statistics.isCollecting() ? buildOperationExecutor : NullBuildOperationExecutor.INSTANCE;
     }
 
     public Task create(Map<String, ?> options) {
