@@ -89,7 +89,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
             ModuleComponentIdentifier candidateId = candidate.getId();
             if (!versionMatches) {
-                result.notMatched(candidateId);
+                result.notMatched(candidateId, requestedVersionMatcher);
                 continue;
             }
 

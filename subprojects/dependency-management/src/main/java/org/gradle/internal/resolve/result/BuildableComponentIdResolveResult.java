@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 
 import java.util.Collection;
@@ -45,18 +46,21 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
      */
     void failed(ModuleVersionResolveException failure);
 
-    // The following methods are used for dynamic modules, when there's often more than one version
-    // which can match, but we actually select (or reject) more before selecting.
-
 
     /**
      * Registers the list of versions that were attempted for this module, but didn't match
-     * the selector
+     * the selector. This method is used for dynamic modules, when there's often more than one
+     * version which can match, but we actually select (or reject) more before selecting.
+     *
+     * @param unmatchedVersions a collection of unmatched versions
      */
-    void unmatched(Collection<String> unmatchedVersions);
+    void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions);
 
     /**
-     * Registers the list of rejections that happened during resolution for this module
+     * Registers the list of rejections that happened during resolution for this module.
+     * This method is used for dynamic modules, when there's often more than one
+     * version which can match, but we actually select (or reject) more before selecting.
+     *
      * @param rejections a collection of rejected versions
      */
     void rejections(Collection<RejectedVersion> rejections);

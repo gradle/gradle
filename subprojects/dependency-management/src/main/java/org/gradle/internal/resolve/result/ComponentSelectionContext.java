@@ -44,7 +44,7 @@ public interface ComponentSelectionContext {
     /**
      * Adds a candidate version that did not match the provided selector.
      */
-    void notMatched(ModuleComponentIdentifier id);
+    void notMatched(ModuleComponentIdentifier id, VersionSelector requestedVersionMatcher);
 
     /**
      * Adds a candidate version that matched the provided selector, but was rejected by some rule.

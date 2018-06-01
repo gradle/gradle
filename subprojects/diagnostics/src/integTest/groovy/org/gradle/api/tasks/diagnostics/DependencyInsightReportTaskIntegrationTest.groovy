@@ -1761,8 +1761,8 @@ org:foo -> $selected
 
         where:
         version                             | selected | rejected
-        "prefer '[1.0, 2.0)'"               | '1.5'    | ""
-        "strictly '[1.1, 1.4]'"             | '1.4'    | ""
+        "prefer '[1.0, 2.0)'"               | '1.5'    | "didn't match version 2.0"
+        "strictly '[1.1, 1.4]'"             | '1.4'    | "didn't match versions 2.0, 1.5"
         "prefer '[1.0, 1.4]'; reject '1.4'" | '1.3'    | "rejected version 1.4"
     }
 
@@ -1814,8 +1814,8 @@ org:foo -> $selected
 """
         where:
         version                             | reason                                          | selected | rejected
-        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'    | ""
-        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'    | ""
+        "prefer '[1.0, 2.0)'"               | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "strictly '[1.1, 1.4]'"             | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
         "prefer '[1.0, 1.4]'; reject '1.4'" | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
@@ -1863,8 +1863,8 @@ org:foo:${displayVersion} -> $selected
 """
         where:
         version                             | displayVersion | reason                                          | selected | rejected
-        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | ""
-        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | ""
+        "prefer '[1.0, 2.0)'"               | '[1.0, 2.0)'   | "foo v2+ has an incompatible API for project X" | '1.5'    | "didn't match version 2.0 because "
+        "strictly '[1.1, 1.4]'"             | '[1.1, 1.4]'   | "versions of foo verified to run on platform Y" | '1.4'    | "didn't match versions 2.0, 1.5 because "
         "prefer '[1.0, 1.4]'; reject '1.4'" | '[1.0, 1.4]'   | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
