@@ -19,23 +19,19 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup
+import org.gradle.cache.internal.IndexedCacheBackedFileAccessJournal
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Unroll
 
 import static java.util.concurrent.TimeUnit.DAYS
-import static java.util.concurrent.TimeUnit.MILLISECONDS
-import static java.util.concurrent.TimeUnit.SECONDS
 
 class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    private final static long MAX_CACHE_AGE_IN_DAYS = FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
+    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
 
-    def repo = mavenHttpRepo
-    def groupId = 'org.example'
-    def artifactId = 'example'
-    def snapshotModule = repo.module(groupId, artifactId, '1.0-SNAPSHOT').publish().allowAll()
+    def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -83,9 +79,13 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         files.size() == 2
         def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
         metadata.size() == 1
+        journal().assertExists()
 
         when:
-        markForCleanup(gcFile)
+        journal().delete() // delete journal to destroy last access information
+        markForCleanup(gcFile) // force cleanup
+
+        and: // last modified timestamp is used when journal does not exist
         markForCleanup(resources[0].parentFile)
         markForCleanup(files[0].parentFile)
         markForCleanup(files[1].parentFile)
@@ -131,32 +131,27 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         filesToDelete << ['files-*/**/*', 'metadata-*/descriptors/**/*']
     }
 
-    def "marks artifacts and metadata as recently used when accessed"() {
+    def "marks artifacts as recently used when accessed"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
         when:
         succeeds 'resolve'
 
-        then:
-        def files = findFiles(cacheDir, "files-*/**/*")
-        files.size() == 2
-        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
-        metadata.size() == 1
-
-        when:
-        markForCleanup(files[0].parentFile)
-        markForCleanup(files[1].parentFile)
-        markForCleanup(metadata[0].parentFile)
-        def timeBeforeAccess = SECONDS.toMillis(MILLISECONDS.toSeconds(System.currentTimeMillis()))
-
         and:
+        journal().delete()
+
+        then:
         succeeds 'resolve'
 
-        then:
-        metadata[0].parentFile.lastModified() >= timeBeforeAccess
-        files.findAll { it.name.endsWith(".jar") }.each { it.parentFile.lastModified() >= timeBeforeAccess }
-        files.findAll { it.name.endsWith(".pom") }.each { it.parentFile.lastModified() < timeBeforeAccess }
+        and:
+        journal().assertExists()
+    }
+
+    private TestFile journal() {
+        def journal = findFiles(cacheDir, "metadata-*/" + IndexedCacheBackedFileAccessJournal.CACHE_NAME + ".bin")
+        journal.size() == 1
+        journal[0]
     }
 
     private static List<TestFile> findFiles(File baseDir, String includePattern) {
@@ -177,7 +172,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
     private void buildscriptWithDependency(MavenModule module) {
         buildFile.text = """
             repositories {
-                maven { url = '${repo.uri}' }
+                maven { url = '${mavenHttpRepo.uri}' }
             }
             configurations {
                 custom

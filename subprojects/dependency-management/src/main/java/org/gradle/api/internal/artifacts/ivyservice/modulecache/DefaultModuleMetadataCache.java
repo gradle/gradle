@@ -49,7 +49,8 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
                                       IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                       Interner<String> stringInterner) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(artifactCacheMetadata.getMetaDataStoreDirectory(), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
+        ModuleMetadataSerializer moduleMetadataSerializer = new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory);
+        moduleMetadataStore = new ModuleMetadataStore(artifactCacheMetadata.getMetaDataStoreDirectory(), moduleMetadataSerializer, moduleIdentifierFactory, stringInterner, cacheLockingManager.getFileAccessJournal());
         this.cacheLockingManager = cacheLockingManager;
     }
 

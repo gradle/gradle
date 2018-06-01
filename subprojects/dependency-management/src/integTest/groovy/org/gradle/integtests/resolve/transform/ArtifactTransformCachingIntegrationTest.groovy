@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -28,7 +28,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS
 import static java.util.concurrent.TimeUnit.SECONDS
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    private final static long MAX_CACHE_AGE_IN_DAYS = FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     def setup() {
         settingsFile << """

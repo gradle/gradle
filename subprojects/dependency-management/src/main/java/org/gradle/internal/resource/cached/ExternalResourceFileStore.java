@@ -18,6 +18,7 @@ package org.gradle.internal.resource.cached;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
@@ -25,7 +26,7 @@ import java.io.File;
 public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> {
 
     public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
-    
+
     private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
         public String determineGroup(String s) {
@@ -45,7 +46,7 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
         }
     };
 
-    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider) {
-        super(baseDir, tmpProvider, GROUPER, NAMER);
+    public ExternalResourceFileStore(File baseDir, TemporaryFileProvider tmpProvider, FileAccessJournal fileAccessJournal) {
+        super(baseDir, tmpProvider, fileAccessJournal, GROUPER, NAMER);
     }
 }

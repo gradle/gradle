@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.cache.CleanableStore;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,29 +29,31 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Deletes any cache entries older than a given age.
+ * Deletes any cache entries not accessed within the specified number of days.
  */
-public class FixedAgeOldestCacheCleanup extends AbstractCacheCleanup {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FixedAgeOldestCacheCleanup.class);
+public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LeastRecentlyUsedCacheCleanup.class);
 
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES = 30;
 
+    private final FileAccessJournal journal;
     private final long minimumTimestamp;
 
-    public FixedAgeOldestCacheCleanup(FilesFinder eligibleFilesFinder, long ageInDays) {
+    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessJournal journal, long numberOfDays) {
         super(eligibleFilesFinder);
-        this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(ageInDays));
+        this.journal = journal;
+        this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(numberOfDays));
     }
 
     @Override
     protected List<File> findFilesToDelete(final CleanableStore cleanableStore, Collection<File> filesEligibleForCleanup) {
-        LOGGER.info("{} remove files older than {}.", cleanableStore.getDisplayName(), new Date(minimumTimestamp));
+        LOGGER.info("{} remove files not accessed on or after {}.", cleanableStore.getDisplayName(), new Date(minimumTimestamp));
 
         List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.size());
 
         for (File file : filesEligibleForCleanup) {
-            if (file.lastModified() < minimumTimestamp) {
+            if (journal.getLastAccessTime(file) < minimumTimestamp) {
                 filesForDeletion.add(file);
             }
         }

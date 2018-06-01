@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +28,7 @@ import spock.lang.Unroll
 import static java.util.concurrent.TimeUnit.DAYS
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
-    static final long MAX_CACHE_AGE_IN_DAYS = FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     @Rule public final HttpServer server = new HttpServer()
     MavenHttpRepository repo

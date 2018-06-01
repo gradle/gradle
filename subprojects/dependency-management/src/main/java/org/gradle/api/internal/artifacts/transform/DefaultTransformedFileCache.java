@@ -30,7 +30,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.caching.internal.DefaultBuildCacheHasher;
@@ -40,10 +40,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreAddActionException;
-import org.gradle.internal.resource.local.TouchingFileAccessTracker;
+import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.ListSerializer;
@@ -56,7 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_META_DATA;
 import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
-import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
+import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
@@ -75,9 +77,10 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
-        fileAccessTracker = new TouchingFileAccessTracker(filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessJournal journal = new ModificationTimeFileAccessJournal();
+        fileAccessTracker = new SingleDepthFileAccessTracker(journal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         CleanupAction cleanupAction = CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), journal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
         cache = cacheRepository
             .cache(transformsStoreDirectory)

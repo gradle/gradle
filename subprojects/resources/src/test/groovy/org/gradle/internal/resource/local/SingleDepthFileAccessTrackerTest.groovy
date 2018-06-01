@@ -22,55 +22,44 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS
-import static java.util.concurrent.TimeUnit.SECONDS
-
-class TouchingFileAccessTrackerTest extends Specification {
+class SingleDepthFileAccessTrackerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    TestFile baseDir = tmpDir.createDir("base")
+    TestFile baseDir = tmpDir.file("base")
+    FileAccessJournal journal = Mock(FileAccessJournal)
 
     def "ignores files in other directories"() {
         given:
-        def fileInOtherDirectory = tmpDir.createFile("some-file.txt").makeOlder()
-        def modificationTimeBeforeCall = fileInOtherDirectory.lastModified()
+        def fileInOtherDirectory = tmpDir.file("some-file.txt")
 
         when:
-        new TouchingFileAccessTracker(baseDir, 1).markAccessed([fileInOtherDirectory])
+        new SingleDepthFileAccessTracker(journal, baseDir, 1).markAccessed([fileInOtherDirectory])
 
         then:
-        fileInOtherDirectory.lastModified() == modificationTimeBeforeCall
+        0 * journal.setLastAccessTime(_, _)
     }
 
     @Unroll
     def "touches all subdirectories for  depth #depth"() {
         given:
-        def file1 = baseDir.createDir("a/aa/aaa").createFile("1")
-        def file2 = baseDir.createDir("b/bb/bbb").createFile("2")
-        def allFiles = [
-            file1, file1.parentFile, file1.parentFile.parentFile, file1.parentFile.parentFile.parentFile,
-            file2, file2.parentFile, file2.parentFile.parentFile, file2.parentFile.parentFile.parentFile
-        ]
-        allFiles*.lastModified = 0
-        def timeBeforeCallFlooredToSeconds = SECONDS.toMillis(MILLISECONDS.toSeconds(System.currentTimeMillis()))
+        def file1 = baseDir.file("a/aa/aaa/1")
+        def file2 = baseDir.file("b/bb/bbb/2")
         def expectedTouchedFiles = touchedPaths.collect { baseDir.file(it) }
 
         when:
-        new TouchingFileAccessTracker(baseDir, depth).markAccessed([file1, file2])
+        new SingleDepthFileAccessTracker(journal, baseDir, depth).markAccessed([file1, file2])
 
         then:
         expectedTouchedFiles.empty || expectedTouchedFiles.each {
-            it.lastModified() >= timeBeforeCallFlooredToSeconds
+            1 * journal.setLastAccessTime(it, _)
         }
-        allFiles.findAll { !expectedTouchedFiles.contains(it) }.each {
-            it.lastModified() == 0
-        }
+        0 * _
 
         where:
         depth | touchedPaths
         1     | ["a", "b"]
         2     | ["a/aa", "b/bb"]
         3     | ["a/aa/aaa", "b/bb/bbb"]
-        4     | ["a/aa/aaa/5", "b/bb/bbb/2"]
+        4     | ["a/aa/aaa/1", "b/bb/bbb/2"]
         5     | []
     }
 }

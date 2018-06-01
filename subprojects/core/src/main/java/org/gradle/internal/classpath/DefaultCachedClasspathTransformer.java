@@ -21,14 +21,16 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.TouchingFileAccessTracker;
+import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.util.CollectionUtils;
 
 import java.io.Closeable;
@@ -42,7 +44,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static java.util.Collections.singleton;
-import static org.gradle.cache.internal.FixedAgeOldestCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
+import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
@@ -52,14 +54,15 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final Transformer<File, File> jarFileTransformer;
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, List<CachedJarFileStore> fileStores) {
+        FileAccessJournal fileAccessJournal = new ModificationTimeFileAccessJournal();
         this.cache = cacheRepository
             .cache("jars-3")
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withCleanup(new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .withCleanup(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .open();
-        FileAccessTracker fileAccessTracker = new TouchingFileAccessTracker(cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
     }
 

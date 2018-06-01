@@ -24,6 +24,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
+
 /**
  * A file store that stores items grouped by some provided function over the key and an SHA1 hash of the value. This means that files are only ever added and never modified once added, so a resource from this store can be used without locking. Locking is required to add entries.
  */
@@ -35,16 +37,17 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
     private final Namer<K> namer;
     private final FileAccessTracker checksumDirAccessTracker;
 
-    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, Grouper<K> grouper, Namer<K> namer) {
+    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessJournal fileAccessJournal, Grouper<K> grouper, Namer<K> namer) {
         this.delegate = new UniquePathKeyFileStore(baseDir);
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;
         this.namer = namer;
-        this.checksumDirAccessTracker = new TouchingFileAccessTracker(baseDir, grouper.getDepth() + 1);
+        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, baseDir, grouper.getDepth() + 1);
     }
 
     public LocallyAvailableResource move(K key, File source) {
-        return delegate.move(toPath(key, getChecksum(source)), source);
+        LocallyAvailableResource resource = delegate.move(toPath(key, getChecksum(source)), source);
+        return markAccessed(resource);
     }
 
     public Set<? extends LocallyAvailableResource> search(K key) {
@@ -77,7 +80,12 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
         final File tempFile = getTempFile();
         addAction.execute(tempFile);
         final String groupedAndNamedKey = toPath(key, getChecksum(tempFile));
-        return delegate.move(groupedAndNamedKey, tempFile);
+        return markAccessed(delegate.move(groupedAndNamedKey, tempFile));
+    }
+
+    private LocallyAvailableResource markAccessed(LocallyAvailableResource resource) {
+        markAccessed(singleton(resource.getFile()));
+        return resource;
     }
 
     public interface Grouper<K> {

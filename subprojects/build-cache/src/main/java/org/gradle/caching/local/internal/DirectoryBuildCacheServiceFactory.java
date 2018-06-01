@@ -22,16 +22,18 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.FixedAgeOldestCacheCleanup;
+import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
 import org.gradle.internal.resource.local.PathKeyFileStore;
-import org.gradle.internal.resource.local.TouchingFileAccessTracker;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -79,15 +81,16 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
+        FileAccessJournal fileAccessJournal = new ModificationTimeFileAccessJournal();
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new FixedAgeOldestCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), removeUnusedEntriesAfterDays)))
+            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .open();
         BuildCacheTempFileStore tempFileStore = new DefaultBuildCacheTempFileStore(target);
-        FileAccessTracker fileAccessTracker = new TouchingFileAccessTracker(target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }

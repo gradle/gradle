@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
@@ -36,8 +37,8 @@ class ModuleMetadataStoreTest extends Specification {
         module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
     }
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
-    ModuleMetadataSerializer serializer = Mock()
-    @Subject ModuleMetadataStore store = new ModuleMetadataStore(temporaryFolder.getTestDirectory(), serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
+    ModuleMetadataSerializer serializer = Mock(ModuleMetadataSerializer)
+    @Subject ModuleMetadataStore store = new ModuleMetadataStore(temporaryFolder.getTestDirectory(), serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe(), new ModificationTimeFileAccessJournal())
     MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {

@@ -17,13 +17,9 @@
 package org.gradle.internal.resource.local;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,13 +30,15 @@ import java.util.Set;
  * directory.
  */
 @SuppressWarnings("Since15")
-public class TouchingFileAccessTracker implements FileAccessTracker {
+public class SingleDepthFileAccessTracker implements FileAccessTracker {
 
     private final Path baseDir;
     private final int endNameIndex;
     private final int startNameIndex;
+    private final FileAccessJournal journal;
 
-    public TouchingFileAccessTracker(File baseDir, int depth) {
+    public SingleDepthFileAccessTracker(FileAccessJournal journal, File baseDir, int depth) {
+        this.journal = journal;
         Preconditions.checkArgument(depth > 0, "depth must be > 0: %s", depth);
         this.baseDir = baseDir.toPath().toAbsolutePath();
         this.startNameIndex = this.baseDir.getNameCount();
@@ -48,9 +46,8 @@ public class TouchingFileAccessTracker implements FileAccessTracker {
     }
 
     public void markAccessed(Collection<File> files) {
-        FileTime time = FileTime.fromMillis(System.currentTimeMillis());
         for (Path path : collectSubPaths(files)) {
-            touch(path, time);
+            journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
         }
     }
 
@@ -63,13 +60,5 @@ public class TouchingFileAccessTracker implements FileAccessTracker {
             }
         }
         return paths;
-    }
-
-    private void touch(Path path, FileTime time) {
-        try {
-            Files.setLastModifiedTime(path, time);
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not set last modification time for file: " + path, e);
-        }
     }
 }

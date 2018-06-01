@@ -19,6 +19,7 @@ package org.gradle.api.internal.filestore.ivy;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.GroupedAndNamedUniqueFileStore;
 
 import java.io.File;
@@ -46,7 +47,7 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         }
     };
 
-    public ArtifactIdentifierFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider) {
-        super(baseDir, temporaryFileProvider, GROUPER, NAMER);
+    public ArtifactIdentifierFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessJournal fileAccessJournal) {
+        super(baseDir, temporaryFileProvider, fileAccessJournal, GROUPER, NAMER);
     }
 }

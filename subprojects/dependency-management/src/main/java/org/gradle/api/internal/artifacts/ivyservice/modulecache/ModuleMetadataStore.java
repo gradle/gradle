@@ -23,10 +23,11 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
+import org.gradle.internal.resource.local.FileAccessJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
-import org.gradle.internal.resource.local.TouchingFileAccessTracker;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
@@ -46,12 +47,12 @@ public class ModuleMetadataStore {
     private final Interner<String> stringInterner;
     private final FileAccessTracker fileAccessTracker;
 
-    public ModuleMetadataStore(File baseDir, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner) {
+    public ModuleMetadataStore(File baseDir, ModuleMetadataSerializer moduleMetadataSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, FileAccessJournal fileAccessJournal) {
         this.metaDataStore = new DefaultPathKeyFileStore(baseDir);
         this.moduleMetadataSerializer = moduleMetadataSerializer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.stringInterner = stringInterner;
-        this.fileAccessTracker = new TouchingFileAccessTracker(baseDir, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, baseDir, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
