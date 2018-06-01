@@ -29,7 +29,7 @@ class ProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         events.progressLogged("Evaluate settings")
-        events.progressLogged("Configure root project")
+        events.progressLogged("Configure project :")
         events.progressLogged("Execute :help")
     }
 
