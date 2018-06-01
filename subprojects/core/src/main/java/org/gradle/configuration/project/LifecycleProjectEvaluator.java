@@ -124,11 +124,16 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
         @Override
         public BuildOperationDescriptor.Builder description() {
             Path identityPath = project.getIdentityPath();
-            String name = "Configure project " + identityPath.toString();
+            String displayName = "Configure project " + identityPath.toString();
 
-            return BuildOperationDescriptor.displayName(name)
+            String progressDisplayName = project.getPath();
+            if (progressDisplayName.equals(":")) {
+                progressDisplayName = "root project";
+            }
+
+            return BuildOperationDescriptor.displayName(displayName)
                 .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
-                .progressDisplayName(name)
+                .progressDisplayName(progressDisplayName)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath()));
         }
     }

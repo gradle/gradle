@@ -75,23 +75,27 @@ class BuildProgressLoggerIntegrationTest extends AbstractIntegrationSpec impleme
 
     def "operations during project configuration are nested under project operation"() {
         given:
-        file("subproj/build.gradle") << server.callFromBuild(SERVER_RESOURCE)
-        file("settings.gradle") << "include 'subproj'"
+        file("subproj/build.gradle") << "evaluationDependsOn ':z'"
+        file("settings.gradle") << "include 'subproj'; include 'z'"
+        file("z/build.gradle") << "println 'other'"
         buildFile << "task hello {}"
 
-        def testExecution = server.expectAndBlock(SERVER_RESOURCE)
+        // Run once to ensure build scripts are compiled.
+        executer.withTasks('hello').start().waitForFinish()
 
         when:
-        def gradleHandle = executer.withTasks('hello').start()
-        testExecution.waitForAllPendingCalls()
+        def gradleHandle = executer
+            .withConsole(ConsoleOutput.Rich)
+            .withTasks('hello')
+            .start()
 
         then:
         ConcurrentTestUtil.poll {
-            assert gradleHandle.standardOutput.matches(/(?s).*-> \d+% CONFIGURING \[.*$/)
-            assert gradleHandle.standardOutput.contains("> Configure project :subproj > Compiling ")
+            assert gradleHandle.standardOutput.contains("> :subproj > :z")
         }
 
-        testExecution.releaseAll()
-        gradleHandle.waitForFinish()
+        cleanup:
+        gradleHandle?.waitForFinish()
     }
+
 }
