@@ -18,20 +18,25 @@ package org.gradle.caching.http.internal
 
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
+import org.apache.http.message.BasicHeader
 import org.gradle.api.UncheckedIOException
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.caching.http.HttpBuildCacheHttpHeadCredentials
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
+import org.gradle.internal.resource.transport.http.HttpClientHttpHeaderCredentials
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -262,7 +267,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer("".bytes))
     }
 
-    def "does preemptive authentication"() {
+    def "does preemptive authentication authenticating with basic auth"() {
         def configuration = new HttpBuildCache()
         configuration.url = server.uri.resolve("/cache/")
         configuration.credentials.username = 'user'
@@ -291,6 +296,36 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         destFile.bytes == content
         server.authenticationAttempts == ['Basic'] as Set
+    }
+
+    @Issue("gradle/gradle#5571")
+    def "does preemptive authentication authenticating with http header"() {
+        def configuration = new HttpBuildCache(new HttpBuildCacheHttpHeadCredentials("HeaderName: HeaderValue"))
+        configuration.url = server.uri.resolve("/cache/")
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
+
+        server.authenticationScheme = AuthScheme.HEADER
+
+        def destFile = tempDir.file("cached.zip")
+        destFile.text = 'Old'
+        when:
+        server.expectGet("/cache/${key.hashCode}", destFile)
+        def result = null
+        cache.load(key) { input ->
+            result = input.text
+        }
+        then:
+        result == 'Old'
+        server.authenticationAttempts == ['Header'] as Set
+
+        server.expectPut("/cache/${key.hashCode}", destFile)
+
+        when:
+        def content = "Data".bytes
+        cache.store(key, writer(content))
+        then:
+        destFile.bytes == content
+        server.authenticationAttempts == ['Header'] as Set
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {

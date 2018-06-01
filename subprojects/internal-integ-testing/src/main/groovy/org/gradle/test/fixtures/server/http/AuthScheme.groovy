@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.internal.resource.transport.http.HttpHeaderAuthScheme
 import org.mortbay.jetty.Response
 import org.mortbay.jetty.security.Authenticator
 import org.mortbay.jetty.security.BasicAuthenticator
@@ -31,7 +32,8 @@ enum AuthScheme {
     BASIC(new BasicAuthHandler()),
     DIGEST(new DigestAuthHandler()),
     HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler()),
-    NTLM(new NtlmAuthHandler())
+    NTLM(new NtlmAuthHandler()),
+    HEADER(new HttpHeaderAuthHandler())
 
     final AuthSchemeHandler handler
 
@@ -119,6 +121,18 @@ enum AuthScheme {
         @Override
         protected Authenticator getAuthenticator() {
             return new DigestAuthenticator()
+        }
+    }
+
+    private static class HttpHeaderAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return HttpHeaderAuthScheme.AUTH_SCHEME_NAME.toUpperCase();
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new TestHttpHeaderAuthenticator()
         }
     }
 }

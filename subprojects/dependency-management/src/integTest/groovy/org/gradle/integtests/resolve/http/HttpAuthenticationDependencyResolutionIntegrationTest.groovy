@@ -20,10 +20,12 @@ import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.hamcrest.Matchers
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.server.http.AuthScheme.BASIC
 import static org.gradle.test.fixtures.server.http.AuthScheme.DIGEST
+import static org.gradle.test.fixtures.server.http.AuthScheme.HEADER
 import static org.gradle.test.fixtures.server.http.AuthScheme.HIDE_UNAUTHORIZED
 import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
@@ -160,6 +162,48 @@ task listJars {
         'default'          | ''                                                                            | NTLM              | ['None', 'NTLM']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
+    }
+
+    @Unroll
+    @Issue("gradle/gradle#5571")
+    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated with http header HTTP maven repository"() {
+        given:
+        def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+        credentials(HttpHeaderCredentials) { header 'Name: Value' }
+        authentication { header(HttpHeaderAuthentication) }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
+}
+"""
+
+        when:
+        serverAuthScheme = authScheme
+
+        and:
+        moduleA.pom.expectGet()
+        moduleA.artifact.expectGet()
+
+        then:
+        succeeds('listJars')
+        and:
+        server.authenticationAttempts.asList() == authenticationAttempts
+
+        where:
+        authSchemeName     | authScheme        | authenticationAttempts
+        'header'           | HEADER            | ['Header']
     }
 
     @Unroll

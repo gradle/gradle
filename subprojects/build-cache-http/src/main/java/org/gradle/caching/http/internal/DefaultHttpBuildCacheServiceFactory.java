@@ -23,7 +23,9 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.http.HttpBuildCache;
 import org.gradle.caching.http.HttpBuildCacheCredentials;
+import org.gradle.caching.http.HttpBuildCacheHttpHeadCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
+import org.gradle.internal.authentication.DefaultHttpHeaderAuthentication;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
@@ -55,15 +57,21 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         URI noUserInfoUrl = stripUserInfo(url);
 
         HttpBuildCacheCredentials credentials = configuration.getCredentials();
-        if (!credentialsPresent(credentials) && url.getUserInfo() != null) {
+        if (!basicAuthCredentialsPresent(credentials) && url.getUserInfo() != null) {
             credentials = extractCredentialsFromUserInfo(url);
         }
 
         Collection<Authentication> authentications = Collections.emptyList();
-        if (credentialsPresent(credentials)) {
+        if (basicAuthCredentialsPresent(credentials)) {
             DefaultBasicAuthentication basicAuthentication = new DefaultBasicAuthentication("basic");
             basicAuthentication.setCredentials(credentials);
             authentications = Collections.<Authentication>singleton(basicAuthentication);
+        }
+
+        if(httpHeaderCredentialsPresent(credentials)) {
+            DefaultHttpHeaderAuthentication httpHeaderAuthentication = new DefaultHttpHeaderAuthentication("header");
+            httpHeaderAuthentication.setCredentials(credentials);
+            authentications = Collections.<Authentication>singleton(httpHeaderAuthentication);
         }
 
         boolean authenticated = !authentications.isEmpty();
@@ -108,8 +116,12 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         }
     }
 
-    private static boolean credentialsPresent(HttpBuildCacheCredentials credentials) {
+    private static boolean basicAuthCredentialsPresent(HttpBuildCacheCredentials credentials) {
         return credentials.getUsername() != null && credentials.getPassword() != null;
+    }
+
+    private static boolean httpHeaderCredentialsPresent(HttpBuildCacheCredentials credentials) {
+        return credentials instanceof HttpBuildCacheHttpHeadCredentials && ((HttpBuildCacheHttpHeadCredentials) credentials).getHeader().length() > 0;
     }
 
 }

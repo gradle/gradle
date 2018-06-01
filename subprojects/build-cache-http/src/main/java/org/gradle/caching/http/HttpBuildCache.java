@@ -42,7 +42,11 @@ public class HttpBuildCache extends AbstractBuildCache {
     private boolean allowUntrustedServer;
 
     public HttpBuildCache() {
-        this.credentials = new HttpBuildCacheCredentials();
+        this(new HttpBuildCacheCredentials());
+    }
+
+    public HttpBuildCache(HttpBuildCacheCredentials credentials) {
+        this.credentials = credentials;
     }
 
     /**

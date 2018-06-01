@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.api.artifacts.repositories.HttpHeaderCredentials;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -135,6 +136,8 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             return Cast.uncheckedCast(DefaultPasswordCredentials.class);
         } else if (publicType == AwsCredentials.class) {
             return Cast.uncheckedCast(DefaultAwsCredentials.class);
+        } else if (publicType == HttpHeaderCredentials.class) {
+            return Cast.uncheckedCast(DefaultHttpHeaderCredentials.class);
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName()));
         }
@@ -145,6 +148,8 @@ public class AuthenticationSupporter implements AuthenticationSupportedInternal 
             return Cast.uncheckedCast(PasswordCredentials.class);
         } else if (AwsCredentials.class.isAssignableFrom(implType)) {
             return Cast.uncheckedCast(AwsCredentials.class);
+        } else if (HttpHeaderCredentials.class.isAssignableFrom(implType)) {
+            return Cast.uncheckedCast(HttpHeaderCredentials.class);
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials implementation type: '%s' (supported types: %s and %s).", implType.getName(), DefaultPasswordCredentials.class.getName(), DefaultAwsCredentials.class.getName()));
         }
