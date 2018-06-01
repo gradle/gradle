@@ -57,7 +57,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     private static class BuildSessionScopeServices {
 
         WorkerDaemonFactory createWorkerDaemonFactory(WorkerDaemonClientsManager workerDaemonClientsManager, MemoryManager memoryManager, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
-            return new WorkerDaemonFactory(workerDaemonClientsManager, memoryManager, buildOperationExecutor);
+            return new WorkerDaemonFactory(workerDaemonClientsManager, buildOperationExecutor);
         }
 
         IsolatedClassloaderWorkerFactory createIsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor) {
@@ -73,8 +73,9 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     private static class GradleUserHomeServices {
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
-                                                                    ListenerManager listenerManager) {
-            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager), listenerManager, loggingManager);
+                                                                    ListenerManager listenerManager,
+                                                                    MemoryManager memoryManager) {
+            return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager), listenerManager, loggingManager, memoryManager);
         }
     }
 

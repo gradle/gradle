@@ -117,7 +117,6 @@ class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getServices() >> buildScopeServices
         _ * gradleMock.includedBuilds >> []
         _ * gradleMock.getBuildOperation() >> null
-        0 * gradleMock._
 
         buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
@@ -168,11 +167,12 @@ class DefaultGradleLauncherSpec extends Specification {
         result == gradleMock
 
         and:
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build (:nested)"
         assert buildOperationExecutor.operations[1].displayName == "Configure build (:nested)"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph (:nested)"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks (:nested)"
+        assert buildOperationExecutor.operations[2].displayName == "Notify projectsEvaluated listeners (:nested)"
+        assert buildOperationExecutor.operations[3].displayName == "Calculate task graph (:nested)"
+        assert buildOperationExecutor.operations[4].displayName == "Run tasks (:nested)"
     }
 
     void testGetBuildAnalysis() {
@@ -267,7 +267,7 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildBroadcaster.buildStarted(gradleMock)
         1 * buildBroadcaster.projectsEvaluated(gradleMock)
         1 * modelListenerMock.onConfigure(gradleMock)
-        1 * exceptionAnalyserMock.transform({it instanceof MultipleBuildFailures && it.cause == failure}) >> transformedException
+        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.cause == failure }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
@@ -293,7 +293,7 @@ class DefaultGradleLauncherSpec extends Specification {
         1 * buildBroadcaster.buildStarted(gradleMock)
         1 * buildBroadcaster.projectsEvaluated(gradleMock)
         1 * modelListenerMock.onConfigure(gradleMock)
-        1 * exceptionAnalyserMock.transform({it instanceof MultipleBuildFailures && it.causes == [failure, failure2]}) >> transformedException
+        1 * exceptionAnalyserMock.transform({ it instanceof MultipleBuildFailures && it.causes == [failure, failure2] }) >> transformedException
         1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
 
         when:
@@ -317,20 +317,23 @@ class DefaultGradleLauncherSpec extends Specification {
     }
 
     private void expectedBuildOperationsFired() {
-        assert buildOperationExecutor.operations.size() == 4
+        assert buildOperationExecutor.operations.size() == 5
         assert buildOperationExecutor.operations[0].displayName == "Load build"
         assert buildOperationExecutor.operations[1].displayName == "Configure build"
-        assert buildOperationExecutor.operations[2].displayName == "Calculate task graph"
-        assert buildOperationExecutor.operations[3].displayName == "Run tasks"
+        assert buildOperationExecutor.operations[2].displayName == "Notify projectsEvaluated listeners"
+        assert buildOperationExecutor.operations[3].displayName == "Calculate task graph"
+        assert buildOperationExecutor.operations[4].displayName == "Run tasks"
     }
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
         _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.contextualize(_) >> {"${it[0]} (:nested)"}
     }
 
     private void isRootBuild() {
         _ * gradleMock.parent >> null
+        _ * gradleMock.contextualize(_) >> { it[0] }
     }
 
     private void expectInitScriptsExecuted() {

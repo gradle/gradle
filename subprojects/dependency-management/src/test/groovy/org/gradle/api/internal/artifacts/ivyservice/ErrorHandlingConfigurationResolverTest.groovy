@@ -187,7 +187,9 @@ class ErrorHandlingConfigurationResolverTest extends Specification {
         given:
         def failure = new RuntimeException()
 
-        resolutionResult.root >> { throw failure }
+        resolutionResult.root >> {
+            throw failure
+        }
 
         delegate.resolveGraph(context, results) >> { results.graphResolved(resolutionResult, projectConfigResult, visitedArtifactSet) }
         delegate.resolveArtifacts(context, results) >> { results.artifactsResolved(resolvedConfiguration, visitedArtifactSet) }

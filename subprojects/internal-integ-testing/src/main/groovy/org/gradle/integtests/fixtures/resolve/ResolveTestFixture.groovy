@@ -73,7 +73,7 @@ buildscript {
 }
 $additionalContent
 allprojects {
-    tasks.createLater("checkDeps", ${GenerateGraphTask.name}) {
+    tasks.register("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
         it.buildArtifacts = ${buildArtifacts}

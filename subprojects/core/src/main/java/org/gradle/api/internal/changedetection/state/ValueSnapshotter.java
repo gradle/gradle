@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.attributes.AttributeDefinitionSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableEnumValueSnapshot;
 import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory;
@@ -160,6 +162,9 @@ public class ValueSnapshotter implements IsolatableFactory {
                 elements[i] = strategy.snapshot(element);
             }
             return new ArrayValueSnapshot(elements);
+        }
+        if (value instanceof Attribute) {
+            return new AttributeDefinitionSnapshot((Attribute<?>) value, classLoaderHasher);
         }
         if (value instanceof Provider) {
             Provider<?> provider = (Provider) value;

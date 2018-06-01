@@ -5,13 +5,20 @@ repositories {
 }
 
 // Set up the status scheme so that "experimental" is a valid status for "org.sample" artifacts
+
+class StatusRule implements ComponentMetadataRule {
+
+    @Override
+    void execute(ComponentMetadataContext componentMetadataContext) {
+        def details = componentMetadataContext.details
+        if (details.id.group == "org.sample") {
+            details.statusScheme = ["experimental", "integration", "milestone", "release"]
+        }
+    }
+}
 dependencies {
     components {
-        all { ComponentMetadataDetails details ->
-            if (details.id.group == "org.sample") {
-                details.statusScheme = ["experimental", "integration", "milestone", "release"]
-            }
-        }
+        all(StatusRule)
     }
 }
 

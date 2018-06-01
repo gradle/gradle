@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 
 public class ArrayValueSnapshot implements ValueSnapshot, Isolatable<Object[]> {
-    public static final ValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
+    public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(new ValueSnapshot[0]);
     private final ValueSnapshot[] elements;
 
     public ArrayValueSnapshot(ValueSnapshot[] elements) {

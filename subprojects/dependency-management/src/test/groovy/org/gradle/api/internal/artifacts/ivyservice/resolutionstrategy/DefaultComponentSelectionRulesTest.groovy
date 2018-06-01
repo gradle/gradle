@@ -38,7 +38,7 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 class DefaultComponentSelectionRulesTest extends Specification {
     static final GROUP = "group"
     static final MODULE = "module"
-    RuleActionAdapter<ComponentSelection> adapter = Mock(RuleActionAdapter)
+    RuleActionAdapter adapter = Mock(RuleActionAdapter)
     DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
     ComponentSelectionInternal componentSelection
     def ruleAction = Mock(RuleAction)

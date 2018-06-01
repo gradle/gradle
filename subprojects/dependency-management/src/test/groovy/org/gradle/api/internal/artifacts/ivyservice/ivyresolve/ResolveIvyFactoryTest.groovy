@@ -38,8 +38,8 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.reflect.InstantiatingAction
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore

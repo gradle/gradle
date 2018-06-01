@@ -397,7 +397,7 @@ class DefaultTaskContainerTest extends Specification {
         def action = Mock(Action)
 
         when:
-        def provider = container.createLater("task", DefaultTask, action)
+        def provider = container.register("task", DefaultTask, action)
 
         then:
         0 * _
@@ -414,7 +414,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         when:
-        def provider = container.createLater("task", action)
+        def provider = container.register("task", action)
 
         then:
         0 * _
@@ -434,7 +434,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can define task to create later given name and type"() {
         when:
-        def provider = container.createLater("task", DefaultTask)
+        def provider = container.register("task", DefaultTask)
 
         then:
         0 * _
@@ -450,7 +450,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         when:
-        def provider = container.createLater("task")
+        def provider = container.register("task")
 
         then:
         0 * _
@@ -473,17 +473,17 @@ class DefaultTaskContainerTest extends Specification {
         _ * taskFactory.create("task2", DefaultTask, _) >> task("task2")
 
         container.create("task1")
-        container.createLater("task2", {})
+        container.register("task2", {})
 
         when:
-        container.createLater("task1", {})
+        container.register("task1", {})
 
         then:
         def e = thrown(InvalidUserDataException)
         e.message == "Cannot add task 'task1' as a task with that name already exists."
 
         when:
-        container.createLater("task2", {})
+        container.register("task2", {})
 
         then:
         def e2 = thrown(InvalidUserDataException)
@@ -502,7 +502,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        def provider = container.createLater("task", DefaultTask, action)
+        def provider = container.register("task", DefaultTask, action)
 
         when:
         def result = provider.get()
@@ -528,7 +528,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        container.createLater("task", DefaultTask, action)
+        container.register("task", DefaultTask, action)
 
         when:
         def result = container.getByName("task")
@@ -547,7 +547,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        container.createLater("task", DefaultTask, action)
+        container.register("task", DefaultTask, action)
 
         when:
         def result = container.findByName("task")
@@ -566,7 +566,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        container.createLater("task", DefaultTask, action)
+        container.register("task", DefaultTask, action)
 
         when:
         def provider = container.named("task")
@@ -595,7 +595,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
 
         given:
-        container.createLater("task", DefaultTask, action)
+        container.register("task", DefaultTask, action)
 
         when:
         def provider = container.named("task")
@@ -646,12 +646,12 @@ class DefaultTaskContainerTest extends Specification {
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
     }
 
-    void "fails later creation upon realizing through createLater provider when creation rule throw exception"() {
+    void "fails later creation upon realizing through register provider when creation rule throw exception"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
-        def provider = container.createLater("task", DefaultTask, action)
+        def provider = container.register("task", DefaultTask, action)
 
         when:
         provider.get()
@@ -692,7 +692,7 @@ class DefaultTaskContainerTest extends Specification {
         def task = task("task")
         1 * taskFactory.create("task", DefaultTask) >> task
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
-        def creationProvider = container.createLater("task", DefaultTask, action)
+        def creationProvider = container.register("task", DefaultTask, action)
         def provider = container.withType(DefaultTask).named("task")
 
         when:
@@ -748,14 +748,14 @@ class DefaultTaskContainerTest extends Specification {
         0 * action.execute(_)
     }
 
-    void "fails later creation upon realizing through createLater provider when task instantiation is unsuccessful"() {
+    void "fails later creation upon realizing through register provider when task instantiation is unsuccessful"() {
 
         given:
         def action = Mock(Action)
         1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
         0 * action.execute(_)
 
-        def provider = container.createLater("task", DefaultTask, action)
+        def provider = container.register("task", DefaultTask, action)
 
         when:
         provider.get()
@@ -796,7 +796,7 @@ class DefaultTaskContainerTest extends Specification {
         def action = Mock(Action)
         1 * taskFactory.create("task", DefaultTask) >> { throw new RuntimeException("Failing constructor") }
         0 * action.execute(_)
-        def creationProvider = container.createLater("task", DefaultTask, action)
+        def creationProvider = container.register("task", DefaultTask, action)
         def provider = container.withType(DefaultTask).named("task")
 
         when:
@@ -862,7 +862,7 @@ class DefaultTaskContainerTest extends Specification {
 
         when:
         // The following throw an exception immediately because a failing eager configuration rule is registered
-        container.createLater("task", DefaultTask)
+        container.register("task", DefaultTask)
 
         then:
         def ex = thrown(IllegalStateException)
@@ -909,13 +909,13 @@ class DefaultTaskContainerTest extends Specification {
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
     }
 
-    void "fails later creation upon realizing through createLater provider when task configuration via configureEach is unsuccessful"() {
+    void "fails later creation upon realizing through register provider when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
         given:
         container.withType(DefaultTask).configureEach(action)
-        def provider = container.createLater("task", DefaultTask)
+        def provider = container.register("task", DefaultTask)
 
         when:
         provider.get()
@@ -958,7 +958,7 @@ class DefaultTaskContainerTest extends Specification {
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
 
         container.withType(DefaultTask).configureEach(action)
-        def creationProvider = container.createLater("task", DefaultTask)
+        def creationProvider = container.register("task", DefaultTask)
         def provider = container.withType(DefaultTask).named("task")
 
         when:
@@ -1110,7 +1110,7 @@ class DefaultTaskContainerTest extends Specification {
     }
 
     void "get() fails if lazily created task type is not a subtype"() {
-        container.createLater("task", DefaultTask)
+        container.register("task", DefaultTask)
 
         when:
         container.withType(CustomTask).named("task")
@@ -1134,7 +1134,7 @@ class DefaultTaskContainerTest extends Specification {
     }
 
     void "can get() for lazily created task subtype"() {
-        container.createLater("task", CustomTask)
+        container.register("task", CustomTask)
 
         when:
         container.named("task")
@@ -1158,7 +1158,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can get() if task is lazily created before"() {
         given:
-        container.createLater("task", DefaultTask)
+        container.register("task", DefaultTask)
 
         when:
         container.withType(DefaultTask).named("task")
@@ -1192,7 +1192,7 @@ class DefaultTaskContainerTest extends Specification {
 
     void "can get() if lazy created task gets overwrite"() {
         given:
-        container.createLater("task", CustomTask)
+        container.register("task", CustomTask)
 
         when:
         container.withType(DefaultTask).named("task")
@@ -1209,6 +1209,45 @@ class DefaultTaskContainerTest extends Specification {
         then:
         noExceptionThrown()
         1 * taskFactory.create("task", DefaultTask) >> task("task")
+    }
+
+    void "can remove lazy created task without breaking TaskProvider"() {
+        given:
+        def customTask = task("task", CustomTask)
+        taskFactory.create("task", CustomTask) >> customTask
+
+        and:
+        def createProvider = container.createLater("task", CustomTask)
+
+        when:
+        container.remove(customTask)
+
+        then:
+        createProvider.get() == customTask
+        createProvider.present
+
+        when:
+        def getProvider = container.named("task")
+
+        then:
+        getProvider.get() == customTask
+        getProvider.present
+    }
+
+    void "can remove eager created task without breaking TaskProvider"() {
+        given:
+        taskFactory.create("task", CustomTask) >> task("task", CustomTask)
+
+        and:
+        def customTask = container.create("task", CustomTask)
+        def getProvider = container.named("task")
+
+        when:
+        container.remove(customTask)
+
+        then:
+        getProvider.get() == customTask
+        getProvider.present
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {

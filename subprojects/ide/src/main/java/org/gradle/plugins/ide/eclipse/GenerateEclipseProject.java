@@ -16,10 +16,13 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Project;
+
+import javax.inject.Inject;
 
 /**
  * Generates an Eclipse <code>.project</code> file. If you want to fine tune the eclipse configuration
@@ -35,6 +38,11 @@ public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
         projectModel = getInstantiator().newInstance(EclipseProject.class, new XmlFileContentMerger(getXmlTransformer()));
     }
 
+    @Inject
+    public GenerateEclipseProject(EclipseProject projectModel) {
+        this.projectModel = projectModel;
+    }
+
     @Override
     protected Project create() {
         return new Project(getXmlTransformer());
@@ -43,6 +51,14 @@ public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
     @Override
     protected void configure(Project project) {
         projectModel.mergeXmlProject(project);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (projectModel == null) {
+            return super.getXmlTransformer();
+        }
+        return projectModel.getFile().getXmlTransformer();
     }
 
     /**

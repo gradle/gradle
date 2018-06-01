@@ -37,6 +37,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -113,7 +114,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    ModuleResolveState getModule() {
+    public ModuleResolveState getModule() {
         return module;
     }
 
@@ -247,6 +248,16 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
         return incoming;
+    }
+
+    @Override
+    public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
+        Collection<ComponentState> moduleVersions = module.getAllVersions();
+        List<ModuleVersionIdentifier> out = Lists.newArrayListWithCapacity(moduleVersions.size());
+        for (ComponentState moduleVersion : moduleVersions) {
+            out.add(moduleVersion.id);
+        }
+        return out;
     }
 
     public boolean isSelected() {

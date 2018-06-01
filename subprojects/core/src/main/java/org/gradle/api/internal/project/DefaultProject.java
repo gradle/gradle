@@ -750,7 +750,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     private Project evaluationDependsOn(DefaultProject projectToEvaluate) {
-        if (projectToEvaluate.getState().getExecuting()) {
+        if (projectToEvaluate.getState().isConfiguring()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                 projectToEvaluate));
         }

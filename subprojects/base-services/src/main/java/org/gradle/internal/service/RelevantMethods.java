@@ -98,14 +98,24 @@ public class RelevantMethods {
         Iterator<Method> iterator = builder.remainingMethods.iterator();
         while (iterator.hasNext()) {
             Method method = iterator.next();
-            if ((method.getName().startsWith("create") || method.getName().startsWith("decorate"))
-                && method.getParameterTypes().length == 1 && method.getParameterTypes()[0].equals(method.getReturnType())) {
+            if (method.getName().startsWith("create") || method.getName().startsWith("decorate")) {
                 if (method.getReturnType().equals(Void.TYPE)) {
                     throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
                 }
-                builder.add(iterator, builder.decorators, method);
+                if (takesReturnTypeAsParameter(method)) {
+                    builder.add(iterator, builder.decorators, method);
+                }
             }
         }
+    }
+
+    private static boolean takesReturnTypeAsParameter(Method method) {
+        for (Class<?> param : method.getParameterTypes()) {
+            if (param.equals(method.getReturnType())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

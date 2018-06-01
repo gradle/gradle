@@ -48,6 +48,6 @@ public class CompareGradleBuildsPlugin implements Plugin<Project> {
             }
         });
 
-        project.getTasks().createLater("compareGradleBuilds", CompareGradleBuilds.class);
+        project.getTasks().register("compareGradleBuilds", CompareGradleBuilds.class);
     }
 }

@@ -91,6 +91,10 @@ class ModuleResolveState implements CandidateModule {
         return versions;
     }
 
+    public Collection<ComponentState> getAllVersions() {
+        return this.versions.values();
+    }
+
     private static boolean areAllCandidatesForSelection(Collection<ComponentState> values) {
         boolean allCandidates = true;
         for (ComponentState value : values) {
@@ -184,16 +188,16 @@ class ModuleResolveState implements CandidateModule {
             selector.overrideSelection(selected);
         }
         if (!unattachedDependencies.isEmpty()) {
-            restartUnattachedDependencies(selected);
+            restartUnattachedDependencies();
         }
     }
 
-    private void restartUnattachedDependencies(ComponentState selected) {
+    private void restartUnattachedDependencies() {
         if (unattachedDependencies.size() == 1) {
-            unattachedDependencies.get(0).restart(selected);
+            unattachedDependencies.get(0).restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(unattachedDependencies)) {
-                dependency.restart(selected);
+                dependency.restart();
             }
         }
         unattachedDependencies.clear();

@@ -16,23 +16,15 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.Set;
-
-abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInternal {
-    private final Set<File> discoveredInputs;
+abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputs {
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
 
-    protected StatefulIncrementalTaskInputs() {
-        this.discoveredInputs = Sets.newHashSet();
-    }
-
+    @Override
     public void outOfDate(final Action<? super InputFileDetails> outOfDateAction) {
         if (outOfDateProcessed) {
             throw new IllegalStateException("Cannot process outOfDate files multiple times");
@@ -43,6 +35,7 @@ abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInt
 
     protected abstract void doOutOfDate(Action<? super InputFileDetails> outOfDateAction);
 
+    @Override
     public void removed(Action<? super InputFileDetails> removedAction) {
         if (!outOfDateProcessed) {
             throw new IllegalStateException("Must first process outOfDate files before processing removed files");
@@ -55,14 +48,4 @@ abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInt
     }
 
     protected abstract void doRemoved(Action<? super InputFileDetails> removedAction);
-
-    @Override
-    public void newInputs(Collection<File> newDiscoveredInputs) {
-        discoveredInputs.addAll(newDiscoveredInputs);
-    }
-
-    @Override
-    public Set<File> getDiscoveredInputs() {
-        return discoveredInputs;
-    }
 }

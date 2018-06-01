@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -46,7 +45,6 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private File preCompiledHeaderObjectFile;
     private List<File> sourceFilesForPch = new ArrayList<File>();
     private String preCompiledHeader;
-    private DiscoveredInputRecorder discoveredInputRecorder;
 
     @Override
     public List<File> getIncludeRoots() {

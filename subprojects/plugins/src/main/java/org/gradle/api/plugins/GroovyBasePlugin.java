@@ -102,7 +102,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(groovySourceSet.getGroovy());
                 sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
-                final Provider<GroovyCompile> compileTask = project.getTasks().createLater(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
+                final Provider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
                     @Override
                     public void execute(GroovyCompile compile) {
                         SourceSetUtil.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);

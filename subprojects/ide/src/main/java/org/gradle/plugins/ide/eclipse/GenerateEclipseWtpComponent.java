@@ -16,10 +16,13 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
+
+import javax.inject.Inject;
 
 /**
  * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
@@ -36,6 +39,11 @@ public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> 
         component = getInstantiator().newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));
     }
 
+    @Inject
+    public GenerateEclipseWtpComponent(EclipseWtpComponent component) {
+        this.component = component;
+    }
+
     @Override
     protected WtpComponent create() {
         return new WtpComponent(getXmlTransformer());
@@ -44,6 +52,14 @@ public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> 
     @Override
     protected void configure(WtpComponent xmlComponent) {
         component.mergeXmlComponent(xmlComponent);
+    }
+
+    @Override
+    public XmlTransformer getXmlTransformer() {
+        if (component == null) {
+            return super.getXmlTransformer();
+        }
+        return component.getFile().getXmlTransformer();
     }
 
     /**

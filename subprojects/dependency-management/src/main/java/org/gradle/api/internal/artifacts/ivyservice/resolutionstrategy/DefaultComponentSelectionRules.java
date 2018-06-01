@@ -44,24 +44,26 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
+    public static final List<Class<?>> VALID_INPUT_TYPES = Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class);
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private Set<SpecRuleAction<? super ComponentSelection>> rules;
 
-    private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
+    private final RuleActionAdapter ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
 
     public DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         this(moduleIdentifierFactory, createAdapter());
     }
 
-    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter<ComponentSelection> ruleActionAdapter) {
+    protected DefaultComponentSelectionRules(ImmutableModuleIdentifierFactory moduleIdentifierFactory, RuleActionAdapter ruleActionAdapter) {
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
             .toType(ModuleIdentifier.class)
@@ -76,9 +78,9 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         this.mutationValidator = mutationValidator;
     }
 
-    private static RuleActionAdapter<ComponentSelection> createAdapter() {
-        RuleActionValidator<ComponentSelection> ruleActionValidator = new DefaultRuleActionValidator<ComponentSelection>(Lists.newArrayList(ComponentMetadata.class, IvyModuleDescriptor.class));
-        return new DefaultRuleActionAdapter<ComponentSelection>(ruleActionValidator, "ComponentSelectionRules");
+    private static RuleActionAdapter createAdapter() {
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(VALID_INPUT_TYPES);
+        return new DefaultRuleActionAdapter(ruleActionValidator, "ComponentSelectionRules");
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
