@@ -78,10 +78,21 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         BaseForkOptions merged = new BaseForkOptions();
         merged.setMemoryInitialSize(mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize()));
         merged.setMemoryMaximumSize(mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize()));
+        limitHeapSize(merged);
         Set<String> mergedJvmArgs = normalized(left.getJvmArgs());
         mergedJvmArgs.addAll(normalized(right.getJvmArgs()));
         merged.setJvmArgs(Lists.newArrayList(mergedJvmArgs));
         return merged;
+    }
+
+    protected void limitHeapSize(BaseForkOptions forkOptions) {
+        if (forkOptions.getMemoryMaximumSize() == null) {
+            if (forkOptions.getMemoryInitialSize() == null) {
+                forkOptions.setMemoryMaximumSize("1g");
+            } else {
+                forkOptions.setMemoryMaximumSize(forkOptions.getMemoryInitialSize());
+            }
+        }
     }
 
     private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {
