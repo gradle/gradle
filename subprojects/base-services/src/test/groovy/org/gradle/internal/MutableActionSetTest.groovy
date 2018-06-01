@@ -84,4 +84,19 @@ class MutableActionSetTest extends Specification {
         0 * _._
     }
 
+    def canAddImmutableActionSet() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def actionSet = ImmutableActionSet.of(action1, action2)
+        broadcast.add(actionSet)
+
+        when:
+        broadcast.execute('value')
+
+        then:
+        1 * action1.execute('value')
+        1 * action2.execute('value')
+        0 * _._
+    }
+
 }

@@ -17,6 +17,9 @@ package org.gradle.internal;
 
 import org.gradle.api.Action;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 /**
  * A mutable composite {@link Action}. Actions are executed in the order added, stopping on the first failure.
  *
@@ -25,14 +28,20 @@ import org.gradle.api.Action;
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
  */
 public class MutableActionSet<T> implements Action<T> {
-    private ImmutableActionSet<T> actions = ImmutableActionSet.empty();
+    private Set<Action<? super T>> actions = new LinkedHashSet<Action<? super T>>();
 
     public void add(Action<? super T> action) {
-        this.actions = actions.add(action);
+        if (action == Actions.DO_NOTHING || action == this) {
+            return;
+        }
+
+        actions.add(action);
     }
 
     public void execute(T t) {
-        actions.execute(t);
+        for (Action<? super T> action : actions) {
+            action.execute(t);
+        }
     }
 
     public boolean isEmpty() {
