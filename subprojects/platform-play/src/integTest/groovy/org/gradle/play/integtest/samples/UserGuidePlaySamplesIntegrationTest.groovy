@@ -28,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
@@ -127,7 +128,6 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
             "router/RoutesPrefix.scala")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "injected routes sample is buildable for Play 2.6" () {
         when:
         sample play26Sample

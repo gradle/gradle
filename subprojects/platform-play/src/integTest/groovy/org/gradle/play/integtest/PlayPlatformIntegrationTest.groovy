@@ -25,6 +25,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can build play app binary for default platform"() {
         given:
         new BasicPlayApp().writeSources(testDirectory)

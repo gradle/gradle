@@ -83,7 +83,7 @@ ${PLAY_REPOSITORIES}
         // I suspect that the Play routes compiler has some incremental check based on timestamp
         sleep(1000)
         templateFile << """
-GET     /newroute                          controllers.Application.index()
+GET     /newroute                          @controllers.Application.index()
 """
 
         and:
@@ -230,7 +230,7 @@ Binaries
 # ~~~~
 
 # Home page
-GET     /                          controllers${packageId}.Application.index()
+GET     /                          @controllers${packageId}.Application.index()
 """
         withControllerSource(file("app/controllers/${packageId}/Application.scala"), packageId)
         return routesFile
