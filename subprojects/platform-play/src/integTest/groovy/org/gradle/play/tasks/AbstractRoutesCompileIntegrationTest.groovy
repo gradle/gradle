@@ -82,7 +82,9 @@ ${PLAY_REPOSITORIES}
         // Wait to ensure timestamp on input file is different from previous compilation
         // I suspect that the Play routes compiler has some incremental check based on timestamp
         sleep(1000)
-        templateFile << newRoute("newroute","")
+        templateFile << """
+GET     /newroute                          controllers.Application.index()
+"""
 
         and:
         succeeds "compilePlayBinaryPlayRoutes"
@@ -100,12 +102,6 @@ ${PLAY_REPOSITORIES}
 
         then:
         skipped ":compilePlayBinaryPlayRoutes"
-    }
-
-    protected String newRoute(String route, String pkg) {
-        return """
-GET     /${route}                @controllers${pkg}.Application.index()
-"""
     }
 
     private TestFile getScalaRoutesFile() {
@@ -155,9 +151,9 @@ GET     /${route}                @controllers${pkg}.Application.index()
 
         then:
         executedAndNotSkipped(
-            ":compilePlayBinaryPlayRoutes",
-            ":compilePlayBinaryPlayExtraRoutes",
-            ":compilePlayBinaryPlayOtherRoutes"
+                ":compilePlayBinaryPlayRoutes",
+                ":compilePlayBinaryPlayExtraRoutes",
+                ":compilePlayBinaryPlayOtherRoutes"
         )
 
         and:
@@ -234,7 +230,7 @@ Binaries
 # ~~~~
 
 # Home page
-${newRoute('',packageId)} 
+GET     /                          controllers${packageId}.Application.index()
 """
         withControllerSource(file("app/controllers/${packageId}/Application.scala"), packageId)
         return routesFile
@@ -265,10 +261,8 @@ class Application @Inject() extends InjectedController {
         withRoutesSource(routesFile, packageId)
     }
 
-    def createRouteFileList(String packageName = '', String namespace = '') {
-        [getJavaRoutesFileName(packageName, namespace), getReverseRoutesFileName(packageName, namespace), getScalaRoutesFileName(packageName, namespace)] + otherRoutesFileNames.collect {
-            it(packageName, namespace)
-        }
+    def createRouteFileList(String packageName = '', String namespace='') {
+        [getJavaRoutesFileName(packageName, namespace), getReverseRoutesFileName(packageName, namespace), getScalaRoutesFileName(packageName, namespace)] + otherRoutesFileNames.collect { it(packageName, namespace) }
     }
 
     def withExtraSourceSets() {

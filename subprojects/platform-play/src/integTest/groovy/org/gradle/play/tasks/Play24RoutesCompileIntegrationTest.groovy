@@ -20,11 +20,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Issue
 
 @TargetCoverage({ PlayCoverage.PLAY24_OR_LATER })
 @Requires(TestPrecondition.JDK8)
-@Issue("Play 2.2/2.3 don't support Java 9+")
 class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
 
     @Override
