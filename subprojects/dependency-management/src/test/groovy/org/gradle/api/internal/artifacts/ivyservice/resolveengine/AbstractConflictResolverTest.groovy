@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.resolve.RejectedBySelectorVersion
 import org.gradle.internal.resolve.RejectedVersion
 import spock.lang.Specification
 
@@ -117,7 +118,7 @@ abstract class AbstractConflictResolverTest extends Specification {
         }
 
         @Override
-        void unmatched(Collection<String> unmatchedVersions) {
+        void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
 
         }
 

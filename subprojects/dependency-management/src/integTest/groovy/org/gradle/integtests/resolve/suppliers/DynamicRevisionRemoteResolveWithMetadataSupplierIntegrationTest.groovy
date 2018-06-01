@@ -77,7 +77,8 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"],
+            "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
         !output.contains('Providing metadata for group:projectA:1.1')
@@ -115,12 +116,12 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         and: "re-execute the same build"
         resetExpectations()
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
     }
 
@@ -153,7 +154,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when: "publish a new integration version"
         resetExpectations()
@@ -180,7 +181,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
             }
         }
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
     }
 
     def "publishing new release version incurs get status file of new release version only"() {
@@ -212,7 +213,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when: "publish a new integration version"
         resetExpectations()
@@ -239,7 +240,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
                 }
             }
         }
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.3"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": "group:projectB:2.3"
     }
 
     def "can use --offline to use cached result after remote failure"() {
@@ -271,7 +272,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when:
         server.expectHeadBroken('/repo/group/projectB/2.2/status.txt')
@@ -287,7 +288,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         executer.withArgument('--offline')
 
         then: "will used cached status resources"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     def "can recover from --offline mode"() {
@@ -329,7 +330,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then: "recovers from previous --offline mode"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     def "will not make network requests when run with --offline"() {
@@ -383,7 +384,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when: "Fails without making network request when offline"
         resetExpectations()
@@ -444,7 +445,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then: "recovers from previous failure to get status file"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     def "can inject configuration into metadata provider"() {
@@ -625,7 +626,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+": "group:projectA:1.2",
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"],
             "group:projectB:latest.release": "group:projectB:3.3"
     }
 
@@ -691,7 +692,7 @@ group:projectB:2.2;integration
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
         outputDoesNotContain('Providing metadata for group:projectA:1.1')
@@ -702,7 +703,7 @@ group:projectB:2.2;integration
 
         when: "resolving the same dependencies"
         server.expectHead("/repo/status.txt", statusFile)
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         then: "should get the result from cache"
         outputDoesNotContain('Parsing status file call count')
@@ -736,7 +737,7 @@ group:projectB:2.2;release
 
         then: "shouldn't use the cached resource"
         executer.withArguments('--refresh-dependencies')
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:2.2"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": "group:projectB:2.2"
         outputContains 'Providing metadata for group:projectB:2.2'
         outputDoesNotContain('Providing metadata for group:projectB:1.1')
         outputDoesNotContain('Providing metadata for group:projectA:1.1')
@@ -773,7 +774,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when:
         executer.withArgument('--refresh-dependencies')
@@ -797,7 +798,7 @@ group:projectB:2.2;release
             }
         }
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     def "component metadata rules are executed after metadata supplier is called"() {
@@ -842,7 +843,7 @@ group:projectB:2.2;release
                 }
             }
         }
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         then:
         outputContains 'Providing metadata for group:projectB:1.1'
@@ -879,7 +880,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
     }
@@ -920,7 +921,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+":["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "version 2.2: Attribute 'custom string' didn't match. Requested 'v2', was: 'v1'"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
 
@@ -973,7 +974,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+": "group:projectA:1.2", "group:projectB:latest.release": "group:projectB:1.1"
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "version 2.2: Attribute 'custom' didn't match. Requested 'v2', was: 'v1'"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
 
@@ -1317,7 +1318,11 @@ group:projectB:2.2;release
         resolve.expectGraph {
             root(":", ":test:") {
                 edges.each { from, to ->
-                    edge(from, to)
+                    if (to instanceof List) {
+                        edge(from, to[0]).byReason(to[1])
+                    } else {
+                        edge(from, to)
+                    }
                 }
             }
         }

@@ -114,8 +114,8 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
-        0 * selectedComponentResult.notMatched(a.id) // versions are checked latest first
+        1 * selectedComponentResult.notMatched(c.id, _)
+        0 * selectedComponentResult.notMatched(a.id, _) // versions are checked latest first
         1 * selectedComponentResult.matches(b.id)
         0 * _
 
@@ -134,9 +134,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.rejectedBySelector(b.id, _)
-        0 * selectedComponentResult.notMatched(d.id) // versions are checked latest first
+        0 * selectedComponentResult.notMatched(d.id, _) // versions are checked latest first
         1 * selectedComponentResult.matches(a.id)
         0 * _
 
@@ -154,7 +154,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.matches(b.id)
         0 * _
 
@@ -172,7 +172,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.rejectedBySelector(b.id, _)
         1 * selectedComponentResult.matches(a.id)
         0 * _
@@ -196,7 +196,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 selection.reject("rejected")
             }
         })
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.rejectedByRule({it.id == d.id}) // 1.2 won't be rejected because of latest first sorting
         1 * selectedComponentResult.matches(b.id)
         0 * _
@@ -218,7 +218,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 selection.reject("rejected")
             }
         })
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.rejectedByRule({it.id == b.id})
         1 * selectedComponentResult.noMatchFound()
         0 * _
@@ -241,7 +241,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         then:
         1 * componentSelectionRules.getRules() >> []
         if (notation.indexOf('+') > 0) {
-            1 * selectedComponentResult.notMatched(d.id)
+            1 * selectedComponentResult.notMatched(d.id, _)
         } else {
             1 * selectedComponentResult.doesNotMatchConsumerAttributes({
                 it.id == d.id &&
@@ -282,9 +282,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.notMatched(b.id)
-        1 * selectedComponentResult.notMatched(a.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.notMatched(b.id, _)
+        1 * selectedComponentResult.notMatched(a.id, _)
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -302,9 +302,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
         then:
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
-        1 * selectedComponentResult.notMatched(b.id)
-        1 * selectedComponentResult.notMatched(a.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
+        1 * selectedComponentResult.notMatched(b.id, _)
+        1 * selectedComponentResult.notMatched(a.id, _)
         1 * selectedComponentResult.noMatchFound()
         0 * _
 
@@ -351,7 +351,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
         1 * b.getAttributesFactory() >> TestUtil.attributesFactory()
 
         _ * componentSelectionRules.rules >> []
-        1 * selectedComponentResult.notMatched(c.id)
+        1 * selectedComponentResult.notMatched(c.id, _)
         1 * selectedComponentResult.failed(_ as ModuleVersionResolveException)
         0 * _
 

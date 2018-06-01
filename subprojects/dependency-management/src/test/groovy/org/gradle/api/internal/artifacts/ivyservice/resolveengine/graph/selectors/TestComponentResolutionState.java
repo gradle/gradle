@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.resolve.RejectedBySelectorVersion;
 import org.gradle.internal.resolve.RejectedVersion;
 
 import javax.annotation.Nullable;
@@ -75,7 +76,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public void unmatched(Collection<String> unmatchedVersions) {
+    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
 
     }
 

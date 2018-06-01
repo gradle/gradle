@@ -320,8 +320,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public void unmatched(Collection<String> unmatchedVersions) {
-        // so nothing for them yet
+    public void unmatched(Collection<RejectedBySelectorVersion> unmatchedVersions) {
+        for (RejectedBySelectorVersion unmatchedVersion : unmatchedVersions) {
+            registerRejections(unmatchedVersion, unmatchedVersion.getId().getVersion());
+        }
     }
 
     @Override
@@ -329,10 +331,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         for (RejectedVersion rejectedVersion : rejectedVersions) {
             String version = rejectedVersion.getId().getVersion();
             if (rejectedVersion instanceof RejectedBySelectorVersion) {
-                if (rejectedBySelectors == null) {
-                    rejectedBySelectors = HashMultimap.create();
-                }
-                rejectedBySelectors.put(((RejectedBySelectorVersion) rejectedVersion).getRejectionSelector(), version);
+                registerRejections((RejectedBySelectorVersion) rejectedVersion, version);
             } else if (rejectedVersion instanceof RejectedByRuleVersion) {
                 String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
                 addCause(VersionSelectionReasons.REJECTION.withReason(version + " by rule" + (reason != null ? " because " + reason : "")));
@@ -342,6 +341,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                 addCause(VersionSelectionReasons.REJECTION.withReason("version " + formatter.toString()));
             }
         }
+    }
+
+    private void registerRejections(RejectedBySelectorVersion rejectedVersion, String version) {
+        if (rejectedBySelectors == null) {
+            rejectedBySelectors = HashMultimap.create();
+        }
+        rejectedBySelectors.put(rejectedVersion.getRejectionSelector(), version);
     }
 
     public void removeOutgoingEdges() {
@@ -438,6 +444,15 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                     String description = descriptor.hasCustomDescription() ? " because " + descriptor.getDescription() : "";
                     String intro = rejectedByThisSelector.size() > 1 ? "rejected versions " : "rejected version ";
                     descriptor = descriptor.withReason(intro + Joiner.on(", ").join(sorted) + description);
+                } else {
+                    rejectedByThisSelector = rejectedBySelectors.get(selectorState.getVersionConstraint().getPreferredSelector());
+                    if (!rejectedByThisSelector.isEmpty()) {
+                        List<String> sorted = Lists.newArrayList(rejectedByThisSelector);
+                        Collections.sort(sorted, VERSION_COMPARATOR);
+                        String description = descriptor.hasCustomDescription() ? " because " + descriptor.getDescription() : "";
+                        String intro = rejectedByThisSelector.size() > 1 ? "didn't match versions " : "didn't match version ";
+                        descriptor = descriptor.withReason(intro + Joiner.on(", ").join(sorted) + description);
+                    }
                 }
             }
             return descriptor;

@@ -698,6 +698,14 @@ allprojects {
             this
         }
 
+        /**
+         * Marks that this node was selected by the given reason
+         */
+        NodeBuilder byReasons(List<String> reasons) {
+            this.reasons.addAll(reasons)
+            this
+        }
+
         NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
             checkVariant = true
             variantName = name
