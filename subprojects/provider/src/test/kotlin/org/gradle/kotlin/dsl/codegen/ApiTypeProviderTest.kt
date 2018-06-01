@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.codegen
 
 import org.gradle.api.Plugin
 import org.gradle.api.file.ContentFilterable
+import org.gradle.api.internal.file.copy.CopySpecSource
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginCollection
 import org.gradle.api.tasks.AbstractCopyTask
@@ -115,14 +116,14 @@ class ApiTypeProviderTest : AbstractIntegrationTest() {
 
     @Test
     fun `includes function overrides that change signature, excludes overrides that don't`() {
-        val jars = listOf(withClassJar("some.jar", AbstractCopyTask::class.java))
+        val jars = listOf(withClassJar("some.jar", AbstractCopyTask::class.java, CopySpecSource::class.java))
 
         apiTypeProviderFor(jars).use { api ->
             val type = api.type<AbstractCopyTask>()!!
 
-            assertThat(type.functions.filter { it.name == "filter" }.size, equalTo(3))
+            assertThat(type.functions.filter { it.name == "filter" }.size, equalTo(4))
 
-            assertTrue(type.functions.none { it.name == "getRootSpec" })
+            assertThat(type.functions.filter { it.name == "getRootSpec" }.size, equalTo(0))
         }
     }
 

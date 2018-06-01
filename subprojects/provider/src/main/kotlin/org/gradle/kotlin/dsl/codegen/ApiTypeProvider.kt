@@ -31,6 +31,7 @@ import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
+import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.TypePath
@@ -42,6 +43,7 @@ import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
 import java.io.Closeable
 import java.io.File
+import java.util.ArrayDeque
 
 import javax.annotation.Nullable
 
@@ -166,7 +168,49 @@ class ApiType(
     }
 
     val functions: List<ApiFunction> by lazy(NONE) {
-        delegate.methods.filter { it.signature != null }.map { ApiFunction(this, it, context) }
+        delegate.methods.filter(this::isSignificantDeclaration).map { ApiFunction(this, it, context) }
+    }
+
+    /**
+     * Test if a method is a prime declaration or an overrides that change the signature.
+     *
+     * There's no way to tell from the byte code that a method overrides the signature
+     * of a parent declaration other than crawling up the type hierarchy.
+     */
+    private
+    fun isSignificantDeclaration(methodNode: MethodNode): Boolean {
+
+        if ((ACC_SYNTHETIC and methodNode.access) > 0) return false
+        if (delegate.interfaces.isEmpty() && delegate.superName == null) return true
+
+        fun ArrayDeque<String>.addSuperTypesOf(classNode: ClassNode) {
+            classNode.interfaces.forEach { push(it) }
+            if (classNode.superName != null) push(classNode.superName)
+        }
+
+        val stack = ArrayDeque<String>().apply {
+            addSuperTypesOf(delegate)
+        }
+        val visited = mutableListOf<String>()
+
+        val predicate = { candidate: MethodNode ->
+            candidate.desc == methodNode.desc && candidate.signature == methodNode.signature
+        }
+
+        while (stack.isNotEmpty()) {
+            val next = stack.pop()
+
+            if (next in visited) continue
+            visited.add(next)
+
+            val nextSourceName = sourceNameOfBinaryName(binaryNameOfInternalName(next))
+            val nextApiType = context.type(nextSourceName) ?: continue
+
+            if (nextApiType.delegate.methods.any(predicate)) return false
+
+            stack.addSuperTypesOf(nextApiType.delegate)
+        }
+        return true
     }
 
     private
@@ -214,12 +258,14 @@ class ApiFunction(
     }
 
     val returnType: ApiTypeUsage by lazy(NONE) {
-        context.apiTypeUsageForReturnType(delegate, visitedSignature.returnType)
+        context.apiTypeUsageForReturnType(delegate, visitedSignature?.returnType)
     }
 
     private
-    val visitedSignature: MethodSignatureVisitor by lazy(NONE) {
-        MethodSignatureVisitor().also { visitor -> SignatureReader(delegate.signature).accept(visitor) }
+    val visitedSignature: MethodSignatureVisitor? by lazy(NONE) {
+        delegate.signature?.let { signature ->
+            MethodSignatureVisitor().also { visitor -> SignatureReader(signature).accept(visitor) }
+        }
     }
 }
 
@@ -286,24 +332,32 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 
 
 private
-fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor) =
+fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
     delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
+        val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
+            ?: Type.getArgumentTypes(delegate.desc).map { it.className }
         val names by lazy(NONE) {
             parameterNamesFor(
                 function.owner.sourceName,
                 function.name,
-                visitedSignature.parameters.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName })
+                parameterTypesBinaryNames)
         }
-        visitedSignature.parameters.mapIndexed { idx, p ->
+        parameterTypesBinaryNames.mapIndexed { idx, parameterTypeBinaryName ->
             val isNullable = parametersNullability?.get(idx) == true
-            ApiFunctionParameter(idx, { names?.get(idx) }, apiTypeUsageFor(p.binaryName, isNullable, p.typeArguments))
+            val signatureParameter = visitedSignature?.parameters?.get(idx)
+            val parameterTypeName = signatureParameter?.binaryName ?: parameterTypeBinaryName
+            val typeArguments = signatureParameter?.typeArguments ?: emptyList<TypeSignatureVisitor>()
+            ApiFunctionParameter(idx, { names?.get(idx) }, apiTypeUsageFor(parameterTypeName, isNullable, typeArguments))
         }
     }
 
 
 private
-fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, returnType: TypeSignatureVisitor) =
-    apiTypeUsageFor(returnType.binaryName, delegate.visibleAnnotations.has<Nullable>(), returnType.typeArguments)
+fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, returnType: TypeSignatureVisitor?) =
+    apiTypeUsageFor(
+        returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
+        delegate.visibleAnnotations.has<Nullable>(),
+        returnType?.typeArguments ?: emptyList())
 
 
 private
