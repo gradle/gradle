@@ -20,8 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+@Requires(TestPrecondition.JDK8_OR_LATER)
 class BuildProgressLoggerIntegrationTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     private static final String SERVER_RESOURCE = 'test-resource'
 
