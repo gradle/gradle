@@ -46,7 +46,7 @@ import javax.annotation.Nullable;
  * </p>
  *
  * <p>
- *  For a provider whose value can be mutated, see {@link PropertyState}.
+ *  For a provider whose value can be mutated, see {@link Property}.
  * </p>
  *
  * <p>
