@@ -103,7 +103,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.createLater("classpathManifest", ClasspathManifest::class.java)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class.java)
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
     }
 
@@ -134,7 +134,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addCompileAllTask() {
-        tasks.createLater("compileAll") {
+        tasks.register("compileAll") {
             val compileTasks = project.tasks.matching {
                 it is JavaCompile || it is GroovyCompile
             }

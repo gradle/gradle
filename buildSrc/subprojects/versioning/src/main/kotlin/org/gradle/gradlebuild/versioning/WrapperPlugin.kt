@@ -48,13 +48,13 @@ class WrapperPlugin : Plugin<Project> {
         val wrapperTaskName = "${name}Wrapper"
         val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
-        val wrapperTask = tasks.createLater(wrapperTaskName, Wrapper::class.java) {
+        val wrapperTask = tasks.register(wrapperTaskName, Wrapper::class.java) {
             dependsOn(configureWrapperTaskName)
             group = "wrapper"
         }
 
         // TODO Avoid late configuration
-        tasks.createLater(configureWrapperTaskName) {
+        tasks.register(configureWrapperTaskName) {
             doLast {
                 val jsonText = URL("https://services.gradle.org/versions/$label").readText()
                 val versionInfo = Gson().fromJson(jsonText, VersionDownloadInfo::class.java)

@@ -212,7 +212,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createCleanSamplesTask() =
-        tasks.createLater("cleanSamples", Delete::class.java) {
+        tasks.register("cleanSamples", Delete::class.java) {
             delete(deferred { tasks.withType<ProjectGeneratorTask>().map { it.outputs } })
             delete(deferred { tasks.withType<RemoteProject>().map { it.outputDirectory } })
             delete(deferred { tasks.withType<JavaExecProjectGeneratorTask>().map { it.outputs } })
