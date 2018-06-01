@@ -84,15 +84,11 @@ public class ZincScalaCompilerFactory {
     }
 
     private static Compiler createCompiler(final Setup setup, final PersistentCache zincCache, final xsbti.Logger logger) {
-        return Compiler.compilerCache().get(setup, new scala.runtime.AbstractFunction0<Compiler>() {
-            public Compiler apply() {
-                ScalaInstance instance = Compiler.scalaInstance(setup);
-                File interfaceJar = getCompilerInterface(setup, instance, zincCache, logger);
-                AnalyzingCompiler scalac = Compiler.newScalaCompiler(instance, interfaceJar, logger);
-                JavaCompiler javac = Compiler.newJavaCompiler(instance, setup.javaHome(), setup.forkJava());
-                return new Compiler(scalac, javac);
-            }
-        });
+        ScalaInstance instance = Compiler.scalaInstance(setup);
+        File interfaceJar = getCompilerInterface(setup, instance, zincCache, logger);
+        AnalyzingCompiler scalac = Compiler.newScalaCompiler(instance, interfaceJar, logger);
+        JavaCompiler javac = Compiler.newJavaCompiler(instance, setup.javaHome(), setup.forkJava());
+        return new Compiler(scalac, javac);
     }
 
     // parallel safe version of Compiler.compilerInterface()
