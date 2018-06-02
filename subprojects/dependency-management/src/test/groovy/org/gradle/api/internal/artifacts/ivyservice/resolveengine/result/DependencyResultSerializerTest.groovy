@@ -59,7 +59,7 @@ class DependencyResultSerializerTest extends Specification {
 
     def "serializes failed dependency result"() {
         def requested = DefaultModuleComponentSelector.newSelector("x", "y", new DefaultMutableVersionConstraint("1.0", ['2.0', '3.0']))
-        def failure = new ModuleVersionResolveException(newSelector("x", "y", new DefaultMutableVersionConstraint("1.2")), new RuntimeException("Boo!"))
+        def failure = new ModuleVersionResolveException(newSelector("x", "y", "1.2"), new RuntimeException("Boo!"))
 
         def failed = Mock(DependencyGraphEdge) {
             getSelector() >> Stub(DependencyGraphSelector) {

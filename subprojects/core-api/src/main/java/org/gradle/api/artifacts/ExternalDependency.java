@@ -42,6 +42,15 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
     ExternalDependency copy();
 
     /**
+     * Returns the version constraint to be used during selection.
+     * @return the version constraint
+     *
+     * @since 4.4
+     */
+    @Incubating
+    VersionConstraint getVersionConstraint();
+
+    /**
      * Configures the version constraint for this dependency.
      * @param configureAction the configuration action for the module version
      * @since 4.4
