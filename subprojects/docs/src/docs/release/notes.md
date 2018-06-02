@@ -3,7 +3,7 @@ The Gradle team is pleased to announce Gradle 4.8.
 First and foremost, this release of Gradle features [dependency locking](#locking-of-dynamic-dependencies): a mechanism for locking dependency versions which allows builds to become reproducible in the face of dynamic versions or version ranges. 
 Read the [user manual chapter on dependency locking](userguide/dependency_locking.html) to learn how to take advantage of this exciting new feature.
  
-The publishing plugins get some much-needed improvements in this release:
+The publishing plugins get some highly-anticipated improvements in this release:
 
  * The Signing Plugin now supports [signing all artifacts of a publication](#signing-publications).
  * The Maven Publish Plugin now provides a dedicated, type-safe [DSL to customize the POM generated](#customizing-the-generated-pom) as part of a Maven publication.
@@ -20,7 +20,7 @@ This allows processors with extension mechanisms to check extensions for increme
 
 New native plugins continue to improve with [better control over system include path](#better-control-over-system-include-path-for-native-compilation) for native compilation and [other improvements](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-48). 
 
-Gradle 4.8 includes Kotlin DSL 0.17.5 bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time and TestKit support.
+Gradle 4.8 includes Kotlin DSL 0.17.5, bringing the latest Kotlin 1.2.41 release and many improvements to the user experience including location aware runtime error reporting, convenient configuration of nested extensions, faster and leaner configuration time, and TestKit support.
 At the same time the IntelliJ IDEA Kotlin Plugin fixed many long standing build script editing related issues.
 See details and examples in the [Kotlin DSL v0.17 release notes](https://github.com/gradle/kotlin-dsl/releases/tag/v0.17.5).
 
@@ -28,11 +28,11 @@ We hope you build happiness with Gradle 4.8, and we look forward to your feedbac
 
 ## Upgrade instructions
 
-Switch your build to use Gradle 4.8 RC1 quickly by updating your wrapper properties:
+Switch your build to use Gradle 4.8 quickly by updating your wrapper properties:
 
-    gradle wrapper --gradle-version=4.8-rc-1
+    gradle wrapper --gradle-version=4.8
 
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## New and noteworthy
 
