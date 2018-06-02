@@ -17,8 +17,6 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.util.TestPrecondition
-import spock.lang.Issue
 
 @TargetVersions(['2.4.10:indy'])
 class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
@@ -36,11 +34,5 @@ tasks.withType(GroovyCompile) {
     groovyOptions.fork = false
 }
         '''
-    }
-
-    @Override
-    @Issue('gradle/core-issues/#125')
-    protected boolean gradleLeaksIntoAnnotationProcessor() {
-        return !TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled
     }
 }

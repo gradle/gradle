@@ -44,6 +44,8 @@ import java.util.Set;
  * This class also serves a purpose when incremental annotation processing is not active.
  * It replaces the normal processor discovery, which suffers from file descriptor leaks
  * on Java 8 and below. Our own discovery mechanism does not have that issue.
+ *
+ * This also prevents the Gradle API from leaking into the annotation processor classpath.
  */
 class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
 
