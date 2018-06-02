@@ -257,6 +257,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 void suppressCleanup() {
 
                 }
+
+                @Override
+                void suppressCleanupErrors() {
+
+                }
             }
         }
 

@@ -36,7 +36,6 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorPathStore;
-import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.hash.FileHasher;
@@ -48,14 +47,12 @@ public class IncrementalCompilerFactory {
     private final FileOperations fileOperations;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
-    private final AnnotationProcessorDetector annotationProcessorDetector;
     private final GeneralCompileCaches generalCompileCaches;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, AnnotationProcessorDetector annotationProcessorDetector, GeneralCompileCaches generalCompileCaches) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, FileHasher fileHasher, GeneralCompileCaches generalCompileCaches) {
         this.fileOperations = fileOperations;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.annotationProcessorDetector = annotationProcessorDetector;
         this.generalCompileCaches = generalCompileCaches;
     }
 
@@ -70,7 +67,7 @@ public class IncrementalCompilerFactory {
         RecompilationSpecProvider recompilationSpecProvider = new RecompilationSpecProvider(sourceToNameConverter, fileOperations);
         ClassSetAnalysisUpdater classSetAnalysisUpdater = new ClassSetAnalysisUpdater(compileCaches.getLocalClassSetAnalysisStore(), fileOperations, analyzer, fileHasher);
         IncrementalCompilationInitializer compilationInitializer = new IncrementalCompilationInitializer(fileOperations, sources);
-        IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, annotationProcessorDetector, rebuildAllCompiler);
+        IncrementalCompilerDecorator incrementalSupport = new IncrementalCompilerDecorator(jarClasspathSnapshotMaker, compileCaches, compilationInitializer, cleaningJavaCompiler, compileDisplayName, recompilationSpecProvider, classSetAnalysisUpdater, sourceDirs, rebuildAllCompiler);
         return incrementalSupport.prepareCompiler(inputs);
     }
 

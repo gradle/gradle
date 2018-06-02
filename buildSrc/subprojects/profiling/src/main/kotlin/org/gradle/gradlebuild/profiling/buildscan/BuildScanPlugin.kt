@@ -72,7 +72,8 @@ open class BuildScanPlugin : Plugin<Project> {
                         codenarcPackage.getElementsByTag("File").flatMap { file ->
                             file.getElementsByTag("Violation").map { violation ->
                                 val filePath = rootProject.relativePath(file.attr("name"))
-                                "$filePath:${violation.attr("lineNumber")} \u2192 ${violation.getElementsByTag("Message").first().text()}"
+                                val message = violation.getElementsByTag("Message").first() ?: violation.getElementsByTag("SourceLine").first()
+                                "$filePath:${violation.attr("lineNumber")} \u2192 ${message.text()}"
                             }
                         }
                     }

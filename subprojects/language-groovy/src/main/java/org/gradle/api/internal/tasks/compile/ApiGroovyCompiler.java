@@ -40,6 +40,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
@@ -187,6 +188,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compilerGroovyLoader.discardTypesFrom(astTransformClassLoader);
             //Discard the compile loader
             compileClasspathLoader.shutdown();
+            CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
         }
 
         return WorkResults.didWork(true);
