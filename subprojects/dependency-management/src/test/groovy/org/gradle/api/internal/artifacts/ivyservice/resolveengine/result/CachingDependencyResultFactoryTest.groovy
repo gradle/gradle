@@ -92,7 +92,7 @@ class CachingDependencyResultFactoryTest extends Specification {
     }
 
     def moduleVersionSelector(String group='a', String module='a', String version='1') {
-        newSelector(group, module, new DefaultMutableVersionConstraint(version))
+        newSelector(group, module, version)
     }
 
     private static ComponentSelectionReason selectedByRule() {

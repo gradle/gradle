@@ -29,7 +29,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
     }
 
     def "provides default message that includes selector"() {
-        def exception1 = new ModuleVersionResolveException(newSelector("org", "a", v("1.2")), new RuntimeException())
+        def exception1 = new ModuleVersionResolveException(newSelector("org", "a", "1.2"), new RuntimeException())
 
         expect:
         exception1.message == 'Could not resolve org:a:1.2.'
@@ -41,7 +41,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
         def c = newId("org", "c", "1.0")
 
         def cause = new RuntimeException()
-        def exception = new ModuleVersionResolveException(newSelector("a", "b", v("c")), cause)
+        def exception = new ModuleVersionResolveException(newSelector("a", "b", "c"), cause)
         def onePath = exception.withIncomingPaths([[a, b, c]])
         def twoPaths = exception.withIncomingPaths([[a, b, c], [a, c]])
 

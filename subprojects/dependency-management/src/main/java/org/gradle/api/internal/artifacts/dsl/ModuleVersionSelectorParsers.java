@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -59,7 +58,7 @@ public class ModuleVersionSelectorParsers {
         }
 
         protected ModuleVersionSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return newSelector(group, name, new DefaultImmutableVersionConstraint(version));
+            return newSelector(group, name, version);
         }
     }
 
@@ -84,7 +83,7 @@ public class ModuleVersionSelectorParsers {
                         "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                                 + "'org.gradle:gradle-core:1.0'");
             }
-            result.converted(newSelector(parsed.getGroup(), parsed.getName(), new DefaultImmutableVersionConstraint(parsed.getVersion())));
+            result.converted(newSelector(parsed.getGroup(), parsed.getName(), parsed.getVersion()));
         }
     }
 }
