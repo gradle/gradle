@@ -76,10 +76,18 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             }
         }
         Set<ProjectPublication> topLevel = new LinkedHashSet<ProjectPublication>();
+        Set<ProjectPublication> topLevelWithComponent = new LinkedHashSet<ProjectPublication>();
         for (ProjectPublication publication : publications) {
             if (!publication.isAlias() && (publication.getComponent() == null || !ignored.contains(publication.getComponent()))) {
                 topLevel.add(publication);
+                if (publication.getComponent() != null) {
+                    topLevelWithComponent.add(publication);
+                }
             }
+        }
+
+        if (topLevelWithComponent.size() == 1) {
+            return topLevelWithComponent.iterator().next().getCoordinates(coordsType);
         }
 
         // See if all entry points have the same identifier
