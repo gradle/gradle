@@ -39,7 +39,7 @@ open class ClassyclePlugin : Plugin<Project> {
         val classycle = tasks.createLater("classycle")
         java.sourceSets.all {
             val taskName = getTaskName("classycle", null)
-            val sourceSetTask = project.tasks.createLater(
+            val sourceSetTask = project.tasks.register(
                 taskName,
                 Classycle::class.java,
                 output.classesDirs,
