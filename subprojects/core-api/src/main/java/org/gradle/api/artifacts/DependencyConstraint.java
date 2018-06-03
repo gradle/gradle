@@ -33,10 +33,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
     /**
      * Returns the version constraint to be used during selection.
      * @return the version constraint
-     *
-     * @since 4.4
      */
-    @Incubating
     VersionConstraint getVersionConstraint();
 
     /**
