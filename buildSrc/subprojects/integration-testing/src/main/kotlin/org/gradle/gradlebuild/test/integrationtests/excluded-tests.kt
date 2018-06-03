@@ -6,10 +6,6 @@ import org.gradle.api.JavaVersion.VERSION_1_9
 
 internal
 val excludedTests = listOf(
-    // TODO requires investigation
-    "JacocoPluginMultiVersionIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-    "JacocoPluginCoverageVerificationIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),
-
     // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
     // Fail since build 125
     "InterfaceBackedManagedTypeIntegrationTest" to listOf(VERSION_1_9, VERSION_1_10),

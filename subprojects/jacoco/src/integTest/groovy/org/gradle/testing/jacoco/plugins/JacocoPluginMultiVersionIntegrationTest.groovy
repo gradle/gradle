@@ -24,7 +24,7 @@ import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@TargetCoverage({ JacocoCoverage.SUPPORTS_JDK_8_OR_HIGHER })
+@TargetCoverage({ JacocoCoverage.DEFAULT_COVERAGE })
 class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
