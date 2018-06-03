@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.BasicGlobalScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
@@ -36,7 +37,7 @@ class DaemonClientServicesTest extends Specification {
     final parentServices = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
             .parent(NativeServicesTestFixture.instance)
-            .provider(new GlobalScopeServices(false))
+            .provider(new BasicGlobalScopeServices())
             .provider(new DaemonClientGlobalServices())
             .build()
     final services = new DaemonClientServices(parentServices, parameters, System.in)

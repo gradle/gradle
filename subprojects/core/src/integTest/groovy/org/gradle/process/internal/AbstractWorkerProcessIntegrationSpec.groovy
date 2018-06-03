@@ -52,13 +52,16 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
-    final DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
+    @Shared
+    DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())
             .provider(new GlobalScopeServices(false))
             .build()
+
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -73,7 +76,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final OutputEventListener outputEventListener = new TestOutputEventListener()
     DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.DEBUG), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
 
-    def cleanup() {
+    def cleanupSpec() {
         services.close()
     }
 
