@@ -39,7 +39,7 @@ final class JacocoCoverage {
     final static List<String> DEFAULT_COVERAGE = JavaVersion.current().isJava9Compatible() ? SUPPORTS_JDK_9_OR_HIGHER : SUPPORTS_JDK_8_OR_HIGHER
 
     static List<String> filter(JacocoVersion threshold) {
-        ALL.findAll { new JacocoVersion(it) >= threshold }
+        ALL.findAll { new JacocoVersion(it) >= threshold }.asImmutable()
     }
 
     private static class JacocoVersion implements Comparable<JacocoVersion> {
