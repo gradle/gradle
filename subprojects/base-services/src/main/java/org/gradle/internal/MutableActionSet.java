@@ -28,23 +28,30 @@ import java.util.Set;
  * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
  */
 public class MutableActionSet<T> implements Action<T> {
-    private Set<Action<? super T>> actions = new LinkedHashSet<Action<? super T>>();
+    private final Set<Action<? super T>> actions = new LinkedHashSet<Action<? super T>>();
+    private final Object lock = new Object();
 
     public void add(Action<? super T> action) {
         if (action == Actions.DO_NOTHING || action == this) {
             return;
         }
 
-        actions.add(action);
+        synchronized (lock) {
+            actions.add(action);
+        }
     }
 
     public void execute(T t) {
-        for (Action<? super T> action : actions) {
-            action.execute(t);
+        synchronized (lock) {
+            for (Action<? super T> action : actions) {
+                action.execute(t);
+            }
         }
     }
 
     public boolean isEmpty() {
-        return actions.isEmpty();
+        synchronized (lock) {
+            return actions.isEmpty();
+        }
     }
 }
