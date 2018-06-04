@@ -233,7 +233,7 @@ class Interpreter(val host: Host) {
             host.cachedDirFor(templateId, sourceHash, parentClassLoader) { cachedDir ->
 
                 val outputDir =
-                    cachedDir.resolve("stage1").apply { mkdir() }
+                    stage1SubDirOf(cachedDir).apply { mkdir() }
 
                 val programSource =
                     ProgramSource(scriptPath, sourceText)
@@ -256,7 +256,7 @@ class Interpreter(val host: Host) {
             }
 
         val classesDir =
-            cachedDir.resolve("stage1")
+            stage1SubDirOf(cachedDir)
 
         return loadClassInChildScopeOf(
             baseScope,
@@ -265,6 +265,10 @@ class Interpreter(val host: Host) {
             templateId,
             null)
     }
+
+    private
+    fun stage1SubDirOf(cachedDir: File) =
+        cachedDir.resolve("stage-1")
 
     private
     fun loadClassInChildScopeOf(
