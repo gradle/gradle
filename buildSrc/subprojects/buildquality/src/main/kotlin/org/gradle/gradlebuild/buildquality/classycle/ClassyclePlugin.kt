@@ -36,7 +36,7 @@ open class ClassyclePlugin : Plugin<Project> {
         val extension = extensions.create<ClassycleExtension>(classycleBaseName, project)
         configurations.create(classycleBaseName)
         dependencies.add(classycleBaseName, "classycle:classycle:1.4@jar")
-        val classycle = tasks.createLater("classycle")
+        val classycle = tasks.register("classycle")
         java.sourceSets.all {
             val taskName = getTaskName("classycle", null)
             val sourceSetTask = project.tasks.register(

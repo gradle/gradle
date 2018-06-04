@@ -24,12 +24,12 @@ import org.gradle.kotlin.dsl.*
 class CleanupPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        tasks.createLater("cleanUpCaches", CleanUpCaches::class.java) {
+        tasks.register("cleanUpCaches", CleanUpCaches::class.java) {
             dependsOn(":createBuildReceipt")
         }
-        tasks.createLater("cleanUpDaemons", CleanUpDaemons::class.java)
+        tasks.register("cleanUpDaemons", CleanUpDaemons::class.java)
 
-        val killExistingProcessesStartedByGradle = tasks.createLater("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class.java)
+        val killExistingProcessesStartedByGradle = tasks.register("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class.java)
 
         if (BuildEnvironment.isCiServer) {
             tasks {
