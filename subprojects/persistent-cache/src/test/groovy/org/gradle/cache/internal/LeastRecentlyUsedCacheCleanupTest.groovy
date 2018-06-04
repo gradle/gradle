@@ -17,7 +17,8 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentCache
-import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal
+import org.gradle.internal.Factories
+import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessJournal(), 1)
+    def cleanupAction = new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), Factories.constant(new ModificationTimeFileAccessTimeJournal()), 1)
 
     def "finds files to delete when files are old"() {
         long now = System.currentTimeMillis()

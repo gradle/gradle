@@ -16,9 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.cache.CleanableStore;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.FileAccessTimeReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +39,12 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
     public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES = 30;
 
-    private final FileAccessJournal journal;
+    private final Factory<? extends FileAccessTimeReader> accessTimeReaderFactory;
     private final long minimumTimestamp;
 
-    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, FileAccessJournal journal, long numberOfDays) {
+    public LeastRecentlyUsedCacheCleanup(FilesFinder eligibleFilesFinder, Factory<? extends FileAccessTimeReader> accessTimeReaderFactory, long numberOfDays) {
         super(eligibleFilesFinder);
-        this.journal = journal;
+        this.accessTimeReaderFactory = accessTimeReaderFactory;
         this.minimumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(numberOfDays));
     }
 
@@ -50,10 +52,11 @@ public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     protected List<File> findFilesToDelete(final CleanableStore cleanableStore, Collection<File> filesEligibleForCleanup) {
         LOGGER.info("{} remove files not accessed on or after {}.", cleanableStore.getDisplayName(), new Date(minimumTimestamp));
 
+        FileAccessTimeReader accessTimeReader = Preconditions.checkNotNull(accessTimeReaderFactory.create());
         List<File> filesForDeletion = Lists.newArrayListWithCapacity(filesEligibleForCleanup.size());
 
         for (File file : filesEligibleForCleanup) {
-            if (journal.getLastAccessTime(file) < minimumTimestamp) {
+            if (accessTimeReader.getLastAccessTime(file) < minimumTimestamp) {
                 filesForDeletion.add(file);
             }
         }

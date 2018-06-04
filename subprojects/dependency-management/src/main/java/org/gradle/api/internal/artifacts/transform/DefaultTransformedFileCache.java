@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
+import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.Snapshot;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -40,11 +41,10 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.resource.local.FileAccessTimeReader;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.FileStoreAddActionException;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.HashCodeSerializer;
@@ -62,7 +62,9 @@ import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MA
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTransformedFileCache implements TransformedFileCache, Stoppable, RootBuildLifecycleListener {
+
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+    private static final String CACHE_PREFIX = TRANSFORMS_META_DATA.getKey() + "/";
 
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, List<File>> indexedCache;
@@ -70,6 +72,7 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
     private final ProducerGuard<CacheKey> producing = ProducerGuard.adaptive();
     private final Map<CacheKey, List<File>> resultHashToResult = new ConcurrentHashMap<CacheKey, List<File>>();
     private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final IndexedCacheBackedFileAccessTimeJournal fileAccessTimeJournal;
     private final FileAccessTracker fileAccessTracker;
 
     public DefaultTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter) {
@@ -77,22 +80,29 @@ public class DefaultTransformedFileCache implements TransformedFileCache, Stoppa
         File transformsStoreDirectory = artifactCacheMetadata.getTransformsStoreDirectory();
         File filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
         fileStore = new DefaultPathKeyFileStore(filesOutputDirectory);
-        FileAccessJournal journal = new ModificationTimeFileAccessJournal();
-        fileAccessTracker = new SingleDepthFileAccessTracker(journal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-        CleanupAction cleanupAction = CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), journal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
-            .build();
         cache = cacheRepository
             .cache(transformsStoreDirectory)
-            .withCleanup(cleanupAction)
+            .withCleanup(createCleanupAction(filesOutputDirectory))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
             .open();
-        String cacheName = TRANSFORMS_META_DATA.getKey() + "/results";
-        PersistentIndexedCacheParameters<HashCode, List<File>> cacheParameters = new PersistentIndexedCacheParameters<HashCode, List<File>>(cacheName, new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
-            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true));
-        indexedCache = cache.createCache(cacheParameters);
+        indexedCache = cache.createCache(PersistentIndexedCacheParameters.of(CACHE_PREFIX + "results", new HashCodeSerializer(), new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER))
+            .cacheDecorator(cacheDecoratorFactory.decorator(1000, true)));
+        fileAccessTimeJournal = IndexedCacheBackedFileAccessTimeJournal.create(CACHE_PREFIX, cache, cacheDecoratorFactory);
+        fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+    }
+
+    private CleanupAction createCleanupAction(File filesOutputDirectory) {
+        Factory<FileAccessTimeReader> fileAccessTimeReaderFactory = new Factory<FileAccessTimeReader>() {
+            @Override
+            public FileAccessTimeReader create() {
+                return fileAccessTimeJournal;
+            }
+        };
+        return CompositeCleanupAction.builder()
+            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeReaderFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .build();
     }
 
     @Override

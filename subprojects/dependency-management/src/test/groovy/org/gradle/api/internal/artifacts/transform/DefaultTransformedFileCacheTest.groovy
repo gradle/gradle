@@ -17,9 +17,14 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileSystemSnapshotter
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.cache.AsyncCacheAccess
+import org.gradle.cache.CacheDecorator
+import org.gradle.cache.CrossProcessCacheAccess
+import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.caching.internal.BuildCacheHasher
@@ -32,23 +37,29 @@ import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 
-import java.util.concurrent.TimeUnit
-
 @UsesNativeServices
 class DefaultTransformedFileCacheTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def transformsStoreDirectory = tmpDir.file("output")
     def artifactCacheMetaData = Mock(ArtifactCacheMetadata)
     def scopeMapping = Stub(CacheScopeMapping)
     def cacheRepo = new DefaultCacheRepository(scopeMapping, new InMemoryCacheFactory())
-    def decorator = Stub(InMemoryCacheDecoratorFactory)
+    def decorator = Stub(InMemoryCacheDecoratorFactory) {
+        decorator(_, _) >> new CacheDecorator() {
+            @Override
+            <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+                return persistentCache
+            }
+        }
+    }
     def snapshotter = Mock(FileSystemSnapshotter)
     DefaultTransformedFileCache cache
 
     def setup() {
         scopeMapping.getBaseDirectory(_, _, _) >> tmpDir.testDirectory
         scopeMapping.getRootDirectory(_) >> tmpDir.testDirectory
-        artifactCacheMetaData.transformsStoreDirectory >> tmpDir.file("output")
+        artifactCacheMetaData.transformsStoreDirectory >> transformsStoreDirectory
         cache = new DefaultTransformedFileCache(artifactCacheMetaData, cacheRepo, decorator, snapshotter)
     }
 
@@ -348,66 +359,20 @@ class DefaultTransformedFileCacheTest extends ConcurrentSpec {
         0 * transform._
     }
 
-    def "marks used entries accessed by touching their output directory"() {
-        given:
-        def outputDir = null
-        def inputFile = tmpDir.file("a")
-        def transform = Mock(BiFunction) {
-            apply(_, _) >> { File file, File dir ->
-                outputDir = dir
-                def parent = new TestFile(dir, "dir")
-                parent.mkdirs()
-                [new TestFile(parent, "file").touch()]
-            }
-        }
-        snapshotter.snapshotAll(_) >> snapshot(HashCode.fromInt(234))
-
-        when:
-        def result = cache.getResult(inputFile, HashCode.fromInt(123), transform)
-
-        then:
-        result*.name == ["file"]
-        def cachedFile = result[0]
-        def cachedDir = cachedFile.parentFile
-        cachedDir.name == "dir"
-        cachedDir.parentFile == outputDir
-
-        when:
-        new TestFile(outputDir).makeOlder()
-        cachedFile.makeOlder()
-        cachedDir.makeOlder()
-        def modificationDateOfCachedFile = cachedFile.lastModified()
-        def modificationDateOfCachedDir = cachedDir.lastModified()
-        // not all filesystems support millisecond precision, but all support seconds
-        def timestampBeforeAccessInSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-        and:
-        cache.getResult(inputFile, HashCode.fromInt(123), transform)
-
-        then:
-        outputDir.lastModified() >= TimeUnit.SECONDS.toMillis(timestampBeforeAccessInSeconds)
-        cachedFile.lastModified() == modificationDateOfCachedFile
-        cachedDir.lastModified() == modificationDateOfCachedDir
-    }
-
     def "stopping the cache cleans up old entries and preserves new ones"() {
         given:
-        def transform = Mock(BiFunction) {
-            apply(_, _) >> { File file, File dir ->
-                [new TestFile(dir, "output.xyz").touch()]
-            }
-        }
         snapshotter.snapshotAll(_) >> snapshot(HashCode.fromInt(42))
-        def resultA = cache.getResult(tmpDir.file("a"), HashCode.fromInt(1), transform)
-        def resultB = cache.getResult(tmpDir.file("b"), HashCode.fromInt(2), transform)
-        resultA[0].parentFile.lastModified = 0
+        def filesDir = transformsStoreDirectory.file(CacheLayout.TRANSFORMS_STORE.getKey())
+        def file1 = filesDir.file("some.jar", "bac62a0ac6ce00ff016f869e695d5522").createFile("1.txt")
+        def file2 = filesDir.file("another.jar", "a89660597ff12d9e0a0397e055e80006").createFile("2.txt")
+        file1.parentFile.lastModified = 0
 
         when:
         cache.stop()
 
         then:
-        !resultA[0].exists()
-        resultB[0].exists()
+        !file1.exists()
+        file2.exists()
     }
 
     def snapshot(HashCode hashCode) {

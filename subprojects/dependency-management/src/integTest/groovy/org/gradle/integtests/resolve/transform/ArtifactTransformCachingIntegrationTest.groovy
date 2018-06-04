@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
@@ -955,7 +957,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
 
         when:
-        createExecuter()
         succeeds ":app:resolve"
 
         then:
@@ -969,12 +970,17 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         and:
         def outputDir1 = outputDir("lib1.jar", "lib1.jar.txt").assertExists()
         def outputDir2 = outputDir("lib2.jar", "lib2.jar.txt").assertExists()
+        journal.assertExists()
 
         when:
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        markForCleanup(gcFile)
         markForCleanup(outputDir1)
-        succeeds "tasks"
+        markForCleanup(gcFile)
+        assert journal.delete()
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("tasks").start().waitForFinish()
 
         then:
         outputDir1.assertDoesNotExist()
@@ -1158,8 +1164,16 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         return cacheDir.file("gc.properties")
     }
 
+    TestFile getJournal() {
+        return cacheDir.file(CacheLayout.TRANSFORMS_META_DATA.getKey(), IndexedCacheBackedFileAccessTimeJournal.CACHE_NAME + ".bin")
+    }
+
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", "transforms-1")
+        return executer.gradleUserHomeDir.file("caches", CacheLayout.TRANSFORMS.getKey())
+    }
+
+    TestFile getCacheFilesDir() {
+        return cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey())
     }
 
     void markForCleanup(File file) {

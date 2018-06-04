@@ -18,14 +18,8 @@ package org.gradle.internal.resource.local;
 
 import java.io.File;
 
-public class ModificationTimeFileAccessJournal implements FileAccessJournal {
-    @Override
-    public void setLastAccessTime(File file, long millis) {
-        file.setLastModified(millis);
-    }
+public interface FileAccessTimeReader {
 
-    @Override
-    public long getLastAccessTime(File file) {
-        return file.lastModified();
-    }
+    long getLastAccessTime(File file);
+
 }

@@ -59,8 +59,8 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
     }
 
     private static class DependencyManagementBuildSessionServices {
-        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata) {
-            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata);
+        CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata artifactCacheMetadata, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+            return new DefaultCacheLockingManager(cacheRepository, artifactCacheMetadata, cacheDecoratorFactory);
         }
 
         TransformedFileCache createTransformedFileCache(ArtifactCacheMetadata artifactCacheMetadata, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory, FileSystemSnapshotter fileSystemSnapshotter, ListenerManager listenerManager) {

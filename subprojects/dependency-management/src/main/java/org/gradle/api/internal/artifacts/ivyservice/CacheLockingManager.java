@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.resource.local.FileAccessTimeWriter;
 import org.gradle.internal.serialize.Serializer;
 
 /**
@@ -27,11 +27,9 @@ import org.gradle.internal.serialize.Serializer;
 @ThreadSafe
 public interface CacheLockingManager extends CacheAccess {
     /**
-     * Returns the file access journal used by this locking manager to perform least recently used based cache cleanup.
-     *
-     * <p>The returned journal should be used to track file access in directories eligible for cleanup.
+     * Returns the file access time writer to track file access in directories eligible for cleanup.
      */
-    FileAccessJournal getFileAccessJournal();
+    FileAccessTimeWriter getFileAccessTimeWriter();
 
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.

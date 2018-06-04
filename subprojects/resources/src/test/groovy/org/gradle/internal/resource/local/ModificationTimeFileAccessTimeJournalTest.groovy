@@ -21,12 +21,12 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class ModificationTimeFileAccessJournalTest extends Specification {
+class ModificationTimeFileAccessTimeJournalTest extends Specification {
 
     static final long FIXED_TIMESTAMP = 42_000
 
     @Rule TestNameTestDirectoryProvider tmpDir
-    @Subject ModificationTimeFileAccessJournal journal = new ModificationTimeFileAccessJournal()
+    @Subject ModificationTimeFileAccessTimeJournal journal = new ModificationTimeFileAccessTimeJournal()
 
     def "updates modification time"() {
         given:

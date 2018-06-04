@@ -27,9 +27,9 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
+import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.util.CollectionUtils;
 
@@ -54,15 +54,15 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final Transformer<File, File> jarFileTransformer;
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, List<CachedJarFileStore> fileStores) {
-        FileAccessJournal fileAccessJournal = new ModificationTimeFileAccessJournal();
+        FileAccessTimeJournal fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal();
         this.cache = cacheRepository
             .cache("jars-3")
             .withDisplayName("jars")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withCleanup(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .withCleanup(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), Factories.constant(fileAccessTimeJournal), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .open();
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
     }
 

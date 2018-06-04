@@ -28,10 +28,11 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.internal.Factories;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal;
+import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
@@ -81,10 +82,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        FileAccessJournal fileAccessJournal = new ModificationTimeFileAccessJournal();
+        FileAccessTimeJournal fileAccessJournal = new ModificationTimeFileAccessTimeJournal();
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, removeUnusedEntriesAfterDays)))
+            .withCleanup(cleanupActionFactory.create(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), Factories.constant(fileAccessJournal), removeUnusedEntriesAfterDays)))
             .withDisplayName("Build cache")
             .withLockOptions(mode(None))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)

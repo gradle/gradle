@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.api.internal.changedetection.state
 
-import org.gradle.cache.PersistentIndexedCacheParameters
-import org.gradle.internal.resource.local.FileAccessJournal
+import org.gradle.internal.resource.local.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-class IndexedCacheBackedFileAccessJournalTest extends Specification {
+class IndexedCacheBackedFileAccessTimeJournalTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    @Subject FileAccessJournal journal = new IndexedCacheBackedFileAccessJournal({ name, keySerializer, valueSerializer ->
-        def persistentCache = new InMemoryCacheFactory().open(tmpDir.createDir("cacheBaseDir"), "cache")
-        persistentCache.createCache(new PersistentIndexedCacheParameters<>(name, keySerializer, valueSerializer))
-    })
+    def persistentCache = new InMemoryCacheFactory().open(tmpDir.createDir("cacheBaseDir"), "cache")
+    def indexedCache = persistentCache.createCache(IndexedCacheBackedFileAccessTimeJournal.baseCacheParameters())
+
+    @Subject FileAccessTimeJournal journal = new IndexedCacheBackedFileAccessTimeJournal(indexedCache, indexedCache)
 
     def file = tmpDir.createFile("a/1.txt")
 
@@ -53,16 +52,13 @@ class IndexedCacheBackedFileAccessJournalTest extends Specification {
     }
 
     def "falls back to modification time when no value was written previously"() {
-        when:
-        def fileCreationTime = file.lastModified()
-
-        then:
-        journal.getLastAccessTime(file) == fileCreationTime
+        expect:
+        journal.getLastAccessTime(file) == file.lastModified()
 
         when:
         file.makeOlder()
 
         then:
-        journal.getLastAccessTime(file) == fileCreationTime
+        journal.getLastAccessTime(file) == file.lastModified()
     }
 }

@@ -30,7 +30,7 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
 
     TestFile baseDir = tmpDir.createDir("base")
     TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider({ tmpDir.createDir("tmp") })
-    FileAccessJournal fileAccessJournal = Mock(FileAccessJournal)
+    FileAccessTimeWriter fileAccessTimeWriter = Mock(FileAccessTimeWriter)
     GroupedAndNamedUniqueFileStore.Grouper<String> grouper = new GroupedAndNamedUniqueFileStore.Grouper<String>() {
         @Override
         String determineGroup(String key) {
@@ -42,14 +42,14 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
         }
     }
 
-    @Subject GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessJournal, grouper, { key -> key })
+    @Subject GroupedAndNamedUniqueFileStore<String> fileStore = new GroupedAndNamedUniqueFileStore<String>(baseDir, temporaryFileProvider, fileAccessTimeWriter, grouper, { key -> key })
 
     def "marks files accessed when they are added to store"() {
         when:
         fileStore.add('1', { it.text = 'Hello, World!' })
 
         then:
-        1 * fileAccessJournal.setLastAccessTime(baseDir.file('group'), _)
+        1 * fileAccessTimeWriter.setLastAccessTime(baseDir.file('group'), _)
     }
 
     def "marks files accessed when they are moved into the store"() {
@@ -60,7 +60,7 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
         fileStore.move('1', file)
 
         then:
-        1 * fileAccessJournal.setLastAccessTime(baseDir.file('group'), _)
+        1 * fileAccessTimeWriter.setLastAccessTime(baseDir.file('group'), _)
     }
 
     def "allows to mark files accessed externally"() {
@@ -68,6 +68,6 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
         fileStore.markAccessed([baseDir.file('group/1.txt')])
 
         then:
-        1 * fileAccessJournal.setLastAccessTime(baseDir.file('group'), _)
+        1 * fileAccessTimeWriter.setLastAccessTime(baseDir.file('group'), _)
     }
 }

@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.cache.CacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -28,26 +26,30 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
-import org.gradle.cache.internal.IndexedCacheBackedFileAccessJournal;
+import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.internal.resource.local.FileAccessJournal;
+import org.gradle.internal.resource.local.FileAccessTimeJournal;
+import org.gradle.internal.resource.local.FileAccessTimeReader;
+import org.gradle.internal.resource.local.FileAccessTimeWriter;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.File;
 
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheLockingManager implements CacheLockingManager, Closeable {
-    private final PersistentCache cache;
-    private final FileAccessJournal fileAccessJournal;
 
-    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData) {
+    private static final String CACHE_PREFIX = CacheLayout.META_DATA.getKey() + "/";
+
+    private final PersistentCache cache;
+    private final FileAccessTimeJournal fileAccessTimeJournal;
+
+    public DefaultCacheLockingManager(CacheRepository cacheRepository, ArtifactCacheMetadata cacheMetaData, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
@@ -55,48 +57,23 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .withCleanup(createCleanupAction(cacheMetaData))
                 .open();
-        fileAccessJournal = new IndexedCacheBackedFileAccessJournal(new IndexedCacheBackedFileAccessJournal.PersistentIndexedCacheFactory() {
-            @Override
-            public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-                return DefaultCacheLockingManager.this.createCache(cacheName, keySerializer, valueSerializer);
-            }
-        });
+        fileAccessTimeJournal = IndexedCacheBackedFileAccessTimeJournal.create(CACHE_PREFIX, cache, cacheDecoratorFactory);
     }
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData) {
-        FileAccessJournal fileAccessJournal = getFileAccessJournalForCleanup();
+        Factory<FileAccessTimeReader> fileAccessTimeReaderFactory = new Factory<FileAccessTimeReader>() {
+            @Override
+            public FileAccessTimeReader create() {
+                return fileAccessTimeJournal;
+            }
+        };
         long maxAgeInDays = DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
         return CompositeCleanupAction.builder()
                 .add(cacheMetaData.getExternalResourcesStoreDirectory(),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, maxAgeInDays))
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeReaderFactory, maxAgeInDays))
                 .add(cacheMetaData.getFileStoreDirectory(),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessJournal, maxAgeInDays))
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(ArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeReaderFactory, maxAgeInDays))
                 .build();
-    }
-
-    private FileAccessJournal getFileAccessJournalForCleanup() {
-        final Supplier<FileAccessJournal> lockFreeFileAccessJournalSupplier = Suppliers.memoize(new Supplier<FileAccessJournal>() {
-            @Override
-            public FileAccessJournal get() {
-                return new IndexedCacheBackedFileAccessJournal(new IndexedCacheBackedFileAccessJournal.PersistentIndexedCacheFactory() {
-                    @Override
-                    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-                        return DefaultCacheLockingManager.this.createCache(cacheName, keySerializer, valueSerializer, CacheUsage.FILE_LOCK);
-                    }
-                });
-            }
-        });
-        return new FileAccessJournal() {
-            @Override
-            public void setLastAccessTime(File file, long millis) {
-                lockFreeFileAccessJournalSupplier.get().setLastAccessTime(file, millis);
-            }
-
-            @Override
-            public long getLastAccessTime(File file) {
-                return lockFreeFileAccessJournalSupplier.get().getLastAccessTime(file);
-            }
-        };
     }
 
     @Override
@@ -125,34 +102,26 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
     }
 
     @Override
-    public FileAccessJournal getFileAccessJournal() {
-        return fileAccessJournal;
+    public FileAccessTimeWriter getFileAccessTimeWriter() {
+        return fileAccessTimeJournal;
     }
 
     @Override
     public <K, V> CacheLockingPersistentCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return createCache(cacheName, keySerializer, valueSerializer, CacheUsage.EXCLUSIVE);
-    }
-
-    private <K, V> CacheLockingPersistentCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheUsage usage) {
-        String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        final PersistentIndexedCache<K, V> persistentCache = cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
-        return new CacheLockingPersistentCache<K, V>(persistentCache, usage);
+        return new CacheLockingPersistentCache<K, V>(cache.createCache(PersistentIndexedCacheParameters.of(CACHE_PREFIX + cacheName, keySerializer, valueSerializer)));
     }
 
     private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
         private final PersistentIndexedCache<K, V> persistentCache;
-        private final CacheUsage usage;
 
-        CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache, CacheUsage usage) {
+        CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
             this.persistentCache = persistentCache;
-            this.usage = usage;
         }
 
         @Nullable
         @Override
         public V get(final K key) {
-            return usage.execute(cache, new Factory<V>() {
+            return cache.useCache(new Factory<V>() {
                 @Override
                 public V create() {
                     return persistentCache.get(key);
@@ -162,7 +131,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
         @Override
         public V get(final K key, final Transformer<? extends V, ? super K> producer) {
-            return usage.execute(cache, new Factory<V>() {
+            return cache.useCache(new Factory<V>() {
                 @Override
                 public V create() {
                     return persistentCache.get(key, producer);
@@ -172,7 +141,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
         @Override
         public void put(final K key, final V value) {
-            usage.execute(cache, new Runnable() {
+            cache.useCache(new Runnable() {
                 @Override
                 public void run() {
                     persistentCache.put(key, value);
@@ -182,44 +151,12 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
         @Override
         public void remove(final K key) {
-            usage.execute(cache, new Runnable() {
+            cache.useCache(new Runnable() {
                 @Override
                 public void run() {
                     persistentCache.remove(key);
                 }
             });
         }
-    }
-
-    private enum CacheUsage {
-
-        FILE_LOCK {
-            @Override
-            <T> T execute(CacheAccess cacheAccess, Factory<? extends T> action) {
-                return cacheAccess.withFileLock(action);
-            }
-
-            @Override
-            void execute(CacheAccess cacheAccess, Runnable action) {
-                cacheAccess.withFileLock(action);
-            }
-        },
-
-        EXCLUSIVE {
-            @Override
-            <T> T execute(CacheAccess cacheAccess, Factory<? extends T> action) {
-                return cacheAccess.useCache(action);
-            }
-
-            @Override
-            void execute(CacheAccess cacheAccess, Runnable action) {
-                cacheAccess.useCache(action);
-            }
-        };
-
-        abstract <T> T execute(CacheAccess cacheAccess, Factory<? extends T> action);
-
-        abstract void execute(CacheAccess cacheAccess, Runnable action);
-
     }
 }

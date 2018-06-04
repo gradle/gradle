@@ -18,8 +18,8 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
-import org.gradle.cache.internal.IndexedCacheBackedFileAccessJournal
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
@@ -73,10 +73,10 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
-        journal().assertExists()
+        journal.assertExists()
 
         when:
-        journal().delete() // delete journal to destroy last access information
+        assert journal.delete() // delete journal to clear access time information
         markForCleanup(gcFile) // force cleanup
 
         and: // last modified timestamp is used when journal does not exist
@@ -85,7 +85,8 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         markForCleanup(files[1].parentFile)
 
         and:
-        succeeds 'tasks'
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks('tasks').start().waitForFinish()
 
         then:
         resources[0].assertDoesNotExist()
@@ -124,17 +125,17 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         and:
-        journal().delete()
+        journal.delete()
 
         then:
         succeeds 'resolve'
 
         and:
-        journal().assertExists()
+        journal.assertExists()
     }
 
-    private TestFile journal() {
-        def journal = findFiles(cacheDir, "metadata-*/" + IndexedCacheBackedFileAccessJournal.CACHE_NAME + ".bin")
+    private TestFile getJournal() {
+        def journal = findFiles(cacheDir, "metadata-*/" + IndexedCacheBackedFileAccessTimeJournal.CACHE_NAME + ".bin")
         journal.size() == 1
         journal[0]
     }
