@@ -29,6 +29,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -49,8 +50,7 @@ public class DefaultModuleMetadataCache extends InMemoryModuleMetadataCache {
                                       IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                       Interner<String> stringInterner) {
         super(timeProvider);
-        ModuleMetadataSerializer moduleMetadataSerializer = new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory);
-        moduleMetadataStore = new ModuleMetadataStore(artifactCacheMetadata.getMetaDataStoreDirectory(), moduleMetadataSerializer, moduleIdentifierFactory, stringInterner, cacheLockingManager.getFileAccessJournal());
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
         this.cacheLockingManager = cacheLockingManager;
     }
 

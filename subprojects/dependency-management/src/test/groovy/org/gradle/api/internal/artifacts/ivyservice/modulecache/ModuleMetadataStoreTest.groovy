@@ -21,7 +21,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.resource.local.ModificationTimeFileAccessJournal
+import org.gradle.internal.resource.local.LocallyAvailableResource
+import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
@@ -31,44 +32,43 @@ import spock.lang.Subject
 
 class ModuleMetadataStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder
+    PathKeyFileStore pathKeyFileStore = Mock(PathKeyFileStore)
     String repository = "repositoryId"
+    LocallyAvailableResource fileStoreEntry = Mock(LocallyAvailableResource)
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
         module(_,_) >> { args -> DefaultModuleIdentifier.newId(*args)}
     }
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "testArtifact"), "1.0")
     ModuleMetadataSerializer serializer = Mock(ModuleMetadataSerializer)
-    @Subject ModuleMetadataStore store = new ModuleMetadataStore(temporaryFolder.getTestDirectory(), serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe(), new ModificationTimeFileAccessJournal())
+    @Subject ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer, moduleIdentifierFactory, SimpleMapInterner.notThreadSafe())
     MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
-        expect:
+        when:
+        pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
+        then:
         null == store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier))
     }
 
-    def "putModuleDescriptor uses ModuleMetadataSerializer to write file"() {
-        given:
+    def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
+        when:
+        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
+        then:
+        1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
+    }
+
+    def "putModuleDescriptor uses PathKeyFileStore to write file"() {
+        setup:
+        File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
         def descriptor = mavenMetadataFactory.create(moduleComponentIdentifier).asImmutable()
 
         when:
         store.putModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier), descriptor)
-
         then:
+        1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/descriptor.bin", _) >> { path, action ->
+            action.execute(descriptorFile); fileStoreEntry
+        };
         1 * serializer.write(_, descriptor)
-        temporaryFolder.file("org.test/testArtifact/1.0/repositoryId/descriptor.bin").assertExists()
-    }
-
-    def "getModuleDescriptor uses ModuleMetadataSerializer to read file and marks it as accessed"() {
-        given:
-        def descriptorFile = temporaryFolder.file("org.test/testArtifact/1.0/repositoryId/descriptor.bin").touch().makeOlder()
-        def descriptor = mavenMetadataFactory.create(moduleComponentIdentifier)
-        def beforeAccess = descriptorFile.lastModified()
-
-        when:
-        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier))
-
-        then:
-        1 * serializer.read(_, moduleIdentifierFactory) >> descriptor
-        descriptorFile.parentFile.lastModified() > beforeAccess
     }
 }

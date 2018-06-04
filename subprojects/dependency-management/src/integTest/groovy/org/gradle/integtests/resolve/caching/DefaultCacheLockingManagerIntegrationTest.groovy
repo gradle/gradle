@@ -24,7 +24,6 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
-import spock.lang.Unroll
 
 import static java.util.concurrent.TimeUnit.DAYS
 
@@ -49,8 +48,6 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
-        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
-        metadata.size() == 1
 
         when:
         markForCleanup(gcFile)
@@ -62,10 +59,9 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources[0].assertExists()
         files[0].assertExists()
         files[1].assertExists()
-        metadata[0].assertExists()
     }
 
-    def "cleans up resources, files and metadata that were not recently used from caches"() {
+    def "cleans up resources and files that were not recently used from caches"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
@@ -77,8 +73,6 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
-        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
-        metadata.size() == 1
         journal().assertExists()
 
         when:
@@ -89,7 +83,6 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         markForCleanup(resources[0].parentFile)
         markForCleanup(files[0].parentFile)
         markForCleanup(files[1].parentFile)
-        markForCleanup(metadata[0].parentFile)
 
         and:
         succeeds 'tasks'
@@ -98,11 +91,9 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources[0].assertDoesNotExist()
         files[0].assertDoesNotExist()
         files[1].assertDoesNotExist()
-        metadata[0].assertDoesNotExist()
     }
 
-    @Unroll
-    def "downloads deleted artifacts and metadata again when deleting #filesToDelete"() {
+    def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
@@ -114,21 +105,15 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         resources.size() == 1
         def files = findFiles(cacheDir, "files-*/**/*")
         files.size() == 2
-        def metadata = findFiles(cacheDir, "metadata-*/descriptors/**/*")
-        metadata.size() == 1
 
         when:
-        findFiles(cacheDir, filesToDelete).each { it.delete() }
+        findFiles(cacheDir, 'files-*/**/*').each { it.delete() }
 
         and:
         succeeds 'resolve'
 
         then:
-        metadata[0].parentFile.assertExists()
         files.findAll { it.name.endsWith(".jar") }.each { it.assertExists() }
-
-        where:
-        filesToDelete << ['files-*/**/*', 'metadata-*/descriptors/**/*']
     }
 
     def "marks artifacts as recently used when accessed"() {
