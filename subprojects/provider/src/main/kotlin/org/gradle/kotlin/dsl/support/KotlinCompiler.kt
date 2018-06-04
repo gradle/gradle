@@ -84,7 +84,7 @@ fun compileKotlinScriptToDirectory(
                 HasImplicitReceiverCompilerPlugin.apply(project)
             }
 
-            compileKotlin(environment)
+            compileBunchOfSources(environment)
                 || throw ScriptCompilationException(messageCollector.errors)
 
             NameUtils.getScriptNameForFile(scriptFile.name).asString()
@@ -146,16 +146,9 @@ fun compileTo(
                 addJvmClasspathRoot(kotlinStdlibJar)
             }
             val environment = kotlinCoreEnvironmentFor(configuration, disposable)
-            return compileKotlin(environment)
+            return compileBunchOfSources(environment)
         }
     }
-}
-
-
-private
-fun compileKotlin(environment: KotlinCoreEnvironment): Boolean {
-    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return compileBunchOfSources(environment)
 }
 
 
@@ -219,8 +212,10 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition)
 
 
 private
-fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
-    KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable): KotlinCoreEnvironment {
+    org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
+    return KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
+}
 
 
 internal
