@@ -46,7 +46,7 @@ open class IntTestImagePlugin : Plugin<Project> {
             into(file("$buildDir/integ test"))
         }
 
-        tasks.withType(DistributionTest::class.java).configureEach {
+        tasks.withType<DistributionTest>().configureEach {
             dependsOn(intTestImage)
         }
 
