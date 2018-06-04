@@ -41,7 +41,8 @@ data class ProgramText private constructor(val text: String) {
     }
 
     fun erase(ranges: List<IntRange>): ProgramText =
-        ProgramText(text.erase(ranges))
+        if (ranges.isEmpty()) this
+        else ProgramText(text.erase(ranges))
 
     fun preserve(vararg ranges: IntRange): ProgramText {
 
@@ -106,12 +107,8 @@ data class ScriptSection(
 }
 
 
-internal
+private
 fun String.erase(ranges: List<IntRange>): String {
-
-    if (ranges.isEmpty()) {
-        return this
-    }
 
     val result = StringBuilder(length)
 

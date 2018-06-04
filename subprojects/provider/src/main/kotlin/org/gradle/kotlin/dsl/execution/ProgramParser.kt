@@ -18,9 +18,6 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.kotlin.dsl.support.compilerMessageFor
 
-import org.jetbrains.kotlin.lexer.KotlinLexer
-import org.jetbrains.kotlin.lexer.KtTokens
-
 
 internal
 object ProgramParser {
@@ -34,15 +31,30 @@ object ProgramParser {
     private
     fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Program {
 
+        val topLevelBlockIds =
+            when (target) {
+                ProgramTarget.Project -> arrayOf("buildscript", "plugins")
+                ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement")
+                ProgramTarget.Gradle -> arrayOf("initscript")
+            }
+
+        val (comments, topLevelBlocks) = lex(source.text, *topLevelBlockIds)
+
         val sourceWithoutComments =
-            source.map { it.erase(commentsOf(it.text)) }
+            source.map { it.erase(comments) }
 
         val buildscriptFragment =
-            topLevelFragmentFrom(sourceWithoutComments, if (target == ProgramTarget.Gradle) "initscript" else "buildscript")
+            topLevelBlocks
+                .filter { it.identifier === topLevelBlockIds[0] }
+                .singleBlock()
+                ?.let { sourceWithoutComments.fragment(it) }
 
         val pluginsFragment =
-            if (kind == ProgramKind.TopLevel && target == ProgramTarget.Project) topLevelFragmentFrom(sourceWithoutComments, "plugins")
-            else null
+            topLevelBlocks
+                .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
+                ?.filter { it.identifier === "plugins" }
+                ?.singleBlock()
+                ?.let { sourceWithoutComments.fragment(it) }
 
         val buildscript =
             buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
@@ -80,29 +92,9 @@ object ProgramParser {
     }
 
     private
-    fun topLevelFragmentFrom(source: ProgramSource, identifier: String): ProgramSourceFragment? =
-        extractTopLevelBlock(source.text, identifier)
-            ?.let { source.fragment(it) }
-
-    private
     fun ProgramSourceFragment.isNotBlank() =
         source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
 }
-
-
-private
-fun commentsOf(script: String): List<IntRange> =
-    KotlinLexer().run {
-        val comments = mutableListOf<IntRange>()
-        start(script)
-        while (tokenType != null) {
-            if (tokenType in KtTokens.COMMENTS) {
-                comments.add(tokenStart..(tokenEnd - 1))
-            }
-            advance()
-        }
-        comments
-    }
 
 
 internal

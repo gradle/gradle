@@ -133,7 +133,7 @@ class StandardKotlinScriptEvaluator(
         scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
 
     private
-    val cacheProperties = mapOf("version" to "6")
+    val cacheProperties = mapOf("version" to "7")
 
     private
     val interpreter by lazy {
