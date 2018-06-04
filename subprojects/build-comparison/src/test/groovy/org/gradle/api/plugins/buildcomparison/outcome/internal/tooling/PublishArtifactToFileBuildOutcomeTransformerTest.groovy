@@ -99,10 +99,10 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBu
         def taskDependency = Mock(TaskDependency)
         def artifact = Mock(PublishArtifact)
 
-        2 * taskDependency.getDependencies(null) >>> [[task] as Set]
+        1 * taskDependency.getDependencies(null) >>> [[task] as Set]
         1 * task.getPath() >> "path"
         _ * artifact.getFile() >> project.file("file")
-        2 * artifact.getBuildDependencies() >> taskDependency
+        1 * artifact.getBuildDependencies() >> taskDependency
 
         when:
         def outcome = transformer.transform(artifact, project)

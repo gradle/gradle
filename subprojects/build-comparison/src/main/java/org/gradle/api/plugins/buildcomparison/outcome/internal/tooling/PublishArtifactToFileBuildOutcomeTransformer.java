@@ -37,9 +37,10 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
 
     public GradleFileBuildOutcome transform(PublishArtifact artifact, Project project) {
         String id = getId(artifact, project);
-        String taskPath = getTaskPath(artifact);
         String description = getDescription(artifact);
-        String typeIdentifier = getTypeIdentifier(artifact);
+        Task task = inferTask(artifact);
+        String taskPath = task != null ? task.getPath() : null;
+        String typeIdentifier = getTypeIdentifier(task);
 
         return new DefaultGradleFileBuildOutcome(id, description, taskPath, artifact.getFile(), typeIdentifier);
     }
@@ -56,17 +57,10 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
         return "Publish artifact '".concat(artifact.toString()).concat("'");
     }
 
-    private String getTypeIdentifier(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) artifact;
-            AbstractArchiveTask task = publishArtifact.getArchiveTask();
-
-            return getTypeIdentifier(task);
+    private String getTypeIdentifier(Task task) {
+        if (task instanceof AbstractArchiveTask) {
+            return getTypeIdentifier((AbstractArchiveTask)task);
         } else {
-            Task task = inferTask(artifact);
-            if (task instanceof AbstractArchiveTask) {
-                return getTypeIdentifier((AbstractArchiveTask)task);
-            }
             // This could very well be a zip (or something else we understand), but we can't know for sure.
             // The client may try to infer from the file extension.
             return UNKNOWN_ARTIFACT.getTypeIdentifier();
@@ -92,25 +86,16 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
         }
     }
 
-    private String getTaskPath(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
-        } else {
-            String taskPath = null;
-            Task task = inferTask(artifact);
-            if (task != null) {
-                taskPath = task.getPath();
-            }
-            return taskPath;
-        }
-    }
-
     private Task inferTask(PublishArtifact artifact) {
-        Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-        if (!tasks.isEmpty()) {
-            return tasks.iterator().next();
-        }
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask();
+        } else {
+            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+            if (!tasks.isEmpty()) {
+                return tasks.iterator().next();
+            }
 
-        return null;
+            return null;
+        }
     }
 }
