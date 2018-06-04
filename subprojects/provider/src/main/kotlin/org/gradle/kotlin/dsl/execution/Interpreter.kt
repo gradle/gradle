@@ -445,9 +445,13 @@ class Interpreter(val host: Host) {
         }
 
         open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
-            (specializedProgram.newInstance() as ExecutableProgram)
+            instantiate(specializedProgram)
                 .execute(this, scriptHost)
         }
+
+        private
+        fun instantiate(specializedProgram: Class<*>) =
+            specializedProgram.getDeclaredConstructor().newInstance() as ExecutableProgram
     }
 }
 
