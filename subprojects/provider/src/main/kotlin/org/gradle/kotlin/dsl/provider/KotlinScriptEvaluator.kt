@@ -136,9 +136,6 @@ class StandardKotlinScriptEvaluator(
     val cacheProperties = mapOf("version" to "6")
 
     private
-    val cacheKeyPrefix = CacheKeyBuilder.CacheKeySpec.withPrefix("gradle-kotlin-dsl")
-
-    private
     val interpreter by lazy {
         Interpreter(InterpreterHost())
     }
@@ -215,7 +212,7 @@ class StandardKotlinScriptEvaluator(
 
         private
         val cacheKeyPrefix =
-            CacheKeyBuilder.CacheKeySpec.withPrefix("kotlin-dsl-interpreter")
+            CacheKeyBuilder.CacheKeySpec.withPrefix("gradle-kotlin-dsl")
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             classPathProvider.compilationClassPathOf(classLoaderScope)
