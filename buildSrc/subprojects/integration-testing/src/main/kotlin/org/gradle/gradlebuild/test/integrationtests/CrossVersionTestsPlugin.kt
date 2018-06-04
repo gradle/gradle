@@ -50,12 +50,12 @@ class CrossVersionTestsPlugin : Plugin<Project> {
     private
     fun Project.createAggregateTasks(sourceSet: SourceSet) {
         // Calculate the set of released versions - do this at configuration time because we need this to create various tasks
-        val allVersionsCrossVersionTests = tasks.createLater("allVersionsCrossVersionTests") {
+        val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
             group = "verification"
             description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
         }
 
-        val quickFeedbackCrossVersionTests = tasks.createLater("quickFeedbackCrossVersionTests") {
+        val quickFeedbackCrossVersionTests = tasks.register("quickFeedbackCrossVersionTests") {
             group = "verification"
             description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
         }

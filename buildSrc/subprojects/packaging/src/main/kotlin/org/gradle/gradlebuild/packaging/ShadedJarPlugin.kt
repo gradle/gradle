@@ -123,7 +123,7 @@ open class ShadedJarPlugin : Plugin<Project> {
         val baseVersion: String by rootProject.extra
         val jar: TaskProvider<Jar> = tasks.withType(Jar::class.java).named("jar")
 
-        return tasks.createLater("${project.name}ShadedJar", ShadedJar::class.java) {
+        return tasks.register("${project.name}ShadedJar", ShadedJar::class.java) {
             dependsOn(jar)
             jarFile.set(layout.buildDirectory.file("shaded-jar/${base.archivesBaseName}-shaded-$baseVersion.jar"))
             classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
