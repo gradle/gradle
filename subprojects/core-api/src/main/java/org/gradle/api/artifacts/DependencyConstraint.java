@@ -31,12 +31,6 @@ import javax.annotation.Nullable;
 public interface DependencyConstraint extends ModuleVersionSelector, HasConfigurableAttributes<DependencyConstraint> {
 
     /**
-     * Returns the version constraint to be used during selection.
-     * @return the version constraint
-     */
-    VersionConstraint getVersionConstraint();
-
-    /**
      * Configures the version constraint for this dependency constraint.
      *
      * @param configureAction the configuration action for the module version

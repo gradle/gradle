@@ -49,6 +49,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
 
     @Override
     public String toString() {
-        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " {rejects: " + Joiner.on(" & ").join(getRejectedVersions()) + "}") + (getBranch() == null ? "" : " {branch: " + getBranch() + "}");
+        return getPreferredVersion() + (getRejectedVersions().isEmpty() ? "" : " (rejects: " + Joiner.on(" - ").join(getRejectedVersions()) + ")") + (getBranch() == null ? "" : " (branch: " + getBranch() + ")");
     }
 }

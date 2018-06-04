@@ -200,6 +200,6 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.module == 'name-one'
         result.version == 'version-one'
         result.versionConstraint.preferredVersion == 'version-one'
-        result.versionConstraint.rejectedVersions == ['(version-one,)']
+        result.versionConstraint.rejectedVersions == [']version-one,)']
     }
 }

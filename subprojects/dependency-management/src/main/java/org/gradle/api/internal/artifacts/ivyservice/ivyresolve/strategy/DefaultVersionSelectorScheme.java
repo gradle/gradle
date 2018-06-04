@@ -57,12 +57,12 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
         if (selector instanceof ExactVersionSelector) {
-            return new VersionRangeSelector("(" + selector.getSelector() + ",)", versionComparator.asVersionComparator(), versionParser);
+            return new VersionRangeSelector("]" + selector.getSelector() + ",)", versionComparator.asVersionComparator(), versionParser);
         }
         if (selector instanceof VersionRangeSelector) {
             VersionRangeSelector vrs = (VersionRangeSelector) selector;
             if (vrs.getUpperBound() != null) {
-                String lowerBoundInclusion = vrs.isUpperInclusive() ? "(" : "[";
+                String lowerBoundInclusion = vrs.isUpperInclusive() ? "]" : "[";
                 return new VersionRangeSelector(lowerBoundInclusion + vrs.getUpperBound() + ",)", versionComparator.asVersionComparator(), versionParser);
             }
         }

@@ -32,8 +32,6 @@ import org.gradle.api.logging.Logging;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Strings.emptyToNull;
-
 public class DefaultDependencyConstraint implements DependencyConstraint {
 
     private final static Logger LOG = Logging.getLogger(DefaultDependencyConstraint.class);
@@ -69,9 +67,10 @@ public class DefaultDependencyConstraint implements DependencyConstraint {
         return name;
     }
 
+    @Nullable
     @Override
     public String getVersion() {
-        return emptyToNull(versionConstraint.getPreferredVersion());
+        return versionConstraint.getPreferredVersion();
     }
 
     @Override

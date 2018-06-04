@@ -461,8 +461,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
     }
 
     def parseFailureType(ExecutionFailure failure) {
-        if (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")
-            && failure.error.contains("rejects")) {
+        if (failure.error.contains("Cannot find a version of 'org:foo' that satisfies the version constraints")) {
             return VersionRangeResolveTestScenarios.REJECTED
         }
         return VersionRangeResolveTestScenarios.FAILED
