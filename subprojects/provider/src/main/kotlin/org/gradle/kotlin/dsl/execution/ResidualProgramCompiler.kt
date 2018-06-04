@@ -465,10 +465,6 @@ class ResidualProgramCompiler(
         return compileScript(scriptFile, originalScriptPath, scriptDefinition)
     }
 
-    init {
-        org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    }
-
     private
     fun compileScript(scriptFile: File, originalPath: String, scriptDefinition: KotlinScriptDefinition): String =
         compileKotlinScriptToDirectory(
