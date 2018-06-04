@@ -30,10 +30,10 @@ plugins {
     `maven`
 }
 
-val generatePom = tasks.createLater("generatePom", GeneratePom::class.java)
+val generatePom = tasks.register("generatePom", GeneratePom::class.java)
 
 val main by java.sourceSets
-val sourceJar = tasks.createLater("sourceJar", Jar::class.java) {
+val sourceJar = tasks.register("sourceJar", Jar::class.java) {
     classifier = "sources"
     from(main.java.srcDirs + main.groovy.srcDirs)
 }

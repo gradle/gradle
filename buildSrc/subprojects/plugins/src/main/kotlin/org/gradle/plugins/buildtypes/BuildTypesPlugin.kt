@@ -19,7 +19,7 @@ class BuildTypesPlugin : Plugin<Project> {
 
     private
     fun Project.register(buildType: BuildType) {
-        tasks.createLater(buildType.name) {
+        tasks.register(buildType.name) {
 
             group = "Build Type"
 
