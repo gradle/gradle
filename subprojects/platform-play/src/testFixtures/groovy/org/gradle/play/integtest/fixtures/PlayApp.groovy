@@ -23,6 +23,7 @@ import org.gradle.util.RelativePathUtil
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 abstract class PlayApp {
+    boolean oldVersion
 
     String getName() {
         getClass().getSimpleName().toLowerCase()
@@ -78,7 +79,9 @@ abstract class PlayApp {
     void writeSources(TestFile sourceDir) {
         gradleBuild.writeToDir(sourceDir)
         for (SourceFile srcFile : allFiles) {
-            srcFile.writeToDir(sourceDir)
+            if(oldVersion) {
+                srcFile.writeToDir(sourceDir)
+            }
         }
     }
 
@@ -89,14 +92,35 @@ abstract class PlayApp {
         if(resource != null){
             File baseDirFile = new File(resource.toURI())
             baseDirFile.eachFileRecurse { File source ->
-                if(!source.isDirectory()){
-                    String fileName = source.getName()
-                    def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile);
-                    sourceFiles.add(sourceFile("$baseDir/$subpath", fileName, rootDir))
+                if(source.isDirectory()){
+                    return
+                }
+
+                def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile);
+                sourceFiles.add(sourceFile("$baseDir/$subpath", source.name, rootDir))
+
+                if(oldVersion) {
+                    if(isOldVersionFile(source)) {
+                        sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name[0..<-4], source.text))
+                    } else if (!oldVersionFileExists(source)) {
+                        sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name, source.text))
+                    }
+                } else {
+                    if(!isOldVersionFile(source)) {
+                        sourceFiles.add(new SourceFile("$baseDir/$subpath", source.name, source.text))
+                    }
                 }
             }
         }
 
         return sourceFiles
+    }
+
+    private static boolean isOldVersionFile(File file) {
+        return file.name.endsWith('.old')
+    }
+
+    private static boolean oldVersionFileExists(File file) {
+        return new File(file.parentFile, "${file.name}.old").exists()
     }
 }
