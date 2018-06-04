@@ -301,14 +301,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
-        Jar jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
+        Jar jar = project.getTasks().create(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
             @Override
             public void execute(Jar jar) {
                 jar.setDescription("Assembles a jar archive containing the main classes.");
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
-        }).get();
+        });
         // TODO: Allow this to be added lazily
         ArchivePublishArtifact jarArtifact = new ArchivePublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
