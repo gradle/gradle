@@ -32,7 +32,7 @@ import java.util.*
 import javax.inject.Inject
 
 
-@Suppress("unused") // This name of this class is hardcoded in Gradle
+@Suppress("unused") // The name of this class is hardcoded in Gradle
 class KotlinScriptPluginFactory @Inject internal constructor(
     private val kotlinScriptEvaluator: KotlinScriptEvaluator
 ) : ScriptPluginFactory {
