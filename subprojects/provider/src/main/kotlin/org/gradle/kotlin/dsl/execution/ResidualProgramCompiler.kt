@@ -139,9 +139,7 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
-        val originalScriptPath = source.path
-        val scriptFile = scriptFileFor(source, "stage-1")
-        val precompiledScriptClass = compileScript(scriptFile, originalScriptPath, stage1ScriptDefinition)
+        val precompiledScriptClass = compileStage1(source, stage1ScriptDefinition)
         emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
     }
 
@@ -149,7 +147,7 @@ class ResidualProgramCompiler(
     fun MethodVisitor.emitStage1Sequence(buildscript: Program.Buildscript, plugins: Program.Plugins) {
 
         val precompiledBuildscriptWithPluginsBlock =
-            compileScript(
+            compileStage1(
                 plugins.fragment.source.map {
                     it.preserve(
                         buildscript.fragment.section.wholeRange,
@@ -351,7 +349,7 @@ class ResidualProgramCompiler(
 
     private
     fun compilePlugins(program: Program.Plugins) =
-        compileScript(
+        compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
             pluginsScriptDefinition)
 
@@ -461,7 +459,7 @@ class ResidualProgramCompiler(
         outputDir.resolve(relativePath)
 
     private
-    fun compileScript(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
+    fun compileStage1(source: ProgramSource, scriptDefinition: KotlinScriptDefinition): String {
         val scriptFile = scriptFileFor(source, "stage-1")
         val originalScriptPath = source.path
         return compileScript(scriptFile, originalScriptPath, scriptDefinition)
