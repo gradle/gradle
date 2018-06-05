@@ -453,8 +453,10 @@ class Interpreter(val host: Host) {
         }
 
         open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
-            instantiate(specializedProgram)
-                .execute(this, scriptHost)
+            withContextClassLoader(specializedProgram.classLoader) {
+                instantiate(specializedProgram)
+                    .execute(this, scriptHost)
+            }
         }
 
         private
@@ -530,7 +532,6 @@ fun maybeUnwrapInvocationTargetException(e: Throwable) =
     else e
 
 
-// TODO:partial-evaluator restore contextClassLoader behaviour
 private
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()

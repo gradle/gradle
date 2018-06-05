@@ -50,7 +50,21 @@ class InterpreterTest : TestWithTempFiles() {
     @Test
     fun `caches specialized programs`() {
 
-        val text = "buildscript { println(\"stage 1\") }; println(\"stage 2\")"
+        val scriptPath =
+            "/src/settings.gradle.kts"
+
+        val text = """
+
+            buildscript {
+                require(Thread.currentThread().contextClassLoader === this@Settings_gradle.javaClass.classLoader)
+                println("stage 1")
+            }
+
+            require(Thread.currentThread().contextClassLoader === this@Settings_gradle.javaClass.classLoader)
+            println("stage 2")
+
+        """.trimIndent()
+
         val sourceHash = HashCode.fromInt(42)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
@@ -58,7 +72,6 @@ class InterpreterTest : TestWithTempFiles() {
         val resource = mock<TextResource> {
             on { getText() } doReturn text
         }
-        val scriptPath = "/src/settings.gradle.kts"
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
             on { getResource() } doReturn resource
