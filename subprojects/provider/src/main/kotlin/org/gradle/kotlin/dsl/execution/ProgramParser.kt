@@ -40,9 +40,7 @@ object ProgramParser {
 
         val (comments, topLevelBlocks) = lex(source.text, *topLevelBlockIds)
 
-        topLevelBlockIds.forEach { id ->
-            topLevelBlocks.filter { it.identifier === id }.singleBlockSectionOrNull()
-        }
+        checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 
         val sourceWithoutComments =
             source.map { it.erase(comments) }
@@ -94,6 +92,18 @@ object ProgramParser {
     }
 
     private
+    fun checkForSingleBlocksOf(
+        topLevelBlockIds: Array<String>,
+        topLevelBlocks: List<TopLevelBlock>
+    ) {
+        topLevelBlockIds.forEach { id ->
+            topLevelBlocks
+                .filter { it.identifier === id }
+                .singleBlockSectionOrNull()
+        }
+    }
+
+    private
     fun ProgramSourceFragment.isNotBlank() =
         source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
 }
@@ -104,7 +114,7 @@ fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
     singleOrNull { it.identifier == topLevelBlockId }?.section
 
 
-internal
+private
 fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scriptPath: String): Nothing {
     val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
     val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
