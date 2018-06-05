@@ -16,25 +16,21 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CleanableStore;
-
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Collection;
 
-public class NonReservedCacheFileFilter implements FileFilter {
+public class NonReservedFileFilter implements FileFilter {
 
-    private final CleanableStore cleanableStore;
+    private final Collection<File> reservedFiles;
 
-    public NonReservedCacheFileFilter(CleanableStore cleanableStore) {
-        this.cleanableStore = cleanableStore;
+    public NonReservedFileFilter(Collection<File> reservedFiles) {
+        this.reservedFiles = reservedFiles;
     }
 
     @Override
     public boolean accept(File file) {
-        return !isReserved(file);
+        return !reservedFiles.contains(file);
     }
 
-    private boolean isReserved(File file) {
-        return cleanableStore.getReservedCacheFiles().contains(file);
-    }
 }

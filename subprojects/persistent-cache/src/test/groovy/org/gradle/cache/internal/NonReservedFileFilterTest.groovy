@@ -16,20 +16,17 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.CleanableStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class NonReservedCacheFileFilterTest extends Specification {
+class NonReservedFileFilterTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def "filters for cache entry files"() {
         given:
-        def cacheDir = temporaryFolder.file("cache-dir").createDir()
-        def filter = new NonReservedCacheFileFilter(Mock(CleanableStore) {
-            getReservedCacheFiles() >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
-        })
+        def cacheDir = temporaryFolder.getTestDirectory()
+        def filter = new NonReservedFileFilter([cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock")])
 
         expect:
         !filter.accept(cacheDir.file("cache.properties").touch())

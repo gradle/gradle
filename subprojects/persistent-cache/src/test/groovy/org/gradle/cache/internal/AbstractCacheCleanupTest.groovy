@@ -44,7 +44,7 @@ class AbstractCacheCleanupTest extends Specification {
             .clean(cleanableStore, timer)
 
         then:
-        (1.._) * cleanableStore.getReservedCacheFiles() >> [cacheEntries[0]]
+        1 * cleanableStore.getReservedCacheFiles() >> [cacheEntries[0]]
         2 * timer.hasExpired()
         cacheEntries[0].assertExists()
         cacheEntries[1].assertDoesNotExist()
@@ -82,7 +82,7 @@ class AbstractCacheCleanupTest extends Specification {
     FilesFinder finder(files) {
         Stub(FilesFinder) {
             find(_, _) >> { baseDir, filter ->
-                assert filter instanceof NonReservedCacheFileFilter
+                assert filter instanceof NonReservedFileFilter
                 files.findAll { filter.accept(it) }
             }
         }
