@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
@@ -78,7 +79,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.target instanceof ModuleComponentSelector
         details.target.toString() == 'org:bar:2.0'
         details.updated
-        details.selectionDescription == VersionSelectionReasons.SELECTED_BY_RULE.withReason('with custom reason')
+        details.selectionDescription.cause == ComponentSelectionCause.SELECTED_BY_RULE
+        details.selectionDescription.description == 'with custom reason'
     }
 
     def "can specify target project"() {

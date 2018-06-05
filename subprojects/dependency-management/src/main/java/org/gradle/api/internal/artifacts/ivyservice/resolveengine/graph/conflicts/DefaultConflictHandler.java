@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
@@ -92,7 +93,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             if (replacement != null) {
                 String reason = replacement.getReason();
                 if (reason != null) {
-                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE, reason));
+                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE, Describables.of(reason)));
                 }
             }
         }

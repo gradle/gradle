@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
@@ -196,7 +197,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private DefaultResolvedVariantResult defaultVariant() {
-        new DefaultResolvedVariantResult("default", ImmutableAttributes.EMPTY)
+        new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY)
     }
 
     private DefaultResolvedDependencyResult path(String path) {
