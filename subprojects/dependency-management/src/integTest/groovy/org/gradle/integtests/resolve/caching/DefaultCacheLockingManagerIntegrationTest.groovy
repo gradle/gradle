@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.changedetection.state.IndexedCacheBackedFileAccessTimeJournal
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
@@ -179,7 +180,7 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
     }
 
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", "modules-2")
+        return executer.gradleUserHomeDir.file("caches", CacheLayout.ROOT.getKey())
     }
 
     void markForCleanup(File file) {

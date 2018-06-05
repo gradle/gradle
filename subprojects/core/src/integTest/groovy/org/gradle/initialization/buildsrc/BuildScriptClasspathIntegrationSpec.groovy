@@ -19,6 +19,7 @@ package org.gradle.initialization.buildsrc
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.internal.classpath.DefaultCachedClasspathTransformer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -266,7 +267,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     TestFile getCacheDir() {
-        return executer.gradleUserHomeDir.file("caches", "jars-3")
+        return executer.gradleUserHomeDir.file("caches", DefaultCachedClasspathTransformer.CACHE_KEY)
     }
 
     void markForCleanup(File file) {
