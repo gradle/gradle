@@ -109,7 +109,7 @@ class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (failure != null) {
                 visitor.visitFailure(failure);
             } else {
-                visitor.visitArtifact(variantName.getDisplayName(), variantAttributes, artifact);
+                visitor.visitArtifact(variantName, variantAttributes, artifact);
             }
         }
 

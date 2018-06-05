@@ -37,6 +37,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -68,6 +70,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return comparator.compare(parser.transform(o2), parser.transform(o1));
         }
     };
+    private static final DisplayName UNKNOWN_VARIANT = Describables.of("unknown");
 
     private final ComponentIdentifier componentIdentifier;
     private final ModuleVersionIdentifier id;
@@ -239,14 +242,19 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     @Override
-    public String getVariantName() {
-        String name = null;
+    public DisplayName getVariantName() {
+        DisplayName name = null;
+        List<String> names = null;
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                name = variantNameBuilder.getVariantName(name, node.getMetadata().getName());
+                if (names == null) {
+                    names = Lists.newArrayListWithCapacity(nodes.size());
+                }
+                names.add(node.getMetadata().getName());
             }
         }
-        return name == null ? "unknown" : name;
+        name = variantNameBuilder.getVariantName(names);
+        return name == null ? UNKNOWN_VARIANT : name;
     }
 
     @Override

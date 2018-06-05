@@ -123,6 +123,9 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
+            if (displayName instanceof CharSequence) {
+                return displayName.toString();
+            }
             StringBuilder builder = new StringBuilder(32);
             appendDisplayName(displayName, builder);
             return builder.toString();

@@ -50,6 +50,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencies;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -110,7 +111,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
         ParallelResolveArtifactSet artifacts = ParallelResolveArtifactSet.wrap(resolveResult.artifactsResults.getArtifacts(), buildOperationExecutor);
         artifacts.visit(new ArtifactVisitor() {
             @Override
-            public void visitArtifact(String variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
+            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
                 result.add(artifact.getFile());
             }
 
@@ -130,7 +131,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             }
 
             @Override
-            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, String variantName, AttributeContainer variantAttributes, File file) {
+            public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
                 result.add(file);
             }
         });
