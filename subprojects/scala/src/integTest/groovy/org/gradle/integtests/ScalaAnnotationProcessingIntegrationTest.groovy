@@ -42,8 +42,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "processes annotation for Java class if annotation processor is available on classpath"() {
-        executer.requireGradleDistribution()
-
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
@@ -69,8 +67,6 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "processes annotation for Java class if annotation processor is available on processor path"() {
-        executer.requireGradleDistribution()
-
         when:
         AnnotationProcessorPublisher annotationProcessorPublisher = new AnnotationProcessorPublisher()
         annotationProcessorPublisher.writeSourceFiles()
