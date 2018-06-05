@@ -203,7 +203,7 @@ class StandardKotlinScriptEvaluator(
             initializer: (File) -> Unit
         ): File =
             try {
-                cacheDirFor(cacheKeyPrefix + templateId + sourceHash.toString() + parentClassLoader) {
+                cacheDirFor(cacheKeyPrefix + templateId + sourceHash + parentClassLoader) {
                     initializer(baseDir)
                 }
             } catch (e: CacheOpenException) {
