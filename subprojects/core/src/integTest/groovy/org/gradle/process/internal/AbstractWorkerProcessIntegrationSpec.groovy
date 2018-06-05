@@ -21,7 +21,6 @@ import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
@@ -32,7 +31,6 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -52,13 +50,14 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
-    final DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
-            .parent(NativeServicesTestFixture.getInstance())
-            .provider(new GlobalScopeServices(false))
-            .build()
+    @Shared DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
+        .parent(NativeServicesTestFixture.getInstance())
+        .provider(new GlobalScopeServices(false))
+        .build()
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -67,13 +66,18 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final CacheFactory factory = services.get(CacheFactory.class)
     final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, GradleVersion.current())
     final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
-    final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository))
+    final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)
+    final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(cacheRepository)
+    final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
     final JavaExecHandleFactory execHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
     DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(loggingManager(LogLevel.DEBUG), server, classPathRegistry, new LongIdGenerator(), tmpDir.file("gradleUserHome"), new TmpDirTemporaryFileProvider(), execHandleFactory, new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory)), outputEventListener, Stub(MemoryManager))
 
     def cleanup() {
+        workerProcessClassPathProvider.close()
+    }
+
+    def cleanupSpec() {
         services.close()
     }
 
