@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.util.GFileUtils
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -127,6 +129,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         !file(EXPIRATION_EVENT).exists()
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
         buildFile << """

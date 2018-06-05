@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -156,6 +158,8 @@ task sleep {
         log.count('error me!') == 1
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "foreground daemon log honors log levels for logging"() {
         given:
         file("build.gradle") << """
