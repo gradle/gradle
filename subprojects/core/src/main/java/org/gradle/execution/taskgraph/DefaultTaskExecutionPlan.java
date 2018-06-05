@@ -329,10 +329,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 path.pop();
                 workInfoMapping.add(workInfo);
 
-                MutationInfo taskMutationInfo = getOrCreateMutationsOf(workInfo);
+                MutationInfo mutations = getOrCreateMutationsOf(workInfo);
                 for (WorkInfo dependency : workInfo.getDependencySuccessors()) {
                     getOrCreateMutationsOf(dependency).consumingWork.add(workInfo);
-                    taskMutationInfo.consumesOutputOf.add(dependency);
+                    mutations.consumesOutputOf.add(dependency);
                 }
 
                 if (workInfo instanceof TaskInfo) {
@@ -570,12 +570,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         while (iterator.hasNext()) {
             WorkInfo workInfo = iterator.next();
             if (workInfo.isReady() && allDependenciesComplete(workInfo)) {
-                MutationInfo taskMutationInfo = getResolvedMutationInfo(workInfo);
+                MutationInfo mutations = getResolvedMutationInfo(workInfo);
 
                 // TODO: convert output file checks to a resource lock
                 if (!tryLockProjectFor(workInfo)
                     || !workerLease.tryLock()
-                    || !canRunWithCurrentlyExecutedTasks(workInfo, taskMutationInfo)) {
+                    || !canRunWithCurrentlyExecutedTasks(workInfo, mutations)) {
                     resourceLockState.releaseLocks();
                     continue;
                 }
@@ -608,14 +608,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private MutationInfo getResolvedMutationInfo(WorkInfo workInfo) {
-        MutationInfo taskMutationInfo = workMutations.get(workInfo);
-        if (!taskMutationInfo.resolved) {
-            resolveMutationInfo(taskMutationInfo, workInfo);
+        MutationInfo mutations = workMutations.get(workInfo);
+        if (!mutations.resolved) {
+            resolveMutations(mutations, workInfo);
         }
-        return taskMutationInfo;
+        return mutations;
     }
 
-    private void resolveMutationInfo(MutationInfo taskMutationInfo, WorkInfo workInfo) {
+    private void resolveMutations(MutationInfo mutations, WorkInfo workInfo) {
         if (workInfo instanceof TaskInfo) {
             TaskInfo taskInfo = (TaskInfo) workInfo;
             TaskInternal task = taskInfo.getWork();
@@ -624,21 +624,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-            taskMutationInfo.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
-            taskMutationInfo.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
-            taskMutationInfo.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
-            taskMutationInfo.hasOutputs = taskProperties.hasDeclaredOutputs();
-            taskMutationInfo.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
-            taskMutationInfo.resolved = true;
+            mutations.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskInfo, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
+            mutations.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskInfo, taskProperties.getDestroyableFiles()));
+            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            mutations.hasOutputs = taskProperties.hasDeclaredOutputs();
+            mutations.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
+            mutations.resolved = true;
 
-            if (!taskMutationInfo.destroyablePaths.isEmpty()) {
-                if (taskMutationInfo.hasOutputs) {
+            if (!mutations.destroyablePaths.isEmpty()) {
+                if (mutations.hasOutputs) {
                     throw new IllegalStateException("Task " + taskInfo + " has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.");
                 }
-                if (taskMutationInfo.hasFileInputs) {
+                if (mutations.hasFileInputs) {
                     throw new IllegalStateException("Task " + taskInfo + " has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.");
                 }
-                if (taskMutationInfo.hasLocalState) {
+                if (mutations.hasLocalState) {
                     throw new IllegalStateException("Task " + taskInfo + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
                 }
             }
@@ -677,13 +677,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return workerLeaseService.getProjectLock(gradlePath, projectPath);
     }
 
-    private boolean canRunWithCurrentlyExecutedTasks(WorkInfo taskInfo, MutationInfo taskMutationInfo) {
-        Set<String> candidateTaskDestroyables = taskMutationInfo.destroyablePaths;
+    private boolean canRunWithCurrentlyExecutedTasks(WorkInfo taskInfo, MutationInfo mutations) {
+        Set<String> candidateTaskDestroyables = mutations.destroyablePaths;
 
         if (!runningNodes.isEmpty()) {
-            Set<String> candidateTaskOutputs = taskMutationInfo.outputPaths;
-            Set<String> candidateTaskMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
-            if (hasTaskWithOverlappingMutations(candidateTaskMutations)) {
+            Set<String> candidateTaskOutputs = mutations.outputPaths;
+            Set<String> candidateMutations = !candidateTaskOutputs.isEmpty() ? candidateTaskOutputs : candidateTaskDestroyables;
+            if (hasTaskWithOverlappingMutations(candidateMutations)) {
                 return false;
             }
         }
@@ -709,12 +709,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return builder.build();
     }
 
-    private boolean hasTaskWithOverlappingMutations(Set<String> candidateTaskMutations) {
-        if (!candidateTaskMutations.isEmpty()) {
+    private boolean hasTaskWithOverlappingMutations(Set<String> candidateMutationPaths) {
+        if (!candidateMutationPaths.isEmpty()) {
             for (WorkInfo runningWork : runningNodes) {
-                MutationInfo taskMutationInfo = workMutations.get(runningWork);
-                Iterable<String> runningTaskMutations = Iterables.concat(taskMutationInfo.outputPaths, taskMutationInfo.destroyablePaths);
-                if (hasOverlap(candidateTaskMutations, runningTaskMutations)) {
+                MutationInfo runningMutations = workMutations.get(runningWork);
+                Iterable<String> runningMutationPaths = Iterables.concat(runningMutations.outputPaths, runningMutations.destroyablePaths);
+                if (hasOverlap(candidateMutationPaths, runningMutationPaths)) {
                     return true;
                 }
             }
@@ -838,21 +838,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private void recordWorkCompleted(WorkInfo workInfo) {
         runningNodes.remove(workInfo);
-        MutationInfo mutationInfo = workMutations.get(workInfo);
-        for (WorkInfo producer : mutationInfo.consumesOutputOf) {
-            MutationInfo producerTaskMutationInfo = workMutations.get(producer);
-            if (producerTaskMutationInfo.consumingWork.remove(workInfo) && canRemoveTaskMutation(producerTaskMutationInfo)) {
+        MutationInfo mutations = workMutations.get(workInfo);
+        for (WorkInfo producer : mutations.consumesOutputOf) {
+            MutationInfo producerMutations = workMutations.get(producer);
+            if (producerMutations.consumingWork.remove(workInfo) && canRemoveMutation(producerMutations)) {
                 workMutations.remove(producer);
             }
         }
 
-        if (canRemoveTaskMutation(mutationInfo)) {
+        if (canRemoveMutation(mutations)) {
             workMutations.remove(workInfo);
         }
     }
 
-    private static boolean canRemoveTaskMutation(@Nullable MutationInfo taskMutationInfo) {
-        return taskMutationInfo != null && taskMutationInfo.workInfo.isComplete() && taskMutationInfo.consumingWork.isEmpty();
+    private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
+        return mutations != null && mutations.workInfo.isComplete() && mutations.consumingWork.isEmpty();
     }
 
     @Override
