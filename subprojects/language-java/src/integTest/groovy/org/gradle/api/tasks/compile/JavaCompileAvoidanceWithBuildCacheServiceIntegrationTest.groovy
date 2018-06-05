@@ -87,7 +87,6 @@ class JavaCompileAvoidanceWithBuildCacheServiceIntegrationTest extends AbstractI
         buildFile << '''
             allprojects {
                 apply plugin: 'java'
-                compileJava.options.fork = true // Use forking to work around javac's jar cache
             }
         '''
         file('a/build.gradle') << '''

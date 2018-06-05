@@ -121,4 +121,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     Path findIdentityPath();
 
     void setIdentityPath(Path path);
+
+    String contextualize(String description);
 }

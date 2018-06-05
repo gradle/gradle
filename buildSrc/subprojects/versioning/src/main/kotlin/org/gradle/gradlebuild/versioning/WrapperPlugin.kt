@@ -31,7 +31,7 @@ class WrapperPlugin : Plugin<Project> {
         wrapperUpdateTask("rc", "release-candidate")
         wrapperUpdateTask("current", "current")
 
-        tasks.withType<Wrapper>() {
+        tasks.withType<Wrapper>().configureEach {
             val jvmOpts = "-Xmx128m -Dfile.encoding=UTF-8"
             inputs.property("jvmOpts", jvmOpts)
             // TODO Do we want to use doLast or a finalizedBy task?
@@ -48,18 +48,18 @@ class WrapperPlugin : Plugin<Project> {
         val wrapperTaskName = "${name}Wrapper"
         val configureWrapperTaskName = "configure${wrapperTaskName.capitalize()}"
 
-        val wrapperTask = task<Wrapper>(wrapperTaskName) {
+        val wrapperTask = tasks.register(wrapperTaskName, Wrapper::class.java) {
             dependsOn(configureWrapperTaskName)
             group = "wrapper"
         }
 
         // TODO Avoid late configuration
-        task(configureWrapperTaskName) {
+        tasks.register(configureWrapperTaskName) {
             doLast {
                 val jsonText = URL("https://services.gradle.org/versions/$label").readText()
                 val versionInfo = Gson().fromJson(jsonText, VersionDownloadInfo::class.java)
                 println("updating wrapper to $label version: ${versionInfo.version} (downloadUrl: ${versionInfo.downloadUrl})")
-                wrapperTask.distributionUrl = versionInfo.downloadUrl
+                wrapperTask.get().distributionUrl = versionInfo.downloadUrl
             }
         }
     }

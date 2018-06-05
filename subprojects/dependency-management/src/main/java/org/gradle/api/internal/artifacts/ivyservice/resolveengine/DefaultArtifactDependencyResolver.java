@@ -148,8 +148,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
         switch (conflictResolution) {
             case strict:
-                conflictResolver = new StrictConflictResolver();
-                break;
             case latest:
                 conflictResolver = new LatestModuleConflictResolver(versionComparator, versionParser);
                 break;

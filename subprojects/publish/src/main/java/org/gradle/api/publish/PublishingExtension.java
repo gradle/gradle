@@ -17,18 +17,13 @@
 package org.gradle.api.publish;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
  * The configuration of how to “publish” the different components of a project.
- * <p>
- * This new publishing mechanism will eventually replace the current mechanism of upload tasks and configurations. At this time, it is an
- * incubating feature and under development.
  *
  * @since 1.3
  */
-@Incubating
 public interface PublishingExtension {
 
     /**

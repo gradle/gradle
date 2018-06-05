@@ -24,18 +24,19 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
-public class DependencyReportHeader implements RenderableDependency, HasAttributes {
+public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
     private final DependencyEdge dependency;
     private final String description;
     private final ResolvedVariantResult selectedVariant;
+    private final List<Section> extraDetails;
 
-    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, String description, ResolvedVariantResult resolvedVariantResult, List<Section> extraDetails) {
         this.dependency = dependency;
         this.description = description;
-        this.selectedVariant = extraDetails;
+        this.selectedVariant = resolvedVariantResult;
+        this.extraDetails = extraDetails;
     }
 
     @Override
@@ -59,11 +60,6 @@ public class DependencyReportHeader implements RenderableDependency, HasAttribut
     }
 
     @Override
-    public Set<? extends RenderableDependency> getChildren() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public ResolvedVariantResult getResolvedVariant() {
         return selectedVariant;
     }
@@ -72,7 +68,12 @@ public class DependencyReportHeader implements RenderableDependency, HasAttribut
     public AttributeContainer getAttributes() {
         ComponentSelector requested = dependency.getRequested();
         return requested instanceof ModuleComponentSelector
-            ? ((ModuleComponentSelector) requested).getAttributes()
+            ? requested.getAttributes()
             : ImmutableAttributes.EMPTY;
+    }
+
+    @Override
+    public List<Section> getExtraDetails() {
+        return extraDetails;
     }
 }

@@ -145,6 +145,17 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public String contextualize(String description) {
+        if (getParent() == null) {
+            return description;
+        } else {
+            Path contextPath = findIdentityPath();
+            String context = contextPath == null ? getStartParameter().getCurrentDir().getName() : contextPath.getPath();
+            return description + " (" + context + ")";
+        }
+    }
+
+    @Override
     public GradleInternal getParent() {
         return parent;
     }

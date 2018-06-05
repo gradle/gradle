@@ -25,19 +25,26 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
+import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.api.specs.Specs
+import org.gradle.cache.CacheRepository
+import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.rules.NoInputsRuleAction
+import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor
 import org.gradle.internal.rules.RuleAction
 import org.gradle.internal.rules.RuleActionAdapter
 import org.gradle.internal.rules.RuleActionValidationException
+import org.gradle.internal.serialize.Serializer
+import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
@@ -52,10 +59,12 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String MODULE = "module"
 
     // For testing ComponentMetadataHandler capabilities
+    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
+    CachePolicy cachePolicy = Mock()
     def stringInterner = SimpleMapInterner.notThreadSafe()
-    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory(), TestUtil.valueSnapshotter())
+    def handler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory(), TestUtil.valueSnapshotter(), executor)
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory(), TestUtil.valueSnapshotter())
+    def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, moduleIdentifierFactory, stringInterner, TestUtil.attributesFactory(), TestUtil.valueSnapshotter(), executor)
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = new MavenMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())
     def ivyMetadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
@@ -68,7 +77,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata().asImmutable()
 
         expect:
-        mockedHandler.processMetadata(metadata).is(metadata)
+        mockedHandler.processMetadata(metadata, cachePolicy).is(metadata)
     }
 
     def "add action rule that applies to all components" () {
@@ -125,7 +134,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         handler.classBasedRules.size() == 1
-        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].configurableRule instanceof ConfigurableRule
         handler.classBasedRules[0].spec == Specs.satisfyAll()
         TestComponentMetadataRule.instanceCount == 0
     }
@@ -139,7 +148,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         handler.classBasedRules.size() == 1
-        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].configurableRule instanceof ConfigurableRule
         handler.classBasedRules[0].spec == Specs.satisfyAll()
         TestComponentMetadataRuleWithArgs.instanceCount == 0
     }
@@ -203,7 +212,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         handler.classBasedRules.size() == 1
-        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].configurableRule instanceof ConfigurableRule
         handler.classBasedRules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
         TestComponentMetadataRule.instanceCount == 0
     }
@@ -219,7 +228,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         then:
         handler.classBasedRules.size() == 1
-        handler.classBasedRules[0].action instanceof NoInputsRuleAction
+        handler.classBasedRules[0].configurableRule instanceof ConfigurableRule
         handler.classBasedRules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
         TestComponentMetadataRule.instanceCount == 0
     }
@@ -228,8 +237,9 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         String notation = "${GROUP}:${MODULE}"
         handler.withModule(notation, TestComponentMetadataRule)
 
+
         when:
-        handler.processMetadata(ivyMetadata().asImmutable())
+        handler.processMetadata(ivyMetadata().asImmutable(), cachePolicy)
 
         then:
         TestComponentMetadataRule.instanceCount == 1
@@ -243,7 +253,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         } as Action<ActionConfiguration>)
 
         when:
-        handler.processMetadata(ivyMetadata().asImmutable())
+        handler.processMetadata(ivyMetadata().asImmutable(), cachePolicy)
 
         then:
         TestComponentMetadataRuleWithArgs.instanceCount == 1
@@ -294,7 +304,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         metadata.statusScheme = ["alpha", "beta"]
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -309,7 +319,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { throw failure }
 
         and:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         InvalidUserCodeException e = thrown()
@@ -327,7 +337,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         closuresCalled.sort() == [ 1, 2, 3 ]
@@ -341,7 +351,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         noExceptionThrown()
@@ -371,7 +381,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         noExceptionThrown()
@@ -402,7 +412,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         noExceptionThrown()
@@ -418,7 +428,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         !invoked
@@ -467,7 +477,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata.asImmutable())
+        handler.processMetadata(metadata.asImmutable(), cachePolicy)
 
         then:
         noExceptionThrown()

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -42,10 +43,12 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
     private final ComponentMetadataProcessor metadataProcessor;
     private final LocalAccess localAccess = new LocalAccess();
     private final RemoteAccess remoteAccess = new RemoteAccess();
+    private final CachePolicy cachePolicy;
 
-    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ComponentMetadataProcessor metadataProcessor) {
+    public LocalModuleComponentRepository(ModuleComponentRepository delegate, ComponentMetadataProcessor metadataProcessor, CachePolicy cachePolicy) {
         super(delegate);
         this.metadataProcessor = metadataProcessor;
+        this.cachePolicy = cachePolicy;
     }
 
     public ModuleComponentRepositoryAccess getLocalAccess() {
@@ -78,7 +81,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
 
             if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData()));
+                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData(), cachePolicy));
             }
         }
 

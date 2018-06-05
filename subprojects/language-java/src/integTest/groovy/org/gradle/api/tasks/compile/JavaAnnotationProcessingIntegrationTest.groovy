@@ -34,11 +34,6 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             apply plugin: 'java'
-            
-            compileJava {
-                // Use forking to work around javac's jar cache
-                options.fork = true
-            }
         """
 
         annotationProjectDir.file("build.gradle") << """

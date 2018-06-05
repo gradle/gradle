@@ -92,7 +92,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
             if (replacement != null) {
                 String reason = replacement.getReason();
                 if (reason != null) {
-                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION, reason));
+                    selected.addCause(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE, reason));
                 }
             }
         }

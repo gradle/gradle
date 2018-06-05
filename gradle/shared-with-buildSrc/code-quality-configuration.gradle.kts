@@ -42,7 +42,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
         plugins.withType<GroovyBasePlugin> {
             java.sourceSets.all {
-                tasks.createLater(getTaskName("checkstyle", "groovy"), Checkstyle::class.java) {
+                tasks.register(getTaskName("checkstyle", "groovy"), Checkstyle::class.java) {
                     configFile = checkStyleConfigDir.resolve("checkstyle-groovy.xml")
                     source(allGroovy)
                     classpath = compileClasspath

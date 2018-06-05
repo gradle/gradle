@@ -51,34 +51,36 @@ public class TaskFactory implements ITaskFactory {
 
     @Override
     public <S extends Task> S create(String name, Class<S> type) {
-        return create(name, type, NO_ARGS);
+        return create(TaskIdentity.create(name, type, project), NO_ARGS);
     }
 
     @Override
-    public <S extends Task> S create(String name, final Class<S> type, final Object... args) {
-        if (!Task.class.isAssignableFrom(type)) {
+    public <S extends Task> S create(final TaskIdentity<S> identity, final Object... args) {
+        if (!Task.class.isAssignableFrom(identity.type)) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task of type '%s' as it does not implement the Task interface.",
-                type.getSimpleName()));
+                identity.type.getSimpleName()));
         }
-        NameValidator.validate(name, "task name", "");
+
+        NameValidator.validate(identity.name, "task name", "");
 
         final Class<? extends Task> generatedType;
-        if (type.isAssignableFrom(DefaultTask.class)) {
+        if (identity.type.isAssignableFrom(DefaultTask.class)) {
             generatedType = generator.generate(DefaultTask.class);
         } else {
-            generatedType = generator.generate(type);
+            generatedType = generator.generate(identity.type);
         }
 
-        return type.cast(AbstractTask.injectIntoNewInstance(project, name, type, new Callable<Task>() {
-            public Task call() throws Exception {
+
+        return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
+            public S call() {
                 try {
-                    return instantiator.newInstance(generatedType, args);
+                    return identity.type.cast(instantiator.newInstance(generatedType, args));
                 } catch (ObjectInstantiationException e) {
-                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", type.getSimpleName()),
+                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", identity.type.getSimpleName()),
                         e.getCause());
                 }
             }
-        }));
+        });
     }
 }

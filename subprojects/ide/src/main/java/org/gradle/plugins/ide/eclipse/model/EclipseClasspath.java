@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.util.ConfigureUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -132,7 +134,7 @@ public class EclipseClasspath {
 
     private boolean downloadJavadoc;
 
-    private XmlFileContentMerger file;
+    private XmlFileContentMerger file = new XmlFileContentMerger(new XmlTransformer());
 
     private Map<String, File> pathVariables = new HashMap<String, File>();
 
@@ -142,6 +144,7 @@ public class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
+    @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
     }

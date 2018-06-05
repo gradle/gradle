@@ -172,6 +172,54 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         0 * _
     }
 
+    def "can execute action for all elements in a collection"() {
+        def action = Mock(Action)
+
+        container.add(c)
+        container.add(d)
+
+        when:
+        container.all(action)
+
+        then:
+        1 * action.execute(c)
+        1 * action.execute(d)
+        0 * action._
+
+        when:
+        container.add(a)
+
+        then:
+        1 * action.execute(a)
+        0 * action._
+    }
+
+    def "queries provider for element when registering action for all elements in a collection"() {
+        def action = Mock(Action)
+        def provider1 = Mock(ProviderInternal)
+        def provider2 = Mock(ProviderInternal)
+
+        container.addLater(provider1)
+
+        when:
+        container.all(action)
+
+        then:
+        1 * action.execute(c)
+        _ * provider1.type >> type
+        1 * provider1.get() >> c
+        0 * _
+
+        when:
+        container.addLater(provider2)
+
+        then:
+        1 * action.execute(a)
+        _ * provider2.type >> type
+        1 * provider2.get() >> a
+        0 * _
+    }
+
     def "can get filtered collection containing all objects which have type"() {
         container.add(c)
         container.add(a)

@@ -17,8 +17,11 @@
 package org.gradle.configuration.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
+
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
         settingsFile << "rootProject.name='root'"
@@ -94,5 +97,67 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         failure.assertNotOutput("Project evaluation failed including an error in afterEvaluate {}.")
         failure.assertHasDescription("A problem occurred configuring root project 'root'.")
         failure.assertHasCause("after evaluate failure")
+    }
+
+    def "captures lifecycle operations"() {
+        given:
+        file('included-build/settings.gradle') << """
+            rootProject.name = 'included-build'
+        """
+        file('included-build/build.gradle') << """
+            apply plugin: AcmePlugin
+            
+            class AcmePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.afterEvaluate {
+                        project.tasks.create('bar')
+                    }
+                }
+            }
+            
+        """
+
+
+        settingsFile << """
+            includeBuild 'included-build'
+            include 'foo'
+        """
+
+        file("foo/build.gradle")
+        file("foo/before.gradle") << ""
+        file("foo/after.gradle") << ""
+        buildFile << """
+            project(':foo').beforeEvaluate {
+                project(':foo').apply from: 'before.gradle'
+            }
+            project(':foo').afterEvaluate {
+                project(':foo').apply from: 'after.gradle'
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+
+        def configOp = operations.only(ConfigureProjectBuildOperationType, { it.details.projectPath == ':foo' })
+        with(operations.only(NotifyProjectBeforeEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Notify beforeEvaluate listeners of :foo'
+            children*.displayName == ["Apply script before.gradle to project ':foo'"]
+            parentId == configOp.id
+        }
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, { it.details.projectPath == ':foo' })) {
+            displayName == 'Notify afterEvaluate listeners of :foo'
+            children*.displayName == ["Apply script after.gradle to project ':foo'"]
+            parentId == configOp.id
+        }
+
+        def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, {it.details.buildPath== ':included-build'})
+
+        with(operations.only(NotifyProjectAfterEvaluatedBuildOperationType, {it.details.buildPath == ':included-build'})) {
+            displayName == 'Notify afterEvaluate listeners of :included-build'
+            // parent is not the plugin application operation, as we fire the build op when hooks are executed, not registered.
+            parentId == configureIncludedBuild.id
+        }
     }
 }

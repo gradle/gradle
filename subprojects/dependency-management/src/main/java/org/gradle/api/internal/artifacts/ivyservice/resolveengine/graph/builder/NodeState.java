@@ -318,17 +318,17 @@ class NodeState implements DependencyGraphNode {
             resolveState.onMoreSelected(this);
         } else {
             if (!incomingEdges.isEmpty()) {
-                restartIncomingEdges(selected);
+                restartIncomingEdges();
             }
         }
     }
 
-    private void restartIncomingEdges(ComponentState selected) {
+    private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            incomingEdges.iterator().next().restart(selected);
+            incomingEdges.iterator().next().restart();
         } else {
             for (EdgeState dependency : new ArrayList<EdgeState>(incomingEdges)) {
-                dependency.restart(selected);
+                dependency.restart();
             }
         }
         incomingEdges.clear();

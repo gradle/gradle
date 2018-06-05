@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental;
+package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.internal.tasks.compile.processing.IncrementalAnnotationProcessorType;
@@ -31,20 +30,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Sets up incremental annotation processing before delegating to the actual Java compiler.
+ * Sets up annotation processing before delegating to the actual Java compiler.
  */
-class IncrementalAnnotationProcessingCompiler implements Compiler<JavaCompileSpec> {
+public class AnnotationProcessorDiscoveringCompiler<T extends JavaCompileSpec> implements Compiler<T> {
 
-    private final Compiler<JavaCompileSpec> delegate;
+    private final Compiler<T> delegate;
     private final AnnotationProcessorDetector annotationProcessorDetector;
 
-    IncrementalAnnotationProcessingCompiler(Compiler<JavaCompileSpec> delegate, AnnotationProcessorDetector annotationProcessorDetector) {
+    public AnnotationProcessorDiscoveringCompiler(Compiler<T> delegate, AnnotationProcessorDetector annotationProcessorDetector) {
         this.delegate = delegate;
         this.annotationProcessorDetector = annotationProcessorDetector;
     }
 
     @Override
-    public WorkResult execute(JavaCompileSpec spec) {
+    public WorkResult execute(T spec) {
         Set<AnnotationProcessorDeclaration> annotationProcessors = getEffectiveAnnotationProcessors(spec);
         spec.setEffectiveAnnotationProcessors(annotationProcessors);
         return delegate.execute(spec);

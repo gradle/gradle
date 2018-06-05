@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
 import org.gradle.api.internal.model.NamedObjectInstantiator
@@ -56,6 +57,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final ModuleMetadataParser moduleMetadataParser = new ModuleMetadataParser(Mock(ImmutableAttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = new IvyMutableModuleMetadataFactory(new DefaultImmutableModuleIdentifierFactory(), TestUtil.attributesFactory())
+    final IsolatableFactory isolatableFactory = TestUtil.valueSnapshotter()
 
     final DefaultIvyArtifactRepository repository = new DefaultIvyArtifactRepository(fileResolver, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager, moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser, TestUtil.featurePreviews(), metadataFactory, TestUtil.valueSnapshotter())
 
@@ -302,8 +304,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def supplier = repository.createResolver().componentMetadataSupplier
 
         then:
-        supplier.rule.ruleClass == CustomMetadataSupplier
-        supplier.rule.ruleParams.isolate() == [] as Object[]
+        supplier.rules.configurableRules[0].ruleClass == CustomMetadataSupplier
+        supplier.rules.configurableRules[0].ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom metadata rule"() {
@@ -320,8 +322,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def supplier = resolver.getComponentMetadataSupplier()
 
         then:
-        supplier.rule.ruleClass == CustomMetadataSupplierWithParams
-        supplier.rule.ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+        supplier.rules.configurableRules[0].ruleClass == CustomMetadataSupplierWithParams
+        supplier.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
     }
 
     def "can set a custom version lister"() {
@@ -337,8 +339,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister.rule.ruleClass == CustomVersionLister
-        lister.rule.ruleParams.isolate() == [] as Object[]
+        lister.rules.configurableRules[0].ruleClass == CustomVersionLister
+        lister.rules.configurableRules[0].ruleParams.isolate() == [] as Object[]
     }
 
     def "can inject configuration into a custom version lister"() {
@@ -354,8 +356,8 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def lister = repository.createResolver().providedVersionLister
 
         then:
-        lister.rule.ruleClass == CustomVersionListerWithParams
-        lister.rule.ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+        lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
+        lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

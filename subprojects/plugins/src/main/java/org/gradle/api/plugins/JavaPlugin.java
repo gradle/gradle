@@ -286,7 +286,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
         Project project = pluginConvention.getProject();
-        project.getTasks().createLater(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
+        project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
             @Override
             public void execute(Javadoc javadoc) {
                 final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -294,8 +294,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
                 javadoc.setSource(mainSourceSet.getAllJava());
-
-                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
             }
         });
     }
@@ -396,7 +394,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-        final Provider<Test> test = project.getTasks().createLater(TEST_TASK_NAME, Test.class, new Action<Test>() {
+        final Provider<Test> test = project.getTasks().register(TEST_TASK_NAME, Test.class, new Action<Test>() {
             @Override
             public void execute(Test test) {
                 test.setDescription("Runs the unit tests.");

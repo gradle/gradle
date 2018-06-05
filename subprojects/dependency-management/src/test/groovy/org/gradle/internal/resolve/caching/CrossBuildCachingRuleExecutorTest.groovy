@@ -31,6 +31,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.action.DefaultConfigurableRule
+import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.Serializer
@@ -229,6 +230,43 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 6
     }
 
+    void "can expire entries based on implicit inputs when multiple rules are used"() {
+        withServiceInjectedRules()
+        def id = new Id('Alicia')
+
+        def implicitInput1 = Mock(ImplicitInputRecord)
+        def implicitInput2 = Mock(ImplicitInputRecord)
+        def service = Mock(SomeService)
+        services['SomeService'] = service
+
+        when:
+        execute(id)
+
+        then:
+        1 * valueSnapshotter.snapshot(_) >> {
+            def snapshot = new StringValueSnapshot(it.toString())
+            snapshot
+        }
+        1 * store.get(_) >> Mock(CrossBuildCachingRuleExecutor.CachedEntry) {
+            getResult() >> new Result(length: 123)
+            getImplicits() >> ImmutableMultimap.builder()
+                .putAll("SomeService", implicitInput1, implicitInput2)
+                .build()
+        }
+        1 * implicitInput1.getInput() >> '/foo/bar'
+        1 * implicitInput1.getOutput() >> 'abcdef012'
+        1 * implicitInput2.getInput() >> '/foo/baz'
+        1 * implicitInput2.getOutput() >> 'abcdef987'
+        1 * validator.isValid(cachePolicy, _) >> true
+        1 * service.isUpToDate('/foo/bar', 'abcdef012') >> true
+        1 * service.isUpToDate('/foo/baz', 'abcdef987') >> false
+        2 * serviceRegistry.find(SomeService) >> service
+        2 * service.withImplicitInputRecorder(_) >> service
+        1 * store.put(_, { it.timestamp == timeProvider.currentTime })
+        0 * _
+        result.length == 6
+    }
+
 
     void execute(Id id) {
         def executionResult = executor.execute(id, rule, detailsToResult, onCacheMiss, cachePolicy)
@@ -236,21 +274,31 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     }
 
     void withToUpperCaseRule() {
-        rule = new InstantiatingAction<Details>(DefaultConfigurableRule.of(
+        rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCase
-        ), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
     }
 
     void withNonCacheableToUpperCaseRule() {
-        rule = new InstantiatingAction<Details>(DefaultConfigurableRule.of(
+        rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             ToUpperCaseNotCached
-        ), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
+        )), TestUtil.instantiatorFactory().decorate(), shouldNotFail())
     }
 
     void withServiceInjectedRule() {
-        rule = new InstantiatingAction<Details>(DefaultConfigurableRule.of(
+        rule = new InstantiatingAction<Details>(DefaultConfigurableRules.of(DefaultConfigurableRule.of(
             WithServiceInjected
-        ), implicitInputsCapturingInstantiator, shouldNotFail())
+        )), implicitInputsCapturingInstantiator, shouldNotFail())
+    }
+
+    void withServiceInjectedRules() {
+        def rule1 = DefaultConfigurableRule.of(
+            WithServiceInjected
+        )
+        def rule2 = DefaultConfigurableRule.of(
+            WithServiceInjected
+        )
+        rule = new InstantiatingAction<Details>(new DefaultConfigurableRules([rule1, rule2]), implicitInputsCapturingInstantiator, shouldNotFail())
     }
 
     InstantiatingAction.ExceptionHandler<Details> shouldNotFail() {

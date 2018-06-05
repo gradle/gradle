@@ -19,7 +19,11 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
 
@@ -64,11 +68,26 @@ public class EclipseModel {
     private EclipseWtp wtp;
 
     /**
+     * Injects and returns an instance of {@link ObjectFactory}.
+     *
+     * @since 4.9
+     */
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
      */
     public EclipseProject getProject() {
+        if (project == null) {
+            XmlTransformer xmlTransformer = new XmlTransformer();
+            xmlTransformer.setIndentation("\t");
+            project = getObjectFactory().newInstance(EclipseProject.class, new XmlFileContentMerger(xmlTransformer));
+        }
         return project;
     }
 
@@ -108,6 +127,9 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseWtp}
      */
     public EclipseWtp getWtp() {
+        if (wtp == null) {
+            wtp = getObjectFactory().newInstance(EclipseWtp.class);
+        }
         return wtp;
     }
 
@@ -121,7 +143,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public void project(Closure closure) {
-        configure(closure, project);
+        configure(closure, getProject());
     }
 
     /**
@@ -132,7 +154,7 @@ public class EclipseModel {
      * @since 3.5
      */
     public void project(Action<? super EclipseProject> action) {
-        action.execute(project);
+        action.execute(getProject());
     }
 
     /**
@@ -181,7 +203,7 @@ public class EclipseModel {
      * For examples see docs for {@link EclipseProject}
      */
     public void jdt(Closure closure) {
-        configure(closure, jdt);
+        configure(closure, getJdt());
     }
 
     /**
@@ -192,7 +214,7 @@ public class EclipseModel {
      * @since 3.5
      */
     public void jdt(Action<? super EclipseJdt> action) {
-        action.execute(jdt);
+        action.execute(getJdt());
     }
 
     /**

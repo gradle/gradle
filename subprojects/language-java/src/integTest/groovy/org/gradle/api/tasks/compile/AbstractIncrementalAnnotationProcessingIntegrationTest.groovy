@@ -54,7 +54,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             
             compileJava {
                 compileJava.options.incremental = true
-                options.fork = true
             }
         """
 
@@ -93,6 +92,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
 
         expect:
         fails("compileJava")
-        failure.assertHasCause("java.lang.ClassNotFoundException: unknown.Processor")
+        failure.assertHasCause("Annotation processor 'unknown.Processor' not found")
     }
 }

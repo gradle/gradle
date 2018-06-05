@@ -15,24 +15,26 @@
  */
 package org.gradle.api.internal.project
 
-import spock.lang.*
 import org.gradle.util.ConfigureUtil
+import spock.lang.Specification
 
 class ProjectStateInternalSpec extends Specification {
-	
-	def "to string representation"() {
-		expect:
-		stateString {} == "NOT EXECUTED"
-		stateString { executing = true } == "EXECUTING"
-		stateString { executed() } == "EXECUTED"
-		stateString { executed(new Error("bang")) } == "FAILED (bang)"
-	}
-	
-	String stateString(Closure closure) {
-		def state = ConfigureUtil.configure(closure, new ProjectStateInternal())
-		def matcher = state.toString() =~ /^project state '(.*?)'$/
-		assert matcher
-		matcher[0][1]
-	}
-	
+
+    def "to string representation"() {
+        expect:
+        stateString {} == "NOT EXECUTED"
+        stateString { toBeforeEvaluate() } == "EXECUTING"
+        stateString { toBeforeEvaluate(); toEvaluate() } == "EXECUTING"
+        stateString { toBeforeEvaluate(); toEvaluate(); toAfterEvaluate() } == "EXECUTING"
+        stateString { configured() } == "EXECUTED"
+        stateString { failed(new Error("bang")); configured() } == "FAILED (bang)"
+    }
+
+    String stateString(@DelegatesTo(ProjectStateInternal) Closure closure) {
+        def state = ConfigureUtil.configure(closure, new ProjectStateInternal())
+        def matcher = state.toString() =~ /^project state '(.*?)'$/
+        assert matcher
+        matcher[0][1]
+    }
+
 }

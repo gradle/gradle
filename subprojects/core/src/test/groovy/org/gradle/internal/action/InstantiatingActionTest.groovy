@@ -38,19 +38,20 @@ class InstantiatingActionTest extends Specification {
 
         when:
         def action = new InstantiatingAction<Details>(
-            DefaultConfigurableRule.of(RuleWithParams, new Action<ActionConfiguration>() {
-                @Override
-                void execute(ActionConfiguration actionConfiguration) {
-                    actionConfiguration.params(123, "test string")
-                }
-            }, TestUtil.valueSnapshotter()),
+            DefaultConfigurableRules.of(
+                DefaultConfigurableRule.of(RuleWithParams, new Action<ActionConfiguration>() {
+                    @Override
+                    void execute(ActionConfiguration actionConfiguration) {
+                        actionConfiguration.params(123, "test string")
+                    }
+                }, TestUtil.valueSnapshotter())),
             TestUtil.instantiatorFactory().decorate(),
             shouldNotFail
         )
 
         then:
-        action.rule.ruleParams.isolate() == [123, "test string"] as Object[]
-        action.rule.ruleClass == RuleWithParams
+        action.rules.configurableRules[0].ruleParams.isolate() == [123, "test string"] as Object[]
+        action.rules.configurableRules[0].ruleClass == RuleWithParams
 
         when:
         action.execute(details)
@@ -68,14 +69,14 @@ class InstantiatingActionTest extends Specification {
 
         when:
         def action = new InstantiatingAction<Details>(
-            DefaultConfigurableRule.of(RuleWithInjectedParams),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(RuleWithInjectedParams)),
             TestUtil.instantiatorFactory().inject(registry),
             shouldNotFail
         )
 
         then:
-        action.rule.ruleParams.isolate() == [] as Object[]
-        action.rule.ruleClass == RuleWithInjectedParams
+        action.rules.configurableRules[0].ruleParams.isolate() == [] as Object[]
+        action.rules.configurableRules[0].ruleClass == RuleWithInjectedParams
 
         when:
         action.execute(details)
@@ -94,19 +95,20 @@ class InstantiatingActionTest extends Specification {
 
         when:
         def action = new InstantiatingAction<Details>(
-            DefaultConfigurableRule.of(RuleWithInjectedAndRegularParams, new Action<ActionConfiguration>() {
-                @Override
-                void execute(ActionConfiguration actionConfiguration) {
-                    actionConfiguration.params(456)
-                }
-            }, TestUtil.valueSnapshotter()),
+            DefaultConfigurableRules.of(
+                DefaultConfigurableRule.of(RuleWithInjectedAndRegularParams, new Action<ActionConfiguration>() {
+                    @Override
+                    void execute(ActionConfiguration actionConfiguration) {
+                        actionConfiguration.params(456)
+                    }
+                }, TestUtil.valueSnapshotter())),
             TestUtil.instantiatorFactory().inject(registry),
             shouldNotFail
         )
 
         then:
-        action.rule.ruleParams.isolate() == [456] as Object[]
-        action.rule.ruleClass == RuleWithInjectedAndRegularParams
+        action.rules.configurableRules[0].ruleParams.isolate() == [456] as Object[]
+        action.rules.configurableRules[0].ruleClass == RuleWithInjectedAndRegularParams
 
         when:
         action.execute(details)

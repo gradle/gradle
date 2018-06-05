@@ -28,6 +28,16 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
 class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
+    /**
+     * When running in embedded mode, core tasks are loaded from the runtime classloader.
+     * When running in the daemon, they are loaded from the plugins classloader.
+     * This difference leads to different up-to-date messages, which is why we force
+     * a consistent execution mode.
+     */
+    def setup() {
+        executer.requireDaemon().requireIsolatedDaemons()
+    }
+
     def "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
