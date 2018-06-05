@@ -33,7 +33,7 @@ import org.gradle.util.Path;
 import java.io.File;
 import java.util.List;
 
-public interface TaskInternal extends Task, Configurable<Task> {
+public interface TaskInternal extends Task, Work, Configurable<Task> {
 
     /**
      * A more efficient version of {@link #getActions()}, which circumvents the

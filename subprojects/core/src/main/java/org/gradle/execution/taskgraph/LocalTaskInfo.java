@@ -16,12 +16,11 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 
@@ -36,20 +35,16 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public Path getIdentityPath() {
-        return task.getIdentityPath();
-    }
-
-    public TaskInternal getTask() {
+    public TaskInternal getWork() {
         return task;
     }
 
     @Override
-    public void collectTaskInto(ImmutableSet.Builder<Task> builder) {
+    public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
         builder.add(task);
     }
 
-    public Throwable getTaskFailure() {
+    public Throwable getWorkFailure() {
         return task.getState().getFailure();
     }
 
@@ -84,11 +79,17 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public int compareTo(TaskInfo other) {
+    @SuppressWarnings("NullableProblems")
+    public int compareTo(WorkInfo other) {
         if (other.getClass() != getClass()) {
             return -1;
         }
         LocalTaskInfo localTask = (LocalTaskInfo) other;
         return task.compareTo(localTask.task);
+    }
+
+    @Override
+    public String toString() {
+        return task.getIdentityPath().toString();
     }
 }

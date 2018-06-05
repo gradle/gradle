@@ -16,49 +16,33 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.TreeSet;
 
-public abstract class TaskInfo implements Comparable<TaskInfo> {
+public abstract class TaskInfo extends WorkInfo {
 
-    private enum TaskExecutionState {
-        UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
-    }
-
-    private TaskExecutionState state;
-    private Throwable executionFailure;
     private boolean dependenciesProcessed;
-    private final TreeSet<TaskInfo> dependencyPredecessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> dependencySuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
 
     public TaskInfo() {
-        this.state = TaskExecutionState.UNKNOWN;
+        super();
     }
 
-    @VisibleForTesting
-    TaskExecutionState getState() {
-        return state;
+    @Override
+    public abstract TaskInternal getWork();
+
+    @Override
+    public void rethrowFailure() {
+        getWork().getState().rethrowFailure();
     }
-
-    public abstract TaskInternal getTask();
-
-    /**
-     * Adds the task associated with this node, if any, into the given collection.
-     */
-    public abstract void collectTaskInto(ImmutableSet.Builder<Task> builder);
-
-    public abstract Path getIdentityPath();
 
     public abstract boolean satisfies(Spec<? super Task> filter);
 
@@ -72,100 +56,12 @@ public abstract class TaskInfo implements Comparable<TaskInfo> {
 
     public abstract Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver);
 
-    public boolean isRequired() {
-        return state == TaskExecutionState.SHOULD_RUN;
-    }
-
-    public boolean isMustNotRun() {
-        return state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isIncludeInGraph() {
-        return state == TaskExecutionState.NOT_REQUIRED || state == TaskExecutionState.UNKNOWN;
-    }
-
-    public boolean isReady() {
-        return state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_RUN;
-    }
-
-    public boolean isInKnownState() {
-        return state != TaskExecutionState.UNKNOWN;
-    }
-
-    public boolean isComplete() {
-        return state == TaskExecutionState.EXECUTED
-            || state == TaskExecutionState.SKIPPED
-            || state == TaskExecutionState.UNKNOWN
-            || state == TaskExecutionState.NOT_REQUIRED
-            || state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isSuccessful() {
-        return (state == TaskExecutionState.EXECUTED && !isFailed())
-            || state == TaskExecutionState.NOT_REQUIRED
-            || state == TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public boolean isFailed() {
-        return getTaskFailure() != null || getExecutionFailure() != null;
-    }
-
-    public void startExecution() {
-        assert isReady();
-        state = TaskExecutionState.EXECUTING;
-    }
-
-    public void finishExecution() {
-        assert state == TaskExecutionState.EXECUTING;
-        state = TaskExecutionState.EXECUTED;
-    }
-
-    public void skipExecution() {
-        assert state == TaskExecutionState.SHOULD_RUN;
-        state = TaskExecutionState.SKIPPED;
-    }
-
-    public void abortExecution() {
-        assert isReady();
-        state = TaskExecutionState.SKIPPED;
-    }
-
-    public void require() {
-        state = TaskExecutionState.SHOULD_RUN;
-    }
-
-    public void doNotRequire() {
-        state = TaskExecutionState.NOT_REQUIRED;
-    }
-
-    public void mustNotRun() {
-        state = TaskExecutionState.MUST_NOT_RUN;
-    }
-
-    public void enforceRun() {
-        assert state == TaskExecutionState.SHOULD_RUN || state == TaskExecutionState.MUST_NOT_RUN || state == TaskExecutionState.MUST_RUN;
-        state = TaskExecutionState.MUST_RUN;
-    }
-
-    public void setExecutionFailure(Throwable failure) {
-        assert state == TaskExecutionState.EXECUTING;
-        this.executionFailure = failure;
-    }
-
-    public Throwable getExecutionFailure() {
-        return this.executionFailure;
-    }
-
-    public abstract Throwable getTaskFailure();
-
+    @Override
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : mustSuccessors) {
-            if (!dependency.isComplete()) {
-                return false;
-            }
+        if (!super.allDependenciesComplete()) {
+            return false;
         }
-
-        for (TaskInfo dependency : dependencySuccessors) {
+        for (TaskInfo dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -178,23 +74,6 @@ public abstract class TaskInfo implements Comparable<TaskInfo> {
         }
 
         return true;
-    }
-
-    public boolean allDependenciesSuccessful() {
-        for (TaskInfo dependency : dependencySuccessors) {
-            if (!dependency.isSuccessful()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public TreeSet<TaskInfo> getDependencyPredecessors() {
-        return dependencyPredecessors;
-    }
-
-    public TreeSet<TaskInfo> getDependencySuccessors() {
-        return dependencySuccessors;
     }
 
     public TreeSet<TaskInfo> getMustSuccessors() {
@@ -221,11 +100,6 @@ public abstract class TaskInfo implements Comparable<TaskInfo> {
         dependenciesProcessed = true;
     }
 
-    public void addDependencySuccessor(TaskInfo toNode) {
-        dependencySuccessors.add(toNode);
-        toNode.dependencyPredecessors.add(this);
-    }
-
     public void addMustSuccessor(TaskInfo toNode) {
         mustSuccessors.add(toNode);
     }
@@ -247,7 +121,31 @@ public abstract class TaskInfo implements Comparable<TaskInfo> {
         shouldSuccessors.remove(toNode);
     }
 
-    public String toString() {
-        return getIdentityPath().toString();
+    @Override
+    public Iterable<WorkInfo> getAllSuccessors() {
+        return Iterables.concat(getMustSuccessors(), getFinalizingSuccessors(), super.getAllSuccessors());
     }
+    @Override
+    public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
+        return Iterables.concat(
+            super.getAllSuccessorsInReverseOrder(),
+            mustSuccessors.descendingSet(),
+            finalizingSuccessors.descendingSet(),
+            shouldSuccessors.descendingSet()
+        );
+    }
+
+    @Override
+    public boolean hasSuccessor(WorkInfo successor) {
+        if (super.hasSuccessor(successor)) {
+            return true;
+        }
+        if (!(successor instanceof TaskInfo)) {
+            return false;
+        }
+        return getMustSuccessors().contains(successor)
+            || getFinalizingSuccessors().contains(successor);
+    }
+
+    abstract public String toString();
 }

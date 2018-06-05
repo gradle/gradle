@@ -17,7 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.build.BuildState;
-import org.gradle.util.Path;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -84,24 +83,19 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public Path getIdentityPath() {
-            return task.getIdentityPath();
-        }
-
-        @Override
-        public TaskInternal getTask() {
+        public TaskInternal getWork() {
             // Do not expose the task to execution
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void collectTaskInto(ImmutableSet.Builder<Task> builder) {
+        public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
             // Expose the task to build logic (for now)
             builder.add(task);
         }
 
         @Override
-        public Throwable getTaskFailure() {
+        public Throwable getWorkFailure() {
             throw new UnsupportedOperationException();
         }
 
@@ -163,12 +157,17 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public int compareTo(TaskInfo other) {
+        public int compareTo(WorkInfo other) {
             if (other.getClass() != getClass()) {
                 return 1;
             }
             TaskInAnotherBuild taskInfo = (TaskInAnotherBuild) other;
             return task.getIdentityPath().compareTo(taskInfo.task.getIdentityPath());
+        }
+
+        @Override
+        public String toString() {
+            return task.getIdentityPath().toString();
         }
     }
 }

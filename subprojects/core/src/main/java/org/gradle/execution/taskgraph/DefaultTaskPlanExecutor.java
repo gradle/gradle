@@ -72,7 +72,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         try {
             WorkerLease parentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor, parentWorkerLease);
-            new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService).run();
+            new ExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService).run();
             awaitCompletion(taskExecutionPlan, taskFailures);
         } finally {
             executor.stop();
@@ -100,18 +100,18 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         LOGGER.debug("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            executor.execute(new TaskExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService));
+            executor.execute(new ExecutorWorker(taskExecutionPlan, taskWorker, parentWorkerLease, cancellationToken, coordinationService));
         }
     }
 
-    private static class TaskExecutorWorker implements Runnable {
+    private static class ExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
         private final WorkerLease parentWorkerLease;
         private final BuildCancellationToken cancellationToken;
         private final ResourceLockCoordinationService coordinationService;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
+        private ExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, WorkerLease parentWorkerLease, BuildCancellationToken cancellationToken, ResourceLockCoordinationService coordinationService) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
             this.parentWorkerLease = parentWorkerLease;
@@ -199,7 +199,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             try {
                 if (!selectedTask.isComplete()) {
                     try {
-                        taskExecution.execute(selectedTask.getTask());
+                        taskExecution.execute(selectedTask.getWork());
                     } catch (Throwable e) {
                         selectedTask.setExecutionFailure(e);
                     }

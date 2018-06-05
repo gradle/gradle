@@ -87,7 +87,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo1.task.project != taskInfo2.task.project
+        taskInfo1.work.project != taskInfo2.work.project
         selectNextTask() == null
 
         when:
@@ -98,7 +98,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo3.task.project != taskInfo4.task.project
+        taskInfo3.work.project != taskInfo4.work.project
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
@@ -128,7 +128,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate(a, b)
         def nonAsyncTaskInfo = selectNextTaskInfo()
         then:
-        nonAsyncTaskInfo.task == a
+        nonAsyncTaskInfo.work == a
         selectNextTask() == null
         lockSetup.lockedProjects.size() == 1
 
@@ -150,7 +150,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate(a, b)
         def firstTaskInfo = selectNextTaskInfo()
         then:
-        firstTaskInfo.task == a
+        firstTaskInfo.work == a
         selectNextTask() == null
         lockSetup.lockedProjects.empty
 
@@ -192,7 +192,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def firstTaskInfo = selectNextTaskInfo()
         def secondTaskInfo = selectNextTaskInfo()
         then:
-        [firstTaskInfo, secondTaskInfo]*.task as Set == [a, b] as Set
+        [firstTaskInfo, secondTaskInfo]*.work as Set == [a, b] as Set
         selectNextTask() == null
 
         when:
@@ -293,7 +293,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         executionPlan.taskComplete(firstTaskInfo)
         def secondTask = selectNextTask()
 
-        assert [firstTaskInfo.task, secondTask] as Set == [first, second] as Set
+        assert [firstTaskInfo.work, secondTask] as Set == [first, second] as Set
 
     }
 
@@ -454,19 +454,19 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         def producerInfo = selectNextTaskInfo()
 
-        assert producerInfo.task == producer
+        assert producerInfo.work == producer
         assert selectNextTask() == null
 
         executionPlan.taskComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
-        assert consumerInfo.task == consumer
+        assert consumerInfo.work == consumer
         assert selectNextTask() == null
 
         executionPlan.taskComplete(consumerInfo)
         def destroyerInfo = selectNextTaskInfo()
 
-        assert destroyerInfo.task == destroyer
+        assert destroyerInfo.work == destroyer
     }
 
     def "a task that destroys an ancestor of an intermediate input is not started"() {
@@ -532,19 +532,19 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         def destroyerInfo = selectNextTaskInfo()
 
-        assert destroyerInfo.task == destroyer
+        assert destroyerInfo.work == destroyer
         assert selectNextTask() == null
 
         executionPlan.taskComplete(destroyerInfo)
         def producerInfo = selectNextTaskInfo()
 
-        assert producerInfo.task == producer
+        assert producerInfo.work == producer
         assert selectNextTask() == null
 
         executionPlan.taskComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
-        assert consumerInfo.task == consumer
+        assert consumerInfo.work == consumer
     }
 
     def "a task that destroys an ancestor of an intermediate input can be started if it's ordered first"() {
@@ -599,8 +599,8 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def secondInfo = selectNextTaskInfo()
 
         then:
-        firstInfo.task == a
-        secondInfo.task == b
+        firstInfo.work == a
+        secondInfo.work == b
         selectNextTask() == null
 
         when:
@@ -614,7 +614,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def finalizerInfo = selectNextTaskInfo()
 
         then:
-        finalizerInfo.task == finalizer
+        finalizerInfo.work == finalizer
     }
 
     def "handles an exception while walking the task graph when an enforced task is present"() {
@@ -628,7 +628,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def finalizedInfo = selectNextTaskInfo()
 
         then:
-        finalizedInfo.task == finalized
+        finalizedInfo.work == finalized
         selectNextTask() == null
 
         when:
@@ -644,8 +644,8 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         executionPlan.abortAllAndFail(e)
 
         then:
-        executionPlan.executionPlan[finalized].isSuccessful()
-        executionPlan.executionPlan[finalizer].state == TaskInfo.TaskExecutionState.SKIPPED
+        executionPlan.getNode(finalized).isSuccessful()
+        executionPlan.getNode(finalizer).state == WorkInfo.ExecutionState.SKIPPED
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
@@ -698,13 +698,13 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
 
     private TaskInternal selectNextTask() {
-        selectNextTaskInfo()?.task
+        selectNextTaskInfo()?.work
     }
 
     private TaskInfo selectNextTaskInfo() {
         def nextTaskInfo = executionPlan.selectNextTask(lockSetup.workerLease, lockSetup.createResourceLockState())
-        if (nextTaskInfo?.task instanceof Async) {
-            def project = (ProjectInternal) nextTaskInfo.task.project
+        if (nextTaskInfo?.work instanceof Async) {
+            def project = (ProjectInternal) nextTaskInfo.work.project
             lockSetup.projectLocks.get(project.identityPath.toString()).unlock()
         }
         return nextTaskInfo
