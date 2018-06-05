@@ -128,7 +128,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             WorkerLease childLease = parentWorkerLease.createChild();
             boolean moreTasksToExecute = true;
             while (moreTasksToExecute) {
-                moreTasksToExecute = executeWithTask(childLease, new Action<TaskInternal>() {
+                moreTasksToExecute = executeWithWork(childLease, new Action<TaskInternal>() {
                     @Override
                     public void execute(TaskInternal task) {
                         final String taskPath = task.getPath();
@@ -152,13 +152,13 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
         }
 
         /**
-         * Selects a task that's ready to execute and executes the provided action against it.  If no tasks are ready, blocks until one
-         * can be executed.  If all tasks have been executed, returns false.
+         * Selects work that's ready to execute and executes the provided action against it. If no work is ready, blocks until some
+         * can be executed. If all work has been executed, returns false.
          *
-         * @return true if there are more tasks waiting to execute, false if all tasks have executed.
+         * @return true if there are more work waiting to execute, false if all work has been executed.
          */
-        private boolean executeWithTask(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
-            final AtomicReference<TaskInfo> selected = new AtomicReference<TaskInfo>();
+        private boolean executeWithWork(final WorkerLease workerLease, final Action<TaskInternal> taskExecution) {
+            final AtomicReference<WorkInfo> selected = new AtomicReference<WorkInfo>();
             final AtomicBoolean workRemaining = new AtomicBoolean();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
@@ -173,7 +173,7 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                     }
 
                     try {
-                        selected.set(taskExecutionPlan.selectNextTask(workerLease, resourceLockState));
+                        selected.set(taskExecutionPlan.selectNext(workerLease, resourceLockState));
                     } catch (Throwable t) {
                         resourceLockState.releaseLocks();
                         taskExecutionPlan.abortAllAndFail(t);
@@ -188,27 +188,31 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
                 }
             });
 
-            TaskInfo selectedTask = selected.get();
-            if (selectedTask != null) {
-                execute(selectedTask, workerLease, taskExecution);
+            WorkInfo selectedWorkInfo = selected.get();
+            if (selectedWorkInfo != null) {
+                execute(selectedWorkInfo, workerLease, taskExecution);
             }
             return workRemaining.get();
         }
 
-        private void execute(final TaskInfo selectedTask, final WorkerLease workerLease, Action<TaskInternal> taskExecution) {
+        private void execute(final WorkInfo selected, final WorkerLease workerLease, Action<TaskInternal> taskExecution) {
             try {
-                if (!selectedTask.isComplete()) {
+                if (!selected.isComplete()) {
                     try {
-                        taskExecution.execute(selectedTask.getWork());
+                        if (selected instanceof TaskInfo) {
+                            taskExecution.execute(((TaskInfo) selected).getWork());
+                        } else {
+                            throw new AssertionError("Unknown type of work: " + selected.getClass().getName());
+                        }
                     } catch (Throwable e) {
-                        selectedTask.setExecutionFailure(e);
+                        selected.setExecutionFailure(e);
                     }
                 }
             } finally {
                 coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     public ResourceLockState.Disposition transform(ResourceLockState state) {
-                        taskExecutionPlan.taskComplete(selectedTask);
+                        taskExecutionPlan.workComplete(selected);
                         return unlock(workerLease).transform(state);
                     }
                 });

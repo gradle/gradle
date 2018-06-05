@@ -561,7 +561,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     @Nullable
-    public TaskInfo selectNextTask(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
+    public WorkInfo selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
         if (allProjectsLocked()) {
             return null;
         }
@@ -588,8 +588,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 iterator.remove();
 
-                // TODO This is no task info necessarily
-                return (TaskInfo) workInfo;
+                return workInfo;
             }
         }
         return null;
@@ -600,6 +599,12 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             return true;
         }
         return getProjectLock((TaskInfo) workInfo).tryLock();
+    }
+
+    private void unlockProjectFor(WorkInfo workInfo) {
+        if (workInfo instanceof TaskInfo) {
+            getProjectLock((TaskInfo) workInfo).unlock();
+        }
     }
 
     private MutationInfo getResolvedMutationInfo(WorkInfo workInfo) {
@@ -831,18 +836,18 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         runningNodes.add(workInfo);
     }
 
-    private void recordTaskCompleted(TaskInfo taskInfo) {
-        runningNodes.remove(taskInfo);
-        MutationInfo mutationInfo = workMutations.get(taskInfo);
+    private void recordWorkCompleted(WorkInfo workInfo) {
+        runningNodes.remove(workInfo);
+        MutationInfo mutationInfo = workMutations.get(workInfo);
         for (WorkInfo producer : mutationInfo.consumesOutputOf) {
             MutationInfo producerTaskMutationInfo = workMutations.get(producer);
-            if (producerTaskMutationInfo.consumingWork.remove(taskInfo) && canRemoveTaskMutation(producerTaskMutationInfo)) {
+            if (producerTaskMutationInfo.consumingWork.remove(workInfo) && canRemoveTaskMutation(producerTaskMutationInfo)) {
                 workMutations.remove(producer);
             }
         }
 
         if (canRemoveTaskMutation(mutationInfo)) {
-            workMutations.remove(taskInfo);
+            workMutations.remove(workInfo);
         }
     }
 
@@ -851,24 +856,27 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Override
-    public void taskComplete(TaskInfo taskInfo) {
+    public void workComplete(WorkInfo workInfo) {
         try {
-            if (!taskInfo.isComplete()) {
-                enforceFinalizerTasks(taskInfo);
-                if (taskInfo.isFailed()) {
-                    handleFailure(taskInfo);
+            if (!workInfo.isComplete()) {
+                enforceFinalizerTasks(workInfo);
+                if (workInfo.isFailed()) {
+                    handleFailure(workInfo);
                 }
 
-                taskInfo.finishExecution();
-                recordTaskCompleted(taskInfo);
+                workInfo.finishExecution();
+                recordWorkCompleted(workInfo);
             }
         } finally {
-            getProjectLock(taskInfo).unlock();
+            unlockProjectFor(workInfo);
         }
     }
 
-    private static void enforceFinalizerTasks(TaskInfo taskInfo) {
-        for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
+    private static void enforceFinalizerTasks(WorkInfo workInfo) {
+        if (!(workInfo instanceof TaskInfo)) {
+            return;
+        }
+        for (TaskInfo finalizerNode : ((TaskInfo) workInfo).getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<WorkInfo>newHashSet());
             }

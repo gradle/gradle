@@ -70,7 +70,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final TaskPlanExecutor taskPlanExecutor;
     private final ResourceLockCoordinationService coordinationService;
     // This currently needs to be lazy, as it uses state that is not available when the graph is created
-    private final Factory<? extends TaskExecuter> taskExecuter;
+    private final Factory<? extends TaskExecuter> taskExecuterFactory;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionListener> taskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
@@ -79,11 +79,10 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private List<Task> allTasks;
 
     private final Set<Task> requestedTasks = Sets.newTreeSet();
-    private Spec<? super Task> filter = Specs.SATISFIES_ALL;
 
-    public DefaultTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, IncludedBuildTaskGraph includedBuildTaskGraph) {
+    public DefaultTaskExecutionGraph(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuterFactory, BuildOperationExecutor buildOperationExecutor, WorkerLeaseService workerLeaseService, ResourceLockCoordinationService coordinationService, GradleInternal gradleInternal, IncludedBuildTaskGraph includedBuildTaskGraph) {
         this.taskPlanExecutor = taskPlanExecutor;
-        this.taskExecuter = taskExecuter;
+        this.taskExecuterFactory = taskExecuterFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.coordinationService = coordinationService;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
@@ -97,8 +96,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     public void useFilter(Spec<? super Task> filter) {
-        this.filter = Cast.uncheckedCast(filter != null ? filter : Specs.SATISFIES_ALL);
-        taskExecutionPlan.useFilter(this.filter);
+        Spec<? super Task> castFilter = Cast.uncheckedCast(filter != null ? filter : Specs.SATISFIES_ALL);
+        taskExecutionPlan.useFilter(castFilter);
         taskGraphState = TaskGraphState.DIRTY;
     }
 
@@ -125,13 +124,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void execute(Collection<? super Throwable> taskFailures) {
+    public void execute(Collection<? super Throwable> failures) {
         Timer clock = Time.startTimer();
         ensurePopulated();
 
         graphListeners.getSource().graphPopulated(this);
         try {
-            taskPlanExecutor.process(taskExecutionPlan, new ExecuteTaskAction(taskExecuter.create(), buildOperationExecutor.getCurrentOperation()), taskFailures);
+            TaskExecuter taskExecuter = taskExecuterFactory.create();
+            assert taskExecuter != null;
+            taskPlanExecutor.process(taskExecutionPlan, new ExecuteTaskAction(taskExecuter, buildOperationExecutor.getCurrentOperation()), failures);
             LOGGER.debug("Timing: Executing the DAG took " + clock.getElapsed());
         } finally {
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {

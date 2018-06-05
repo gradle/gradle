@@ -91,8 +91,8 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(taskInfo1)
-        executionPlan.taskComplete(taskInfo2)
+        executionPlan.workComplete(taskInfo1)
+        executionPlan.workComplete(taskInfo2)
         def taskInfo3 = selectNextTaskInfo()
         def taskInfo4 = selectNextTaskInfo()
 
@@ -133,7 +133,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         lockSetup.lockedProjects.size() == 1
 
         when:
-        executionPlan.taskComplete(nonAsyncTaskInfo)
+        executionPlan.workComplete(nonAsyncTaskInfo)
         def asyncTask = selectNextTask()
         then:
         asyncTask == b
@@ -155,7 +155,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         lockSetup.lockedProjects.empty
 
         when:
-        executionPlan.taskComplete(firstTaskInfo)
+        executionPlan.workComplete(firstTaskInfo)
         def secondTask = selectNextTask()
         then:
         secondTask == b
@@ -196,12 +196,12 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(firstTaskInfo)
+        executionPlan.workComplete(firstTaskInfo)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(secondTaskInfo)
+        executionPlan.workComplete(secondTaskInfo)
         then:
         selectNextTask() == c
 
@@ -290,7 +290,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert selectNextTask() == null
         assert lockSetup.lockedProjects.empty
 
-        executionPlan.taskComplete(firstTaskInfo)
+        executionPlan.workComplete(firstTaskInfo)
         def secondTask = selectNextTask()
 
         assert [firstTaskInfo.work, secondTask] as Set == [first, second] as Set
@@ -457,13 +457,13 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert producerInfo.work == producer
         assert selectNextTask() == null
 
-        executionPlan.taskComplete(producerInfo)
+        executionPlan.workComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
         assert consumerInfo.work == consumer
         assert selectNextTask() == null
 
-        executionPlan.taskComplete(consumerInfo)
+        executionPlan.workComplete(consumerInfo)
         def destroyerInfo = selectNextTaskInfo()
 
         assert destroyerInfo.work == destroyer
@@ -535,13 +535,13 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert destroyerInfo.work == destroyer
         assert selectNextTask() == null
 
-        executionPlan.taskComplete(destroyerInfo)
+        executionPlan.workComplete(destroyerInfo)
         def producerInfo = selectNextTaskInfo()
 
         assert producerInfo.work == producer
         assert selectNextTask() == null
 
-        executionPlan.taskComplete(producerInfo)
+        executionPlan.workComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
         assert consumerInfo.work == consumer
@@ -604,13 +604,13 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(firstInfo)
+        executionPlan.workComplete(firstInfo)
 
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(secondInfo)
+        executionPlan.workComplete(secondInfo)
         def finalizerInfo = selectNextTaskInfo()
 
         then:
@@ -632,7 +632,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.taskComplete(finalizedInfo)
+        executionPlan.workComplete(finalizedInfo)
         selectNextTask()
 
         then:
@@ -702,7 +702,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskInfo selectNextTaskInfo() {
-        def nextTaskInfo = executionPlan.selectNextTask(lockSetup.workerLease, lockSetup.createResourceLockState())
+        def nextTaskInfo = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
         if (nextTaskInfo?.work instanceof Async) {
             def project = (ProjectInternal) nextTaskInfo.work.project
             lockSetup.projectLocks.get(project.identityPath.toString()).unlock()

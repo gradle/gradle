@@ -59,7 +59,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_, _) >> node
+        1 * taskPlan.selectNext(_, _) >> node
         1 * node.work >> task
         1 * worker.execute(task)
 
@@ -88,10 +88,10 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
-        1 * taskPlan.selectNextTask(_, _) >> node
+        1 * taskPlan.selectNext(_, _) >> node
         1 * node.work >> task
         1 * worker.execute(task)
-        1 * taskPlan.taskComplete(node)
+        1 * taskPlan.workComplete(node)
 
         then:
         1 * cancellationHandler.isCancellationRequested() >> true
