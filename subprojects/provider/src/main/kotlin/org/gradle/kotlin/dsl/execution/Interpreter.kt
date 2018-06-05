@@ -403,9 +403,6 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget
         ): Class<*> {
 
-            val templateId =
-                templateIdFor(programTarget, programKind, "stage2")
-
             val targetScope =
                 scriptHost.targetScope
 
@@ -423,7 +420,7 @@ class Interpreter(val host: Host) {
             val cacheDir =
                 host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
 
-                    logCompilationOf(templateId, scriptHost.scriptSource)
+                    logCompilationOf(scriptTemplateId, scriptHost.scriptSource)
 
                     val compilationClassPath =
                         accessorsClassPath?.let {
@@ -445,7 +442,7 @@ class Interpreter(val host: Host) {
                     }
                 }
 
-            logClassLoadingOf(templateId, scriptHost.scriptSource)
+            logClassLoadingOf(scriptTemplateId, scriptHost.scriptSource)
 
             return loadClassInChildScopeOf(
                 targetScope,
