@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
-import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
@@ -60,20 +59,3 @@ class KotlinScriptHost<out T : Any>(
             serviceRegistry.get(),
             target)
 }
-
-
-internal
-fun kotlinScriptHostFor(
-    settings: Settings,
-    scriptSource: ScriptSource,
-    scriptHandler: ScriptHandler,
-    targetScope: ClassLoaderScope,
-    baseScope: ClassLoaderScope
-) =
-    KotlinScriptHost(
-        settings,
-        scriptSource,
-        scriptHandler,
-        targetScope,
-        baseScope,
-        serviceRegistryOf(settings))

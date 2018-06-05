@@ -75,13 +75,6 @@ abstract class ExecutableProgram {
         )
     }
 
-    open class Empty : ExecutableProgram() {
-
-        override fun execute(programHost: Host, scriptHost: KotlinScriptHost<*>) {
-            programHost.closeTargetScopeOf(scriptHost)
-        }
-    }
-
     abstract class StagedProgram : ExecutableProgram() {
 
         abstract fun loadSecondStageFor(
