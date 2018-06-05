@@ -89,34 +89,30 @@ class StandardKotlinScriptEvaluator(
         topLevelScript: Boolean,
         options: EvalOptions
     ) {
+        withOptions(options) {
 
-        // TODO:partial-evaluator Optimise away this call whenever possible via partial evaluation
-        setupEmbeddedKotlinForBuildscript(scriptHandler)
+            // TODO:partial-evaluator Optimise away this call whenever possible via partial evaluation
+            setupEmbeddedKotlinForBuildscript(scriptHandler)
 
-        val sourceHash = scriptSourceHasher.hash(scriptSource)
-
-        if (EvalOption.IgnoreErrors in options)
-            classPathModeExceptionCollector.ignoringErrors {
-                interpreter.eval(
-                    target,
-                    scriptSource,
-                    sourceHash,
-                    scriptHandler,
-                    targetScope,
-                    baseScope,
-                    topLevelScript,
-                    options)
-            }
-        else
             interpreter.eval(
                 target,
                 scriptSource,
-                sourceHash,
+                scriptSourceHasher.hash(scriptSource),
                 scriptHandler,
                 targetScope,
                 baseScope,
                 topLevelScript,
-                options)
+                options
+            )
+        }
+    }
+
+    private
+    inline fun withOptions(options: EvalOptions, action: () -> Unit) {
+        if (EvalOption.IgnoreErrors in options)
+            classPathModeExceptionCollector.ignoringErrors(action)
+        else
+            action()
     }
 
     private
@@ -171,8 +167,9 @@ class StandardKotlinScriptEvaluator(
             sourceHash: HashCode,
             parentClassLoader: ClassLoader
         ): Class<*>? =
-            classloadingCache
-                .get(cacheKeyFor(templateId, sourceHash, parentClassLoader))
+            classloadingCache.get(
+                ScriptCacheKey(templateId, sourceHash, parentClassLoader)
+            )
 
         override fun cache(
             templateId: String,
@@ -181,20 +178,10 @@ class StandardKotlinScriptEvaluator(
             specializedProgram: Class<*>
         ) {
             classloadingCache.put(
-                cacheKeyFor(templateId, sourceHash, parentClassLoader),
-                specializedProgram)
+                ScriptCacheKey(templateId, sourceHash, parentClassLoader),
+                specializedProgram
+            )
         }
-
-        private
-        fun cacheKeyFor(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader
-        ): ScriptCacheKey =
-            ScriptCacheKey(
-                templateId,
-                sourceHash,
-                parentClassLoader)
 
         override fun cachedDirFor(
             templateId: String,
