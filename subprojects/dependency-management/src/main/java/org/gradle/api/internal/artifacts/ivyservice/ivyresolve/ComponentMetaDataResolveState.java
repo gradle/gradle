@@ -66,7 +66,7 @@ class ComponentMetaDataResolveState {
     protected void process(ModuleComponentRepositoryAccess moduleAccess) {
         moduleAccess.resolveComponentMetaData(componentIdentifier, componentOverrideMetadata, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(componentIdentifier, new MetadataProvider(resolveResult));
+            RejectedByRuleVersion rejectedComponent = versionedComponentChooser.isRejectedComponent(componentIdentifier, new CachedMetadataProvider(resolveResult));
             if (rejectedComponent != null) {
                 resolveResult.missing();
             }

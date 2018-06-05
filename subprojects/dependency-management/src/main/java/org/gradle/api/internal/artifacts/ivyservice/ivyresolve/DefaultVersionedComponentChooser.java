@@ -80,7 +80,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
 
         // Loop over all listed versions, sorted by LATEST first
         for (ModuleComponentResolveState candidate : sortLatestFirst(versions)) {
-            MetadataProvider metadataProvider = createMetadataProvider(candidate);
+            DefaultMetadataProvider metadataProvider = createMetadataProvider(candidate);
 
             boolean versionMatches = versionMatches(requestedVersionMatcher, candidate, metadataProvider);
             if (metadataIsNotUsable(result, metadataProvider)) {
@@ -149,7 +149,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
      * @param metadataProvider the metadata provider
      * @return true if metadata is not usable
      */
-    private boolean metadataIsNotUsable(ComponentSelectionContext result, MetadataProvider metadataProvider) {
+    private boolean metadataIsNotUsable(ComponentSelectionContext result, DefaultMetadataProvider metadataProvider) {
         if (!metadataProvider.isUsable()) {
             applyTo(metadataProvider, result);
             return true;
@@ -157,11 +157,11 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return false;
     }
 
-    private static MetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
-        return new MetadataProvider(candidate);
+    private static DefaultMetadataProvider createMetadataProvider(ModuleComponentResolveState candidate) {
+        return new DefaultMetadataProvider(candidate);
     }
 
-    private static void applyTo(MetadataProvider provider, ComponentSelectionContext result) {
+    private static void applyTo(DefaultMetadataProvider provider, ComponentSelectionContext result) {
         BuildableModuleComponentMetaDataResolveResult metaDataResult = provider.getResult();
         switch (metaDataResult.getState()) {
             case Unknown:

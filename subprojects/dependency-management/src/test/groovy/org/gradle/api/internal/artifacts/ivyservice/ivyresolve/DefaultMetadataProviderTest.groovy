@@ -46,7 +46,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
-class MetadataProviderTest extends Specification {
+class DefaultMetadataProviderTest extends Specification {
     def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getGroup() >> 'group'
@@ -55,7 +55,7 @@ class MetadataProviderTest extends Specification {
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
     def resolveState = Mock(ModuleComponentResolveState)
-    def metadataProvider = new MetadataProvider(resolveState)
+    def metadataProvider = new DefaultMetadataProvider(resolveState)
     def cachePolicy = new DefaultCachePolicy(new DefaultImmutableModuleIdentifierFactory())
     def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
 
@@ -67,8 +67,8 @@ class MetadataProviderTest extends Specification {
 
     def "caches metadata result"() {
         when:
-        metadataProvider.getMetaData()
-        metadataProvider.getMetaData()
+        metadataProvider.componentMetadata
+        metadataProvider.componentMetadata
 
         then:
         1 * resolveState.resolve() >> {
@@ -88,9 +88,8 @@ class MetadataProviderTest extends Specification {
         }
 
         expect:
-        metadataProvider.resolve()
         metadataProvider.usable
-        metadataProvider.metaData
+        metadataProvider.componentMetadata
     }
 
     def "verifies that metadata was not provided"() {

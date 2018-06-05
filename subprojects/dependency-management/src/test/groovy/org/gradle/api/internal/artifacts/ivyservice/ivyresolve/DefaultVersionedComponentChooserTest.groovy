@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.ComponentSelection
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -345,10 +344,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
         _ * b.version >> version("1.3")
         1 * b.resolve() >> resolvedWithFailure()
         1 * b.getComponentMetadataSupplier()
-        1 * b.getId() >> Stub(ModuleComponentIdentifier)
-        1 * b.getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
-        1 * b.getCachePolicy() >> cachePolicy
-        1 * b.getAttributesFactory() >> TestUtil.attributesFactory()
 
         _ * componentSelectionRules.rules >> []
         1 * selectedComponentResult.notMatched(c.id, _)
