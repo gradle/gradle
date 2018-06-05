@@ -22,6 +22,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.time.CountdownTimer;
 
 public class CleanupActionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
@@ -44,11 +45,11 @@ public class CleanupActionFactory {
         }
 
         @Override
-        public void clean(final CleanableStore persistentCache) {
+        public void clean(final CleanableStore persistentCache, final CountdownTimer timer) {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    delegate.clean(persistentCache);
+                    delegate.clean(persistentCache, timer);
                 }
 
                 @Override

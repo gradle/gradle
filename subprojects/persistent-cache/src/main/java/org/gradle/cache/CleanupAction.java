@@ -16,6 +16,8 @@
 
 package org.gradle.cache;
 
+import org.gradle.internal.time.CountdownTimer;
+
 /**
  * An action that cleans up a {@link CleanableStore}.
  *
@@ -24,11 +26,11 @@ package org.gradle.cache;
  */
 public interface CleanupAction {
 
-    void clean(CleanableStore cleanableStore);
+    void clean(CleanableStore cleanableStore, CountdownTimer timer);
 
     CleanupAction NO_OP = new CleanupAction() {
         @Override
-        public void clean(CleanableStore cleanableStore) {
+        public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
             // no-op
         }
     };

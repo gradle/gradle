@@ -28,7 +28,9 @@ class SingleDepthFilesFinderTest extends Specification {
     def "finds files for depth #depth"() {
         given:
         tmpDir.file("a/aa/aaa").createFile("1")
-        tmpDir.file("b/bb/bbb").createFile("2")
+        tmpDir.file("a/aa/aaa").createFile("2")
+        tmpDir.file("b/bb/bbb").createFile("3")
+        tmpDir.file("b/bb/bbb").createFile("4")
 
         when:
         def result = new SingleDepthFilesFinder(depth).find(tmpDir.getTestDirectory(), { true })
@@ -41,7 +43,7 @@ class SingleDepthFilesFinderTest extends Specification {
         1     | ["a", "b"]
         2     | ["a/aa", "b/bb"]
         3     | ["a/aa/aaa", "b/bb/bbb"]
-        4     | ["a/aa/aaa/1", "b/bb/bbb/2"]
+        4     | ["a/aa/aaa/1", "a/aa/aaa/2", "b/bb/bbb/3", "b/bb/bbb/4"]
         5     | []
     }
 
@@ -55,6 +57,14 @@ class SingleDepthFilesFinderTest extends Specification {
         def result = new SingleDepthFilesFinder(1).find(tmpDir.getTestDirectory(), filter)
 
         then:
-        result == [includedFile]
+        result as List == [includedFile]
+    }
+
+    def "handles empty dir"() {
+        when:
+        def result = new SingleDepthFilesFinder(1).find(tmpDir.getTestDirectory(), { true })
+
+        then:
+        result as List == []
     }
 }

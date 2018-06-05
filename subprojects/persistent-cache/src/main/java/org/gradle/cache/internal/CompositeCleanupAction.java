@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
+import org.gradle.internal.time.CountdownTimer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,9 +39,12 @@ public class CompositeCleanupAction implements CleanupAction {
     }
 
     @Override
-    public void clean(CleanableStore cleanableStore) {
+    public void clean(CleanableStore cleanableStore, CountdownTimer timer) {
         for (ScopedCleanup scopedCleanup : cleanups) {
-            scopedCleanup.action.clean(new CleanableSubDir(cleanableStore, scopedCleanup.baseDir));
+            if (timer.hasExpired()) {
+                break;
+            }
+            scopedCleanup.action.clean(new CleanableSubDir(cleanableStore, scopedCleanup.baseDir), timer);
         }
     }
 
@@ -74,15 +78,17 @@ public class CompositeCleanupAction implements CleanupAction {
 
         private final CleanableStore delegate;
         private final File subDir;
+        private final String displayName;
 
         CleanableSubDir(CleanableStore delegate, File subDir) {
             this.delegate = delegate;
             this.subDir = subDir;
+            this.displayName = delegate.getDisplayName() + " [subdir: " + subDir + "]";
         }
 
         @Override
         public String getDisplayName() {
-            return delegate.getDisplayName();
+            return displayName;
         }
 
         @Override

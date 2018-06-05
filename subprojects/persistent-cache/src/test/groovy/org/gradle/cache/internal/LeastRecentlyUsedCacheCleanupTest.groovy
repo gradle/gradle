@@ -16,9 +16,10 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.CleanableStore
 import org.gradle.internal.Factories
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,45 +27,59 @@ import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
 
-@Subject(LeastRecentlyUsedCacheCleanup)
 class LeastRecentlyUsedCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
-    def persistentCache = Mock(PersistentCache)
-    def cleanupAction = new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), Factories.constant(new ModificationTimeFileAccessTimeJournal()), 1)
+    def cleanableStore = Stub(CleanableStore) {
+        getBaseDir() >> cacheDir
+    }
+    def timer = Stub(CountdownTimer)
+    @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
+        new SingleDepthFilesFinder(1), Factories.constant(new ModificationTimeFileAccessTimeJournal()), 1)
 
     def "finds files to delete when files are old"() {
+        given:
         long now = System.currentTimeMillis()
         long fiveDaysAgo = now - TimeUnit.DAYS.toMillis(5)
         def cacheEntries = [
-            createCacheEntry(1024, now),
-            createCacheEntry(1024, now),
-            createCacheEntry(1024, now),
-            createCacheEntry(1024, fiveDaysAgo),
+            createCacheEntry(now),
+            createCacheEntry(now),
+            createCacheEntry(now),
+            createCacheEntry(fiveDaysAgo),
         ]
-        expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries)
-        filesToDelete.size() == 1
-        // we should only delete the last one
-        filesToDelete[0] == cacheEntries.last()
+
+        when:
+        cleanupAction.clean(cleanableStore, timer)
+
+        then:
+        cacheEntries[0].assertExists()
+        cacheEntries[1].assertExists()
+        cacheEntries[2].assertExists()
+        cacheEntries[3].assertDoesNotExist()
     }
 
     def "finds no files to delete when files are new"() {
+        given:
         long now = System.currentTimeMillis()
         def cacheEntries = [
-            createCacheEntry(1024, now),
-            createCacheEntry(1024, now - TimeUnit.MINUTES.toMillis(15)),
-            createCacheEntry(1024, now - TimeUnit.HOURS.toMillis(5)),
+            createCacheEntry(now),
+            createCacheEntry(now - TimeUnit.MINUTES.toMillis(15)),
+            createCacheEntry(now - TimeUnit.HOURS.toMillis(5)),
         ]
-        expect:
-        def filesToDelete = cleanupAction.findFilesToDelete(persistentCache, cacheEntries)
-        filesToDelete.size() == 0
+
+        when:
+        cleanupAction.clean(cleanableStore, timer)
+
+        then:
+        cacheEntries[0].assertExists()
+        cacheEntries[1].assertExists()
+        cacheEntries[2].assertExists()
     }
 
     private Random r = new Random()
-    def createCacheEntry(int size=1024, long timestamp=0) {
+    def createCacheEntry(long timestamp) {
         def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
-        def data = new byte[size]
+        def data = new byte[1024]
         r.nextBytes(data)
         cacheEntry.bytes = data
         cacheEntry.lastModified = timestamp

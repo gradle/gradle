@@ -16,7 +16,9 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.api.specs.Spec
+import org.gradle.cache.CleanableStore
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -24,43 +26,74 @@ import spock.lang.Specification
 class AbstractCacheCleanupTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
-    def persistentCache = Mock(PersistentCache)
-
-    def setup() {
-        persistentCache.getBaseDir() >> cacheDir
-        persistentCache.reservedCacheFiles >> Arrays.asList(cacheDir.file("cache.properties"), cacheDir.file("gc.properties"), cacheDir.file("cache.lock"))
+    def cleanableStore = Mock(CleanableStore) {
+        getBaseDir() >> cacheDir
+        getReservedCacheFiles() >> []
     }
+    def timer = Mock(CountdownTimer)
 
-    def "deletes files"() {
+    def "deletes non-reserved matching files"() {
         def cacheEntries = [
-            createCacheEntry(),
-            createCacheEntry(),
-            createCacheEntry(),
+            temporaryFolder.createFile("1"),
+            temporaryFolder.createFile("2"),
+            temporaryFolder.createFile("3"),
         ]
+
         when:
-        AbstractCacheCleanup.cleanupFiles(persistentCache, cacheEntries)
+        cleanupAction(finder(cacheEntries), { it != cacheEntries[2] })
+            .clean(cleanableStore, timer)
+
         then:
-        cacheEntries.each {
-            it.assertDoesNotExist()
-        }
+        (1.._) * cleanableStore.getReservedCacheFiles() >> [cacheEntries[0]]
+        2 * timer.hasExpired()
+        cacheEntries[0].assertExists()
+        cacheEntries[1].assertDoesNotExist()
+        cacheEntries[2].assertExists()
     }
 
     def "can delete directories"() {
-        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt())).file("subdir/somefile")
+        given:
+        def cacheEntry = cacheDir.file("subDir").createFile("somefile")
         cacheEntry.text = "delete me"
+
         when:
-        AbstractCacheCleanup.cleanupFiles(persistentCache, [cacheEntry])
+        cleanupAction(finder([cacheEntry.parentFile]), { true })
+            .clean(cleanableStore, timer)
+
         then:
+        1 * timer.hasExpired()
         cacheEntry.assertDoesNotExist()
+        cacheEntry.parentFile.assertDoesNotExist()
     }
 
-    private Random r = new Random()
-    def createCacheEntry(int size=1024, long timestamp=0) {
-        def cacheEntry = cacheDir.file(String.format("%032x", r.nextInt()))
-        def data = new byte[size]
-        r.nextBytes(data)
-        cacheEntry.bytes = data
-        cacheEntry.lastModified = timestamp
-        return cacheEntry
+    def "aborts cleanup when timer has expired"() {
+        given:
+        def cacheEntry = cacheDir.createFile("somefile")
+
+        when:
+        cleanupAction(finder([cacheEntry]), { true })
+            .clean(cleanableStore, timer)
+
+        then:
+        1 * timer.hasExpired() >> true
+        cacheEntry.assertExists()
+    }
+
+    FilesFinder finder(files) {
+        Stub(FilesFinder) {
+            find(_, _) >> { baseDir, filter ->
+                assert filter instanceof NonReservedCacheFileFilter
+                files.findAll { filter.accept(it) }
+            }
+        }
+    }
+
+    AbstractCacheCleanup cleanupAction(FilesFinder finder, Spec<File> spec) {
+        new AbstractCacheCleanup(finder) {
+            @Override
+            protected boolean shouldDelete(File file) {
+                return spec.isSatisfiedBy(file)
+            }
+        }
     }
 }

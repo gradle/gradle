@@ -30,6 +30,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Time;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class InMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Maps.newLinkedHashMap();
@@ -71,7 +73,7 @@ public class InMemoryCacheFactory implements CacheFactory {
         public void close() {
             if (cleanup!=null) {
                 synchronized (this) {
-                    cleanup.clean(this);
+                    cleanup.clean(this, Time.startCountdownTimer(1, TimeUnit.MINUTES));
                 }
             }
             closed = true;

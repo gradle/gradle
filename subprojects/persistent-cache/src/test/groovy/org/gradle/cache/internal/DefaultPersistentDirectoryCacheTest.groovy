@@ -24,6 +24,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.time.CountdownTimer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
@@ -215,14 +216,17 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         gcFile.assertIsFile()
 
         when:
-        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+        markCacheForCleanup(gcFile)
+        def modificationTimeBefore = gcFile.lastModified()
         try {
             cache.open()
         } finally {
             cache.close()
         }
+
         then:
-        1 * cleanupAction.clean(cache)
+        gcFile.lastModified() > modificationTimeBefore
+        1 * cleanupAction.clean(cache, _)
         0 * _
     }
 
@@ -232,7 +236,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         def gcFile = dir.file("gc.properties")
         def failingCleanupAction = new CleanupAction() {
             @Override
-            void clean(CleanableStore cleanableStore) {
+            void clean(CleanableStore cleanableStore, CountdownTimer timer) {
                 throw new Exception("Boom")
             }
         }
@@ -262,7 +266,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
     }
 
     private void markCacheForCleanup(TestFile gcFile) {
-        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(7))
+        gcFile.setLastModified(gcFile.lastModified() - TimeUnit.DAYS.toMillis(2))
     }
 
     def "does not use gc.properties when no cleanup action is defined"() {

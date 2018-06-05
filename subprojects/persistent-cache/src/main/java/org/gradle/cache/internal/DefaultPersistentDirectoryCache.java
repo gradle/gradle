@@ -25,8 +25,8 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.time.CountdownTimer;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     public static final int CLEANUP_INTERVAL_IN_HOURS = 24;
+    private static final int DEFAULT_CLEANUP_TIMEOUT_IN_SECONDS = 20;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final Properties properties = new Properties();
@@ -125,14 +126,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
     private class Cleanup implements CacheCleanupAction {
         @Override
         public boolean requiresCleanup() {
-            // Dead simple check that it's been more than 7 days since we last checked for cleanup
             if (cleanupAction != null) {
                 if (!gcFile.exists()) {
                     GFileUtils.touch(gcFile);
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-                    LOGGER.debug("{} has last been cleaned up {} hours ago", DefaultPersistentDirectoryCache.this, timeInHours);
+                    LOGGER.debug("{} has last been fully cleaned up {} hours ago", DefaultPersistentDirectoryCache.this, timeInHours);
                     return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
                 }
             }
@@ -142,11 +142,13 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         @Override
         public void cleanup() {
             if (cleanupAction != null) {
-                Timer timer = Time.startTimer();
-                cleanupAction.clean(DefaultPersistentDirectoryCache.this);
+                CountdownTimer timer = Time.startCountdownTimer(DEFAULT_CLEANUP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                cleanupAction.clean(DefaultPersistentDirectoryCache.this, timer);
+                if (!timer.hasExpired()) {
+                    GFileUtils.touch(gcFile);
+                }
                 LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryCache.this, timer.getElapsed());
             }
-            GFileUtils.touch(gcFile);
         }
     }
 }

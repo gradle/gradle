@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Collection;
 
 /**
  * Encapsulates a criteria for finding files.
@@ -28,5 +27,5 @@ public interface FilesFinder {
      * Find files according to this finder's criteria within the supplied base
      * directory that pass the supplied {@link FileFilter}.
      */
-    Collection<File> find(File baseDir, FileFilter filter);
+    Iterable<File> find(File baseDir, FileFilter filter);
 }
