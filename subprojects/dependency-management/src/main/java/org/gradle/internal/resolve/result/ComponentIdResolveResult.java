@@ -74,4 +74,11 @@ public interface ComponentIdResolveResult extends ResolveResult {
      */
     Collection<RejectedVersion> getRejectedVersions();
 
+    /**
+     * Tags this resolve result, for visiting. This is a performance optimization. It will return
+     * true if the last tagged object is different, false otherwise. This is meant to replace the
+     * use of a hash set to collect the visited items.
+     */
+    boolean mark(Object o);
+
 }
