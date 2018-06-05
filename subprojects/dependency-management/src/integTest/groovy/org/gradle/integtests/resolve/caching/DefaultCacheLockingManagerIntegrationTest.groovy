@@ -103,19 +103,17 @@ class DefaultCacheLockingManagerIntegrationTest extends AbstractHttpDependencyRe
         succeeds 'resolve'
 
         then:
-        def resources = findFiles(cacheDir, 'resources-*/**/maven-metadata.xml')
-        resources.size() == 1
-        def files = findFiles(cacheDir, "files-*/**/*")
-        files.size() == 2
+        def jarFiles = findFiles(cacheDir, "files-*/**/*.jar")
+        jarFiles.size() == 1
 
         when:
-        findFiles(cacheDir, 'files-*/**/*').each { it.delete() }
+        assert jarFiles[0].delete()
 
         and:
         succeeds 'resolve'
 
         then:
-        files.findAll { it.name.endsWith(".jar") }.each { it.assertExists() }
+        jarFiles[0].assertExists()
     }
 
     def "marks artifacts as recently used when accessed"() {
