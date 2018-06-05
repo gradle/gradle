@@ -34,6 +34,7 @@ The Maven Publish Plugin uses an extension on the project named `publishing` of 
 [[publishing_maven:tasks]]
 === Tasks
 
+[[publishing_maven:generate-pom]]
 `generatePomFileFor__PubName__Publication` — type: api:org.gradle.api.publish.maven.tasks.GenerateMavenPom[]::
 Creates a POM file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the POM file is _build/publications/$pubName/pom-default.xml_.
 
@@ -41,7 +42,7 @@ Creates a POM file for the publication named _PubName_, populating the known met
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
 `publish__PubName__PublicationToMavenLocal` — type: api:org.gradle.api.publish.maven.tasks.PublishToMavenLocal[]::
-Copies the _PubName_ publication to the local Maven cache — typically __$USER_HOME/.m2/repository__ — along with the publication's POM file and other metadata.
+Copies the _PubName_ publication to the local Maven cache — typically _$USER_HOME/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::
 _Depends on_: All `publish__PubName__PublicationTo__RepoName__Repository` tasks
@@ -118,10 +119,10 @@ Here's a simple example of defining a publishing repository:
 </sample>
 ++++
 
-The two main things you will want to configure are:
+The two main things you will want to configure are the repository's:
 
- * The name of the repository (optional)
- * Its URL
+ * URL (required)
+ * Name (optional)
  
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Maven".
 
@@ -149,44 +150,9 @@ Similarly, you can use a <<build_environment, project or system property>> to de
 [[publishing_maven:install]]
 === Publishing to Maven Local
 
-For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _$USER_HOME/.m2/repository), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
+For integration with a local Maven installation, it is sometimes useful to publish the module into the Maven local repository (typically at _$USER_HOME/.m2/repository_), along with its POM file and other metadata. In Maven parlance, this is referred to as 'installing' the module.
 
 The Maven Publish Plugin makes this easy to do by automatically creating a api:org.gradle.api.publish.maven.tasks.PublishToMavenLocal[] task for each api:org.gradle.api.publish.maven.MavenPublication[] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
-
-[[publishing_maven:signing]]
-=== Signing artifacts
-
-The <<signing_plugin, Signing Plugin>> can be used to sign all artifacts, including generated ones like the POM, of a publication. In order to use it, first apply the `signing` plugin and configure the signatory credentials (please refer to the <<signing_plugin, plugin's documentation>> for details). Then, specify the publications you want to have signed using the `signing` DSL.
-
-++++
-<sample dir="signing/maven-publish" id="publishingMavenSignPublication" title="Signing a publication">
-    <sourcefile file="build.gradle" snippet="sign-publication"/>
-</sample>
-++++
-
-For each specified publication, this will create a `Sign` task and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, you can simply execute `gradle publish` to sign and publish.
-
-++++
-<sample dir="signing/maven-publish" id="publishingMavenSignAndPublish" title="Sign and publish a project">
-    <output args="publish"/>
-</sample>
-++++
-
-[[publishing_maven:generate-pom]]
-=== Generating the POM file without publishing
-
-At times it is useful to generate a Maven POM file for a module without actually publishing. Since POM generation is performed by a separate task, it is very easy to do so.
-
-The task for generating the POM file is of type api:org.gradle.api.publish.maven.tasks.GenerateMavenPom[], and it is given a name based on the name of the publication: `generatePomFileFor__PubName__Publication`. So in the example below, where the publication is named `mavenCustom`, the task will be named `generatePomFileForMavenCustomPublication`.
-
-++++
-<sample dir="maven-publish/pomGeneration" id="publishingMavenGeneratePom" title="Generate a POM file without publishing">
-    <sourcefile file="build.gradle" snippet="generate"/>
-    <output args="generatePomFileForMavenCustomPublication"/>
-</sample>
-++++
-
-All details of the publishing model are still considered in POM generation, including `components`, custom `artifacts`, and any modifications made via `pom`.
 
 [[publishing_maven:complete_example]]
 === Complete example
