@@ -25,8 +25,9 @@ import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.Set;
 
 /**
@@ -48,7 +49,7 @@ import java.util.Set;
  */
 @NonNullApi
 public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext {
-    private final LinkedList<Object> queue = new LinkedList<Object>();
+    private final Deque<Object> queue = new ArrayDeque<Object>();
     private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
             new TaskGraphImpl());
     private Task task;
@@ -75,12 +76,14 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         return walker.findValues();
     }
 
+    @Override
     public void add(Object dependency) {
         Preconditions.checkNotNull(dependency);
         queue.add(dependency);
     }
 
     private class TaskGraphImpl implements DirectedGraph<Object, Task> {
+        @Override
         public void getNodeValues(Object node, Collection<? super Task> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
