@@ -123,7 +123,7 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(32);
             appendDisplayName(displayName, builder);
             return builder.toString();
         }
@@ -147,7 +147,7 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(48);
             appendDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
@@ -156,7 +156,7 @@ public class Describables {
 
         @Override
         public String getCapitalizedDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(48);
             appendCapDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
@@ -177,7 +177,7 @@ public class Describables {
 
         @Override
         public String getDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(64);
             appendDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
@@ -188,7 +188,7 @@ public class Describables {
 
         @Override
         public String getCapitalizedDisplayName() {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder(64);
             appendCapDisplayName(part1, builder);
             builder.append(' ');
             appendDisplayName(part2, builder);
