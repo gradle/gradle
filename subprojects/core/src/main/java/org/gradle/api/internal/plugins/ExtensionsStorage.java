@@ -35,8 +35,6 @@ import java.util.Map;
 import static java.lang.String.format;
 import static org.gradle.internal.Cast.uncheckedCast;
 
-import com.google.common.annotations.VisibleForTesting;
-
 public class ExtensionsStorage {
 
     private final Map<String, ExtensionHolder> extensions = new LinkedHashMap<String, ExtensionHolder>();
