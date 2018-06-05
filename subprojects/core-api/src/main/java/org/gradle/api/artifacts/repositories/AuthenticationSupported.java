@@ -59,8 +59,8 @@ public interface AuthenticationSupported {
      *     maven {
      *         url "${url}"
      *         credentials {
-     *             username = 'joe'
-     *             password = 'secret'
+     *             username 'joe'
+     *             password 'secret'
      *         }
      *     }
      * }

@@ -268,8 +268,8 @@ repositories {
     ivy {
         url "${ivyHttpRepo.uri}"
         credentials {
-            username = 'username'
-            password = 'password'
+            username 'username'
+            password 'password'
         }
 
         authentication {
@@ -319,8 +319,8 @@ repositories {
     maven {
         url "${mavenHttpRepo.uri}"
         credentials {
-            username = 'username'
-            password = 'password'
+            username 'username'
+            password 'password'
         }
 
         authentication {
@@ -368,8 +368,8 @@ repositories {
     ivy {
         url "${ivyHttpRepo.uri}"
         credentials {
-            username = 'username'
-            password = 'password'
+            username 'username'
+            password 'password'
         }
     }
 }
@@ -410,8 +410,8 @@ repositories {
     maven {
         url "${mavenHttpRepo.uri}"
         credentials {
-            username = 'username'
-            password = 'password'
+            username 'username'
+            password 'password'
         }
     }
 }

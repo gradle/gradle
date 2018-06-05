@@ -45,8 +45,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                             basic(BasicAuthentication)
                         }
                         credentials {
-                            username = "noob"
-                            password = "hunter2"
+                            username "noob"
+                            password "hunter2"
                         }
                     }
                 }
@@ -68,8 +68,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                             basic(BasicAuthentication)
                         }
                         credentials {
-                            username = "noob"
-                            password = "hunter2"
+                            username "noob"
+                            password "hunter2"
                         }
                     }
                 }
