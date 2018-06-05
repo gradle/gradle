@@ -205,11 +205,6 @@ In addition, Gradle services can be injected into your `ComponentMetadataRule`.
 This is for the moment limited to the api:org.gradle.api.artifacts.repositories.RepositoryResourceAccessor[].
 Because of this, the moment you have a constructor, it must be annotated with `@javax.inject.Inject`.
 
-[NOTE]
-====
-All other mechanisms for defining component metadata rules are deprecated and should no longer be used as they will be removed in a later version of Gradle.
-====
-
 [[sec:component_selection_rules]]
 === Using component selection rules
 

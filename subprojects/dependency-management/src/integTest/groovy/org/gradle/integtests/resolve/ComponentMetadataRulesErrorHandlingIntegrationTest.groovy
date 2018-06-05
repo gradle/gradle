@@ -66,7 +66,6 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
     }
 
     def "produces sensible error for invalid component metadata rule" () {
-        executer.expectDeprecationWarning()
         buildFile << """
             dependencies {
                 components {
@@ -139,7 +138,6 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
     }
 
     def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter" () {
-        executer.expectDeprecationWarning()
         buildFile << """
             dependencies {
                 components {
@@ -164,7 +162,6 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
     }
 
     def "produces sensible error when rule source throws an exception" () {
-        executer.expectDeprecationWarning()
         buildFile << """
             dependencies {
                 components {

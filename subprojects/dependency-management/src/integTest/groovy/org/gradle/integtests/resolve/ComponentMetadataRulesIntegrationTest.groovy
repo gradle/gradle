@@ -162,7 +162,6 @@ dependencies {
     }
 
     def "can apply all rule types to all modules" () {
-        executer.expectDeprecationWarnings(3)
         repository {
             'org.test:projectA:1.0'()
         }
@@ -226,13 +225,9 @@ dependencies {
 
         then:
         succeeds 'resolve'
-        outputContains('all(Closure<?>) method has been deprecated')
-        outputContains('all(Action<? super ComponentMetadataDetails>) method has been deprecated')
-        outputContains('all(Object) method has been deprecated')
     }
 
     def "can apply all rule types by module" () {
-        executer.expectDeprecationWarnings(3)
         repository {
             'org.test:projectA:1.0'()
         }
@@ -311,15 +306,9 @@ dependencies {
 
         then:
         succeeds 'resolve'
-        outputContains('withModule(Object, Closure<?>) method has been deprecated')
-        outputContains('withModule(Object, Action<? super ComponentMetadataDetails>) method has been deprecated')
-        outputContains('withModule(Object, Object) method has been deprecated')
     }
 
     def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter"() {
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
         buildFile << """
             dependencies {
                 components {
@@ -348,9 +337,6 @@ dependencies {
     )
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
-        executer.beforeExecute {
-            expectDeprecationWarning()
-        }
         repository {
             'org.test:projectA:1.0'()
         }
