@@ -48,7 +48,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == VersionSelectionReasons.requested()
         result.moduleVersion == newId("org", "foo", "2.0")
         result.componentId == componentIdentifier
-        result.variantName == 'default'
+        result.variantName.displayName == 'default'
         result.variantAttributes == attributes.asImmutable()
     }
 }

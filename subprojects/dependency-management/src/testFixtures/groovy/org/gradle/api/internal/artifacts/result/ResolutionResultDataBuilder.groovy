@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -55,6 +56,6 @@ class ResolutionResultDataBuilder {
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
-        return new DefaultResolvedVariantResult(name, mutableAttributes)
+        return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes)
     }
 }
