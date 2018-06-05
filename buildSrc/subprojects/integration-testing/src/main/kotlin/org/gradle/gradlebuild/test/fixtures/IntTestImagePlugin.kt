@@ -85,7 +85,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 isCanBeConsumed = false
             }
             afterEvaluate {
-                if (project.tasks.findByName("jar") != null) {
+                if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
                         selfRuntime(this@afterEvaluate)
                     }
