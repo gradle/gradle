@@ -19,11 +19,11 @@ The vast majority of software projects build something that aims to be consumed 
 
 In Gradle, that process looks like this:
 
- 1. Define what to publish (_<<glossary:publication,publications>>_)
- 2. Define where to publish it to (_<<sub:terminology_repository,repositories>>_)
- 3. Do the publishing (via _tasks_)
+ 1. Define <<publishing_overview:what,what>> to publish
+ 2. Define <<publishing_overview:where,where>> to publish it to
+ 3. <<publishing_overview:how,Do>> the publishing
 
-Each of the these steps is dependent in some way on the type of repository to which you want to publish artifacts. The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
+Each of the these steps is dependent on the type of repository to which you want to publish artifacts. The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
 
 NOTE: Looking for information on upload tasks and the `archives` configuration? See the <<artifact_management>> chapter.
 
@@ -38,25 +38,28 @@ Gradle makes it easy to publish to these types of repository by providing some p
 </figure>
 ++++
 
-Before you start working with the publishing process, it's worth taking some time to understand a few important concepts:
+Let's take a look at those steps in more detail:
 
-Publications::
-Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<glossary:artifact,artifacts>> and metadata that Gradle calls a _publication_. Exactly what a publication contains depends on the type of repository it's being published to.
+[[publishing_overview:what]]
+What to publish::
+Gradle needs to know what files and information to publish so that consumers can use your project. This is typically a combination of <<glossary:artifact,artifacts>> and metadata that Gradle calls a _<<glossary:publication,publication>>_. Exactly what a publication contains depends on the type of repository it's being published to.
 +
 For example, a publication destined for a Maven repository includes one or more artifacts — typically built by the project — plus a POM file describing the primary artifact and its dependencies. The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 
-Repositories::
-Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via repositories, which store and make available all sorts of artifact. Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
+[[publishing_overview:where]]
+Where to publish::
+Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<sub:terminology_repository,repositories>>, which store and make available all sorts of artifact. Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
 
-Tasks::
+[[publishing_overview:how]]
+How to publish::
 Gradle automatically generates publishing tasks for all possible combinations of publication and repository, allowing you to publish any artifact to any repository. If you're publishing to a Maven repository, the tasks are of type api:org.gradle.api.publish.maven.tasks.PublishToMavenRepository[], while for Ivy repositories the tasks are of type api:org.gradle.api.publish.ivy.tasks.PublishToIvyRepository[].
 
-We will now show you how all these aspects fit together in a practical example.
+What follows is a practical example that demonstrates the entire publishing process.
 
 [[sec:basic_publishing]]
 === Setting up basic publishing
 
-The first step in publishing, irrespective of your project type, is to apply the appropriate plugin. As mentioned in the introduction, Gradle supports both Maven and Ivy repositories via the following plugins:
+The first step in publishing, irrespective of your project type, is to apply the appropriate publishing plugin. As mentioned in the introduction, Gradle supports both Maven and Ivy repositories via the following plugins:
 
  * <<publishing_maven,Maven Publish Plugin>>
  * <<publishing_ivy,Ivy Publish Plugin>>
@@ -83,13 +86,13 @@ This defines a publication called "myLibrary" that can be published to a Maven r
 
 NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` api:org.gradle.api.component.SoftwareComponent[], while the War Plugin defines `components.web`.
 
-The example also defines a file-based Maven repository. Most builds, though, will use a custom repository server, Maven Central, or some other repository accessed via HTTPS.
+The example also defines a file-based Maven repository with the name "myRepo". Such a file-based repository is convenient for a sample, but real-world builds typically work with HTTPS-based repository servers, such as Maven Central or an internal company server.
 
-In combination with the project's `group` and `version`, these two definitions provide everything that Gradle needs to publish the project's production JAR. Gradle will then create a dedicated `publishMyLibraryPublicationToMavenRepository` task that does just that. Its name is based on the template `publish__PubName__PublicationTo__RepoName__Repository`. See the appropriate publishing plugin's documentation for more details on the nature of this task and any other tasks that may be available to you.
+NOTE: You may define one, and only one, repository without a name. This translates to an implicit name of "Maven" for Maven repositories and "Ivy" for Ivy repositories. All other repository definitions must be given an explicit name.
+
+In combination with the project's `group` and `version`, the publication and repository definitions provide everything that Gradle needs to publish the project's production JAR. Gradle will then create a dedicated `publishMyLibraryPublicationToMyRepoRepository` task that does just that. Its name is based on the template `publish__PubName__PublicationTo__RepoName__Repository`. See the appropriate publishing plugin's documentation for more details on the nature of this task and any other tasks that may be available to you.
 
 You can either execute the individual publishing tasks directly, or you can execute `publish`, which will run all the available publishing tasks. In this example, `publish` will just run `publishMyLibraryPublicationToMavenRepository`.
-
-One thing to bear in mind is that you are allowed no more than one unnamed repository, such as we have in the above example. This translates to an implicit name of "Maven" for the Maven Publish Plugin and "Ivy" for the Ivy Publish Plugin. All other repositories must be given an explicit name.
 
 [NOTE]
 ====
@@ -154,30 +157,31 @@ NOTE: There is currently no easy way to define dependency information for a cust
 
 The `groupId` and `artifactId` properties are specific to Maven publications. See api:org.gradle.api.publish.ivy.IvyPublication[] for the relevant Ivy properties.
 
-[[sec:publishing_multiple_modules_to_maven]]
-=== Defining multiple publications
+[[publishing_maven:signing]]
+=== Signing artifacts
 
-You may want to publish more than one primary artifact from a build. For example, a Java software project may prefer to publish separate API and implementation JARs, which can be consumed independently. One common approach to this requirement is to create separate API and implementation Gradle projects. But an alternative is to keep the source code in a single project and define multiple publications.
+The <<signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module desciptors. In order to use it:
 
-The following sample demonstrates how you can set up such a project by adding a custom `Jar` task to create the API JAR — the `apiJar` task — and then defining an extra publication called `api` for that JAR:
+ 1. Apply the Signing Plugin
+ 2. Configure the <<sec:signatory_credentials,signatory credentials>> — follow the link to see how
+ 3. Specify the publications you want signed
+
+Here's an example that configures the plugin to sign the `mavenJava` publication:
 
 ++++
-<sample dir="maven-publish/multiple-publications" id="publishing_maven:publish-multiple-publications" title="Publishing multiple modules from a single project">
-    <sourcefile file="build.gradle" snippet="multiple-publications"/>
+<sample dir="signing/maven-publish" id="publishingMavenSignPublication" title="Signing a publication">
+    <sourcefile file="build.gradle" snippet="sign-publication"/>
 </sample>
 ++++
 
-There are a couple of important points to note from this example:
+This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
 
- * The implementation JAR is published with all its associated metadata, including the dependency information, as we are using a <<glossary:component,component>> in the publication definition. The API publication does not include that information, so you would have to manually incorporate it using the publication API for whichever repository type you're working with. See api:org.gradle.api.publish.maven.MavenPublication[] and api:org.gradle.api.publish.ivy.IvyPublication[] for details.
- * `artifactId` is specific to the Maven Publish Plugin. You will need to use `module` for an Ivy publication.
+++++
+<sample dir="signing/maven-publish" id="publishingMavenSignAndPublish" title="Sign and publish a project">
+    <output args="publish"/>
+</sample>
+++++
 
-Gradle automatically creates publishing tasks for each combination of publication and repository, so with the above example, you'll get these tasks:
-
- * `publishImplPublicationToMavenRepository`
- * `publishApiPublicationToMavenRepository`
-
-The ability to define multiple publications does raise the question of when to do this rather than have separate projects. The ideal situation is to have a single project publish all _<<glossary:variant,variants>>_ of its artifacts, be they JDK-specific, just the API, or a debug version. As a general rule of thumb, if the artifacts share the source for the classes they contain, they should probably be published from the same project.
 
 [[publishing_maven:conditional_publishing]]
 === Restricting publications to specific repositories
@@ -232,21 +236,21 @@ The above sample uses a regular expression to extract the name of the publicatio
 
 [[glossary:artifact]]
 Artifact::
-A file produced by a build, such as a JAR, a ZIP distribution, or a native executable.
+A file or directory produced by a build, such as a JAR, a ZIP distribution, or a native executable.
 +
-Artifacts are typically designed to be used or consumed by users or other projects, or deployed to hosting systems. This is distinct from intermediate files that are created by a build as a step on the way to producing the end result. For example, the class files generated by compiling Java source are almost never an end product themselves, since they are typically packaged into JARs or some other type of archive.
+Artifacts are typically designed to be used or consumed by users or other projects, or deployed to hosting systems. In such cases, the artifact is a single file. Directories are common in the case of inter-project dependencies to avoid the cost of producing the publishable artifact.
 
 [[glossary:component]]
 Component::
-A predefined combination of one or more artifacts and a standard set of information about those artifacts. The concept exists in Gradle only as a part of publishing.
+Any single version of a <<sub:terminology_module,module>>.
 +
-Components are typically defined by plugins and provide a simple way to define a publication, as they already include the appropriate metadata. For example, the `java` component consists of the production JAR — produced by the `jar` task — as well as its dependency information.
+Components are defined by plugins and provide a simple way to define a publication for publishing. They comprise one or more <<glossary:artifact,artifacts>> as well as the appropriate metadata. For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
 
 [[glossary:configuration]]
 Configuration::
-A named collection of dependencies or artifacts.
+A named collection of <<sub:terminology_configuration,dependencies>> or <<glossary:artifact,artifacts>>.
 +
-Gradle's configurations can be somewhat confusing because they apply to both <<sub:terminology_configuration,dependencies>> and artifacts. The main difference is that dependencies are consumed by the project, while artifacts are produced by it. Even then, the artifacts produced by a project are often consumed as dependencies by other projects.
+Gradle's configurations can be somewhat confusing because they apply to both dependencies and artifacts. The main difference is that dependencies are consumed by the project, while artifacts are produced by it. Even then, the artifacts produced by a project are often consumed as dependencies by other projects.
 +
 Configurations allow different aspects of the build to work with known subsets of a project's dependencies or artifacts, e.g. the dependencies required for compilation, or the artifacts related to a project's API.
 
@@ -254,9 +258,6 @@ Configurations allow different aspects of the build to work with known subsets o
 Publication::
 A description of the files and metadata that should be published to a repository as a single entity for use by consumers.
 +
-A publication has a name, a primary artifact, information about that artifact — the exact information depends on the type of artifact and the repository it's published to — and optionally other, secondary artifacts, such as the source files used to produce the primary artifact or documentation on it.
-
-[[glossary:variant]]
-Variant::
-An alternative artifact for a <<sub:terminology_module,module>> that differs in some way from the main one, such as targetting a different platform or including debug information. Variants may have different dependencies from one another.
-
+A publication has a name and consists of one or more artifacts plus information about those artifacts. The nature of that information depends on what type of repository you publish the publication to. In the case of Maven, the information takes the form of a POM.
++
+One thing to bear in mind is that Maven repositories only allow a single _primary_ artifact, i.e. one with metadata, but they do allow _secondary_ artifacts such as packages of the associated source files and documentation ("-sources" and "-javadoc" JARs in the Java world).

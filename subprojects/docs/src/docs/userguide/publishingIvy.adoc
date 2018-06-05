@@ -35,6 +35,7 @@ The Ivy Publish Plugin uses an extension on the project named `publishing` of ty
 [[publishing_ivy:tasks]]
 === Tasks
 
+[[publishing_ivy:descriptor]]
 `generateDescriptorFileFor__PubName__Publication` — type: api:org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor[]::
 Creates an Ivy descriptor file for the publication named _PubName_, populating the known metadata such as project name, project version, and the dependencies. The default location for the descriptor file is _build/publications/$pubName/ivy.xml_.
 
@@ -103,7 +104,7 @@ The following sample shows how to use the most common aspects of the DSL:
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
-No part of the module identifier (organisation, module, revision) can be modified in the descriptor using the `withXML()` hook.
+You can also add arbitrary XML to the descriptor file via api:org.gradle.api.publish.ivy.IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)[], but you can not use it to modify any part of the module identifier (organisation, module, revision).
 
 CAUTION: It is possible to modify the descriptor in such a way that it is no longer a valid Ivy module descriptor, so care must be taken when using this feature.
 
@@ -120,30 +121,14 @@ Here's a simple example of defining a publishing repository:
 </sample>
 ++++
 
-The two main things you will want to configure are:
+The two main things you will want to configure are the repository's:
 
- * The name of the repository (optional)
- * Its URL
+ * URL (required)
+ * Name (optional)
  
 You can define multiple repositories as long as they have unique names within the build script. You may also declare one (and only one) repository without a name. That repository will take on an implicit name of "Ivy".
 
 You can also configure any authentication details that are required to connect to the repository. See api:org.gradle.api.artifacts.repositories.IvyArtifactRepository[] for more details.
-
-[[publishing_ivy:descriptor]]
-=== Generating the Ivy module descriptor file without publishing
-
-At times it is useful to generate the Ivy module descriptor file (normally `ivy.xml`) without publishing your module to an Ivy repository. Since descriptor file generation is performed by a separate task, this is very easy to do.
-
-The Ivy Publish Plugin creates one api:org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor[] task for each registered api:org.gradle.api.publish.ivy.IvyPublication[], named `generateDescriptorFileFor__PubName__Publication`, which will be `generateDescriptorFileForIvyJavaPublication` for the previous example of the `ivyJava` publication.
-
-You can specify where the generated Ivy file will be located by setting the `destination` property on the generated task. By default this file is written to `build/publications/__PubName__/ivy.xml`.
-
-++++
-<sample dir="ivy-publish/descriptor-customization" id="publishingIvyGenerateDescriptor" title="Generating the Ivy module descriptor file">
-    <sourcefile file="build.gradle" snippet="generate"/>
-    <output args="generateDescriptorFileForIvyCustomPublication"/>
-</sample>
-++++
 
 
 [[publishing_ivy:example]]
