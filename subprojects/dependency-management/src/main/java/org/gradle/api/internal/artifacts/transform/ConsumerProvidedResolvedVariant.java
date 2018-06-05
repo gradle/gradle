@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.Maps;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BuildDependenciesVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -26,7 +27,6 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final ResolvedArtifactSet delegate;
@@ -41,8 +41,8 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
-        Map<ResolvableArtifact, TransformArtifactOperation> artifactResults = new ConcurrentHashMap<ResolvableArtifact, TransformArtifactOperation>();
-        Map<File, TransformFileOperation> fileResults = new ConcurrentHashMap<File, TransformFileOperation>();
+        Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults = Maps.newConcurrentMap();
+        Map<File, TransformFileOperation> fileResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transform, listener, actions, artifactResults, fileResults));
         return new TransformingResult(result, artifactResults, fileResults);
     }
@@ -54,10 +54,10 @@ class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
 
     private class TransformingResult implements Completion {
         private final Completion result;
-        private final Map<ResolvableArtifact, TransformArtifactOperation> artifactResults;
+        private final Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults;
         private final Map<File, TransformFileOperation> fileResults;
 
-        TransformingResult(Completion result, Map<ResolvableArtifact, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
+        TransformingResult(Completion result, Map<ComponentArtifactIdentifier, TransformArtifactOperation> artifactResults, Map<File, TransformFileOperation> fileResults) {
             this.result = result;
             this.artifactResults = artifactResults;
             this.fileResults = fileResults;
