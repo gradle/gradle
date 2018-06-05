@@ -78,8 +78,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
             executer.withArguments(
                     "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
-                    "--debug", // Need debug logging so we can extract the `DefaultDaemonContext`
-                    "-Dorg.gradle.jvmargs=-ea")
+                    "--debug" // Need debug logging so we can extract the `DefaultDaemonContext`
+            )
             if (javaHome) {
                 executer.withJavaHome(javaHome)
             }
