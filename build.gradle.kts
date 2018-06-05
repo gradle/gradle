@@ -157,7 +157,7 @@ fun Project.createOpenTestReportTasks() {
         val test = this
         reports.all {
             val report = this
-            tasks.createLater("open${test.name.capitalize()}${report.name.capitalize()}Report") {
+            tasks.register("open${test.name.capitalize()}${report.name.capitalize()}Report") {
                 group = JavaBasePlugin.VERIFICATION_GROUP
                 description = "Opens the ${report.name} report produced by the ${test.name} task."
                 doLast {

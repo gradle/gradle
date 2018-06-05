@@ -34,13 +34,13 @@ class DefaultKotlinScriptBasePluginsApplicator : KotlinScriptBasePluginsApplicat
 class KotlinScriptBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         rootProject.plugins.apply(KotlinScriptRootPlugin::class.java)
-        tasks.createLater("kotlinDslAccessorsReport", PrintAccessors::class.java)
+        tasks.register("kotlinDslAccessorsReport", PrintAccessors::class.java)
     }
 }
 
 
 class KotlinScriptRootPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        tasks.createLater("kotlinDslAccessorsSnapshot", UpdateProjectSchema::class.java)
+        tasks.register("kotlinDslAccessorsSnapshot", UpdateProjectSchema::class.java)
     }
 }
