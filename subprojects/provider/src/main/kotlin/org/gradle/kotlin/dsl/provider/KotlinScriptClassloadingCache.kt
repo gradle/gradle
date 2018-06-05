@@ -37,7 +37,6 @@ class KotlinScriptClassloadingCache @Inject constructor(
         cache.get(key)
 
     fun <T> put(key: ScriptCacheKey, loadedScriptClass: Class<T>) {
-        // logger.debug("Loading {} from {}", scriptBlock.scriptTemplate.simpleName, scriptBlock.displayName)
         cache.put(key, loadedScriptClass)
     }
 }

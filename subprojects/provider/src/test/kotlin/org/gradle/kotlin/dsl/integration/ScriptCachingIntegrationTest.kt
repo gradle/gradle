@@ -1,28 +1,28 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinInitScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
+import org.gradle.kotlin.dsl.execution.Program
+import org.gradle.kotlin.dsl.execution.ProgramKind
+import org.gradle.kotlin.dsl.execution.ProgramKind.ScriptPlugin
+import org.gradle.kotlin.dsl.execution.ProgramKind.TopLevel
+import org.gradle.kotlin.dsl.execution.ProgramParser
+import org.gradle.kotlin.dsl.execution.ProgramSource
+import org.gradle.kotlin.dsl.execution.ProgramTarget
+import org.gradle.kotlin.dsl.execution.ProgramTarget.Gradle
+import org.gradle.kotlin.dsl.execution.ProgramTarget.Project
+import org.gradle.kotlin.dsl.execution.ProgramTarget.Settings
+import org.gradle.kotlin.dsl.execution.templateIdFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.IsolatedTestKitDir
 import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 
-import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
-import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
-
 import org.gradle.testkit.runner.BuildResult
 
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
-
-import kotlin.reflect.KClass
 
 
 @LeaksFileHandles("""
@@ -39,7 +39,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         val isolatedTestKitDir = IsolatedTestKitDir()
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `same script, target type & classpath`() {
 
@@ -88,7 +87,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `same script different target type`() {
 
@@ -97,12 +95,12 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         val sameApply = """apply(from = "same.gradle.kts")"""
         val initScriptFile = withFile("same.init.gradle.kts", sameApply)
 
-        val initializationFile = cachedInitializationFile(initScriptFile)
-        val settingsFile = cachedSettingsFile(withSettings(sameApply))
-        val buildFile = cachedBuildFile(withBuildScript(sameApply))
-        val sameOnGradle = cachedGradleScript(same)
-        val sameOnSettings = cachedSettingsScript(same)
-        val sameOnProject = cachedProjectScript(same)
+        val initializationFile = cachedInitializationFile(initScriptFile, false, true)
+        val settingsFile = cachedSettingsFile(withSettings(sameApply), false, true)
+        val buildFile = cachedBuildFile(withBuildScript(sameApply), true)
+        val sameOnGradle = cachedGradleScript(same, false, true)
+        val sameOnSettings = cachedSettingsScript(same, false, true)
+        val sameOnProject = cachedProjectScript(same, false, true)
 
         // when: first use
         buildForCacheInspection("help", "-I", initScriptFile.absolutePath).apply {
@@ -147,7 +145,6 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         }
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `same script & target type different classpath`() {
 
@@ -170,13 +167,13 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
                 // then: compilation and classloading
                 compilationCache {
                     misses(leftBuildFile)
-                    hits(rightBuildFile.buildscript!!) // same buildscript block, target type and classpath
-                    misses(rightBuildFile.body) // different classpath
+                    hits(rightBuildFile.stage1) // same buildscript block, target type and classpath
+                    misses(rightBuildFile.stage2) // different classpath
                 }
                 classLoadingCache {
                     misses(leftBuildFile)
-                    hits(rightBuildFile.buildscript!!)
-                    misses(rightBuildFile.body)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
 
@@ -201,14 +198,13 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
                 }
                 classLoadingCache {
                     misses(leftBuildFile)
-                    hits(rightBuildFile.buildscript!!)
-                    misses(rightBuildFile.body)
+                    hits(rightBuildFile.stage1)
+                    misses(rightBuildFile.stage2)
                 }
             }
         }
     }
 
-    @Ignore("partial-evaluator-wip")
     @Test
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
@@ -222,14 +218,23 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
                 @TaskAction void runAction0() {}
             }
         """)
-        val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""))
+        val settingsFile = cachedSettingsFile(withSettings(""), false, false)
+        val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
 
         // expect:
         for (run in 1..4) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
             buildWithDaemonHeapSize(256, "MyTask").apply {
-                compilationCache { misses(buildFile) }
-                classLoadingCache { misses(buildFile) }
+                compilationCache {
+                    misses(settingsFile.stage1)
+                    hits(settingsFile.stage2)
+                    misses(buildFile)
+                }
+                classLoadingCache {
+                    misses(settingsFile.stage1)
+                    hits(settingsFile.stage2)
+                    misses(buildFile)
+                }
             }
         }
     }
@@ -258,23 +263,29 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
         MultiProjectCachedScripts(
             cachedSettingsFile(
                 withSettings("""
-                    rootProject.name = "${projectRoot.name}" // distinguish settings files
                     $settings
+                    rootProject.name = "${projectRoot.name}" // distinguish settings files
                     include("right", "left")
-                """)),
+                """),
+                settings.contains("buildscript {"),
+                true),
             cachedBuildFile(
                 withBuildScript(root),
-                root.contains("buildscript {"),
-                root.contains("plugins {")),
+                hasBody(root)),
             cachedBuildFile(
                 withBuildScriptIn("left", left),
-                left.contains("buildscript {"),
-                left.contains("plugins {")),
+                hasBody(left)),
             cachedBuildFile(
                 withBuildScriptIn("right", right),
-                right.contains("buildscript {"),
-                right.contains("plugins {")))
+                hasBody(right)))
 }
+
+
+private
+fun hasBody(script: String) =
+    ProgramParser.parse(ProgramSource("some/path", script), TopLevel, ProgramTarget.Project).let {
+        it is Program.Script || it is Program.Staged
+    }
 
 
 private
@@ -290,81 +301,83 @@ private
 sealed class CachedScript {
 
     class WholeFile(
-        val buildscript: CompilationStage? = null,
-        val plugins: CompilationStage? = null,
-        val body: CompilationStage
+        val stage1: CompilationStage,
+        val stage2: CompilationStage
     ) : CachedScript() {
 
-        val stages = listOfNotNull(buildscript, plugins, body)
+        val stages = listOf(stage1, stage2)
     }
 
     class CompilationStage(
+        programTarget: ProgramTarget,
+        programKind: ProgramKind,
+        stage: String,
         sourceDescription: String,
         file: File,
-        templateClass: KClass<*>,
         val enabled: Boolean = true
     ) : CachedScript() {
 
         val source = "$sourceDescription '$file'"
-        val template = templateClass.simpleName!!
+        val templateId = templateIdFor(programTarget, programKind, stage)
     }
 }
 
 
 private
 object Descriptions {
-    val initializationScript = "initialization script"
-    val settingsFile = "settings file"
-    val buildFile = "build file"
-    val script = "script"
-    val initscriptBlock = "initscript block"
-    val buildscriptBlock = "buildscript block"
-    val pluginsBlock = "plugins block"
+    const val initializationScript = "initialization script"
+    const val settingsFile = "settings file"
+    const val buildFile = "build file"
+    const val script = "script"
 }
 
 
 private
-fun cachedInitializationFile(file: File, initscript: Boolean = false) =
+fun cachedInitializationFile(file: File, hasInitscriptBlock: Boolean = false, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, initscript),
-        body = CachedScript.CompilationStage(Descriptions.initializationScript, file, KotlinInitScript::class))
+        stage1 = CachedScript.CompilationStage(Gradle, TopLevel, "stage1", Descriptions.initializationScript, file),
+        stage2 = CachedScript.CompilationStage(Gradle, TopLevel, "stage2", Descriptions.initializationScript, file, hasInitscriptBlock && hasBody)
+    )
 
 
 private
-fun cachedGradleScript(file: File) =
+fun cachedGradleScript(file: File, hasInitscriptBlock: Boolean = false, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.initscriptBlock, file, KotlinInitscriptBlock::class, false),
-        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinInitScript::class))
+        stage1 = CachedScript.CompilationStage(Gradle, ScriptPlugin, "stage1", Descriptions.script, file),
+        stage2 = CachedScript.CompilationStage(Gradle, ScriptPlugin, "stage2", Descriptions.script, file, hasInitscriptBlock && hasBody)
+    )
 
 
 private
-fun cachedSettingsFile(file: File, buildscript: Boolean = false) =
+fun cachedSettingsFile(file: File, hasBuildscriptBlock: Boolean = false, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, buildscript),
-        body = CachedScript.CompilationStage(Descriptions.settingsFile, file, KotlinSettingsScript::class))
+        stage1 = CachedScript.CompilationStage(Settings, TopLevel, "stage1", Descriptions.settingsFile, file),
+        stage2 = CachedScript.CompilationStage(Settings, TopLevel, "stage2", Descriptions.settingsFile, file, hasBuildscriptBlock && hasBody)
+    )
 
 
 private
-fun cachedSettingsScript(file: File) =
+fun cachedSettingsScript(file: File, hasBuildscriptBlock: Boolean = false, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinSettingsBuildscriptBlock::class, false),
-        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinSettingsScript::class))
+        stage1 = CachedScript.CompilationStage(Settings, ScriptPlugin, "stage1", Descriptions.script, file),
+        stage2 = CachedScript.CompilationStage(Settings, ScriptPlugin, "stage2", Descriptions.script, file, hasBuildscriptBlock && hasBody)
+    )
 
 
 private
-fun cachedBuildFile(file: File, buildscript: Boolean = false, plugins: Boolean = false) =
+fun cachedBuildFile(file: File, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinBuildscriptBlock::class, buildscript),
-        plugins = CachedScript.CompilationStage(Descriptions.pluginsBlock, file, KotlinPluginsBlock::class, plugins),
-        body = CachedScript.CompilationStage(Descriptions.buildFile, file, KotlinBuildScript::class))
+        stage1 = CachedScript.CompilationStage(Project, TopLevel, "stage1", Descriptions.buildFile, file),
+        stage2 = CachedScript.CompilationStage(Project, TopLevel, "stage2", Descriptions.buildFile, file, hasBody)
+    )
 
 
 private
-fun cachedProjectScript(file: File) =
+fun cachedProjectScript(file: File, hasBuildscriptBlock: Boolean = false, hasBody: Boolean = false) =
     CachedScript.WholeFile(
-        buildscript = CachedScript.CompilationStage(Descriptions.buildscriptBlock, file, KotlinBuildscriptBlock::class, false),
-        plugins = CachedScript.CompilationStage(Descriptions.pluginsBlock, file, KotlinPluginsBlock::class, false),
-        body = CachedScript.CompilationStage(Descriptions.script, file, KotlinBuildScript::class))
+        stage1 = CachedScript.CompilationStage(Project, ScriptPlugin, "stage1", Descriptions.script, file),
+        stage2 = CachedScript.CompilationStage(Project, ScriptPlugin, "stage2", Descriptions.script, file, hasBuildscriptBlock && hasBody)
+    )
 
 
 private
@@ -420,10 +433,10 @@ class ClassLoadingCache(val result: BuildResult) {
 private
 fun BuildResult.assertOccurrenceCountOf(actionDisplayName: String, stage: CachedScript.CompilationStage, count: Int) {
     val expectedCount = if (stage.enabled) count else 0
-    val logStatement = "${actionDisplayName.capitalize()} ${stage.template} from ${stage.source}"
+    val logStatement = "${actionDisplayName.capitalize()} ${stage.templateId} from ${stage.source}"
     val observedCount = output.occurrenceCountOf(logStatement)
     require(observedCount == expectedCount) {
-        "Expected $actionDisplayName $expectedCount ${stage.template} from ${stage.source}, but got $observedCount\n" +
+        "Expected $actionDisplayName $expectedCount ${stage.templateId} from ${stage.source}, but got $observedCount\n" +
             "  Looking for statement: $logStatement\n" +
             "  Build output was:\n" + output.prependIndent("    ")
     }

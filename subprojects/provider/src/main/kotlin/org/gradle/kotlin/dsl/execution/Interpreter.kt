@@ -135,7 +135,7 @@ class Interpreter(val host: Host) {
             programTargetFor(target)
 
         val templateId =
-            programTarget.name + "/" + programKind.name + "/stage1"
+            templateIdFor(programTarget, programKind, "stage1")
 
         val parentClassLoader =
             baseScope.exportClassLoader
@@ -232,6 +232,8 @@ class Interpreter(val host: Host) {
         val cachedDir =
             host.cachedDirFor(templateId, sourceHash, parentClassLoader) { cachedDir ->
 
+                logCompilationOf(templateId, scriptSource)
+
                 val outputDir =
                     stage1SubDirOf(cachedDir).apply { mkdir() }
 
@@ -257,6 +259,8 @@ class Interpreter(val host: Host) {
 
         val classesDir =
             stage1SubDirOf(cachedDir)
+
+        logClassLoadingOf(templateId, scriptSource)
 
         return loadClassInChildScopeOf(
             baseScope,
@@ -399,6 +403,9 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget
         ): Class<*> {
 
+            val templateId =
+                templateIdFor(programTarget, programKind, "stage2")
+
             val targetScope =
                 scriptHost.targetScope
 
@@ -415,6 +422,8 @@ class Interpreter(val host: Host) {
 
             val cacheDir =
                 host.cachedDirFor(scriptTemplateId, sourceHash, targetScope.localClassLoader) { outputDir ->
+
+                    logCompilationOf(templateId, scriptHost.scriptSource)
 
                     val compilationClassPath =
                         accessorsClassPath?.let {
@@ -436,6 +445,8 @@ class Interpreter(val host: Host) {
                     }
                 }
 
+            logClassLoadingOf(templateId, scriptHost.scriptSource)
+
             return loadClassInChildScopeOf(
                 targetScope,
                 originalScriptPath,
@@ -454,6 +465,11 @@ class Interpreter(val host: Host) {
             specializedProgram.getDeclaredConstructor().newInstance() as ExecutableProgram
     }
 }
+
+
+internal
+fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage: String): String =
+    programTarget.name + "/" + programKind.name + "/" + stage
 
 
 internal
@@ -528,6 +544,18 @@ inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     } finally {
         currentThread.contextClassLoader = previous
     }
+}
+
+
+private
+fun logCompilationOf(templateId: String, source: ScriptSource) {
+    interpreterLogger.debug("Compiling $templateId from ${source.displayName}")
+}
+
+
+private
+fun logClassLoadingOf(templateId: String, source: ScriptSource) {
+    interpreterLogger.debug("Loading $templateId from ${source.displayName}")
 }
 
 
