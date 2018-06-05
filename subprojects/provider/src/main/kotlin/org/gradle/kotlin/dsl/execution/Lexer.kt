@@ -156,7 +156,7 @@ data class TopLevelBlock(val identifier: String, val section: ScriptSection)
 
 
 internal
-fun List<TopLevelBlock>.singleBlock(): ScriptSection? =
+fun List<TopLevelBlock>.singleBlockSectionOrNull(): ScriptSection? =
     when (size) {
         0 -> null
         1 -> get(0).section

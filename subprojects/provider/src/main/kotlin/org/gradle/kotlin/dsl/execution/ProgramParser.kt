@@ -40,20 +40,22 @@ object ProgramParser {
 
         val (comments, topLevelBlocks) = lex(source.text, *topLevelBlockIds)
 
+        topLevelBlockIds.forEach { id ->
+            topLevelBlocks.filter { it.identifier === id }.singleBlockSectionOrNull()
+        }
+
         val sourceWithoutComments =
             source.map { it.erase(comments) }
 
         val buildscriptFragment =
             topLevelBlocks
-                .filter { it.identifier === topLevelBlockIds[0] }
-                .singleBlock()
+                .singleSectionOf(topLevelBlockIds[0])
                 ?.let { sourceWithoutComments.fragment(it) }
 
         val pluginsFragment =
             topLevelBlocks
                 .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
-                ?.filter { it.identifier === "plugins" }
-                ?.singleBlock()
+                ?.singleSectionOf("plugins")
                 ?.let { sourceWithoutComments.fragment(it) }
 
         val buildscript =
@@ -95,6 +97,11 @@ object ProgramParser {
     fun ProgramSourceFragment.isNotBlank() =
         source.text.subSequence(section.block.start + 1, section.block.endInclusive).isNotBlank()
 }
+
+
+private
+fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
+    singleOrNull { it.identifier == topLevelBlockId }?.section
 
 
 internal
