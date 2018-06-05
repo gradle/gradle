@@ -42,13 +42,14 @@ abstract class PlayApp {
     }
 
     SourceFile getGradleBuild() {
-        def gradleBuild = sourceFile("", "build.gradle")
+        def buildFileName = oldVersion ? "build.gradle.old" : "build.gradle"
+        def gradleBuild = sourceFile("", buildFileName)
         def gradleBuildWithRepositories = gradleBuild.content.concat """
             allprojects {
                 ${PLAY_REPOSITORIES}
             }
         """
-        return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
+        return new SourceFile(gradleBuild.path, "build.gradle", gradleBuildWithRepositories)
     }
 
     List<SourceFile> getAssetSources() {
