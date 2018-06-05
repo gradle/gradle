@@ -26,7 +26,8 @@ import java.io.File;
 
 public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<ModuleComponentArtifactIdentifier> {
 
-    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 4;
+    private static final int NUMBER_OF_GROUPING_DIRS = 3;
+    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;
 
     private static final Grouper<ModuleComponentArtifactIdentifier> GROUPER = new Grouper<ModuleComponentArtifactIdentifier>() {
         @Override
@@ -35,8 +36,8 @@ public class ArtifactIdentifierFileStore extends GroupedAndNamedUniqueFileStore<
         }
 
         @Override
-        public int getDepth() {
-            return FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP - 1;
+        public int getNumberOfGroupingDirs() {
+            return NUMBER_OF_GROUPING_DIRS;
         }
     };
 

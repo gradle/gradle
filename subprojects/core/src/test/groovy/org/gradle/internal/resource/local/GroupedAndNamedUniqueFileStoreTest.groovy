@@ -37,7 +37,7 @@ class GroupedAndNamedUniqueFileStoreTest extends Specification {
             return 'group'
         }
         @Override
-        int getDepth() {
+        int getNumberOfGroupingDirs() {
             return 0
         }
     }

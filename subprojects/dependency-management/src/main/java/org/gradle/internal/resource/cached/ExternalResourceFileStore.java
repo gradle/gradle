@@ -25,7 +25,8 @@ import java.io.File;
 
 public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<String> {
 
-    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+    private static final int NUMBER_OF_GROUPING_DIRS = 1;
+    public static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = NUMBER_OF_GROUPING_DIRS + NUMBER_OF_CHECKSUM_DIRS;
 
     private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
@@ -34,8 +35,8 @@ public class ExternalResourceFileStore extends GroupedAndNamedUniqueFileStore<St
         }
 
         @Override
-        public int getDepth() {
-            return FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP - 1;
+        public int getNumberOfGroupingDirs() {
+            return NUMBER_OF_GROUPING_DIRS;
         }
     };
 

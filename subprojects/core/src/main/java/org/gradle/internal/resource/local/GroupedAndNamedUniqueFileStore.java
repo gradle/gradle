@@ -31,6 +31,8 @@ import static java.util.Collections.singleton;
  */
 public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStore<K>, FileStoreSearcher<K> {
 
+    protected static final int NUMBER_OF_CHECKSUM_DIRS = 1;
+
     private final PathKeyFileStore delegate;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Grouper<K> grouper;
@@ -42,7 +44,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;
         this.namer = namer;
-        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeWriter, baseDir, grouper.getDepth() + 1);
+        this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeWriter, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
     }
 
     public LocallyAvailableResource move(K key, File source) {
@@ -90,7 +92,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements AccessTrackingFileStor
 
     public interface Grouper<K> {
         String determineGroup(K key);
-        int getDepth();
+        int getNumberOfGroupingDirs();
     }
 
 }
