@@ -196,18 +196,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        List<String> suffixes = new ArrayList<String>();
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
-        matcher.matches();
-        String projectDirName = matcher.group(1);
-        String projectName = toCamelCase(projectDirName);
-        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
-        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
+        List<String> suffixes = getClasspathSuffixes(name);
         for (File file : classpath) {
             if (file.isDirectory()) {
                 for (String suffix : suffixes) {
@@ -217,6 +206,38 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
                 }
             }
         }
+    }
+
+    /**
+     * Provides the locations where the classes and resources of a Gradle module can be found
+     * when running in embedded mode from the IDE.
+     *
+     * <ul>
+     * <li>In Eclipse, they are in the bin/ folder.</li>
+     * <li>In IDEA, they are in a folder derived from their module name.</li>
+     * Due to de-duplication with names in the buildSrc project, that module name can start with "gradle-"
+     * </ul>
+     * <li>In both cases we also include the static and generated resources of the project.</li>
+     */
+    private List<String> getClasspathSuffixes(String name) {
+        List<String> suffixes = new ArrayList<String>();
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
+        matcher.matches();
+        String projectDirName = matcher.group(1);
+        String projectName = toCamelCase(projectDirName);
+
+        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
+        suffixes.add(("/out/production/gradle-" + projectName).replace('/', File.separatorChar));
+
+        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
+
+        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/classes/main/java").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/classes/main/groovy").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/test").replace('/', File.separatorChar));
+        return suffixes;
     }
 
     private String toCamelCase(String name) {

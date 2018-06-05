@@ -19,10 +19,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
+import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.SimpleActionExecutionSpec;
 import org.gradle.workers.internal.Worker;
 import org.gradle.workers.internal.WorkerFactory;
@@ -36,6 +38,8 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
+    public static final String REUSE_COMPILERS_PROPERTY = "org.gradle.internal.reuse.compilers";
+
     private final Compiler<T> delegate;
     private final WorkerFactory workerFactory;
 
@@ -48,8 +52,17 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         return delegate;
     }
 
+    protected KeepAliveMode getKeepAliveMode() {
+        if (Boolean.getBoolean(REUSE_COMPILERS_PROPERTY)) {
+            return KeepAliveMode.DAEMON;
+        } else {
+            return KeepAliveMode.SESSION;
+        }
+    }
+
     @Override
     public WorkResult execute(T spec) {
+        ClassLoaderUtils.disableUrlConnectionCaching();
         InvocationContext invocationContext = toInvocationContext(spec);
         DaemonForkOptions daemonForkOptions = invocationContext.getDaemonForkOptions();
         Worker worker = workerFactory.getWorker(daemonForkOptions);
@@ -67,10 +80,21 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
         BaseForkOptions merged = new BaseForkOptions();
         merged.setMemoryInitialSize(mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize()));
         merged.setMemoryMaximumSize(mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize()));
+        limitHeapSize(merged);
         Set<String> mergedJvmArgs = normalized(left.getJvmArgs());
         mergedJvmArgs.addAll(normalized(right.getJvmArgs()));
         merged.setJvmArgs(Lists.newArrayList(mergedJvmArgs));
         return merged;
+    }
+
+    protected void limitHeapSize(BaseForkOptions forkOptions) {
+        if (forkOptions.getMemoryMaximumSize() == null) {
+            if (forkOptions.getMemoryInitialSize() == null) {
+                forkOptions.setMemoryMaximumSize("1g");
+            } else {
+                forkOptions.setMemoryMaximumSize(forkOptions.getMemoryInitialSize());
+            }
+        }
     }
 
     private static class CompilerCallable<T extends CompileSpec> implements Callable<WorkResult> {

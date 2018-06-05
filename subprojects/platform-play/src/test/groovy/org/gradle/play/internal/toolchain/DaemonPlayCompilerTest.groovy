@@ -53,8 +53,8 @@ class DaemonPlayCompilerTest extends Specification {
         given:
         def compiler = new DaemonPlayCompiler(workingDirectory, delegate, workerDaemonFactory, someClasspath(), [], fileResolver)
         when:
-        1 * forkOptions.getMemoryInitialSize() >> "256m"
-        1 * forkOptions.getMemoryMaximumSize() >> "512m"
+        _ * forkOptions.getMemoryInitialSize() >> "256m"
+        _ * forkOptions.getMemoryMaximumSize() >> "512m"
         then:
         def context = compiler.toInvocationContext(spec)
         context.daemonForkOptions.javaForkOptions.getMinHeapSize() == "256m"

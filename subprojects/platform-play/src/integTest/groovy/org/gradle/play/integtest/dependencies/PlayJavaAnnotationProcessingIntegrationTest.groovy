@@ -17,12 +17,17 @@
 package org.gradle.play.integtest.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import spock.lang.Issue
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 @Issue("https://github.com/gradle/gradle/issues/2337")
 class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
+    }
 
     def "can compile Java class incorporating annotation processing"() {
         given:

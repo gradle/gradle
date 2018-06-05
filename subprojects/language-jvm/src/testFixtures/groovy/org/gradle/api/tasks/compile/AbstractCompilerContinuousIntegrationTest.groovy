@@ -22,6 +22,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
 
     def setup() {
         executer.withWorkerDaemonsExpirationDisabled()
+        executer.requireIsolatedDaemons()
     }
 
     def cleanup() {

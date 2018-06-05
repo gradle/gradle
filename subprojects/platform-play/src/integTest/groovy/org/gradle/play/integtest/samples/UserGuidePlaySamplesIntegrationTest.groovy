@@ -19,6 +19,7 @@ package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -38,6 +39,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.usingInitScript(RepoScriptBlockUtil.createMirrorInitScript())
+        CompilerReuseFixture.enableCompilerReuse(executer)
     }
 
     def "sourcesets sample is buildable" () {

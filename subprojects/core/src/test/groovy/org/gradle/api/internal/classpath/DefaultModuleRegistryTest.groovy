@@ -98,7 +98,7 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "locates module using manifest from runtime ClassLoader when run from build"() {
         given:
-        def classesDir = tmpDir.createDir("some-module/build/classes/main")
+        def classesDir = tmpDir.createDir("some-module/build/classes/main/java")
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
         def cl = classLoaderFor([classesDir, resourcesDir, staticResourcesDir, runtimeDep])
         def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)

@@ -28,7 +28,7 @@ import java.util.Locale;
 /**
  * Cleans up resources (e.g. file handles) after compilation has finished.
  */
-class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
+public class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
     private final JavaCompiler.CompilationTask delegate;
     private final StandardJavaFileManager fileManager;
 
@@ -64,7 +64,7 @@ class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
      * method does not take arguments, so the cache can't be turned off.
      * So instead we clean it ourselves using reflection.
      */
-    private void cleanupZipCache() {
+    public static void cleanupZipCache() {
         try {
             Class<?> zipFileIndexCache = Class.forName("com.sun.tools.javac.file.ZipFileIndexCache");
             Object instance = zipFileIndexCache.getMethod("getSharedInstance").invoke(null);

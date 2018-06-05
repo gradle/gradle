@@ -17,9 +17,15 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.junit.Test
 
 class AutoTestedSamplePlatformPlayIntegrationTest extends AbstractAutoTestedSamplesTest {
+
+    def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
+    }
+
     @Test
     void runSamples() {
         runSamplesFrom("subprojects/platform-play/src/main")

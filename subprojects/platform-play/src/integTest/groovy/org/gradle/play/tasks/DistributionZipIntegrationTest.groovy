@@ -17,11 +17,13 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {

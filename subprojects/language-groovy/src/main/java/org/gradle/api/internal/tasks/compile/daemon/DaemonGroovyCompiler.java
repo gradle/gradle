@@ -27,7 +27,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
-import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerFactory;
 
 import java.io.File;
@@ -64,7 +63,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             .javaForkOptions(javaForkOptions)
             .classpath(groovyFiles)
             .sharedPackages(SHARED_PACKAGES)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(getKeepAliveMode())
             .build();
 
         return new InvocationContext(invocationWorkingDir, daemonForkOptions);

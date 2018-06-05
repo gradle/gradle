@@ -17,6 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.gradle.play.internal.DefaultPlayPlatform
 import static org.gradle.play.integtest.fixtures.Repositories.*
 
@@ -32,6 +33,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def twirlOutputDir = "build/src/play/binary/twirlTemplatesScalaSources"
 
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         settingsFile << """ rootProject.name = 'twirl-play-app' """
     }
 

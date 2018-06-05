@@ -17,10 +17,12 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.tasks.compile.CompilerReuseFixture
 import org.hamcrest.Matchers
 
 class PlayApplicationBinariesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        CompilerReuseFixture.enableCompilerReuse(executer)
         buildFile << """
             plugins {
                 id 'play-application'
