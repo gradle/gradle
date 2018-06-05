@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -474,6 +475,11 @@ class ComponentAttributeMatcherTest extends Specification {
             }
 
             candidates
+        }
+
+        @Override
+        Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
+            AttributeSelectionUtils.collectExtraAttributes(this, candidates, requested)
         }
     }
 }
