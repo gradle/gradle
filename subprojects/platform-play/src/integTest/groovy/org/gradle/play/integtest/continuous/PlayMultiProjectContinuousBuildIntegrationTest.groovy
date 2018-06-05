@@ -28,8 +28,8 @@ import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationI
 
 
 class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinuousBuildIntegrationTest {
-    PlayApp playApp = new PlayMultiProject()
-    PlayApp childApp = new BasicPlayApp()
+    PlayApp playApp = new PlayMultiProject(versionNumber)
+    PlayApp childApp = new BasicPlayApp(versionNumber)
     TestFile childDirectory = testDirectory.file('child')
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
     RunningPlayApp runningChildApp = new RunningPlayApp(childDirectory)

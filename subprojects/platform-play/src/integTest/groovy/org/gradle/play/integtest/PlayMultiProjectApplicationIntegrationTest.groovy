@@ -34,7 +34,7 @@ import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationI
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
-    PlayApp playApp = new PlayMultiProject()
+    PlayApp playApp = new PlayMultiProject(versionNumber)
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {

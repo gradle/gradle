@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
-    PlayApp playApp = new PlayMultiProject()
+    PlayApp playApp = new PlayMultiProject(versionNumber)
     TestFile playRunBuildFile = file("primary/build.gradle")
 
     def cleanup() {

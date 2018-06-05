@@ -19,11 +19,19 @@ package org.gradle.play.integtest.fixtures
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.RelativePathUtil
+import org.gradle.util.VersionNumber
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 abstract class PlayApp {
     boolean oldVersion
+
+    PlayApp() {
+    }
+
+    PlayApp(VersionNumber version) {
+        this.oldVersion = version < VersionNumber.parse('2.6.0')
+    }
 
     String getName() {
         getClass().getSimpleName().toLowerCase()
@@ -79,9 +87,7 @@ abstract class PlayApp {
     void writeSources(TestFile sourceDir) {
         gradleBuild.writeToDir(sourceDir)
         for (SourceFile srcFile : allFiles) {
-            if(oldVersion) {
-                srcFile.writeToDir(sourceDir)
-            }
+            srcFile.writeToDir(sourceDir)
         }
     }
 
@@ -96,8 +102,7 @@ abstract class PlayApp {
                     return
                 }
 
-                def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile);
-                sourceFiles.add(sourceFile("$baseDir/$subpath", source.name, rootDir))
+                def subpath = RelativePathUtil.relativePath(baseDirFile, source.parentFile)
 
                 if(oldVersion) {
                     if(isOldVersionFile(source)) {
@@ -116,11 +121,11 @@ abstract class PlayApp {
         return sourceFiles
     }
 
-    private static boolean isOldVersionFile(File file) {
+    static boolean isOldVersionFile(File file) {
         return file.name.endsWith('.old')
     }
 
-    private static boolean oldVersionFileExists(File file) {
+    static boolean oldVersionFileExists(File file) {
         return new File(file.parentFile, "${file.name}.old").exists()
     }
 }

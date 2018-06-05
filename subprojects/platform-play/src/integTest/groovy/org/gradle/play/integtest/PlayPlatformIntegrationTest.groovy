@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
@@ -43,7 +44,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         given:
-        new BasicPlayApp().writeSources(testDirectory)
+        new BasicPlayApp(VersionNumber.parse(playVersion)).writeSources(testDirectory)
 
         when:
         buildFile << """
