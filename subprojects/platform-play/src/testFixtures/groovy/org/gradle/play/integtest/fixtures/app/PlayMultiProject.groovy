@@ -21,6 +21,10 @@ import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.util.VersionNumber
 
 class PlayMultiProject extends PlayApp {
+    PlayMultiProject() {
+        super()
+    }
+
     PlayMultiProject(VersionNumber version) {
         super(version)
     }
