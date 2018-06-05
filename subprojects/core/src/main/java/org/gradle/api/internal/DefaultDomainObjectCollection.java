@@ -66,6 +66,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter));
     }
 
+    protected void realized(ProviderInternal<? extends T> provider) {
+        getStore().removePending(provider);
+    }
+
     public Class<? extends T> getType() {
         return type;
     }

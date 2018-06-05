@@ -1266,6 +1266,30 @@ class DefaultTaskContainerTest extends Specification {
         getProvider.present
     }
 
+    void "lazy task that is realized and then removed is not recreated on iteration"() {
+        given:
+        taskFactory.create(_ as TaskIdentity) >> task("task", DefaultTask)
+        def task = container.register("task", DefaultTask).get()
+
+        when:
+        container.remove(task)
+
+        then:
+        !container.contains(task)
+    }
+
+    void "lazy task that is realized and then removed is not recreated on find"() {
+        given:
+        taskFactory.create(_ as TaskIdentity) >> task("task", DefaultTask)
+        def task = container.register("task", DefaultTask).get()
+
+        when:
+        container.remove(task)
+
+        then:
+        container.findByName("task") == null
+    }
+
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)
