@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
@@ -28,17 +27,16 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class SelectorStateResolverResults {
     public final Map<ResolvableSelectorState, ComponentIdResolveResult> results = Maps.newLinkedHashMap();
 
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
-        Set<ComponentIdResolveResult> processedResolveResults = Sets.newHashSet();
-        List<T> resolved = Lists.newArrayList();
-        for (ResolvableSelectorState selectorState : results.keySet()) {
-            ComponentIdResolveResult idResolveResult = results.get(selectorState);
+        List<T> resolved = null;
+        for (Map.Entry<ResolvableSelectorState, ComponentIdResolveResult> entry : results.entrySet()) {
+            ResolvableSelectorState selectorState = entry.getKey();
+            ComponentIdResolveResult idResolveResult = entry.getValue();
 
             if (selectorState.isForce()) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
@@ -46,9 +44,12 @@ class SelectorStateResolverResults {
                 return Collections.singletonList(forcedComponent);
             }
 
-            if (processedResolveResults.add(idResolveResult)) {
+            if (idResolveResult.mark(this)) {
                 if (idResolveResult.getFailure() == null) {
                     T componentState = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                    if (resolved == null) {
+                        resolved = Lists.newArrayList();
+                    }
                     resolved.add(componentState);
                 } else {
                     if (failure == null) {
@@ -58,11 +59,11 @@ class SelectorStateResolverResults {
             }
         }
 
-        if (resolved.isEmpty() && failure != null) {
+        if (resolved == null && failure != null) {
             throw failure;
         }
 
-        return resolved;
+        return resolved == null ? Collections.<T>emptyList() : resolved;
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
