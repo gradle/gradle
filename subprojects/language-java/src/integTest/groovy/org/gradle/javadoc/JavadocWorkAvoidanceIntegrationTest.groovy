@@ -73,7 +73,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":b:javadoc")
+        result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
@@ -119,7 +119,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         // javadoc should still be up-to-date even though the upstream external.jar changed
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'd', 'c', 'b', 'a')
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc", ":a:javadoc")
+            ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
     def "timestamp of upstream jar entries does not matter"() {
@@ -164,7 +164,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         // check that the upstream jar definitely changed
         oldHash != externalJar.md5Hash
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc", ":a:javadoc")
+            ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
     def "duplicates in an upstream jar are not ignored"() {
@@ -209,7 +209,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc")
+            ":a:compileJava", ":a:processResources", ":a:classes")
         when:
         // change the first duplicate
         original.text = "changed to something else"
@@ -223,6 +223,6 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes", ":b:javadoc")
+            ":a:compileJava", ":a:processResources", ":a:classes")
     }
 }

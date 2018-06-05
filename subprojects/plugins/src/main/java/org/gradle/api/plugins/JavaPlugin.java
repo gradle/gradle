@@ -294,8 +294,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
                 javadoc.setSource(mainSourceSet.getAllJava());
-
-                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
             }
         });
     }
