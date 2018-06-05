@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -93,7 +94,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         String reason = dependencyMetadata.getReason();
         ComponentSelectionDescriptorInternal dependencyDescriptor = dependencyMetadata.isPending() ? CONSTRAINT : REQUESTED;
         if (reason != null) {
-            dependencyDescriptor = dependencyDescriptor.withReason(reason);
+            dependencyDescriptor = dependencyDescriptor.withReason(Describables.of(reason));
         }
         // We intentionally use a fast data structure here (list) because de-duplication is going
         // to happen only if the component happens to be selected

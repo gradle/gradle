@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.internal.Describables;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -46,7 +47,13 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         for (int i = 0; i < size; i++) {
             ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
             String desc = readDescriptionText(decoder);
-            builder.add(new DefaultComponentSelectionDescriptor(cause, desc));
+            String defaultReason = cause.getDefaultReason();
+            if (desc.equals(defaultReason)) {
+                builder.add(new DefaultComponentSelectionDescriptor(cause));
+            } else {
+                builder.add(new DefaultComponentSelectionDescriptor(cause, Describables.of(desc)));
+            }
+
         }
         return builder.build();
     }

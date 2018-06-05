@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -137,7 +138,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             ComponentSelectionDescriptorInternal substitutionReason = (ComponentSelectionDescriptorInternal) reason;
             @Override
             public Substitution because(String description) {
-                substitutionReason = substitutionReason.withReason(description);
+                substitutionReason = substitutionReason.withReason(Describables.of(description));
                 return this;
             }
 
