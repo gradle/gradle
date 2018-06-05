@@ -1,5 +1,7 @@
 import groovy.lang.GroovyObject
 
+import org.gradle.plugins.ide.idea.model.IdeaModel
+
 import org.jetbrains.gradle.ext.ProjectSettings
 
 import java.time.LocalDate
@@ -112,6 +114,7 @@ val benchmark by task<integration.Benchmark> {
 
 // -- IntelliJ IDEA configuration --------------------------------------
 idea {
+    (this as IdeaModel)
     project {
         (this as ExtensionAware)
         configure<ProjectSettings> {
