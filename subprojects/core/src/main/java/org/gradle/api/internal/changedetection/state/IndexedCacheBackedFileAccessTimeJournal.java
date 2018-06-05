@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.CrossProcessCacheAccess;
@@ -27,7 +28,6 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.resource.local.FileAccessTimeJournal;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER;
@@ -38,19 +38,9 @@ public class IndexedCacheBackedFileAccessTimeJournal implements FileAccessTimeJo
     public static final String CACHE_NAME = "file-access-journal";
 
     public static IndexedCacheBackedFileAccessTimeJournal create(String namePrefix, PersistentCache persistentCache, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        final CacheDecorator decorator = cacheDecoratorFactory.decorator(1000, false);
-        final AtomicReference<PersistentIndexedCache<File, Long>> syncCache = new AtomicReference<PersistentIndexedCache<File, Long>>();
-        PersistentIndexedCache<File, Long> asyncCache = persistentCache.createCache(baseCacheParameters(namePrefix)
-            .cacheDecorator(new CacheDecorator() {
-                @Override
-                public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-                    PersistentIndexedCache<File, Long> decoratedCache = uncheckedCast(persistentCache);
-                    syncCache.set(decoratedCache);
-                    return decorator.decorate(cacheId, cacheName, persistentCache, crossProcessCacheAccess, asyncCacheAccess);
-                }
-            }));
-        syncCache.compareAndSet(null, asyncCache);
-        return new IndexedCacheBackedFileAccessTimeJournal(asyncCache, syncCache.get());
+        PlainCacheExposingCacheDecorator decorator = new PlainCacheExposingCacheDecorator(cacheDecoratorFactory.decorator(1000, false));
+        PersistentIndexedCache<File, Long> decoratedCache = persistentCache.createCache(baseCacheParameters(namePrefix).cacheDecorator(decorator));
+        return new IndexedCacheBackedFileAccessTimeJournal(decoratedCache, Objects.firstNonNull(decorator.getPlainCache(), decoratedCache));
     }
 
     @VisibleForTesting
@@ -76,5 +66,42 @@ public class IndexedCacheBackedFileAccessTimeJournal implements FileAccessTimeJo
     public long getLastAccessTime(File file) {
         Long value = syncCacheForReadingDuringCleanup.get(file);
         return value != null ? value : file.lastModified();
+    }
+
+    private static class PlainCacheExposingCacheDecorator implements CacheDecorator {
+
+        private final CacheDecorator decorator;
+        private PersistentIndexedCache<File, Long> plainCache;
+
+        PlainCacheExposingCacheDecorator(CacheDecorator decorator) {
+            this.decorator = decorator;
+        }
+
+        PersistentIndexedCache<File, Long> getPlainCache() {
+            return plainCache;
+        }
+
+        @Override
+        public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+            plainCache = uncheckedCast(persistentCache);
+            return decorator.decorate(cacheId, cacheName, persistentCache, crossProcessCacheAccess, asyncCacheAccess);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            PlainCacheExposingCacheDecorator that = (PlainCacheExposingCacheDecorator) o;
+            return decorator.equals(that.decorator);
+        }
+
+        @Override
+        public int hashCode() {
+            return decorator.hashCode();
+        }
     }
 }
