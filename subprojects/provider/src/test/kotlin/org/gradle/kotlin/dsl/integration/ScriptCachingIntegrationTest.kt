@@ -283,7 +283,7 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
 private
 fun hasBody(script: String) =
-    ProgramParser.parse(ProgramSource("some/path", script), TopLevel, ProgramTarget.Project).let {
+    ProgramParser.parse(ProgramSource("script.gradle.kts", script), TopLevel, ProgramTarget.Project).let {
         it is Program.Script || it is Program.Staged
     }
 
