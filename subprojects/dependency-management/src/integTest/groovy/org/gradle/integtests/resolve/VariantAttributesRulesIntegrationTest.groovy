@@ -302,6 +302,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     def "rule is applied only once"() {
         given:
+        executer.expectDeprecationWarning()
         withDefaultVariantToTest()
         buildFile << """
             int cpt

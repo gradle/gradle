@@ -251,6 +251,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             server.file(m4.jar.path, m4.jar.file))
 
         expect:
+        executer.expectDeprecationWarnings(2)
         executer.withArguments('--max-workers', '4')
         succeeds("resolve")
     }

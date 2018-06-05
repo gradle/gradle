@@ -198,6 +198,9 @@ resolve.doLast { assert IvyRule.ruleInvoked }
 
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
         given:
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
         repository {
             'org.test:projectA:1.0' {
                 withModule {
@@ -259,6 +262,9 @@ resolve.doLast { assert ruleInvoked }
 
     def "changed Ivy metadata becomes visible once module is refreshed"() {
         def baseScript = buildFile.text
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         given:
         repository {

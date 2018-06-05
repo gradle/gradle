@@ -53,6 +53,7 @@ import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
 import java.util.List;
@@ -134,26 +135,32 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     public ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule) {
+        DeprecationLogger.nagUserOfReplacedMethod("all(Action<? super ComponentMetadataDetails>)", "all(Class<? extends ComponentMetadataRule>)");
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromAction(rule)));
     }
 
     public ComponentMetadataHandler all(Closure<?> rule) {
+        DeprecationLogger.nagUserOfReplacedMethod("all(Closure<?>)", "all(Class<? extends ComponentMetadataRule>)");
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
     public ComponentMetadataHandler all(Object ruleSource) {
+        DeprecationLogger.nagUserOfReplacedMethod("all(Object)", "all(Class<? extends ComponentMetadataRule>)");
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
+        DeprecationLogger.nagUserOfReplacedMethod("withModule(Object, Action<? super ComponentMetadataDetails>)", "withModule(Object, Class<? extends ComponentMetadataRule>)");
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
     }
 
     public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
+        DeprecationLogger.nagUserOfReplacedMethod("withModule(Object, Closure<?>)", "withModule(Object, Class<? extends ComponentMetadataRule>)");
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
     public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
+        DeprecationLogger.nagUserOfReplacedMethod("withModule(Object, Object)", "withModule(Object, Class<? extends ComponentMetadataRule>)");
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
