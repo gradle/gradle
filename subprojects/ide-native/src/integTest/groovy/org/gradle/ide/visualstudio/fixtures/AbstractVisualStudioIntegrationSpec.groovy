@@ -28,7 +28,7 @@ abstract class AbstractVisualStudioIntegrationSpec extends AbstractInstalledTool
     }
 
     void useMsbuildTool() {
-        executer.requireGradleDistribution().requireIsolatedDaemons()
+        executer.requireGradleDistribution().requireIsolatedDaemons().requireDaemon()
 
         initScript << IdeCommandLineUtil.generateGradleProbeInitFile('visualStudio', 'msbuild')
         initScript << """
