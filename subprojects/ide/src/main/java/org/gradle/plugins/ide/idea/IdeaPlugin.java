@@ -130,7 +130,7 @@ public class IdeaPlugin extends IdePlugin {
         getCleanTask().configure(withDescription("Cleans IDEA project files (IML, IPR)"));
 
         ideaModel = project.getObjects().newInstance(IdeaModel.class);
-        project.getExtensions().add("idea", ideaModel);
+        project.getExtensions().add(IdeaModel.class, "idea", ideaModel);
 
         configureIdeaWorkspace(project);
         configureIdeaProject(project);
