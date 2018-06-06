@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
@@ -27,9 +27,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
@@ -54,23 +51,12 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.gradle.internal.text.TreeFormatter;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
-    private final static Comparator<String> VERSION_COMPARATOR = new Comparator<String>() {
-        private final VersionParser parser = new VersionParser();
-        private final Comparator<Version> comparator = new DefaultVersionComparator().asVersionComparator();
-
-        @Override
-        public int compare(String o1, String o2) {
-            return comparator.compare(parser.transform(o2), parser.transform(o1));
-        }
-    };
     private static final DisplayName UNKNOWN_VARIANT = Describables.of("unknown");
 
     private final ComponentIdentifier componentIdentifier;
@@ -352,7 +338,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     private void registerRejections(RejectedBySelectorVersion rejectedVersion, String version) {
         if (rejectedBySelectors == null) {
-            rejectedBySelectors = HashMultimap.create();
+            rejectedBySelectors = LinkedHashMultimap.create();
         }
         rejectedBySelectors.put(rejectedVersion.getRejectionSelector(), version);
     }
@@ -501,12 +487,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         @Override
         public String getDisplayName() {
-            List<String> sorted = Lists.newArrayList(rejectedVersions);
-            Collections.sort(sorted, VERSION_COMPARATOR);
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
             sb.append(rejectedVersions.size() > 1 ? "rejected versions " : "rejected version ");
-            Joiner.on(", ").appendTo(sb, sorted);
+            Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());
             }
@@ -529,12 +513,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         @Override
         public String getDisplayName() {
-            List<String> sorted = Lists.newArrayList(rejectedVersions);
-            Collections.sort(sorted, VERSION_COMPARATOR);
             boolean hasCustomDescription = descriptor.hasCustomDescription();
             StringBuilder sb = new StringBuilder(estimateSize(hasCustomDescription));
             sb.append(rejectedVersions.size() > 1 ? "didn't match versions " : "didn't match version ");
-            Joiner.on(", ").appendTo(sb, sorted);
+            Joiner.on(", ").appendTo(sb, rejectedVersions);
             if (hasCustomDescription) {
                 sb.append(" because ").append(descriptor.getDescription());
             }
