@@ -19,13 +19,17 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+
+import static org.gradle.api.reflect.TypeOf.typeOf
 
 class IdeaPluginTest extends AbstractProjectBuilderSpec {
     private ProjectInternal childProject
@@ -200,6 +204,18 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
+    }
+
+    def "declares public type of idea extension"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        publicTypeOfExtension("idea") == typeOf(IdeaModel)
+    }
+
+    private TypeOf<?> publicTypeOfExtension(String named) {
+        project.extensions.extensionsSchema.find { it.name == named }.publicType
     }
 
     private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
