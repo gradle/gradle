@@ -558,7 +558,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
             result.add("-Xmx2g");
         } else {
-            result.add("-Xmx1g");
+            result.add("-Xmx2g");
         }
         return result;
     }
