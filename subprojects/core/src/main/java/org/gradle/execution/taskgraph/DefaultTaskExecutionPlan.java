@@ -25,6 +25,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.NonNullApi;
@@ -68,7 +69,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -125,7 +125,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     public void addToTaskGraph(Collection<? extends Task> tasks) {
-        List<TaskInfo> queue = new ArrayList<TaskInfo>();
+        final Deque<WorkInfo> queue = new ArrayDeque<WorkInfo>();
 
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
@@ -140,23 +140,23 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             queue.add(node);
         }
 
-        Set<TaskInfo> visiting = new HashSet<TaskInfo>();
+        final Set<WorkInfo> visiting = Sets.newHashSet();
 
         while (!queue.isEmpty()) {
-            TaskInfo node = queue.get(0);
+            WorkInfo node = queue.getFirst();
             if (node.getDependenciesProcessed()) {
                 // Have already visited this task - skip it
-                queue.remove(0);
+                queue.removeFirst();
                 continue;
             }
 
-            boolean filtered = !node.satisfies(filter);
+            boolean filtered = !nodeSatisfiesTaskFilter(node);
             if (filtered) {
                 // Task is not required - skip it
-                queue.remove(0);
+                queue.removeFirst();
                 node.dependenciesProcessed();
                 node.doNotRequire();
-                filteredTasks.add(node.getTask());
+                filteredTasks.add(((TaskInfo) node).getTask());
                 continue;
             }
 
@@ -165,24 +165,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // task in the queue
                 // Make sure it has been configured
                 node.prepareForExecution();
-                for (TaskInfo targetNode : node.getDependencies(dependencyResolver)) {
-                    node.addDependencySuccessor(targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
+                node.resolveDependencies(dependencyResolver, new Action<WorkInfo>() {
+                    @Override
+                    public void execute(WorkInfo targetNode) {
+                        if (!visiting.contains(targetNode)) {
+                            queue.addFirst(targetNode);
+                        }
                     }
-                }
-                for (TaskInfo targetNode : node.getFinalizedBy(dependencyResolver)) {
-                    addFinalizerNode(node, targetNode);
-                    if (!visiting.contains(targetNode)) {
-                        queue.add(0, targetNode);
-                    }
-                }
-                for (TaskInfo targetNode : node.getMustRunAfter(dependencyResolver)) {
-                    node.addMustSuccessor(targetNode);
-                }
-                for (TaskInfo targetNode : node.getShouldRunAfter(dependencyResolver)) {
-                    node.addShouldSuccessor(targetNode);
-                }
+                });
                 if (node.isRequired()) {
                     for (WorkInfo successor : node.getDependencySuccessors()) {
                         if (nodeSatisfiesTaskFilter(successor)) {
@@ -194,7 +184,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             } else {
                 // Have visited this task's dependencies - add it to the graph
-                queue.remove(0);
+                queue.removeFirst();
                 visiting.remove(node);
                 node.dependenciesProcessed();
             }
@@ -238,13 +228,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     }
                 }
             }
-        }
-    }
-
-    private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
-        node.addFinalizer(finalizerNode);
-        if (!finalizerNode.isInKnownState()) {
-            finalizerNode.mustNotRun();
         }
     }
 
@@ -336,7 +319,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     Project project = task.getProject();
                     projectLocks.put(project, getOrCreateProjectLock(project));
                     // Add any finalizers to the queue
-                    for (TaskInfo finalizer : taskInfo.getFinalizers()) {
+                    for (WorkInfo finalizer : taskInfo.getFinalizers()) {
                         if (!visitingNodes.containsKey(finalizer)) {
                             nodeQueue.add(finalizerTaskPosition(finalizer, nodeQueue), new WorkInfoInVisitingSegment(finalizer, visitingSegmentCounter++));
                         }
@@ -402,10 +385,10 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!(workInfo instanceof TaskInfo)) {
             return;
         }
-        Iterables.removeIf(((TaskInfo) workInfo).getShouldSuccessors(), new Predicate<TaskInfo>() {
+        Iterables.removeIf(((TaskInfo) workInfo).getShouldSuccessors(), new Predicate<WorkInfo>() {
             @Override
             @SuppressWarnings("NullableProblems")
-            public boolean apply(TaskInfo input) {
+            public boolean apply(WorkInfo input) {
                 return visitingNodes.containsEntry(input, taskNodeWithVisitingSegment.visitingSegment);
             }
         });
@@ -431,15 +414,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
      * Given a finalizer task, determine where in the current node queue that it should be inserted.
      * The finalizer should be inserted after any of it's preceding tasks.
      */
-    private int finalizerTaskPosition(TaskInfo finalizer, final List<WorkInfoInVisitingSegment> nodeQueue) {
+    private int finalizerTaskPosition(WorkInfo finalizer, final List<WorkInfoInVisitingSegment> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }
 
-        Set<TaskInfo> precedingTasks = getAllPrecedingTasks(finalizer);
-        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, TaskInfo>() {
+        Set<WorkInfo> precedingTasks = getAllPrecedingTasks(finalizer);
+        Set<Integer> precedingTaskIndices = CollectionUtils.collect(precedingTasks, new Transformer<Integer, WorkInfo>() {
             @Override
-            public Integer transform(final TaskInfo dependsOnTask) {
+            public Integer transform(final WorkInfo dependsOnTask) {
                 return Iterables.indexOf(nodeQueue, new Predicate<WorkInfoInVisitingSegment>() {
                     @Override
                     @SuppressWarnings("NullableProblems")
@@ -452,27 +435,20 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         return Collections.max(precedingTaskIndices) + 1;
     }
 
-    private Set<TaskInfo> getAllPrecedingTasks(TaskInfo finalizer) {
-        Set<TaskInfo> precedingTasks = new HashSet<TaskInfo>();
-        Deque<TaskInfo> candidateTasks = new ArrayDeque<TaskInfo>();
+    private Set<WorkInfo> getAllPrecedingTasks(WorkInfo finalizer) {
+        Set<WorkInfo> precedingTasks = Sets.newHashSet();
+        Deque<WorkInfo> candidateTasks = new ArrayDeque<WorkInfo>();
 
         // Consider every task that must run before the finalizer
-        for (WorkInfo dependency : finalizer.getDependencySuccessors()) {
-            if (dependency instanceof TaskInfo) {
-                candidateTasks.add((TaskInfo) dependency);
-            }
-        }
-        candidateTasks.addAll(finalizer.getMustSuccessors());
-        candidateTasks.addAll(finalizer.getFinalizingSuccessors());
-        candidateTasks.addAll(finalizer.getShouldSuccessors());
+        Iterables.addAll(candidateTasks, finalizer.getAllSuccessors());
 
         // For each candidate task, add it to the preceding tasks.
         while (!candidateTasks.isEmpty()) {
-            TaskInfo precedingTask = candidateTasks.pop();
-            if (precedingTasks.add(precedingTask)) {
+            WorkInfo precedingTask = candidateTasks.pop();
+            if (precedingTasks.add(precedingTask) && precedingTask instanceof TaskInfo) {
                 // Any task that the preceding task must run after is also a preceding task.
-                candidateTasks.addAll(precedingTask.getMustSuccessors());
-                candidateTasks.addAll(precedingTask.getFinalizingSuccessors());
+                candidateTasks.addAll(((TaskInfo) precedingTask).getMustSuccessors());
+                candidateTasks.addAll(((TaskInfo) precedingTask).getFinalizingSuccessors());
             }
         }
 
@@ -865,14 +841,14 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         if (!(workInfo instanceof TaskInfo)) {
             return;
         }
-        for (TaskInfo finalizerNode : ((TaskInfo) workInfo).getFinalizers()) {
+        for (WorkInfo finalizerNode : ((TaskInfo) workInfo).getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 enforceWithDependencies(finalizerNode, Sets.<WorkInfo>newHashSet());
             }
         }
     }
 
-    private static void enforceWithDependencies(TaskInfo nodeInfo, Set<WorkInfo> enforcedNodes) {
+    private static void enforceWithDependencies(WorkInfo nodeInfo, Set<WorkInfo> enforcedNodes) {
         Deque<WorkInfo> candidateNodes = new ArrayDeque<WorkInfo>();
         candidateNodes.add(nodeInfo);
 

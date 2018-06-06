@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph;
 
 
 import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -28,8 +29,6 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.build.BuildState;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -106,29 +105,13 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
-            return Collections.emptyList();
-        }
-
-        @Override
         public void prepareForExecution() {
             // Should get back some kind of reference that can be queried below instead of looking the task up every time
             taskGraph.addTask(thisBuild, targetBuild, task.getPath());
+        }
+
+        @Override
+        public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor) {
         }
 
         @Override

@@ -22,23 +22,16 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 public abstract class TaskInfo extends WorkInfo {
 
-    private boolean dependenciesProcessed;
     private final NavigableSet<WorkInfo> dependencySuccessors = Sets.newTreeSet();
-    private final NavigableSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
-    private final NavigableSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
-    private final NavigableSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-    private final NavigableSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
-
-    public TaskInfo() {
-        super();
-    }
+    private final NavigableSet<WorkInfo> mustSuccessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> shouldSuccessors = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> finalizers = Sets.newTreeSet();
+    private final NavigableSet<WorkInfo> finalizingSuccessors = Sets.newTreeSet();
 
     public abstract TaskInternal getTask();
 
@@ -49,28 +42,18 @@ public abstract class TaskInfo extends WorkInfo {
 
     public abstract boolean satisfies(Spec<? super Task> filter);
 
-    public abstract void prepareForExecution();
-
-    public abstract Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver);
-
-    public abstract Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver);
-
-    public abstract Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver);
-
-    public abstract Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver);
-
     @Override
     public boolean allDependenciesComplete() {
         if (!super.allDependenciesComplete()) {
             return false;
         }
-        for (TaskInfo dependency : mustSuccessors) {
+        for (WorkInfo dependency : mustSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
         }
 
-        for (TaskInfo dependency : finalizingSuccessors) {
+        for (WorkInfo dependency : finalizingSuccessors) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -89,31 +72,23 @@ public abstract class TaskInfo extends WorkInfo {
         toNode.dependencyPredecessors.add(this);
     }
 
-    public Set<TaskInfo> getMustSuccessors() {
+    public Set<WorkInfo> getMustSuccessors() {
         return mustSuccessors;
     }
 
-    public Set<TaskInfo> getFinalizers() {
+    public Set<WorkInfo> getFinalizers() {
         return finalizers;
     }
 
-    public Set<TaskInfo> getFinalizingSuccessors() {
+    public Set<WorkInfo> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
 
-    public Set<TaskInfo> getShouldSuccessors() {
+    public Set<WorkInfo> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
-    public boolean getDependenciesProcessed() {
-        return dependenciesProcessed;
-    }
-
-    public void dependenciesProcessed() {
-        dependenciesProcessed = true;
-    }
-
-    public void addMustSuccessor(TaskInfo toNode) {
+    public void addMustSuccessor(WorkInfo toNode) {
         mustSuccessors.add(toNode);
     }
 
@@ -126,7 +101,7 @@ public abstract class TaskInfo extends WorkInfo {
         finalizerNode.addFinalizingSuccessor(this);
     }
 
-    public void addShouldSuccessor(TaskInfo toNode) {
+    public void addShouldSuccessor(WorkInfo toNode) {
         shouldSuccessors.add(toNode);
     }
 

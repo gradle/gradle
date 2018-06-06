@@ -19,6 +19,7 @@ package org.gradle.execution.taskgraph;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -26,12 +27,14 @@ import java.util.NavigableSet;
 import java.util.Set;
 
 public abstract class WorkInfo implements Comparable<WorkInfo> {
+
     @VisibleForTesting
     enum ExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
     }
 
     private ExecutionState state;
+    private boolean dependenciesProcessed;
     private Throwable executionFailure;
     protected final NavigableSet<WorkInfo> dependencyPredecessors = Sets.newTreeSet();
 
@@ -161,6 +164,18 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
             }
         }
         return true;
+    }
+
+    public abstract void prepareForExecution();
+
+    public abstract void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor);
+
+    public boolean getDependenciesProcessed() {
+        return dependenciesProcessed;
+    }
+
+    public void dependenciesProcessed() {
+        dependenciesProcessed = true;
     }
 
     @OverridingMethodsMustInvokeSuper

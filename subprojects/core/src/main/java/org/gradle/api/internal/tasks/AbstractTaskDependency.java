@@ -18,14 +18,22 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext.WorkResolver;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 
 @NonNullApi
 public abstract class AbstractTaskDependency implements TaskDependencyInternal {
+    private static final WorkResolver<Task> TASK_WORK_RESOLVER = new WorkResolver<Task>() {
+        @Override
+        public Task resolve(Task task) {
+            return task;
+        }
+    };
+
     public Set<? extends Task> getDependencies(@Nullable Task task) {
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
+        CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(TASK_WORK_RESOLVER);
         return context.getDependencies(task, this);
     }
 }

@@ -17,12 +17,13 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.specs.Spec;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  * A {@link TaskInfo} implementation for a task in the current build.
@@ -59,22 +60,46 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public Collection<? extends TaskInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<WorkInfo> processHardDependencySuccessor) {
+        for (WorkInfo targetNode : getDependencies(dependencyResolver)) {
+            addDependencySuccessor(targetNode);
+            processHardDependencySuccessor.execute(targetNode);
+        }
+        for (WorkInfo targetNode : getFinalizedBy(dependencyResolver)) {
+            if (!(targetNode instanceof TaskInfo)) {
+                throw new IllegalStateException("Only tasks can be finalizers: " + targetNode);
+            }
+            addFinalizerNode((TaskInfo) targetNode);
+            processHardDependencySuccessor.execute(targetNode);
+        }
+        for (WorkInfo targetNode : getMustRunAfter(dependencyResolver)) {
+            addMustSuccessor(targetNode);
+        }
+        for (WorkInfo targetNode : getShouldRunAfter(dependencyResolver)) {
+            addShouldSuccessor(targetNode);
+        }
+    }
+
+    private void addFinalizerNode(TaskInfo finalizerNode) {
+        addFinalizer(finalizerNode);
+        if (!finalizerNode.isInKnownState()) {
+            finalizerNode.mustNotRun();
+        }
+    }
+
+    private Set<WorkInfo> getDependencies(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter());
     }
 
-    @Override
-    public Collection<? extends TaskInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
+    private Set<WorkInfo> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
         return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
     }
 

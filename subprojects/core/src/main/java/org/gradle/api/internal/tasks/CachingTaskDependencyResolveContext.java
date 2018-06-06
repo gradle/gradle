@@ -48,16 +48,20 @@ import java.util.Set;
  * </ul>
  */
 @NonNullApi
-public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext {
+public class CachingTaskDependencyResolveContext<T> implements TaskDependencyResolveContext {
     private final Deque<Object> queue = new ArrayDeque<Object>();
-    private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
-            new TaskGraphImpl());
+    private final CachingDirectedGraphWalker<Object, T> walker;
     private Task task;
 
-    public Set<? extends Task> getDependencies(@Nullable Task task, TaskDependency container) {
+    public CachingTaskDependencyResolveContext(WorkResolver<T> workResolver) {
+        this.walker = new CachingDirectedGraphWalker<Object, T>(new TaskGraphImpl(workResolver));
+    }
+
+    public Set<T> getDependencies(@Nullable Task task, Object dependencies) {
         this.task = task;
         try {
-            return doGetDependencies(container);
+            walker.add(dependencies);
+            return walker.findValues();
         } catch (Exception e) {
             throw new TaskDependencyResolveException(String.format("Could not determine the dependencies of %s.", task), e);
         } finally {
@@ -71,20 +75,21 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
         return task;
     }
 
-    private Set<Task> doGetDependencies(TaskDependency container) {
-        walker.add(container);
-        return walker.findValues();
-    }
-
     @Override
     public void add(Object dependency) {
         Preconditions.checkNotNull(dependency);
         queue.add(dependency);
     }
 
-    private class TaskGraphImpl implements DirectedGraph<Object, Task> {
+    private class TaskGraphImpl implements DirectedGraph<Object, T> {
+        private final WorkResolver<T> workResolver;
+
+        public TaskGraphImpl(WorkResolver<T> workResolver) {
+            this.workResolver = workResolver;
+        }
+
         @Override
-        public void getNodeValues(Object node, Collection<? super Task> values, Collection<? super Object> connectedNodes) {
+        public void getNodeValues(Object node, Collection<? super T> values, Collection<? super Object> connectedNodes) {
             if (node instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
                 queue.clear();
@@ -94,17 +99,23 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
                 Buildable buildable = (Buildable) node;
                 connectedNodes.add(buildable.getBuildDependencies());
             } else if (node instanceof TaskDependency) {
-                TaskDependency dependency = (TaskDependency) node;
-                values.addAll(dependency.getDependencies(task));
+                TaskDependency taskDependency = (TaskDependency) node;
+                for (Task dependencyTask : taskDependency.getDependencies(task)) {
+                    values.add(workResolver.resolve(dependencyTask));
+                }
             } else if (node instanceof Task) {
-                values.add((Task) node);
+                values.add(workResolver.resolve((Task) node));
             } else if (node instanceof TaskReferenceInternal) {
                 Task task = ((TaskReferenceInternal) node).resolveTask();
-                values.add(task);
+                values.add(workResolver.resolve(task));
             } else {
                 throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
                         node.getClass().getSimpleName()));
             }
         }
+    }
+
+    public interface WorkResolver<T> {
+        T resolve(Task task);
     }
 }
