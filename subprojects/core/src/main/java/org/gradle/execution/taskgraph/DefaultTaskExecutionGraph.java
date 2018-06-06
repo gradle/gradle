@@ -297,9 +297,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     private static class NotifyTaskGraphWhenReady implements RunnableBuildOperation {
 
-        private DefaultTaskExecutionGraph taskExecutionGraph;
-        private ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
-        private GradleInternal gradleInternal;
+        private final DefaultTaskExecutionGraph taskExecutionGraph;
+        private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+        private final GradleInternal gradleInternal;
 
         private NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph taskExecutionGraph, ListenerBroadcast<TaskExecutionGraphListener> graphListeners, GradleInternal gradleInternal) {
             this.taskExecutionGraph = taskExecutionGraph;

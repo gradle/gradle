@@ -102,9 +102,18 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
     def "captures lifecycle operations"() {
         given:
+        file('buildSrc/buildSrcWhenReady.gradle') << ""
+        file('buildSrc/build.gradle') << """
+            gradle.taskGraph.whenReady {
+                project(':').apply from: 'buildSrcWhenReady.gradle'
+            } 
+        """
+
         file('included-build/settings.gradle') << """
             rootProject.name = 'included-build'
         """
+
+        file('included-build/includedWhenReady.gradle') << ""
         file('included-build/build.gradle') << """
             apply plugin: AcmePlugin
             
@@ -116,8 +125,10 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             
+            gradle.taskGraph.whenReady {
+                project(':').apply from: 'includedWhenReady.gradle'
+            }    
         """
-
 
         settingsFile << """
             includeBuild 'included-build'
@@ -138,10 +149,14 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             gradle.taskGraph.whenReady {
                 project(':foo').apply from: 'whenReady.gradle'
             }
+            
+            task foo {
+                dependsOn gradle.includedBuild("included-build").task(":bar")
+            }
         """
 
         when:
-        succeeds('help')
+        succeeds('foo')
 
         then:
 
@@ -156,6 +171,19 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             children*.displayName == ["Apply script after.gradle to project ':foo'"]
             parentId == configOp.id
         }
+
+        with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
+            displayName == 'Notify taskgraph whenReady listeners (:buildSrc)'
+            children*.displayName == ["Apply script buildSrcWhenReady.gradle to project ':buildSrc'"]
+            parentId == operations.first("Run tasks (:buildSrc)").id
+        }
+
+        with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
+            displayName == 'Notify taskgraph whenReady listeners (:included-build)'
+            children*.displayName == ["Apply script includedWhenReady.gradle to project ':included-build'"]
+            parentId == operations.first("Run tasks (:included-build)").id
+        }
+
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
             displayName == 'Notify taskgraph whenReady listeners'
             children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
