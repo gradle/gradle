@@ -367,6 +367,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 ),
                 stage2
             )
+
         assertStagedTopLevelProjectProgram(stagedProgram, "stage 1\n")
     }
 
@@ -392,6 +393,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 ),
                 stage2
             )
+
         assertStagedTopLevelProjectProgram(
             stagedProgram,
             expectedStage1Output = "stage 1 buildscript\nstage 1 plugins\n")
