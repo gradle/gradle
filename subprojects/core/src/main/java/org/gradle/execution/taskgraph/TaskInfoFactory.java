@@ -83,7 +83,7 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public TaskInternal getWork() {
+        public TaskInternal getTask() {
             // Do not expose the task to execution
             throw new UnsupportedOperationException();
         }

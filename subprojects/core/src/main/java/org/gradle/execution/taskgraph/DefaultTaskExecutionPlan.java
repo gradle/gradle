@@ -35,7 +35,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.Work;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.execution.TaskProperties;
@@ -43,7 +42,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -158,7 +156,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 queue.remove(0);
                 node.dependenciesProcessed();
                 node.doNotRequire();
-                filteredTasks.add(node.getWork());
+                filteredTasks.add(node.getTask());
                 continue;
             }
 
@@ -337,7 +335,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
                 if (workInfo instanceof TaskInfo) {
                     TaskInfo taskInfo = (TaskInfo) workInfo;
-                    TaskInternal task = taskInfo.getWork();
+                    TaskInternal task = taskInfo.getTask();
                     Project project = task.getProject();
                     projectLocks.put(project, getOrCreateProjectLock(project));
                     // Add any finalizers to the queue
@@ -380,14 +378,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void restoreExecutionPlan(Map<WorkInfo, Integer> planBeforeVisiting, GraphEdge toBeRemoved) {
-        Iterator<WorkInfo> executionPlanIterator = workInfoMapping.iterator();
-        for (int i = 0; i < planBeforeVisiting.get(toBeRemoved.from); i++) {
-            executionPlanIterator.next();
-        }
-        while (executionPlanIterator.hasNext()) {
-            executionPlanIterator.next();
-            executionPlanIterator.remove();
-        }
+        int count = planBeforeVisiting.get(toBeRemoved.from);
+        workInfoMapping.retainFirst(count);
     }
 
     private void restoreQueue(List<WorkInfoInVisitingSegment> nodeQueue, HashMultimap<WorkInfo, Integer> visitingNodes, GraphEdge toBeRemoved) {
@@ -618,7 +610,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void resolveMutations(MutationInfo mutations, WorkInfo workInfo) {
         if (workInfo instanceof TaskInfo) {
             TaskInfo taskInfo = (TaskInfo) workInfo;
-            TaskInternal task = taskInfo.getWork();
+            TaskInternal task = taskInfo.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
@@ -668,7 +660,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        return projectLocks.get(taskInfo.getWork().getProject());
+        return projectLocks.get(taskInfo.getTask().getProject());
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {
@@ -1021,56 +1013,66 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private static class WorkInfoMapping extends AbstractCollection<WorkInfo> {
-        private final Map<Work, WorkInfo> mapping = Maps.newLinkedHashMap();
+        private final Map<Task, TaskInfo> taskMapping = Maps.newLinkedHashMap();
+        private final Set<WorkInfo> workInfos = Sets.newLinkedHashSet();
 
         @Override
         public boolean contains(Object o) {
-            if (o instanceof WorkInfo) {
-                return mapping.containsKey(((WorkInfo) o).getWork());
-            }
-            return false;
+            return workInfos.contains(o);
         }
 
         @Override
         public boolean add(WorkInfo workInfo) {
-            return mapping.put(workInfo.getWork(), workInfo) == null;
+            if (!workInfos.add(workInfo)) {
+                return false;
+            }
+            if (workInfo instanceof TaskInfo) {
+                TaskInfo taskInfo = (TaskInfo) workInfo;
+                taskMapping.put(taskInfo.getTask(), taskInfo);
+            }
+            return true;
         }
 
         public TaskInfo get(Task task) {
-            return Cast.uncheckedCast(get((Work) task));
-        }
-
-        public WorkInfo get(Work work) {
-            WorkInfo workInfo = mapping.get(work);
-            if (workInfo == null) {
-                throw new IllegalStateException("Work is not part of the execution plan, no dependency information is available.");
+            TaskInfo taskInfo = taskMapping.get(task);
+            if (taskInfo == null) {
+                throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
             }
-            return workInfo;
+            return taskInfo;
         }
 
         public Set<Task> getTasks() {
-            return Cast.uncheckedCast(Sets.filter(mapping.keySet(), new Predicate<Work>() {
-                @Override
-                @SuppressWarnings("NullableProblems")
-                public boolean apply(Work work) {
-                    return work instanceof Task;
-                }
-            }));
+            return taskMapping.keySet();
         }
 
         @Override
         public Iterator<WorkInfo> iterator() {
-            return mapping.values().iterator();
+            return workInfos.iterator();
         }
 
         @Override
         public void clear() {
-            mapping.clear();
+            workInfos.clear();
+            taskMapping.clear();
         }
 
         @Override
         public int size() {
-            return mapping.size();
+            return workInfos.size();
+        }
+
+        public void retainFirst(int count) {
+            Iterator<WorkInfo> executionPlanIterator = workInfos.iterator();
+            for (int i = 0; i < count; i++) {
+                executionPlanIterator.next();
+            }
+            while (executionPlanIterator.hasNext()) {
+                WorkInfo removedWork = executionPlanIterator.next();
+                executionPlanIterator.remove();
+                if (removedWork instanceof TaskInfo) {
+                    taskMapping.remove(((TaskInfo) removedWork).getTask());
+                }
+            }
         }
     }
 }

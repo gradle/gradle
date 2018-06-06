@@ -87,7 +87,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo1.work.project != taskInfo2.work.project
+        taskInfo1.task.project != taskInfo2.task.project
         selectNextTask() == null
 
         when:
@@ -98,7 +98,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         lockSetup.lockedProjects.size() == 2
-        taskInfo3.work.project != taskInfo4.work.project
+        taskInfo3.task.project != taskInfo4.task.project
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
@@ -128,7 +128,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate(a, b)
         def nonAsyncTaskInfo = selectNextTaskInfo()
         then:
-        nonAsyncTaskInfo.work == a
+        nonAsyncTaskInfo.task == a
         selectNextTask() == null
         lockSetup.lockedProjects.size() == 1
 
@@ -150,7 +150,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         addToGraphAndPopulate(a, b)
         def firstTaskInfo = selectNextTaskInfo()
         then:
-        firstTaskInfo.work == a
+        firstTaskInfo.task == a
         selectNextTask() == null
         lockSetup.lockedProjects.empty
 
@@ -192,7 +192,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def firstTaskInfo = selectNextTaskInfo()
         def secondTaskInfo = selectNextTaskInfo()
         then:
-        [firstTaskInfo, secondTaskInfo]*.work as Set == [a, b] as Set
+        [firstTaskInfo, secondTaskInfo]*.task as Set == [a, b] as Set
         selectNextTask() == null
 
         when:
@@ -293,7 +293,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         executionPlan.workComplete(firstTaskInfo)
         def secondTask = selectNextTask()
 
-        assert [firstTaskInfo.work, secondTask] as Set == [first, second] as Set
+        assert [firstTaskInfo.task, secondTask] as Set == [first, second] as Set
 
     }
 
@@ -454,19 +454,19 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         def producerInfo = selectNextTaskInfo()
 
-        assert producerInfo.work == producer
+        assert producerInfo.task == producer
         assert selectNextTask() == null
 
         executionPlan.workComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
-        assert consumerInfo.work == consumer
+        assert consumerInfo.task == consumer
         assert selectNextTask() == null
 
         executionPlan.workComplete(consumerInfo)
         def destroyerInfo = selectNextTaskInfo()
 
-        assert destroyerInfo.work == destroyer
+        assert destroyerInfo.task == destroyer
     }
 
     def "a task that destroys an ancestor of an intermediate input is not started"() {
@@ -532,19 +532,19 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         def destroyerInfo = selectNextTaskInfo()
 
-        assert destroyerInfo.work == destroyer
+        assert destroyerInfo.task == destroyer
         assert selectNextTask() == null
 
         executionPlan.workComplete(destroyerInfo)
         def producerInfo = selectNextTaskInfo()
 
-        assert producerInfo.work == producer
+        assert producerInfo.task == producer
         assert selectNextTask() == null
 
         executionPlan.workComplete(producerInfo)
         def consumerInfo = selectNextTaskInfo()
 
-        assert consumerInfo.work == consumer
+        assert consumerInfo.task == consumer
     }
 
     def "a task that destroys an ancestor of an intermediate input can be started if it's ordered first"() {
@@ -599,8 +599,8 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def secondInfo = selectNextTaskInfo()
 
         then:
-        firstInfo.work == a
-        secondInfo.work == b
+        firstInfo.task == a
+        secondInfo.task == b
         selectNextTask() == null
 
         when:
@@ -614,7 +614,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def finalizerInfo = selectNextTaskInfo()
 
         then:
-        finalizerInfo.work == finalizer
+        finalizerInfo.task == finalizer
     }
 
     def "handles an exception while walking the task graph when an enforced task is present"() {
@@ -628,7 +628,7 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def finalizedInfo = selectNextTaskInfo()
 
         then:
-        finalizedInfo.work == finalized
+        finalizedInfo.task == finalized
         selectNextTask() == null
 
         when:
@@ -698,13 +698,13 @@ class DefaultTaskExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
 
     private TaskInternal selectNextTask() {
-        selectNextTaskInfo()?.work
+        selectNextTaskInfo()?.task
     }
 
     private TaskInfo selectNextTaskInfo() {
         def nextTaskInfo = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
-        if (nextTaskInfo?.work instanceof Async) {
-            def project = (ProjectInternal) nextTaskInfo.work.project
+        if (nextTaskInfo?.task instanceof Async) {
+            def project = (ProjectInternal) nextTaskInfo.task.project
             lockSetup.projectLocks.get(project.identityPath.toString()).unlock()
         }
         return nextTaskInfo

@@ -35,7 +35,7 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public TaskInternal getWork() {
+    public TaskInternal getTask() {
         return task;
     }
 

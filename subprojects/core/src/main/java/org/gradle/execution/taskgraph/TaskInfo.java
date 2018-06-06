@@ -36,12 +36,11 @@ public abstract class TaskInfo extends WorkInfo {
         super();
     }
 
-    @Override
-    public abstract TaskInternal getWork();
+    public abstract TaskInternal getTask();
 
     @Override
     public void rethrowFailure() {
-        getWork().getState().rethrowFailure();
+        getTask().getState().rethrowFailure();
     }
 
     public abstract boolean satisfies(Spec<? super Task> filter);

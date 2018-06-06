@@ -20,10 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.gradle.api.Task;
-import org.gradle.api.internal.Work;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.Iterator;
 import java.util.NavigableSet;
 import java.util.SortedSet;
 
@@ -51,8 +49,6 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     ExecutionState getState() {
         return state;
     }
-
-    public abstract Work getWork();
 
     public boolean isRequired() {
         return state == ExecutionState.SHOULD_RUN;
@@ -183,11 +179,6 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
     @OverridingMethodsMustInvokeSuper
     public Iterable<WorkInfo> getAllSuccessorsInReverseOrder() {
         return dependencySuccessors.descendingSet();
-    }
-
-    @OverridingMethodsMustInvokeSuper
-    public Iterator<WorkInfo> reverseSuccessors() {
-        return dependencySuccessors.descendingIterator();
     }
 
     @OverridingMethodsMustInvokeSuper

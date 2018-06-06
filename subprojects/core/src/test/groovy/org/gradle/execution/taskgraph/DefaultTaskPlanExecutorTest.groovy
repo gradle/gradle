@@ -60,7 +60,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
         1 * taskPlan.selectNext(_, _) >> node
-        1 * node.work >> task
+        1 * node.task >> task
         1 * worker.execute(task)
 
         then:
@@ -89,7 +89,7 @@ class DefaultTaskPlanExecutorTest extends Specification {
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * taskPlan.hasWorkRemaining() >> true
         1 * taskPlan.selectNext(_, _) >> node
-        1 * node.work >> task
+        1 * node.task >> task
         1 * worker.execute(task)
         1 * taskPlan.workComplete(node)
 
