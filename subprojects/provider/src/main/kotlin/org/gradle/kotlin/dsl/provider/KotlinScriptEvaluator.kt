@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
+import org.gradle.kotlin.dsl.execution.ProgramId
 
 import org.gradle.kotlin.dsl.get
 
@@ -127,12 +128,6 @@ class StandardKotlinScriptEvaluator(
         }
     }
 
-    fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
-        scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
-
-    private
-    val cacheProperties = mapOf("version" to "7")
-
     private
     val interpreter by lazy {
         Interpreter(InterpreterHost())
@@ -163,22 +158,15 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun cachedClassFor(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader
-        ): Class<*>? =
-            classloadingCache.get(
-                ScriptCacheKey(templateId, sourceHash, parentClassLoader)
-            )
+            programId: ProgramId
+        ): Class<*>? = classloadingCache.get(programId)
 
         override fun cache(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader,
-            specializedProgram: Class<*>
+            specializedProgram: Class<*>,
+            programId: ProgramId
         ) {
             classloadingCache.put(
-                ScriptCacheKey(templateId, sourceHash, parentClassLoader),
+                programId,
                 specializedProgram
             )
         }
@@ -196,6 +184,13 @@ class StandardKotlinScriptEvaluator(
             } catch (e: CacheOpenException) {
                 throw e.cause as? ScriptCompilationException ?: e
             }
+
+        private
+        fun cacheDirFor(cacheKeySpec: CacheKeyBuilder.CacheKeySpec, initializer: PersistentCache.() -> Unit): File =
+            scriptCache.cacheDirFor(cacheKeySpec, properties = cacheProperties, initializer = initializer)
+
+        private
+        val cacheProperties = mapOf("version" to "7")
 
         private
         val cacheKeyPrefix =

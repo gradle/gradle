@@ -156,10 +156,10 @@ class InterpreterTest : TestWithTempFiles() {
 
             inOrder(host) {
 
-                verify(host).cachedClassFor(
-                    stage1TemplateId,
-                    sourceHash,
-                    parentClassLoader)
+                val stage1ProgramId =
+                    ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
+
+                verify(host).cachedClassFor(stage1ProgramId)
 
                 verify(host).compilationClassPathOf(parentScope)
 
@@ -171,15 +171,13 @@ class InterpreterTest : TestWithTempFiles() {
                     null)
 
                 verify(host).cache(
-                    stage1TemplateId,
-                    sourceHash,
-                    parentClassLoader,
-                    classLoaders[0].loadClass("Program"))
+                    classLoaders[0].loadClass("Program"),
+                    stage1ProgramId)
 
-                verify(host).cachedClassFor(
-                    stage2TemplateId,
-                    sourceHash,
-                    targetScopeExportClassLoader)
+                val stage2ProgramId =
+                    ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader)
+
+                verify(host).cachedClassFor(stage2ProgramId)
 
                 verify(host).compilationClassPathOf(targetScope)
 
@@ -191,10 +189,8 @@ class InterpreterTest : TestWithTempFiles() {
                     null)
 
                 verify(host).cache(
-                    stage2TemplateId,
-                    sourceHash,
-                    targetScopeExportClassLoader,
-                    classLoaders[1].loadClass("Program"))
+                    classLoaders[1].loadClass("Program"),
+                    stage2ProgramId)
             }
         } finally {
             classLoaders.forEach {

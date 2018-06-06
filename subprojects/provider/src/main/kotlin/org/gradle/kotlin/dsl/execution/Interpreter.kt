@@ -68,21 +68,18 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
+internal
 class Interpreter(val host: Host) {
 
     interface Host {
 
         fun cachedClassFor(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader
+            programId: ProgramId
         ): Class<*>?
 
         fun cache(
-            templateId: String,
-            sourceHash: HashCode,
-            parentClassLoader: ClassLoader,
-            specializedProgram: Class<*>
+            specializedProgram: Class<*>,
+            programId: ProgramId
         )
 
         fun cachedDirFor(
@@ -137,8 +134,11 @@ class Interpreter(val host: Host) {
         val parentClassLoader =
             baseScope.exportClassLoader
 
+        val programId =
+            ProgramId(templateId, sourceHash, parentClassLoader)
+
         val cachedProgram =
-            host.cachedClassFor(templateId, sourceHash, parentClassLoader)
+            host.cachedClassFor(programId)
 
         val scriptHost =
             scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
@@ -163,10 +163,8 @@ class Interpreter(val host: Host) {
                 programTarget)
 
         host.cache(
-            templateId,
-            sourceHash,
-            parentClassLoader,
-            specializedProgram)
+            specializedProgram,
+            programId)
 
         programHost.eval(specializedProgram, scriptHost)
     }
@@ -350,11 +348,11 @@ class Interpreter(val host: Host) {
             val parentClassLoader =
                 scriptHost.targetScope.exportClassLoader
 
+            val programId =
+                ProgramId(scriptTemplateId, sourceHash, parentClassLoader)
+
             val cachedProgram =
-                host.cachedClassFor(
-                    scriptTemplateId,
-                    sourceHash,
-                    parentClassLoader)
+                host.cachedClassFor(programId)
 
             if (cachedProgram != null) {
                 eval(cachedProgram, scriptHost)
@@ -369,10 +367,8 @@ class Interpreter(val host: Host) {
                     sourceHash)
 
             host.cache(
-                scriptTemplateId,
-                sourceHash,
-                parentClassLoader,
-                specializedProgram)
+                specializedProgram,
+                programId)
 
             eval(specializedProgram, scriptHost)
         }
