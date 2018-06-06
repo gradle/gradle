@@ -242,6 +242,35 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
 
         // TODO add assertions
     }
+
+    @Test
+    fun `can use resolved isolated provider runtime`() {
+        withBuildScript("""
+            plugins {
+                `java-library`
+                id("org.gradle.kotlin.dsl.build.java-api-extensions")
+            }
+
+            kotlinDslApiExtensions {
+                create("main")
+            }
+
+            repositories {
+                jcenter()
+            }
+
+            configurations.all {
+                resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
+            }
+
+            repositories {
+                maven(url="https://repo.gradle.org/gradle/libs-snapshots-local")
+                maven(url="https://repo.gradle.org/gradle/libs-releases-local")
+            }
+        """)
+
+        run("generateKotlinDslApiExtensions")
+    }
 }
 
 
