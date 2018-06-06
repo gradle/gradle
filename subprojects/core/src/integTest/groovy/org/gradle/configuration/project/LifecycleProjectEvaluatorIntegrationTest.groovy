@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.project
 
+import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
@@ -126,12 +127,16 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         file("foo/build.gradle")
         file("foo/before.gradle") << ""
         file("foo/after.gradle") << ""
+        file("foo/whenReady.gradle") << ""
         buildFile << """
             project(':foo').beforeEvaluate {
                 project(':foo').apply from: 'before.gradle'
             }
             project(':foo').afterEvaluate {
                 project(':foo').apply from: 'after.gradle'
+            }
+            gradle.taskGraph.whenReady {
+                project(':foo').apply from: 'whenReady.gradle'
             }
         """
 
@@ -150,6 +155,11 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
             displayName == 'Notify afterEvaluate listeners of :foo'
             children*.displayName == ["Apply script after.gradle to project ':foo'"]
             parentId == configOp.id
+        }
+        with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
+            displayName == 'Notify taskgraph whenReady listeners'
+            children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
+            parentId == operations.first("Run tasks").id
         }
 
         def configureIncludedBuild = operations.only(ConfigureProjectBuildOperationType, {it.details.buildPath== ':included-build'})
