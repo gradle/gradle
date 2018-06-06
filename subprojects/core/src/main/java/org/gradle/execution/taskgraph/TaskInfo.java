@@ -17,20 +17,23 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
 public abstract class TaskInfo extends WorkInfo {
 
     private boolean dependenciesProcessed;
-    private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
+    private final NavigableSet<WorkInfo> dependencySuccessors = Sets.newTreeSet();
+    private final NavigableSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
+    private final NavigableSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
+    private final NavigableSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
+    private final NavigableSet<TaskInfo> finalizingSuccessors = new TreeSet<TaskInfo>();
 
     public TaskInfo() {
         super();
@@ -75,19 +78,29 @@ public abstract class TaskInfo extends WorkInfo {
         return true;
     }
 
-    public TreeSet<TaskInfo> getMustSuccessors() {
+    @Override
+    public NavigableSet<WorkInfo> getDependencySuccessors() {
+        return dependencySuccessors;
+    }
+
+    public void addDependencySuccessor(WorkInfo toNode) {
+        dependencySuccessors.add(toNode);
+        toNode.dependencyPredecessors.add(this);
+    }
+
+    public NavigableSet<TaskInfo> getMustSuccessors() {
         return mustSuccessors;
     }
 
-    public TreeSet<TaskInfo> getFinalizers() {
+    public NavigableSet<TaskInfo> getFinalizers() {
         return finalizers;
     }
 
-    public TreeSet<TaskInfo> getFinalizingSuccessors() {
+    public NavigableSet<TaskInfo> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
 
-    public TreeSet<TaskInfo> getShouldSuccessors() {
+    public NavigableSet<TaskInfo> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
