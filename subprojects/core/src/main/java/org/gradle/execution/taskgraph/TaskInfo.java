@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -30,13 +29,6 @@ public abstract class TaskInfo extends WorkInfo {
     private final NavigableSet<WorkInfo> shouldSuccessors = Sets.newTreeSet();
     private final NavigableSet<WorkInfo> finalizers = Sets.newTreeSet();
     private final NavigableSet<WorkInfo> finalizingSuccessors = Sets.newTreeSet();
-
-    public abstract TaskInternal getTask();
-
-    @Override
-    public void rethrowFailure() {
-        getTask().getState().rethrowFailure();
-    }
 
     @Override
     public boolean allDependenciesComplete() {

@@ -81,12 +81,6 @@ public class TaskInfoFactory {
         }
 
         @Override
-        public TaskInternal getTask() {
-            // Do not expose the task to execution
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public void collectTaskInto(ImmutableCollection.Builder<Task> builder) {
             // Expose the task to build logic (for now)
             builder.add(task);
@@ -94,6 +88,11 @@ public class TaskInfoFactory {
 
         @Override
         public Throwable getWorkFailure() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void rethrowFailure() {
             throw new UnsupportedOperationException();
         }
 

@@ -199,8 +199,8 @@ public class DefaultTaskPlanExecutor implements TaskPlanExecutor {
             try {
                 if (!selected.isComplete()) {
                     try {
-                        if (selected instanceof TaskInfo) {
-                            taskExecution.execute(((TaskInfo) selected).getTask());
+                        if (selected instanceof LocalTaskInfo) {
+                            taskExecution.execute(((LocalTaskInfo) selected).getTask());
                         } else {
                             throw new AssertionError("Unknown type of work: " + selected.getClass().getName());
                         }

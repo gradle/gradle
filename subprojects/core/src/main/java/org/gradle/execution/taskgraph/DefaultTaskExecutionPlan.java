@@ -93,7 +93,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private boolean continueOnFailure;
 
     private final Set<WorkInfo> runningNodes = Sets.newIdentityHashSet();
-    private final Set<Task> filteredTasks = Sets.newIdentityHashSet();
+    private final Set<WorkInfo> filteredNodes = Sets.newIdentityHashSet();
     private final Map<WorkInfo, MutationInfo> workMutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<WorkInfo, WorkInfo>, Boolean> reachableCache = Maps.newHashMap();
@@ -156,7 +156,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 queue.removeFirst();
                 node.dependenciesProcessed();
                 node.doNotRequire();
-                filteredTasks.add(((TaskInfo) node).getTask());
+                filteredNodes.add(node);
                 continue;
             }
 
@@ -193,8 +193,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private boolean nodeSatisfiesTaskFilter(WorkInfo successor) {
-        if (successor instanceof TaskInfo) {
-            return filter.isSatisfiedBy(((TaskInfo) successor).getTask());
+        if (successor instanceof LocalTaskInfo) {
+            return filter.isSatisfiedBy(((LocalTaskInfo) successor).getTask());
         }
         return true;
     }
@@ -313,8 +313,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                     mutations.consumesOutputOf.add(dependency);
                 }
 
-                if (workInfo instanceof TaskInfo) {
-                    TaskInfo taskInfo = (TaskInfo) workInfo;
+                if (workInfo instanceof LocalTaskInfo) {
+                    LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
                     TaskInternal task = taskInfo.getTask();
                     Project project = task.getProject();
                     projectLocks.put(project, getOrCreateProjectLock(project));
@@ -513,7 +513,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     @Override
     public Set<Task> getFilteredTasks() {
-        return filteredTasks;
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (WorkInfo filteredNode : filteredNodes) {
+            if (filteredNode instanceof LocalTaskInfo) {
+                builder.add(((LocalTaskInfo) filteredNode).getTask());
+            }
+        }
+        return builder.build();
     }
 
     public void useFilter(Spec<? super Task> filter) {
@@ -560,16 +566,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private boolean tryLockProjectFor(WorkInfo workInfo) {
-        if (!(workInfo instanceof TaskInfo)) {
+        if (workInfo instanceof LocalTaskInfo) {
+            return getProjectLock((LocalTaskInfo) workInfo).tryLock();
+        } else {
             return true;
         }
-        return getProjectLock((TaskInfo) workInfo).tryLock();
     }
 
     private void unlockProjectFor(WorkInfo workInfo) {
-        if (workInfo instanceof TaskInfo) {
-            getProjectLock((TaskInfo) workInfo).unlock();
+        if (workInfo instanceof LocalTaskInfo) {
+            getProjectLock((LocalTaskInfo) workInfo).unlock();
         }
+    }
+
+    private ResourceLock getProjectLock(LocalTaskInfo taskInfo) {
+        return projectLocks.get(taskInfo.getTask().getProject());
     }
 
     private MutationInfo getResolvedMutationInfo(WorkInfo workInfo) {
@@ -581,8 +592,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void resolveMutations(MutationInfo mutations, WorkInfo workInfo) {
-        if (workInfo instanceof TaskInfo) {
-            TaskInfo taskInfo = (TaskInfo) workInfo;
+        if (workInfo instanceof LocalTaskInfo) {
+            LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
             TaskInternal task = taskInfo.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
@@ -630,10 +641,6 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         return true;
-    }
-
-    private ResourceLock getProjectLock(TaskInfo taskInfo) {
-        return projectLocks.get(taskInfo.getTask().getProject());
     }
 
     private ResourceLock getOrCreateProjectLock(Project project) {
@@ -986,7 +993,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private static class WorkInfoMapping extends AbstractCollection<WorkInfo> {
-        private final Map<Task, TaskInfo> taskMapping = Maps.newLinkedHashMap();
+        private final Map<Task, LocalTaskInfo> taskMapping = Maps.newLinkedHashMap();
         private final Set<WorkInfo> workInfos = Sets.newLinkedHashSet();
 
         @Override
@@ -999,8 +1006,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (!workInfos.add(workInfo)) {
                 return false;
             }
-            if (workInfo instanceof TaskInfo) {
-                TaskInfo taskInfo = (TaskInfo) workInfo;
+            if (workInfo instanceof LocalTaskInfo) {
+                LocalTaskInfo taskInfo = (LocalTaskInfo) workInfo;
                 taskMapping.put(taskInfo.getTask(), taskInfo);
             }
             return true;
@@ -1042,8 +1049,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             while (executionPlanIterator.hasNext()) {
                 WorkInfo removedWork = executionPlanIterator.next();
                 executionPlanIterator.remove();
-                if (removedWork instanceof TaskInfo) {
-                    taskMapping.remove(((TaskInfo) removedWork).getTask());
+                if (removedWork instanceof LocalTaskInfo) {
+                    taskMapping.remove(((LocalTaskInfo) removedWork).getTask());
                 }
             }
         }

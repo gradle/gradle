@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.specs.Spec;
 
 import java.util.Set;
 
@@ -35,7 +34,6 @@ public class LocalTaskInfo extends TaskInfo {
         this.task = task;
     }
 
-    @Override
     public TaskInternal getTask() {
         return task;
     }
@@ -47,6 +45,11 @@ public class LocalTaskInfo extends TaskInfo {
 
     public Throwable getWorkFailure() {
         return task.getState().getFailure();
+    }
+
+    @Override
+    public void rethrowFailure() {
+        task.getState().rethrowFailure();
     }
 
     @Override
