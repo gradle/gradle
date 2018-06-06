@@ -124,9 +124,6 @@ class Interpreter(val host: Host) {
         options: EvalOptions = defaultEvalOptions
     ) {
 
-        val sourceText =
-            scriptSource.resource!!.text
-
         val programKind =
             if (topLevelScript) ProgramKind.TopLevel
             else ProgramKind.ScriptPlugin
@@ -157,7 +154,6 @@ class Interpreter(val host: Host) {
         val specializedProgram =
             emitSpecializedProgramFor(
                 scriptSource,
-                sourceText,
                 sourceHash,
                 templateId,
                 parentClassLoader,
@@ -216,7 +212,6 @@ class Interpreter(val host: Host) {
     private
     fun emitSpecializedProgramFor(
         scriptSource: ScriptSource,
-        sourceText: String,
         sourceHash: HashCode,
         templateId: String,
         parentClassLoader: ClassLoader,
@@ -236,6 +231,9 @@ class Interpreter(val host: Host) {
 
                 val outputDir =
                     stage1SubDirOf(cachedDir).apply { mkdir() }
+
+                val sourceText =
+                    scriptSource.resource!!.text
 
                 val programSource =
                     ProgramSource(scriptPath, sourceText)
