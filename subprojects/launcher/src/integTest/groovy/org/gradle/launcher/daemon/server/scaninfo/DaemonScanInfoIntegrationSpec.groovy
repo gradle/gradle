@@ -55,6 +55,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
     }
 
+    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """
@@ -129,8 +131,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         !file(EXPIRATION_EVENT).exists()
     }
 
-    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
-    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {
         given:
         buildFile << """
