@@ -13,6 +13,7 @@ base {
 dependencies {
     compileOnly(gradleApi())
 
+    compile(project(":provider-spi"))
     compile(project(":tooling-models"))
     compile(futureKotlin("stdlib-jdk8"))
     compile(futureKotlin("reflect"))
@@ -39,7 +40,6 @@ val generateKotlinDependencyExtensions by task<GenerateKotlinDependencyExtension
     outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
     embeddedKotlinVersion = kotlinVersion
     kotlinDslPluginsVersion = publishedPluginsVersion
-    kotlinDslRepository = kotlinRepo
 }
 
 val generateExtensions by tasks.creating {
@@ -66,6 +66,5 @@ tasks {
 withParallelTests()
 
 // --- Utility functions -----------------------------------------------
-inline
-fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
+inline fun <reified T : Task> task(noinline configuration: T.() -> Unit) = tasks.creating(T::class, configuration)
 

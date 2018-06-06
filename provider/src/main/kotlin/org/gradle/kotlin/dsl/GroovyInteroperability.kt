@@ -24,6 +24,8 @@ import org.gradle.internal.Cast.uncheckedCast
 
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
 
+import org.gradle.kotlin.dsl.support.unsafeLazy
+
 
 /**
  * Adapts a Kotlin function to a single argument Groovy [Closure].
@@ -133,8 +135,7 @@ operator fun <T> Closure<T>.invoke(vararg xs: Any?): T = call(*xs)
  *
  * @see [GroovyBuilderScope]
  */
-inline
-fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
+inline fun <T> Any.withGroovyBuilder(builder: GroovyBuilderScope.() -> T): T =
     GroovyBuilderScope.of(this).builder()
 
 
@@ -213,7 +214,7 @@ private
 class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBuilderScope {
 
     private
-    val groovyMetaClass: MetaClass by lazy {
+    val groovyMetaClass: MetaClass by unsafeLazy {
         getMetaClass(delegate)
     }
 

@@ -1,4 +1,5 @@
 import build.futureKotlin
+import plugins.bundledGradlePlugin
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.hash.Hashing
 
@@ -18,7 +19,7 @@ repositories {
 dependencies {
     compileOnly(gradleKotlinDsl())
 
-    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.2.0")
+    implementation("gradle.plugin.org.jlleitschuh.gradle:ktlint-gradle:3.3.0")
     implementation(futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":test-fixtures"))
@@ -27,18 +28,16 @@ dependencies {
 
 // plugins ------------------------------------------------------------
 
-kotlinDslPlugins {
-    create("ktlintConvention") {
-        displayName = "Gradle Kotlin DSL ktlint convention plugin (experimental)"
-        id = "org.gradle.kotlin.ktlint-convention"
-        implementationClass = "org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin"
-    }
-}
+bundledGradlePlugin(
+    name = "ktlintConvention",
+    shortDescription = "Gradle Kotlin DSL ktlint convention plugin (experimental)",
+    pluginId = "org.gradle.kotlin.ktlint-convention",
+    pluginClass = "org.gradle.kotlin.dsl.experiments.plugins.GradleKotlinDslKtlintConventionPlugin")
 
 
 // default versions ---------------------------------------------------
 
-val ktlintVersion = "0.20.0"
+val ktlintVersion = "0.22.0"
 
 val basePackagePath = "org/gradle/kotlin/dsl/experiments/plugins"
 val processResources: ProcessResources by tasks
@@ -51,10 +50,7 @@ processResources.dependsOn(writeDefaultVersionsProperties)
 
 // ktlint custom ruleset ----------------------------------------------
 
-java.sourceSets {
-    "ruleset"()
-}
-
+val ruleset by java.sourceSets.creating
 val rulesetShaded by configurations.creating
 val rulesetCompileOnly by configurations.getting {
     extendsFrom(rulesetShaded)
@@ -65,11 +61,13 @@ val rulesetJar by tasks.creating(ShadowJar::class) {
     archiveName = "gradle-kotlin-dsl-ruleset.jar"
     destinationDir = generatedResourcesRulesetJarDir.resolve(basePackagePath)
     configurations = listOf(rulesetShaded)
-    from(java.sourceSets["ruleset"].output)
+    from(ruleset.output)
 }
 val rulesetChecksum by tasks.creating {
     dependsOn(rulesetJar)
-    val rulesetChecksumFile = generatedResourcesRulesetJarDir.resolve(basePackagePath).resolve("gradle-kotlin-dsl-ruleset.md5")
+    val rulesetChecksumFile = generatedResourcesRulesetJarDir
+        .resolve(basePackagePath)
+        .resolve("gradle-kotlin-dsl-ruleset.md5")
     inputs.file(rulesetJar.archivePath)
     outputs.file(rulesetChecksumFile)
     doLast {
@@ -77,11 +75,14 @@ val rulesetChecksum by tasks.creating {
         rulesetChecksumFile.writeText(Hashing.md5().hashBytes(rulesetJar.archivePath.readBytes()).toString())
     }
 }
-java.sourceSets["main"].output.dir(mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)), generatedResourcesRulesetJarDir)
+java.sourceSets["main"].output.dir(
+    mapOf("builtBy" to listOf(rulesetJar, rulesetChecksum)),
+    generatedResourcesRulesetJarDir)
 
 dependencies {
     rulesetShaded("com.github.shyiko.ktlint:ktlint-ruleset-standard:$ktlintVersion") {
         isTransitive = false
     }
     rulesetCompileOnly("com.github.shyiko.ktlint:ktlint-core:$ktlintVersion")
+    rulesetCompileOnly(futureKotlin("reflect"))
 }

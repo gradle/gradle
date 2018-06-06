@@ -3,8 +3,6 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 
-import org.gradle.api.JavaVersion
-
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -22,7 +20,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.preprocessor.convertLineSeparators
 
 import org.junit.Assert.assertNotEquals
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 import java.io.File
@@ -59,6 +56,34 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
                 }
             }
         """.let(buildscriptTransformation))
+
+        assert(
+            build("compute").output.contains("*42*"))
+    }
+
+    @Test
+    @LeaksFileHandles
+    fun `given a script plugin with a buildscript block, it will be used to compute its classpath`() {
+
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withFile("other.gradle.kts", """
+            buildscript {
+                dependencies { classpath(files("fixture.jar")) }
+            }
+
+            task("compute") {
+                doLast {
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        withBuildScript("""
+            apply(from = "other.gradle.kts")
+        """)
 
         assert(
             build("compute").output.contains("*42*"))
@@ -146,7 +171,7 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         withBuildScript("""
             buildscript {
                 repositories {
-                    ivy { setUrl("${fixturesRepository.toURI()}") }
+                    ivy(url = "${fixturesRepository.toURI()}")
                     jcenter()
                 }
                 dependencies {
@@ -716,8 +741,8 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
             """))
     }
 
-    @LeaksFileHandles
     @Test
+    @LeaksFileHandles
     fun `can cross configure buildscript`() {
 
         withClassJar("zero.jar", ZeroThought::class.java)
@@ -837,11 +862,6 @@ class GradleKotlinDslIntegrationTest : AbstractIntegrationTest() {
         """)
 
         build("help")
-    }
-
-    private
-    fun assumeJavaLessThan9() {
-        assumeTrue("Test disabled under JDK 9 and higher", JavaVersion.current() < JavaVersion.VERSION_1_9)
     }
 
     private

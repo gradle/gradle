@@ -39,7 +39,7 @@ class KotlinScriptHost<out T : Any>(
 ) {
 
     internal
-    val operations by lazy {
+    val operations by unsafeLazy {
         fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile)
     }
 

@@ -16,16 +16,25 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.internal.HasConvention
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchema
+import org.gradle.kotlin.dsl.provider.spi.ProjectSchemaEntry
+
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 
 
 internal
 fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
-    extensions.map(::typedAccessorSpec).forEach { spec ->
-        extensionAccessorFor(spec)?.let(action)
+    val seen = SeenAccessorSpecs()
+    extensions.mapNotNull(::typedAccessorSpec).forEach { spec ->
+        extensionAccessorFor(spec)?.let { extensionAccessor ->
+            action(extensionAccessor)
+            seen.add(spec)
+        }
     }
-    conventions.filterKeys { it !in extensions }.map(::typedAccessorSpec).forEach { spec ->
+    conventions.mapNotNull(::typedAccessorSpec).filterNot(seen::hasConflict).forEach { spec ->
         conventionAccessorFor(spec)?.let(action)
     }
     configurations.map(::accessorNameSpec).forEach { spec ->
@@ -35,53 +44,64 @@ fun ProjectSchema<TypeAccessibility>.forEachAccessor(action: (String) -> Unit) {
 
 
 private
+data class SeenAccessorSpecs(private val seen: MutableList<TypedAccessorSpec> = mutableListOf()) {
+
+    fun add(accessorSpec: TypedAccessorSpec) =
+        seen.add(accessorSpec)
+
+    fun hasConflict(accessorSpec: TypedAccessorSpec) =
+        seen.any { it.targetTypeAccess == accessorSpec.targetTypeAccess && it.name == accessorSpec.name }
+}
+
+
+private
 fun extensionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(name, typeAccess)
+            is TypeAccessibility.Accessible -> accessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorFor(targetTypeAccess.type, name, typeAccess)
         }
     }
 }
 
 
 private
-fun accessibleExtensionAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
     """
         /**
-         * Retrieves the [$original][$type] project extension.
+         * Retrieves the [$original][$type] extension.
          */
-        val Project.`$kotlinIdentifier`: $type get() =
-            extensions.getByName("$stringLiteral") as $type
+        val $targetType.`$kotlinIdentifier`: $type get() =
+            $thisExtensions.getByName("$stringLiteral") as $type
 
         /**
-         * Configures the [$original][$type] project extension.
+         * Configures the [$original][$type] extension.
          */
-        fun Project.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
-            extensions.configure("$stringLiteral", configure)
+        fun $targetType.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
+            $thisExtensions.configure("$stringLiteral", configure)
 
     """
 }
 
 
 private
-fun inaccessibleExtensionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Retrieves the [$original][${typeAccess.type}] project extension.
+         * Retrieves the [$original][${typeAccess.type}] extension.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        val Project.`$kotlinIdentifier`: Any get() =
-            extensions.getByName("$stringLiteral")
+        val $targetType.`$kotlinIdentifier`: Any get() =
+            $thisExtensions.getByName("$stringLiteral")
 
         /**
-         * Configures the [$original][${typeAccess.type}] project extension.
+         * Configures the [$original][${typeAccess.type}] extension.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun Project.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
-            extensions.configure("$stringLiteral", configure)
+        fun $targetType.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
+            $thisExtensions.configure("$stringLiteral", configure)
 
     """
 }
@@ -91,26 +111,26 @@ private
 fun conventionAccessorFor(spec: TypedAccessorSpec): String? = spec.run {
     codeForAccessor(name) {
         when (typeAccess) {
-            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(name, typeAccess.type)
-            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(name, typeAccess)
+            is TypeAccessibility.Accessible -> accessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess.type)
+            is TypeAccessibility.Inaccessible -> inaccessibleConventionAccessorFor(targetTypeAccess.type, name, typeAccess)
         }
     }
 }
 
 
 private
-fun accessibleConventionAccessorFor(name: AccessorNameSpec, type: String): String = name.run {
+fun accessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, type: String): String = name.run {
     """
         /**
-         * Retrieves the [$original][$type] project convention.
+         * Retrieves the [$original][$type] convention.
          */
-        val Project.`$kotlinIdentifier`: $type get() =
-            convention.getPluginByName<$type>("$stringLiteral")
+        val $targetType.`$kotlinIdentifier`: $type get() =
+            $thisConvention.getPluginByName<$type>("$stringLiteral")
 
         /**
-         * Configures the [$original][$type] project convention.
+         * Configures the [$original][$type] convention.
          */
-        fun Project.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
+        fun $targetType.`$kotlinIdentifier`(configure: $type.() -> Unit): Unit =
             configure(`$stringLiteral`)
 
     """
@@ -118,22 +138,22 @@ fun accessibleConventionAccessorFor(name: AccessorNameSpec, type: String): Strin
 
 
 private
-fun inaccessibleConventionAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Retrieves the [$original][${typeAccess.type}] project convention.
+         * Retrieves the [$original][${typeAccess.type}] convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        val Project.`$kotlinIdentifier`: Any get() =
-            convention.getPluginByName<Any>("$stringLiteral")
+        val $targetType.`$kotlinIdentifier`: Any get() =
+            $thisConvention.getPluginByName<Any>("$stringLiteral")
 
         /**
-         * Configures the [$original][${typeAccess.type}] project convention.
+         * Configures the [$original][${typeAccess.type}] convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun Project.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
+        fun $targetType.`$kotlinIdentifier`(configure: Any.() -> Unit): Unit =
             configure(`$stringLiteral`)
 
     """
@@ -158,7 +178,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency =
+            fun DependencyHandler.`$kotlinIdentifier`(dependencyNotation: Any): Dependency? =
                 add("$stringLiteral", dependencyNotation)
 
             /**
@@ -170,8 +190,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            inline
-            fun DependencyHandler.`$kotlinIdentifier`(
+            inline fun DependencyHandler.`$kotlinIdentifier`(
                 dependencyNotation: String,
                 dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
                 add("$stringLiteral", dependencyNotation, dependencyConfiguration)
@@ -213,8 +232,7 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              * @see [DependencyHandler.create]
              * @see [DependencyHandler.add]
              */
-            inline
-            fun DependencyHandler.`$kotlinIdentifier`(
+            inline fun DependencyHandler.`$kotlinIdentifier`(
                 group: String,
                 name: String,
                 version: String? = null,
@@ -233,13 +251,22 @@ fun configurationAccessorFor(name: AccessorNameSpec): String? = name.run {
              *
              * @see [DependencyHandler.add]
              */
-            inline
-            fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+            inline fun <T : ModuleDependency> DependencyHandler.`$kotlinIdentifier`(dependency: T, dependencyConfiguration: T.() -> Unit): T =
                 add("$stringLiteral", dependency, dependencyConfiguration)
 
         """
     }
 }
+
+
+private
+val thisExtensions =
+    "(this as ${ExtensionAware::class.java.name}).extensions"
+
+
+private
+val thisConvention =
+    "((this as? Project)?.convention ?: (this as ${HasConvention::class.java.name}).convention)"
 
 
 internal
@@ -253,7 +280,7 @@ data class AccessorNameSpec(val original: String) {
 
 
 private
-data class TypedAccessorSpec(val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
+data class TypedAccessorSpec(val targetTypeAccess: TypeAccessibility.Accessible, val name: AccessorNameSpec, val typeAccess: TypeAccessibility)
 
 
 private
@@ -272,8 +299,15 @@ fun accessorNameSpec(originalName: String) =
 
 
 private
-fun typedAccessorSpec(nameAndType: Map.Entry<String, TypeAccessibility>) =
-    TypedAccessorSpec(accessorNameSpec(nameAndType.key), nameAndType.value)
+fun typedAccessorSpec(schemaEntry: ProjectSchemaEntry<TypeAccessibility>) =
+    schemaEntry.target.run {
+        when (this) {
+            is TypeAccessibility.Accessible ->
+                TypedAccessorSpec(this, accessorNameSpec(schemaEntry.name), schemaEntry.type)
+            is TypeAccessibility.Inaccessible ->
+                null
+        }
+    }
 
 
 private

@@ -1,11 +1,14 @@
 Hello, Android!
 ===============
 
-This sample demonstrates a simple Android application with a Kotlin based build script.
+This sample demonstrates a simple Kotlin based Android application with Kotlin
+based build scripts.
 
-It has been tested against _Android Studio 3.0.1_ with the latest Kotlin plugin
-from the update channel _Early Access Preview 1.2.x_.
+It has been tested against _Android Studio
+3.1.2_<sup>[*](#android-studio-build)</sup> with the latest Kotlin 1.2.41
+plugin from the Stable update channel.
 
-Simply import the Gradle project by pointing to this directory.
+Simply import the Gradle project in Android Studio by pointing it to the
+project directory.
 
-You might need to update your _Android Support Repository_ to include the latest versions of _ConstraintLayout for Android_ and _Solver for ConstraintLayout_ as described in [this document](https://developer.android.com/training/constraint-layout/index.html#add-constraintlayout-to-your-project).
+<a name="android-studio-build">*</a> _Android Studio 3.1.2 (Build #AI-173.4720617, built on April 13, 2018)_

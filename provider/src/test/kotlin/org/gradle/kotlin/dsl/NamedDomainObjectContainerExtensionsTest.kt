@@ -1,11 +1,10 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
@@ -21,6 +20,75 @@ import org.junit.Test
 class NamedDomainObjectContainerExtensionsTest {
 
     data class DomainObject(var foo: String? = null, var bar: Boolean? = null)
+
+    @Test
+    fun `can use monomorphic container api`() {
+
+        val alice = DomainObject()
+        val bob = DomainObject()
+        val john = DomainObject()
+        val container = mock<NamedDomainObjectContainer<DomainObject>> {
+            on { getByName("alice") } doReturn alice
+            on { create("bob") } doReturn bob
+            on { maybeCreate("john") } doReturn john
+        }
+
+        // regular syntax
+        container.getByName("alice") {
+            it.foo = "alice-foo"
+        }
+        container.create("bob") {
+            it.foo = "bob-foo"
+        }
+        container.maybeCreate("john")
+
+        // invoke syntax
+        container {
+            getByName("alice") {
+                it.foo = "alice-foo"
+            }
+            create("bob") {
+                it.foo = "bob-foo"
+            }
+            maybeCreate("john")
+        }
+    }
+
+    @Test
+    fun `can use polymorphic container api`() {
+
+        val alice = DomainObjectBase.Foo()
+        val bob = DomainObjectBase.Bar()
+        val default = DomainObjectBase.Default()
+        val container = mock<PolymorphicDomainObjectContainer<DomainObjectBase>> {
+            on { getByName("alice") } doReturn alice
+            on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
+            on { create(argThat { equals("bob") }, argThat { equals(DomainObjectBase.Bar::class.java) }, any<Action<DomainObjectBase.Bar>>()) } doReturn bob
+            on { create("john", DomainObjectBase.Default::class.java) } doReturn default
+        }
+
+        // regular syntax
+        container.getByName<DomainObjectBase.Foo>("alice") {
+            foo = "alice-foo-2"
+        }
+        container.maybeCreate<DomainObjectBase.Foo>("alice")
+        container.create<DomainObjectBase.Bar>("bob") {
+            bar = true
+        }
+        container.create("john")
+
+        // invoke syntax
+        container {
+            getByName<DomainObjectBase.Foo>("alice") {
+                foo = "alice-foo-2"
+            }
+            maybeCreate<DomainObjectBase.Foo>("alice")
+            create<DomainObjectBase.Bar>("bob") {
+                bar = true
+            }
+            create("john")
+        }
+    }
 
     @Test
     fun `can configure monomorphic container`() {
@@ -98,20 +166,36 @@ class NamedDomainObjectContainerExtensionsTest {
     }
 
     @Test
-    fun `can configure tasks`() {
+    fun `can create and configure tasks`() {
 
         val clean = mock<Delete>()
         val tasks = mock<TaskContainer> {
+            on { create(argThat { equals("clean") }, argThat { equals(Delete::class.java) }, any<Action<Delete>>()) } doReturn clean
+            on { getByName("clean") } doReturn clean
             on { maybeCreate("clean", Delete::class.java) } doReturn clean
         }
 
         tasks {
+            create<Delete>("clean") {
+                delete("some")
+            }
+            getByName<Delete>("clean") {
+                delete("stuff")
+            }
             "clean"(type = Delete::class) {
-                delete("build")
+                delete("things")
             }
         }
 
-        verify(clean).delete("build")
+        tasks.getByName<Delete>("clean") {
+            delete("build")
+        }
+
+        inOrder(clean) {
+            verify(clean).delete("stuff")
+            verify(clean).delete("things")
+            verify(clean).delete("build")
+        }
     }
 
     @Test

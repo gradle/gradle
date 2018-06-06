@@ -126,13 +126,13 @@ open class Benchmark : DefaultTask() {
 
         val baselineConfig = BenchmarkRunConfig("baseline", sampleName, sampleDir, config)
         val baseline = benchmarkWith(
-            connectorFor(temporaryCopyFor(baselineConfig)),
+            connectorFor(baselineConfig),
             baselineConfig)
         println("\tbaseline: ${format(baseline)}")
 
         val latestConfig = BenchmarkRunConfig("latest", sampleName, sampleDir, config)
         val latest = benchmarkWith(
-            connectorFor(temporaryCopyFor(latestConfig)).useInstallation(latestInstallation!!),
+            connectorFor(latestConfig).useInstallation(latestInstallation!!),
             latestConfig)
         println("\tlatest:   ${format(latest)}")
 
@@ -203,13 +203,22 @@ open class Benchmark : DefaultTask() {
                 println("Environment variable not present. Falling back to `git rev-parse`")
                 val stdout = ByteArrayOutputStream()
                 project.exec {
-                    it.commandLine("git", "rev-parse", "HEAD")
-                    it.standardOutput = stdout
+                    commandLine("git", "rev-parse", "HEAD")
+                    standardOutput = stdout
                 }
                 String(stdout.toByteArray()).trim()
             }
         }
     }
+
+    private
+    fun connectorFor(config: BenchmarkRunConfig) =
+        connectorFor(temporaryCopyFor(config))
+            .useGradleUserHomeDir(gradleUserHomeDirFor(config))
+
+    private
+    fun gradleUserHomeDirFor(config: BenchmarkRunConfig) =
+        temporaryDir.resolve("${config.name}-gradle-user-home")
 
     private
     fun temporaryCopyFor(config: BenchmarkRunConfig) =
@@ -256,8 +265,7 @@ fun connectorFor(projectDir: File) =
     newConnector().forProjectDirectory(projectDir)!!
 
 
-inline
-fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
+inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T {
     try {
         return connector.connect().use(block)
     } finally {
@@ -266,8 +274,7 @@ fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.
 }
 
 
-inline
-fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
+inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
     try {
         return block(this)
     } finally {
@@ -279,18 +286,15 @@ fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
 /**
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
-inline
-fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
+inline fun <T> withUniqueDaemonRegistry(baseDir: File, block: () -> T) =
     withDaemonRegistry(createTempDir("daemon-registry-", directory = baseDir), block)
 
 
-inline
-fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.path, block)
 
 
-inline
-fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
+inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
     try {
         System.setProperty(key, value)

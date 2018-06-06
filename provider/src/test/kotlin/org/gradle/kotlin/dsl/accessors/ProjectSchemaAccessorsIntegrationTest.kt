@@ -3,8 +3,10 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.kotlin.dsl.integration.kotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.fileByName
 import org.gradle.kotlin.dsl.fixtures.matching
+import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -15,6 +17,58 @@ import java.io.File
 
 
 class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
+
+    @Test
+    fun `conflicting extensions across build scripts with same body`() {
+
+        projectRoot.withFolders {
+
+            "buildSrc" {
+
+                withFile("build.gradle.kts", """
+                    plugins {
+                        `kotlin-dsl`
+                        `java-gradle-plugin`
+                    }
+                    apply<org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins>()
+                """)
+
+                "src/main/kotlin" {
+                    withFile("my/extensions.kt", """
+                        package my
+                        open class App { lateinit var name: String }
+                        open class Lib { lateinit var name: String }
+                    """)
+                    withFile("app.gradle.kts", """
+                        extensions.create("my", my.App::class.java)
+                    """)
+                    withFile("lib.gradle.kts", """
+                        extensions.create("my", my.Lib::class.java)
+                    """)
+                }
+            }
+
+            fun FoldersDsl.withPlugin(plugin: String) =
+                withFile("build.gradle.kts", """
+                    plugins { id("$plugin") }
+                    my { name = "kotlin-dsl" }
+                """)
+
+            "app" {
+                withPlugin("app")
+            }
+
+            "lib" {
+                withPlugin("lib")
+            }
+
+            withFile("settings.gradle.kts", """
+                include("app", "lib")
+            """)
+        }
+
+        build("tasks")
+    }
 
     @Test
     fun `can configure deferred configurable extension`() {
@@ -328,6 +382,168 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractIntegrationTest() {
 
         val result = build("help")
         assertThat(result.output, containsString("Type of `mine` receiver is Any"))
+    }
+
+    @Test
+    fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `java-gradle-plugin`
+                `kotlin-dsl`
+            }
+            gradlePlugin {
+                (plugins) {
+                    "my-plugin" {
+                        id = "my-plugin"
+                        implementationClass = "plugins.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
+            package plugins
+
+            import org.gradle.api.*
+            import org.gradle.api.plugins.*
+            import org.gradle.api.internal.*
+            import org.gradle.api.internal.plugins.*
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+
+                    val rootExtension = MyExtension("root")
+                    val rootExtensionNestedExtension = MyExtension("nested-in-extension")
+                    val rootExtensionNestedConvention = MyConvention("nested-in-extension")
+
+                    extensions.add("rootExtension", rootExtension)
+
+                    rootExtension.extensions.add("nestedExtension", rootExtensionNestedExtension)
+                    rootExtensionNestedExtension.extensions.add("deepExtension", listOf("foo", "bar"))
+
+                    rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
+
+                    val rootConvention = MyConvention("root")
+                    val rootConventionNestedExtension = MyExtension("nested-in-convention")
+                    val rootConventionNestedConvention = MyConvention("nested-in-convention")
+
+                    convention.plugins.put("rootConvention", rootConvention)
+
+                    rootConvention.extensions.add("nestedExtension", rootConventionNestedExtension)
+                    rootConventionNestedExtension.extensions.add("deepExtension", listOf("bazar", "cathedral"))
+
+                    rootConventionNestedConvention.extensions.add("deepExtension", mapOf("bazar" to "cathedral"))
+                }
+            }
+
+            class MyExtension(val value: String = "value") : ExtensionAware, HasConvention {
+                private val convention: DefaultConvention = DefaultConvention()
+                override fun getExtensions(): ExtensionContainer = convention
+                override fun getConvention(): Convention = convention
+            }
+
+            class MyConvention(val value: String = "value") : ExtensionAware, HasConvention {
+                private val convention: DefaultConvention = DefaultConvention()
+                override fun getExtensions(): ExtensionContainer = convention
+                override fun getConvention(): Convention = convention
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            rootExtension {
+                nestedExtension {
+                    require(value == "nested-in-extension", { "rootExtension.nestedExtension" })
+                    require(deepExtension == listOf("foo", "bar"), { "rootExtension.nestedExtension.deepExtension" })
+                }
+            }
+
+            rootConvention {
+                nestedExtension {
+                    require(value == "nested-in-convention", { "rootConvention.nestedExtension" })
+                    require(deepExtension == listOf("bazar", "cathedral"), { "rootConvention.nestedExtension.deepExtension" })
+                }
+            }
+        """)
+
+        build("help")
+    }
+
+    @Test
+    fun `convention accessors honor HasPublicType`() {
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `java-gradle-plugin`
+                `kotlin-dsl`
+            }
+            gradlePlugin {
+                (plugins) {
+                    "my-plugin" {
+                        id = "my-plugin"
+                        implementationClass = "plugins.MyPlugin"
+                    }
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyPlugin.kt", """
+            package plugins
+
+            import org.gradle.api.*
+            import org.gradle.api.plugins.*
+
+            open class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    convention.plugins.put("myConvention", MyPrivateConventionImpl())
+                }
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyConvention.kt", """
+            package plugins
+
+            interface MyConvention
+
+            internal
+            class MyPrivateConventionImpl : MyConvention
+        """)
+
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            myConvention {
+                println("Type of `myConvention` receiver is " + typeOf(this@myConvention))
+            }
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("Type of `myConvention` receiver is Any"))
+
+        withFile("buildSrc/src/main/kotlin/plugins/MyConvention.kt", """
+            package plugins
+
+            import org.gradle.api.reflect.*
+            import org.gradle.kotlin.dsl.*
+
+            interface MyConvention
+
+            internal
+            class MyPrivateConventionImpl : MyConvention, HasPublicType {
+                override fun getPublicType() = typeOf<MyConvention>()
+            }
+        """)
+
+        assertThat(
+            build("help").output,
+            containsString("Type of `myConvention` receiver is MyConvention"))
     }
 
     private

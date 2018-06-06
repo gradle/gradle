@@ -15,7 +15,6 @@ import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 import org.junit.ClassRule
 import org.junit.Test
@@ -241,9 +240,9 @@ class ScriptCachingIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun buildWithDaemonHeapSize(heapMb: Int, vararg arguments: String): BuildResult =
-        gradleRunnerForCacheInspection(*arguments).run {
-            (this as DefaultGradleRunner).withJvmArguments("-Xms${heapMb}m", "-Xmx${heapMb}m", "-Dfile.encoding=UTF-8")
-        }.build()
+        withGradleJvmArguments("-Xms${heapMb}m", "-Xmx${heapMb}m", "-Dfile.encoding=UTF-8").run {
+            gradleRunnerForCacheInspection(*arguments).build()
+        }
 
     private
     fun gradleRunnerForCacheInspection(vararg arguments: String) =

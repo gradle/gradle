@@ -7,7 +7,9 @@ group 'org.gradle.kotlin.dsl.fixtures'
 version '1.0'
 
 uploadArchives {
-    repositories.ivy { url '../repository' }
+    repositories {
+        ivy { url '../repository' }
+    }
 }
 
 dependencies {

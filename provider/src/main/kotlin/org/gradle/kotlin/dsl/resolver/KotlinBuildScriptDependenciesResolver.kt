@@ -42,6 +42,15 @@ class KotlinBuildScriptDependenciesResolver : ScriptDependenciesResolver {
     override fun resolve(
         script: ScriptContents,
         environment: Map<String, Any?>?,
+        /**
+         * Shows a message in the IDE.
+         *
+         * To report whole file errors (e.g. failure to query for dependencies), one can just pass null
+         * so the error/warning will be shown in the top panel of the editor
+         *
+         * Also there is a FATAL Severity - in this case the highlighting of the file will be
+         * switched off (may be it is useful for some errors).
+         */
         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
         previousDependencies: KotlinScriptExternalDependencies?
     ) = future {

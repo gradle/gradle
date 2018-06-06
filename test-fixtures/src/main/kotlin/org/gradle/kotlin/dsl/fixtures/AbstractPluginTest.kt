@@ -19,13 +19,7 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
         """
             pluginManagement {
                 $repositoriesBlock
-                resolutionStrategy {
-                    eachPlugin {
-                        if (requested.id.namespace == "org.gradle.kotlin") {
-                            useVersion("$futurePluginsVersion")
-                        }
-                    }
-                }
+                $resolutionStrategyBlock
             }
         """
     }
@@ -34,20 +28,48 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     val repositoriesBlock by lazy {
         """
             repositories {
-                maven { url = uri("$testRepositoryPath") }
+                $testRepositories
                 gradlePluginPortal()
             }
         """
     }
 
     private
-    val futurePluginsVersion by lazy {
-        loadTestProperties()["version"]!!
-    }
+    val testRepositories: String
+        get() = testRepositoryPaths.joinLines {
+            """
+                maven(url = "$it")
+            """
+        }
 
     private
-    val testRepositoryPath: String
-        get() = normaliseFileSeparators(absolutePathOf("build/repository"))
+    val resolutionStrategyBlock
+        get() = """
+            resolutionStrategy {
+                eachPlugin {
+                    $futurePluginRules
+                }
+            }
+        """
+
+    private
+    val futurePluginRules: String?
+        get() = futurePluginVersions?.entries?.joinLines { (id, version) ->
+            """
+                if (requested.id.id == "$id") {
+                    useVersion("$version")
+                }
+            """
+        }
+
+    private
+    val futurePluginVersions by lazy {
+        loadPropertiesFromResource("/future-plugin-versions.properties")
+    }
+
+    protected
+    open val testRepositoryPaths: List<String>
+        get() = normalisedPathsOf("build/repository")
 
     @Before
     fun setUpTestPluginRepository() {
@@ -55,14 +77,22 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     }
 
     private
-    fun loadTestProperties(): Properties =
-        javaClass.getResourceAsStream("/test.properties").use {
+    fun loadPropertiesFromResource(name: String): Properties? =
+        javaClass.getResourceAsStream(name)?.use {
             Properties().apply { load(it) }
         }
 
     protected
     fun buildWithPlugin(vararg arguments: String) =
         build(*arguments)
+
+    protected
+    fun normalisedPathsOf(vararg paths: String) =
+        paths.map(::normalisedPathOf)
+
+    protected
+    fun normalisedPathOf(relativePath: String) =
+        normaliseFileSeparators(absolutePathOf(relativePath))
 
     private
     fun absolutePathOf(path: String) =

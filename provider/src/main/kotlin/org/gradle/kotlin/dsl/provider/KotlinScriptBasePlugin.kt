@@ -26,18 +26,15 @@ import org.gradle.kotlin.dsl.task
 
 
 class KotlinScriptBasePlugin : Plugin<Project> {
-    override fun apply(project: Project): Unit =
-        project.run {
-            rootProject.apply<KotlinScriptRootPlugin>()
-            task<PrintAccessors>("kotlinDslAccessorsReport")
-        }
+    override fun apply(project: Project): Unit = project.run {
+        rootProject.apply<KotlinScriptRootPlugin>()
+        task<PrintAccessors>("kotlinDslAccessorsReport")
+    }
 }
 
 
 class KotlinScriptRootPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.run {
-            task<UpdateProjectSchema>("kotlinDslAccessorsSnapshot")
-        }
+    override fun apply(project: Project): Unit = project.run {
+        task<UpdateProjectSchema>("kotlinDslAccessorsSnapshot")
     }
 }

@@ -2,12 +2,17 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.kotlin.dsl.provider.spi.kotlinTypeStringFor
 import org.gradle.kotlin.dsl.typeOf
 
 import org.hamcrest.CoreMatchers.*
 
 import org.junit.Assert.*
 import org.junit.Test
+
+
+internal
+interface InternalType
 
 
 class TypeAccessibilityProviderTest : TestWithClassPath() {
@@ -19,8 +24,19 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
         assertThat(
             accessibilityFor(
                 genericTypeWithPrimitiveComponent,
-                jarClassPathWith(PublicGenericType::class)),
+                classPath = jarClassPathWith(PublicGenericType::class)),
             equalTo(accessible(genericTypeWithPrimitiveComponent)))
+    }
+
+    @Test
+    fun `internal Kotlin type is inaccessible because NonPublic`() {
+
+        val internalType = kotlinTypeStringFor(typeOf<InternalType>())
+        assertThat(
+            accessibilityFor(
+                internalType,
+                classPath = jarClassPathWith(InternalType::class)),
+            equalTo(inaccessible(internalType, InaccessibilityReason.NonPublic(internalType))))
     }
 
     @Test

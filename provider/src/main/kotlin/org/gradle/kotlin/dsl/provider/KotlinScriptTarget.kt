@@ -54,7 +54,7 @@ fun kotlinScriptTargetFor(
 
     when (target) {
         is Project -> projectScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
-        is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope, topLevelScript)
+        is Settings -> settingsScriptTarget(target, scriptSource, scriptHandler, baseScope)
         is Gradle -> gradleInitScriptTarget(target, scriptHandler, scriptSource, baseScope)
         else -> unsupportedTarget(target)
     }
@@ -70,14 +70,13 @@ fun settingsScriptTarget(
     settings: Settings,
     scriptSource: ScriptSource,
     scriptHandler: ScriptHandler,
-    baseScope: ClassLoaderScope,
-    topLevelScript: Boolean
+    baseScope: ClassLoaderScope
 ) =
 
     KotlinScriptTarget(
         host = KotlinScriptHost(settings, scriptSource, serviceRegistryOf(settings), baseScope, scriptHandler),
         scriptTemplate = KotlinSettingsScript::class,
-        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class.takeIf { topLevelScript },
+        buildscriptBlockTemplate = KotlinSettingsBuildscriptBlock::class,
         extraSingleOrNoneBlockNames = listOf("pluginManagement"))
 
 
@@ -93,7 +92,7 @@ fun projectScriptTarget(
     KotlinScriptTarget(
         host = KotlinScriptHost(project, scriptSource, serviceRegistryOf(project), baseScope, scriptHandler),
         scriptTemplate = KotlinBuildScript::class,
-        buildscriptBlockTemplate = KotlinBuildscriptBlock::class.takeIf { topLevelScript },
+        buildscriptBlockTemplate = KotlinBuildscriptBlock::class,
         pluginsBlockTemplate = KotlinPluginsBlock::class.takeIf { topLevelScript },
         accessorsClassPath = accessorsClassPathProviderFor(project, topLevelScript),
         onPrepare = {

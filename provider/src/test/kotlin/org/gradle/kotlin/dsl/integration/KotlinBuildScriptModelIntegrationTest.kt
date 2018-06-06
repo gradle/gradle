@@ -2,9 +2,11 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
+
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.not
@@ -142,6 +144,35 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
                 not(hasItem(rootProjectDependency.name)),
                 hasItem(buildSrcDependency.name)))
         assertContainsBuildSrc(scriptPluginClassPath)
+        assertContainsGradleKotlinDslJars(scriptPluginClassPath)
+    }
+
+    @Test
+    fun `can fetch classpath of script plugin with buildscript block`() {
+
+        val scriptPluginDependency =
+            withFile("script-plugin-dependency.jar")
+
+        val scriptPlugin = withFile("plugin.gradle.kts", """
+            buildscript {
+                dependencies { classpath(files("${scriptPluginDependency.name}")) }
+            }
+
+            // Shouldn't be evaluated
+            throw IllegalStateException()
+        """)
+
+        val model = kotlinBuildScriptModelFor(projectRoot, scriptPlugin)
+        assertThat(
+            "Script body shouldn't be evaluated",
+            model.exceptions,
+            equalTo(emptyList()))
+
+        val scriptPluginClassPath = model.canonicalClassPath
+        assertThat(
+            scriptPluginClassPath.map { it.name },
+            hasItem(scriptPluginDependency.name))
+
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
 

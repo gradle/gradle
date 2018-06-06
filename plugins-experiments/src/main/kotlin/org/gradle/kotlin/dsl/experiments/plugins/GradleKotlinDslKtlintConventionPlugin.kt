@@ -48,6 +48,7 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
         dependencies {
             ktlint(files(gradleKotlinDslKtlintRulesetJar()))
+            ktlint(kotlin("reflect"))
         }
 
         plugins.withId("kotlin") {
@@ -95,13 +96,7 @@ open class GradleKotlinDslKtlintConventionPlugin : Plugin<Project> {
 
         tasksBySourceSets.forEach { (sourceSet, task) ->
 
-            sourceSet.allSource.sourceDirectories.forEach { srcDir ->
-                task.inputs.property(
-                    "kt files from $srcDir",
-                    files(srcDir).asFileTree.matching {
-                        it.include("**/*.kt")
-                    }
-                )
+            sourceSet.allSource.sourceDirectories.forEach { _ ->
                 reporters.forEach {
                     task.outputs.file("$buildDir/${it.reportPathFor(sourceSet)}")
                 }

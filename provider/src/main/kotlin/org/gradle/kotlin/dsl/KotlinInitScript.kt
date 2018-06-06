@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.unsafeLazy
 
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -47,6 +48,7 @@ import java.io.File
 import java.net.URI
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
+import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
@@ -56,6 +58,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
+@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
@@ -103,7 +106,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      * Logger for init scripts. You can use this in your init script to write log messages.
      */
     @Suppress("unused")
-    val logger: Logger by lazy { Logging.getLogger(Gradle::class.java) }
+    val logger: Logger by unsafeLazy { Logging.getLogger(Gradle::class.java) }
 
     /**
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
@@ -111,13 +114,13 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by lazy { gradle.serviceOf<LoggingManager>() }
+    val logging by unsafeLazy { gradle.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
     @Suppress("unused")
-    val resources: ResourceHandler by lazy { operations.resources }
+    val resources: ResourceHandler by unsafeLazy { operations.resources }
 
     /**
      * Returns the relative path from this script's target base directory to the given path.

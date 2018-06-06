@@ -29,8 +29,7 @@ import org.gradle.api.DomainObjectCollection
  * in this collection.
  * @see [DomainObjectCollection.withType]
  */
-inline
-fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
+inline fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
     withType(S::class.java, { it.configuration() })
 
 
@@ -44,6 +43,5 @@ fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configur
  * in this collection.
  * @see [DomainObjectCollection.withType]
  */
-inline
-fun <reified S : Any> DomainObjectCollection<in S>.withType() =
+inline fun <reified S : Any> DomainObjectCollection<in S>.withType() =
     withType(S::class.java)

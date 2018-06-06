@@ -21,15 +21,12 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.gradleKotlinDsl
 import org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
 
-import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
-import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
-
 
 /**
  * The `kotlin-dsl` plugin.
  *
  * - Applies the `embedded-kotlin` plugin
- * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testRuntimeOnly` configurations
+ * - Adds the `gradleKotlinDsl()` dependency to the `compileOnly` and `testImplementation` configurations
  * - Configures the Kotlin DSL compiler plugins
  *
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
@@ -40,8 +37,8 @@ open class KotlinDslPlugin : Plugin<Project> {
         project.run {
 
             applyEmbeddedKotlinPlugin()
-            addGradleKotlinDslDependencyTo("compileOnly", "testRuntimeOnly")
-            configureCompilerPlugins()
+            applyKotlinDslCompilerPlugins()
+            addGradleKotlinDslDependencyTo("compileOnly", "testImplementation")
         }
     }
 
@@ -51,17 +48,14 @@ open class KotlinDslPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) {
-        configurations.forEach {
-            dependencies.add(it, gradleKotlinDsl())
-        }
+    fun Project.applyKotlinDslCompilerPlugins() {
+        plugins.apply(KotlinDslCompilerPlugins::class.java)
     }
 
     private
-    fun Project.configureCompilerPlugins() {
-        plugins.apply(SamWithReceiverGradleSubplugin::class.java)
-        extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
-            samWithReceiver.annotation(org.gradle.api.HasImplicitReceiver::class.qualifiedName!!)
+    fun Project.addGradleKotlinDslDependencyTo(vararg configurations: String) {
+        configurations.forEach {
+            dependencies.add(it, gradleKotlinDsl())
         }
     }
 }

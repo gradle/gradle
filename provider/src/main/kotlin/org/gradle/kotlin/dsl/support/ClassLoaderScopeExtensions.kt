@@ -18,22 +18,8 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
-import org.gradle.internal.classloader.ClasspathUtil.getClasspath
-import org.gradle.internal.classpath.ClassPath
-
 
 internal
-fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
-    require(scope.isLocked) {
-        "$scope must be locked before it can be used to compute a classpath!"
-    }
-    val fullClassPath = getClasspath(scope.exportClassLoader)
-    val rootClassPath = getClasspath(scope.root.exportClassLoader)
-    return fullClassPath - rootClassPath
-}
-
-
-private
 val ClassLoaderScope.root
     get() = foldHierarchy(this) { _, scope -> scope }
 

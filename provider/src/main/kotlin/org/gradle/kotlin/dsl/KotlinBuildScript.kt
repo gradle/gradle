@@ -17,15 +17,16 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
-
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.plugin.use.PluginDependenciesSpec
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.internalError
 
+import org.gradle.plugin.use.PluginDependenciesSpec
+
 import kotlin.script.extensions.SamWithReceiverAnnotations
+import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
@@ -35,6 +36,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".*\\.gradle\\.kts")
+@ScriptTemplateAdditionalCompilerArguments(["-Xjsr305=strict"])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(

@@ -8,6 +8,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`ant`](./ant): demonstrates how to use Ant from Gradle via the Ant Groovy Builder
  - [`build-cache`](./build-cache): demonstrates how to configure the Gradle build cache
  - [`build-scan`](./build-scan): demonstrates how to apply and configure the `org.gradle.build-scan` plugin
+ - [`buildSrc-plugin`](./buildSrc-plugin): demonstrates how to use the `kotlin-dsl` and `java-gradle-plugin` plugins together in `buildSrc`
  - [`code-quality`](./code-quality): demonstrates how to configure Gradle code quality plugins
  - [`composite-builds`](./composite-builds): demonstrates how to use Composite Builds
  - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
@@ -36,6 +37,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`provider-properties`](./provider-properties): demonstrates usage of lazily evaluated properties to [map extension properties to task properties](https://docs.gradle.org/4.0-milestone-2/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties)
  - [`source-control`](./source-control): demonstrates how to use external [source dependencies](https://github.com/gradle/gradle-native/issues/42)
  - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
+ - [`testkit`](./testkit): demonstrates how to test a Gradle plugin written in Kotlin using [TestKit](https://docs.gradle.org/current/userguide/test_kit.html)
 
 Set up dev environment
 ----------------------

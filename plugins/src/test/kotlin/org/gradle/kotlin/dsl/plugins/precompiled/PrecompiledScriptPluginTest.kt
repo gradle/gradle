@@ -15,6 +15,7 @@ import org.gradle.kotlin.dsl.fixtures.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.joinLines
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
@@ -28,7 +29,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 
@@ -355,13 +355,13 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     fun scriptWithPrecompiledScriptPluginsPlus(vararg additionalPlugins: String): String =
         """
             plugins {
-                ${additionalPlugins.joinToString(separator = "\n") { "`$it`" }}
+                ${additionalPlugins.asIterable().joinLines { "`$it`" }}
             }
 
             $applyPrecompiledScriptPlugins
         """
 
-    protected
+    private
     val applyPrecompiledScriptPlugins
         get() = "apply<${PrecompiledScriptPlugins::class.qualifiedName}>()"
 

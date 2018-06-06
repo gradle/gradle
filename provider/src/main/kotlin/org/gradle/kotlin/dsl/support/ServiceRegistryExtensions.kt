@@ -18,6 +18,5 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.internal.service.ServiceRegistry
 
 
-inline
-fun <reified T : Any> ServiceRegistry.get(): T =
+inline fun <reified T : Any> ServiceRegistry.get(): T =
     this[T::class.java]!!
