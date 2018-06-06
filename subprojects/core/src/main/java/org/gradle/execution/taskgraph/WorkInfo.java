@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.NavigableSet;
+import java.util.Set;
 
 public abstract class WorkInfo implements Comparable<WorkInfo> {
     @VisibleForTesting
@@ -136,11 +137,11 @@ public abstract class WorkInfo implements Comparable<WorkInfo> {
         return this.executionFailure;
     }
 
-    public NavigableSet<WorkInfo> getDependencyPredecessors() {
+    public Set<WorkInfo> getDependencyPredecessors() {
         return dependencyPredecessors;
     }
 
-    public abstract NavigableSet<WorkInfo> getDependencySuccessors();
+    public abstract Set<WorkInfo> getDependencySuccessors();
 
     @OverridingMethodsMustInvokeSuper
     public boolean allDependenciesComplete() {

@@ -24,6 +24,7 @@ import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.NavigableSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 public abstract class TaskInfo extends WorkInfo {
@@ -79,7 +80,7 @@ public abstract class TaskInfo extends WorkInfo {
     }
 
     @Override
-    public NavigableSet<WorkInfo> getDependencySuccessors() {
+    public Set<WorkInfo> getDependencySuccessors() {
         return dependencySuccessors;
     }
 
@@ -88,19 +89,19 @@ public abstract class TaskInfo extends WorkInfo {
         toNode.dependencyPredecessors.add(this);
     }
 
-    public NavigableSet<TaskInfo> getMustSuccessors() {
+    public Set<TaskInfo> getMustSuccessors() {
         return mustSuccessors;
     }
 
-    public NavigableSet<TaskInfo> getFinalizers() {
+    public Set<TaskInfo> getFinalizers() {
         return finalizers;
     }
 
-    public NavigableSet<TaskInfo> getFinalizingSuccessors() {
+    public Set<TaskInfo> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
 
-    public NavigableSet<TaskInfo> getShouldSuccessors() {
+    public Set<TaskInfo> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
