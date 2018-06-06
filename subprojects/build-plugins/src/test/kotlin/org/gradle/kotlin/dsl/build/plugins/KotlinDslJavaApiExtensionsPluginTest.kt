@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.build.plugins
 
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.support.unzipTo
 
 import org.hamcrest.CoreMatchers.allOf
@@ -156,94 +155,6 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
     }
 
     @Test
-    fun `generates extensions for the whole gradle public api`() {
-
-        withSettings("""
-            rootProject.name = "gradle-api"
-        """)
-
-        withBuildScript("""
-            import org.gradle.internal.installation.CurrentGradleInstallation
-
-            import org.gradle.kotlin.dsl.build.tasks.GenerateKotlinDslApiExtensions
-            import org.gradle.kotlin.dsl.build.tasks.GenerateParameterNamesIndexProperties
-
-            plugins {
-                `java-library`
-                id("org.gradle.kotlin.dsl.build.java-api-extensions") apply false
-            }
-
-            repositories {
-                jcenter()
-            }
-
-            $gradlePublicApiObjectDeclaration
-
-            val resolver = ${SourceDistributionResolver::class.qualifiedName}(project)
-            val sourceDirs = resolver.sourceDirs().filterNot { it.name.endsWith("resources") }
-
-            val currentInstall = CurrentGradleInstallation.get()!!
-            val classPath = currentInstall.libDirs.flatMap {
-                it.listFiles().filter { it.name.endsWith(".jar") && !it.name.startsWith("gradle-kotlin-") && it.name.startsWith("gradle-") }
-            }
-            val additionalClassPath = currentInstall.libDirs.flatMap {
-                it.listFiles().filter { it.name.endsWith(".jar") && !it.name.startsWith("gradle-") }
-            }
-
-            println("sourceDirs: ${'$'}sourceDirs")
-            println("classPath: ${'$'}classPath")
-            println("additionalClassPath: ${'$'}additionalClassPath")
-
-            tasks {
-                val paramNamesIndex = file("build/paramNames.properties")
-                val paramNames by creating(GenerateParameterNamesIndexProperties::class) {
-                    sources.from(sourceDirs.map { project.fileTree(it) as FileTree }
-                        .reduce { acc, fileTree -> acc.plus(fileTree) }
-                        .matching {
-                            PublicApi.includes.takeIf { it.isNotEmpty() }?.let { includes ->
-                                include(includes)
-                            }
-                            PublicApi.excludes.takeIf { it.isNotEmpty() }?.let { excludes ->
-                                exclude(excludes)
-                            }
-                        })
-                    classpath.from(classPath)
-                    outputFile.set(paramNamesIndex)
-                    doLast {
-                        println(outputFile.get().asFile.readText())
-                    }
-                }
-                val extOutputDir = file("build/extensions")
-                val genExtensions by creating(GenerateKotlinDslApiExtensions::class) {
-                    isUseEmbeddedKotlinDslProvider.set(true)
-                    dependsOn(paramNames)
-                    classes.from(classPath)
-                    classpath.from(additionalClassPath)
-                    includes.set(PublicApi.includes)
-                    excludes.set(PublicApi.excludes)
-                    parameterNamesIndices.from(paramNamesIndex)
-                    outputDirectory.set(extOutputDir)
-                    doLast {
-                        println("-----------------------------")
-                        outputDirectory.get().asFile.walk().forEach { println(it) }
-                        println("-----------------------------")
-                        outputDirectory.get().asFile.resolve("org/gradle/kotlin/dsl/GeneratedGenExtensionsKotlinDslApiExtensions.kt").let {
-                            println(it.readText())
-                        }
-                    }
-                }
-            }
-        """)
-
-        println("============================")
-        run("genExtensions").apply {
-            println(output)
-        }
-
-        // TODO add assertions
-    }
-
-    @Test
     fun `can use resolved isolated provider runtime`() {
         withBuildScript("""
             plugins {
@@ -272,46 +183,3 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
         run("generateKotlinDslApiExtensions")
     }
 }
-
-
-// See https://github.com/gradle/gradle/blob/master/buildSrc/subprojects/configuration/src/main/kotlin/org/gradle/gradlebuild/public-api.kt
-private
-val gradlePublicApiObjectDeclaration = """
-object PublicApi {
-    val includes = listOf("org/gradle/*",
-        "org/gradle/api/**",
-        "org/gradle/authentication/**",
-        "org/gradle/buildinit/**",
-        "org/gradle/caching/**",
-        "org/gradle/concurrent/**",
-        "org/gradle/deployment/**",
-        "org/gradle/external/javadoc/**",
-        "org/gradle/ide/**",
-        "org/gradle/includedbuild/**",
-        "org/gradle/ivy/**",
-        "org/gradle/jvm/**",
-        "org/gradle/language/**",
-        "org/gradle/maven/**",
-        "org/gradle/nativeplatform/**",
-        "org/gradle/normalization/**",
-        "org/gradle/platform/**",
-        "org/gradle/play/**",
-        "org/gradle/plugin/devel/**",
-        "org/gradle/plugin/repository/*",
-        "org/gradle/plugin/use/*",
-        "org/gradle/plugin/management/*",
-        "org/gradle/plugins/**",
-        "org/gradle/process/**",
-        "org/gradle/testfixtures/**",
-        "org/gradle/testing/jacoco/**",
-        "org/gradle/tooling/**",
-        "org/gradle/swiftpm/**",
-        "org/gradle/model/**",
-        "org/gradle/testkit/**",
-        "org/gradle/testing/**",
-        "org/gradle/vcs/**",
-        "org/gradle/workers/**")
-
-    val excludes = listOf("**/internal/**")
-}
-""".trimIndent()
