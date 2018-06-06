@@ -31,6 +31,8 @@ dependencies {
     implementation(library("commons_io"))
     implementation(library("jcip"))
 
+    testRuntimeOnly(project(":baseServicesJava9"))
+
     jmh(library("bouncycastle_provider")) {
         version {
             prefer(libraryVersion("bouncycastle_provider"))

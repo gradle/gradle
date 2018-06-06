@@ -23,35 +23,19 @@ import org.gradle.internal.reflect.JavaMethod;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.net.URL;
 import java.net.URLConnection;
 
 import static org.gradle.internal.reflect.JavaReflectionUtil.method;
-import static org.gradle.internal.reflect.JavaReflectionUtil.staticMethod;
 
 public abstract class ClassLoaderUtils {
     private static final ClassDefiner CLASS_DEFINER;
-    private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD;
-    private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD;
+
+    private static final ClassLoaderPackagesFetcher CLASS_LOADER_PACKAGES_FETCHER;
 
     static {
-        CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? new LookupClassDefiner() : new ReflectionClassDefiner();
-        GET_PACKAGES_METHOD = method(ClassLoader.class, Package[].class, "getPackages");
-        // Since Java 9, getPackage() is deprecated, so we use getDefinedPackage() instead
-        GET_PACKAGE_METHOD = getMethodWithFallback(Package.class, new Class[]{String.class}, "getDefinedPackage", "getPackage");
-    }
-
-    private static <T> JavaMethod<ClassLoader, T> getMethodWithFallback(Class<T> clazz, Class<?>[] params, String firstChoice, String fallback) {
-        JavaMethod<ClassLoader, T> method;
-        try {
-            method = method(ClassLoader.class, clazz, firstChoice, params);
-        } catch (Throwable e) {
-            method = method(ClassLoader.class, clazz, fallback, params);
-        }
-        return method;
+        CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? loadLookupClassDefiner() : new ReflectionClassDefiner();
+        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible() ? loadLookupPackagesFetcher() : new ReflectionPackagesFetcher();
     }
 
     /**
@@ -80,20 +64,12 @@ public abstract class ClassLoaderUtils {
         }
     }
 
-    public static JavaMethod<ClassLoader, Package[]> getPackagesMethod() {
-        return GET_PACKAGES_METHOD;
-    }
-
-    public static JavaMethod<ClassLoader, Package> getPackageMethod() {
-        return GET_PACKAGE_METHOD;
+    static ClassLoaderPackagesFetcher getClassLoaderPackagesFetcher() {
+        return CLASS_LOADER_PACKAGES_FETCHER;
     }
 
     public static <T> Class<T> define(ClassLoader targetClassLoader, String className, byte[] clazzBytes) {
         return CLASS_DEFINER.defineClass(targetClassLoader, className, clazzBytes);
-    }
-
-    private interface ClassDefiner {
-        <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes);
     }
 
     private static class ReflectionClassDefiner implements ClassDefiner {
@@ -109,43 +85,34 @@ public abstract class ClassLoaderUtils {
         }
     }
 
-    private static class LookupClassDefiner implements ClassDefiner {
-        private final Class methodHandlesLookupClass;
-        private final JavaMethod methodHandlesLookup;
-        private final JavaMethod methodHandlesPrivateLookupIn;
-        private final JavaMethod lookupFindVirtual;
-        private final MethodType defineClassMethodType;
+    private static ClassDefiner loadLookupClassDefiner() {
+        try {
+            return (ClassDefiner) Class.forName("org.gradle.internal.classloader.LookupClassDefiner").newInstance();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        private LookupClassDefiner() {
-            try {
-                methodHandlesLookupClass = Class.forName("java.lang.invoke.MethodHandles$Lookup");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            methodHandlesLookup = staticMethod(MethodHandles.class, methodHandlesLookupClass, "lookup");
-            methodHandlesPrivateLookupIn = staticMethod(MethodHandles.class, methodHandlesLookupClass, "privateLookupIn", Class.class, methodHandlesLookupClass);
-            lookupFindVirtual = method(methodHandlesLookupClass, MethodHandle.class, "findVirtual", Class.class, String.class, MethodType.class);
-            defineClassMethodType = MethodType.methodType(Class.class, new Class[]{String.class, byte[].class, int.class, int.class});
+    private static ClassLoaderPackagesFetcher loadLookupPackagesFetcher() {
+        try {
+            return (ClassLoaderPackagesFetcher) Class.forName("org.gradle.internal.classloader.LookupPackagesFetcher").newInstance();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class ReflectionPackagesFetcher implements ClassLoaderPackagesFetcher {
+        private final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = method(ClassLoader.class, Package[].class, "getPackages");
+        private final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = method(ClassLoader.class, Package.class, "getPackage", String.class);
+
+        @Override
+        public Package[] getPackages(ClassLoader classLoader) {
+            return GET_PACKAGES_METHOD.invoke(classLoader);
         }
 
-        /*
-            This method is equivalent to the following code but use reflection to compile on Java 7:
-
-            MethodHandles.Lookup baseLookup = MethodHandles.lookup();
-            MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(ClassLoader.class, baseLookup);
-            MethodHandle defineClassMethodHandle = lookup.findVirtual(ClassLoader.class, "defineClass", defineClassMethodType);
-            handle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length));
-         */
         @Override
-        public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
-            Object baseLookup = methodHandlesLookup.invoke(null);
-            Object lookup = methodHandlesPrivateLookupIn.invoke(null, ClassLoader.class, baseLookup);
-            MethodHandle defineClassMethodHandle = (MethodHandle) lookupFindVirtual.invoke(lookup, ClassLoader.class, "defineClass", defineClassMethodType);
-            try {
-                return Cast.uncheckedCast(defineClassMethodHandle.bindTo(classLoader).invokeWithArguments(className, classBytes, 0, classBytes.length));
-            } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
-            }
+        public Package getPackage(ClassLoader classLoader, String name) {
+            return GET_PACKAGE_METHOD.invoke(classLoader, name);
         }
     }
 }

@@ -37,6 +37,10 @@ const val java7HomePropertyName = "java7Home"
 
 
 private
+const val java9HomePropertyName = "java9Home"
+
+
+private
 const val testJavaHomePropertyName = "testJavaHome"
 
 
@@ -46,6 +50,10 @@ const val oracleJdk8 = "Oracle JDK 8"
 
 private
 const val oracleJdk7 = "Oracle JDK 7"
+
+
+private
+const val oracleJdk9 = "Oracle JDK 9"
 
 
 open class AvailableJavaInstallations(project: Project, private val javaInstallationProbe: JavaInstallationProbe) {
@@ -59,7 +67,8 @@ open class AvailableJavaInstallations(project: Project, private val javaInstalla
 
     init {
         val resolvedJava7Home = resolveJavaHomePath(java7HomePropertyName, project)
-        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home)
+        val resolvedJava9Home = resolveJavaHomePath(java9HomePropertyName, project)
+        val javaHomesForCompilation = listOfNotNull(resolvedJava7Home, resolvedJava9Home)
         val javaHomeForTest = resolveJavaHomePath(testJavaHomePropertyName, project)
         javaInstallations = findJavaInstallations(javaHomesForCompilation)
         currentJavaInstallation = DefaultJavaInstallation(true, Jvm.current().javaHome).apply {

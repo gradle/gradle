@@ -52,7 +52,8 @@ enum class ModuleType(val source: JavaVersion, val target: JavaVersion) {
     CORE(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
     PLUGIN(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
     INTERNAL(JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_7),
-    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8)
+    REQUIRES_JAVA_8(JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_8),
+    REQUIRES_JAVA_9(JavaVersion.VERSION_1_9, JavaVersion.VERSION_1_9)
 }
 
 
