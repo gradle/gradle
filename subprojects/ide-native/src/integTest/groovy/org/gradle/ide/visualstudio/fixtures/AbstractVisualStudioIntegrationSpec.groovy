@@ -66,7 +66,7 @@ md %outputDir%
 set outputLog=%outputDir%\\\\output.txt
 set errorLog=%outputDir%\\\\error.txt
 echo %outputLog%
-''' + value + ' 1>%outputLog% 2>%errorLog%'
+''' + value + ' --no-daemon 1>%outputLog% 2>%errorLog%'
             }
         """
     }
