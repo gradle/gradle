@@ -106,9 +106,17 @@ public class TaskStatistics implements Closeable {
     @Override
     public void close() throws IOException {
         if (collectStatistics) {
-            LOGGER.lifecycle("E {} L {} LR {}", eagerTasks.getAndSet(0), lazyTasks.getAndSet(0), lazyRealizedTasks.getAndSet(0));
-            printTypeCounts("Task types that were eagerly created", typeCounts);
-            printTypeCounts("Lazy task types that were realized", realizedTypeCounts);
+            int eagerTaskCount = eagerTasks.getAndSet(0);
+            int lazyTaskCount = lazyTasks.getAndSet(0);
+            int lazyTaskCreatedCount = lazyRealizedTasks.getAndSet(0);
+            int totalTaskCount = eagerTaskCount + lazyTaskCount;
+            LOGGER.lifecycle("Task counts: Old API {}, New API {}, total {}", eagerTaskCount, lazyTaskCount, totalTaskCount);
+
+            int createdTaskCount = lazyTaskCreatedCount + eagerTaskCount;
+            LOGGER.lifecycle("Task counts: created {}, avoided {}, %-lazy {}", createdTaskCount, lazyTaskCount-lazyTaskCreatedCount, 100-100*createdTaskCount/totalTaskCount);
+
+            printTypeCounts("\nTask types that were created with the old API", typeCounts);
+            printTypeCounts("\nTask types that were registered with the new API but were created anyways", realizedTypeCounts);
             IoActions.closeQuietly(lazyTaskLog);
         }
     }
