@@ -315,28 +315,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
-    // TODO: Remove
-    @Override
-    public TaskProvider<Task> createLater(String name, Action<? super Task> configurationAction) {
-        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
-    }
-
-    @Override
-    public <T extends Task> TaskProvider<T> createLater(final String name, final Class<T> type, @Nullable Action<? super T> configurationAction) {
-        return registerTask(name, type, configurationAction, NO_ARGS);
-    }
-
-    @Override
-    public <T extends Task> TaskProvider<T> createLater(String name, Class<T> type) {
-        return register(name, type, NO_ARGS);
-    }
-
-    @Override
-    public TaskProvider<Task> createLater(String name) {
-        return Cast.uncheckedCast(register(name, DefaultTask.class));
-    }
-    // TODO: Remove ^^^
-
     @Override
     public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
         return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
