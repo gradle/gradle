@@ -18,9 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
-import org.apache.http.message.BasicHeader
 import org.gradle.api.UncheckedIOException
-import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
@@ -29,7 +27,6 @@ import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.caching.http.HttpBuildCacheHttpHeadCredentials
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
-import org.gradle.internal.resource.transport.http.HttpClientHttpHeaderCredentials
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction

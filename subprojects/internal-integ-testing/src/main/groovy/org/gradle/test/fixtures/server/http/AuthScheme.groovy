@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.internal.resource.transport.http.HttpHeaderAuthScheme
 import org.mortbay.jetty.Response
 import org.mortbay.jetty.security.Authenticator
 import org.mortbay.jetty.security.BasicAuthenticator
@@ -127,7 +126,7 @@ enum AuthScheme {
     private static class HttpHeaderAuthHandler extends AuthSchemeHandler {
         @Override
         protected String constraintName() {
-            return HttpHeaderAuthScheme.AUTH_SCHEME_NAME.toUpperCase();
+            return TestHttpHeaderAuthenticator.AUTH_SCHEME_NAME;
         }
 
         @Override

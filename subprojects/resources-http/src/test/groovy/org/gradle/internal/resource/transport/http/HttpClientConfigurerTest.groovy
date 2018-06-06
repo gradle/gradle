@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
+import org.gradle.api.artifacts.repositories.HttpHeaderCredentials
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriTextResource
@@ -25,10 +26,12 @@ import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
     HttpClientBuilder httpClientBuilder = HttpClientBuilder.create()
+
     PasswordCredentials credentials = Mock()
-    AllSchemesAuthentication authentication = Mock() {
+    AllSchemesAuthentication basicAuthentication = Mock() {
         getCredentials() >> credentials
     }
+
     HttpProxySettings proxySettings = Mock()
     HttpProxySettings secureProxySettings = Mock()
     HttpTimeoutSettings timeoutSettings = Mock()
@@ -75,8 +78,8 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.workstation != ''
     }
 
-    def "configures http client with credentials"() {
-        httpSettings.authenticationSettings >> [authentication]
+    def "configures http client with basic auth credentials"() {
+        httpSettings.authenticationSettings >> [basicAuthentication]
         credentials.username >> "domain/user"
         credentials.password >> "pass"
         httpSettings.sslContextFactory >> sslContextFactory
@@ -96,6 +99,27 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.userName == 'user'
         ntlmCredentials.password == 'pass'
         ntlmCredentials.workstation != ''
+
+        and:
+        httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth
+    }
+
+    def "configures http client with http header auth credentials"() {
+        HttpHeaderCredentials httpHeaderCredentials = Mock()
+        AllSchemesAuthentication httpHeaderAuthentication = Mock() {
+            getCredentials() >> httpHeaderCredentials
+        }
+
+        httpSettings.authenticationSettings >> [httpHeaderAuthentication]
+        httpHeaderCredentials.header = "TestHttpHeaderName: TestHttpHeaderValue"
+        httpSettings.sslContextFactory >> sslContextFactory
+
+        when:
+        configurer.configure(httpClientBuilder)
+
+        then:
+        def actualHttpHeaderCredentials = httpClientBuilder.credentialsProvider.getCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT)) as HttpHeaderCredentials
+        actualHttpHeaderCredentials.header == httpHeaderCredentials.header
 
         and:
         httpClientBuilder.requestFirst[0] instanceof HttpClientConfigurer.PreemptiveAuth

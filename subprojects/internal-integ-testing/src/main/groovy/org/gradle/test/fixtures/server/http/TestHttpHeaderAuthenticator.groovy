@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.internal.resource.transport.http.HttpHeaderAuthScheme
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.Response
 import org.mortbay.jetty.security.Authenticator
@@ -26,6 +25,8 @@ import java.security.Principal
 
 class TestHttpHeaderAuthenticator implements Authenticator {
 
+    public static final String AUTH_SCHEME_NAME = "HEADER"
+
     @Override
     Principal authenticate(UserRealm realm, String pathInContext, Request request, Response response) throws IOException {
         return null
@@ -33,6 +34,6 @@ class TestHttpHeaderAuthenticator implements Authenticator {
 
     @Override
     String getAuthMethod() {
-        return HttpHeaderAuthScheme.AUTH_SCHEME_NAME.toUpperCase();
+        return AUTH_SCHEME_NAME;
     }
 }
