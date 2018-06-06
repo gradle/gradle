@@ -174,7 +174,7 @@ task listJars {
 repositories {
     maven {
         url "${mavenHttpRepo.uri}"
-        credentials(HttpHeaderCredentials) { header 'Name: Value' }
+        credentials(HttpHeaderCredentials) { header 'TestHttpHeaderName: TestHttpHeaderValue' }
         authentication { header(HttpHeaderAuthentication) }
     }
 }
@@ -203,7 +203,7 @@ task listJars {
 
         where:
         authSchemeName     | authScheme        | authenticationAttempts
-        'header'           | HEADER            | ['Header']
+        'header'           | HEADER            | ['TestHttpHeaderValue']
     }
 
     @Unroll

@@ -300,7 +300,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     @Issue("gradle/gradle#5571")
     def "does preemptive authentication authenticating with http header"() {
-        def configuration = new HttpBuildCache(new HttpBuildCacheHttpHeadCredentials("HeaderName: HeaderValue"))
+        def configuration = new HttpBuildCache(new HttpBuildCacheHttpHeadCredentials("TestHttpHeaderName: TestHttpHeaderValue"))
         configuration.url = server.uri.resolve("/cache/")
         cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory()).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
 
@@ -316,7 +316,7 @@ class HttpBuildCacheServiceTest extends Specification {
         }
         then:
         result == 'Old'
-        server.authenticationAttempts == ['Header'] as Set
+        server.authenticationAttempts == ['TestHttpHeaderValue'] as Set
 
         server.expectPut("/cache/${key.hashCode}", destFile)
 
@@ -325,7 +325,7 @@ class HttpBuildCacheServiceTest extends Specification {
         cache.store(key, writer(content))
         then:
         destFile.bytes == content
-        server.authenticationAttempts == ['Header'] as Set
+        server.authenticationAttempts == ['TestHttpHeaderValue'] as Set
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {

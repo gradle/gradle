@@ -156,9 +156,10 @@ trait HttpServerFixture {
         }
 
         void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-            String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+            String authorization = getAuthorizationHeader(request)
             if (authorization != null) {
                 synchronized (authenticationAttempts) {
+                    println authorization
                     authenticationAttempts << authorization.split(" ")[0]
                 }
             } else {
@@ -169,6 +170,14 @@ trait HttpServerFixture {
             if (logRequests) {
                 println("handling http request: $request.method $target")
             }
+        }
+
+        protected String getAuthorizationHeader(HttpServletRequest request) {
+            def header = request.getHeader(HttpHeaders.AUTHORIZATION)
+            if(header == null) {
+                header = request.getHeader("TestHttpHeaderName")
+            }
+            return header
         }
     }
 
