@@ -544,10 +544,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         } else {
             buildJvmOpts.add("-Xmx512m");
         }
-        if (gradleUserHomeDir != null) {
-            buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
-            buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir());
-        }
+        buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
+        buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir());
         return buildJvmOpts;
     }
 
