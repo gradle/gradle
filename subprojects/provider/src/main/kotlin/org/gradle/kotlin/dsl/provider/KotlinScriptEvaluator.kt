@@ -49,6 +49,7 @@ import org.gradle.kotlin.dsl.support.transitiveClosureOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 import java.io.File
 
@@ -71,6 +72,7 @@ internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val classloadingCache: KotlinScriptClassloadingCache,
+    private val pluginRequestApplicator: PluginRequestApplicator,
     private val pluginRequestsHandler: PluginRequestsHandler,
     private val embeddedKotlinProvider: EmbeddedKotlinProvider,
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
@@ -153,13 +155,11 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
-            val targetScope = scriptHost.targetScope
-//                    targetScope.export(classPathProvider.gradleApiExtensions)
-            pluginRequestsHandler.pluginRequestApplicator.applyPlugins(
+            pluginRequestApplicator.applyPlugins(
                 DefaultPluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
                 null,
-                targetScope)
+                scriptHost.targetScope)
         }
 
         override fun cachedClassFor(

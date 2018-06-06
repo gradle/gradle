@@ -31,7 +31,7 @@ import javax.inject.Inject
 
 internal
 class PluginRequestsHandler @Inject constructor(
-    val pluginRequestApplicator: PluginRequestApplicator,
+    private val pluginRequestApplicator: PluginRequestApplicator,
     private val autoAppliedPluginHandler: AutoAppliedPluginHandler
 ) {
 
