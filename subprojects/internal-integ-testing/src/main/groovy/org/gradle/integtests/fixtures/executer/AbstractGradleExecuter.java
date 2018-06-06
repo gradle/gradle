@@ -542,7 +542,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
             buildJvmOpts.add("-Xmx2g");
         } else {
-            buildJvmOpts.add("-Xmx512m");
+            buildJvmOpts.add("-Xmx1g");
         }
         if (gradleUserHomeDir != null) {
             buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
