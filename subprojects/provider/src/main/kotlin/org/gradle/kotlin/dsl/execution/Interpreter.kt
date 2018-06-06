@@ -199,8 +199,7 @@ class Interpreter(val host: Host) {
 
     private
     fun programHostFor(options: EvalOptions) =
-        if (options.isEmpty()) defaultProgramHost
-        else ConfigurableProgramHost(options)
+        if (EvalOption.SkipBody in options) FirstStageOnlyProgramHost() else defaultProgramHost
 
     private
     fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
@@ -309,27 +308,14 @@ class Interpreter(val host: Host) {
     val defaultProgramHost = ProgramHost()
 
     private
-    inner class ConfigurableProgramHost(val options: EvalOptions) : ProgramHost() {
+    inner class FirstStageOnlyProgramHost : ProgramHost() {
 
         override fun evaluateSecondStageOf(
             program: ExecutableProgram.StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode
-        ) {
-            if (EvalOption.SkipBody in options) return
-            super.evaluateSecondStageOf(program, scriptHost, scriptTemplateId, sourceHash)
-        }
-
-        override fun handleScriptException(
-            exception: Throwable,
-            scriptClass: Class<*>,
-            scriptHost: KotlinScriptHost<*>
-        ) {
-            // TODO:partial-evaluator let the host collect this exception
-            if (EvalOption.IgnoreErrors in options) return
-            super.handleScriptException(exception, scriptClass, scriptHost)
-        }
+        ) = Unit
     }
 
     private
