@@ -73,8 +73,11 @@ fun parameterNamesSupplierFor(parameterNamesIndices: List<File>): ParameterNames
 
 
 private
-fun apiSpecFor(includes: List<String>, excludes: List<String>) =
-    Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
+fun apiSpecFor(includes: List<String>, excludes: List<String>): Spec<RelativePath> =
+    if (includes.isEmpty() && excludes.isEmpty()) Specs.satisfyAll()
+    else if (includes.isEmpty()) Specs.negate(patternSpecFor(excludes))
+    else if (excludes.isEmpty()) patternSpecFor(includes)
+    else Specs.intersect(patternSpecFor(includes), Specs.negate(patternSpecFor(excludes)))
 
 
 private
