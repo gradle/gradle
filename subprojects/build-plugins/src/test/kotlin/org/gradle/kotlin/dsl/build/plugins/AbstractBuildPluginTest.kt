@@ -18,13 +18,15 @@ package org.gradle.kotlin.dsl.build.plugins
 
 import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 
+import org.gradle.testkit.runner.BuildResult
+
 import java.io.File
 
 
 abstract class AbstractBuildPluginTest : AbstractIntegrationTest() {
 
     protected
-    fun run(vararg arguments: String) =
+    fun run(vararg arguments: String): BuildResult =
         gradleRunnerForArguments(*arguments).apply {
             withPluginClasspath(testKitPluginClasspath)
         }.build()
