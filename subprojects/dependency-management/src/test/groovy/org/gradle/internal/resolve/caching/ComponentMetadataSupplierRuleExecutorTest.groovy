@@ -36,6 +36,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.caching.internal.DefaultBuildCacheHasher
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -96,6 +97,9 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")
+        def hasher = new DefaultBuildCacheHasher()
+        inputsSnapshot.appendToHasher(hasher)
+        def keyHash = hasher.hash()
         def cachedResult = Mock(ComponentMetadata)
         Multimap<String, ImplicitInputRecord<?, ?>> implicits = HashMultimap.create()
         def record = Mock(ImplicitInputRecord)
@@ -116,7 +120,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
 
         then:
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
-        1 * store.get(inputsSnapshot) >> cachedEntry
+        1 * store.get(keyHash) >> cachedEntry
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'
@@ -139,7 +143,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             }
             1 * onCacheMiss.transform(id) >> details
             1 * detailsToResult.transform(details) >> Mock(ComponentMetadata)
-            1 * store.put(inputsSnapshot, _)
+            1 * store.put(keyHash, _)
         }
         if (ruleClass == TestSupplierWithService && reexecute) {
             1 * someService.provide()

@@ -22,8 +22,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory;
-import org.gradle.api.internal.changedetection.state.SnapshotSerializer;
-import org.gradle.api.internal.changedetection.state.ValueSnapshot;
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter;
 import org.gradle.api.internal.changedetection.state.isolation.Isolatable;
 import org.gradle.api.logging.Logger;
@@ -34,6 +32,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.caching.internal.DefaultBuildCacheHasher;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.action.ConfigurableRule;
@@ -44,6 +43,7 @@ import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
@@ -62,7 +62,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final ValueSnapshotter snapshotter;
     private final Transformer<Serializable, KEY> ketToSnapshottable;
     private final PersistentCache cache;
-    private final PersistentIndexedCache<ValueSnapshot, CachedEntry<RESULT>> store;
+    private final PersistentIndexedCache<HashCode, CachedEntry<RESULT>> store;
     private final BuildCommencedTimeProvider timeProvider;
     private final EntryValidator<RESULT> validator;
 
@@ -82,16 +82,14 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             .cache(name)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None))
             .open();
-        PersistentIndexedCacheParameters<ValueSnapshot, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
+        PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
         this.store = this.cache.createCache(cacheParams);
     }
 
-    private PersistentIndexedCacheParameters<ValueSnapshot, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        Serializer<ValueSnapshot> snapshotSerializer = new SnapshotSerializer();
-
-        PersistentIndexedCacheParameters<ValueSnapshot, CachedEntry<RESULT>> cacheParams = new PersistentIndexedCacheParameters<ValueSnapshot, CachedEntry<RESULT>>(
+    private PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+        PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = new PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>>(
             name,
-            snapshotSerializer,
+            new HashCodeSerializer(),
             createEntrySerializer(resultSerializer)
         );
         cacheParams.cacheDecorator(cacheDecoratorFactory.decorator(2000, true));
@@ -116,14 +114,14 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRules<DETAILS> rules) {
-        final ValueSnapshot snapshot = computeExplicitInputsSnapshot(key, rules);
+        final HashCode keyHash = computeExplicitInputsSnapshot(key, rules);
         DefaultImplicitInputRegistrar registrar = new DefaultImplicitInputRegistrar();
         ImplicitInputsCapturingInstantiator instantiator = findInputCapturingInstantiator(action);
         if (instantiator != null) {
             action = action.withInstantiator(instantiator.capturing(registrar));
         }
         // First step is to find an entry with the explicit inputs in the cache
-        CachedEntry<RESULT> entry = store.get(snapshot);
+        CachedEntry<RESULT> entry = store.get(keyHash);
         if (entry != null) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Found result for rule {} and key {} in cache", rules, key);
@@ -139,7 +137,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         }
 
         RESULT result = executeRule(key, action, detailsToResult, onCacheMiss);
-        store.put(snapshot, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), registrar.implicits, result));
+        store.put(keyHash, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), registrar.implicits, result));
         return result;
     }
 
@@ -150,7 +148,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      * @param rules the rules to be snapshotted
      * @return a snapshot of the inputs
      */
-    private ValueSnapshot computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
+    private HashCode computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
         List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(2 + 2 * rules.getConfigurableRules().size());
         toBeSnapshotted.add(ketToSnapshottable.transform(key));
         for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
@@ -159,7 +157,9 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             toBeSnapshotted.add(ruleClass);
             toBeSnapshotted.add(ruleParams);
         }
-        return snapshotter.snapshot(toBeSnapshotted);
+        DefaultBuildCacheHasher hasher = new DefaultBuildCacheHasher();
+        snapshotter.snapshot(toBeSnapshotted).appendToHasher(hasher);
+        return hasher.hash();
     }
 
     private ImplicitInputsCapturingInstantiator findInputCapturingInstantiator(InstantiatingAction<DETAILS> action) {
