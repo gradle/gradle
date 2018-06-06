@@ -315,7 +315,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName(gradleInternal.contextualize("Notify taskgraph whenReady listeners"))
+            return BuildOperationDescriptor.displayName(gradleInternal.contextualize("Notify task graph whenReady listeners"))
                 .details(new NotifyTaskGraphWhenReadyBuildOperationType.DetailsImpl(
                     gradleInternal.getIdentityPath()
                 ));

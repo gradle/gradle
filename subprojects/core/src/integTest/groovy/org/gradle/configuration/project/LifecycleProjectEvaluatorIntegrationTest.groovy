@@ -173,19 +173,19 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':buildSrc' })) {
-            displayName == 'Notify taskgraph whenReady listeners (:buildSrc)'
+            displayName == 'Notify task graph whenReady listeners (:buildSrc)'
             children*.displayName == ["Apply script buildSrcWhenReady.gradle to project ':buildSrc'"]
             parentId == operations.first("Run tasks (:buildSrc)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':included-build' })) {
-            displayName == 'Notify taskgraph whenReady listeners (:included-build)'
+            displayName == 'Notify task graph whenReady listeners (:included-build)'
             children*.displayName == ["Apply script includedWhenReady.gradle to project ':included-build'"]
             parentId == operations.first("Run tasks (:included-build)").id
         }
 
         with(operations.only(NotifyTaskGraphWhenReadyBuildOperationType, { it.details.buildPath == ':' })) {
-            displayName == 'Notify taskgraph whenReady listeners'
+            displayName == 'Notify task graph whenReady listeners'
             children*.displayName == ["Apply script whenReady.gradle to project ':foo'"]
             parentId == operations.first("Run tasks").id
         }
