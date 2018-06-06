@@ -16,13 +16,8 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import javax.annotation.Nullable;
-
 /**
  * HTTP header credentials that can be used to login to something protected by http header.
  */
 public interface HttpHeaderCredentials extends org.gradle.api.credentials.HttpHeaderCredentials {
-    @Nullable
-    String getHeader();
-    void setHeader(@Nullable String header);
 }
