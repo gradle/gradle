@@ -305,20 +305,6 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitEvaluateSecondStageOf() {
-        // programHost.evaluateSecondStageOf(...)
-        ALOAD(Vars.ProgramHost)
-        ALOAD(Vars.Program)
-        ALOAD(Vars.ScriptHost)
-        LDC(programTarget.name + "/" + programKind.name + "/stage2")
-        // Move HashCode value to a static field so it's cached across invocations
-        loadHashCode(originalSourceHash)
-        invokeHost(
-            ExecutableProgram.Host::evaluateSecondStageOf.name,
-            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
-    }
-
-    private
     fun MethodVisitor.emitCompileSecondStageScript(sourceFilePath: String, originalScriptPath: String) {
         ALOAD(Vars.ProgramHost)
         LDC(sourceFilePath)
@@ -337,6 +323,20 @@ class ResidualProgramCompiler(
                 "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
                 "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
                 ")Ljava/lang/Class;")
+    }
+
+    private
+    fun MethodVisitor.emitEvaluateSecondStageOf() {
+        // programHost.evaluateSecondStageOf(...)
+        ALOAD(Vars.ProgramHost)
+        ALOAD(Vars.Program)
+        ALOAD(Vars.ScriptHost)
+        LDC(programTarget.name + "/" + programKind.name + "/stage2")
+        // Move HashCode value to a static field so it's cached across invocations
+        loadHashCode(originalSourceHash)
+        invokeHost(
+            ExecutableProgram.Host::evaluateSecondStageOf.name,
+            "(Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;)V")
     }
 
     private
@@ -538,24 +538,19 @@ class ResidualProgramCompiler(
 
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-        object : KotlinScriptDefinition(template) {
-            override val dependencyResolver = Resolver
-        }
 
-    private
-    val Resolver by lazy {
-        object : DependenciesResolver {
+        object : KotlinScriptDefinition(template), DependenciesResolver {
+
+            override val dependencyResolver = this
+
             override fun resolve(
                 scriptContents: ScriptContents,
                 environment: Environment
-            ): DependenciesResolver.ResolveResult =
-
-                DependenciesResolver.ResolveResult.Success(
-                    ScriptDependencies(imports = implicitImports),
-                    emptyList()
-                )
+            ): DependenciesResolver.ResolveResult = DependenciesResolver.ResolveResult.Success(
+                ScriptDependencies(imports = implicitImports),
+                emptyList()
+            )
         }
-    }
 }
 
 
