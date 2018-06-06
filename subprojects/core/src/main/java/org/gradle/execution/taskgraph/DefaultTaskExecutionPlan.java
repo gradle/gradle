@@ -242,11 +242,9 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void addFinalizerNode(TaskInfo node, TaskInfo finalizerNode) {
-        if (finalizerNode.satisfies(filter)) {
-            node.addFinalizer(finalizerNode);
-            if (!finalizerNode.isInKnownState()) {
-                finalizerNode.mustNotRun();
-            }
+        node.addFinalizer(finalizerNode);
+        if (!finalizerNode.isInKnownState()) {
+            finalizerNode.mustNotRun();
         }
     }
 
