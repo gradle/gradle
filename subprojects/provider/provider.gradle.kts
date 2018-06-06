@@ -67,11 +67,14 @@ val processResources by tasks.getting(ProcessResources::class) {
 // -- Testing ----------------------------------------------------------
 val prepareIntegrationTestFixtures by rootProject.tasks
 val customInstallation by rootProject.tasks
-tasks {
-    "test" {
-        dependsOn(prepareIntegrationTestFixtures)
-        dependsOn(customInstallation)
-    }
+
+tasks.named("test").configure {
+    dependsOn(prepareIntegrationTestFixtures)
+    dependsOn(customInstallation)
+}
+
+tasks.register("quickTest", Test::class.java) {
+    exclude("**/*IntegrationTest.class")
 }
 
 withParallelTests()
