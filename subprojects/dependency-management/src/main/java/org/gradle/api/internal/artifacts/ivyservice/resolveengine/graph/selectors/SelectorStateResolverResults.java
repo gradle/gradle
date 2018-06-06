@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
@@ -26,17 +25,20 @@ import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 class SelectorStateResolverResults {
-    public final Map<ResolvableSelectorState, ComponentIdResolveResult> results = Maps.newLinkedHashMap();
+    private final List<Registration> results;
+
+    public SelectorStateResolverResults(int size) {
+        results = Lists.newArrayListWithCapacity(size);
+    }
 
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
-        for (Map.Entry<ResolvableSelectorState, ComponentIdResolveResult> entry : results.entrySet()) {
-            ResolvableSelectorState selectorState = entry.getKey();
-            ComponentIdResolveResult idResolveResult = entry.getValue();
+        for (Registration entry : results) {
+            ResolvableSelectorState selectorState = entry.selector;
+            ComponentIdResolveResult idResolveResult = entry.result;
 
             if (selectorState.isForce()) {
                 T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
@@ -81,9 +83,10 @@ class SelectorStateResolverResults {
      * Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
      */
     boolean alreadyHaveResolution(ResolvableSelectorState dep) {
-        for (ComponentIdResolveResult discovered : results.values()) {
+        for (Registration registration : results) {
+            ComponentIdResolveResult discovered = registration.result;
             if (included(dep, discovered)) {
-                results.put(dep, discovered);
+                results.add(new Registration(dep, discovered));
                 return true;
             }
         }
@@ -92,18 +95,19 @@ class SelectorStateResolverResults {
 
     void registerResolution(ResolvableSelectorState dep, ComponentIdResolveResult resolveResult) {
         if (resolveResult.getFailure() != null) {
-            results.put(dep, resolveResult);
+            results.add(new Registration(dep, resolveResult));
             return;
         }
 
         // Check already-resolved dependencies and use this version if it's compatible
-        for (ResolvableSelectorState other : results.keySet()) {
+        for (Registration registration : results) {
+            ResolvableSelectorState other = registration.selector;
             if (included(other, resolveResult)) {
-                results.put(other, resolveResult);
+                registration.result = resolveResult;
             }
         }
 
-        results.put(dep, resolveResult);
+        results.add(new Registration(dep, resolveResult));
     }
 
     private boolean included(ResolvableSelectorState dep, ComponentIdResolveResult candidate) {
@@ -116,5 +120,20 @@ class SelectorStateResolverResults {
             return false;
         }
         return preferredSelector.accept(candidate.getModuleVersionId().getVersion());
+    }
+
+    private static class Registration {
+        private final ResolvableSelectorState selector;
+        private ComponentIdResolveResult result;
+
+        private Registration(ResolvableSelectorState selector, ComponentIdResolveResult result) {
+            this.selector = selector;
+            this.result = result;
+        }
+
+        @Override
+        public String toString() {
+            return selector.toString() + " -> " + result.getModuleVersionId();
+        }
     }
 }
