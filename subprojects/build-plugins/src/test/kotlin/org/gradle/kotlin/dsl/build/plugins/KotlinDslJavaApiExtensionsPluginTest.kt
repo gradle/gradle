@@ -47,16 +47,16 @@ class KotlinDslJavaApiExtensionsPluginTest : AbstractBuildPluginTest() {
                 id("org.gradle.kotlin.dsl.build.java-api-extensions")
             }
 
-            repositories {
-                jcenter()
-            }
-
             kotlinDslApiExtensions {
                 create("main")
             }
 
             tasks.withType<GenerateKotlinDslApiExtensions> {
                 isUseEmbeddedKotlinDslProvider.set(true)
+            }
+
+            repositories {
+                jcenter()
             }
         """)
 
