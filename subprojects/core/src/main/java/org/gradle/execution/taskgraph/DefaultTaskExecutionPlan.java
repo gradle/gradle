@@ -194,7 +194,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
 
     private boolean nodeSatisfiesTaskFilter(WorkInfo successor) {
         if (successor instanceof TaskInfo) {
-            return ((TaskInfo) successor).satisfies(filter);
+            return filter.isSatisfiedBy(((TaskInfo) successor).getTask());
         }
         return true;
     }

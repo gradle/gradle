@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.build.BuildState;
@@ -96,12 +95,6 @@ public class TaskInfoFactory {
         @Override
         public Throwable getWorkFailure() {
             throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean satisfies(Spec<? super Task> filter) {
-            // This is only present because something else in the graph requires it, and filters apply only to root build (for now) -> include
-            return true;
         }
 
         @Override

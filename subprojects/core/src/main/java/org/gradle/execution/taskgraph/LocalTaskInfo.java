@@ -50,11 +50,6 @@ public class LocalTaskInfo extends TaskInfo {
     }
 
     @Override
-    public boolean satisfies(Spec<? super Task> filter) {
-        return filter.isSatisfiedBy(task);
-    }
-
-    @Override
     public void prepareForExecution() {
         ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
     }

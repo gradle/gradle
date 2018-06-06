@@ -18,9 +18,7 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.specs.Spec;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -39,8 +37,6 @@ public abstract class TaskInfo extends WorkInfo {
     public void rethrowFailure() {
         getTask().getState().rethrowFailure();
     }
-
-    public abstract boolean satisfies(Spec<? super Task> filter);
 
     @Override
     public boolean allDependenciesComplete() {
