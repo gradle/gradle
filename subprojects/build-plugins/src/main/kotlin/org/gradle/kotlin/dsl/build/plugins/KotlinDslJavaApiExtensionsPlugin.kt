@@ -72,7 +72,7 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
             it.compileClasspath += sourceSet.compileClasspath + sourceSet.output.classesDirs
         }.also { extensionsSourceSet ->
             dependencies {
-                extensionsSourceSet.compileClasspathConfigurationName(kotlin("stdlib-jdk8"))
+                (extensionsSourceSet.compileClasspathConfigurationName)(kotlin("stdlib-jdk8"))
             }
             tasks {
                 getByName<KotlinCompile>(extensionsSourceSet.getCompileTaskName("kotlin")) {
