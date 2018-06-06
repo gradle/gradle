@@ -48,7 +48,6 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
         withBuildScript("""
             import org.gradle.internal.installation.CurrentGradleInstallation
             import org.gradle.kotlin.dsl.build.tasks.GenerateKotlinDslApiExtensions
-            import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 
             plugins {
                 `java-library`
@@ -75,14 +74,14 @@ class GradleApiExtensionsIntegrationTest : AbstractBuildPluginTest() {
             }
 
             // Get dependencies jars from current gradle installation
-            val additionalClassPath = CurrentGradleInstallation.get()!!.libDirs.flatMap {
+            val gradleApiDependencies = CurrentGradleInstallation.get()!!.libDirs.flatMap {
                 it.listFiles().filter { it.name.endsWith(".jar") && !it.name.startsWith("gradle-") }
             }
 
             // Register sources and dependencies
             java.sourceSets["main"].java.srcDirs(*sourceDirs.toTypedArray())
             dependencies {
-                compileOnly(files(additionalClassPath))
+                compileOnly(files(gradleApiDependencies))
             }
 
             kotlinDslApiExtensions {

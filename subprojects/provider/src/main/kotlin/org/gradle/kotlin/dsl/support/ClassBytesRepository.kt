@@ -28,8 +28,8 @@ import java.util.jar.JarFile
 
 
 internal
-fun classPathBytesRepositoryFor(classPath: List<File>, additionalClassPath: List<File> = emptyList()) =
-    ClassBytesRepository(DefaultClassPath.of(classPath), DefaultClassPath.of(additionalClassPath))
+fun classPathBytesRepositoryFor(classPath: List<File>, classPathDependencies: List<File> = emptyList()) =
+    ClassBytesRepository(DefaultClassPath.of(classPath), DefaultClassPath.of(classPathDependencies))
 
 
 private
@@ -47,7 +47,7 @@ typealias ClassBytesIndex = (String) -> ClassBytesSupplier?
  * Keeps JAR files open for fast lookup, must be closed.
  */
 internal
-class ClassBytesRepository(classPath: ClassPath, additionalClassPath: ClassPath = ClassPath.EMPTY) : Closeable {
+class ClassBytesRepository(classPath: ClassPath, classPathDependencies: ClassPath = ClassPath.EMPTY) : Closeable {
 
     private
     val openJars = mutableMapOf<File, JarFile>()
@@ -56,7 +56,7 @@ class ClassBytesRepository(classPath: ClassPath, additionalClassPath: ClassPath 
     val classPathFiles: List<File> = classPath.asFiles
 
     private
-    val classBytesIndex = (classPathFiles + additionalClassPath.asFiles).map { classBytesIndexFor(it) }
+    val classBytesIndex = (classPathFiles + classPathDependencies.asFiles).map { classBytesIndexFor(it) }
 
     /**
      * Class file bytes for Kotlin source name, if found.

@@ -33,7 +33,7 @@ import java.io.File
  *
  * @param outputFile the file where the generated source will be written
  * @param classPath the api classpath elements
- * @param additionalClassPath the api classpath additional elements
+ * @param classPathDependencies the api classpath dependencies
  * @param includes the api include patterns
  * @param excludes the api exclude patterns
  * @param parameterNamesIndices the api function parameter names indices
@@ -41,7 +41,7 @@ import java.io.File
 fun generateKotlinDslApiExtensionsSourceTo(
     outputFile: File,
     classPath: List<File>,
-    additionalClassPath: List<File>,
+    classPathDependencies: List<File>,
     includes: List<String>,
     excludes: List<String>,
     parameterNamesIndices: List<File>
@@ -51,7 +51,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
         it.apply {
             write(fileHeader)
             write("\n")
-            apiTypeProviderFor(classPath, additionalClassPath, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
+            apiTypeProviderFor(classPath, classPathDependencies, parameterNamesSupplierFor(parameterNamesIndices)).use { api ->
                 kotlinDslApiExtensionsDeclarationsFor(api, apiSpecFor(includes, excludes)).forEach {
                     write("\n$it")
                 }
@@ -216,6 +216,8 @@ data class KotlinExtensionFunction(
         appendln("""
             /**
              * $description.
+             *
+             * @see ${targetType.sourceName}.$name
              */
         """.trimIndent())
         if (isDeprecated) appendln("""@Deprecated("Deprecated Gradle API")""")

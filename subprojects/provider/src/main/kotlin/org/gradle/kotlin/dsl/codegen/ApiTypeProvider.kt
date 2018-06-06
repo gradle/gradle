@@ -53,11 +53,11 @@ import kotlin.LazyThreadSafetyMode.NONE
 internal
 fun apiTypeProviderFor(
     classPath: List<File>,
-    additionalClassPath: List<File> = emptyList(),
+    classPathDependencies: List<File> = emptyList(),
     parameterNamesSupplier: ParameterNamesSupplier = { null }
 ): ApiTypeProvider =
 
-    ApiTypeProvider(classPathBytesRepositoryFor(classPath, additionalClassPath), parameterNamesSupplier)
+    ApiTypeProvider(classPathBytesRepositoryFor(classPath, classPathDependencies), parameterNamesSupplier)
 
 
 private
