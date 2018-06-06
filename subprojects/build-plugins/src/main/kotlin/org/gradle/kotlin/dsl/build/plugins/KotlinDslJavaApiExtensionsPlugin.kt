@@ -94,7 +94,7 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
         extensionsSet: KotlinDslApiExtensionsSet
     ): TaskProvider<GenerateParameterNamesIndexProperties> =
 
-        tasks.createLater(
+        tasks.register(
             extensionsSet.javaParameterNamesTaskName,
             GenerateParameterNamesIndexProperties::class.java
         ) {
@@ -112,7 +112,7 @@ class KotlinDslJavaApiExtensionsPlugin : Plugin<Project> {
     ): TaskProvider<GenerateKotlinDslApiExtensions> =
 
         extensionsSet.sourceSet.get().let { sourceSet ->
-            tasks.createLater(
+            tasks.register(
                 extensionsSet.kotlinDslApiExtensionsTaskName,
                 GenerateKotlinDslApiExtensions::class.java
             ) {
