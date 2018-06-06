@@ -231,6 +231,5 @@ inline fun ClassPathModeExceptionCollector.ignoringErrors(action: () -> Unit) =
     try {
         action()
     } catch (e: Exception) {
-        e.printStackTrace()
         collect(e)
     }
