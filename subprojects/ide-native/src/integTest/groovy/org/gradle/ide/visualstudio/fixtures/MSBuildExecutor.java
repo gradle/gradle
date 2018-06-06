@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class MSBuildExecutor {
         }
     }
 
-    private final List<String> args = new ArrayList<String>();
+    private final List<String> args = Lists.newArrayList("/v:diag");
     private final AvailableToolChains.InstalledToolChain toolChain;
     private TestFile workingDir;
     private String projectName;
