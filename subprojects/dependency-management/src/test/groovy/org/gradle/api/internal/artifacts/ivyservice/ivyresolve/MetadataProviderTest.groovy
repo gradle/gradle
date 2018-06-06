@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCa
 import org.gradle.api.internal.changedetection.state.InMemoryCacheDecoratorFactory
 import org.gradle.api.internal.changedetection.state.ValueSnapshotter
 import org.gradle.cache.CacheRepository
+import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
@@ -164,7 +165,7 @@ class MetadataProviderTest extends Specification {
             processMetadata(_) >> { args -> args[0] }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
-            DefaultConfigurableRule.of(TestSupplier),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
             Stub(InstantiatingAction.ExceptionHandler)
         )
@@ -191,7 +192,7 @@ class MetadataProviderTest extends Specification {
             }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
-            DefaultConfigurableRule.of(TestSupplier),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
             Stub(InstantiatingAction.ExceptionHandler)
         )
@@ -213,7 +214,7 @@ class MetadataProviderTest extends Specification {
             processMetadata(_) >> { args -> args[0] }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
-            DefaultConfigurableRule.of(TestSupplier),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplier)),
             TestUtil.instantiatorFactory().inject(),
             Stub(InstantiatingAction.ExceptionHandler)
         )
@@ -240,7 +241,7 @@ class MetadataProviderTest extends Specification {
             processMetadata(_) >> { args -> args[0] }
         }
         resolveState.componentMetadataSupplier >> new InstantiatingAction<ComponentMetadataSupplierDetails>(
-            DefaultConfigurableRule.of(TestSupplierWithInvalidAttributes),
+            DefaultConfigurableRules.of(DefaultConfigurableRule.of(TestSupplierWithInvalidAttributes)),
             TestUtil.instantiatorFactory().inject(),
             Stub(InstantiatingAction.ExceptionHandler)
         )

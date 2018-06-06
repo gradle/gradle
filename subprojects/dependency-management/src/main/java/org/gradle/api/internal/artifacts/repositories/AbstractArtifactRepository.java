@@ -33,6 +33,7 @@ import org.gradle.api.internal.changedetection.state.isolation.IsolatableFactory
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
+import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
@@ -132,7 +133,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        return new InstantiatingAction<T>(rule, instantiator, new InstantiatingAction.ExceptionHandler<T>() {
+        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, new InstantiatingAction.ExceptionHandler<T>() {
             @Override
             public void handleException(T target, Throwable throwable) {
                 throw UncheckedException.throwAsUncheckedException(throwable);

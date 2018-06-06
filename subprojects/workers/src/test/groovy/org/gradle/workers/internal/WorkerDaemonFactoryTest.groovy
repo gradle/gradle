@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRef
-import org.gradle.process.internal.health.memory.MemoryManager
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -26,11 +25,10 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def clientsManager = Mock(WorkerDaemonClientsManager)
     def client = Mock(WorkerDaemonClient)
-    def memoryManager = Mock(MemoryManager)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def buildOperation = Mock(BuildOperationRef)
 
-    @Subject factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationExecutor)
+    @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationExecutor)
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
@@ -97,22 +95,6 @@ class WorkerDaemonFactoryTest extends Specification {
         1 * clientsManager.release(client)
     }
 
-    def "registers/deregisters a worker daemon expiration with the memory manager"() {
-        WorkerDaemonExpiration workerDaemonExpiration
-
-        when:
-        def factory = new WorkerDaemonFactory(clientsManager, memoryManager, buildOperationExecutor)
-
-        then:
-        1 * memoryManager.addMemoryHolder(_) >> { args -> workerDaemonExpiration = args[0] }
-
-        when:
-        factory.stop()
-
-        then:
-        1 * memoryManager.removeMemoryHolder(_) >> { args -> assert args[0] == workerDaemonExpiration }
-    }
-
     def "build operation is started and finished when client is executed"() {
         when:
         factory.getWorker(options).execute(spec)
@@ -133,13 +115,5 @@ class WorkerDaemonFactoryTest extends Specification {
 
         then:
         thrown(RuntimeException)
-    }
-
-    def "stops clients"() {
-        when:
-        factory.stop()
-
-        then:
-        clientsManager.stop()
     }
 }

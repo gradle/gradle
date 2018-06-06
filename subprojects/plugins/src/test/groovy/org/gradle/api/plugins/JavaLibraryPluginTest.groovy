@@ -230,7 +230,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def apiUsage = javaLibrary.usages[1]
 
         then:
-        javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
+        javaLibrary.artifacts.collect {it.file} == [jarTask.archivePath]
         runtimeUsage.dependencies.size() == 2
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2

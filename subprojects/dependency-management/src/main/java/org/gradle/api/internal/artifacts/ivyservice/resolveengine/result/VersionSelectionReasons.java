@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -36,6 +35,7 @@ public class VersionSelectionReasons {
     public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
     public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
     public static final ComponentSelectionDescriptorInternal CONSTRAINT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT);
+    public static final ComponentSelectionDescriptorInternal REJECTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
 
     public static ComponentSelectionReasonInternal requested() {
         return new DefaultComponentSelectionReason(REQUESTED);
@@ -45,7 +45,7 @@ public class VersionSelectionReasons {
         return new DefaultComponentSelectionReason(Collections.<ComponentSelectionDescriptor>emptyList());
     }
 
-    public static ComponentSelectionReason root() {
+    public static ComponentSelectionReasonInternal root() {
         return new DefaultComponentSelectionReason(ROOT);
     }
 
@@ -129,13 +129,9 @@ public class VersionSelectionReasons {
 
         @Override
         public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
-            if (!descriptions.contains(description)) {
-                ComponentSelectionCause cause = description.getCause();
-                if (descriptions.isEmpty() && cause != ComponentSelectionCause.REQUESTED && cause != ComponentSelectionCause.ROOT) {
-                    // initial reason must always be either root or requested
-                    descriptions.add(REQUESTED);
-                }
-                descriptions.add((ComponentSelectionDescriptorInternal) description);
+            ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) description;
+            if (!descriptions.contains(descriptor)) {
+                descriptions.add(descriptor);
             }
             return this;
         }

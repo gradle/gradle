@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.action.ConfigurableRule
@@ -173,8 +174,8 @@ class IvyResolverTest extends Specification {
             }
         }
 
-        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new IvyResolver(
             "repo",

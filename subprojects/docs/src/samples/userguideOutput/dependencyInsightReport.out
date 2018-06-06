@@ -2,6 +2,8 @@ commons-codec:commons-codec:1.7 (conflict resolution)
    variant "default+runtime" [
       org.gradle.status = release (not requested)
    ]
+
+commons-codec:commons-codec:1.7
 \--- scm
 
 commons-codec:commons-codec:1.6 -> 1.7

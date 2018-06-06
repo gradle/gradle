@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
+import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ComponentVariant
 import org.gradle.internal.component.external.model.FixedComponentArtifacts
@@ -141,8 +142,8 @@ class MavenResolverTest extends Specification {
             }
         }
 
-        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
-        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(Stub(ConfigurableRule), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def supplier = new InstantiatingAction<ComponentMetadataSupplierDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
+        def lister = new InstantiatingAction<ComponentMetadataListerDetails>(DefaultConfigurableRules.of(Stub(ConfigurableRule)), TestUtil.instantiatorFactory().inject(), Stub(InstantiatingAction.ExceptionHandler))
 
         new MavenResolver("repo", new URI("http://localhost"), Stub(RepositoryTransport), Stub(LocallyAvailableResourceFinder), Stub(FileStore), moduleIdentifierFactory, metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister)
     }

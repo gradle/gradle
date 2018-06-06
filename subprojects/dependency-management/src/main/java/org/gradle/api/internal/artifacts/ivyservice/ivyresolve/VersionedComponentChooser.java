@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
 import org.gradle.internal.resolve.result.ComponentSelectionContext;
 
 import java.util.Collection;
@@ -28,5 +29,5 @@ public interface VersionedComponentChooser {
 
     void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, ComponentSelectionContext result, VersionSelector versionSelector, VersionSelector rejectedVersionSelector, ImmutableAttributes consumerAttributes);
 
-    boolean isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider);
+    RejectedByRuleVersion isRejectedComponent(ModuleComponentIdentifier candidateIdentifier, MetadataProvider metadataProvider);
 }

@@ -169,7 +169,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         sourceSets.all(new Action<SourceSet>() {
             @Override
             public void execute(final SourceSet sourceSet) {
-                project.getTasks().createLater(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
+                project.getTasks().register(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType(), new Action<Task>() {
                     @Override
                     public void execute(Task task) {
                         configureForSourceSet(sourceSet, (T)task);

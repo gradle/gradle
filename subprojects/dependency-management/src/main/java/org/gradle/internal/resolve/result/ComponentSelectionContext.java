@@ -17,8 +17,10 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
+import org.gradle.internal.resolve.RejectedByRuleVersion;
 
 /**
  * The result of resolving some dynamic version selector to a particular component id.
@@ -42,17 +44,17 @@ public interface ComponentSelectionContext {
     /**
      * Adds a candidate version that did not match the provided selector.
      */
-    void notMatched(ModuleComponentIdentifier id);
+    void notMatched(ModuleComponentIdentifier id, VersionSelector requestedVersionMatcher);
 
     /**
      * Adds a candidate version that matched the provided selector, but was rejected by some rule.
      */
-    void rejectedByRule(ModuleComponentIdentifier id);
+    void rejectedByRule(RejectedByRuleVersion id);
 
     /**
      * Adds a candidate version that matched the provided selector, but was rejected by some constraint.
      */
-    void rejectedByConstraint(ModuleComponentIdentifier id);
+    void rejectedBySelector(ModuleComponentIdentifier id, VersionSelector versionSelector);
 
     /**
      * Adds a candidate that matched the provided selector, but was rejected because it didn't match the consumer attributes.
