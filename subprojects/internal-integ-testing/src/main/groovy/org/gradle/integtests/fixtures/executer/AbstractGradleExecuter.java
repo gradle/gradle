@@ -67,6 +67,7 @@ import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -536,19 +537,39 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             buildJvmOpts.add(profiler);
         }
 
-        if (isSharedDaemons()) {
-            if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
-                buildJvmOpts.add("-XX:MaxPermSize=320m");
-            }
-            buildJvmOpts.add("-Xmx2g");
-        } else {
-            buildJvmOpts.add("-Xmx1g");
-        }
+        buildJvmOpts.addAll(determineXmx());
+
         if (gradleUserHomeDir != null) {
             buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
             buildJvmOpts.add("-XX:HeapDumpPath=" + gradleUserHomeDir.getAbsolutePath());
         }
         return buildJvmOpts;
+    }
+
+    private List<String> determineXmx() {
+        if (xmxSpecified()) {
+            return Collections.emptyList();
+        }
+
+        List<String> result = new ArrayList<String>();
+        if (isSharedDaemons()) {
+            if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+                result.add("-XX:MaxPermSize=320m");
+            }
+            result.add("-Xmx2g");
+        } else {
+            result.add("-Xmx1g");
+        }
+        return result;
+    }
+
+    private boolean xmxSpecified() {
+        for (String arg : buildJvmOpts) {
+            if (arg.startsWith("-Xmx")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
