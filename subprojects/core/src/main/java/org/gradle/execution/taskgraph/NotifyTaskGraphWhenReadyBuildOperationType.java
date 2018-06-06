@@ -31,9 +31,11 @@ public class NotifyTaskGraphWhenReadyBuildOperationType implements BuildOperatio
     public interface Details {
 
         String getBuildPath();
+
     }
 
     public interface Result {
+
     }
 
     static class DetailsImpl implements NotifyTaskGraphWhenReadyBuildOperationType.Details {
