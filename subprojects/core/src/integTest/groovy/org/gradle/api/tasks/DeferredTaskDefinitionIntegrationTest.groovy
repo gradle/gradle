@@ -757,4 +757,20 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "baz"
     }
+
+    def "lazy tasks that are removed cannot be recreated"() {
+        buildFile << '''
+            def fooTask = tasks.register('foo', SomeTask).get()
+            
+            tasks.remove(fooTask)
+            
+            tasks.all { }
+        '''
+
+        expect:
+        fails "foo"
+
+        and:
+        failure.assertHasDescription("Task 'foo' not found in root project")
+    }
 }

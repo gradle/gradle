@@ -23,7 +23,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 configurations.all {
     artifacts.clear()
 }
-tasks.remove(jar)
+//tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask) {
     baseName "gradle"

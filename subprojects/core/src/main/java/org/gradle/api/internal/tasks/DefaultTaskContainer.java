@@ -632,8 +632,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         public void run(BuildOperationContext context) {
                             try {
                                 task = createTask(identity, constructorArgs);
+                                realized(TaskCreatingProvider.this);
                                 statistics.lazyTaskRealized(getType());
                                 add(task);
+                                // TODO removing this stuff from the store should be handled through some sort of decoration
                                 context.setResult(REALIZE_RESULT);
                             } catch (RuntimeException ex) {
                                 cause = ex;

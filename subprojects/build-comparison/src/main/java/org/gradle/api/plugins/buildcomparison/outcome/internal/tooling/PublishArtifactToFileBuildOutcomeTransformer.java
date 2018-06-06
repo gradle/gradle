@@ -37,9 +37,10 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
 
     public GradleFileBuildOutcome transform(PublishArtifact artifact, Project project) {
         String id = getId(artifact, project);
-        String taskPath = getTaskPath(artifact);
         String description = getDescription(artifact);
-        String typeIdentifier = getTypeIdentifier(artifact);
+        Task task = inferTask(artifact);
+        String taskPath = task != null ? task.getPath() : null;
+        String typeIdentifier = getTypeIdentifier(task);
 
         return new DefaultGradleFileBuildOutcome(id, description, taskPath, artifact.getFile(), typeIdentifier);
     }
@@ -56,28 +57,9 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
         return "Publish artifact '".concat(artifact.toString()).concat("'");
     }
 
-    private String getTypeIdentifier(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) artifact;
-            AbstractArchiveTask task = publishArtifact.getArchiveTask();
-
-            // There is an inheritance hierarchy in play here, so the order
-            // of the clauses is very important.
-
-            if (task instanceof War) {
-                return WAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Ear) {
-                return EAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Jar) {
-                return JAR_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Zip) {
-                return ZIP_ARTIFACT.getTypeIdentifier();
-            } else if (task instanceof Tar) {
-                return TAR_ARTIFACT.getTypeIdentifier();
-            } else {
-                // we don't know about this kind of archive task
-                return ARCHIVE_ARTIFACT.getTypeIdentifier();
-            }
+    private String getTypeIdentifier(Task task) {
+        if (task instanceof AbstractArchiveTask) {
+            return getTypeIdentifier((AbstractArchiveTask)task);
         } else {
             // This could very well be a zip (or something else we understand), but we can't know for sure.
             // The client may try to infer from the file extension.
@@ -85,17 +67,35 @@ public class PublishArtifactToFileBuildOutcomeTransformer {
         }
     }
 
-    private String getTaskPath(PublishArtifact artifact) {
-        if (artifact instanceof ArchivePublishArtifact) {
-            return ((ArchivePublishArtifact) artifact).getArchiveTask().getPath();
+    private String getTypeIdentifier(AbstractArchiveTask task) {
+        // There is an inheritance hierarchy in play here, so the order
+        // of the clauses is very important.
+        if (task instanceof War) {
+            return WAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Ear) {
+            return EAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Jar) {
+            return JAR_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Zip) {
+            return ZIP_ARTIFACT.getTypeIdentifier();
+        } else if (task instanceof Tar) {
+            return TAR_ARTIFACT.getTypeIdentifier();
         } else {
-            String taskPath = null;
-            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
-            if (!tasks.isEmpty()) {
-                taskPath = tasks.iterator().next().getPath();
-            }
-            return taskPath;
+            // we don't know about this kind of archive task
+            return ARCHIVE_ARTIFACT.getTypeIdentifier();
         }
     }
 
+    private Task inferTask(PublishArtifact artifact) {
+        if (artifact instanceof ArchivePublishArtifact) {
+            return ((ArchivePublishArtifact) artifact).getArchiveTask();
+        } else {
+            Set<? extends Task> tasks = artifact.getBuildDependencies().getDependencies(null);
+            if (!tasks.isEmpty()) {
+                return tasks.iterator().next();
+            }
+
+            return null;
+        }
+    }
 }
