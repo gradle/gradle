@@ -372,8 +372,8 @@ class DefaultTaskExecutionGraphSpec extends Specification {
 
         and:
         with(buildOperationExecutor.operations[0]){
-            name == 'Notify taskgraph whenReady listeners'
-            displayName == 'Notify taskgraph whenReady listeners'
+            name == 'Notify task graph whenReady listeners'
+            displayName == 'Notify task graph whenReady listeners'
             details.buildPath == ':'
         }
     }
